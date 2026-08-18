@@ -316,6 +316,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       configAppID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,

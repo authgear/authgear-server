@@ -23,6 +23,12 @@ func (c *Commands) CountClientsBySource(ctx context.Context, source model.OAuthC
 	return c.OAuthClientQueries.CountClientsBySource(ctx, source)
 }
 
+// LockForClientCount is re-exported from oauthclient.Commands, mirroring
+// CountClientsBySource above. See oauthclient.Store.LockForClientCount.
+func (c *Commands) LockForClientCount(ctx context.Context, source model.OAuthClientSource) error {
+	return c.OAuthClient.LockForClientCount(ctx, source)
+}
+
 func (c *Commands) CreateInitialAccessToken(ctx context.Context, options *NewInitialAccessTokenOptions) (plaintext string, iat *model.OAuthInitialAccessToken, err error) {
 	plaintext, hash := GenerateInitialAccessToken(options.Type)
 	t := c.Store.NewInitialAccessToken(options, hash)

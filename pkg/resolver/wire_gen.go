@@ -334,6 +334,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -1214,6 +1215,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,

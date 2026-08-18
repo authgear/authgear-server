@@ -201,6 +201,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
+		AppID:       configAppID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,

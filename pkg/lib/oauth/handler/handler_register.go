@@ -20,9 +20,11 @@ import (
 
 type RegistrationHandlerDCRService interface {
 	RegisterClient(ctx context.Context, options *dcr.RegisterClientOptions) (*model.OAuthClient, error)
-	// CountClientsBySource is present now for symmetry; wired up by the
-	// client usage-limit check (docs/plans/dcr/2026-08-17-05-client-usage-limit.md).
 	CountClientsBySource(ctx context.Context, source model.OAuthClientSource) (uint64, error)
+	// LockForClientCount serializes concurrent registrations for this app so
+	// the CountClientsBySource-then-RegisterClient sequence below is atomic
+	// with respect to the configured oauth_client_dcr quota.
+	LockForClientCount(ctx context.Context, source model.OAuthClientSource) error
 }
 
 type RegistrationHandlerIATService interface {
@@ -33,6 +35,11 @@ type RegistrationHandlerRateLimiter interface {
 	Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
 }
 
+type RegistrationHandlerUsageLimiter interface {
+	CheckStanding(ctx context.Context, name model.UsageName, currentCount int) error
+	ReportStandingCreated(ctx context.Context, name model.UsageName, countBeforeCreate int)
+}
+
 type RegistrationHandler struct {
 	Database    *appdb.Handle
 	OAuthConfig *config.OAuthConfig
@@ -40,8 +47,9 @@ type RegistrationHandler struct {
 	IAT         RegistrationHandlerIATService
 	Clock       clock.Clock
 
-	RemoteIP    httputil.RemoteIP
-	RateLimiter RegistrationHandlerRateLimiter
+	RemoteIP     httputil.RemoteIP
+	RateLimiter  RegistrationHandlerRateLimiter
+	UsageLimiter RegistrationHandlerUsageLimiter
 }
 
 // RegistrationResponse is the RFC 7591 §3.2.1 success response. There is
@@ -148,6 +156,7 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	// go through h.Database's SQLExecutor, which requires an active tx-like
 	// context on every query.
 	var client *model.OAuthClient
+	var countBeforeCreate int
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		kind := model.OAuthClientKindThirdParty
 		if token != "" {
@@ -159,6 +168,26 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 				kind = model.OAuthClientKindFirstParty
 			}
 		}
+
+		// Close the check-then-insert race between concurrent registrations
+		// for the same app: a plain "SELECT COUNT(*) then INSERT" has a
+		// TOCTOU window where two concurrent requests both observe a count
+		// under quota and both proceed. Serialize per-app with a
+		// transaction-scoped advisory lock.
+		if err := h.DCR.LockForClientCount(ctx, model.OAuthClientSourceDCR); err != nil {
+			return err
+		}
+
+		clientCount, err := h.DCR.CountClientsBySource(ctx, model.OAuthClientSourceDCR)
+		if err != nil {
+			return err
+		}
+		//nolint:gosec // G115
+		count := int(clientCount)
+		if err := h.UsageLimiter.CheckStanding(ctx, model.UsageNameOAuthClientDCR, count); err != nil {
+			return protocol.NewErrorStatusCode("access_denied", "the project has reached its dynamic client registration limit", http.StatusForbidden)
+		}
+		countBeforeCreate = count
 
 		c, err := h.DCR.RegisterClient(ctx, &dcr.RegisterClientOptions{
 			Kind:         kind,
@@ -176,6 +205,7 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 		}
 		return nil, err
 	}
+	h.UsageLimiter.ReportStandingCreated(ctx, model.UsageNameOAuthClientDCR, countBeforeCreate)
 
 	return &RegistrationResponse{
 		ClientID:         client.ClientID,

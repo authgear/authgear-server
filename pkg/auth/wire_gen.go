@@ -431,6 +431,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -1455,6 +1456,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -2462,6 +2464,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -3624,6 +3627,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -4113,6 +4117,7 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	appredisHandle := appProvider.Redis
 	clientCache := &oauthclient.ClientCache{
@@ -4589,14 +4594,36 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		Config:       rateLimitsFeatureConfig,
 		EventService: eventService,
 	}
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		GomailDialer: dialer,
+	}
+	devMode := environmentConfig.DevMode
+	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              appID,
+		TranslationService: translationService,
+		MailSender:         sender,
+		DevMode:            devMode,
+	}
+	usageLimiter := &usage.Limiter{
+		Clock:                  clockClock,
+		Database:               handle,
+		AppID:                  appID,
+		Redis:                  appredisHandle,
+		EffectiveConfig:        config,
+		EventService:           eventService,
+		UsageAlertEmailService: usageAlertEmailServiceImpl,
+	}
 	registrationHandler := &handler.RegistrationHandler{
-		Database:    handle,
-		OAuthConfig: oAuthConfig,
-		DCR:         dcrCommands,
-		IAT:         dcrQueries,
-		Clock:       clockClock,
-		RemoteIP:    remoteIP,
-		RateLimiter: limiter,
+		Database:     handle,
+		OAuthConfig:  oAuthConfig,
+		DCR:          dcrCommands,
+		IAT:          dcrQueries,
+		Clock:        clockClock,
+		RemoteIP:     remoteIP,
+		RateLimiter:  limiter,
+		UsageLimiter: usageLimiter,
 	}
 	registerHandler := &oauth3.RegisterHandler{
 		RegistrationHandler: registrationHandler,
@@ -4790,6 +4817,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -5677,6 +5705,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -6466,6 +6495,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	appredisHandle := appProvider.Redis
 	clientCache := &oauthclient.ClientCache{
@@ -7463,6 +7493,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -8599,6 +8630,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	appredisHandle := appProvider.Redis
 	clientCache := &oauthclient.ClientCache{
@@ -9697,6 +9729,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	appredisHandle := appProvider.Redis
 	clientCache := &oauthclient.ClientCache{
@@ -10904,6 +10937,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -11465,6 +11499,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -12680,6 +12715,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -13902,6 +13938,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -15044,6 +15081,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -16253,6 +16291,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -17274,6 +17313,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -18410,6 +18450,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -19542,6 +19583,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -20689,6 +20731,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -21808,6 +21851,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -22954,6 +22998,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -24099,6 +24144,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -25244,6 +25290,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -26378,6 +26425,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -27532,6 +27580,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -28677,6 +28726,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -29823,6 +29873,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -30978,6 +31029,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -32123,6 +32175,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -33260,6 +33313,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -34427,6 +34481,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -35573,6 +35628,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -36707,6 +36763,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -37837,6 +37894,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -38947,6 +39005,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -40053,6 +40112,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -41260,6 +41320,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -42463,6 +42524,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -43678,6 +43740,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -44796,6 +44859,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -45918,6 +45982,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -46965,6 +47030,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -48011,6 +48077,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -49117,6 +49184,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -50488,6 +50556,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -51546,6 +51615,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -52556,6 +52626,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -53600,6 +53671,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -54660,6 +54732,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -55796,6 +55869,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -56900,6 +56974,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -58036,6 +58111,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -58973,6 +59049,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -59919,6 +59996,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -61158,6 +61236,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -62390,6 +62469,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -63612,6 +63692,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -64831,6 +64912,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -66054,6 +66136,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -67275,6 +67358,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -68494,6 +68578,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -69709,6 +69794,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -70924,6 +71010,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -72144,6 +72231,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -73365,6 +73453,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -74580,6 +74669,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -75799,6 +75889,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -77014,6 +77105,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -78229,6 +78321,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -79444,6 +79537,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -80659,6 +80753,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -81881,6 +81976,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -83098,6 +83194,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -84314,6 +84411,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -85431,6 +85529,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -86837,6 +86936,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -87974,6 +88074,7 @@ func newWebAppAuthflowV2AccountStatusHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -88113,6 +88214,7 @@ func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -88252,6 +88354,7 @@ func newWebAppAuthflowV2OAuthProviderMissingCredentialsHandler(p *deps.RequestPr
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -88469,6 +88572,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -89684,6 +89788,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -90899,6 +91004,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -92036,6 +92142,7 @@ func newWebAppAuthflowV2NoAuthenticatorHandler(p *deps.RequestProvider) http.Han
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -92253,6 +92360,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -93470,6 +93578,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -94672,6 +94781,7 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -95588,6 +95698,7 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -96534,6 +96645,7 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -97473,6 +97585,7 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -98332,6 +98445,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -99450,6 +99564,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -100583,6 +100698,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -101788,6 +101904,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -102839,6 +102956,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -104048,6 +104166,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -105121,6 +105240,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -106247,6 +106367,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -107381,6 +107502,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -108587,6 +108709,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -109709,6 +109832,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -110777,6 +110901,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -111903,6 +112028,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -113111,6 +113237,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -114238,6 +114365,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -115372,6 +115500,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -116509,6 +116638,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -117556,6 +117686,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -118839,6 +118970,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -119057,6 +119189,7 @@ func newCSRFMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -119199,6 +119332,7 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -119466,6 +119600,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -120261,6 +120396,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -121458,6 +121594,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -122445,6 +122582,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -123406,6 +123544,7 @@ func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -123891,6 +124030,7 @@ func newAccountManagementRateLimitMiddleware(p *deps.RequestProvider) httproute.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
