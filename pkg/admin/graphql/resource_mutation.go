@@ -20,6 +20,10 @@ var createResourceInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.String,
 			Description: "The optional name of the resource.",
 		},
+		"accessPolicy": &graphql.InputObjectFieldConfig{
+			Type:        accessPolicyInputType,
+			Description: "The optional access policy of the resource. Defaults to no third-party access if omitted.",
+		},
 	},
 })
 
@@ -73,8 +77,9 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.NewResourceOptions{
-				URI:  resourcescope.NewResourceURI(ctx, resourceURI),
-				Name: name,
+				URI:          resourcescope.NewResourceURI(ctx, resourceURI),
+				Name:         name,
+				AccessPolicy: decodeAccessPolicyInput(input),
 			}
 
 			gqlCtx := GQLContext(ctx)
@@ -107,6 +112,10 @@ var updateResourceInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
 			Description: "The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name.",
+		},
+		"accessPolicy": &graphql.InputObjectFieldConfig{
+			Type:        accessPolicyInputType,
+			Description: "The new access policy of the resource. If omitted, the existing access policy is unchanged.",
 		},
 	},
 })
@@ -141,8 +150,9 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.UpdateResourceOptions{
-				ResourceURI: resourceURI,
-				NewName:     newName,
+				ResourceURI:  resourceURI,
+				NewName:      newName,
+				AccessPolicy: decodeAccessPolicyInput(input),
 			}
 
 			ctx := p.Context

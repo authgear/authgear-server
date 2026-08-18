@@ -30,6 +30,16 @@ export type Scalars = {
   Web3Claims: { input: GQL_Web3Claims; output: GQL_Web3Claims; }
 };
 
+export type AccessPolicy = {
+  __typename?: 'AccessPolicy';
+  /** Whether a dynamically registered (DCR) or static third-party client can request this resource/scope via the resource parameter. */
+  allowDynamicThirdPartyClientAccess: Scalars['Boolean']['output'];
+};
+
+export type AccessPolicyInput = {
+  allowDynamicThirdPartyClientAccess?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 /** The account lockout state of a user */
 export type AccountLockout = {
   __typename?: 'AccountLockout';
@@ -510,6 +520,8 @@ export type CreateInitialAccessTokenPayload = {
 };
 
 export type CreateResourceInput = {
+  /** The optional access policy of the resource. Defaults to no third-party access if omitted. */
+  accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The optional name of the resource. */
   name?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */
@@ -536,6 +548,8 @@ export type CreateRolePayload = {
 };
 
 export type CreateScopeInput = {
+  /** The optional access policy of the scope. Defaults to no third-party access if omitted. */
+  accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The optional description of the scope. */
   description?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */
@@ -1772,6 +1786,8 @@ export type ResetPasswordPayload = {
 /** Authgear resource */
 export type Resource = Entity & Node & {
   __typename?: 'Resource';
+  /** The access policy governing third-party client access to this resource. */
+  accessPolicy: AccessPolicy;
   /** The list of client IDs associated with this Resource. */
   clientIDs: Array<Scalars['String']['output']>;
   /** The creation time of entity */
@@ -1933,6 +1949,8 @@ export type ScheduleAccountDeletionPayload = {
 /** Authgear scope */
 export type Scope = Entity & Node & {
   __typename?: 'Scope';
+  /** The access policy governing third-party client access to this scope. */
+  accessPolicy: AccessPolicy;
   /** The creation time of entity */
   createdAt: Scalars['DateTime']['output'];
   /** The optional description of the scope. */
@@ -2172,6 +2190,8 @@ export type UpdateIdentityPayload = {
 };
 
 export type UpdateResourceInput = {
+  /** The new access policy of the resource. If omitted, the existing access policy is unchanged. */
+  accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name. */
   name?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */
@@ -2200,6 +2220,8 @@ export type UpdateRolePayload = {
 };
 
 export type UpdateScopeInput = {
+  /** The new access policy of the scope. If omitted, the existing access policy is unchanged. */
+  accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The new description of the scope. Pass null if you do not need to update the description. Pass an empty string to remove the description. */
   description?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */

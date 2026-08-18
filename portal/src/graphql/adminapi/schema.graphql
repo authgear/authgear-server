@@ -1,3 +1,17 @@
+""""""
+type AccessPolicy {
+  """
+  Whether a dynamically registered (DCR) or static third-party client can request this resource/scope via the resource parameter.
+  """
+  allowDynamicThirdPartyClientAccess: Boolean!
+}
+
+""""""
+input AccessPolicyInput {
+  """"""
+  allowDynamicThirdPartyClientAccess: Boolean
+}
+
 """The account lockout state of a user"""
 type AccountLockout {
   """Whether the user is currently locked"""
@@ -863,6 +877,11 @@ type CreateInitialAccessTokenPayload {
 
 """"""
 input CreateResourceInput {
+  """
+  The optional access policy of the resource. Defaults to no third-party access if omitted.
+  """
+  accessPolicy: AccessPolicyInput
+
   """The optional name of the resource."""
   name: String
 
@@ -896,6 +915,11 @@ type CreateRolePayload {
 
 """"""
 input CreateScopeInput {
+  """
+  The optional access policy of the scope. Defaults to no third-party access if omitted.
+  """
+  accessPolicy: AccessPolicyInput
+
   """The optional description of the scope."""
   description: String
 
@@ -2098,6 +2122,11 @@ type ResetPasswordPayload {
 
 """Authgear resource"""
 type Resource implements Entity & Node {
+  """
+  The access policy governing third-party client access to this resource.
+  """
+  accessPolicy: AccessPolicy!
+
   """The list of client IDs associated with this Resource."""
   clientIDs: [String!]!
 
@@ -2254,6 +2283,9 @@ type ScheduleAccountDeletionPayload {
 
 """Authgear scope"""
 type Scope implements Entity & Node {
+  """The access policy governing third-party client access to this scope."""
+  accessPolicy: AccessPolicy!
+
   """The creation time of entity"""
   createdAt: DateTime!
 
@@ -2599,6 +2631,11 @@ type UpdateIdentityPayload {
 """"""
 input UpdateResourceInput {
   """
+  The new access policy of the resource. If omitted, the existing access policy is unchanged.
+  """
+  accessPolicy: AccessPolicyInput
+
+  """
   The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name.
   """
   name: String
@@ -2642,6 +2679,11 @@ type UpdateRolePayload {
 
 """"""
 input UpdateScopeInput {
+  """
+  The new access policy of the scope. If omitted, the existing access policy is unchanged.
+  """
+  accessPolicy: AccessPolicyInput
+
   """
   The new description of the scope. Pass null if you do not need to update the description. Pass an empty string to remove the description.
   """
