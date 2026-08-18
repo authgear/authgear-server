@@ -250,6 +250,9 @@ type SetupOAuthOptions struct {
 	// SSOEnabled=false -- a real, common combination distinct from either
 	// SSOEnabled: true or SSOEnabled: false above.
 	SSOEnabledOmitted bool
+	// Resource is the RFC 8707 resource indicator, omitted from the request
+	// entirely when empty.
+	Resource string
 }
 
 func (c *Client) SetupOAuth(opts SetupOAuthOptions) (output map[string]any, err error) {
@@ -283,6 +286,9 @@ func (c *Client) SetupOAuth(opts SetupOAuthOptions) (output map[string]any, err 
 		} else {
 			values.Set("x_sso_enabled", "false")
 		}
+	}
+	if opts.Resource != "" {
+		values.Set("resource", opts.Resource)
 	}
 
 	u.RawQuery = values.Encode()
@@ -333,6 +339,13 @@ type OAuthExchangeCodeResult struct {
 	// refresh_token grant after logout must fail, since ParseRefreshToken
 	// looks the grant up from storage, not from any in-request state.
 	RefreshToken string `json:"refresh_token"`
+	// AccessTokenIsJWT and AccessTokenClaims are a best-effort decode of
+	// AccessToken: false/nil when the access token is opaque (an ordinary
+	// random string, not the "eyJ..." shape of a JWT), populated when it
+	// parses as one — lets a test assert on access_token's aud claim
+	// (resource indicators) without a dedicated JWT-decoding action.
+	AccessTokenIsJWT  bool           `json:"access_token_is_jwt"`
+	AccessTokenClaims map[string]any `json:"access_token_claims,omitempty"`
 }
 
 func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuthExchangeCodeResult, err error) {
@@ -427,11 +440,22 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 	accessToken, _ := tokenRespBody["access_token"].(string)
 	refreshToken, _ := tokenRespBody["refresh_token"].(string)
 
+	var accessTokenIsJWT bool
+	var accessTokenClaims map[string]any
+	if accessTok, err := jwt.ParseInsecure([]byte(accessToken)); err == nil {
+		if m, err := accessTok.AsMap(c.Context); err == nil {
+			accessTokenIsJWT = true
+			accessTokenClaims = m
+		}
+	}
+
 	result = &OAuthExchangeCodeResult{
-		IDToken:      idTokenMap,
-		AccessToken:  accessToken,
-		RawIDToken:   idTokenStr,
-		RefreshToken: refreshToken,
+		IDToken:           idTokenMap,
+		AccessToken:       accessToken,
+		RawIDToken:        idTokenStr,
+		RefreshToken:      refreshToken,
+		AccessTokenIsJWT:  accessTokenIsJWT,
+		AccessTokenClaims: accessTokenClaims,
 	}
 	return
 }

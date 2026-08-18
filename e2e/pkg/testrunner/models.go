@@ -318,6 +318,7 @@ var _ = TestCaseSchema.Add("Step", `
 		},
 		"oauth_setup_sso_enabled": { "type": "boolean" },
 		"oauth_setup_sso_enabled_omitted": { "type": "boolean" },
+		"oauth_setup_resource": { "type": "string" },
 		"oauth_approve_consent_redirect_uri": { "type": "string" },
 		"clear_cookies_names": {
 			"type": "array",
@@ -615,6 +616,10 @@ type Step struct {
 	OAuthSetupScope             []string `json:"oauth_setup_scope"`
 	OAuthSetupSSOEnabled        bool     `json:"oauth_setup_sso_enabled"`
 	OAuthSetupSSOEnabledOmitted bool     `json:"oauth_setup_sso_enabled_omitted"`
+	// OAuthSetupResource is the RFC 8707 resource indicator, omitted from
+	// /oauth2/authorize entirely when empty (not the same as an
+	// explicitly-empty resource=, which this framework has no way to send).
+	OAuthSetupResource string `json:"oauth_setup_resource"`
 
 	// `action` == "oauth_approve_consent"
 	OAuthApproveConsentRedirectURI string `json:"oauth_approve_consent_redirect_uri"`
@@ -725,7 +730,8 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 		"json_body": { "type": "string" },
 		"html_xpath_exists": { "type": "array", "items": { "type": "string" } },
 		"html_text_contains": { "type": "array", "items": { "type": "string" } },
-		"location_not_contains": { "type": "array", "items": { "type": "string" } }
+		"location_not_contains": { "type": "array", "items": { "type": "string" } },
+		"location_contains": { "type": "array", "items": { "type": "string" } }
 	}
 }
 `)
@@ -736,6 +742,7 @@ type HTTPOutput struct {
 	SAMLElement         *OuputSAMLElement `json:"saml_element"`
 	JSONBody            *string           `json:"json_body"`
 	LocationNotContains []string          `json:"location_not_contains"`
+	LocationContains    []string          `json:"location_contains"`
 	HTMLXPathExists     []string          `json:"html_xpath_exists"`
 	HTMLTextContains    []string          `json:"html_text_contains"`
 }
