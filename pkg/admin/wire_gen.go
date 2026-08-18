@@ -321,6 +321,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -1621,6 +1622,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -2130,6 +2132,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,
@@ -2640,6 +2643,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: handle,

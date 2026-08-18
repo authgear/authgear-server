@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 
@@ -226,6 +227,25 @@ func (s *Store) countClients(ctx context.Context) (uint64, error) {
 // cimd.md define separate quotas counted over source: DCR and source: CIMD
 // respectively. A source-less count would let one source's quota consume
 // the other's.
+// LockForClientCount serializes concurrent DCR/CIMD registrations for this
+// app so a CountClientsBySource-then-CreateClient sequence is atomic with
+// respect to the configured quota -- a plain "SELECT COUNT(*) then INSERT"
+// has a TOCTOU window a Postgres COUNT(*) does not close on its own. Must be
+// called inside a transaction: pg_advisory_xact_lock releases at
+// transaction end, unlike the session-scoped pg_advisory_lock, which would
+// leak the lock across the pooled connection's next user.
+//
+// The lock key is scoped per source (not per table), so a DCR registration
+// and a CIMD resolution never serialize against each other.
+func (s *Store) LockForClientCount(ctx context.Context, source Source) error {
+	key := string(source) + ":" + string(s.AppID)
+	_, err := s.SQLExecutor.ExecWith(ctx, sq.Expr("SELECT pg_advisory_xact_lock(hashtext(?))", key))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Store) CountClientsBySource(ctx context.Context, source Source) (uint64, error) {
 	q := s.SQLBuilder.Select("COUNT(*)").
 		From(s.SQLBuilder.TableName("_auth_oauth_client")).

@@ -21,6 +21,13 @@ type Commands struct {
 	pendingInvalidations []string `wire:"-"`
 }
 
+// LockForClientCount is re-exported from Store so RegistrationHandler
+// depends on one collaborator (via dcr.Commands) rather than reaching into
+// pkg/lib/oauthclient directly. See Store.LockForClientCount.
+func (c *Commands) LockForClientCount(ctx context.Context, source Source) error {
+	return c.Store.LockForClientCount(ctx, source)
+}
+
 func (c *Commands) CreateClient(ctx context.Context, options *NewClientOptions) (*Client, error) {
 	client := c.Store.NewClient(options)
 	if err := c.Store.CreateClient(ctx, client); err != nil {

@@ -628,6 +628,7 @@ var CommonDependencySet = wire.NewSet(
 		usage.DependencySet,
 		wire.Bind(new(messaging.UsageLimiter), new(*usage.Limiter)),
 		wire.Bind(new(userimport.UsageLimiter), new(*usage.Limiter)),
+		wire.Bind(new(oauthhandler.RegistrationHandlerUsageLimiter), new(*usage.Limiter)),
 	),
 
 	wire.NewSet(

@@ -221,6 +221,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -1110,6 +1111,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
@@ -1454,6 +1456,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
