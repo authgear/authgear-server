@@ -36,6 +36,10 @@ var nodeResource = node(
 				Type:        graphql.String,
 				Description: "The optional name of the resource.",
 			},
+			"accessPolicy": &graphql.Field{
+				Type:        graphql.NewNonNull(accessPolicyType),
+				Description: "The access policy governing third-party client access to this resource.",
+			},
 			"clientIDs": &graphql.Field{
 				Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
 				Description: "The list of client IDs associated with this Resource.",
