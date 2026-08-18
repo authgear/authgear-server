@@ -51,6 +51,11 @@ configs:
           - quota: 8
             period: month
             action: block
+  - usage:
+      limits:
+        oauth_client_dcr:
+          - quota: 50
+            action: block
   - admin_api:
       user_import_usage:
         enabled: true
@@ -214,3 +219,6 @@ result:
         - quota: 20
           period: month
           action: alert
+      oauth_client_dcr:
+        - quota: 50
+          action: block
