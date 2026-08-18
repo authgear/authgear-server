@@ -3,6 +3,7 @@ package resourcescope
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	databaseutil "github.com/authgear/authgear-server/pkg/util/databaseutil"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -17,16 +19,26 @@ import (
 
 func (s *Store) NewResource(options *NewResourceOptions) *Resource {
 	now := s.Clock.NowUTC()
+	accessPolicy := model.AccessPolicy{}
+	if options.AccessPolicy != nil {
+		accessPolicy = *options.AccessPolicy
+	}
 	return &Resource{
-		ID:          uuid.NewString(),
-		CreatedAt:   now,
-		UpdatedAt:   now,
-		ResourceURI: options.URI.Value,
-		Name:        options.Name,
+		ID:           uuid.NewString(),
+		CreatedAt:    now,
+		UpdatedAt:    now,
+		ResourceURI:  options.URI.Value,
+		Name:         options.Name,
+		AccessPolicy: accessPolicy,
 	}
 }
 
 func (s *Store) CreateResource(ctx context.Context, r *Resource) error {
+	accessPolicy, err := json.Marshal(r.AccessPolicy)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_resource")).
 		Columns(
@@ -35,6 +47,7 @@ func (s *Store) CreateResource(ctx context.Context, r *Resource) error {
 			"updated_at",
 			"uri",
 			"name",
+			"access_policy",
 		).
 		Values(
 			r.ID,
@@ -42,9 +55,10 @@ func (s *Store) CreateResource(ctx context.Context, r *Resource) error {
 			r.UpdatedAt,
 			r.ResourceURI,
 			r.Name,
+			accessPolicy,
 		)
 
-	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		if databaseutil.IsDuplicateKeyError(err) {
 			return ErrResourceDuplicateURI
@@ -68,6 +82,14 @@ func (s *Store) UpdateResource(ctx context.Context, options *UpdateResourceOptio
 		} else {
 			q = q.Set("name", *options.NewName)
 		}
+	}
+
+	if options.AccessPolicy != nil {
+		accessPolicy, err := json.Marshal(*options.AccessPolicy)
+		if err != nil {
+			return err
+		}
+		q = q.Set("access_policy", accessPolicy)
 	}
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
@@ -129,6 +151,31 @@ func (s *Store) GetResourceByID(ctx context.Context, id string) (*Resource, erro
 
 func (s *Store) GetResourceByURI(ctx context.Context, uri string) (*Resource, error) {
 	q := s.selectResourceQuery("r").Where("r.uri = ?", uri)
+
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := s.scanResource(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrResourceNotFound
+		}
+		return nil, err
+	}
+
+	return r, nil
+}
+
+// GetResourceByURIForThirdPartyAccess returns the resource only if its
+// access_policy allows third-party access; otherwise ErrResourceNotFound,
+// deliberately reusing the same not-found error M2M's GetClientResourceByURI
+// uses for "not associated" so both grant paths collapse to invalid_target
+// identically at the call site.
+func (s *Store) GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*Resource, error) {
+	q := s.selectResourceQuery("r").
+		Where(fmt.Sprintf("r.uri = ? AND (r.access_policy->>'%s')::boolean IS TRUE", accessPolicyAllowDynamicThirdPartyClientAccessKey), uri)
 
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
@@ -261,6 +308,7 @@ func (s *Store) selectResourceQuery(alias string) db.SelectBuilder {
 			aliasedColumn("updated_at"),
 			aliasedColumn("uri"),
 			aliasedColumn("name"),
+			aliasedColumn("access_policy"),
 		).
 		From(s.SQLBuilder.TableName("_auth_resource"), alias)
 }
@@ -268,14 +316,21 @@ func (s *Store) selectResourceQuery(alias string) db.SelectBuilder {
 func (s *Store) scanResource(scanner db.Scanner) (*Resource, error) {
 	r := &Resource{}
 
+	var accessPolicy []byte
+
 	err := scanner.Scan(
 		&r.ID,
 		&r.CreatedAt,
 		&r.UpdatedAt,
 		&r.ResourceURI,
 		&r.Name,
+		&accessPolicy,
 	)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(accessPolicy, &r.AccessPolicy); err != nil {
 		return nil, err
 	}
 
