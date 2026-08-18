@@ -169,6 +169,7 @@ type CreateNewRefreshTokenOptions struct {
 	AuthorizationID                string
 	DPoPJKT                        string
 	ShortLivedRefreshTokenExpireAt *time.Time
+	ResourceURI                    string
 }
 
 type CreateNewRefreshTokenResult struct {
@@ -223,6 +224,7 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 			Scopes:                         options.Scopes,
 			AuthorizationID:                options.AuthorizationID,
 			DPoPJKT:                        options.DPoPJKT,
+			ResourceURI:                    options.ResourceURI,
 		},
 	)
 	if err != nil {

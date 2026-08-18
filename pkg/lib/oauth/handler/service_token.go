@@ -40,12 +40,14 @@ type IssueOfflineGrantOptions struct {
 	App2AppDeviceKey   jwk.Key
 	IssueDeviceSecret  bool
 	DPoPJKT            string
+	ResourceURI        string
 }
 
 type IssueOfflineGrantRefreshTokenOptions struct {
 	Scopes          []string
 	AuthorizationID string
 	DPoPJKT         string
+	ResourceURI     string
 }
 
 type ClientCredentialsAccessTokenOptions struct {
@@ -143,6 +145,7 @@ func (s *TokenService) IssueOfflineGrant(
 		AuthorizationID:  opts.AuthorizationID,
 		DPoPJKT:          opts.DPoPJKT,
 		AccessInfo:       &accessInfo,
+		ResourceURI:      opts.ResourceURI,
 	}
 
 	offlineGrant = &oauth.OfflineGrant{
@@ -220,6 +223,7 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 		Scopes:          opts.Scopes,
 		AuthorizationID: opts.AuthorizationID,
 		DPoPJKT:         opts.DPoPJKT,
+		ResourceURI:     opts.ResourceURI,
 	})
 	if err != nil {
 		return nil, "", err

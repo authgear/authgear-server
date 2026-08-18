@@ -15,4 +15,12 @@ type AccessGrant struct {
 	// Only exist when session_kind is offline_grant
 	// It does not change even the refresh token rotated
 	InitialRefreshTokenHash string `json:"refresh_token_hash"`
+	// ResourceURI is empty when the access token this grant backs was not
+	// bound to a resource. Mirrors OfflineGrantRefreshToken.ResourceURI (the
+	// same single-resource-per-token constraint applies), persisted here too
+	// so the resource binding of an already-issued access token can be
+	// recovered from the grant itself -- e.g. for introspection or a
+	// revocation cascade -- without re-deriving it from the (possibly since
+	// rotated or deleted) refresh token that originally produced it.
+	ResourceURI string `json:"resource_uri,omitempty"`
 }
