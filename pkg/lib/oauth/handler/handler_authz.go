@@ -431,7 +431,7 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
-	err := oauth.ValidateScopesByClientConfig(client, r.Scope())
+	err := oauth.ValidateScopesByClientConfig(client, r.Scope(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -806,6 +806,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 	err := oauth.ValidateScopesByClientConfig(
 		opts.ConsentRequest.Client,
 		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest.Scope(),
+		nil,
 	)
 	if err != nil {
 		return nil, err

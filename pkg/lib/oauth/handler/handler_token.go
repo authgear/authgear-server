@@ -943,7 +943,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		if !offlineGrant.HasAllScopes(offlineGrant.InitialClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
-		err = oauth.ValidateScopesByClientConfig(client, requestedScopes)
+		err = oauth.ValidateScopesByClientConfig(client, requestedScopes, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -1362,7 +1362,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
-		err := oauth.ValidateScopesByClientConfig(client, requestedScopes)
+		err := oauth.ValidateScopesByClientConfig(client, requestedScopes, nil)
 		if err != nil {
 			return nil, err
 		}
