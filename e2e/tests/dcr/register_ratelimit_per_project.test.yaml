@@ -1,0 +1,53 @@
+name: POST /oauth2/register's per-project rate limit is project-configurable
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+        rate_limits:
+          per_project:
+            enabled: true
+            period: 1h
+            burst: 2
+steps:
+  - name: attempt_1
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+  - name: attempt_2
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+  - name: attempt_3_exceeds_configured_burst
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 429
+      json_body: |
+        {
+          "error": "x_rate_limited"
+        }
