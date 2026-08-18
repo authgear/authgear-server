@@ -324,7 +324,7 @@
 /pkg/portal/transport/graphql_handler.go:41:29: requestcontext
 /pkg/portal/transport/stripe_webhook_handler.go:49:9: requestcontext
 /pkg/portal/transport/system_config_handler.go:28:10: requestcontext
-/pkg/resolver/handler/resolve.go:40:9: requestcontext
+/pkg/resolver/handler/resolve.go:51:9: requestcontext
 /pkg/siteadmin/transport/handler_app_feature_config_get.go:28:47: requestcontext
 /pkg/siteadmin/transport/handler_app_feature_config_preview.go:45:75: requestcontext
 /pkg/siteadmin/transport/handler_app_feature_config_preview.go:60:51: requestcontext

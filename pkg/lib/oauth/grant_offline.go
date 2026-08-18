@@ -98,6 +98,10 @@ type OfflineGrantSession struct {
 	AuthorizationID  string
 	DPoPJKT          string
 	ResourceURI      string
+	// TokenType is set by oauth.Resolver after ToSession constructs this
+	// value, since only the resolving code path (bearer access token vs.
+	// app session token cookie) knows it -- never by ToSession itself.
+	TokenType session.TokenType
 }
 
 func (o *OfflineGrantSession) Session() {}
@@ -106,6 +110,9 @@ func (o *OfflineGrantSession) SessionID() string {
 }
 func (o *OfflineGrantSession) SessionType() session.Type {
 	return o.OfflineGrant.SessionType()
+}
+func (o *OfflineGrantSession) GetTokenType() session.TokenType {
+	return o.TokenType
 }
 func (o *OfflineGrantSession) GetCreatedAt() time.Time {
 	return o.CreatedAt

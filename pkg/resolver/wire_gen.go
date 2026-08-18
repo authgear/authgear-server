@@ -1421,8 +1421,9 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		IdentityService:       serviceService,
 	}
 	resolveHandler := &handler.ResolveHandler{
-		Database:        handle,
-		UserInfoService: userInfoService,
+		Database:            handle,
+		UserInfoService:     userInfoService,
+		OAuthClientResolver: oauthclientResolver,
 	}
 	return resolveHandler
 }
