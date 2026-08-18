@@ -69,6 +69,12 @@ func (r AuthorizationRequest) CodeChallengeMethod() string { return r["code_chal
 // DPoP
 func (r AuthorizationRequest) DPoPJKT() string { return r["dpop_jkt"] }
 
+// Resource is the RFC 8707 resource indicator. This part only supports a
+// single value: a client sending more than one resource= has all but the
+// first silently dropped, identical to how any other unexpected repeated
+// parameter already behaves for this endpoint.
+func (r AuthorizationRequest) Resource() string { return r["resource"] }
+
 // Proprietary
 func (r AuthorizationRequest) Platform() string          { return r["x_platform"] }
 func (r AuthorizationRequest) WeChatRedirectURI() string { return r["x_wechat_redirect_uri"] }

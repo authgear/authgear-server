@@ -34,6 +34,7 @@ func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientRegistrationD
 		TOSURI:                         derefOr(c.TOSURI, ""),
 		PolicyURI:                      derefOr(c.PolicyURI, ""),
 		IssueJWTAccessToken:            false, // fixed per client.md's DCR mapping table
+		IsDynamic:                      true,  // every client built by ToClientConfig is DCR/CIMD-resolved, regardless of Kind
 	}
 	// nil here means this source has no default_client_config concept at all
 	// (see ResolveTokenLifetimes's default case, e.g. a not-yet-implemented

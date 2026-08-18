@@ -299,10 +299,25 @@ type OAuthClientConfig struct {
 	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
 	LogoURI                                string                       `json:"logo_uri,omitempty"`
 	ReplaceProjectLogoWithLogoURI          bool                         `json:"x_replace_project_logo_with_logo_uri,omitempty"`
+
+	// IsDynamic is set only by oauthclient.Client.ToClientConfig when
+	// synthesizing this struct for a DCR/CIMD-resolved client -- never part
+	// of the authgear.yaml schema (json:"-"), and always false for a static
+	// client parsed from authgear.yaml. ApplicationType alone cannot carry
+	// this signal: a dynamic first-party client (Kind == FIRST_PARTY) maps
+	// to the ordinary "native"/"spa" ApplicationType, indistinguishable
+	// from a static client of the same type — only a dynamic third-party
+	// client gets the synthetic OAuthClientApplicationTypeDynamicThirdParty
+	// value. Read via IsDynamicClient(), not directly.
+	IsDynamic bool `json:"-"`
 }
 
 func (c *OAuthClientConfig) UseHTTP200() bool {
 	return c.CustomUIURI != ""
+}
+
+func (c *OAuthClientConfig) IsDynamicClient() bool {
+	return c.IsDynamic
 }
 
 var _ = Schema.Add("AuthenticationFlowAllowlist", `
