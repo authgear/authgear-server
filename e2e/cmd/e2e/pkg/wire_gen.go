@@ -259,6 +259,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+		AppID:       appID,
 	}
 	clientCache := &oauthclient.ClientCache{
 		Redis: appredisHandle,
