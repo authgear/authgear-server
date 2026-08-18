@@ -2,11 +2,15 @@ package oauth
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -19,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -173,6 +178,87 @@ func TestAccessToken(t *testing.T) {
 		So(clientID, ShouldEqual, "client-id")
 		So(scope, ShouldEqual, "openid email")
 		So(idKey, ShouldEqual, "token-hash")
+	})
+}
+
+func TestDecodeAccessTokenResourceBound(t *testing.T) {
+	Convey("DecodeAccessToken with a resource-bound aud", t, func() {
+		// jwt.ParseString validates exp/iat against the real wall clock at
+		// parse time (before DecodeAccessToken's own jwt.Validate call with
+		// the injected mock clock ever runs), so a fixed past date would be
+		// seen as already-expired regardless of what this test intends —
+		// use a real-time-relative base instead.
+		now := time.Now().UTC().Truncate(time.Second)
+
+		jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+		So(err, ShouldBeNil)
+		jwkKey, _ := jwkSet.Key(0)
+		_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+		_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+
+		secrets := &config.OAuthKeyMaterials{Set: jwkSet}
+
+		encoding := &AccessTokenEncoding{
+			Secrets: secrets,
+			Clock:   clock.NewMockClockAtTime(now),
+			BaseURL: &endpoints.Endpoints{
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test1.authgear.com",
+					HTTPProto: "http",
+				},
+			},
+		}
+
+		sign := func(signingKey jwk.Key, aud string, exp time.Time) string {
+			claims := jwt.New()
+			_ = claims.Set(jwt.JwtIDKey, "token-hash")
+			_ = claims.Set(jwt.IssuerKey, "http://test1.authgear.com")
+			_ = claims.Set(jwt.AudienceKey, []string{aud})
+			_ = claims.Set(jwt.IssuedAtKey, now.Unix())
+			_ = claims.Set(jwt.ExpirationKey, exp.Unix())
+
+			hdr := jws.NewHeaders()
+			_ = hdr.Set("typ", "at+jwt")
+			signed, err := jwtutil.SignWithHeader(claims, hdr, jwa.RS256, signingKey)
+			So(err, ShouldBeNil)
+			return string(signed)
+		}
+
+		Convey("a JWT with aud=[resource_uri] (no project endpoint) decodes successfully", func() {
+			token := sign(jwkKey, "https://api.example.com/orders", now.Add(time.Hour))
+			jti, isHash, err := encoding.DecodeAccessToken(token)
+			So(err, ShouldBeNil)
+			So(isHash, ShouldBeTrue)
+			So(jti, ShouldEqual, "token-hash")
+		})
+
+		// jwt.ParseString rejects an expired/badly-signed token outright, and
+		// DecodeAccessToken's "Invalid JWT string" branch treats any parse
+		// failure as "not a JWT" rather than surfacing an error — the token
+		// falls back to being treated as opaque (and will then fail to match
+		// any AccessGrant downstream in oauth.Resolver, since its raw string
+		// was never issued as an opaque token). So the observable contract
+		// here is isHash=false, err=nil, not a returned error.
+		Convey("an expired resource-bound JWT falls back to being treated as opaque", func() {
+			token := sign(jwkKey, "https://api.example.com/orders", now.Add(-time.Hour))
+			_, isHash, err := encoding.DecodeAccessToken(token)
+			So(err, ShouldBeNil)
+			So(isHash, ShouldBeFalse)
+		})
+
+		Convey("a resource-bound JWT signed by a foreign key falls back to being treated as opaque", func() {
+			foreignRSAKey, err := rsa.GenerateKey(rand.Reader, 2048)
+			So(err, ShouldBeNil)
+			foreignKey, err := jwk.FromRaw(foreignRSAKey)
+			So(err, ShouldBeNil)
+			_ = foreignKey.Set(jwk.KeyIDKey, uuid.New())
+			_ = foreignKey.Set(jwk.AlgorithmKey, "RS256")
+
+			token := sign(foreignKey, "https://api.example.com/orders", now.Add(time.Hour))
+			_, isHash, err := encoding.DecodeAccessToken(token)
+			So(err, ShouldBeNil)
+			So(isHash, ShouldBeFalse)
+		})
 	})
 }
 
