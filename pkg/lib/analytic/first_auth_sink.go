@@ -37,6 +37,10 @@ func (s *FirstAuthSink) ReceiveBlockingEvent(ctx context.Context, e *event.Event
 	return nil
 }
 
+func (s *FirstAuthSink) WillDeliverBlockingEvent(eventType event.Type) bool {
+	return false
+}
+
 func (s *FirstAuthSink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) error {
 	logger := FirstAuthSinkLogger.GetLogger(ctx)
 
