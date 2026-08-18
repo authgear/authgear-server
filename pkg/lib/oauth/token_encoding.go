@@ -56,6 +56,8 @@ type EncodeUserAccessTokenOptions struct {
 	AccessGrant              *AccessGrant
 	AuthenticationInfo       authenticationinfo.T
 	UserBlockingEventContext *UserBlockingEventContext
+	// ResourceURI is empty when no resource was requested/bound.
+	ResourceURI string
 }
 
 type EncodeClientAccessTokenOptions struct {
@@ -87,7 +89,18 @@ type prepareUserAccessTokenResultJWT struct {
 func (r *prepareUserAccessTokenResultJWT) prepareUserAccessTokenResult() {}
 
 func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, options EncodeUserAccessTokenOptions) (PrepareUserAccessTokenResult, error) {
-	if !options.ClientConfig.IssueJWTAccessToken {
+	issueJWT := options.ClientConfig.IssueJWTAccessToken
+	if options.ResourceURI != "" {
+		// A resource-bound token is always a JWT, regardless of the flag.
+		issueJWT = true
+	} else if options.ClientConfig.IsThirdParty() {
+		// Every third-party client (DCR-sourced or legacy static
+		// third_party_app) defaults to an opaque access token when no
+		// resource was requested, overriding issue_jwt_access_token.
+		issueJWT = false
+	}
+
+	if !issueJWT {
 		return &prepareUserAccessTokenResultOpaque{
 			OriginalToken: options.OriginalToken,
 			ClientConfig:  options.ClientConfig,
@@ -99,7 +112,11 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 	// iss
 	_ = claims.Set(jwt.IssuerKey, e.IDTokenIssuer.Iss())
 	// aud
-	_ = claims.Set(jwt.AudienceKey, e.BaseURL.Origin().String())
+	if options.ResourceURI != "" {
+		_ = claims.Set(jwt.AudienceKey, []string{options.ResourceURI})
+	} else {
+		_ = claims.Set(jwt.AudienceKey, e.BaseURL.Origin().String())
+	}
 	// iat
 	_ = claims.Set(jwt.IssuedAtKey, options.AccessGrant.CreatedAt.Unix())
 	// exp
