@@ -77,6 +77,7 @@ func (s *AccessGrantService) PrepareUserAccessGrant(
 		AccessGrant:              accessGrant,
 		AuthenticationInfo:       options.AuthenticationInfo,
 		UserBlockingEventContext: options.UserBlockingEventContext,
+		ResourceURI:              options.ResourceURI,
 	})
 	if err != nil {
 		return nil, err

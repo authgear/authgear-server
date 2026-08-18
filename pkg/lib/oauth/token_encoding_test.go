@@ -181,6 +181,157 @@ func TestAccessToken(t *testing.T) {
 	})
 }
 
+func TestPrepareUserAccessTokenResourceBinding(t *testing.T) {
+	Convey("PrepareUserAccessToken resource binding and opaque-by-default", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+		So(err, ShouldBeNil)
+		jwkKey, _ := jwkSet.Key(0)
+		_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+		_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+
+		secrets := &config.OAuthKeyMaterials{Set: jwkSet}
+
+		mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
+		mockEventService := NewMockEventService(ctrl)
+
+		encoding := &AccessTokenEncoding{
+			Secrets:       secrets,
+			Clock:         clock.NewMockClockAtTime(now),
+			IDTokenIssuer: mockIDTokenIssuer,
+			BaseURL: &endpoints.Endpoints{
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test1.authgear.com",
+					HTTPProto: "http",
+				},
+			},
+			Events: mockEventService,
+			UserBlockingEventContexts: &UserBlockingEventContextProvider{
+				Users:      &stubUserBlockingEventContextUserService{user: &model.User{Meta: model.Meta{ID: "user-id"}}},
+				Identities: &stubUserBlockingEventContextIdentityService{},
+			},
+		}
+
+		expectJWTIssuance := func() {
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate).Return(true)
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+				return &event.Event{Payload: e}, nil
+			})
+			mockEventService.EXPECT().DispatchEventWithoutTx(gomock.Any(), gomock.Any()).Return(nil)
+			mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+			mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", gomock.Any()).Return(nil)
+		}
+
+		accessGrantWithScopes := func(scopes []string) *AccessGrant {
+			return &AccessGrant{
+				CreatedAt: now,
+				ExpireAt:  now.Add(time.Hour),
+				TokenHash: "token-hash",
+				Scopes:    scopes,
+			}
+		}
+
+		authInfo := authenticationinfo.T{UserID: "user-id"}
+
+		Convey("third-party client, no resource: opaque, regardless of IssueJWTAccessToken", func() {
+			client := &config.OAuthClientConfig{
+				ClientID:            "third-party-client",
+				ApplicationType:     config.OAuthClientApplicationTypeThirdPartyApp,
+				IssueJWTAccessToken: true,
+			}
+			options := EncodeUserAccessTokenOptions{
+				OriginalToken:      "opaque-token",
+				ClientConfig:       client,
+				ClientLike:         ClientClientLike(client, nil),
+				AccessGrant:        accessGrantWithScopes([]string{"openid"}),
+				AuthenticationInfo: authInfo,
+			}
+			result, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			opaque, ok := result.(*prepareUserAccessTokenResultOpaque)
+			So(ok, ShouldBeTrue)
+			So(opaque.OriginalToken, ShouldEqual, "opaque-token")
+		})
+
+		Convey("third-party client, with resource: JWT with aud=[resourceURI]", func() {
+			expectJWTIssuance()
+			client := &config.OAuthClientConfig{
+				ClientID:        "third-party-client",
+				ApplicationType: config.OAuthClientApplicationTypeThirdPartyApp,
+				// IssueJWTAccessToken deliberately left false: a requested
+				// resource must still force a JWT.
+			}
+			options := EncodeUserAccessTokenOptions{
+				OriginalToken:      "token",
+				ClientConfig:       client,
+				ClientLike:         ClientClientLike(client, nil),
+				AccessGrant:        accessGrantWithScopes([]string{"openid", "read:orders"}),
+				AuthenticationInfo: authInfo,
+				ResourceURI:        "https://api.example.com/orders",
+			}
+			preparation, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			tokenResult, err := encoding.MakeUserAccessTokenFromPreparationResult(context.Background(), MakeUserAccessTokenFromPreparationOptions{PreparationResult: preparation})
+			So(err, ShouldBeNil)
+
+			keys, err := jwk.PublicSetOf(encoding.Secrets.Set)
+			So(err, ShouldBeNil)
+			decodedToken, err := jwt.ParseString(tokenResult.Token, jwt.WithKeySet(keys), jwt.WithValidate(false))
+			So(err, ShouldBeNil)
+			So(decodedToken.Audience(), ShouldResemble, []string{"https://api.example.com/orders"})
+		})
+
+		Convey("first-party client, no resource, IssueJWTAccessToken=false: opaque, unchanged", func() {
+			client := &config.OAuthClientConfig{
+				ClientID:            "first-party-client",
+				ApplicationType:     config.OAuthClientApplicationTypeSPA,
+				IssueJWTAccessToken: false,
+			}
+			options := EncodeUserAccessTokenOptions{
+				OriginalToken:      "opaque-token",
+				ClientConfig:       client,
+				ClientLike:         ClientClientLike(client, nil),
+				AccessGrant:        accessGrantWithScopes([]string{"openid"}),
+				AuthenticationInfo: authInfo,
+			}
+			result, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			_, ok := result.(*prepareUserAccessTokenResultOpaque)
+			So(ok, ShouldBeTrue)
+		})
+
+		Convey("first-party client, no resource, IssueJWTAccessToken=true: JWT with the project endpoint aud, unchanged", func() {
+			expectJWTIssuance()
+			client := &config.OAuthClientConfig{
+				ClientID:            "first-party-client",
+				ApplicationType:     config.OAuthClientApplicationTypeSPA,
+				IssueJWTAccessToken: true,
+			}
+			options := EncodeUserAccessTokenOptions{
+				OriginalToken:      "token",
+				ClientConfig:       client,
+				ClientLike:         ClientClientLike(client, nil),
+				AccessGrant:        accessGrantWithScopes([]string{"openid"}),
+				AuthenticationInfo: authInfo,
+			}
+			preparation, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			tokenResult, err := encoding.MakeUserAccessTokenFromPreparationResult(context.Background(), MakeUserAccessTokenFromPreparationOptions{PreparationResult: preparation})
+			So(err, ShouldBeNil)
+
+			keys, err := jwk.PublicSetOf(encoding.Secrets.Set)
+			So(err, ShouldBeNil)
+			decodedToken, err := jwt.ParseString(tokenResult.Token, jwt.WithKeySet(keys), jwt.WithValidate(false))
+			So(err, ShouldBeNil)
+			So(decodedToken.Audience(), ShouldResemble, []string{"http://test1.authgear.com"})
+		})
+	})
+}
+
 func TestDecodeAccessTokenResourceBound(t *testing.T) {
 	Convey("DecodeAccessToken with a resource-bound aud", t, func() {
 		// jwt.ParseString validates exp/iat against the real wall clock at
