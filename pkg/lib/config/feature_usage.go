@@ -5,7 +5,7 @@ import "github.com/authgear/authgear-server/pkg/api/model"
 var _ = FeatureConfigSchema.Add("UsageMatch", `
 {
 	"type": "string",
-	"enum": ["*", "user_export", "user_import", "email", "whatsapp", "sms"]
+	"enum": ["*", "user_export", "user_import", "email", "whatsapp", "sms", "oauth_client_dcr", "oauth_client_cimd"]
 }
 `)
 
@@ -35,6 +35,27 @@ type FeatureUsageLimitConfig struct {
 	Action model.UsageLimitAction `json:"action"`
 }
 
+// StandingFeatureUsageLimitConfig is a separate shape from
+// FeatureUsageLimitConfig because a standing limit has no period: its
+// "usage" is a live count (e.g. COUNT(*) of DCR clients), not a
+// periodically-reset counter. See pkg/lib/usage/standing.go.
+var _ = FeatureConfigSchema.Add("StandingFeatureUsageLimitConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"quota": { "type": "integer", "minimum": 0 },
+		"action": { "$ref": "#/$defs/UsageLimitAction" }
+	},
+	"required": ["quota", "action"]
+}
+`)
+
+type StandingFeatureUsageLimitConfig struct {
+	Quota  int                    `json:"quota"`
+	Action model.UsageLimitAction `json:"action"`
+}
+
 var _ = FeatureConfigSchema.Add("FeatureUsageLimitsConfig", `
 {
 	"type": "object",
@@ -44,17 +65,19 @@ var _ = FeatureConfigSchema.Add("FeatureUsageLimitsConfig", `
 		"user_import": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
 		"email": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
 		"whatsapp": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
-		"sms": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } }
+		"sms": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
+		"oauth_client_dcr": { "type": "array", "items": { "$ref": "#/$defs/StandingFeatureUsageLimitConfig" } }
 	}
 }
 `)
 
 type FeatureUsageLimitsConfig struct {
-	UserExport []FeatureUsageLimitConfig `json:"user_export,omitempty"`
-	UserImport []FeatureUsageLimitConfig `json:"user_import,omitempty"`
-	Email      []FeatureUsageLimitConfig `json:"email,omitempty"`
-	Whatsapp   []FeatureUsageLimitConfig `json:"whatsapp,omitempty"`
-	SMS        []FeatureUsageLimitConfig `json:"sms,omitempty"`
+	UserExport     []FeatureUsageLimitConfig         `json:"user_export,omitempty"`
+	UserImport     []FeatureUsageLimitConfig         `json:"user_import,omitempty"`
+	Email          []FeatureUsageLimitConfig         `json:"email,omitempty"`
+	Whatsapp       []FeatureUsageLimitConfig         `json:"whatsapp,omitempty"`
+	SMS            []FeatureUsageLimitConfig         `json:"sms,omitempty"`
+	OAuthClientDCR []StandingFeatureUsageLimitConfig `json:"oauth_client_dcr,omitempty"`
 }
 
 func (c *FeatureUsageLimitsConfig) Limits(name model.UsageName) []FeatureUsageLimitConfig {
@@ -73,6 +96,22 @@ func (c *FeatureUsageLimitsConfig) Limits(name model.UsageName) []FeatureUsageLi
 		return c.Whatsapp
 	case model.UsageNameSMS:
 		return c.SMS
+	default:
+		return nil
+	}
+}
+
+// StandingLimits is the parallel accessor for standing (period-less) usage
+// names, since the element type (StandingFeatureUsageLimitConfig) differs
+// from Limits' FeatureUsageLimitConfig.
+func (c *FeatureUsageLimitsConfig) StandingLimits(name model.UsageName) []StandingFeatureUsageLimitConfig {
+	if c == nil {
+		return nil
+	}
+
+	switch name {
+	case model.UsageNameOAuthClientDCR:
+		return c.OAuthClientDCR
 	default:
 		return nil
 	}
@@ -207,6 +246,9 @@ func mergeFeatureUsageLimits(base *FeatureUsageLimitsConfig, layer *FeatureUsage
 	}
 	if layer.SMS != nil {
 		merged.SMS = layer.SMS
+	}
+	if layer.OAuthClientDCR != nil {
+		merged.OAuthClientDCR = layer.OAuthClientDCR
 	}
 
 	return merged
