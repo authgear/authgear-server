@@ -85,6 +85,9 @@ Rate limits without default are hard-coded (non-configurable).
 |                     | `messaging.sms.per_target`   | Send SMS (Per Tenant)            | 10/hour    |                                                                                                                      |
 | **messaging.email** | `messaging.email.per_ip`     | Send Email (Per Tenant)          | 200/minute |                                                                                                                      |
 |                     | `messaging.email.per_target` | Send Email (Per Tenant)          | 50/day     |                                                                                                                      |
+| **oauth.authorize** | `oauth.authorize.per_ip`     | Initiate OAuth authorization     | Disabled   | Mitigate resource exhaustion from mass authorization session creation per IP. See [feature config ceiling](#oauth-authorize-feature-config). |
+|                     | `oauth.authorize.unfinished_per_ip` | Initiate OAuth authorization | Disabled | Mitigate resource exhaustion from accumulation of unfinished authorization sessions per IP. Counted using a leaky bucket: fills by 1 when a session is created, drains by 1 when the session completes. See [feature config ceiling](#oauth-authorize-feature-config). |
+|                     | `oauth.authorize.unidentified_per_ip` | Initiate OAuth authorization | Disabled | Mitigate resource exhaustion from sessions where the user never completes the identification step. Counted using a leaky bucket: fills by 1 when a session is created, drains by 1 when the identification step completes. See [feature config ceiling](#oauth-authorize-feature-config). |
 
 ## Cooldowns
 
@@ -124,9 +127,34 @@ Some rate limits uses another rate limit config as a fallback if it is not set. 
 
 Rate limits not mentioned in the table has no fallback.
 
+## Feature Config Ceilings
+
+Feature config rate limits act as **plan-level ceilings**: if the feature config's rate is lower than the tenant's configured rate, the feature config wins. They are configured by the server operator per plan, not by the tenant.
+
+### OAuth Authorize Feature Config
+
+<a name="oauth-authorize-feature-config"></a>
+
+| Name                                      | Ceiling For                           | Default  |
+| ----------------------------------------- | ------------------------------------- | -------- |
+| `oauth.authorize.per_ip`                  | `oauth.authorize.per_ip`              | Disabled |
+| `oauth.authorize.unfinished_per_ip`       | `oauth.authorize.unfinished_per_ip`   | Disabled |
+| `oauth.authorize.unidentified_per_ip`     | `oauth.authorize.unidentified_per_ip` | Disabled |
+
+Feature config YAML:
+
+```yaml
+oauth:
+  rate_limits:
+    authorize:
+      per_ip: # disabled by default
+      unfinished_per_ip: # disabled by default
+      unidentified_per_ip: # disabled by default
+```
+
 ## Future Works
 
-- We may want to apply request-level rate limits (e.g. admin API, OIDC endpoints)
+- We may want to apply request-level rate limits (e.g. admin API)
 - We may want to exclude certain users (e.g. by IP) from applying rate limit.
 
 ## Configuration
@@ -294,6 +322,13 @@ messaging:
       enabled: true
       period: 1h
       burst: 10
+
+oauth:
+  rate_limits:
+    authorize:
+      per_ip: # default disabled
+      unfinished_per_ip: # default disabled
+      unidentified_per_ip: # default disabled
 ```
 
 ## Audit Log
