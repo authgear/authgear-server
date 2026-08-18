@@ -239,7 +239,11 @@ func (s *Store) countClients(ctx context.Context) (uint64, error) {
 // and a CIMD resolution never serialize against each other.
 func (s *Store) LockForClientCount(ctx context.Context, source Source) error {
 	key := string(source) + ":" + string(s.AppID)
-	_, err := s.SQLExecutor.ExecWith(ctx, sq.Expr("SELECT pg_advisory_xact_lock(hashtext(?))", key))
+	// sq.Expr does not go through a SQLBuilder query, so it never gets the
+	// "?" -> "$1" placeholder rewrite that SQLBuilder-derived queries get
+	// from their PlaceholderFormat(sq.Dollar) setting -- write the dollar
+	// placeholder directly.
+	_, err := s.SQLExecutor.ExecWith(ctx, sq.Expr("SELECT pg_advisory_xact_lock(hashtext($1))", key))
 	if err != nil {
 		return err
 	}
