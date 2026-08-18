@@ -279,10 +279,16 @@ func (e *AccessTokenEncoding) DecodeAccessToken(encodedToken string) (tok string
 		return encodedToken, false, nil
 	}
 
-	err = jwt.Validate(token,
-		jwt.WithClock(&jwtClock{e.Clock}),
-		jwt.WithAudience(e.BaseURL.Origin().String()),
-	)
+	// aud is deliberately NOT validated here. This function is Authgear's own
+	// introspection path for a token Authgear itself minted and just
+	// signature-verified; the authority for "is this token live" is the
+	// jti -> AccessGrant lookup in oauth.Resolver, not aud. aud exists for
+	// *resource servers* to enforce (RFC 8707), which is exactly why a
+	// resource-bound token carries only the resource URI and not the project
+	// endpoint. Validating aud here would make every resource-bound token
+	// unusable at /oauth2/userinfo, contrary to
+	// access-token-audience-binding.md and api-resource.md.
+	err = jwt.Validate(token, jwt.WithClock(&jwtClock{e.Clock}))
 	if err != nil {
 		return "", false, err
 	}
