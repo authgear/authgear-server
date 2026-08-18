@@ -15,3 +15,13 @@ func ErrUsageLimitExceeded(name model.UsageName, period model.UsageLimitPeriod) 
 		"period":     period,
 	})
 }
+
+// ErrStandingUsageLimitExceeded is the standing-limit counterpart to
+// ErrUsageLimitExceeded. It does not go through legacyLimitName, which
+// panics on any model.UsageName it doesn't have a case for — a standing
+// limit has no Redis key/legacy name at all.
+func ErrStandingUsageLimitExceeded(name model.UsageName) error {
+	return UsageLimitExceeded.NewWithInfo("usage limit exceeded", apierrors.Details{
+		"usage_name": name,
+	})
+}
