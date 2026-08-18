@@ -64,7 +64,10 @@ type OAuthClient {
 
   """
   OIDC client_name presented on the consent screen.
-  Null for static clients that do not set client_name (spa, traditional_webapp, native, m2m).
+  Null for static clients that do not set client_name (spa, traditional_webapp, native, m2m),
+  and for DCR/CIMD clients that omit client_name at registration -- the generated
+  "Client <clientID>" fallback is never persisted as client_name itself, only
+  reflected in `name` above.
   """
   clientName: String
 
