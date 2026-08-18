@@ -1,0 +1,814 @@
+name: Admin API - accessPolicy round-trips on Resource and Scope
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            name: "Orders API",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource {
+              id
+              resourceURI
+              accessPolicy { allowDynamicThirdPartyClientAccess }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createResource": {
+              "resource": {
+                "id": "[[string]]",
+                "resourceURI": "https://api.example.com/orders",
+                "accessPolicy": { "allowDynamicThirdPartyClientAccess": true }
+              }
+            }
+          },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            scope {
+              id
+              scope
+              accessPolicy { allowDynamicThirdPartyClientAccess }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createScope": {
+              "scope": {
+                "id": "[[string]]",
+                "scope": "read:orders",
+                "accessPolicy": { "allowDynamicThirdPartyClientAccess": true }
+              }
+            }
+          },
+          "errors": null
+        }
+
+  # Verify the round trip through the read path too, not just the create response.
+  - name: query_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          resources {
+            edges {
+              node {
+                resourceURI
+                accessPolicy { allowDynamicThirdPartyClientAccess }
+                scopes {
+                  edges {
+                    node {
+                      scope
+                      accessPolicy { allowDynamicThirdPartyClientAccess }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "resources": {
+              "edges": [
+                {
+                  "node": {
+                    "resourceURI": "https://api.example.com/orders",
+                    "accessPolicy": { "allowDynamicThirdPartyClientAccess": true },
+                    "scopes": {
+                      "edges": [
+                        {
+                          "node": {
+                            "scope": "read:orders",
+                            "accessPolicy": { "allowDynamicThirdPartyClientAccess": true }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
+
+---
+
+name: DCR third-party client with a policy-enabled resource gets a JWT access token bound to it
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # No IAT, initial_access_token_required is false -> registers as THIRD_PARTY.
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E resource-bound DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    output:
+      result: |
+        {
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "aud": ["https://api.example.com/orders"]
+          }
+        }
+
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }
+
+---
+
+name: DCR third-party client without resource= gets an opaque access token
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E opaque-by-default DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    output:
+      result: |
+        {
+          "access_token_is_jwt": false
+        }
+
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }
+
+---
+
+name: DCR third-party client requesting a resource without the access policy enabled gets invalid_target
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: { resourceURI: "https://api.example.com/private" }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E policy-disabled resource DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: authorize_with_disabled_resource
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      response_type: code
+      redirect_uri: http://localhost:4000
+      scope: openid
+      resource: https://api.example.com/private
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+      location_contains:
+        - "error=invalid_target"
+
+---
+
+name: DCR third-party client requesting a scope without the access policy enabled gets invalid_scope
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/partial",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # Scope has no accessPolicy override -> defaults to allowDynamicThirdPartyClientAccess: false.
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/partial",
+            scope: "read:partial"
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E policy-disabled scope DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: authorize_with_disabled_scope
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      response_type: code
+      redirect_uri: http://localhost:4000
+      scope: "openid read:partial"
+      resource: https://api.example.com/partial
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+      location_contains:
+        - "error=invalid_scope"
+
+---
+
+name: A static SPA client requesting resource= always gets invalid_target
+steps:
+  - name: authorize_with_resource
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: e2e
+      response_type: code
+      redirect_uri: http://localhost:4000
+      scope: openid
+      resource: https://api.example.com/anything
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+      location_contains:
+        - "error=invalid_target"
+
+---
+
+name: A static third_party_app client requesting resource= always gets invalid_target, even with a policy-enabled resource
+# Regression test: allow_dynamic_third_party_client_access is dynamic-only by
+# design (see api-resource.md). A static third_party_app client (e2ethirdparty,
+# from the default e2e config) must not be able to use resource= just because
+# a Resource/Scope has the flag set for DCR/CIMD clients.
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: authorize_with_resource
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: e2ethirdparty
+      response_type: code
+      redirect_uri: http://localhost:4000
+      scope: openid
+      resource: https://api.example.com/orders
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+      location_contains:
+        - "error=invalid_target"
+
+---
+
+name: refresh_token grant carries the resource forward, and rejects a different resource
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_other_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/inventory",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E refresh resource-binding DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - offline_access
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  - name: refresh_without_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]"
+        }
+
+  - name: refresh_with_different_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+      resource: https://api.example.com/inventory
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_target"
+        }

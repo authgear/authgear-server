@@ -510,11 +510,18 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 
+		var resource string
+		resource, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthSetupResource)
+		if !ok {
+			return nil, state, false
+		}
+
 		output, err := client.SetupOAuth(authflowclient.SetupOAuthOptions{
 			ClientID:          clientID,
 			Scope:             step.OAuthSetupScope,
 			SSOEnabled:        step.OAuthSetupSSOEnabled,
 			SSOEnabledOmitted: step.OAuthSetupSSOEnabledOmitted,
+			Resource:          resource,
 		})
 		if err != nil {
 			t.Errorf("failed to setup oauth: %v", err)
@@ -1250,6 +1257,15 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 		for _, substr := range httpOutput.LocationNotContains {
 			if strings.Contains(location, substr) {
 				t.Errorf("Location header unexpectedly contains %q in '%s': %s", substr, step.Name, location)
+				ok = false
+			}
+		}
+	}
+	if len(httpOutput.LocationContains) > 0 {
+		location := response.Header.Get("Location")
+		for _, substr := range httpOutput.LocationContains {
+			if !strings.Contains(location, substr) {
+				t.Errorf("Location header unexpectedly missing %q in '%s': %s", substr, step.Name, location)
 				ok = false
 			}
 		}
