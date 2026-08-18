@@ -35,6 +35,14 @@ type OfflineGrantRefreshToken struct {
 	// Set after the refresh token rotated at least once
 	RotatedTokenHash *string    `json:"rotated_token_hash,omitzero"`
 	RotatedAt        *time.Time `json:"rotated_at,omitzero"`
+
+	// ResourceURI was added on 2026-08-18. Refresh tokens created before that
+	// date have an empty ResourceURI (equivalent to no resource bound) —
+	// matches the existing nil-AccessInfo/nil-ExpireAt backward-compatibility
+	// comments above. Rotation (RotateOfflineGrantRefreshToken) mutates this
+	// same struct in place rather than creating a new one, so ResourceURI
+	// automatically carries forward across rotation with no extra code.
+	ResourceURI string `json:"resource_uri,omitempty"`
 }
 
 type OfflineGrant struct {
@@ -89,6 +97,7 @@ type OfflineGrantSession struct {
 	Scopes           []string
 	AuthorizationID  string
 	DPoPJKT          string
+	ResourceURI      string
 }
 
 func (o *OfflineGrantSession) Session() {}
@@ -276,6 +285,7 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 				Scopes:           token.Scopes,
 				AuthorizationID:  token.AuthorizationID,
 				DPoPJKT:          token.DPoPJKT,
+				ResourceURI:      token.ResourceURI,
 			}
 		}
 
@@ -288,6 +298,7 @@ func (g *OfflineGrant) ToSession(refreshTokenHash string) (*OfflineGrantSession,
 				Scopes:           token.Scopes,
 				AuthorizationID:  token.AuthorizationID,
 				DPoPJKT:          token.DPoPJKT,
+				ResourceURI:      token.ResourceURI,
 			}
 		}
 	}

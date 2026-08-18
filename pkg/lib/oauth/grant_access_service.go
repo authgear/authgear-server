@@ -25,6 +25,10 @@ type PrepareUserAccessGrantOptions struct {
 	SessionLike              SessionLike
 	InitialRefreshTokenHash  string
 	UserBlockingEventContext *UserBlockingEventContext
+	// ResourceURI is empty when no resource was requested/bound. Threaded
+	// into both the persisted AccessGrant and token issuance
+	// (EncodeUserAccessTokenOptions).
+	ResourceURI string
 }
 
 type IssueAccessGrantResult struct {
@@ -58,6 +62,7 @@ func (s *AccessGrantService) PrepareUserAccessGrant(
 		Scopes:                  options.Scopes,
 		TokenHash:               HashToken(token),
 		InitialRefreshTokenHash: options.InitialRefreshTokenHash,
+		ResourceURI:             options.ResourceURI,
 	}
 	err := s.AccessGrants.CreateAccessGrant(ctx, accessGrant)
 	if err != nil {

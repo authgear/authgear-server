@@ -671,7 +671,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
-	resp, err := h.doIssueTokensForAuthorizationCode(ctx, client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
+	resp, err := h.doIssueTokensForAuthorizationCode(ctx, client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT(), r.Resource())
 	if err != nil {
 		return nil, err
 	}
@@ -742,7 +742,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, ErrInvalidRefreshToken
 	}
 
-	handleResult, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
+	handleResult, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz, r.Resource())
 	if err != nil {
 		// NOTE(DEV-2982): This is for debugging the session lost problem
 		logger.WithSkipStackTrace().WithError(err).Warn(ctx,
@@ -1724,8 +1724,19 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	authz *oauth.Authorization,
 	deviceInfo map[string]any,
 	app2appDeviceKeyJWT string,
+	requestedResource string,
 ) (*HandleResult, error) {
 	logger := TokenHandlerLogger.GetLogger(ctx)
+
+	// Per access-token-audience-binding.md, resource on the token request
+	// must be absent or exactly equal to the resource bound to the code —
+	// this part only supports a single resource, so "subset" collapses to
+	// equality.
+	resourceURI := code.AuthorizationRequest.Resource()
+	if requestedResource != "" && requestedResource != resourceURI {
+		return nil, protocol.NewError("invalid_target", "resource must be a subset of the resource authorized by the code")
+	}
+
 	issueRefreshToken := false
 	issueIDToken := false
 	issueDeviceToken := h.shouldIssueDeviceSecret(code.AuthorizationRequest.Scope())
@@ -1839,6 +1850,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		App2AppDeviceKey:   app2appDevicePublicKey,
 		IssueDeviceSecret:  issueDeviceToken,
 		DPoPJKT:            dpopJKT,
+		ResourceURI:        resourceURI,
 	}
 	if issueRefreshToken {
 		var offlineGrant *oauth.OfflineGrant
@@ -1854,6 +1866,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 					Scopes:          scopes,
 					AuthorizationID: authz.ID,
 					DPoPJKT:         dpopJKT,
+					ResourceURI:     resourceURI,
 				}, resp)
 			if err != nil {
 				return nil, err
@@ -1970,6 +1983,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		},
 		InitialRefreshTokenHash:  initialRefreshTokenHash,
 		UserBlockingEventContext: eventUserCtx,
+		ResourceURI:              resourceURI,
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(
 		ctx,
@@ -2013,8 +2027,17 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	client *config.OAuthClientConfig,
 	offlineGrantSession *oauth.OfflineGrantSession,
 	authz *oauth.Authorization,
+	requestedResource string,
 ) (*HandleResult, error) {
 	issueIDToken := slices.Contains(offlineGrantSession.Scopes, "openid")
+
+	// Per access-token-audience-binding.md's refresh_token grant:
+	// downscoping (omitting resource) keeps the original binding;
+	// upscoping (a different resource) is rejected.
+	resourceURI := offlineGrantSession.ResourceURI
+	if requestedResource != "" && requestedResource != resourceURI {
+		return nil, protocol.NewError("invalid_target", "resource must be a subset of the resource originally authorized")
+	}
 
 	resp := protocol.TokenResponse{}
 
@@ -2056,6 +2079,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		SessionLike:              offlineGrantSession,
 		InitialRefreshTokenHash:  offlineGrantSession.InitialTokenHash,
 		UserBlockingEventContext: eventUserCtx,
+		ResourceURI:              resourceURI,
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
