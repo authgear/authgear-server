@@ -1260,6 +1260,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Events:                    eventService,
 		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
 		Config:                                  oAuthConfig,
@@ -1284,6 +1289,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		PreAuthenticatedURLTokenService:         preAuthenticatedURLTokenServiceImpl,
 		IDTokenIssuer:                           idTokenIssuer,
 		AuthorizationHandlerAccessTokenEncoding: oauthAccessTokenEncoding,
+		ResourceScopeService:                    resourcescopeStore,
 	}
 	authorizeHandler := &oauth3.AuthorizeHandler{
 		AuthzHandler: authorizationHandler,
@@ -2278,6 +2284,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Events:                    eventService,
 		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
 		Config:                                  oAuthConfig,
@@ -2302,6 +2313,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		PreAuthenticatedURLTokenService:         preAuthenticatedURLTokenServiceImpl,
 		IDTokenIssuer:                           idTokenIssuer,
 		AuthorizationHandlerAccessTokenEncoding: oauthAccessTokenEncoding,
+		ResourceScopeService:                    resourcescopeStore,
 	}
 	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword

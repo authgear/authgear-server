@@ -15,3 +15,7 @@ func (h *MockHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 func (h *MockHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	return do(ctx)
 }
+
+func (h *MockHandle) IsInTx(ctx context.Context) bool {
+	return false
+}

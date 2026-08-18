@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -16,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
@@ -128,6 +130,18 @@ type AuthorizationHandlerPreAuthenticatedURLTokenService interface {
 
 type AuthorizationHandlerDatabase interface {
 	WithTx(ctx context.Context, do func(ctx context.Context) error) (err error)
+	ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error)
+	IsInTx(ctx context.Context) bool
+}
+
+// AuthorizationHandlerResourceScopeService is the third-party access-policy
+// read path (docs/plans/dcr/2026-08-17-04-resource-access-policy.md §5.1) —
+// deliberately a different service shape from handler_token.go's
+// TokenHandlerClientResourceScopeService, which checks an explicit M2M
+// client-resource association instead.
+type AuthorizationHandlerResourceScopeService interface {
+	GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*resourcescope.Resource, error)
+	ListScopesForThirdPartyAccess(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error)
 }
 
 var AuthorizationHandlerLogger = slogutil.NewLogger("oauth-authz")
@@ -158,6 +172,86 @@ type AuthorizationHandler struct {
 	PreAuthenticatedURLTokenService         AuthorizationHandlerPreAuthenticatedURLTokenService
 	IDTokenIssuer                           IDTokenIssuer
 	AuthorizationHandlerAccessTokenEncoding AuthorizationHandlerAccessTokenEncoding
+	ResourceScopeService                    AuthorizationHandlerResourceScopeService
+}
+
+// validateResource returns the resource-specific scopes the client is
+// allowed to request for the requested resource. The returned slice is nil
+// when no resource was requested. See
+// docs/plans/dcr/2026-08-17-04-resource-access-policy.md §5.1.
+//
+// It guards its own reads with an IsInTx/ReadOnly branch rather than
+// requiring an open transaction from the caller: it is called from both
+// doHandleRequestWithTx (inside a transaction) and doHandleConsentRequest
+// (deliberately outside one, since the consent screen must not be rendered
+// inside a write transaction) — see pkg/lib/usage.Limiter.dispatchEventImmediately
+// for the same pattern.
+func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (allowedResourceScopes []string, err error) {
+	resourceURI := r.Resource()
+	if resourceURI == "" {
+		return nil, nil
+	}
+	if strings.HasPrefix(resourceURI, h.IDTokenIssuer.Iss()) {
+		return nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
+	}
+
+	switch {
+	case client.IsDynamicClient() && client.IsThirdParty():
+		// Both checks are required, independently:
+		//   - IsThirdParty alone is also true for a static
+		//     OAuthClientApplicationTypeThirdPartyApp client, but the path
+		//     below is gated by a Resource/Scope's
+		//     allow_dynamic_third_party_client_access policy specifically —
+		//     a static third-party client must fall through to default
+		//     below (deferred; see its comment) rather than being granted
+		//     access via a policy meant only for dynamically-resolved
+		//     clients.
+		//   - IsDynamicClient alone is not enough either: a dynamic
+		//     first-party client (Kind == FIRST_PARTY) IsDynamicClient()
+		//     but not IsThirdParty() (see OAuthClientConfig.IsDynamic's
+		//     comment) — first-party support for the resource parameter is
+		//     separately deferred, same as for static first-party clients.
+		var resource *resourcescope.Resource
+		var allowedScopes []*resourcescope.Scope
+		read := func(ctx context.Context) error {
+			var err error
+			resource, err = h.ResourceScopeService.GetResourceByURIForThirdPartyAccess(ctx, resourceURI)
+			if err != nil {
+				return err
+			}
+			allowedScopes, err = h.ResourceScopeService.ListScopesForThirdPartyAccess(ctx, resource.ID)
+			return err
+		}
+		if h.Database.IsInTx(ctx) {
+			err = read(ctx)
+		} else {
+			err = h.Database.ReadOnly(ctx, read)
+		}
+		if err != nil {
+			if errors.Is(err, resourcescope.ErrResourceNotFound) {
+				return nil, protocol.NewError("invalid_target", "resource not found or not accessible to third-party clients")
+			}
+			return nil, err
+		}
+		return slice.Map(allowedScopes, func(s *resourcescope.Scope) string { return s.Scope }), nil
+	case client.ApplicationType == config.OAuthClientApplicationTypeM2M:
+		// M2M clients do not use /oauth2/authorize at all — already rejected
+		// earlier in ValidateRequestWithoutTx. Unreachable in practice; kept
+		// only so the switch is exhaustive and self-documenting.
+		return nil, protocol.NewError("unauthorized_client", "m2m clients are not allowed to use the authorize endpoint")
+	default:
+		// Every client that isn't both dynamic and third-party — always
+		// error. This covers: every static client type including
+		// third_party_app (static third-party clients have their own
+		// client-resource association mechanism,
+		// resourcescope.ClientResourceScopeService, used today by the
+		// client_credentials grant, rather than the dynamic-access-policy
+		// path above — wiring that in for authorization_code is deferred to
+		// a later, separate piece of work); and every first-party client,
+		// static or dynamic, since first-party support for the resource
+		// parameter is separately deferred.
+		return nil, protocol.NewError("invalid_target", "this client is not permitted to use the resource parameter")
+	}
 }
 
 func (h *AuthorizationHandler) HandleConsentWithoutUserConsent(ctx context.Context, req *http.Request) (httputil.Result, *ConsentRequired) {
@@ -431,8 +525,11 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
-	err := oauth.ValidateScopesByClientConfig(client, r.Scope(), nil)
+	allowedResourceScopes, err := h.validateResource(ctx, client, r)
 	if err != nil {
+		return nil, err
+	}
+	if err := oauth.ValidateScopesByClientConfig(client, r.Scope(), allowedResourceScopes); err != nil {
 		return nil, err
 	}
 
@@ -803,10 +900,19 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	err := oauth.ValidateScopesByClientConfig(
+	allowedResourceScopes, err := h.validateResource(
+		ctx,
+		opts.ConsentRequest.Client,
+		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = oauth.ValidateScopesByClientConfig(
 		opts.ConsentRequest.Client,
 		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest.Scope(),
-		nil,
+		allowedResourceScopes,
 	)
 	if err != nil {
 		return nil, err
