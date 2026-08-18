@@ -467,7 +467,7 @@
   "v2.error.email-required-github": "GitHub 프로필에 \"Public Email\"을 추가해 주세요. 프로필 관리: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {이메일} phone {전화번호} username {사용자명} other {{ LoginIDKey, select, email {이메일} phone {전화번호} username {사용자명} other {계정} }} }",
   "v2.error.error-account-not-found-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }",
-  "v2.error.flow-misconfigured": "인증 흐름이 잘못 구성되었습니다. 관리자에게 문의해 주세요.",
+  "v2.error.flow-misconfigured": "[개발자] 이 Authentication Flow는 잘못 구성되어 완료할 수 없습니다. 포털에서 구성을 확인하세요.",
   "v2.error.hook-delivery-failed": "작업이 허용되지 않습니다. 웹훅 전달 중 알 수 없는 오류가 발생했기 때문입니다.",
   "v2.error.hook-delivery-timeout": "웹훅 전달이 시간 초과되어 작업이 허용되지 않습니다.",
   "v2.error.hook-disallowed": "작업이 허용되지 않습니다",

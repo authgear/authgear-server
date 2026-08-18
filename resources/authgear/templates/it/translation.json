@@ -467,7 +467,7 @@
   "v2.error.email-required-github": "Per favore aggiungi una \"Email pubblica\" al tuo profilo GitHub. Gestisci il tuo profilo qui: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {email} phone {numero di telefono} username {nome utente} other {{ LoginIDKey, select, email {email} phone {numero di telefono} username {nome utente} other {identità} }} }",
   "v2.error.error-account-not-found-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }",
-  "v2.error.flow-misconfigured": "Il flusso di autenticazione non è configurato correttamente. Contatta l''amministratore.",
+  "v2.error.flow-misconfigured": "[Sviluppatori] Questo Authentication Flow non è configurato correttamente e non può essere completato. Controlla la tua configurazione nel Portale.",
   "v2.error.hook-delivery-failed": "L''operazione non è consentita perché il recapito del webhook ha causato un errore sconosciuto.",
   "v2.error.hook-delivery-timeout": "L''operazione non è consentita perché la consegna del webhook è risultata in timeout.",
   "v2.error.hook-disallowed": "Operazione non consentita",
