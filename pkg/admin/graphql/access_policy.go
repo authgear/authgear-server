@@ -26,11 +26,11 @@ var accessPolicyInputType = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 // decodeAccessPolicyInput returns nil when "accessPolicy" was omitted from
-// input entirely (leave unchanged on update, default-false on create), and a
-// non-nil *model.AccessPolicy otherwise.
+// input entirely, or explicitly passed as null (leave unchanged on update,
+// default-false on create), and a non-nil *model.AccessPolicy otherwise.
 func decodeAccessPolicyInput(input map[string]any) *model.AccessPolicy {
 	raw, ok := input["accessPolicy"]
-	if !ok {
+	if !ok || raw == nil {
 		return nil
 	}
 	m, _ := raw.(map[string]any)
