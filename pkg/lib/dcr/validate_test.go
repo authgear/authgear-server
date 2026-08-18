@@ -8,9 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/dcr"
 )
 
-//go:fix inline
-func strptr(s string) *string { return new(s) }
-
 func TestValidateAndNormalize(t *testing.T) {
 	Convey("ValidateAndNormalize", t, func() {
 		validReq := func() *dcr.RegistrationRequest {
