@@ -77,10 +77,16 @@ type AppOwnerStore struct {
 var ErrOwnerNotFound = errors.New("app owner not found")
 
 func (s *AppOwnerStore) GetOwnerByAppID(ctx context.Context, appID string) (string, error) {
+	// ORDER BY makes the pick deterministic: the schema has no constraint
+	// preventing more than one collaborator row from having role="owner"
+	// (a direct DB edit can create this state), so without an explicit
+	// order, which row "wins" here would be arbitrary and could change
+	// between calls. Oldest row first, id as a tie-break.
 	q := s.SQLBuilder.
 		Select("user_id").
 		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
 		Where("app_id = ? AND role = ?", appID, "owner").
+		OrderBy("created_at ASC, id ASC").
 		Limit(1)
 
 	scanner, err := s.SQLExecutor.QueryRowWith(ctx, q)
@@ -124,11 +130,14 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 		return q
 	}
 
-	// Count query — no usage record join needed.
+	// Count query — no usage record join needed. No owner join either: none
+	// of withFilters' WHERE clauses reference an "ac" alias, so joining the
+	// collaborator table here would only risk inflating COUNT(*) if an app
+	// has more than one owner-role collaborator (see the page query below),
+	// with no corresponding benefit.
 	countQ := withFilters(
 		s.SQLBuilder.Select("COUNT(*)").
-			From(configTable + " cs").
-			LeftJoin(collaboratorTable + " ac ON ac.app_id = cs.app_id AND ac.role = 'owner'"),
+			From(configTable + " cs"),
 	)
 	scanner, err := s.SQLExecutor.QueryRowWith(ctx, countQ)
 	if err != nil {
@@ -181,7 +190,15 @@ func (s *AppOwnerStore) ListAppsWithStats(ctx context.Context, params ListAppsSt
 			"COALESCE(ur.count, 0) AS last_month_mau",
 		).
 			From(configTable+" cs").
-			LeftJoin(collaboratorTable+" ac ON ac.app_id = cs.app_id AND ac.role = 'owner'").
+			// LATERAL ... LIMIT 1, not a plain equi-join: the schema has no
+			// constraint preventing more than one collaborator row from
+			// having role="owner" for the same app (a direct DB edit can
+			// create this state). A plain "ac.app_id = cs.app_id AND
+			// ac.role = 'owner'" join would then fan out to one output row
+			// per matching owner, duplicating that app in the results.
+			// ORDER BY makes the pick deterministic (oldest row first),
+			// matching GetOwnerByAppID above.
+			LeftJoin("LATERAL (SELECT user_id FROM "+collaboratorTable+" WHERE app_id = cs.app_id AND role = 'owner' ORDER BY created_at ASC, id ASC LIMIT 1) ac ON true").
 			LeftJoin(
 				usageTable+" ur ON ur.app_id = cs.app_id AND ur.name = ? AND ur.period = ? AND ur.start_time = ?",
 				usage.RecordNameActiveUser, periodical.Monthly, params.LastMonthStart,
