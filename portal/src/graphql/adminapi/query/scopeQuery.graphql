@@ -6,6 +6,9 @@ query ScopeQuery($id: ID!) {
       scope
       description
       resourceID
+      accessPolicy {
+        allowDynamicThirdPartyClientAccess
+      }
       createdAt
       updatedAt
     }
