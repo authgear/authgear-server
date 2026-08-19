@@ -415,7 +415,7 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 |---|---|
 | `redirect_uris` is missing | omitted from request body |
 | `redirect_uris` contains a URI with a fragment component | `https://example.com/callback#section` |
-| `token_endpoint_auth_method` is provided (field not accepted) | `token_endpoint_auth_method=client_secret_post` |
+| `token_endpoint_auth_method` is provided and is not `none` | `token_endpoint_auth_method=client_secret_post` |
 | `grant_types` contains an unsupported value | `grant_types=["implicit"]` |
 | `response_types` contains an unsupported value | `response_types=["token"]` |
 | `response_types` is inconsistent with `grant_types` | `grant_types=["refresh_token"]` + `response_types=["code"]` without `authorization_code` |
@@ -473,6 +473,10 @@ Controls the client's technical profile (redirect URI rules, PKCE requirements).
 Default: `web`.
 
 The IAT type — not `application_type` — determines whether the registered client is first-party or third-party. `application_type` describes only the technical profile (redirect URI rules, etc.).
+
+### `token_endpoint_auth_method` (optional)
+
+The only accepted value is `none`. Every DCR-registered client is public and uses PKCE — Authgear never issues a `client_secret` via DCR — so `none` is simply a client explicitly stating what's already true, and is accepted. Any other value (e.g. `client_secret_post`, `client_secret_basic`) returns `invalid_client_metadata`, since Authgear has no client secret to authenticate with. Omitting the field entirely is equivalent to sending `none`.
 
 ### `logo_uri` (optional)
 
