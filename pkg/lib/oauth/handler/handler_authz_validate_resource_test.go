@@ -157,3 +157,67 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 		})
 	})
 }
+
+func TestAuthorizationHandlerResourceScopeDisplayNames(t *testing.T) {
+	Convey("AuthorizationHandler.resourceScopeDisplayNames", t, func() {
+		dynamicThirdPartyClient := &config.OAuthClientConfig{
+			ClientID:        "dynamic-third-party-client",
+			ApplicationType: config.OAuthClientApplicationTypeDynamicThirdParty,
+			IsDynamic:       true,
+		}
+		spaClient := &config.OAuthClientConfig{
+			ClientID:        "spa-client",
+			ApplicationType: config.OAuthClientApplicationTypeSPA,
+		}
+		desc := "Read your orders"
+
+		Convey("no resource requested returns nil", func() {
+			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
+			names := h.resourceScopeDisplayNames(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{})
+			So(names, ShouldBeNil)
+		})
+
+		Convey("a client type not eligible for the resource parameter returns nil", func() {
+			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
+			names := h.resourceScopeDisplayNames(context.Background(), spaClient, protocol.AuthorizationRequest{
+				"resource": "https://api.example.com/orders",
+			})
+			So(names, ShouldBeNil)
+		})
+
+		Convey("falls back to the raw scope name when Description is unset", func() {
+			h := &AuthorizationHandler{
+				IDTokenIssuer: stubIDTokenIssuer{},
+				Database:      &db.MockHandle{},
+				ResourceScopeService: &stubResourceScopeService{
+					resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: "https://api.example.com/orders"},
+					scopes: []*resourcescope.Scope{
+						{Scope: "read:orders", Description: &desc},
+						{Scope: "write:orders"},
+					},
+				},
+			}
+			names := h.resourceScopeDisplayNames(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+				"resource": "https://api.example.com/orders",
+			})
+			So(names, ShouldResemble, map[string]string{
+				"read:orders":  "Read your orders",
+				"write:orders": "write:orders",
+			})
+		})
+
+		Convey("a lookup failure returns nil rather than an error", func() {
+			h := &AuthorizationHandler{
+				IDTokenIssuer: stubIDTokenIssuer{},
+				Database:      &db.MockHandle{},
+				ResourceScopeService: &stubResourceScopeService{
+					err: resourcescope.ErrResourceNotFound,
+				},
+			}
+			names := h.resourceScopeDisplayNames(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+				"resource": "https://api.example.com/secret",
+			})
+			So(names, ShouldBeNil)
+		})
+	})
+}

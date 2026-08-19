@@ -254,6 +254,54 @@ func (h *AuthorizationHandler) validateResource(ctx context.Context, client *con
 	}
 }
 
+// resourceScopeDisplayNames looks up the human-readable display text (the
+// Scope's Description, falling back to the scope's own name if unset) for
+// every scope belonging to r's "resource" parameter, keyed by scope name,
+// for the consent screen to show. It mirrors validateResource's
+// dynamic-third-party-client-with-a-resource condition, but unlike
+// validateResource this is purely informational for rendering: it returns
+// nil rather than an error for every other case (no resource requested, a
+// client type not eligible for the resource parameter, or a lookup
+// failure) -- by the time this is called, validateResource has already
+// succeeded for the same request in the same transaction (see
+// doHandleConsentRequest), so those scopes are already known valid; this
+// function only decides how to label them on screen.
+func (h *AuthorizationHandler) resourceScopeDisplayNames(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) map[string]string {
+	resourceURI := r.Resource()
+	if resourceURI == "" || !(client.IsDynamicClient() && client.IsThirdParty()) {
+		return nil
+	}
+
+	var scopes []*resourcescope.Scope
+	read := func(ctx context.Context) error {
+		resource, err := h.ResourceScopeService.GetResourceByURIForThirdPartyAccess(ctx, resourceURI)
+		if err != nil {
+			return err
+		}
+		scopes, err = h.ResourceScopeService.ListScopesForThirdPartyAccess(ctx, resource.ID)
+		return err
+	}
+	var err error
+	if h.Database.IsInTx(ctx) {
+		err = read(ctx)
+	} else {
+		err = h.Database.ReadOnly(ctx, read)
+	}
+	if err != nil {
+		return nil
+	}
+
+	displayNames := make(map[string]string, len(scopes))
+	for _, s := range scopes {
+		if s.Description != nil && *s.Description != "" {
+			displayNames[s.Scope] = *s.Description
+		} else {
+			displayNames[s.Scope] = s.Scope
+		}
+	}
+	return displayNames
+}
+
 func (h *AuthorizationHandler) HandleConsentWithoutUserConsent(ctx context.Context, req *http.Request) (httputil.Result, *ConsentRequired) {
 	result, consentRequired := h.doHandleConsent(ctx, req, false)
 	return result, consentRequired
@@ -318,6 +366,13 @@ type ConsentRequired struct {
 	UserID string
 	Scopes []string
 	Client *config.OAuthClientConfig
+	// ScopeDisplayNames maps a requested scope to the human-readable text
+	// the consent screen should show for it. Only populated for
+	// resource-bound scopes resolved via validateResource's dynamic
+	// third-party access policy path (see resourceScopeDisplayNames) --
+	// every other scope (openid, profile, email, offline_access, etc.) is
+	// rendered by the template's own hardcoded, translated copy instead.
+	ScopeDisplayNames map[string]string
 }
 
 func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Request, withUserConsent bool) (httputil.Result, *ConsentRequired) {
@@ -354,9 +409,10 @@ func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Re
 	if err != nil {
 		if !grantAuthz && IsConsentRequiredError(err) {
 			return nil, &ConsentRequired{
-				UserID: consentRequest.AuthInfoEntry.T.UserID,
-				Scopes: consentRequest.OAuthSessionEntry.T.AuthorizationRequest.Scope(),
-				Client: consentRequest.Client,
+				UserID:            consentRequest.AuthInfoEntry.T.UserID,
+				Scopes:            consentRequest.OAuthSessionEntry.T.AuthorizationRequest.Scope(),
+				Client:            consentRequest.Client,
+				ScopeDisplayNames: h.resourceScopeDisplayNames(ctx, consentRequest.Client, consentRequest.OAuthSessionEntry.T.AuthorizationRequest),
 			}
 		}
 
