@@ -581,6 +581,8 @@
   "v2.page.consent.scopes.address": "เข้าถึงที่อยู่ของคุณ",
   "v2.page.consent.scopes.email": "เข้าถึงที่อยู่อีเมลของคุณ",
   "v2.page.consent.scopes.full-userinfo": "เข้าถึงข้อมูลทั้งหมดในโปรไฟล์ของคุณ เช่น ชื่อ ที่อยู่อีเมล หมายเลขโทรศัพท์ และที่อยู่",
+  "v2.page.consent.scopes.offline-access": "รักษาสิทธิ์การเข้าถึงข้อมูลที่คุณได้ให้สิทธิ์เข้าถึงไว้",
+  "v2.page.consent.scopes.openid": "ลงชื่อเข้าใช้ให้คุณ",
   "v2.page.consent.scopes.phone": "เข้าถึงหมายเลขโทรศัพท์ของคุณ",
   "v2.page.consent.scopes.profile": "เข้าถึงโปรไฟล์ของคุณ เช่น ชื่อ แต่ไม่รวมที่อยู่อีเมล หมายเลขโทรศัพท์ และที่อยู่",
   "v2.page.create-password.default.title": "สร้างรหัสผ่าน",

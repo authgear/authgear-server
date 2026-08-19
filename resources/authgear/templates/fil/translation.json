@@ -581,6 +581,8 @@
   "v2.page.consent.scopes.address": "I-access ang iyong address.",
   "v2.page.consent.scopes.email": "I-access ang iyong email address.",
   "v2.page.consent.scopes.full-userinfo": "I-access ang buong impormasyon sa iyong profile tulad ng pangalan, email address, numero ng telepono, at address.",
+  "v2.page.consent.scopes.offline-access": "Panatilihin ang access sa data na binigyan mo ito ng access.",
+  "v2.page.consent.scopes.openid": "Papasukin ka sa sistema.",
   "v2.page.consent.scopes.phone": "I-access ang iyong numero ng telepono.",
   "v2.page.consent.scopes.profile": "I-access ang iyong profile tulad ng pangalan, ngunit hindi kasama ang email address, numero ng telepono, at address.",
   "v2.page.create-password.default.title": "Gumawa ng Password",

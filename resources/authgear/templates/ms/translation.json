@@ -581,6 +581,8 @@
   "v2.page.consent.scopes.address": "Akses alamat anda.",
   "v2.page.consent.scopes.email": "Akses alamat e-mel anda.",
   "v2.page.consent.scopes.full-userinfo": "Akses maklumat lengkap dalam profil anda seperti nama, alamat e-mel, nombor telefon, dan alamat.",
+  "v2.page.consent.scopes.offline-access": "Mengekalkan akses kepada data yang anda telah berikan akses kepadanya.",
+  "v2.page.consent.scopes.openid": "Log masuk anda.",
   "v2.page.consent.scopes.phone": "Akses nombor telefon anda.",
   "v2.page.consent.scopes.profile": "Akses profil anda seperti nama, tetapi tidak termasuk alamat e-mel, nombor telefon, dan alamat.",
   "v2.page.create-password.default.title": "Cipta Kata Laluan",

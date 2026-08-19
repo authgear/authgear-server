@@ -581,6 +581,8 @@
   "v2.page.consent.scopes.address": "访问您的地址。",
   "v2.page.consent.scopes.email": "访问您的电子邮件地址。",
   "v2.page.consent.scopes.full-userinfo": "访问您个人资料中的完整信息，如姓名、电子邮件地址、电话号码和地址。",
+  "v2.page.consent.scopes.offline-access": "维持对已授予其访问权限的数据的访问。",
+  "v2.page.consent.scopes.openid": "登录你的账户。",
   "v2.page.consent.scopes.phone": "访问您的电话号码。",
   "v2.page.consent.scopes.profile": "访问您的个人资料，如姓名，但不包括电子邮件地址、电话号码和地址。",
   "v2.page.create-password.default.title": "创建密码",

@@ -581,6 +581,8 @@
   "v2.page.consent.scopes.address": "주소에 접근합니다.",
   "v2.page.consent.scopes.email": "이메일 주소에 접근합니다.",
   "v2.page.consent.scopes.full-userinfo": "이름, 이메일 주소, 전화번호, 주소 등 프로필의 전체 정보에 접근합니다.",
+  "v2.page.consent.scopes.offline-access": "귀하가 접근 권한을 부여한 데이터에 대한 접근을 유지합니다.",
+  "v2.page.consent.scopes.openid": "귀하를 로그인시킵니다.",
   "v2.page.consent.scopes.phone": "전화번호에 접근합니다.",
   "v2.page.consent.scopes.profile": "이메일 주소, 전화번호, 주소를 제외한 이름 등 프로필에 접근합니다.",
   "v2.page.create-password.default.title": "비밀번호 생성",
