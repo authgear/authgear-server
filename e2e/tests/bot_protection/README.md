@@ -70,6 +70,7 @@ Passkey will need to implement reverse of [`webauthncose.VerifySignature`](https
   - [x] should not require bot protection if previous steps already have `success` verification
   - [x] should reject bot protection provider not aligned to `authgear.yaml` `bot_protection.provider`
       For example, if `authgear.yaml` has `cloudflare` configured, but input has `recaptchav2`, should reject on json schema validation
+  - [x] login flow identify loginid: verification service unavailable (`service_unavailable`)
   
 
 ## Mocking Verification
@@ -82,7 +83,7 @@ Set input `bot_protection.response` as magic word
 | Magic Word          | Effect                                   |
 |---------------------|------------------------------------------|
 | pass                | Always passes                            |
-| service-unavailable | Always fail with `internal-error`        |
+| service_unavailable | Always fail with `internal-error`        |
 | (Any other string)  | Always fail with `invalid-input-response`|
 
 ### Recaptcha V2
