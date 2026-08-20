@@ -123,10 +123,6 @@ function constructConfig(
           draft.response_types = ["code", "none"];
           draft.issue_jwt_access_token = true;
           break;
-        case "m2m":
-          // M2M is handled by CreateM2MClientScreen; not reachable here.
-          draft.issue_jwt_access_token = true;
-          break;
       }
       config.oauth.clients.push(draft);
       clearEmptyObject(config);

@@ -75,11 +75,6 @@
   line-height: 1.5;
 }
 
-.changeButton {
-  margin-top: 12px;
-  align-self: flex-start;
-}
-
 .emptyState {
   display: flex;
   flex-direction: column;

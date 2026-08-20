@@ -81,10 +81,20 @@ export interface CookieSnippet {
   code: string;
 }
 
+/**
+ * Application types a framework catalog entry can resolve to. M2M is
+ * created exclusively through CreateM2MClientScreen, never through
+ * a FrameworkEntry, so it is excluded here rather than handled as an
+ * always-dead switch case at every call site.
+ */
+export type FrameworkApplicationType = Exclude<ApplicationType, "m2m">;
+
 export interface FrameworkEntry {
   id: Framework;
-  displayName: string;
-  helperText: string;
+  /** Message id for the framework's display name, e.g. "React". */
+  displayNameMessageId: string;
+  /** Message id for the framework's short helper text shown under its name. */
+  helperTextMessageId: string;
   section: FrameworkSection;
   /** Tabler icon name without the "ti-" prefix, e.g. "brand-react". */
   iconName: string;
@@ -97,8 +107,8 @@ export interface FrameworkEntry {
    */
   cookieSnippet?: CookieSnippet;
   stage2: Stage2Need;
-  resolveType: (stage2?: AuthMethodChoice) => ApplicationType;
-  compatibleTypes: ApplicationType[];
+  resolveType: (stage2?: AuthMethodChoice) => FrameworkApplicationType;
+  compatibleTypes: FrameworkApplicationType[];
   /** Optional downloadable starter-kit walkthrough for this framework. */
   starterKit?: StarterKit;
 }
@@ -106,7 +116,7 @@ export interface FrameworkEntry {
 const requireStage2 = (
   id: Framework,
   stage2?: AuthMethodChoice
-): ApplicationType => {
+): FrameworkApplicationType => {
   if (stage2 === "token") return "confidential";
   if (stage2 === "cookie") return "traditional_webapp";
   throw new Error(`resolveType called without stage2 on ${id}`);
@@ -114,15 +124,15 @@ const requireStage2 = (
 
 const websiteSPA = (
   id: Framework,
-  displayName: string,
-  helperText: string,
+  displayNameMessageId: string,
+  helperTextMessageId: string,
   iconName: string,
   docLink: string,
   starterKit?: StarterKit
 ): FrameworkEntry => ({
   id,
-  displayName,
-  helperText,
+  displayNameMessageId,
+  helperTextMessageId,
   section: "website",
   iconName,
   docLink,
@@ -134,15 +144,15 @@ const websiteSPA = (
 
 const websiteServer = (
   id: Framework,
-  displayName: string,
-  helperText: string,
+  displayNameMessageId: string,
+  helperTextMessageId: string,
   iconName: string,
   docLink: string,
   cookieSnippet?: CookieSnippet
 ): FrameworkEntry => ({
   id,
-  displayName,
-  helperText,
+  displayNameMessageId,
+  helperTextMessageId,
   section: "website",
   iconName,
   docLink,
@@ -211,15 +221,15 @@ public IActionResult Protected()
 
 const mobileNative = (
   id: Framework,
-  displayName: string,
-  helperText: string,
+  displayNameMessageId: string,
+  helperTextMessageId: string,
   iconName: string,
   docLink: string,
   starterKit?: StarterKit
 ): FrameworkEntry => ({
   id,
-  displayName,
-  helperText,
+  displayNameMessageId,
+  helperTextMessageId,
   section: "mobile",
   iconName,
   docLink,
@@ -416,88 +426,89 @@ const IONIC_STARTER_KIT: StarterKit = {
 export const frameworks: FrameworkEntry[] = [
   websiteSPA(
     "react",
-    "React",
-    "SPA, uses authgear-sdk-js",
+    "CreateOAuthClientScreen.framework.react.title",
+    "CreateOAuthClientScreen.framework.react.description",
     "brand-react",
     `${DOCS}/single-page-app/react`,
     REACT_STARTER_KIT
   ),
   websiteSPA(
     "vue",
-    "Vue",
-    "SPA, uses authgear-sdk-js",
+    "CreateOAuthClientScreen.framework.vue.title",
+    "CreateOAuthClientScreen.framework.vue.description",
     "brand-vue",
     `${DOCS}/single-page-app/vue`,
     VUE_STARTER_KIT
   ),
   websiteSPA(
     "angular",
-    "Angular",
-    "SPA, uses authgear-sdk-js",
+    "CreateOAuthClientScreen.framework.angular.title",
+    "CreateOAuthClientScreen.framework.angular.description",
     "brand-angular",
     `${DOCS}/single-page-app/angular`,
     ANGULAR_STARTER_KIT
   ),
   websiteSPA(
     "nextjs",
-    "Next.js",
-    "SPA/SSR, uses authgear-sdk-nextjs",
+    "CreateOAuthClientScreen.framework.nextjs.title",
+    "CreateOAuthClientScreen.framework.nextjs.description",
     "brand-nextjs",
     `${DOCS}/regular-web-app/nextjs`,
     NEXTJS_STARTER_KIT
   ),
   websiteSPA(
     "other-spa",
-    "Other SPAs",
-    "Any JavaScript SPA framework",
+    "CreateOAuthClientScreen.framework.other-spa.title",
+    "CreateOAuthClientScreen.framework.other-spa.description",
     "world-www",
     `${DOCS}/single-page-app/website`,
     OTHER_SPA_STARTER_KIT
   ),
   websiteServer(
     "express",
-    "Express.js",
-    "Server-side, Node backend",
+    "CreateOAuthClientScreen.framework.express.title",
+    "CreateOAuthClientScreen.framework.express.description",
     "brand-javascript",
     `${DOCS}/regular-web-app/express`,
     EXPRESS_SNIPPET
   ),
   websiteServer(
     "flask",
-    "Python (Flask)",
-    "Server-side, Python backend",
+    "CreateOAuthClientScreen.framework.flask.title",
+    "CreateOAuthClientScreen.framework.flask.description",
     "brand-python",
     `${DOCS}/regular-web-app/python-flask-app`,
     FLASK_SNIPPET
   ),
   websiteServer(
     "laravel",
-    "PHP (Laravel)",
-    "Server-side, PHP backend",
+    "CreateOAuthClientScreen.framework.laravel.title",
+    "CreateOAuthClientScreen.framework.laravel.description",
     "brand-laravel",
     `${DOCS}/regular-web-app/laravel`,
     LARAVEL_SNIPPET
   ),
   websiteServer(
     "java",
-    "Java (Spring Boot)",
-    "Server-side, JVM backend",
+    "CreateOAuthClientScreen.framework.java.title",
+    "CreateOAuthClientScreen.framework.java.description",
     "coffee",
     `${DOCS}/regular-web-app/java-spring-boot`,
     JAVA_SNIPPET
   ),
   websiteServer(
     "aspnet",
-    "ASP.NET Core MVC",
-    "Server-side, .NET backend",
+    "CreateOAuthClientScreen.framework.aspnet.title",
+    "CreateOAuthClientScreen.framework.aspnet.description",
     "brand-windows",
     `${DOCS}/regular-web-app/asp.net-core-mvc`,
     ASPNET_SNIPPET
   ),
   {
     id: "other-oidc",
-    displayName: "Other OIDC/SAML compatible",
-    helperText: "e.g. WordPress, or any OIDC/SAML app",
+    displayNameMessageId: "CreateOAuthClientScreen.framework.other-oidc.title",
+    helperTextMessageId:
+      "CreateOAuthClientScreen.framework.other-oidc.description",
     section: "integration",
     iconName: "shield-check",
     docLink: `${DOCS}/oidc-provider`,
@@ -507,39 +518,39 @@ export const frameworks: FrameworkEntry[] = [
   },
   mobileNative(
     "react-native",
-    "React Native",
-    "Cross-platform mobile SDK",
+    "CreateOAuthClientScreen.framework.react-native.title",
+    "CreateOAuthClientScreen.framework.react-native.description",
     "brand-react-native",
     `${DOCS}/native-mobile-app/react-native`
   ),
   mobileNative(
     "ios",
-    "iOS",
-    "Native iOS (Swift)",
+    "CreateOAuthClientScreen.framework.ios.title",
+    "CreateOAuthClientScreen.framework.ios.description",
     "brand-apple",
     `${DOCS}/native-mobile-app/ios`,
     IOS_STARTER_KIT
   ),
   mobileNative(
     "android",
-    "Android",
-    "Native Android (Kotlin)",
+    "CreateOAuthClientScreen.framework.android.title",
+    "CreateOAuthClientScreen.framework.android.description",
     "brand-android",
     `${DOCS}/native-mobile-app/android`,
     ANDROID_STARTER_KIT
   ),
   mobileNative(
     "flutter",
-    "Flutter",
-    "Cross-platform mobile SDK",
+    "CreateOAuthClientScreen.framework.flutter.title",
+    "CreateOAuthClientScreen.framework.flutter.description",
     "brand-flutter",
     `${DOCS}/native-mobile-app/flutter`,
     FLUTTER_STARTER_KIT
   ),
   mobileNative(
     "ionic",
-    "Ionic",
-    "Cross-platform hybrid SDK",
+    "CreateOAuthClientScreen.framework.ionic.title",
+    "CreateOAuthClientScreen.framework.ionic.description",
     "device-mobile",
     `${DOCS}/native-mobile-app/ionic`,
     IONIC_STARTER_KIT
@@ -555,6 +566,11 @@ export function findFramework(
 export function frameworksForType(
   applicationType: ApplicationType
 ): FrameworkEntry[] {
+  if (applicationType === "m2m") {
+    // No FrameworkEntry is ever compatible with m2m; it is created
+    // exclusively through CreateM2MClientScreen.
+    return [];
+  }
   return frameworks.filter((f) => f.compatibleTypes.includes(applicationType));
 }
 

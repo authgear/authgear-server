@@ -80,6 +80,7 @@ export function EditOAuthClientFormFrameworkQuickStart<
   clientSecrets,
   onGoToSettings,
 }: EditOAuthClientFormFrameworkQuickStartProps<S>): React.ReactElement {
+  const { renderToString } = useContext(Context);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [applying, setApplying] = useState(false);
 
@@ -216,10 +217,10 @@ export function EditOAuthClientFormFrameworkQuickStart<
         </div>
         <div className={styles.frameworkText}>
           <Text variant="large" block={true} styles={titleStyles}>
-            {framework.displayName}
+            <FormattedMessage id={framework.displayNameMessageId} />
           </Text>
           <Text block={true} className={styles.helperText}>
-            {framework.helperText}
+            <FormattedMessage id={framework.helperTextMessageId} />
           </Text>
         </div>
         <DefaultButton
@@ -261,7 +262,7 @@ export function EditOAuthClientFormFrameworkQuickStart<
                   }).bodyMessageId
                 }
                 values={{
-                  displayName: framework.displayName,
+                  displayName: renderToString(framework.displayNameMessageId),
                   // eslint-disable-next-line react/no-unstable-nested-components
                   docLink: (chunks: React.ReactNode) => (
                     <ExternalLink
@@ -289,7 +290,7 @@ export function EditOAuthClientFormFrameworkQuickStart<
       {framework.starterKit != null ? (
         <StarterKitSection
           starterKit={framework.starterKit}
-          frameworkDisplayName={framework.displayName}
+          frameworkDisplayName={renderToString(framework.displayNameMessageId)}
           clientID={client.client_id}
           publicOrigin={form.state.publicOrigin}
           usersPath={`/project/${appID}/users`}

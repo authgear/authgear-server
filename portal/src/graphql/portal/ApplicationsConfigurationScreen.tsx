@@ -370,7 +370,12 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
                     <FormattedMessage
                       id={getApplicationTypeMessageID(item.x_application_type)}
                     />
-                    {framework != null ? ` · ${framework.displayName}` : null}
+                    {framework != null ? (
+                      <>
+                        {" · "}
+                        <FormattedMessage id={framework.displayNameMessageId} />
+                      </>
+                    ) : null}
                   </div>
                 </div>
               </div>

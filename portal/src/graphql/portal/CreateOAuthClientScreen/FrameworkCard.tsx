@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
+import { Context } from "../../../intl";
 import ChoiceButton from "../../../ChoiceButton";
 import type { FrameworkEntry } from "./frameworks";
 import styles from "./FrameworkCard.module.css";
@@ -15,6 +16,8 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
   selected,
   onSelect,
 }) => {
+  const { renderToString } = useContext(Context);
+
   const IconComponent = useMemo(() => {
     return function FrameworkIcon() {
       return (
@@ -39,8 +42,8 @@ export const FrameworkCard: React.FC<FrameworkCardProps> = ({
     <ChoiceButton
       className={styles.card}
       checked={selected}
-      text={framework.displayName}
-      secondaryText={framework.helperText}
+      text={renderToString(framework.displayNameMessageId)}
+      secondaryText={renderToString(framework.helperTextMessageId)}
       IconComponent={IconComponent}
       onClick={onClick}
     />

@@ -180,7 +180,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
                 aria-hidden={true}
               />
             ),
-            name: selectedFramework.displayName,
+            name: renderToString(selectedFramework.displayNameMessageId),
             docLink: selectedFramework.docLink,
           },
         ];
