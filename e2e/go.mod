@@ -112,7 +112,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
-	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5 // indirect
+	github.com/iawaknahc/gomessageformat v0.0.0-20260812135726-04797505aebe // indirect
 	github.com/iawaknahc/jsonschema v0.0.0-20250219112344-8b65018f0c9f // indirect
 	github.com/iawaknahc/originmatcher v0.0.0-20240717084358-ac10088d8800 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
