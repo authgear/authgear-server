@@ -269,6 +269,50 @@ func TestCollaboratorService(t *testing.T) {
 			So(store.updated[1].Role, ShouldEqual, portalmodel.CollaboratorRoleEditor)
 		})
 
+		Convey("PromoteCollaborator demotes every existing owner, not just one, when the app has more than one (e.g. from a direct DB edit)", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				listed: []*portalmodel.Collaborator{
+					{ID: "owner-2", AppID: "app-1", UserID: "user-owner-2", CreatedAt: now.Add(time.Hour), Role: portalmodel.CollaboratorRoleOwner},
+					{ID: "owner-1", AppID: "app-1", UserID: "user-owner-1", CreatedAt: now, Role: portalmodel.CollaboratorRoleOwner},
+					{ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+				existingByID: map[string]*portalmodel.Collaborator{
+					"editor-1": {ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+			}
+			svr := adminAPIServer(getNodesResponse(
+				map[string]any{"id": relay.ToGlobalID("User", "user-editor"), "standardAttributes": map[string]any{"email": "editor@example.com"}},
+				map[string]any{"id": relay.ToGlobalID("User", "user-owner-1"), "standardAttributes": map[string]any{"email": "owner1@example.com"}},
+				map[string]any{"id": relay.ToGlobalID("User", "user-owner-2"), "standardAttributes": map[string]any{"email": "owner2@example.com"}},
+			))
+			defer svr.Close()
+
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+				AdminAPI:       makeAdminAPI(svr),
+			}
+
+			result, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "editor-1")
+
+			So(err, ShouldBeNil)
+			So(result.Role, ShouldEqual, siteadmin.Owner)
+			// The newly promoted collaborator, plus BOTH pre-existing owners
+			// demoted -- not just the one the old first-match-wins logic
+			// would have picked.
+			So(store.updated, ShouldHaveLength, 3)
+			So(store.updated[0].ID, ShouldEqual, "editor-1")
+			So(store.updated[0].Role, ShouldEqual, portalmodel.CollaboratorRoleOwner)
+			// Oldest owner (owner-1, created at `now`) demoted before the
+			// newer one (owner-2, created an hour later) -- deterministic
+			// order, not whatever ListCollaborators happened to return.
+			So(store.updated[1].ID, ShouldEqual, "owner-1")
+			So(store.updated[1].Role, ShouldEqual, portalmodel.CollaboratorRoleEditor)
+			So(store.updated[2].ID, ShouldEqual, "owner-2")
+			So(store.updated[2].Role, ShouldEqual, portalmodel.CollaboratorRoleEditor)
+		})
+
 		Convey("PromoteCollaborator returns not found when collaboratorID is missing", func() {
 			db := &fakeCollaboratorDatabase{}
 			store := &fakeCollaboratorStore{
@@ -417,9 +461,53 @@ func TestCollaboratorService(t *testing.T) {
 			So(payload.NewOwnerCollaboratorID, ShouldEqual, "editor-1")
 			So(payload.NewOwnerUserID, ShouldEqual, "user-editor")
 			So(payload.NewOwnerUserEmail, ShouldEqual, "editor@example.com")
-			So(payload.DemotedEditorCollaboratorID, ShouldEqual, "owner-1")
-			So(payload.DemotedEditorUserID, ShouldEqual, "user-owner")
-			So(payload.DemotedEditorUserEmail, ShouldEqual, "owner@example.com")
+			So(payload.DemotedEditors, ShouldHaveLength, 1)
+			So(payload.DemotedEditors[0].CollaboratorID, ShouldEqual, "owner-1")
+			So(payload.DemotedEditors[0].UserID, ShouldEqual, "user-owner")
+			So(payload.DemotedEditors[0].UserEmail, ShouldEqual, "owner@example.com")
+		})
+
+		Convey("PromoteCollaborator records every demoted owner in DemotedEditors", func() {
+			db := &fakeCollaboratorDatabase{}
+			store := &fakeCollaboratorStore{
+				listed: []*portalmodel.Collaborator{
+					{ID: "owner-2", AppID: "app-1", UserID: "user-owner-2", CreatedAt: now.Add(time.Hour), Role: portalmodel.CollaboratorRoleOwner},
+					{ID: "owner-1", AppID: "app-1", UserID: "user-owner-1", CreatedAt: now, Role: portalmodel.CollaboratorRoleOwner},
+					{ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+				existingByID: map[string]*portalmodel.Collaborator{
+					"editor-1": {ID: "editor-1", AppID: "app-1", UserID: "user-editor", CreatedAt: now, Role: portalmodel.CollaboratorRoleEditor},
+				},
+			}
+			svr := adminAPIServer(getNodesResponse(
+				map[string]any{"id": relay.ToGlobalID("User", "user-editor"), "standardAttributes": map[string]any{"email": "editor@example.com"}},
+				map[string]any{"id": relay.ToGlobalID("User", "user-owner-1"), "standardAttributes": map[string]any{"email": "owner1@example.com"}},
+				map[string]any{"id": relay.ToGlobalID("User", "user-owner-2"), "standardAttributes": map[string]any{"email": "owner2@example.com"}},
+			))
+			defer svr.Close()
+
+			audit := &fakeAuditService{}
+			svc := &CollaboratorService{
+				GlobalDatabase: db,
+				Store:          store,
+				AdminAPI:       makeAdminAPI(svr),
+				AuditService:   audit,
+			}
+
+			_, err := svc.PromoteCollaborator(ctxWithCollaboratorSession(), "app-1", "editor-1")
+			So(err, ShouldBeNil)
+			So(audit.logged, ShouldHaveLength, 1)
+			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorPromotedPayload)
+			So(ok, ShouldBeTrue)
+			// DemotedEditors lists every demoted owner -- neither is silently
+			// dropped from the audit trail.
+			So(payload.DemotedEditors, ShouldHaveLength, 2)
+			So(payload.DemotedEditors[0].CollaboratorID, ShouldEqual, "owner-1")
+			So(payload.DemotedEditors[0].UserID, ShouldEqual, "user-owner-1")
+			So(payload.DemotedEditors[0].UserEmail, ShouldEqual, "owner1@example.com")
+			So(payload.DemotedEditors[1].CollaboratorID, ShouldEqual, "owner-2")
+			So(payload.DemotedEditors[1].UserID, ShouldEqual, "user-owner-2")
+			So(payload.DemotedEditors[1].UserEmail, ShouldEqual, "owner2@example.com")
 		})
 
 		Convey("PromoteCollaborator emits audit log without demoted fields when no previous owner", func() {
@@ -452,8 +540,7 @@ func TestCollaboratorService(t *testing.T) {
 			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorPromotedPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.NewOwnerCollaboratorID, ShouldEqual, "editor-1")
-			So(payload.DemotedEditorCollaboratorID, ShouldEqual, "")
-			So(payload.DemotedEditorUserID, ShouldEqual, "")
+			So(payload.DemotedEditors, ShouldBeEmpty)
 		})
 	})
 }

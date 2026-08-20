@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"sort"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
@@ -232,9 +233,48 @@ func (s *CollaboratorService) AddCollaborator(ctx context.Context, appID string,
 	}, nil
 }
 
+// existingOwnersSorted returns every owner-role collaborator in all,
+// deterministically ordered (oldest first, id as a tie-break --
+// ListCollaborators has no ORDER BY of its own). Normally at most one, but
+// the schema has no constraint preventing more: nothing stops a direct DB
+// edit from setting a second collaborator's role to "owner".
+func existingOwnersSorted(all []*model.Collaborator) []*model.Collaborator {
+	var owners []*model.Collaborator
+	for _, c := range all {
+		if c.Role == model.CollaboratorRoleOwner {
+			owners = append(owners, c)
+		}
+	}
+	sort.Slice(owners, func(i, j int) bool {
+		if !owners[i].CreatedAt.Equal(owners[j].CreatedAt) {
+			return owners[i].CreatedAt.Before(owners[j].CreatedAt)
+		}
+		return owners[i].ID < owners[j].ID
+	})
+	return owners
+}
+
+// promotedCollaboratorPayload builds the audit payload for a promotion.
+func promotedCollaboratorPayload(appID string, promoted *model.Collaborator, demotedOwners []*model.Collaborator, emailMap map[string]string) *siteadminauditlog.AppCollaboratorPromotedPayload {
+	payload := &siteadminauditlog.AppCollaboratorPromotedPayload{
+		AppID:                  appID,
+		NewOwnerCollaboratorID: promoted.ID,
+		NewOwnerUserID:         promoted.UserID,
+		NewOwnerUserEmail:      emailMap[promoted.UserID],
+	}
+	for _, owner := range demotedOwners {
+		payload.DemotedEditors = append(payload.DemotedEditors, siteadminauditlog.DemotedEditor{
+			CollaboratorID: owner.ID,
+			UserID:         owner.UserID,
+			UserEmail:      emailMap[owner.UserID],
+		})
+	}
+	return payload
+}
+
 func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID string, collaboratorID string) (*siteadmin.Collaborator, error) {
 	var promoted *model.Collaborator
-	var demotedOwner *model.Collaborator // nil if the app had no previous owner
+	var demotedOwners []*model.Collaborator // empty if the app had no previous owner
 	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
 		target, err := s.Store.GetCollaborator(ctx, collaboratorID)
 		if err != nil {
@@ -251,27 +291,24 @@ func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID str
 		if err != nil {
 			return err
 		}
-		var currentOwner *model.Collaborator
-		for _, c := range all {
-			if c.Role == model.CollaboratorRoleOwner {
-				currentOwner = c
-				break
-			}
-		}
+		// Demote every existing owner-role collaborator, not just the first
+		// one found: demoting only one would leave the app with MORE owners
+		// after "promoting" than before (see existingOwnersSorted).
+		owners := existingOwnersSorted(all)
 
 		target.Role = model.CollaboratorRoleOwner
 		if err := s.Store.UpdateCollaborator(ctx, target); err != nil {
 			return err
 		}
-		if currentOwner != nil {
-			currentOwner.Role = model.CollaboratorRoleEditor
-			if err := s.Store.UpdateCollaborator(ctx, currentOwner); err != nil {
+		for _, owner := range owners {
+			owner.Role = model.CollaboratorRoleEditor
+			if err := s.Store.UpdateCollaborator(ctx, owner); err != nil {
 				return err
 			}
 		}
 
 		promoted = target
-		demotedOwner = currentOwner
+		demotedOwners = owners
 		return nil
 	})
 	if err != nil {
@@ -279,8 +316,8 @@ func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID str
 	}
 
 	userIDsToResolve := []string{promoted.UserID}
-	if demotedOwner != nil {
-		userIDsToResolve = append(userIDsToResolve, demotedOwner.UserID)
+	for _, owner := range demotedOwners {
+		userIDsToResolve = append(userIDsToResolve, owner.UserID)
 	}
 	emailMap, err := s.AdminAPI.ResolveUserEmails(ctx, userIDsToResolve)
 	if err != nil {
@@ -288,17 +325,7 @@ func (s *CollaboratorService) PromoteCollaborator(ctx context.Context, appID str
 	}
 
 	if s.AuditService != nil {
-		payload := &siteadminauditlog.AppCollaboratorPromotedPayload{
-			AppID:                  appID,
-			NewOwnerCollaboratorID: promoted.ID,
-			NewOwnerUserID:         promoted.UserID,
-			NewOwnerUserEmail:      emailMap[promoted.UserID],
-		}
-		if demotedOwner != nil {
-			payload.DemotedEditorCollaboratorID = demotedOwner.ID
-			payload.DemotedEditorUserID = demotedOwner.UserID
-			payload.DemotedEditorUserEmail = emailMap[demotedOwner.UserID]
-		}
+		payload := promotedCollaboratorPayload(appID, promoted, demotedOwners, emailMap)
 		if err := s.AuditService.LogEvent(ctx, appID, payload); err != nil {
 			AuditServiceLogger.GetLogger(ctx).WithError(err).Error(ctx, "failed to emit site admin audit log")
 		}
