@@ -73,9 +73,17 @@ func (e *ErrorRewriteFlow) Error() string {
 // ErrorBotProtectionVerification is a special error for interrupting the flow in case of failed or service-unavailable
 type ErrorBotProtectionVerification struct {
 	Status ErrorBotProtectionVerificationStatus
+	// Cause is the error reported by the bot protection provider, if any.
+	// It is kept for logging only; it is never shown to the end user.
+	// Note that Cause is intentionally NOT exposed via Unwrap,
+	// so that this special error keeps being matched by Status only.
+	Cause error
 }
 
 func (e *ErrorBotProtectionVerification) Error() string {
+	if e.Cause != nil {
+		return fmt.Sprintf("bot protection verification status: %v: %v", e.Status, e.Cause)
+	}
 	return fmt.Sprintf("bot protection verification status: %v", e.Status)
 }
 
@@ -98,6 +106,24 @@ var (
 		Status: ErrorBotProtectionVerificationStatusServiceUnavailable,
 	}
 )
+
+// NewErrorBotProtectionVerificationFailed is like ErrorBotProtectionVerificationFailed,
+// except that it remembers cause.
+func NewErrorBotProtectionVerificationFailed(cause error) *ErrorBotProtectionVerification {
+	return &ErrorBotProtectionVerification{
+		Status: ErrorBotProtectionVerificationStatusFailed,
+		Cause:  cause,
+	}
+}
+
+// NewErrorBotProtectionVerificationServiceUnavailable is like ErrorBotProtectionVerificationServiceUnavailable,
+// except that it remembers cause.
+func NewErrorBotProtectionVerificationServiceUnavailable(cause error) *ErrorBotProtectionVerification {
+	return &ErrorBotProtectionVerification{
+		Status: ErrorBotProtectionVerificationStatusServiceUnavailable,
+		Cause:  cause,
+	}
+}
 
 func newAuthenticationFlowError(flows Flows, err error) error {
 	return errorutil.WithDetails(err, errorutil.Details{
