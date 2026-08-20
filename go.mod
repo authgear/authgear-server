@@ -20,7 +20,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.5.0
 	github.com/graphql-go/graphql v0.8.1
-	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5
+	github.com/iawaknahc/gomessageformat v0.0.0-20260812135726-04797505aebe
 	github.com/iawaknahc/jsonschema v0.0.0-20250219112344-8b65018f0c9f
 	github.com/iawaknahc/originmatcher v0.0.0-20240717084358-ac10088d8800
 	github.com/joho/godotenv v1.5.1
@@ -319,5 +319,3 @@ tool (
 	golang.org/x/tools/cmd/goimports
 	golang.org/x/vuln/cmd/govulncheck
 )
-
-replace github.com/iawaknahc/gomessageformat => github.com/oursky/gomessageformat v0.0.0-20260810215310-a251ccc4eb09
