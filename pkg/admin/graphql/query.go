@@ -485,6 +485,38 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewConnectionFromResult(lazyItems, result)
 			},
 		},
+		"initialAccessTokens": &graphql.Field{
+			Description: "Returns all active (non-expired) Initial Access Tokens for the project.",
+			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeInitialAccessToken))),
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
+				return gqlCtx.DCRFacade.ListInitialAccessTokens(ctx)
+			},
+		},
+		"dynamicClients": &graphql.Field{
+			Description: "Clients that exist outside authgear.yaml: DCR-registered (and, once implemented, CIMD-resolved) clients.",
+			Type:        connDynamicClient.ConnectionType,
+			Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				refs, result, err := gqlCtx.DCRFacade.ListClients(ctx, pageArgs)
+				if err != nil {
+					return nil, err
+				}
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.DynamicClients.Load(ctx, ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
+			},
+		},
 		"getUsersByStandardAttribute": &graphql.Field{
 			Description: "Get users by standardAttribute, attributeName must be email, phone_number or preferred_username.",
 			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeUser))),

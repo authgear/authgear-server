@@ -30,6 +30,16 @@ export type Scalars = {
   Web3Claims: { input: GQL_Web3Claims; output: GQL_Web3Claims; }
 };
 
+export type AccessPolicy = {
+  __typename?: 'AccessPolicy';
+  /** Whether a dynamically registered (DCR) or static third-party client can request this resource/scope via the resource parameter. */
+  allowDynamicThirdPartyClientAccess: Scalars['Boolean']['output'];
+};
+
+export type AccessPolicyInput = {
+  allowDynamicThirdPartyClientAccess?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 /** The account lockout state of a user */
 export type AccountLockout = {
   __typename?: 'AccountLockout';
@@ -317,6 +327,23 @@ export type AuditLogEdge = {
   node?: Maybe<AuditLog>;
 };
 
+export type AuthenticationFlowAllowlist = {
+  __typename?: 'AuthenticationFlowAllowlist';
+  flows: Array<AuthenticationFlowAllowlistFlow>;
+  groups: Array<AuthenticationFlowAllowlistGroup>;
+};
+
+export type AuthenticationFlowAllowlistFlow = {
+  __typename?: 'AuthenticationFlowAllowlistFlow';
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type AuthenticationFlowAllowlistGroup = {
+  __typename?: 'AuthenticationFlowAllowlistGroup';
+  name: Scalars['String']['output'];
+};
+
 export type Authenticator = Entity & Node & {
   __typename?: 'Authenticator';
   claims: Scalars['AuthenticatorClaims']['output'];
@@ -478,7 +505,23 @@ export type CreateIdentityPayload = {
   user: User;
 };
 
+export type CreateInitialAccessTokenInput = {
+  /** Token lifetime in seconds. If omitted, a server default is used. */
+  expiresIn?: InputMaybe<Scalars['Int']['input']>;
+  /** Defaults to THIRD_PARTY. */
+  type?: InputMaybe<InitialAccessTokenType>;
+};
+
+export type CreateInitialAccessTokenPayload = {
+  __typename?: 'CreateInitialAccessTokenPayload';
+  initialAccessToken: InitialAccessToken;
+  /** The opaque IAT value. Returned ONCE only. */
+  token: Scalars['String']['output'];
+};
+
 export type CreateResourceInput = {
+  /** The optional access policy of the resource. Defaults to no third-party access if omitted. */
+  accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The optional name of the resource. */
   name?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */
@@ -505,6 +548,8 @@ export type CreateRolePayload = {
 };
 
 export type CreateScopeInput = {
+  /** The optional access policy of the scope. Defaults to no third-party access if omitted. */
+  accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The optional description of the scope. */
   description?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */
@@ -573,6 +618,16 @@ export type DeleteAuthorizationInput = {
 export type DeleteAuthorizationPayload = {
   __typename?: 'DeleteAuthorizationPayload';
   user: User;
+};
+
+export type DeleteDynamicClientInput = {
+  /** The client_id of the DCR-registered or CIMD-resolved client to delete. */
+  clientID: Scalars['String']['input'];
+};
+
+export type DeleteDynamicClientPayload = {
+  __typename?: 'DeleteDynamicClientPayload';
+  ok?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type DeleteGroupInput = {
@@ -889,6 +944,24 @@ export enum IdentityType {
   Siwe = 'SIWE'
 }
 
+/** Initial Access Token for Dynamic Client Registration */
+export type InitialAccessToken = Node & {
+  __typename?: 'InitialAccessToken';
+  /** The creation time of entity */
+  createdAt: Scalars['DateTime']['output'];
+  /** The expiry time of the initial access token. */
+  expiresAt: Scalars['DateTime']['output'];
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  /** The type of the initial access token. */
+  type: InitialAccessTokenType;
+};
+
+export enum InitialAccessTokenType {
+  FirstParty = 'FIRST_PARTY',
+  ThirdParty = 'THIRD_PARTY'
+}
+
 /** A locked IP address and when its lock expires */
 export type LockedIp = {
   __typename?: 'LockedIP';
@@ -924,6 +997,8 @@ export type Mutation = {
   createGroup: CreateGroupPayload;
   /** Create new identity for user */
   createIdentity: CreateIdentityPayload;
+  /** Creates an opaque Initial Access Token for use with POST /oauth2/register. */
+  createInitialAccessToken: CreateInitialAccessTokenPayload;
   /** Create a new resource. */
   createResource: CreateResourcePayload;
   /** Create a new role. */
@@ -938,6 +1013,8 @@ export type Mutation = {
   deleteAuthenticator: DeleteAuthenticatorPayload;
   /** Delete authorization */
   deleteAuthorization: DeleteAuthorizationPayload;
+  /** Deletes a DCR-registered or CIMD-resolved client and frees one slot against its client limit. */
+  deleteDynamicClient: DeleteDynamicClientPayload;
   /** Delete an existing group. The associations between the group with other roles and other users will also be deleted. */
   deleteGroup: DeleteGroupPayload;
   /** Delete identity of user */
@@ -978,6 +1055,8 @@ export type Mutation = {
   resetPassword: ResetPasswordPayload;
   /** Revoke all sessions of user */
   revokeAllSessions: RevokeAllSessionsPayload;
+  /** Revokes an Initial Access Token so it can no longer be used for registration. */
+  revokeInitialAccessToken: RevokeInitialAccessTokenPayload;
   /** Revoke session of user */
   revokeSession: RevokeSessionPayload;
   /** Schedule account anonymization */
@@ -1079,6 +1158,11 @@ export type MutationCreateIdentityArgs = {
 };
 
 
+export type MutationCreateInitialAccessTokenArgs = {
+  input: CreateInitialAccessTokenInput;
+};
+
+
 export type MutationCreateResourceArgs = {
   input: CreateResourceInput;
 };
@@ -1111,6 +1195,11 @@ export type MutationDeleteAuthenticatorArgs = {
 
 export type MutationDeleteAuthorizationArgs = {
   input: DeleteAuthorizationInput;
+};
+
+
+export type MutationDeleteDynamicClientArgs = {
+  input: DeleteDynamicClientInput;
 };
 
 
@@ -1214,6 +1303,11 @@ export type MutationRevokeAllSessionsArgs = {
 };
 
 
+export type MutationRevokeInitialAccessTokenArgs = {
+  input: RevokeInitialAccessTokenInput;
+};
+
+
 export type MutationRevokeSessionArgs = {
   input: RevokeSessionInput;
 };
@@ -1314,6 +1408,77 @@ export type Node = {
   id: Scalars['ID']['output'];
 };
 
+/** A client that exists outside authgear.yaml: DCR-registered or CIMD-resolved. */
+export type OAuthClient = Node & {
+  __typename?: 'OAuthClient';
+  accessTokenLifetimeSeconds: Scalars['Int']['output'];
+  app2appEnabled: Scalars['Boolean']['output'];
+  app2appInsecureDeviceKeyBindingEnabled: Scalars['Boolean']['output'];
+  applicationType?: Maybe<Scalars['String']['output']>;
+  authenticationFlowAllowlist?: Maybe<AuthenticationFlowAllowlist>;
+  clientID: Scalars['String']['output'];
+  clientName?: Maybe<Scalars['String']['output']>;
+  clientURI?: Maybe<Scalars['String']['output']>;
+  customUIURI?: Maybe<Scalars['String']['output']>;
+  dpopDisabled: Scalars['Boolean']['output'];
+  grantTypes: Array<Scalars['String']['output']>;
+  /** The ID of an object */
+  id: Scalars['ID']['output'];
+  isConfidential: Scalars['Boolean']['output'];
+  isServiceClient: Scalars['Boolean']['output'];
+  issueJWTAccessToken: Scalars['Boolean']['output'];
+  kind: OAuthClientKind;
+  lastFetchedAt?: Maybe<Scalars['DateTime']['output']>;
+  logoURI?: Maybe<Scalars['String']['output']>;
+  maxConcurrentSession: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  policyURI?: Maybe<Scalars['String']['output']>;
+  postLogoutRedirectURIs: Array<Scalars['String']['output']>;
+  preAuthenticatedURLAllowedOrigins: Array<Scalars['String']['output']>;
+  preAuthenticatedURLEnabled: Scalars['Boolean']['output'];
+  redirectURIs: Array<Scalars['String']['output']>;
+  refreshTokenIdleTimeoutEnabled: Scalars['Boolean']['output'];
+  refreshTokenIdleTimeoutSeconds: Scalars['Int']['output'];
+  refreshTokenLifetimeSeconds: Scalars['Int']['output'];
+  refreshTokenRotationEnabled: Scalars['Boolean']['output'];
+  registeredAt?: Maybe<Scalars['DateTime']['output']>;
+  replaceProjectLogoWithLogoURI: Scalars['Boolean']['output'];
+  responseTypes: Array<Scalars['String']['output']>;
+  source: OAuthClientSource;
+  tosURI?: Maybe<Scalars['String']['output']>;
+};
+
+/** A connection to a list of items. */
+export type OAuthClientConnection = {
+  __typename?: 'OAuthClientConnection';
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<OAuthClientEdge>>>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+  /** Total number of nodes in the connection. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection */
+export type OAuthClientEdge = {
+  __typename?: 'OAuthClientEdge';
+  /**  cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<OAuthClient>;
+};
+
+export enum OAuthClientKind {
+  FirstParty = 'FIRST_PARTY',
+  ThirdParty = 'THIRD_PARTY'
+}
+
+export enum OAuthClientSource {
+  Cimd = 'CIMD',
+  Dcr = 'DCR',
+  Static = 'STATIC'
+}
+
 export enum OtpPurpose {
   Login = 'LOGIN',
   Verification = 'VERIFICATION'
@@ -1336,6 +1501,8 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
+  /** Clients that exist outside authgear.yaml: DCR-registered (and, once implemented, CIMD-resolved) clients. */
+  dynamicClients?: Maybe<OAuthClientConnection>;
   /** Fraud protection decision records */
   fraudProtectionLogs?: Maybe<FraudProtectionDecisionRecordConnection>;
   /** Fraud protection overview */
@@ -1348,6 +1515,8 @@ export type Query = {
   getUsersByStandardAttribute: Array<User>;
   /** All groups */
   groups?: Maybe<GroupConnection>;
+  /** Returns all active (non-expired) Initial Access Tokens for the project. */
+  initialAccessTokens: Array<InitialAccessToken>;
   /** Fetches an object given its ID */
   node?: Maybe<Node>;
   /** Lookup nodes by a list of IDs. */
@@ -1373,6 +1542,14 @@ export type QueryAuditLogsArgs = {
   rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   sortDirection?: InputMaybe<SortDirection>;
   userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+
+export type QueryDynamicClientsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1609,6 +1786,8 @@ export type ResetPasswordPayload = {
 /** Authgear resource */
 export type Resource = Entity & Node & {
   __typename?: 'Resource';
+  /** The access policy governing third-party client access to this resource. */
+  accessPolicy: AccessPolicy;
   /** The list of client IDs associated with this Resource. */
   clientIDs: Array<Scalars['String']['output']>;
   /** The creation time of entity */
@@ -1664,6 +1843,16 @@ export type RevokeAllSessionsInput = {
 export type RevokeAllSessionsPayload = {
   __typename?: 'RevokeAllSessionsPayload';
   user: User;
+};
+
+export type RevokeInitialAccessTokenInput = {
+  /** Target initial access token ID. */
+  id: Scalars['ID']['input'];
+};
+
+export type RevokeInitialAccessTokenPayload = {
+  __typename?: 'RevokeInitialAccessTokenPayload';
+  ok?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type RevokeSessionInput = {
@@ -1760,6 +1949,8 @@ export type ScheduleAccountDeletionPayload = {
 /** Authgear scope */
 export type Scope = Entity & Node & {
   __typename?: 'Scope';
+  /** The access policy governing third-party client access to this scope. */
+  accessPolicy: AccessPolicy;
   /** The creation time of entity */
   createdAt: Scalars['DateTime']['output'];
   /** The optional description of the scope. */
@@ -1999,6 +2190,8 @@ export type UpdateIdentityPayload = {
 };
 
 export type UpdateResourceInput = {
+  /** The new access policy of the resource. If omitted, the existing access policy is unchanged. */
+  accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The new name of the resource. Pass null if you do not need to update the name. Pass an empty string to remove the name. */
   name?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */
@@ -2027,6 +2220,8 @@ export type UpdateRolePayload = {
 };
 
 export type UpdateScopeInput = {
+  /** The new access policy of the scope. If omitted, the existing access policy is unchanged. */
+  accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The new description of the scope. Pass null if you do not need to update the description. Pass an empty string to remove the description. */
   description?: InputMaybe<Scalars['String']['input']>;
   /** The URI of the resource. */

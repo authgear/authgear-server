@@ -16,6 +16,25 @@ const (
 	TypeOfflineGrant     Type = "offline_grant"
 )
 
+// TokenType records the credential a ResolvedSession was resolved from --
+// distinct from Type, which records the underlying session kind (idp vs
+// offline_grant). It lets /resolve decide, without a side-channel context
+// value, whether the presented credential is subject to the third-party
+// opaque-access-token gate (see pkg/resolver/handler/resolve.go):
+// TokenTypeJWT and TokenTypeOpaque are the two possible shapes of a bearer
+// access token (Authorization header / app access token cookie), while
+// TokenTypeCookies (IDP session cookie) and TokenTypeAppSession (app
+// session token cookie) are both always-accept, kept distinct only for
+// observability.
+type TokenType string
+
+const (
+	TokenTypeCookies    TokenType = "cookies"
+	TokenTypeJWT        TokenType = "jwt"
+	TokenTypeOpaque     TokenType = "opaque"
+	TokenTypeAppSession TokenType = "app_session"
+)
+
 type SessionBase interface {
 	SessionID() string
 	SessionType() Type

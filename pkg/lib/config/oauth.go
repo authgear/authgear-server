@@ -8,13 +8,15 @@ var _ = Schema.Add("OAuthConfig", `
 		"clients": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/OAuthClientConfig" }
-		}
+		},
+		"dynamic_client_registration": { "$ref": "#/$defs/OAuthDynamicClientRegistrationConfig" }
 	}
 }
 `)
 
 type OAuthConfig struct {
-	Clients []OAuthClientConfig `json:"clients,omitempty"`
+	Clients                   []OAuthClientConfig                   `json:"clients,omitempty"`
+	DynamicClientRegistration *OAuthDynamicClientRegistrationConfig `json:"dynamic_client_registration,omitempty"`
 }
 
 func (c *OAuthConfig) GetClient(clientID string) (*OAuthClientConfig, bool) {
@@ -36,6 +38,15 @@ const (
 	OAuthClientApplicationTypeThirdPartyApp  OAuthClientApplicationType = "third_party_app"
 	OAuthClientApplicationTypeM2M            OAuthClientApplicationType = "m2m"
 	OAuthClientApplicationTypeUnspecified    OAuthClientApplicationType = ""
+
+	// OAuthClientApplicationTypeDynamicThirdParty is synthetic: it is never
+	// present in authgear.yaml and is NOT added to the "OAuthClientConfig"
+	// JSON Schema's x_application_type enum below. It exists solely so a
+	// dynamically-resolved third-party client — DCR (dcr.md) or CIMD
+	// (cimd.md) — can be represented as a *OAuthClientConfig: the one client
+	// shape this codebase has never had, third-party AND public. See
+	// docs/plans/dcr/2026-08-17-03-client-resolution.md §2.
+	OAuthClientApplicationTypeDynamicThirdParty OAuthClientApplicationType = "x_dynamic_third_party"
 )
 
 func (t OAuthClientApplicationType) IsThirdParty() bool {
@@ -52,6 +63,8 @@ func (t OAuthClientApplicationType) IsThirdParty() bool {
 		return true
 	case OAuthClientApplicationTypeM2M:
 		return false
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return true
 	default:
 		return false
 	}
@@ -75,6 +88,8 @@ func (t OAuthClientApplicationType) IsConfidential() bool {
 		return true
 	case OAuthClientApplicationTypeM2M:
 		return true
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return false
 	default:
 		return false
 	}
@@ -94,6 +109,8 @@ func (t OAuthClientApplicationType) IsClientCredentialsFlowAllowed() bool {
 		return false
 	case OAuthClientApplicationTypeM2M:
 		return true
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return false
 	default:
 		return false
 	}
@@ -117,6 +134,8 @@ func (t OAuthClientApplicationType) HasFullAccessScope() bool {
 		return false
 	case OAuthClientApplicationTypeM2M:
 		return false
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return false
 	default:
 		return true
 	}
@@ -136,6 +155,8 @@ func (t OAuthClientApplicationType) PIIAllowedInIDToken() bool {
 		return true
 	case OAuthClientApplicationTypeM2M:
 		return false
+	case OAuthClientApplicationTypeDynamicThirdParty:
+		return true
 	default:
 		return false
 	}
@@ -278,10 +299,25 @@ type OAuthClientConfig struct {
 	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
 	LogoURI                                string                       `json:"logo_uri,omitempty"`
 	ReplaceProjectLogoWithLogoURI          bool                         `json:"x_replace_project_logo_with_logo_uri,omitempty"`
+
+	// IsDynamic is set only by oauthclient.Client.ToClientConfig when
+	// synthesizing this struct for a DCR/CIMD-resolved client -- never part
+	// of the authgear.yaml schema (json:"-"), and always false for a static
+	// client parsed from authgear.yaml. ApplicationType alone cannot carry
+	// this signal: a dynamic first-party client (Kind == FIRST_PARTY) maps
+	// to the ordinary "native"/"spa" ApplicationType, indistinguishable
+	// from a static client of the same type — only a dynamic third-party
+	// client gets the synthetic OAuthClientApplicationTypeDynamicThirdParty
+	// value. Read via IsDynamicClient(), not directly.
+	IsDynamic bool `json:"-"`
 }
 
 func (c *OAuthClientConfig) UseHTTP200() bool {
 	return c.CustomUIURI != ""
+}
+
+func (c *OAuthClientConfig) IsDynamicClient() bool {
+	return c.IsDynamic
 }
 
 var _ = Schema.Add("AuthenticationFlowAllowlist", `

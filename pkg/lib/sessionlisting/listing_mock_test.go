@@ -5,6 +5,7 @@
 package sessionlisting_test
 
 import (
+	context "context"
 	reflect "reflect"
 	time "time"
 
@@ -74,9 +75,9 @@ func (m *MockOfflineGrantService) EXPECT() *MockOfflineGrantServiceMockRecorder 
 }
 
 // CheckSessionExpired mocks base method.
-func (m *MockOfflineGrantService) CheckSessionExpired(session *oauth.OfflineGrant) (bool, time.Time, error) {
+func (m *MockOfflineGrantService) CheckSessionExpired(ctx context.Context, session *oauth.OfflineGrant) (bool, time.Time, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckSessionExpired", session)
+	ret := m.ctrl.Call(m, "CheckSessionExpired", ctx, session)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(time.Time)
 	ret2, _ := ret[2].(error)
@@ -84,7 +85,7 @@ func (m *MockOfflineGrantService) CheckSessionExpired(session *oauth.OfflineGran
 }
 
 // CheckSessionExpired indicates an expected call of CheckSessionExpired.
-func (mr *MockOfflineGrantServiceMockRecorder) CheckSessionExpired(session interface{}) *gomock.Call {
+func (mr *MockOfflineGrantServiceMockRecorder) CheckSessionExpired(ctx, session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckSessionExpired", reflect.TypeOf((*MockOfflineGrantService)(nil).CheckSessionExpired), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckSessionExpired", reflect.TypeOf((*MockOfflineGrantService)(nil).CheckSessionExpired), ctx, session)
 }

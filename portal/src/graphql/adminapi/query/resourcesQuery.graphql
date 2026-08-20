@@ -16,6 +16,9 @@ query resourcesQuery(
         name
         clientIDs
         resourceURI
+        accessPolicy {
+          allowDynamicThirdPartyClientAccess
+        }
         createdAt
         updatedAt
       }

@@ -1,0 +1,142 @@
+name: dynamicClients query returns a registered client, and deleteDynamicClient removes it
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "PR #123 preview",
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: list_clients
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            totalCount
+            edges {
+              node {
+                clientID
+                source
+                kind
+                isConfidential
+                clientName
+                redirectURIs
+                grantTypes
+                responseTypes
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 1,
+              "edges": [
+                {
+                  "node": {
+                    "clientID": "{{ .steps.register.result.http_json_body.client_id }}",
+                    "source": "DCR",
+                    "kind": "THIRD_PARTY",
+                    "isConfidential": false,
+                    "clientName": "PR #123 preview",
+                    "redirectURIs": ["https://example.com/callback"],
+                    "grantTypes": ["authorization_code", "refresh_token"],
+                    "responseTypes": ["code"]
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
+  - name: delete_client
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation($clientID: String!) {
+          deleteDynamicClient(input: { clientID: $clientID }) {
+            ok
+          }
+        }
+      variables: |
+        {
+          "clientID": "{{ .steps.register.result.http_json_body.client_id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "deleteDynamicClient": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - name: verify_removed
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            totalCount
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 0
+            }
+          },
+          "errors": null
+        }
+  - name: delete_again_not_found
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation($clientID: String!) {
+          deleteDynamicClient(input: { clientID: $clientID }) {
+            ok
+          }
+        }
+      variables: |
+        {
+          "clientID": "{{ .steps.register.result.http_json_body.client_id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "NotFound",
+                "reason": "DynamicClientNotFound"
+              }
+            }
+          ]
+        }

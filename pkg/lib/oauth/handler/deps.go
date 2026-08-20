@@ -8,6 +8,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthorizationHandler), "*"),
 	wire.Struct(new(TokenHandler), "*"),
 	wire.Struct(new(RevokeHandler), "*"),
+	wire.Struct(new(RegistrationHandler), "*"),
 	wire.Struct(new(AnonymousUserHandler), "*"),
 	wire.Struct(new(TokenService), "*"),
 	wire.Struct(new(CodeGrantService), "*"),

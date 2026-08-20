@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 	"slices"
 
@@ -17,7 +18,7 @@ func GetRedirectURI(r *http.Request, trustProxy bool, defaultURI string) string 
 }
 
 type OAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuthClientResolver, uiConfig *config.UIConfig) string {
@@ -31,7 +32,7 @@ func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuth
 		if clientID == "" {
 			return ""
 		}
-		client := clientResolver.ResolveClient(clientID)
+		client := clientResolver.ResolveClient(r.Context(), clientID)
 		if client == nil {
 			return ""
 		}

@@ -2,11 +2,15 @@ package oauth
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -19,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -173,6 +178,238 @@ func TestAccessToken(t *testing.T) {
 		So(clientID, ShouldEqual, "client-id")
 		So(scope, ShouldEqual, "openid email")
 		So(idKey, ShouldEqual, "token-hash")
+	})
+}
+
+func TestPrepareUserAccessTokenResourceBinding(t *testing.T) {
+	Convey("PrepareUserAccessToken resource binding and opaque-by-default", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+
+		jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+		So(err, ShouldBeNil)
+		jwkKey, _ := jwkSet.Key(0)
+		_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+		_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+
+		secrets := &config.OAuthKeyMaterials{Set: jwkSet}
+
+		mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
+		mockEventService := NewMockEventService(ctrl)
+
+		encoding := &AccessTokenEncoding{
+			Secrets:       secrets,
+			Clock:         clock.NewMockClockAtTime(now),
+			IDTokenIssuer: mockIDTokenIssuer,
+			BaseURL: &endpoints.Endpoints{
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test1.authgear.com",
+					HTTPProto: "http",
+				},
+			},
+			Events: mockEventService,
+			UserBlockingEventContexts: &UserBlockingEventContextProvider{
+				Users:      &stubUserBlockingEventContextUserService{user: &model.User{Meta: model.Meta{ID: "user-id"}}},
+				Identities: &stubUserBlockingEventContextIdentityService{},
+			},
+		}
+
+		expectJWTIssuance := func() {
+			mockEventService.EXPECT().WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate).Return(true)
+			mockEventService.EXPECT().PrepareBlockingEventWithTx(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, e event.Payload, opts event.PrepareBlockingEventOptions) (*event.Event, error) {
+				return &event.Event{Payload: e}, nil
+			})
+			mockEventService.EXPECT().DispatchEventWithoutTx(gomock.Any(), gomock.Any()).Return(nil)
+			mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+			mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", gomock.Any()).Return(nil)
+		}
+
+		accessGrantWithScopes := func(scopes []string) *AccessGrant {
+			return &AccessGrant{
+				CreatedAt: now,
+				ExpireAt:  now.Add(time.Hour),
+				TokenHash: "token-hash",
+				Scopes:    scopes,
+			}
+		}
+
+		authInfo := authenticationinfo.T{UserID: "user-id"}
+
+		Convey("third-party client, no resource: opaque, regardless of IssueJWTAccessToken", func() {
+			client := &config.OAuthClientConfig{
+				ClientID:            "third-party-client",
+				ApplicationType:     config.OAuthClientApplicationTypeThirdPartyApp,
+				IssueJWTAccessToken: true,
+			}
+			options := EncodeUserAccessTokenOptions{
+				OriginalToken:      "opaque-token",
+				ClientConfig:       client,
+				ClientLike:         ClientClientLike(client, nil),
+				AccessGrant:        accessGrantWithScopes([]string{"openid"}),
+				AuthenticationInfo: authInfo,
+			}
+			result, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			opaque, ok := result.(*prepareUserAccessTokenResultOpaque)
+			So(ok, ShouldBeTrue)
+			So(opaque.OriginalToken, ShouldEqual, "opaque-token")
+		})
+
+		Convey("third-party client, with resource: JWT with aud=[resourceURI]", func() {
+			expectJWTIssuance()
+			client := &config.OAuthClientConfig{
+				ClientID:        "third-party-client",
+				ApplicationType: config.OAuthClientApplicationTypeThirdPartyApp,
+				// IssueJWTAccessToken deliberately left false: a requested
+				// resource must still force a JWT.
+			}
+			options := EncodeUserAccessTokenOptions{
+				OriginalToken:      "token",
+				ClientConfig:       client,
+				ClientLike:         ClientClientLike(client, nil),
+				AccessGrant:        accessGrantWithScopes([]string{"openid", "read:orders"}),
+				AuthenticationInfo: authInfo,
+				ResourceURI:        "https://api.example.com/orders",
+			}
+			preparation, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			tokenResult, err := encoding.MakeUserAccessTokenFromPreparationResult(context.Background(), MakeUserAccessTokenFromPreparationOptions{PreparationResult: preparation})
+			So(err, ShouldBeNil)
+
+			keys, err := jwk.PublicSetOf(encoding.Secrets.Set)
+			So(err, ShouldBeNil)
+			decodedToken, err := jwt.ParseString(tokenResult.Token, jwt.WithKeySet(keys), jwt.WithValidate(false))
+			So(err, ShouldBeNil)
+			So(decodedToken.Audience(), ShouldResemble, []string{"https://api.example.com/orders"})
+		})
+
+		Convey("first-party client, no resource, IssueJWTAccessToken=false: opaque, unchanged", func() {
+			client := &config.OAuthClientConfig{
+				ClientID:            "first-party-client",
+				ApplicationType:     config.OAuthClientApplicationTypeSPA,
+				IssueJWTAccessToken: false,
+			}
+			options := EncodeUserAccessTokenOptions{
+				OriginalToken:      "opaque-token",
+				ClientConfig:       client,
+				ClientLike:         ClientClientLike(client, nil),
+				AccessGrant:        accessGrantWithScopes([]string{"openid"}),
+				AuthenticationInfo: authInfo,
+			}
+			result, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			_, ok := result.(*prepareUserAccessTokenResultOpaque)
+			So(ok, ShouldBeTrue)
+		})
+
+		Convey("first-party client, no resource, IssueJWTAccessToken=true: JWT with the project endpoint aud, unchanged", func() {
+			expectJWTIssuance()
+			client := &config.OAuthClientConfig{
+				ClientID:            "first-party-client",
+				ApplicationType:     config.OAuthClientApplicationTypeSPA,
+				IssueJWTAccessToken: true,
+			}
+			options := EncodeUserAccessTokenOptions{
+				OriginalToken:      "token",
+				ClientConfig:       client,
+				ClientLike:         ClientClientLike(client, nil),
+				AccessGrant:        accessGrantWithScopes([]string{"openid"}),
+				AuthenticationInfo: authInfo,
+			}
+			preparation, err := encoding.PrepareUserAccessToken(context.Background(), options)
+			So(err, ShouldBeNil)
+			tokenResult, err := encoding.MakeUserAccessTokenFromPreparationResult(context.Background(), MakeUserAccessTokenFromPreparationOptions{PreparationResult: preparation})
+			So(err, ShouldBeNil)
+
+			keys, err := jwk.PublicSetOf(encoding.Secrets.Set)
+			So(err, ShouldBeNil)
+			decodedToken, err := jwt.ParseString(tokenResult.Token, jwt.WithKeySet(keys), jwt.WithValidate(false))
+			So(err, ShouldBeNil)
+			So(decodedToken.Audience(), ShouldResemble, []string{"http://test1.authgear.com"})
+		})
+	})
+}
+
+func TestDecodeAccessTokenResourceBound(t *testing.T) {
+	Convey("DecodeAccessToken with a resource-bound aud", t, func() {
+		// jwt.ParseString validates exp/iat against the real wall clock at
+		// parse time (before DecodeAccessToken's own jwt.Validate call with
+		// the injected mock clock ever runs), so a fixed past date would be
+		// seen as already-expired regardless of what this test intends —
+		// use a real-time-relative base instead.
+		now := time.Now().UTC().Truncate(time.Second)
+
+		jwkSet, err := jwk.Parse([]byte(PrivateKeyPEM), jwk.WithPEM(true))
+		So(err, ShouldBeNil)
+		jwkKey, _ := jwkSet.Key(0)
+		_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
+		_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
+
+		secrets := &config.OAuthKeyMaterials{Set: jwkSet}
+
+		encoding := &AccessTokenEncoding{
+			Secrets: secrets,
+			Clock:   clock.NewMockClockAtTime(now),
+			BaseURL: &endpoints.Endpoints{
+				OAuthEndpoints: &endpoints.OAuthEndpoints{
+					HTTPHost:  "test1.authgear.com",
+					HTTPProto: "http",
+				},
+			},
+		}
+
+		sign := func(signingKey jwk.Key, aud string, exp time.Time) string {
+			claims := jwt.New()
+			_ = claims.Set(jwt.JwtIDKey, "token-hash")
+			_ = claims.Set(jwt.IssuerKey, "http://test1.authgear.com")
+			_ = claims.Set(jwt.AudienceKey, []string{aud})
+			_ = claims.Set(jwt.IssuedAtKey, now.Unix())
+			_ = claims.Set(jwt.ExpirationKey, exp.Unix())
+
+			hdr := jws.NewHeaders()
+			_ = hdr.Set("typ", "at+jwt")
+			signed, err := jwtutil.SignWithHeader(claims, hdr, jwa.RS256, signingKey)
+			So(err, ShouldBeNil)
+			return string(signed)
+		}
+
+		Convey("a JWT with aud=[resource_uri] (no project endpoint) decodes successfully", func() {
+			token := sign(jwkKey, "https://api.example.com/orders", now.Add(time.Hour))
+			jti, isHash, err := encoding.DecodeAccessToken(token)
+			So(err, ShouldBeNil)
+			So(isHash, ShouldBeTrue)
+			So(jti, ShouldEqual, "token-hash")
+		})
+
+		// jwt.ParseString rejects an expired/badly-signed token outright, and
+		// DecodeAccessToken's "Invalid JWT string" branch treats any parse
+		// failure as "not a JWT" rather than surfacing an error — the token
+		// falls back to being treated as opaque (and will then fail to match
+		// any AccessGrant downstream in oauth.Resolver, since its raw string
+		// was never issued as an opaque token). So the observable contract
+		// here is isHash=false, err=nil, not a returned error.
+		Convey("an expired resource-bound JWT falls back to being treated as opaque", func() {
+			token := sign(jwkKey, "https://api.example.com/orders", now.Add(-time.Hour))
+			_, isHash, err := encoding.DecodeAccessToken(token)
+			So(err, ShouldBeNil)
+			So(isHash, ShouldBeFalse)
+		})
+
+		Convey("a resource-bound JWT signed by a foreign key falls back to being treated as opaque", func() {
+			foreignRSAKey, err := rsa.GenerateKey(rand.Reader, 2048)
+			So(err, ShouldBeNil)
+			foreignKey, err := jwk.FromRaw(foreignRSAKey)
+			So(err, ShouldBeNil)
+			_ = foreignKey.Set(jwk.KeyIDKey, uuid.New())
+			_ = foreignKey.Set(jwk.AlgorithmKey, "RS256")
+
+			token := sign(foreignKey, "https://api.example.com/orders", now.Add(time.Hour))
+			_, isHash, err := encoding.DecodeAccessToken(token)
+			So(err, ShouldBeNil)
+			So(isHash, ShouldBeFalse)
+		})
 	})
 }
 

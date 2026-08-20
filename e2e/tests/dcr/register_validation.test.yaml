@@ -1,0 +1,232 @@
+name: Missing redirect_uris returns invalid_client_metadata
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {}
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_client_metadata"
+        }
+
+---
+
+name: redirect_uri with a fragment returns invalid_redirect_uri
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback#section"]
+      }
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_redirect_uri"
+        }
+
+---
+
+name: native application_type accepts http://localhost redirect_uris
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "application_type": "native",
+        "redirect_uris": ["http://localhost/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]",
+          "application_type": "native"
+        }
+
+---
+
+name: web application_type rejects http://localhost redirect_uris
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "application_type": "web",
+        "redirect_uris": ["http://localhost/callback"]
+      }
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_redirect_uri"
+        }
+
+---
+
+name: unsupported grant_type returns invalid_client_metadata
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"],
+        "grant_types": ["implicit"]
+      }
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_client_metadata"
+        }
+
+---
+
+name: response_types code without authorization_code in grant_types returns invalid_client_metadata
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"],
+        "grant_types": ["refresh_token"],
+        "response_types": ["code"]
+      }
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_client_metadata"
+        }
+
+---
+
+# The request body below is captured verbatim (field order aside) from a
+# real MCP Inspector (https://github.com/modelcontextprotocol/inspector)
+# registration attempt against a local dev instance -- not hand-written --
+# so this test tracks compatibility with an actual DCR client in the wild,
+# not just what the spec technically allows. It previously failed with
+# invalid_client_metadata / "dcr: token_endpoint_auth_method is not
+# accepted" solely because Inspector explicitly sends
+# token_endpoint_auth_method=none, which every DCR client already is.
+name: MCP Inspector's exact registration request succeeds
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["http://localhost:6274/oauth/callback"],
+        "token_endpoint_auth_method": "none",
+        "grant_types": ["authorization_code", "refresh_token"],
+        "response_types": ["code"],
+        "client_name": "MCP Inspector",
+        "client_uri": "https://github.com/modelcontextprotocol/inspector",
+        "scope": "openid read:tools execute:tools offline_access",
+        "application_type": "native"
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]",
+          "client_id_issued_at": "[[number]]",
+          "client_name": "MCP Inspector",
+          "redirect_uris": ["http://localhost:6274/oauth/callback"],
+          "grant_types": ["authorization_code", "refresh_token"],
+          "response_types": ["code"],
+          "application_type": "native",
+          "client_uri": "https://github.com/modelcontextprotocol/inspector"
+        }
+
+---
+
+name: token_endpoint_auth_method other than none returns invalid_client_metadata
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"],
+        "token_endpoint_auth_method": "client_secret_post"
+      }
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_client_metadata"
+        }

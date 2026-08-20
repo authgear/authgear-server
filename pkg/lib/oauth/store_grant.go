@@ -31,6 +31,7 @@ type AddOfflineGrantRefreshTokenOptions struct {
 	Scopes                         []string
 	AuthorizationID                string
 	DPoPJKT                        string
+	ResourceURI                    string
 }
 
 type RotateOfflineGrantRefreshTokenOptions struct {

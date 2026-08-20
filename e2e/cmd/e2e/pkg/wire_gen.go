@@ -238,11 +238,50 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -395,7 +434,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -406,7 +445,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -521,7 +560,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -827,7 +866,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -891,27 +930,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Config:          sessionConfig,
 		Clock:           clockClock,
 		Random:          rand,
-	}
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		RemoteIP:        remoteIP,

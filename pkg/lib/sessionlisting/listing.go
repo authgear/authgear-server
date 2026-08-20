@@ -32,7 +32,7 @@ type IDPSessionProvider interface {
 }
 
 type OfflineGrantService interface {
-	CheckSessionExpired(session *oauth.OfflineGrant) (bool, time.Time, error)
+	CheckSessionExpired(ctx context.Context, session *oauth.OfflineGrant) (bool, time.Time, error)
 }
 
 type SessionListingService struct {
@@ -71,7 +71,7 @@ func (s *SessionListingService) FilterForDisplay(ctx context.Context, sessions [
 			continue
 		}
 
-		expired, _, err := s.OfflineGrants.CheckSessionExpired(offlineGrant)
+		expired, _, err := s.OfflineGrants.CheckSessionExpired(ctx, offlineGrant)
 		if err != nil {
 			return nil, err
 		}

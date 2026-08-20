@@ -43,6 +43,10 @@ var nodeScope = node(
 				Type:        graphql.String,
 				Description: "The optional description of the scope.",
 			},
+			"accessPolicy": &graphql.Field{
+				Type:        graphql.NewNonNull(accessPolicyType),
+				Description: "The access policy governing third-party client access to this scope.",
+			},
 		},
 	}),
 	&model.Scope{},

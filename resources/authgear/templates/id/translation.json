@@ -582,6 +582,8 @@
   "v2.page.consent.scopes.address": "Akses alamat Anda.",
   "v2.page.consent.scopes.email": "Akses alamat email Anda.",
   "v2.page.consent.scopes.full-userinfo": "Akses informasi lengkap di profil Anda seperti nama, alamat email, nomor telepon, dan alamat.",
+  "v2.page.consent.scopes.offline-access": "Mempertahankan akses ke data yang telah kamu berikan aksesnya.",
+  "v2.page.consent.scopes.openid": "Masuk ke akunmu.",
   "v2.page.consent.scopes.phone": "Akses nomor telepon Anda.",
   "v2.page.consent.scopes.profile": "Akses profil Anda seperti nama, tetapi tidak termasuk alamat email, nomor telepon, dan alamat.",
   "v2.page.create-password.default.title": "Buat Kata Sandi",

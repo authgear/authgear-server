@@ -94,7 +94,7 @@ type AuthflowControllerUIInfoResolver interface {
 }
 
 type AuthflowControllerOAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 type AuthflowNavigator interface {
@@ -1009,7 +1009,7 @@ func (c *AuthflowController) deriveFlowNameFromOAuthSession(ctx context.Context,
 
 	req := entry.T.AuthorizationRequest
 	specifiedFlowGroup := req.AuthenticationFlowGroup()
-	client := c.OAuthClientResolver.ResolveClient(req.ClientID())
+	client := c.OAuthClientResolver.ResolveClient(ctx, req.ClientID())
 
 	return DeriveFlowName(
 		flowType,
@@ -1030,7 +1030,7 @@ func (c *AuthflowController) deriveFlowNameFromSAMLSession(ctx context.Context, 
 	}
 
 	specifiedFlowGroup := "" // SAML cannot specify flow group in request
-	client := c.OAuthClientResolver.ResolveClient(samlSession.Entry.ServiceProviderID)
+	client := c.OAuthClientResolver.ResolveClient(ctx, samlSession.Entry.ServiceProviderID)
 
 	// TODO(DEV-2004): Remove the check after service provider `id` is completely removed
 	var allowList *config.AuthenticationFlowAllowlist

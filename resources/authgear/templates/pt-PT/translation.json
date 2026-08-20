@@ -582,6 +582,8 @@
   "v2.page.consent.scopes.address": "Aceder ao seu endereço.",
   "v2.page.consent.scopes.email": "Aceder ao seu endereço de correio eletrónico.",
   "v2.page.consent.scopes.full-userinfo": "Aceder a informações completas do seu perfil, como nome, endereço de correio eletrónico, número de telefone e endereço.",
+  "v2.page.consent.scopes.offline-access": "Manter o acesso aos dados a que lhe deu acesso.",
+  "v2.page.consent.scopes.openid": "Iniciar sessão.",
   "v2.page.consent.scopes.phone": "Aceder ao seu número de telefone.",
   "v2.page.consent.scopes.profile": "Aceder ao seu perfil, como nome, mas excluindo endereço de correio eletrónico, número de telefone e endereço.",
   "v2.page.create-password.default.title": "Criar Palavra-passe",

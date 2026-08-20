@@ -582,6 +582,8 @@
   "v2.page.consent.scopes.address": "存取您的地址。",
   "v2.page.consent.scopes.email": "存取您的電子郵件地址。",
   "v2.page.consent.scopes.full-userinfo": "存取您個人資料中的完整資訊，例如姓名、電子郵件地址、電話號碼和地址。",
+  "v2.page.consent.scopes.offline-access": "維持存取您已授權存取的資料。",
+  "v2.page.consent.scopes.openid": "為您登入。",
   "v2.page.consent.scopes.phone": "存取您的電話號碼。",
   "v2.page.consent.scopes.profile": "存取您的個人資料，例如姓名，但不包括電子郵件地址、電話號碼和地址。",
   "v2.page.create-password.default.title": "創建密碼",

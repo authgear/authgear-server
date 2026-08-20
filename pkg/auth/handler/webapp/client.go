@@ -1,7 +1,11 @@
 package webapp
 
-import "github.com/authgear/authgear-server/pkg/lib/config"
+import (
+	"context"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
+)
 
 type WebappOAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }

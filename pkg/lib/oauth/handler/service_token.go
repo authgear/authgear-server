@@ -40,12 +40,14 @@ type IssueOfflineGrantOptions struct {
 	App2AppDeviceKey   jwk.Key
 	IssueDeviceSecret  bool
 	DPoPJKT            string
+	ResourceURI        string
 }
 
 type IssueOfflineGrantRefreshTokenOptions struct {
 	Scopes          []string
 	AuthorizationID string
 	DPoPJKT         string
+	ResourceURI     string
 }
 
 type ClientCredentialsAccessTokenOptions struct {
@@ -75,7 +77,7 @@ type TokenServiceAccessGrantStore interface {
 }
 
 type TokenServiceOfflineGrantService interface {
-	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
+	ComputeOfflineGrantExpiry(ctx context.Context, session *oauth.OfflineGrant) (expiry time.Time, err error)
 	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 	CreateNewRefreshToken(
 		ctx context.Context,
@@ -143,6 +145,7 @@ func (s *TokenService) IssueOfflineGrant(
 		AuthorizationID:  opts.AuthorizationID,
 		DPoPJKT:          opts.DPoPJKT,
 		AccessInfo:       &accessInfo,
+		ResourceURI:      opts.ResourceURI,
 	}
 
 	offlineGrant = &oauth.OfflineGrant{
@@ -180,7 +183,7 @@ func (s *TokenService) IssueOfflineGrant(
 		offlineGrant.App2AppDeviceKeyJWKJSON = string(keyStr)
 	}
 
-	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(ctx, offlineGrant)
 	if err != nil {
 		return nil, "", err
 	}
@@ -220,6 +223,7 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 		Scopes:          opts.Scopes,
 		AuthorizationID: opts.AuthorizationID,
 		DPoPJKT:         opts.DPoPJKT,
+		ResourceURI:     opts.ResourceURI,
 	})
 	if err != nil {
 		return nil, "", err

@@ -56,6 +56,8 @@ type EncodeUserAccessTokenOptions struct {
 	AccessGrant              *AccessGrant
 	AuthenticationInfo       authenticationinfo.T
 	UserBlockingEventContext *UserBlockingEventContext
+	// ResourceURI is empty when no resource was requested/bound.
+	ResourceURI string
 }
 
 type EncodeClientAccessTokenOptions struct {
@@ -87,7 +89,18 @@ type prepareUserAccessTokenResultJWT struct {
 func (r *prepareUserAccessTokenResultJWT) prepareUserAccessTokenResult() {}
 
 func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, options EncodeUserAccessTokenOptions) (PrepareUserAccessTokenResult, error) {
-	if !options.ClientConfig.IssueJWTAccessToken {
+	issueJWT := options.ClientConfig.IssueJWTAccessToken
+	if options.ResourceURI != "" {
+		// A resource-bound token is always a JWT, regardless of the flag.
+		issueJWT = true
+	} else if options.ClientConfig.IsThirdParty() {
+		// Every third-party client (DCR-sourced or legacy static
+		// third_party_app) defaults to an opaque access token when no
+		// resource was requested, overriding issue_jwt_access_token.
+		issueJWT = false
+	}
+
+	if !issueJWT {
 		return &prepareUserAccessTokenResultOpaque{
 			OriginalToken: options.OriginalToken,
 			ClientConfig:  options.ClientConfig,
@@ -99,7 +112,11 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 	// iss
 	_ = claims.Set(jwt.IssuerKey, e.IDTokenIssuer.Iss())
 	// aud
-	_ = claims.Set(jwt.AudienceKey, e.BaseURL.Origin().String())
+	if options.ResourceURI != "" {
+		_ = claims.Set(jwt.AudienceKey, []string{options.ResourceURI})
+	} else {
+		_ = claims.Set(jwt.AudienceKey, e.BaseURL.Origin().String())
+	}
 	// iat
 	_ = claims.Set(jwt.IssuedAtKey, options.AccessGrant.CreatedAt.Unix())
 	// exp
@@ -279,10 +296,16 @@ func (e *AccessTokenEncoding) DecodeAccessToken(encodedToken string) (tok string
 		return encodedToken, false, nil
 	}
 
-	err = jwt.Validate(token,
-		jwt.WithClock(&jwtClock{e.Clock}),
-		jwt.WithAudience(e.BaseURL.Origin().String()),
-	)
+	// aud is deliberately NOT validated here. This function is Authgear's own
+	// introspection path for a token Authgear itself minted and just
+	// signature-verified; the authority for "is this token live" is the
+	// jti -> AccessGrant lookup in oauth.Resolver, not aud. aud exists for
+	// *resource servers* to enforce (RFC 8707), which is exactly why a
+	// resource-bound token carries only the resource URI and not the project
+	// endpoint. Validating aud here would make every resource-bound token
+	// unusable at /oauth2/userinfo, contrary to
+	// access-token-audience-binding.md and api-resource.md.
+	err = jwt.Validate(token, jwt.WithClock(&jwtClock{e.Clock}))
 	if err != nil {
 		return "", false, err
 	}

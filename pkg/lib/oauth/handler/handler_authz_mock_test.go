@@ -16,6 +16,7 @@ import (
 	oauthsession "github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	oidc "github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	protocol "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	resourcescope "github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -539,6 +540,34 @@ func (m *MockAuthorizationHandlerDatabase) EXPECT() *MockAuthorizationHandlerDat
 	return m.recorder
 }
 
+// IsInTx mocks base method.
+func (m *MockAuthorizationHandlerDatabase) IsInTx(ctx context.Context) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsInTx", ctx)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsInTx indicates an expected call of IsInTx.
+func (mr *MockAuthorizationHandlerDatabaseMockRecorder) IsInTx(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsInTx", reflect.TypeOf((*MockAuthorizationHandlerDatabase)(nil).IsInTx), ctx)
+}
+
+// ReadOnly mocks base method.
+func (m *MockAuthorizationHandlerDatabase) ReadOnly(ctx context.Context, do func(context.Context) error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadOnly", ctx, do)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReadOnly indicates an expected call of ReadOnly.
+func (mr *MockAuthorizationHandlerDatabaseMockRecorder) ReadOnly(ctx, do interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockAuthorizationHandlerDatabase)(nil).ReadOnly), ctx, do)
+}
+
 // WithTx mocks base method.
 func (m *MockAuthorizationHandlerDatabase) WithTx(ctx context.Context, do func(context.Context) error) error {
 	m.ctrl.T.Helper()
@@ -551,4 +580,57 @@ func (m *MockAuthorizationHandlerDatabase) WithTx(ctx context.Context, do func(c
 func (mr *MockAuthorizationHandlerDatabaseMockRecorder) WithTx(ctx, do interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockAuthorizationHandlerDatabase)(nil).WithTx), ctx, do)
+}
+
+// MockAuthorizationHandlerResourceScopeService is a mock of AuthorizationHandlerResourceScopeService interface.
+type MockAuthorizationHandlerResourceScopeService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthorizationHandlerResourceScopeServiceMockRecorder
+}
+
+// MockAuthorizationHandlerResourceScopeServiceMockRecorder is the mock recorder for MockAuthorizationHandlerResourceScopeService.
+type MockAuthorizationHandlerResourceScopeServiceMockRecorder struct {
+	mock *MockAuthorizationHandlerResourceScopeService
+}
+
+// NewMockAuthorizationHandlerResourceScopeService creates a new mock instance.
+func NewMockAuthorizationHandlerResourceScopeService(ctrl *gomock.Controller) *MockAuthorizationHandlerResourceScopeService {
+	mock := &MockAuthorizationHandlerResourceScopeService{ctrl: ctrl}
+	mock.recorder = &MockAuthorizationHandlerResourceScopeServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthorizationHandlerResourceScopeService) EXPECT() *MockAuthorizationHandlerResourceScopeServiceMockRecorder {
+	return m.recorder
+}
+
+// GetResourceByURIForThirdPartyAccess mocks base method.
+func (m *MockAuthorizationHandlerResourceScopeService) GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*resourcescope.Resource, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetResourceByURIForThirdPartyAccess", ctx, uri)
+	ret0, _ := ret[0].(*resourcescope.Resource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetResourceByURIForThirdPartyAccess indicates an expected call of GetResourceByURIForThirdPartyAccess.
+func (mr *MockAuthorizationHandlerResourceScopeServiceMockRecorder) GetResourceByURIForThirdPartyAccess(ctx, uri interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResourceByURIForThirdPartyAccess", reflect.TypeOf((*MockAuthorizationHandlerResourceScopeService)(nil).GetResourceByURIForThirdPartyAccess), ctx, uri)
+}
+
+// ListScopesForThirdPartyAccess mocks base method.
+func (m *MockAuthorizationHandlerResourceScopeService) ListScopesForThirdPartyAccess(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListScopesForThirdPartyAccess", ctx, resourceID)
+	ret0, _ := ret[0].([]*resourcescope.Scope)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListScopesForThirdPartyAccess indicates an expected call of ListScopesForThirdPartyAccess.
+func (mr *MockAuthorizationHandlerResourceScopeServiceMockRecorder) ListScopesForThirdPartyAccess(ctx, resourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListScopesForThirdPartyAccess", reflect.TypeOf((*MockAuthorizationHandlerResourceScopeService)(nil).ListScopesForThirdPartyAccess), ctx, resourceID)
 }

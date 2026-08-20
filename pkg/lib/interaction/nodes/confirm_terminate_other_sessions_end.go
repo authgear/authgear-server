@@ -19,7 +19,7 @@ type EdgeConfirmTerminateOtherSessionsEnd struct {
 
 func (e *EdgeConfirmTerminateOtherSessionsEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput any) (interaction.Node, error) {
 	clientID := ctx.Request.URL.Query().Get("client_id")
-	client := ctx.OAuthClientResolver.ResolveClient(clientID)
+	client := ctx.OAuthClientResolver.ResolveClient(goCtx, clientID)
 	if client == nil || client.MaxConcurrentSession != 1 {
 		return &NodeConfirmTerminateOtherSessionsEnd{}, nil
 	}
