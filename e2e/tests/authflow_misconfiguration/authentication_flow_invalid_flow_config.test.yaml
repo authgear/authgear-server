@@ -1,0 +1,55 @@
+name: Authflow misconfiguration shows fatal error page for AuthenticationFlowInvalidFlowConfig
+# BUG: select_destination requires the user to have already been identified
+# (it needs MilestoneDoUseAccountRecoveryIdentity to be set). Placing it as
+# the first step means there is no identity to enumerate destinations for.
+# The server fires AuthenticationFlowInvalidFlowConfig immediately when the
+# flow is created, before any user input.
+# NavigateNonRecoverableError redirects the browser to /v2/errors/error and
+# the fatal error page shows "misconfigured".
+#
+# Fix: add an identify step before select_destination:
+#   - type: identify
+#     one_of:
+#     - identification: email
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: select_destination
+          enumerate_destinations: true
+        - type: verify_account_recovery_code
+        - type: reset_password
+steps:
+  # Step 1: visiting the forgot-password page triggers flow creation, which
+  # immediately fails with AuthenticationFlowInvalidFlowConfig. The server
+  # returns a 302 redirect to /v2/errors/error?q_error=...
+  - name: get_forgot_password_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/authflow/v2/forgot_password
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+  # Step 2: follow the redirect to the fatal error page and confirm the
+  # user-facing message contains "misconfigured".
+  - name: get_error_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.get_forgot_password_page.result.http_response_headers.location }}"
+    http_output:
+      http_status: 200
+      redirect_path: /v2/errors/error
+      html_text_contains:
+        - misconfigured

@@ -1,0 +1,68 @@
+name: Authflow misconfiguration shows error for AuthenticationFlowInvalidTargetStep
+# The verify step's target_step points to "create_auth" (a create_authenticator step).
+# verify requires its target_step to implement IntentSignupFlowStepVerifyTarget, which
+# only identify steps implement. create_authenticator does NOT implement it.
+#
+# After the user submits a password (POST), the flow engine advances to the verify step
+# automatically. verify fires InvalidTargetStep because create_auth is the wrong type.
+# On POST, NavigateNonRecoverableError keeps the current URL and redirects back to the
+# create_password page. On the subsequent GET to that page, the flow engine tries to
+# advance to verify again, triggering InvalidTargetStep on a GET request.
+# NavigateNonRecoverableError then redirects to /v2/errors/error (fatal error page).
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: email
+        - type: create_authenticator
+          name: create_auth
+          one_of:
+          - authentication: primary_password
+        - type: verify
+          target_step: create_auth
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+  - name: get_signup_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/signup?{{ .steps.oauth_setup.result.query }}&q_login_id_key=email&q_login_id_input_type=email"
+    http_output:
+      http_status: 200
+      redirect_path: /signup
+  - name: submit_email
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_signup_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      q_login_id_key: email
+      q_login_id: test-invalid-target-step@example.com
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/create_password
+  - name: submit_password
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_email.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_password: testpassword123
+      x_confirm_password: testpassword123
+    http_output:
+      http_status: 200
+      html_text_contains:
+        - misconfigured
