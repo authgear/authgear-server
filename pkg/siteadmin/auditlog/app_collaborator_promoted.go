@@ -11,17 +11,7 @@ type AppCollaboratorPromotedPayload struct {
 	NewOwnerCollaboratorID string `json:"new_owner_collaborator_id"`
 	NewOwnerUserID         string `json:"new_owner_user_id"`
 	NewOwnerUserEmail      string `json:"new_owner_user_email"`
-	// Deprecated_* fields: this event type already ships in production, so
-	// these are kept for older consumers/historical entries (same JSON keys
-	// as before -- only the Go names change), but new code should read
-	// DemotedEditors instead -- these three only ever describe the single
-	// (oldest) demoted owner, silently dropping any others. Omitted when
-	// the app had no previous owner.
-	Deprecated_DemotedEditorCollaboratorID string `json:"demoted_editor_collaborator_id,omitempty"`
-	Deprecated_DemotedEditorUserID         string `json:"demoted_editor_user_id,omitempty"`
-	Deprecated_DemotedEditorUserEmail      string `json:"demoted_editor_user_email,omitempty"`
-	// DemotedEditors lists every collaborator demoted by this promotion, in
-	// the same order as the deprecated fields above (oldest first) --
+	// DemotedEditors lists every collaborator demoted by this promotion --
 	// normally at most one, but the schema has no constraint preventing an
 	// app from having more than one owner-role collaborator before this
 	// promotion (e.g. a direct DB edit can create that state), and none of

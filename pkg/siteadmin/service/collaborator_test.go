@@ -461,9 +461,10 @@ func TestCollaboratorService(t *testing.T) {
 			So(payload.NewOwnerCollaboratorID, ShouldEqual, "editor-1")
 			So(payload.NewOwnerUserID, ShouldEqual, "user-editor")
 			So(payload.NewOwnerUserEmail, ShouldEqual, "editor@example.com")
-			So(payload.Deprecated_DemotedEditorCollaboratorID, ShouldEqual, "owner-1")
-			So(payload.Deprecated_DemotedEditorUserID, ShouldEqual, "user-owner")
-			So(payload.Deprecated_DemotedEditorUserEmail, ShouldEqual, "owner@example.com")
+			So(payload.DemotedEditors, ShouldHaveLength, 1)
+			So(payload.DemotedEditors[0].CollaboratorID, ShouldEqual, "owner-1")
+			So(payload.DemotedEditors[0].UserID, ShouldEqual, "user-owner")
+			So(payload.DemotedEditors[0].UserEmail, ShouldEqual, "owner@example.com")
 		})
 
 		Convey("PromoteCollaborator records every demoted owner in DemotedEditors", func() {
@@ -498,11 +499,6 @@ func TestCollaboratorService(t *testing.T) {
 			So(audit.logged, ShouldHaveLength, 1)
 			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorPromotedPayload)
 			So(ok, ShouldBeTrue)
-			// Deprecated singular fields still name the oldest owner, for
-			// older consumers/historical entries.
-			So(payload.Deprecated_DemotedEditorCollaboratorID, ShouldEqual, "owner-1")
-			So(payload.Deprecated_DemotedEditorUserID, ShouldEqual, "user-owner-1")
-			So(payload.Deprecated_DemotedEditorUserEmail, ShouldEqual, "owner1@example.com")
 			// DemotedEditors lists every demoted owner -- neither is silently
 			// dropped from the audit trail.
 			So(payload.DemotedEditors, ShouldHaveLength, 2)
@@ -544,8 +540,7 @@ func TestCollaboratorService(t *testing.T) {
 			payload, ok := audit.logged[0].(*siteadminauditlog.AppCollaboratorPromotedPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.NewOwnerCollaboratorID, ShouldEqual, "editor-1")
-			So(payload.Deprecated_DemotedEditorCollaboratorID, ShouldEqual, "")
-			So(payload.Deprecated_DemotedEditorUserID, ShouldEqual, "")
+			So(payload.DemotedEditors, ShouldBeEmpty)
 		})
 	})
 }

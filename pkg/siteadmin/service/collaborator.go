@@ -255,9 +255,6 @@ func existingOwnersSorted(all []*model.Collaborator) []*model.Collaborator {
 }
 
 // promotedCollaboratorPayload builds the audit payload for a promotion.
-// demotedOwners[0] (if any) also fills the deprecated singular
-// DemotedEditor* fields, for older consumers/historical entries -- new code
-// should read DemotedEditors, which lists all of them.
 func promotedCollaboratorPayload(appID string, promoted *model.Collaborator, demotedOwners []*model.Collaborator, emailMap map[string]string) *siteadminauditlog.AppCollaboratorPromotedPayload {
 	payload := &siteadminauditlog.AppCollaboratorPromotedPayload{
 		AppID:                  appID,
@@ -265,13 +262,6 @@ func promotedCollaboratorPayload(appID string, promoted *model.Collaborator, dem
 		NewOwnerUserID:         promoted.UserID,
 		NewOwnerUserEmail:      emailMap[promoted.UserID],
 	}
-	if len(demotedOwners) == 0 {
-		return payload
-	}
-	primary := demotedOwners[0]
-	payload.Deprecated_DemotedEditorCollaboratorID = primary.ID
-	payload.Deprecated_DemotedEditorUserID = primary.UserID
-	payload.Deprecated_DemotedEditorUserEmail = emailMap[primary.UserID]
 	for _, owner := range demotedOwners {
 		payload.DemotedEditors = append(payload.DemotedEditors, siteadminauditlog.DemotedEditor{
 			CollaboratorID: owner.ID,

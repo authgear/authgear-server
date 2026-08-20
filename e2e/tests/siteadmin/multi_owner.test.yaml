@@ -98,9 +98,8 @@ steps:
   audit_query: |
     SELECT
       activity_type,
-      data->'payload'->>'new_owner_user_email'      AS new_owner_email,
-      data->'payload'->>'demoted_editor_user_email' AS demoted_email,
-      data->'payload'->'demoted_editors'             AS demoted_editors
+      data->'payload'->>'new_owner_user_email' AS new_owner_email,
+      data->'payload'->'demoted_editors'       AS demoted_editors
     FROM _audit_log
     WHERE app_id = 'e2e-portal'
       AND activity_type = 'site_admin.app.collaborator.promoted'
@@ -113,7 +112,6 @@ steps:
         {
           "activity_type": "site_admin.app.collaborator.promoted",
           "new_owner_email": "multi-owner-editor@example.com",
-          "demoted_email": "multi-owner-1@example.com",
           "demoted_editors": [
             {
               "collaborator_id": "[[string]]",
