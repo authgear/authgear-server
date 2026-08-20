@@ -1120,3 +1120,337 @@ http:
 		})
 	})
 }
+
+func TestAuthgearYAMLTargetStep(t *testing.T) {
+	Convey("AuthgearYAML target_step", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		domainService := NewMockDomainService(ctrl)
+		domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+		path := "authgear.yaml"
+		featureConfig := config.NewEffectiveDefaultFeatureConfig()
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+		ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+		ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
+		descriptor := &AuthgearYAMLDescriptor{}
+
+		const original = `id: test
+http:
+  public_origin: http://test
+`
+
+		update := func(incoming string) error {
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(original),
+				},
+				[]byte(incoming),
+			)
+			return err
+		}
+
+		Convey("signup verify target_step must exist", func() {
+			err := update(`id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: nonexistent
+`)
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authentication_flow/signup_flows/0/steps/1/target_step: target_step does not refer to any named step in the same flow`)
+		})
+
+		Convey("signup create_authenticator branch target_step must exist", func() {
+			err := update(`id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: create_authenticator
+      one_of:
+      - authentication: primary_oob_otp_email
+        target_step: nonexistent
+`)
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authentication_flow/signup_flows/0/steps/1/one_of/0/target_step: target_step does not refer to any named step in the same flow`)
+		})
+
+		Convey("promote verify target_step must exist", func() {
+			err := update(`id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  promote_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: nonexistent
+`)
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authentication_flow/promote_flows/0/steps/1/target_step: target_step does not refer to any named step in the same flow`)
+		})
+
+		Convey("login change_password target_step must exist", func() {
+			err := update(`id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: change_password
+      target_step: nonexistent
+`)
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authentication_flow/login_flows/0/steps/1/target_step: target_step does not refer to any named step in the same flow`)
+		})
+
+		Convey("login authenticate branch target_step must exist", func() {
+			err := update(`id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: authenticate
+      one_of:
+      - authentication: primary_oob_otp_email
+        target_step: nonexistent
+`)
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authentication_flow/login_flows/0/steps/1/one_of/0/target_step: target_step does not refer to any named step in the same flow`)
+		})
+
+		Convey("target_step referring to an existing step is accepted", func() {
+			err := update(`id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: identify_email
+`)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("target_step referring to a step nested in one_of is accepted", func() {
+			err := update(`id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+        steps:
+        - type: identify
+          name: nested_identify
+          one_of:
+          - identification: email
+        - type: verify
+          target_step: nested_identify
+`)
+			So(err, ShouldBeNil)
+		})
+	})
+}
+
+func TestAuthgearYAMLTargetStepUnchangedFlows(t *testing.T) {
+	Convey("AuthgearYAML target_step only checks changed flows", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		domainService := NewMockDomainService(ctrl)
+		domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+		path := "authgear.yaml"
+		featureConfig := config.NewEffectiveDefaultFeatureConfig()
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+		ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+		ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
+		descriptor := &AuthgearYAMLDescriptor{}
+
+		// Already stored, and already carrying a dangling target_step.
+		const originalWithDangling = `id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: nonexistent
+`
+
+		update := func(original string, incoming string) error {
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(original),
+				},
+				[]byte(incoming),
+			)
+			return err
+		}
+
+		Convey("editing an unrelated part of the config is not blocked", func() {
+			err := update(originalWithDangling, `id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: nonexistent
+ui:
+  default_client_uri: http://example.com
+`)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("editing a different flow is not blocked", func() {
+			err := update(originalWithDangling, `id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: nonexistent
+  login_flows:
+  - name: default
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+`)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("editing the offending flow is blocked", func() {
+			err := update(originalWithDangling, `id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: nonexistent
+    - type: view_recovery_code
+`)
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authentication_flow/signup_flows/0/steps/1/target_step: target_step does not refer to any named step in the same flow`)
+		})
+
+		Convey("introducing a new dangling target_step is blocked", func() {
+			err := update(`id: test
+http:
+  public_origin: http://test
+`, `id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: nonexistent
+`)
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/authentication_flow/signup_flows/0/steps/1/target_step: target_step does not refer to any named step in the same flow`)
+		})
+
+		Convey("fixing the offending flow is accepted", func() {
+			err := update(originalWithDangling, `id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: default
+    steps:
+    - type: identify
+      name: identify_email
+      one_of:
+      - identification: email
+    - type: verify
+      target_step: identify_email
+`)
+			So(err, ShouldBeNil)
+		})
+	})
+}

@@ -836,6 +836,8 @@ func (s *AuthenticationFlowSignupFlowStep) GetType() AuthenticationFlowStepType 
 	return AuthenticationFlowStepType(s.Type)
 }
 
+func (s *AuthenticationFlowSignupFlowStep) GetTargetStepName() string { return s.TargetStep }
+
 func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowSignupFlowStepTypeIdentify:
@@ -992,6 +994,8 @@ func (s *AuthenticationFlowLoginFlowStep) GetName() string { return s.Name }
 func (s *AuthenticationFlowLoginFlowStep) GetType() AuthenticationFlowStepType {
 	return AuthenticationFlowStepType(s.Type)
 }
+
+func (s *AuthenticationFlowLoginFlowStep) GetTargetStepName() string { return s.TargetStep }
 
 func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
