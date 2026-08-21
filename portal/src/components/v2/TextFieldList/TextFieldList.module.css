@@ -1,0 +1,44 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rowField {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.deleteButton {
+  flex-shrink: 0;
+}
+
+.errors {
+  margin: 0;
+}
+
+.addButton {
+  width: fit-content;
+}
+
+.description {
+  margin: 0;
+  color: var(--gray-a11);
+}
