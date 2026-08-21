@@ -2,9 +2,12 @@ import React, { useContext, useState, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 import styles from "./EditOAuthClientFormResourcesContent.module.css";
-import WidgetTitle from "../../WidgetTitle";
+import { Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import { SearchBox } from "@fluentui/react/lib/SearchBox";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
 import {
   useResourcesQueryQuery,
   ResourcesQueryDocument,
@@ -57,8 +60,8 @@ export const EditOAuthClientFormResourcesContent: React.FC<{
   );
 
   const handleSearchChange = useCallback(
-    (_event?: React.ChangeEvent<HTMLInputElement>, newValue?: string): void => {
-      setSearchKeyword(newValue ?? "");
+    (event: React.ChangeEvent<HTMLInputElement>): void => {
+      setSearchKeyword(event.currentTarget.value);
       setOffset(0); // Reset offset on search change
     },
     [setSearchKeyword, setOffset]
@@ -236,18 +239,19 @@ export const EditOAuthClientFormResourcesContent: React.FC<{
   }
   return (
     <section className={cn(styles.resourcesSection, className)}>
-      <WidgetTitle id="resoucres">
+      <Text as="p" size="4" weight="bold" id="resoucres">
         <FormattedMessage id="EditOAuthClientForm.resources.title" />
-      </WidgetTitle>
-      <SearchBox
-        placeholder={renderToString("search")}
-        styles={{
-          root: {
-            width: 300,
-          },
-        }}
-        onChange={handleSearchChange}
-      />
+      </Text>
+      <div className={styles.searchField}>
+        <TextField
+          size="2"
+          type="search"
+          placeholder={renderToString("search")}
+          value={searchKeyword}
+          iconStart={TextFieldIcon.MagnifyingGlass}
+          onChange={handleSearchChange}
+        />
+      </div>
       <ApplicationResourcesList
         resources={resourceListData}
         loading={loading}
