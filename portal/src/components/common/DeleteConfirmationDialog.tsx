@@ -1,15 +1,7 @@
-import React, { useCallback, useMemo } from "react";
-import {
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-  IModalProps,
-} from "@fluentui/react";
+import React, { useCallback } from "react";
 import { FormattedMessage } from "../../intl";
 import { useSnapshotData } from "../../hook/useSnapshotData";
-import { useSystemConfig } from "../../context/SystemConfigContext";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 
 interface DeleteConfirmationDialogProps<T> {
   data: T | null;
@@ -34,8 +26,8 @@ export function DeleteConfirmationDialog<T>(
     renderSubText,
   } = props;
   const isHidden = data === null || data === undefined;
-  const { themes } = useSystemConfig();
 
+  // Keep rendering the last data while the close transition plays.
   const snapshot = useSnapshotData(data);
 
   const onPressConfirm = useCallback(() => {
@@ -45,13 +37,6 @@ export function DeleteConfirmationDialog<T>(
     onConfirm(data);
   }, [isLoading, isHidden, onConfirm, data]);
 
-  const dialogStyles = { main: { minHeight: 0 } };
-  const dialogContentProps: IDialogContentProps = {
-    title: snapshot != null ? (renderTitle(snapshot) as unknown as string) : "",
-    subText:
-      snapshot != null ? (renderSubText(snapshot) as unknown as string) : "",
-  };
-
   const onDialogDismiss = useCallback(() => {
     if (isHidden) {
       return;
@@ -59,33 +44,30 @@ export function DeleteConfirmationDialog<T>(
     onDismiss();
   }, [isHidden, onDismiss]);
 
-  const modalProps = useMemo((): IModalProps => {
-    return {
-      onDismissed,
-    };
-  }, [onDismissed]);
+  const onOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        if (!isHidden && !isLoading) {
+          onDismiss();
+        }
+        onDismissed?.();
+      }
+    },
+    [isHidden, isLoading, onDismiss, onDismissed]
+  );
 
   return (
-    <Dialog
-      hidden={isHidden}
-      onDismiss={onDialogDismiss}
-      modalProps={modalProps}
-      dialogContentProps={dialogContentProps}
-      styles={dialogStyles}
-    >
-      <DialogFooter>
-        <PrimaryButton
-          theme={themes.destructive}
-          disabled={isLoading}
-          onClick={onPressConfirm}
-          text={<FormattedMessage id="delete" />}
-        />
-        <DefaultButton
-          onClick={onDialogDismiss}
-          disabled={isLoading}
-          text={<FormattedMessage id="cancel" />}
-        />
-      </DialogFooter>
-    </Dialog>
+    <ConfirmationDialog
+      open={!isHidden}
+      onOpenChange={onOpenChange}
+      title={snapshot != null ? renderTitle(snapshot) : ""}
+      description={snapshot != null ? renderSubText(snapshot) : ""}
+      confirmText={<FormattedMessage id="delete" />}
+      cancelText={<FormattedMessage id="cancel" />}
+      onConfirm={onPressConfirm}
+      onCancel={onDialogDismiss}
+      loading={isLoading}
+      confirmColor="red"
+    />
   );
 }
