@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -19,13 +20,14 @@ import {
   useTheme,
   Image,
   ImageFit,
-  PivotItem,
 } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { Context, FormattedMessage } from "../../intl";
 
 import ScreenContent from "../../ScreenContent";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import Link from "../../Link";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm, {
@@ -339,29 +341,20 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
     );
   };
 
-const EditOAuthClientNavBreadcrumb: React.VFC =
-  function EditOAuthClientNavBreadcrumb() {
-    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-      return [
-        {
-          to: "~/configuration/apps",
-          label: (
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: (
-            <FormattedMessage id="EditOAuthClientScreen.breadcrumb.details" />
-          ),
-        },
-      ];
-    }, []);
-
-    return (
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-    );
-  };
+const EditOAuthClientBackLink: React.VFC = function EditOAuthClientBackLink() {
+  const { appID } = useParams() as { appID: string };
+  return (
+    <Link
+      to={`/project/${appID}/configuration/apps`}
+      className={styles.backLink}
+    >
+      <ChevronLeftIcon className={styles.backLinkIcon} />
+      <span>
+        <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+      </span>
+    </Link>
+  );
+};
 
 interface OAuthClientHeaderProps {
   client: OAuthClientConfig;
@@ -478,6 +471,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     const navigate = useNavigate();
 
     const { formTab, setFormTab } = useContext(FormTabContext);
+    const headerRef = useRef<HTMLElement>(null);
 
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
@@ -496,15 +490,44 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     }, [client, state.clientSecretMap]);
 
     const onFormTabChange = useCallback(
-      (item?: PivotItem) => {
-        if (item == null) {
-          return;
-        }
-        const { itemKey } = item.props;
-        setFormTab(itemKey as FormTab);
+      (value: string) => {
+        setFormTab(value as FormTab);
       },
       [setFormTab]
     );
+
+    const tabOptions = useMemo(() => {
+      const tabs: { value: string; label: React.ReactNode }[] = [];
+      if (
+        client?.x_application_type === "m2m" ||
+        client?.x_application_type === "spa" ||
+        client?.x_application_type === "traditional_webapp" ||
+        client?.x_application_type === "native" ||
+        client?.x_application_type === "confidential"
+      ) {
+        tabs.push({
+          value: FormTab.QUICK_START,
+          label: renderToString("EditOAuthClientScreen.tabs.quick-start"),
+        });
+      }
+      tabs.push({
+        value: FormTab.SETTINGS,
+        label: renderToString("EditOAuthClientScreen.tabs.settings"),
+      });
+      if (client != null && shouldShowSamlTab(client)) {
+        tabs.push({
+          value: FormTab.SAML2,
+          label: renderToString("EditOAuthClientScreen.tabs.saml2"),
+        });
+      }
+      if (client?.x_application_type === "m2m") {
+        tabs.push({
+          value: FormTab.API_RESOURCES,
+          label: renderToString("EditOAuthClientScreen.tabs.api-resources"),
+        });
+      }
+      return tabs;
+    }, [client, renderToString]);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -523,46 +546,17 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         layout={formTab === FormTab.API_RESOURCES ? "list" : "auto-rows"}
       >
         <header
+          ref={headerRef}
           className={cn(styles.widget, styles["widget--wide"], "space-y-5")}
         >
-          <EditOAuthClientNavBreadcrumb />
+          <EditOAuthClientBackLink />
           <OAuthClientHeader client={client} />
-          <AGPivot
+          <OverflowTabs
             className={styles.widget}
-            selectedKey={formTab}
-            onLinkClick={onFormTabChange}
-          >
-            {client.x_application_type === "m2m" ||
-            client.x_application_type === "spa" ||
-            client.x_application_type === "traditional_webapp" ||
-            client.x_application_type === "native" ||
-            client.x_application_type === "confidential" ? (
-              <PivotItem
-                itemKey={FormTab.QUICK_START}
-                headerText={renderToString(
-                  "EditOAuthClientScreen.tabs.quick-start"
-                )}
-              />
-            ) : null}
-            <PivotItem
-              itemKey={FormTab.SETTINGS}
-              headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
-            />
-            {shouldShowSamlTab(client) ? (
-              <PivotItem
-                itemKey={FormTab.SAML2}
-                headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
-              />
-            ) : null}
-            {client.x_application_type === "m2m" ? (
-              <PivotItem
-                itemKey={FormTab.API_RESOURCES}
-                headerText={renderToString(
-                  "EditOAuthClientScreen.tabs.api-resources"
-                )}
-              />
-            ) : null}
-          </AGPivot>
+            value={formTab}
+            onValueChange={onFormTabChange}
+            tabs={tabOptions}
+          />
         </header>
         {formTab === FormTab.QUICK_START &&
         (client.x_application_type === "spa" ||
@@ -618,6 +612,9 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             className={cn(styles["widget--wide"])}
             client={client}
           />
+        ) : null}
+        {formTab === FormTab.SETTINGS || formTab === FormTab.SAML2 ? (
+          <SaveFunctionBar anchorRef={headerRef} />
         ) : null}
       </ScreenContent>
     );
@@ -802,7 +799,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
     return (
       <ScreenLayoutScrollView>
         <ScreenContent>
-          <EditOAuthClientNavBreadcrumb />
+          <EditOAuthClientBackLink />
           <Widget className={styles.widget}>
             <Text variant="xLarge" block={true}>
               <Icon
@@ -975,25 +972,12 @@ function FormContainerContent({
     [formTab, setFormTab]
   );
 
-  const hideFooter = (() => {
-    switch (formTab) {
-      case FormTab.API_RESOURCES:
-        return true;
-      case FormTab.QUICK_START:
-        return true;
-      default:
-        return false;
-    }
-  })();
-
   return (
     <FormTabContext.Provider value={contextValue}>
       <FormContainer
         className="flex-1-0-auto flex flex-col"
         form={form}
-        stickyFooterComponent={true}
-        showDiscardButton={true}
-        hideFooterComponent={hideFooter}
+        hideFooterComponent={true}
         localError={clientSecretHook.saveError}
       >
         <EditOAuthClientContent

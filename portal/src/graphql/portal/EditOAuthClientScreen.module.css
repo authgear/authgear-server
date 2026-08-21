@@ -15,6 +15,28 @@
   row-gap: 16px;
 }
 
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
 .quickStartItem {
   border: 1px solid #cecece;
   color: #201f1e;
