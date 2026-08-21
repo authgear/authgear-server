@@ -1,4 +1,5 @@
 import oursky from "@oursky/eslint-plugin";
+import tseslintPlugin from "@typescript-eslint/eslint-plugin";
 import globals from "globals";
 import localRules from "./eslint-rules/index.cjs";
 
@@ -57,6 +58,29 @@ export default [
     },
   },
   {
+    files: [ts],
+    plugins: {
+      "@typescript-eslint": tseslintPlugin,
+    },
+    rules: {
+      // We have many places using default for the exhaustive checking. So allow it.
+      "@typescript-eslint/switch-exhaustiveness-check": [
+        "error",
+        {
+          considerDefaultExhaustiveForUnions: true,
+        },
+      ],
+      "@typescript-eslint/no-misused-promises": [
+        "error",
+        {
+          checksVoidReturn: {
+            attributes: false,
+          },
+        },
+      ],
+    },
+  },
+  {
     files: [js, ts],
     rules: {
       "local/no-unsafe-react-event-usage": "error",
@@ -87,23 +111,8 @@ export default [
       "@typescript-eslint/no-unsafe-enum-comparison": "off",
       // If this is turned on, we have over 300 errors. So it is turned off.
       "@typescript-eslint/no-unsafe-type-assertion": "off",
-      // We have many places using default for the exhaustive checking. So allow it.
-      "@typescript-eslint/switch-exhaustiveness-check": [
-        "error",
-        {
-          considerDefaultExhaustiveForUnions: true,
-        },
-      ],
       "@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
       "@typescript-eslint/no-floating-promises": "off",
-      "@typescript-eslint/no-misused-promises": [
-        "error",
-        {
-          checksVoidReturn: {
-            attributes: false,
-          },
-        },
-      ],
       "no-void": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/strict-boolean-expressions": "off",

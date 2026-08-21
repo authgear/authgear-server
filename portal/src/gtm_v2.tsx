@@ -52,6 +52,7 @@ export type AuthgearGTMEventTypeV2 =
   | "createApplication.viewed"
   | "createApplication.selected-type"
   | "createApplication.created"
+  | "quickstart.viewed"
   | "onboardingSurvey.set-role"
   | "onboardingSurvey.set-team_or_personal_account"
   | "onboardingSurvey.set-company_details"
