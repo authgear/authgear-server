@@ -13,15 +13,8 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import {
-  Icon,
-  IconButton,
-  Text,
-  useTheme,
-  Image,
-  ImageFit,
-} from "@fluentui/react";
-import { ChevronLeftIcon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
+import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { Context, FormattedMessage } from "../../intl";
@@ -40,7 +33,6 @@ import {
   findFramework,
   getDisplayIconName,
 } from "./CreateOAuthClientScreen/frameworks";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -55,7 +47,8 @@ import Widget from "../../Widget";
 import ExternalLink from "../../ExternalLink";
 import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
-import PrimaryButton from "../../PrimaryButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
@@ -139,17 +132,14 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
           style={{ pointerEvents: "none" }}
         >
           <span className={styles.quickStartItemIcon}>{icon}</span>
-          <Text variant="small" className={styles.quickStartItemText}>
+          <Text size="1" className={styles.quickStartItemText}>
             {name}
           </Text>
           {shouldShowArrowIcon ? (
-            <Icon
-              className={styles.quickStartItemArrowIcon}
-              iconName="ChevronRightSmall"
-            />
+            <ChevronRightIcon className={styles.quickStartItemArrowIcon} />
           ) : null}
           {!shouldShowArrowIcon ? (
-            <Text className={styles.quickStartItemOpenTutorial}>
+            <Text size="1" className={styles.quickStartItemOpenTutorial}>
               <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
             </Text>
           ) : null}
@@ -226,7 +216,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
         case "traditional_webapp":
           return [
             {
-              icon: <Icon iconName="Globe" />,
+              icon: <i className={cn("ti", "ti-world")} aria-hidden={true} />,
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.traditional-webapp"
               ),
@@ -262,10 +252,10 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
             },
             {
               icon: (
-                <Image
+                <img
                   src={flutterIconURL}
-                  imageFit={ImageFit.contain}
                   className={styles.frameworkImage}
+                  alt=""
                 />
               ),
               name: renderToString(
@@ -276,10 +266,10 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
             },
             {
               icon: (
-                <Image
+                <img
                   src={xamarinIconURL}
-                  imageFit={ImageFit.contain}
                   className={styles.frameworkImage}
+                  alt=""
                 />
               ),
               name: renderToString(
@@ -363,9 +353,6 @@ interface OAuthClientHeaderProps {
 const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
   function OAuthClientHeader({ client }) {
     const iconName = getDisplayIconName(client);
-    const { copyButtonProps, Feedback } = useCopyFeedback({
-      textToCopy: client.client_id,
-    });
     return (
       <div className={styles.clientHeader}>
         <div className={styles.clientHeaderIconWrap}>
@@ -376,8 +363,9 @@ const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
         </div>
         <div className={styles.clientHeaderText}>
           <Text
-            variant="xLarge"
-            block={true}
+            as="p"
+            size="5"
+            weight="bold"
             className={styles.clientHeaderName}
           >
             {client.name ?? ""}
@@ -393,11 +381,9 @@ const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
             <code className={styles.clientHeaderClientId}>
               {client.client_id}
             </code>
-            <IconButton
-              {...copyButtonProps}
-              className={styles.clientHeaderCopy}
-            />
-            <Feedback />
+            <span className={styles.clientHeaderCopy}>
+              <CopyIconButton textToCopy={client.client_id} />
+            </span>
           </div>
         </div>
       </div>
@@ -783,7 +769,6 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
       form: { state },
     } = props;
     const navigate = useNavigate();
-    const theme = useTheme();
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
 
@@ -801,15 +786,22 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
         <ScreenContent>
           <EditOAuthClientBackLink />
           <Widget className={styles.widget}>
-            <Text variant="xLarge" block={true}>
-              <Icon
-                className={styles.quickStartScreenTitleIcon}
-                styles={{ root: { color: theme.palette.themePrimary } }}
-                iconName="Lightbulb"
+            <Text as="p" size="4" weight="bold">
+              <i
+                className={cn(
+                  "ti",
+                  "ti-bulb",
+                  styles.quickStartScreenTitleIcon
+                )}
+                aria-hidden={true}
               />
               <FormattedMessage id="EditOAuthClientScreen.quick-start-screen.title" />
             </Text>
-            <Text className={styles.quickStartScreenDescription} block={true}>
+            <Text
+              as="p"
+              size="2"
+              className={styles.quickStartScreenDescription}
+            >
               <FormattedMessage
                 id="EditOAuthClientScreen.quick-start-screen.question"
                 values={{
@@ -824,6 +816,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
             />
             <div className={styles.quickStartScreenButtons}>
               <PrimaryButton
+                size="2"
                 onClick={onNextButtonClick}
                 text={<FormattedMessage id="next" />}
               />

@@ -92,6 +92,7 @@
 
 .quickStartScreenTitleIcon {
   padding-right: 4px;
+  color: var(--accent-9);
 }
 
 .quickStartScreenDescription {

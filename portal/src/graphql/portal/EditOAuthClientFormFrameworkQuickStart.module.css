@@ -287,3 +287,28 @@
   display: flex;
   align-items: center;
 }
+
+.frameworkName {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.dialogCardIcon {
+  font-size: 24px;
+  line-height: 1;
+  color: #0969da;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.buttonLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
