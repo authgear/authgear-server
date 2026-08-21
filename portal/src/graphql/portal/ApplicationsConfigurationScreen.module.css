@@ -3,102 +3,86 @@
   @apply tablet:col-span-full;
 }
 
-.screenTitle {
+.pageHeader {
   grid-column: 1 / span 12;
   @apply tablet:col-span-full;
-  @apply flex items-center justify-between;
+  @apply flex items-center justify-between gap-4;
 }
 
-.desktopView {
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.listSection {
+  @apply flex flex-col gap-4;
+}
+
+.colName {
+  @apply min-w-0 flex-1 gap-3 overflow-hidden;
+}
+
+.colClientId {
+  width: 18rem;
+  min-width: 18rem;
+  flex-shrink: 0;
+  @apply gap-1;
   @apply mobile:hidden;
 }
 
-.mobileView {
-  @apply hidden mobile:block;
+.colActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
 }
 
-.columnHeader {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+.clientRow {
+  cursor: pointer;
 }
 
-.cellContent {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  line-height: 18px;
-}
-
-.cellAction {
-  font-weight: 600;
-  height: auto;
-}
-
-.clientList {
-  margin: 6px 0;
-}
-
-.clientCardList {
-  display: grid;
-  grid-template-columns: auto;
-  grid-auto-rows: auto;
-  row-gap: 16px;
-}
-
-.clientCardTitle {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 400;
-}
-
-.clientCardContent {
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 400;
-}
-
-.clientCardIdContainer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.nameCell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 4px 0;
-  min-width: 0;
-}
-
-.nameCellIcon {
+.clientIcon {
   font-size: 28px;
   line-height: 1;
   flex-shrink: 0;
-  color: #57606a;
+  color: var(--gray-a11);
 }
 
-.nameCellText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+.clientNameBlock {
+  @apply flex min-w-0 flex-col gap-0.5;
 }
 
-.nameCellTitle {
-  font-size: 14px;
+.clientName {
+  @apply min-w-0 truncate;
+  margin: 0;
   font-weight: 600;
-  line-height: 18px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--gray-12);
 }
 
-.nameCellSubtitle {
-  font-size: 12px;
-  line-height: 16px;
-  color: #57606a;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.clientSubtitle {
+  @apply min-w-0 truncate;
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.clientIdText {
+  @apply min-w-0 truncate;
+  margin: 0;
+  font-family: var(--code-font-family);
+  color: var(--gray-a11);
+}
+
+.mobileClientId {
+  @apply hidden mobile:flex items-center gap-1;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
