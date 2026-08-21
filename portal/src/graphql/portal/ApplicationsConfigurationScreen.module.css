@@ -27,15 +27,23 @@
 }
 
 .colName {
-  @apply min-w-0 flex-1 gap-3 overflow-hidden;
+  @apply min-w-0 gap-3 overflow-hidden;
+  flex: 2 1 0;
 }
 
+/* Balanced with the name column on wide screens (2:1) instead of hugging the
+   right edge; hidden below the tablet breakpoint. */
 .colClientId {
-  width: 18rem;
-  min-width: 18rem;
-  flex-shrink: 0;
   @apply gap-1;
-  @apply mobile:hidden;
+  flex: 1 1 0;
+  min-width: 14rem;
+}
+
+/* CardTable's .cell/.headerCell set display:flex with equal specificity, so a
+   plain .colClientId { mobile:hidden } wins or loses on bundle emission
+   order. The compound selector outranks them deterministically. */
+.colClientId.colClientId {
+  @apply tablet:hidden;
 }
 
 .colActions {
@@ -48,11 +56,23 @@
   cursor: pointer;
 }
 
-.clientIcon {
-  font-size: 28px;
-  line-height: 1;
+/* Same treatment as .clientHeaderIconWrap on the application edit screen,
+   at list-row size. */
+.clientIconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #eef4ff;
   flex-shrink: 0;
-  color: var(--gray-a11);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clientIcon {
+  font-size: 26px;
+  line-height: 1;
+  color: #0969da;
 }
 
 .clientNameBlock {
@@ -79,8 +99,8 @@
   color: var(--gray-a11);
 }
 
-.mobileClientId {
-  @apply hidden mobile:flex items-center gap-1;
+.compactClientId {
+  @apply hidden tablet:flex items-center gap-1;
 }
 
 .rowActionsButton:not(:hover):not([data-state="open"]) {

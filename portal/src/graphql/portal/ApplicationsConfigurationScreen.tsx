@@ -117,10 +117,12 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow(props) {
       onKeyDown={onRowKeyDown}
     >
       <CardTable.Cell className={styles.colName}>
-        <i
-          className={cn("ti", `ti-${iconName}`, styles.clientIcon)}
-          aria-hidden={true}
-        />
+        <div className={styles.clientIconWrap}>
+          <i
+            className={cn("ti", `ti-${iconName}`, styles.clientIcon)}
+            aria-hidden={true}
+          />
+        </div>
         <div className={styles.clientNameBlock}>
           <Text size="2" className={styles.clientName}>
             {client.name ?? ""}
@@ -136,7 +138,7 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow(props) {
               </>
             ) : null}
           </Text>
-          <div className={styles.mobileClientId} onClick={stopPropagation}>
+          <div className={styles.compactClientId} onClick={stopPropagation}>
             <Text size="1" className={styles.clientIdText}>
               {client.client_id}
             </Text>
