@@ -1,13 +1,22 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Callout,
-  ColorPicker as FluentUIColorPicker,
-  getColorFromString,
-} from "@fluentui/react";
+import React, { useCallback, useEffect, useState } from "react";
 import cn from "classnames";
 import { CSSColor } from "../../model/themeAuthFlowV2";
 
 import styles from "./ColorPicker.module.css";
+
+// Only #rrggbb is accepted by the native color input, so that is the format
+// we validate against here.
+const HEX_REGEX = /^#[0-9a-fA-F]{6}$/;
+
+function toHexColor(color: string | undefined, fallback: string): string {
+  if (color != null && HEX_REGEX.test(color)) {
+    return color;
+  }
+  if (HEX_REGEX.test(fallback)) {
+    return fallback;
+  }
+  return "#000000";
+}
 
 interface ColorPickerProps {
   className?: string;
@@ -18,12 +27,9 @@ interface ColorPickerProps {
 export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
   props
 ) {
-  const { color, placeholderColor, onChange } = props;
-
-  const colorboxRef = useRef<HTMLDivElement | null>(null);
+  const { className, color, placeholderColor, onChange } = props;
 
   const [inputValue, setInputValue] = useState<string>(color ?? "");
-  const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const [isFocusingInput, setIsFocusingInput] = useState(false);
 
   useEffect(() => {
@@ -35,13 +41,18 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
 
   const onInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setInputValue(e.currentTarget.value);
-      const colorObject = getColorFromString(e.currentTarget.value);
-      if (colorObject == null) {
-        onChange(undefined);
-        return;
-      }
-      onChange(colorObject.str);
+      const value = e.currentTarget.value;
+      setInputValue(value);
+      onChange(HEX_REGEX.test(value) ? value : undefined);
+    },
+    [onChange]
+  );
+
+  const onColorInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.currentTarget.value;
+      setInputValue(value);
+      onChange(value);
     },
     [onChange]
   );
@@ -52,57 +63,38 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
   const onBlurInput = useCallback(() => {
     setIsFocusingInput(false);
     if (color == null) {
-      // Clear the input value on blur if the value is not a valid color
+      // Clear the input value on blur if the value is not a valid color.
       setInputValue("");
     }
   }, [color]);
 
-  const showColorPicker = useCallback(() => {
-    setIsFocusingInput(true);
-    setIsColorPickerVisible(true);
-  }, []);
-  const hideColorPicker = useCallback(() => {
-    setIsFocusingInput(false);
-    setIsColorPickerVisible(false);
-  }, []);
-
-  const onColorPickerChange = useCallback(
-    (_e, newColor) => {
-      setInputValue(newColor.str);
-      onChange(newColor.str);
-    },
-    [onChange]
-  );
-
-  const colorObject = getColorFromString(color ?? "");
-  const placeholderColorObject = getColorFromString(placeholderColor);
   return (
-    <div className={cn(styles.colorPicker, isFocusingInput && styles.active)}>
+    <div
+      className={cn(
+        styles.colorPicker,
+        isFocusingInput && styles.active,
+        className
+      )}
+    >
       <div
-        ref={colorboxRef}
-        className={cn(
-          "inline-block",
-          "h-5",
-          "w-5",
-          "rounded",
-          "overflow-hidden",
-          "border",
-          "border-solid",
-          "border-neutral-tertiaryAlt"
-        )}
-        style={{
-          backgroundColor: colorObject?.str ?? placeholderColorObject?.str,
-        }}
-        onClick={showColorPicker}
-      ></div>
+        className={styles.swatch}
+        style={{ backgroundColor: color ?? placeholderColor }}
+      >
+        {/* The input itself covers the swatch so the user's click lands
+            directly on it. Safari only opens the native color panel for an
+            input with a real rendered box; programmatically clicking a
+            zero-size input does nothing there. */}
+        <input
+          type="color"
+          className={styles.swatchInput}
+          value={toHexColor(color, placeholderColor)}
+          onChange={onColorInputChange}
+          onFocus={onFocusInput}
+          onBlur={onBlurInput}
+        />
+      </div>
       <input
-        className={cn(
-          "ml-2",
-          "flex-1",
-          "h-full",
-          "border-none",
-          "outline-none"
-        )}
+        className={styles.textInput}
         type="text"
         value={inputValue}
         placeholder={placeholderColor}
@@ -110,20 +102,6 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
         onBlur={onBlurInput}
         onFocus={onFocusInput}
       />
-      {isColorPickerVisible ? (
-        <Callout
-          // eslint-disable-next-line react-hooks/refs
-          target={colorboxRef.current}
-          gapSpace={10}
-          onDismiss={hideColorPicker}
-        >
-          <FluentUIColorPicker
-            color={colorObject ?? placeholderColorObject ?? ""}
-            onChange={onColorPickerChange}
-            alphaType="none"
-          />
-        </Callout>
-      ) : null}
     </div>
   );
 };

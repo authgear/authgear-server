@@ -4,6 +4,30 @@
   height: 300px;
 }
 
+/* Restyle cropper.js's default UI (hardcoded #39f blue) to use the app's
+   Radix accent so the crop overlay matches the modernized design. */
+.container :global(.cropper-view-box) {
+  outline-color: var(--accent-9);
+}
+
+.container :global(.cropper-line) {
+  background-color: var(--accent-9);
+}
+
+.container :global(.cropper-point) {
+  background-color: var(--accent-9);
+  opacity: 1;
+}
+
+.container :global(.cropper-dashed) {
+  border-color: rgb(255 255 255 / 60%);
+}
+
+.container :global(.cropper-center::before),
+.container :global(.cropper-center::after) {
+  background-color: var(--accent-9);
+}
+
 .img {
   position: absolute;
   display: block;
@@ -23,15 +47,34 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 180px;
-  color: #fff;
-  background-color: #ddd;
+  padding: 0;
+  border: none;
+  color: var(--gray-a8);
+  background-color: var(--gray-a3);
   cursor: pointer;
   @apply rounded-full;
+}
+
+.placeholderIcon {
+  width: 180px;
+  height: 180px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .preview {
   width: 300px;
   height: 300px;
+  object-fit: contain;
   @apply rounded-full;
 }

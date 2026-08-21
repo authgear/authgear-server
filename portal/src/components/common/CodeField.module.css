@@ -1,7 +1,14 @@
 .code {
   @apply block;
   @apply px-2 py-2;
-  @apply bg-neutral-light;
   @apply whitespace-pre-wrap;
   overflow-wrap: break-word;
+  background-color: var(--gray-a3);
+  border-radius: var(--radius-2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.placeholder {
+  color: var(--gray-a10);
 }

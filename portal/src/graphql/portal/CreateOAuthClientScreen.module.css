@@ -4,6 +4,15 @@
   @apply tablet:col-span-full;
 }
 
+.scrollArea {
+  @apply flex min-h-0 flex-1 flex-col overflow-y-auto;
+
+  /* On mobile the layout switches to auto/min-content heights. An
+     overflow-y:auto flex item forces min-height:0, which collapses the whole
+     content area to 0 height (blank screen). Fall back to page scrolling. */
+  @apply mobile:min-h-min mobile:flex-none mobile:overflow-y-visible;
+}
+
 .wizardWidget {
   display: flex;
   flex-direction: column;

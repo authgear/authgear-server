@@ -11,6 +11,9 @@
 .list {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   grid-template-rows: auto 1fr;
+  align-content: start;
+
+  @apply mobile:grid-rows-[auto_min-content];
 }
 
 .autoRows {

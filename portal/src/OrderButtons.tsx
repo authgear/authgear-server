@@ -1,5 +1,6 @@
 import React, { useCallback, useContext } from "react";
-import { IconButton, IIconProps } from "@fluentui/react";
+import { IconButton } from "@radix-ui/themes";
+import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 import { Context } from "./intl";
 
 import styles from "./OrderButtons.module.css";
@@ -9,6 +10,21 @@ interface OrderButtonsProps {
   disabled: boolean;
   itemCount: number;
   onSwapClicked: (index1: number, index2: number) => void;
+}
+
+export function move<T>(items: T[], fromIndex: number, toIndex: number): T[] {
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= items.length ||
+    toIndex >= items.length
+  ) {
+    return items;
+  }
+  const newItems = [...items];
+  const [item] = newItems.splice(fromIndex, 1);
+  newItems.splice(toIndex, 0, item);
+  return newItems;
 }
 
 export function swap<T>(items: T[], index1: number, index2: number): T[] {
@@ -27,16 +43,6 @@ export function swap<T>(items: T[], index1: number, index2: number): T[] {
   newItems[index2] = thisItem;
   return newItems;
 }
-
-const DOWN_ICON_PROPS: IIconProps = {
-  iconName: "ChevronDown",
-  className: styles.icon,
-};
-
-const UP_ICON_PROPS: IIconProps = {
-  iconName: "ChevronUp",
-  className: styles.icon,
-};
 
 const OrderButtons: React.VFC<OrderButtonsProps> = function OrderButtons(
   props: OrderButtonsProps
@@ -57,21 +63,31 @@ const OrderButtons: React.VFC<OrderButtonsProps> = function OrderButtons(
   }, [index, onSwapClicked]);
 
   return (
-    <div>
+    <div className={styles.orderButtons}>
       <IconButton
+        type="button"
         className={styles.orderButton}
+        variant="ghost"
+        color="gray"
+        size="1"
         disabled={disabled || index === itemCount - 1}
         onClick={onDownClicked}
-        iconProps={DOWN_ICON_PROPS}
-        ariaLabel={renderToString("OrderButtons.move-down")}
-      />
+        aria-label={renderToString("OrderButtons.move-down")}
+      >
+        <ChevronDownIcon width="1rem" height="1rem" />
+      </IconButton>
       <IconButton
+        type="button"
         className={styles.orderButton}
+        variant="ghost"
+        color="gray"
+        size="1"
         disabled={disabled || index === 0}
         onClick={onUpClicked}
-        iconProps={UP_ICON_PROPS}
-        ariaLabel={renderToString("OrderButtons.move-up")}
-      />
+        aria-label={renderToString("OrderButtons.move-up")}
+      >
+        <ChevronUpIcon width="1rem" height="1rem" />
+      </IconButton>
     </div>
   );
 };

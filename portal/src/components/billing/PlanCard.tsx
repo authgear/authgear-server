@@ -1,10 +1,20 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import { Icon, Text } from "@fluentui/react";
+import {
+  CalendarIcon,
+  CheckIcon,
+  CubeIcon,
+  GearIcon,
+  IdCardIcon,
+  ImageIcon,
+  InfoCircledIcon,
+  PersonIcon,
+} from "@radix-ui/react-icons";
+import { Text as RadixText } from "@radix-ui/themes";
 import styles from "./PlanCard.module.css";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import PrimaryButton from "../../PrimaryButton";
+import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
+import { Tooltip } from "../v2/Tooltip/Tooltip";
 import { CTAVariant, DEFAULT_FREE_PLAN, getCTAVariant } from "../../util/plan";
-import Tooltip from "../../Tooltip";
 import { formatDateOnly } from "../../util/formatDateOnly";
 
 interface PlanCardSMSPricingFixed {
@@ -36,8 +46,20 @@ interface PlanAddOns {
   perProjectMember?: number;
 }
 
+type PlanCardIcon = typeof PersonIcon;
+
+const PLAN_CARD_ICONS = {
+  Contact: PersonIcon,
+  OEM: CubeIcon,
+  People: IdCardIcon,
+  Calendar: CalendarIcon,
+  Repair: GearIcon,
+  CheckMark: CheckIcon,
+  Picture: ImageIcon,
+} satisfies Record<string, PlanCardIcon>;
+
 interface AdditionalFeature {
-  iconName?: string;
+  icon?: PlanCardIcon;
   message: string;
 }
 
@@ -67,35 +89,37 @@ function BasePlanCard({
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <Text variant="mediumPlus" className="font-semibold">
+        <RadixText size="3" weight="medium" className={styles.planTitle}>
           {planTitle}
-        </Text>
+        </RadixText>
         <PlanPrice pricePerMonth={pricePerMonth} />
       </div>
       {/* 32px(gap) + 40px(height of sms price) = 72 */}
       {/* This is to prevent layout bouncing caused by text wrapping */}
-      <div className="pt-[72px] relative justify-self-stretch">
+      <div className={styles.smsPriceSection}>
         {/* Use absolute to ensure height change of this block doesn't affect layout */}
-        <div className="absolute top-0 left-0 right-0 text-center">
+        <div className={styles.smsPriceAbsolute}>
           <PlanSMSPrice smsPricing={smsPricing} />
         </div>
-        <PrimaryButton
-          className="w-full"
-          text={actionButtonMessage}
-          disabled={actionButtonDisabled}
-          onClick={onClickActionButton}
-        />
+        <div className={styles.actionButton}>
+          <PrimaryButton
+            size="2"
+            text={actionButtonMessage}
+            disabled={actionButtonDisabled}
+            onClick={onClickActionButton}
+          />
+        </div>
       </div>
       <FeatureList {...features} />
       {additionalFeatures != null ? (
         <>
-          <div className="h-px w-full bg-separator" />
+          <div className={styles.separator} />
           <AdditionalFeatureList features={additionalFeatures} />
         </>
       ) : null}
       {addons != null ? (
         <>
-          <div className="h-px w-full bg-separator" />
+          <div className={styles.separator} />
           <AddOnsList {...addons} />
         </>
       ) : null}
@@ -113,20 +137,20 @@ function PlanPrice({
   switch (pricePerMonth) {
     case "free":
       return (
-        <Text variant="xxLarge">
+        <RadixText size="8" className={styles.priceLarge}>
           <FormattedMessage id="PlanCard.price.free" />
-        </Text>
+        </RadixText>
       );
     case "custom":
       return (
-        <Text variant="large" className="font-semibold leading-9">
+        <RadixText size="4" className={styles.priceCustom}>
           <FormattedMessage id="PlanCard.price.custom" />
-        </Text>
+        </RadixText>
       );
     default:
       return (
-        <div className="flex items-end">
-          <Text variant="xxLarge">
+        <div className={styles.priceMonthlyRow}>
+          <RadixText size="8" className={styles.priceLarge}>
             <FormattedMessage
               id="PlanCard.price.monthly.value"
               values={{
@@ -136,10 +160,10 @@ function PlanPrice({
                   pricePerMonth.toLocaleString(locale),
               }}
             />
-          </Text>
-          <Text className="ml-2 font-semibold" variant="large">
+          </RadixText>
+          <RadixText size="4" className={styles.priceMonthlyUnit}>
             <FormattedMessage id="PlanCard.price.monthly.unit" />
-          </Text>
+          </RadixText>
         </div>
       );
   }
@@ -153,20 +177,20 @@ function PlanSMSPrice({
   switch (smsPricing.type) {
     case "fixed":
       return (
-        <Text variant="medium" className="font-semibold text-center">
+        <RadixText size="2" align="center">
           <FormattedMessage
             id="PlanCard.smsPrice.fixed"
             values={{ limit: smsPricing.limit }}
           />
-        </Text>
+        </RadixText>
       );
     case "metered":
       return (
-        <div className="text-center">
-          <Text variant="medium" className="font-semibold" block={true}>
+        <div className={styles.smsPriceMetered}>
+          <RadixText size="2" as="p" className={styles.smsPriceTitle}>
             <FormattedMessage id="PlanCard.smsPrice.metered.title" />
-          </Text>
-          <Text variant="medium" className="text-text-secondary" block={true}>
+          </RadixText>
+          <RadixText size="2" as="p" className={styles.smsPriceSecondary}>
             <FormattedMessage
               id="PlanCard.smsPrice.metered.price"
               values={{
@@ -174,27 +198,25 @@ function PlanSMSPrice({
                 otherRegionPrice: smsPricing.otherRegionPrice,
               }}
             />
-          </Text>
+          </RadixText>
         </div>
       );
   }
 }
 
 function FeatureListItem({
-  iconName,
+  icon: Icon,
   message,
 }: {
-  iconName?: string;
+  icon?: PlanCardIcon;
   message: React.ReactNode;
 }) {
   return (
-    <li className="flex items-center gap-2">
-      {iconName != null ? (
-        <Icon iconName={iconName} className="text-sm text-theme-primary" />
+    <li className={styles.featureItem}>
+      {Icon != null ? (
+        <Icon className={styles.featureIcon} width="1rem" height="1rem" />
       ) : null}
-      <Text variant="medium" className="font-semibold">
-        {message}
-      </Text>
+      <RadixText size="2">{message}</RadixText>
     </li>
   );
 }
@@ -210,7 +232,7 @@ function FeatureList({
   return (
     <ul className={styles.featureList}>
       <FeatureListItem
-        iconName="Contact"
+        icon={PLAN_CARD_ICONS.Contact}
         message={
           <FormattedMessage
             id="PlanCard.plan.features.mau"
@@ -226,7 +248,7 @@ function FeatureList({
         }
       />
       <FeatureListItem
-        iconName="OEM"
+        icon={PLAN_CARD_ICONS.OEM}
         message={
           <FormattedMessage
             id="PlanCard.plan.features.applications"
@@ -242,7 +264,7 @@ function FeatureList({
         }
       />
       <FeatureListItem
-        iconName="People"
+        icon={PLAN_CARD_ICONS.People}
         message={
           <FormattedMessage
             id="PlanCard.plan.features.projectMembers"
@@ -258,7 +280,7 @@ function FeatureList({
         }
       />
       <FeatureListItem
-        iconName="Calendar"
+        icon={PLAN_CARD_ICONS.Calendar}
         message={
           <FormattedMessage
             id="PlanCard.plan.features.logRetentionDays"
@@ -268,7 +290,7 @@ function FeatureList({
           />
         }
       />
-      <FeatureListItem iconName="Repair" message={support} />
+      <FeatureListItem icon={PLAN_CARD_ICONS.Repair} message={support} />
     </ul>
   );
 }
@@ -284,7 +306,7 @@ function AdditionalFeatureList({
         return (
           <FeatureListItem
             key={idx}
-            iconName={feature.iconName}
+            icon={feature.icon}
             message={feature.message}
           />
         );
@@ -294,18 +316,16 @@ function AdditionalFeatureList({
 }
 
 function AddonListItem({
-  iconName,
+  icon: Icon,
   message,
 }: {
-  iconName: string;
+  icon: PlanCardIcon;
   message: React.ReactNode;
 }) {
   return (
-    <li className="flex items-center gap-2">
-      <Icon iconName={iconName} className="text-sm text-theme-primary" />
-      <Text variant="medium" className="font-semibold">
-        {message}
-      </Text>
+    <li className={styles.featureItem}>
+      <Icon className={styles.featureIcon} width="1rem" height="1rem" />
+      <RadixText size="2">{message}</RadixText>
     </li>
   );
 }
@@ -316,20 +336,26 @@ function AddOnsList({
   perEnvironment,
   perProjectMember,
 }: PlanAddOns) {
+  const { renderToString } = useContext(MessageContext);
+
   return (
     <ul className={styles.addonList}>
-      <li className="flex items-center">
-        <Text variant="medium" className="font-semibold">
+      <li className={styles.addonTitleRow}>
+        <RadixText size="2">
           <FormattedMessage id="PlanCard.plan.addons.title" />
-        </Text>
-        <Tooltip
-          tooltipMessageId="PlanCard.plan.addons.hint"
-          className="text-sm"
-        />
+        </RadixText>
+        <Tooltip content={<FormattedMessage id="PlanCard.plan.addons.hint" />}>
+          <InfoCircledIcon
+            className={styles.addonHintIcon}
+            width="1rem"
+            height="1rem"
+            aria-label={renderToString("PlanCard.plan.addons.hint")}
+          />
+        </Tooltip>
       </li>
       {additionalMAU != null ? (
         <AddonListItem
-          iconName="Contact"
+          icon={PLAN_CARD_ICONS.Contact}
           message={
             <FormattedMessage
               id="PlanCard.plan.addons.additionalMAU"
@@ -340,7 +366,7 @@ function AddOnsList({
       ) : null}
       {perEnvironment != null ? (
         <AddonListItem
-          iconName="Picture"
+          icon={PLAN_CARD_ICONS.Picture}
           message={
             <FormattedMessage
               id="PlanCard.plan.addons.environment"
@@ -351,7 +377,7 @@ function AddOnsList({
       ) : null}
       {perApplication != null ? (
         <AddonListItem
-          iconName="OEM"
+          icon={PLAN_CARD_ICONS.OEM}
           message={
             <FormattedMessage
               id="PlanCard.plan.addons.application"
@@ -362,7 +388,7 @@ function AddOnsList({
       ) : null}
       {perProjectMember != null ? (
         <AddonListItem
-          iconName="People"
+          icon={PLAN_CARD_ICONS.People}
           message={
             <FormattedMessage
               id="PlanCard.plan.addons.projectMember"
@@ -604,13 +630,13 @@ export function PlanCardBusiness({
       }}
       additionalFeatures={[
         {
-          iconName: "CheckMark",
+          icon: PLAN_CARD_ICONS.CheckMark,
           message: renderToString(
             "PlanCard.plan.additionalFeature.removeAuthgearBranding"
           ),
         },
         {
-          iconName: "CheckMark",
+          icon: PLAN_CARD_ICONS.CheckMark,
           message: renderToString(
             "PlanCard.plan.additionalFeature.projectMemberRoles"
           ),
@@ -682,23 +708,23 @@ export function PlanCardEnterprise({
           ),
         },
         {
-          iconName: "CheckMark",
+          icon: PLAN_CARD_ICONS.CheckMark,
           message: renderToString(
             "PlanCard.plan.additionalFeature.customSMSGateway"
           ),
         },
         {
-          iconName: "CheckMark",
+          icon: PLAN_CARD_ICONS.CheckMark,
           message: renderToString("PlanCard.plan.additionalFeature.customSMTP"),
         },
         {
-          iconName: "CheckMark",
+          icon: PLAN_CARD_ICONS.CheckMark,
           message: renderToString(
             "PlanCard.plan.additionalFeature.tailoredSLA"
           ),
         },
         {
-          iconName: "CheckMark",
+          icon: PLAN_CARD_ICONS.CheckMark,
           message: renderToString(
             "PlanCard.plan.additionalFeature.privateCloudOption"
           ),

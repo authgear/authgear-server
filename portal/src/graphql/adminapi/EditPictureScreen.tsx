@@ -7,23 +7,23 @@ import React, {
   useEffect,
   ChangeEvent,
 } from "react";
+import { ChevronLeftIcon, TrashIcon, UploadIcon } from "@radix-ui/react-icons";
+import { Button, Flex, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
-import { Dialog, DialogFooter, Spinner, SpinnerSize } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios, { AxiosProgressEvent, RawAxiosRequestHeaders } from "axios";
 import authgear from "@authgear/web";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { FormProvider } from "../../form";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
-import NavBreadcrumb from "../../NavBreadcrumb";
+import Link from "../../Link";
 import NavigationBlockerDialog from "../../NavigationBlockerDialog";
 import ScreenContent from "../../ScreenContent";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ReactCropperjs from "../../ReactCropperjs";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUserQuery } from "./query/userQuery";
 import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
@@ -41,12 +41,6 @@ interface FormState {
   selected?: string;
 }
 
-interface RemoveDialogProps {
-  hidden: boolean;
-  onDismiss: () => void;
-  onConfirm: () => void;
-}
-
 const SENTINEL: APIError = {
   errorName: "__local",
   reason: "__local",
@@ -60,39 +54,6 @@ const SENTINEL: APIError = {
 const RULES: ErrorParseRule[] = [
   makeLocalErrorParseRule(SENTINEL, SENTINEL.info.error),
 ];
-
-function RemoveDialog(props: RemoveDialogProps) {
-  const { hidden, onDismiss, onConfirm } = props;
-  const { renderToString } = useContext(Context);
-  const dialogContentProps = useMemo(() => {
-    return {
-      title: <FormattedMessage id="EditPictureScreen.remove-picture.label" />,
-      subText: renderToString(
-        "EditPictureScreen.remove-picture.dialog.description"
-      ),
-    };
-  }, [renderToString]);
-  const { themes } = useSystemConfig();
-  return (
-    <Dialog
-      hidden={hidden}
-      dialogContentProps={dialogContentProps}
-      onDismiss={onDismiss}
-    >
-      <DialogFooter>
-        <PrimaryButton
-          onClick={onConfirm}
-          theme={themes.destructive}
-          text={<FormattedMessage id="remove" />}
-        />
-        <DefaultButton
-          onClick={onDismiss}
-          text={<FormattedMessage id="cancel" />}
-        />
-      </DialogFooter>
-    </Dialog>
-  );
-}
 
 interface EditPictureScreenContentProps {
   user: UserQueryNodeFragment;
@@ -113,7 +74,6 @@ const DEFAULT_UPLOAD_STATE: UploadState = {
 function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const { user, appID } = props;
   const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
   const navigate = useNavigate();
   const [reactCropperjsError, setReactCropperjsError] = useState<
     typeof SENTINEL | null
@@ -122,20 +82,13 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cropperjsRef = useRef<ReactCropperjs | null>(null);
   const uploadedURLRef = useRef<string | null>(null);
-  const navBreadcrumbItems = useMemo(() => {
-    return [
-      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
-      {
-        to: `~/users/${user.id}/details`,
-        label: <FormattedMessage id="UserDetailsScreen.title" />,
-      },
-      { to: ".", label: <FormattedMessage id="EditPictureScreen.title" /> },
-    ];
-  }, [user.id]);
 
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const onDismissRemoveDialog = useCallback(() => {
     setIsRemoveDialogVisible(false);
+  }, []);
+  const onRemoveDialogOpenChange = useCallback((open: boolean) => {
+    setIsRemoveDialogVisible(open);
   }, []);
 
   const { updateUser } = useUpdateUserMutation();
@@ -345,57 +298,60 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         messageBar={<FormErrorMessageBar />}
         footerPosition="end"
         footer={
-          <>
+          <Flex gap="3" wrap="wrap">
             {showUpload ? (
               <PrimaryButton
-                text={renderToString(
-                  "EditPictureScreen.upload-new-picture.label"
-                )}
-                iconProps={{ iconName: "Upload" }}
-                onClick={() => {
-                  fileInputRef.current?.click();
-                }}
+                size="2"
+                text={
+                  <span className={styles.buttonContent}>
+                    <UploadIcon width="1rem" height="1rem" />
+                    <FormattedMessage id="EditPictureScreen.upload-new-picture.label" />
+                  </span>
+                }
+                onClick={onClickSelectImage}
               />
             ) : null}
             {showRemove ? (
-              <DefaultButton
-                text={renderToString("EditPictureScreen.remove-picture.label")}
-                iconProps={{ iconName: "Delete" }}
+              <Button
+                size="2"
+                variant="outline"
+                color="red"
                 disabled={!pictureIsSet}
-                theme={themes.destructive}
-                useThemePrimaryForBorderColor={true}
                 onClick={() => {
                   setIsRemoveDialogVisible(true);
                 }}
-              />
+              >
+                <TrashIcon width="1rem" height="1rem" />
+                <FormattedMessage id="EditPictureScreen.remove-picture.label" />
+              </Button>
             ) : null}
             {showSave ? (
               <PrimaryButton
-                text={
-                  <div className={styles.saveButton}>
-                    {loading ? (
-                      <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
-                    ) : null}
-                    <span>
-                      <FormattedMessage id="save" />
-                    </span>
-                  </div>
-                }
+                size="2"
+                loading={loading}
                 disabled={loading}
+                text={<FormattedMessage id="save" />}
                 onClick={() => {
                   upload().catch(() => {});
                 }}
               />
             ) : null}
-          </>
+          </Flex>
         }
       >
         <form>
           <ScreenContent>
-            <NavBreadcrumb
-              className={styles.widget}
-              items={navBreadcrumbItems}
-            />
+            <div className={styles.widget}>
+              <Link to=".." className={styles.backLink}>
+                <ChevronLeftIcon className={styles.backLinkIcon} />
+                <span>
+                  <FormattedMessage id="UserDetailsScreen.title" />
+                </span>
+              </Link>
+              <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+                <FormattedMessage id="EditPictureScreen.title" />
+              </Text>
+            </div>
             <ReactCropperjs
               ref={cropperjsRef}
               className={styles.widget}
@@ -416,10 +372,19 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         </form>
       </DefaultLayout>
       <NavigationBlockerDialog getIsDirty={getIsDirty} />
-      <RemoveDialog
-        hidden={!isRemoveDialogVisible}
-        onDismiss={onDismissRemoveDialog}
+      <ConfirmationDialog
+        open={isRemoveDialogVisible}
+        onOpenChange={onRemoveDialogOpenChange}
+        title={<FormattedMessage id="EditPictureScreen.remove-picture.label" />}
+        description={renderToString(
+          "EditPictureScreen.remove-picture.dialog.description"
+        )}
+        confirmText={renderToString("remove")}
+        cancelText={renderToString("cancel")}
         onConfirm={onConfirmRemove}
+        onCancel={onDismissRemoveDialog}
+        loading={loading}
+        confirmColor="red"
       />
     </FormProvider>
   );
@@ -472,13 +437,25 @@ const EditPictureScreen: React.VFC = function EditPictureScreen() {
   }
 
   if (userError != null) {
-    // eslint-disable-next-line @typescript-eslint/strict-void-return
-    return <ShowError error={userError} onRetry={refetchUser} />;
+    return (
+      <ShowError
+        error={userError}
+        onRetry={() => {
+          refetchUser().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (appConfigError != null) {
-    // eslint-disable-next-line @typescript-eslint/strict-void-return
-    return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
+    return (
+      <ShowError
+        error={appConfigError}
+        onRetry={() => {
+          refetchAppConfig().finally(() => {});
+        }}
+      />
+    );
   }
 
   return <EditPictureScreenContent user={user} appID={appID} />;

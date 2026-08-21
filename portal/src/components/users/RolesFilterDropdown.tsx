@@ -1,14 +1,16 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { SearchableDropdown } from "../common/SearchableDropdown";
 import { Context as MessageContext } from "../../intl";
 import { useQuery } from "@apollo/client";
-import { IDropdownOption } from "@fluentui/react";
 import { Role } from "../../graphql/adminapi/globalTypes.generated";
 import {
   RolesListQueryDocument,
   RolesListQueryQuery,
   RolesListQueryQueryVariables,
 } from "../../graphql/adminapi/query/rolesListQuery.generated";
+import {
+  UsersFilterDropdown,
+  UsersFilterDropdownOption,
+} from "./UsersFilterDropdown";
 
 interface RolesFilterDropdownProps {
   className?: string;
@@ -19,7 +21,7 @@ interface RolesFilterDropdownProps {
 
 const MAX_OPTIONS = 100;
 
-export interface RolesFilterDropdownOption extends IDropdownOption {
+export interface RolesFilterDropdownOption extends UsersFilterDropdownOption {
   role: Pick<Role, "id" | "key" | "name">;
 }
 
@@ -60,16 +62,14 @@ export const RolesFilterDropdown: React.VFC<RolesFilterDropdownProps> =
     }, [data?.roles?.edges]);
 
     const onChange = useCallback(
-      (_: unknown, option?: IDropdownOption) => {
-        propsOnChange(
-          (option as RolesFilterDropdownOption | undefined) ?? null
-        );
+      (option: RolesFilterDropdownOption) => {
+        propsOnChange(option);
       },
       [propsOnChange]
     );
 
     return (
-      <SearchableDropdown
+      <UsersFilterDropdown
         className={className}
         placeholder={renderToString("UsersScreen.filters.roles.placeholder")}
         isLoadingOptions={loading}

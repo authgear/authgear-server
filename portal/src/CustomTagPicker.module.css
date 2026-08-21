@@ -1,0 +1,105 @@
+.root {
+  position: relative;
+  width: 100%;
+}
+
+.field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-radius: var(--radius-2);
+  background-color: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--gray-a7);
+  cursor: text;
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- progressive enhancement: focus ring only */
+.field:focus-within {
+  outline: 2px solid var(--accent-8);
+  outline-offset: -1px;
+}
+
+.fieldDisabled {
+  background-color: var(--gray-a3);
+  box-shadow: inset 0 0 0 1px var(--gray-a5);
+  cursor: not-allowed;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 8px;
+  border-radius: var(--radius-2);
+  background-color: var(--accent-a3);
+  color: var(--accent-11);
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.fieldDisabled .tag {
+  padding-right: 8px;
+  color: var(--gray-a10);
+  background-color: var(--gray-a3);
+}
+
+.tagRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-1);
+  color: var(--accent-11);
+  cursor: pointer;
+}
+
+.tagRemove:hover {
+  background-color: var(--accent-a4);
+}
+
+.input {
+  flex: 1 1 120px;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--gray-12);
+  padding: 2px 0;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  z-index: 10;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+  border-radius: var(--radius-3);
+  background-color: var(--color-panel-solid);
+  box-shadow: var(--shadow-4);
+}
+
+.suggestion {
+  padding: 6px 8px;
+  border-radius: var(--radius-2);
+  cursor: pointer;
+}
+
+.suggestion[data-active] {
+  background-color: var(--gray-a3);
+}

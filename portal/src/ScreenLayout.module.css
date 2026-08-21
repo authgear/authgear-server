@@ -3,9 +3,10 @@
   flex-direction: column;
   height: 100vh;
   width: 100%;
+  overflow: hidden;
 
   /* Let body to scroll in mobile */
-  @apply mobile:h-auto mobile:flex-1-0-auto;
+  @apply mobile:h-auto mobile:overflow-visible mobile:flex-1-0-auto;
 }
 
 .body {
@@ -22,7 +23,10 @@
 
 .nav {
   width: 260px;
-  border: 1px solid #edebe9;
+  border-right: 1px solid var(--gray-a6);
+  /* Figma "Accent Alpha 2" (#0066ff0a) → theme accent alpha token; resolves to
+     indigo-a2 with the current accent and stays theme/dark-mode aware. */
+  background-color: var(--accent-a2);
   /* Allow scrolling along y-axis */
   overflow-y: auto;
   overflow-x: hidden;
@@ -34,10 +38,11 @@
   flex: 1 0 0;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 
   display: flex;
   flex-direction: column;
 
   /* Let body to scroll in mobile */
-  @apply mobile:flex-1-0-auto mobile:min-h-min;
+  @apply mobile:overflow-visible mobile:flex-1-0-auto mobile:min-h-min;
 }

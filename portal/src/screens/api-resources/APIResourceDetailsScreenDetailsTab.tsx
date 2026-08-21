@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useUpdateResourceMutationMutation } from "../../graphql/adminapi/mutations/updateResourceMutation.generated";
 import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { FormContainerBase } from "../../FormContainerBase";
-import WidgetTitle from "../../WidgetTitle";
 import { FormattedMessage } from "../../intl";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import {
@@ -10,12 +9,16 @@ import {
   ResourceFormState,
   sanitizeFormState,
 } from "../../components/api-resources/ResourceForm";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import styles from "./APIResourceDetailsTab.module.css";
 
 export function APIResourceDetailsScreenDetailsTab({
   resource,
 }: {
   resource: Resource;
 }): JSX.Element {
+  const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
   const [updateResource] = useUpdateResourceMutationMutation();
 
   const [initialState] = useState<ResourceFormState>({
@@ -41,13 +44,20 @@ export function APIResourceDetailsScreenDetailsTab({
       return { result: null, nextInitialState: state };
     },
   });
+
   return (
-    <FormContainerBase form={form}>
-      <div className="justify-self-stretch py-5 max-w-180">
-        <WidgetTitle className="mb-4">
-          <FormattedMessage id="APIResourceDetailsScreen.tab.details" />
-        </WidgetTitle>
-        <ResourceForm mode="edit" state={form.state} setState={form.setState} />
+    <FormContainerBase form={form} canSave={form.state.name.trim() !== ""}>
+      <div ref={contentWidthAnchorRef} className={styles.root}>
+        <SettingsSectionCard
+          title={<FormattedMessage id="APIResourceDetailsScreen.tab.details" />}
+        >
+          <ResourceForm
+            mode="edit"
+            state={form.state}
+            setState={form.setState}
+          />
+        </SettingsSectionCard>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </div>
     </FormContainerBase>
   );

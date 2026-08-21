@@ -1,35 +1,91 @@
 .root {
-  margin-left: 10px;
-  padding-top: 16px;
   display: flex;
   flex-direction: column;
-  row-gap: 16px;
+  gap: 24px;
 }
 
 .authenticatorContainer {
-  display: flex;
-  flex-direction: column;
-  row-gap: 4px;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  column-gap: 48px;
+  row-gap: 24px;
+  align-items: start;
+  padding: 24px;
+  border: 1px solid var(--gray-6);
+  border-radius: 12px;
+  min-width: 0;
+  @apply tablet:grid-cols-1 tablet:gap-4 tablet:p-4;
 }
 
 .header {
   display: block;
-  font-weight: 600;
+  margin: 0;
+  color: var(--gray-12);
 }
 
 .authenticatorKindHeader {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  display: contents;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    grid-column: 1;
+    width: 100%;
+  }
+}
+
+.authenticatorKindHeader > .header {
+  grid-column: 1;
+  grid-row: 1;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-column: unset;
+    grid-row: unset;
+  }
+}
+
+.authenticatorKindHeader > :not(.header) {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-column: unset;
+    grid-row: unset;
+    justify-self: unset;
+    flex-shrink: 0;
+  }
+}
+
+.authenticatorContainer > :not(.authenticatorKindHeader) {
+  grid-column: 2;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-column: 1;
+  }
 }
 
 .authenticatorTypeSection + .authenticatorTypeSection {
   margin-top: 12px;
 }
 
-.authenticatorTypeSection--password {
+.authenticatorTypeGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.authenticatorTypeGroup + .authenticatorTypeGroup {
   margin-top: 12px;
+}
+
+.authenticatorTypeSection--password {
+  margin-top: 0;
 }
 
 .authenticatorTypeHeader {
@@ -37,9 +93,10 @@
 }
 
 .cell {
-  padding-left: 1px;
+  padding: 12px 0;
   display: grid;
-  grid-gap: 3px 0;
+  grid-gap: 6px 0;
+  border-bottom: 1px solid var(--gray-5);
 }
 
 .cell--not-first {
@@ -47,42 +104,49 @@
 }
 
 .cellLabel {
-  font-size: 14px;
+  color: var(--gray-12);
 }
 
 .cellDesc {
-  font-size: 14px;
-  color: #888888;
+  color: var(--gray-a11);
 }
 
 .button {
   place-self: center;
-  font-weight: 600;
-  border: 1px solid #d8d8d8;
   margin-left: 12px;
 }
 
 .passwordCell {
-  grid-template:
-    "plabel    preset    premove"
-    "pdesc     preset    premove"
-    "pchange   preset    premove"
-    "pexpired  preset    premove"
-    / auto min-content min-content;
-  grid-gap: 10px 0;
-}
-
-.passwordCellLabel {
-  grid-area: plabel;
-  font-weight: 600;
-}
-
-.passwordCellDesc {
-  grid-area: pdesc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  border-bottom: 0;
 }
 
 .passwordCellChangeOnLogin {
-  grid-area: pchange;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 4px;
+  padding: 16px;
+  border: 1px solid var(--gray-5);
+  border-radius: 12px;
+  @apply tablet:flex-col tablet:items-stretch;
+}
+
+.passwordCellChangeOnLoginText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.passwordCellChangeOnLoginTitle,
+.passwordCellChangeOnLoginDescription {
+  margin: 0;
 }
 
 .passwordCellExpired {
@@ -96,43 +160,6 @@
   @apply text-neutral-dark;
   @apply text-xs;
   @apply font-semibold;
-}
-
-.changePasswordButton {
-  grid-area: preset;
-  white-space: nowrap;
-}
-
-.removePasswordButton {
-  grid-area: premove;
-}
-
-.oobOtpCell {
-  grid-template:
-    "oicon    olabel    oremove"
-    "empty    odesc     oremove"
-    / min-content auto min-content;
-  column-gap: 8px;
-}
-
-.oobOtpCellIcon {
-  grid-area: oicon;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.oobOtpCellLabel {
-  grid-area: olabel;
-  font-weight: 600;
-}
-
-.oobOtpCellAddedOn {
-  grid-area: odesc;
-}
-
-.oobOtpRemoveButton {
-  grid-area: oremove;
 }
 
 .totpCell {
@@ -184,9 +211,21 @@
 }
 
 .authenticatorEmpty {
-  margin-right: 200px;
-  color: #888888;
+  margin: 0;
   @apply py-2;
+}
+
+.secondaryEmpty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.secondaryEmptyTitle,
+.secondaryEmptyDescription {
+  margin: 0;
 }
 
 .authenticatorGrantGracePeriod {
@@ -196,5 +235,5 @@
 .updateMFAGracePeriodContainer {
   font-size: 14px;
   line-height: 20px;
-  color: #888888;
+  color: var(--gray-a11);
 }

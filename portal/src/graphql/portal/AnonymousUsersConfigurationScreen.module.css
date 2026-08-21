@@ -1,47 +1,90 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
 
-.widgetDescription {
-  margin-bottom: 8px;
+.pageHeader {
+  @apply flex flex-col gap-2;
 }
 
-.controls {
-  grid-column: 1 / span 8;
-  @apply tablet:col-span-full;
-}
-
-.separator {
-  grid-column: 1 / span 8;
-  @apply tablet:col-span-full;
-}
-
-.title {
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
   font-weight: 600;
-  margin-bottom: 8px;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.settingsCardSaveBarClearance {
+  margin-bottom: 5.5rem;
+}
+
+.lifetimeSection {
+  @apply flex flex-col gap-2;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.sectionDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.sectionSeparator {
+  width: 100%;
 }
 
 .sessionInfo {
   display: grid;
   grid-template-columns: max-content auto;
-  gap: 16px 32px;
-  padding: 16px 0;
+  gap: 1rem 2rem;
+  padding: 0.5rem 0;
 }
 
-.sessionInfo .tooltipLabel {
-  display: flex;
+.tooltipLabel {
+  @apply flex items-center gap-1;
 }
 
-.detailsHeader {
-  padding: 0;
+.infoIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--gray-a11);
+  cursor: help;
 }
 
-.tooltipHeader {
-  display: flex;
+.colName,
+.colIdleTimeout,
+.colLifetime {
+  @apply min-w-0 flex-1 overflow-hidden;
 }
 
-.bold {
-  font-weight: 600;
+.colActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.cellNameText {
+  @apply min-w-0 truncate;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
+}
+
+.applicationsLink {
+  margin: 0;
 }

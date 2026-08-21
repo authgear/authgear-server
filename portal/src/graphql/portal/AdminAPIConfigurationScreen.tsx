@@ -203,7 +203,12 @@ function AdminAPIKeysTable({
             <div className={styles.keysTableCellActions}>
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger>
-                  <RadixIconButton variant="soft" color="gray" size="2">
+                  <RadixIconButton
+                    className={styles.rowActionsButton}
+                    variant="soft"
+                    color="gray"
+                    size="2"
+                  >
                     <DotsVerticalIcon width="1rem" height="1rem" />
                   </RadixIconButton>
                 </DropdownMenu.Trigger>

@@ -1,0 +1,33 @@
+.root {
+  @apply relative min-w-0;
+}
+
+.list {
+  @apply min-w-0 flex-nowrap;
+}
+
+.list :global(.rt-BaseTabListTrigger) {
+  @apply shrink-0 whitespace-nowrap;
+}
+
+.measureList {
+  @apply pointer-events-none invisible absolute left-0 top-0 flex flex-nowrap;
+  height: 0;
+  overflow: hidden;
+}
+
+.overflowTrigger {
+  @apply inline-flex shrink-0 cursor-pointer items-center justify-center;
+  @apply border-0 bg-transparent px-3 py-2;
+  color: var(--gray-a11);
+  border-radius: var(--radius-2);
+}
+
+.overflowTrigger:hover {
+  color: var(--gray-12);
+}
+
+.overflowIcon {
+  width: 1rem;
+  height: 1rem;
+}

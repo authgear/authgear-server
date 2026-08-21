@@ -1,9 +1,9 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageBar } from "@fluentui/react";
-import { Context, FormattedMessage } from "../../intl";
+import { Flex, Text } from "@radix-ui/themes";
+import { PlusIcon } from "@radix-ui/react-icons";
+import { FormattedMessage } from "../../intl";
 import { useQuery } from "@apollo/client";
-import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
 import ScreenContent from "../../ScreenContent";
@@ -19,7 +19,8 @@ import ShowError from "../../ShowError";
 import { useDebounced } from "../../hook/useDebounced";
 
 import styles from "./UsersScreen.module.css";
-import PrimaryButton from "../../PrimaryButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { Callout } from "../../components/v2/Callout/Callout";
 import {
   UsersFilter,
   UsersFilterBar,
@@ -160,12 +161,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
     undefined
   );
 
-  const { renderToString } = useContext(Context);
   const navigate = useNavigate();
-
-  const items = useMemo(() => {
-    return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
-  }, []);
 
   const onChangeOffset = useCallback((offset) => {
     setOffset(offset);
@@ -187,8 +183,14 @@ const UsersScreen: React.VFC = function UsersScreen() {
 
   const messageBar = useMemo(() => {
     if (error != null) {
-      // eslint-disable-next-line @typescript-eslint/strict-void-return
-      return <ShowError error={error} onRetry={refetch} />;
+      return (
+        <ShowError
+          error={error}
+          onRetry={() => {
+            refetch().finally(() => {});
+          }}
+        />
+      );
     }
     return null;
   }, [error, refetch]);
@@ -213,31 +215,28 @@ const UsersScreen: React.VFC = function UsersScreen() {
   );
 
   return (
-    <CommandBarContainer
-      className={styles.root}
-      isLoading={isLoading}
-      messageBar={messageBar}
-      hideCommandBar={true}
-    >
+    <CommandBarContainer className={styles.root} messageBar={messageBar}>
       <ScreenContent className={styles.content} layout="list">
         <div className={styles.widget}>
-          <div className="flex gap-x-1">
-            <NavBreadcrumb
-              className="flex-1 overflow-hidden items-center"
-              items={items}
-            />
+          <div className={styles.pageTitleRow}>
+            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <FormattedMessage id="UsersScreen.title" />
+            </Text>
             <PrimaryButton
-              text={renderToString("UsersScreen.add-user")}
-              iconProps={useMemo(() => ({ iconName: "Add" }), [])}
-              // eslint-disable-next-line @typescript-eslint/strict-void-return
-              onClick={useCallback(
-                async () => navigate("./add-user"),
-                [navigate]
-              )}
+              size="2"
+              text={
+                <Flex align="center" gap="2">
+                  <PlusIcon width="1rem" height="1rem" />
+                  <FormattedMessage id="UsersScreen.add-user" />
+                </Flex>
+              }
+              onClick={useCallback(() => {
+                navigate("./add-user");
+              }, [navigate])}
             />
           </div>
           <UsersFilterBar
-            className="mt-12"
+            className={styles.filterBar}
             showSearchBar={searchEnabled}
             showGroupFilter={!isGroupsEmpty}
             showRoleFilter={!isRolesEmpty}
@@ -245,9 +244,12 @@ const UsersScreen: React.VFC = function UsersScreen() {
             onFilterChange={setFilters}
           />
           {isSearch && isTotalExceededLimit && !isLoading ? (
-            <MessageBar className={styles.message}>
-              <FormattedMessage id="UsersScreen.search.resultLimited" />
-            </MessageBar>
+            <Callout
+              className={styles.message}
+              type="info"
+              showCloseButton={false}
+              text={<FormattedMessage id="UsersScreen.search.resultLimited" />}
+            />
           ) : null}
         </div>
         <UsersList

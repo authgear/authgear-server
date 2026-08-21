@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router-dom";
-import Widget from "../../Widget";
 import {
   LoginMethodAuthenticationSection,
   type LoginMethod,
@@ -13,9 +12,8 @@ import {
 import styles from "./LoginMethodConfigurationScreen.module.css";
 
 /**
- * v1 “icon radio” row used on **Authentication** (Passwordless / Enter password):
- * `LoginMethodAuthenticationSection` (`ChoiceButton` / `AuthenticationButton` on
- * `LoginMethodConfigurationScreen`).
+ * Authentication row (Passwordless / Enter password) via
+ * `LoginMethodAuthenticationSection` / `IconRadioCards`.
  */
 const meta = {
   title: "components/v1/IconRadioCards",
@@ -45,14 +43,14 @@ function IconRadioCardsDefaultRender() {
   const [secondLevelOption, setSecondLevelOption] =
     useState<LoginMethodSecondLevelOption | null>(null);
   return (
-    <Widget className={styles.widget}>
+    <div className={styles.widget}>
       <LoginMethodAuthenticationSection
         firstLevelOption={firstLevelForDemo}
         secondLevelOption={secondLevelOption}
         onChangeSecondLevelOption={setSecondLevelOption}
         showSubtitle={false}
       />
-    </Widget>
+    </div>
   );
 }
 
@@ -77,7 +75,7 @@ function IconRadioCardsWithSelectionRender() {
   );
 
   return (
-    <Widget className={styles.widget}>
+    <div className={styles.widget}>
       {secondLevelOption != null ? (
         <LoginMethodAuthenticationSection
           firstLevelOption={firstLevelOption}
@@ -86,7 +84,7 @@ function IconRadioCardsWithSelectionRender() {
           showSubtitle={false}
         />
       ) : null}
-    </Widget>
+    </div>
   );
 }
 

@@ -3,9 +3,9 @@ import { FormattedMessage } from "../../../intl";
 import { useParams } from "react-router-dom";
 
 import { RolesAndGroupsEmptyView } from "./RolesAndGroupsEmptyView";
-
-import iconGroups from "../../../images/material-groups.svg";
+import { UserGroupIcon } from "./UserGroupIcon";
 import { ReactRouterLinkComponent } from "../../../ReactRouterLink";
+import styles from "./GroupsEmptyView.module.css";
 
 export const GroupsEmptyView: React.VFC<{ className?: string }> =
   function GroupsEmptyView({ className }) {
@@ -14,7 +14,7 @@ export const GroupsEmptyView: React.VFC<{ className?: string }> =
     return (
       <RolesAndGroupsEmptyView
         className={className}
-        icon={<img src={iconGroups} />}
+        icon={<UserGroupIcon className={styles.icon} />}
         title={<FormattedMessage id="GroupsEmptyView.title" />}
         description={<FormattedMessage id="GroupsEmptyView.description" />}
         button={

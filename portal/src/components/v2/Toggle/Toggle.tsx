@@ -4,6 +4,7 @@ import styles from "./Toggle.module.css";
 
 export interface ToggleProps {
   text?: React.ReactNode;
+  textWeight?: "regular" | "medium" | "bold";
   disabled?: boolean;
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
@@ -11,6 +12,7 @@ export interface ToggleProps {
 
 export function Toggle({
   text,
+  textWeight = "regular",
   disabled,
   checked,
   onCheckedChange,
@@ -26,7 +28,7 @@ export function Toggle({
         <Text
           as="p"
           size={"2"}
-          weight={"regular"}
+          weight={textWeight}
           className={styles.toggle__text}
         >
           {text}

@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback, useContext } from "react";
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { FormContainerBase } from "../../FormContainerBase";
-import WidgetTitle from "../../WidgetTitle";
 import { FormattedMessage, Context as MessageContext } from "../../intl";
 import { Resource, Scope } from "../../graphql/adminapi/globalTypes.generated";
 import {
@@ -22,10 +23,15 @@ import {
   DeleteScopeDialog,
   DeleteScopeDialogData,
 } from "../../components/api-resources/DeleteScopeDialog";
-import { SearchBox, Text } from "@fluentui/react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { EditScopeDialog } from "../../components/api-resources/EditScopeDialog";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
 import { usePaginatedSearchParams } from "../../hook/usePaginatedSearchParams";
 import { useDebounced } from "../../hook/useDebounced";
+import styles from "./APIResourceDetailsScopesTab.module.css";
 
 export function APIResourceDetailsScreenScopesTab({
   resource,
@@ -60,23 +66,26 @@ export function APIResourceDetailsScreenScopesTab({
     usePaginatedSearchParams();
   const [deleteDialogData, setDeleteDialogData] =
     useState<DeleteScopeDialogData | null>(null);
+  const [editingScope, setEditingScope] = useState<Scope | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const pageSize = 10;
 
   const [debouncedSearchKeyword] = useDebounced(searchKeyword, 300);
 
   const { renderToString } = useContext(MessageContext);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { appID } = useParams<{ appID: string }>();
 
-  const onSearchKeywordChange = useMemo(
-    () => (_: any, newValue?: string) => {
+  const onSearchKeywordChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       setOffset(0);
-      setSearchKeyword(newValue ?? "");
+      setSearchKeyword(e.target.value);
     },
     [setOffset, setSearchKeyword]
   );
+
+  const onClearSearchKeyword = useCallback(() => {
+    setOffset(0);
+    setSearchKeyword("");
+  }, [setOffset, setSearchKeyword]);
 
   const { data, loading, error, refetch } = useResourceScopesQueryQuery({
     variables: {
@@ -144,69 +153,103 @@ export function APIResourceDetailsScreenScopesTab({
     setDeleteDialogData(null);
   }, []);
 
-  const onEdit = useCallback(
-    (scope: Scope) => {
-      navigate({
-        pathname: `/project/${encodeURIComponent(
-          appID ?? ""
-        )}/api-resources/${encodeURIComponent(
-          resource.id
-        )}/scopes/${encodeURIComponent(scope.id)}`,
-        hash: location.hash,
-        search: location.search,
-      });
-    },
-    [navigate, appID, resource.id, location]
-  );
+  const onEdit = useCallback((scope: Scope) => {
+    setEditingScope(scope);
+  }, []);
+
+  const onDismissEditDialog = useCallback(() => {
+    setEditingScope(null);
+  }, []);
 
   if (error != null) {
     // eslint-disable-next-line @typescript-eslint/strict-void-return
     return <ShowError error={error} onRetry={refetch} />;
   }
 
+  const hasListContent = scopes.length > 0 || searchKeyword !== "";
+
   return (
     <FormContainerBase form={form}>
-      <div className="pt-5 flex-1 flex flex-col space-y-2">
-        <header>
-          <WidgetTitle className="mb-2">
-            <FormattedMessage id="APIResourceDetailsScreen.tab.scopes" />
-          </WidgetTitle>
-          <Text>
+      <div className={styles.root}>
+        <SettingsSectionCard
+          title={
+            <FormattedMessage id="APIResourceDetailsScreen.scopes.list.title" />
+          }
+          description={
             <FormattedMessage id="APIResourceDetailsScreen.scopes.description" />
-          </Text>
-        </header>
-        <div className="flex-1 flex flex-col space-y-4">
-          <div className="flex items-start justify-between gap-x-4 tablet:flex-col tablet:items-stretch">
+          }
+          contentClassName={styles.cardContent}
+        >
+          <div className={styles.addSection}>
+            <Text as="p" size="3" weight="medium" className={styles.addHeading}>
+              <FormattedMessage id="APIResourceDetailsScreen.scopes.add.title" />
+            </Text>
             <CreateScopeForm
-              className="flex-1-0-auto min-w-40"
+              className={styles.createForm}
               state={form.state}
               setState={form.setState}
             />
-            <SearchBox
-              styles={{
-                root: {
-                  marginTop: 30,
-                  width: 260,
-                  "@media (max-width: 1080px)": { marginTop: 0 },
-                },
-              }}
-              placeholder={renderToString("search")}
-              value={searchKeyword}
-              onChange={onSearchKeywordChange}
-            />
           </div>
-          {scopes.length > 0 ? (
-            <ScopeList
-              className="flex-1 min-h-0"
-              scopes={scopes}
-              loading={loading}
-              pagination={pagination}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
-          ) : null}
-        </div>
+          <hr className={styles.divider} />
+          <div className={styles.listSection}>
+            {hasListContent ? (
+              <>
+                <div className={styles.searchField}>
+                  <TextField
+                    size="2"
+                    type="search"
+                    placeholder={renderToString("search")}
+                    value={searchKeyword}
+                    iconStart={TextFieldIcon.MagnifyingGlass}
+                    onChange={onSearchKeywordChange}
+                    suffixPlain={true}
+                    suffix={
+                      searchKeyword !== "" ? (
+                        <button
+                          type="button"
+                          className={styles.searchClearButton}
+                          aria-label={renderToString(
+                            "APIResourcesScreen.clear-search"
+                          )}
+                          onClick={onClearSearchKeyword}
+                        >
+                          <Cross2Icon className={styles.searchClearIcon} />
+                        </button>
+                      ) : undefined
+                    }
+                  />
+                </div>
+                {scopes.length > 0 ? (
+                  <ScopeList
+                    className={styles.list}
+                    scopes={scopes}
+                    loading={loading}
+                    pagination={pagination}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                ) : (
+                  <Text as="p" size="2" color="gray" className={styles.empty}>
+                    <FormattedMessage id="APIResourceDetailsScreen.scopes.list.empty" />
+                  </Text>
+                )}
+              </>
+            ) : (
+              <Text as="p" size="2" color="gray" className={styles.empty}>
+                <FormattedMessage id="APIResourceDetailsScreen.scopes.list.empty" />
+              </Text>
+            )}
+          </div>
+        </SettingsSectionCard>
       </div>
+      <EditScopeDialog
+        resourceURI={resource.resourceURI}
+        scope={editingScope}
+        onDismiss={onDismissEditDialog}
+        onSaved={() => {
+          refetch().catch(() => {});
+        }}
+      />
       <DeleteScopeDialog
         data={deleteDialogData}
         isLoading={isDeleting}

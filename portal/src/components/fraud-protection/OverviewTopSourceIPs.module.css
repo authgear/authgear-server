@@ -1,16 +1,24 @@
 .topSourceSection {
-  @apply flex flex-col gap-3 rounded-lg border border-[#edebe9] bg-white px-[0.875rem] py-4;
-  font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system,
-    BlinkMacSystemFont, "Noto Sans", "Helvetica", "Arial", sans-serif;
+  @apply flex flex-col gap-3 rounded-lg px-[0.875rem] py-4;
+  border: 1px solid var(--gray-a5);
+  background-color: var(--color-panel-solid);
 }
 
 .topSourceIPsHeader {
   @apply flex items-center w-full;
 }
 
-.headerToggle {
-  @apply flex flex-none items-center justify-end;
-  width: 156px;
+.footerToggle {
+  @apply mt-auto flex items-center pt-1;
+}
+
+.headerToggleButton {
+  @apply cursor-pointer appearance-none border-0 bg-transparent p-0 text-xs;
+  color: var(--accent-11);
+}
+
+.headerToggleButton:hover {
+  color: var(--accent-12);
 }
 
 .topSourceIPsHeaderLeft {
@@ -19,7 +27,8 @@
 
 .topSourceIPsIcon {
   @apply inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-[16px];
-  @apply bg-[#fff4ce] text-[#d97706];
+  background-color: var(--amber-3);
+  color: var(--amber-11);
 }
 
 .topSourceIPsTitleGroup {
@@ -27,14 +36,11 @@
 }
 
 .topSourceIPsTitle {
-  @apply font-semibold;
-  color: #201f1e;
-  font-size: 14px;
+  color: var(--gray-12);
 }
 
 .topSourceIPsSubtitle {
-  color: #8a8886;
-  font-size: 12px;
+  color: var(--gray-a11);
   line-height: 1.4;
   min-height: calc(12px * 1.4 * 2);
 }
@@ -55,7 +61,7 @@
 .columnHeader {
   @apply font-medium text-right;
   font-size: 12px;
-  color: #8a8886;
+  color: var(--gray-a11);
 }
 
 .columnHeader.colTotal {
@@ -65,12 +71,12 @@
 
 .columnHeader.colBlocked {
   width: 56px;
-  color: #dc2626;
+  color: var(--red-11);
 }
 
 .columnHeader.colFlagged {
   width: 56px;
-  color: #d97706;
+  color: var(--amber-11);
 }
 
 /* List */
@@ -88,12 +94,12 @@
 
 .topSourceIPRank {
   @apply w-[14px] text-[11px] flex-none whitespace-nowrap;
-  color: #8a8886;
+  color: var(--gray-a11);
 }
 
 .topSourceIPAddress {
   @apply text-xs truncate;
-  color: #201f1e;
+  color: var(--gray-12);
 }
 
 .topSourceIPMetrics {
@@ -107,20 +113,20 @@
 
 .metricCol.colTotal {
   width: 44px;
-  color: #605e5c;
+  color: var(--gray-11);
   font-weight: 600;
 }
 
 .metricCol.colBlocked {
   width: 56px;
-  color: #dc2626;
+  color: var(--red-11);
 }
 
 .metricCol.colFlagged {
   width: 56px;
-  color: #d97706;
+  color: var(--amber-11);
 }
 
 .metricEmpty {
-  color: #c8c6c4;
+  color: var(--gray-8);
 }

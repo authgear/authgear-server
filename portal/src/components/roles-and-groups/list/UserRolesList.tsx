@@ -1,13 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import {
-  ColumnActionsMode,
-  DetailsRow,
-  IColumn,
-  IDetailsRowProps,
-} from "@fluentui/react";
 import { Context as MessageContext } from "../../../intl";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import styles from "./UserRolesList.module.css";
 import {
@@ -15,13 +9,15 @@ import {
   Role,
   User,
 } from "../../../graphql/adminapi/globalTypes.generated";
-import Link from "../../../Link";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
-import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import RolesAndGroupsBaseList, {
+  RolesAndGroupsListColumn,
+} from "./common/RolesAndGroupsBaseList";
 import DeleteUserRoleDialog, {
   DeleteUserRoleDialogData,
 } from "../dialog/DeleteUserRoleDialog";
+import { TrashIcon } from "@radix-ui/react-icons";
 
 export interface UserRolesListItem extends Pick<Role, "id" | "name" | "key"> {
   groups: Pick<Group, "id" | "name" | "key">[];
@@ -60,6 +56,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
     onChangeOffset,
   }) {
     const { appID } = useParams() as { appID: string };
+    const navigate = useNavigate();
     const { renderToString } = useContext(MessageContext);
 
     const [deleteDialogData, setDeleteDialogData] =
@@ -84,73 +81,62 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
       [user]
     );
 
-    const columns: IColumn[] = useMemo((): IColumn[] => {
-      return [
-        {
-          key: UserRolesListColumnKey.Name,
-          fieldName: "name",
-          name: renderToString("UserRolesList.column.name"),
-          minWidth: 100,
-          maxWidth: 200,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserRolesListColumnKey.Key,
-          fieldName: "key",
-          name: renderToString("UserRolesList.column.key"),
-          minWidth: 100,
-          maxWidth: 200,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserRolesListColumnKey.Group,
-          fieldName: "group",
-          name: renderToString("UserRolesList.column.group"),
-          minWidth: 100,
-          maxWidth: 9999,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserRolesListColumnKey.Action,
-          fieldName: "action",
-          name: renderToString("UserRolesList.column.action"),
-          minWidth: 67,
-          maxWidth: 67,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-      ];
-    }, [renderToString]);
+    const columns: RolesAndGroupsListColumn[] =
+      useMemo((): RolesAndGroupsListColumn[] => {
+        return [
+          {
+            key: UserRolesListColumnKey.Name,
+            fieldName: "name",
+            name: renderToString("UserRolesList.column.name"),
+            minWidth: 100,
+            maxWidth: 200,
+            isResizable: true,
+          },
+          {
+            key: UserRolesListColumnKey.Key,
+            fieldName: "key",
+            name: renderToString("UserRolesList.column.key"),
+            minWidth: 100,
+            maxWidth: 200,
+            isResizable: true,
+          },
+          {
+            key: UserRolesListColumnKey.Group,
+            fieldName: "group",
+            name: renderToString("UserRolesList.column.group"),
+            minWidth: 100,
+            maxWidth: 9999,
+            isResizable: true,
+          },
+          {
+            key: UserRolesListColumnKey.Action,
+            fieldName: "action",
+            name: "",
+            minWidth: 56,
+            maxWidth: 56,
+          },
+        ];
+      }, [renderToString]);
 
-    const onRenderRow = React.useCallback(
-      (props?: IDetailsRowProps) => {
-        if (props == null) {
-          return null;
-        }
-        return (
-          <Link
-            className="contents"
-            to={`/project/${appID}/user-management/roles/${
-              (props.item as UserRolesListItem).id
-            }/details`}
-          >
-            <DetailsRow {...props} />
-          </Link>
-        );
+    const onItemClick = useCallback(
+      (item: UserRolesListItem) => {
+        navigate(`/project/${appID}/user-management/roles/${item.id}/details`);
       },
-      [appID]
+      [appID, navigate]
     );
 
     const onRenderItemColumn = useCallback(
-      (item: UserRolesListItem, _index?: number, column?: IColumn) => {
+      (
+        item: UserRolesListItem,
+        _index?: number,
+        column?: RolesAndGroupsListColumn
+      ) => {
         switch (column?.key) {
           case UserRolesListColumnKey.Action: {
             return (
               <ActionButtonCell
-                variant="destructive"
-                text={renderToString("UserRolesList.actions.remove")}
+                icon={<TrashIcon width="1rem" height="1rem" />}
+                ariaLabel={renderToString("UserRolesList.actions.remove")}
                 disabled={item.groups.length !== 0}
                 onClick={(e) => {
                   onClickDeleteRole(e, item);
@@ -197,7 +183,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
         <div className={cn(styles.root, className)}>
           <RolesAndGroupsBaseList
             emptyText={listEmptyText}
-            onRenderRow={onRenderRow}
+            onItemClick={onItemClick}
             onRenderItemColumn={onRenderItemColumn}
             items={roles}
             columns={columns}

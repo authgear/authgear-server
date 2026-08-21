@@ -1,18 +1,28 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
+}
+
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
 }
 
 .widgetSubsection {
   @apply flex flex-col;
   @apply gap-y-3;
-}
-
-.separator {
-  grid-column: 1 / span 8;
-  @apply my-2;
-  @apply tablet:col-span-full;
 }
 
 .oauthLink {
@@ -29,47 +39,105 @@
   @apply text-xl;
 }
 
-.chosenLoginMethodRoot {
-  @apply flex flex-row;
-  @apply gap-x-2.5;
+.loginMethodIconChecked {
+  background-color: var(--accent-9);
 }
 
-.chosenLoginMethodTitleOnly {
-  @apply flex flex-col;
-  @apply justify-center;
+.loginMethodIconChecked .loginMethodIconIcon {
+  color: white;
 }
 
-.chosenLoginMethodTitleDescription {
-  @apply flex flex-col;
-  @apply justify-between;
+.loginMethodIconUnchecked {
+  background-color: var(--gray-4);
 }
 
-.chosenLoginMethodTitle {
-  @apply font-semibold;
+.loginMethodIconUnchecked .loginMethodIconIcon {
+  color: var(--gray-9);
+}
+
+.loginMethodButton {
+  @apply flex flex-col items-center;
+  row-gap: 4px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.loginMethodButtonDisabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.criteriaLabel {
+  @apply flex flex-row items-center;
+  margin-bottom: 4px;
+}
+
+.criteriaLabelIcon {
+  box-sizing: content-box;
+  padding: 0 0 0 5px;
+  color: var(--accent-9);
+  cursor: pointer;
 }
 
 .chooserGrid {
   @apply grid;
   @apply gap-y-3;
-  @apply tablet:grid-cols-3 tablet:grid-rows-2 grid-cols-6 grid-rows-1;
-}
-
-.chooserFlex {
-  @apply flex flex-row;
-  @apply gap-x-4;
-}
-
-/* Passwordless / Enter password row: keep flex growth but set a floor so the icon + text “cards” are not too narrow. */
-.authenticationButton {
-  @apply flex-1 min-w-0;
-  min-width: 13.75rem;
+  @apply grid-cols-3 grid-rows-2;
 }
 
 .authenticationButtonIcon {
   @apply text-xl;
 }
 
+.checkboxRow {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- graceful degradation: cosmetic cursor/color only */
+.checkboxRow:has(:disabled) {
+  cursor: not-allowed;
+  color: var(--gray-a10);
+}
+
+.radioOption {
+  cursor: pointer;
+}
+
+.selectTrigger {
+  width: 100%;
+}
+
+.tabContent {
+  padding-top: 24px;
+}
+
+/* Stack of SettingsSectionCards inside a tab; matches the page-level
+   row gap of ScreenContent. */
+.tabCards {
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
+.infoIcon {
+  display: inline;
+  vertical-align: text-bottom;
+  margin-left: 4px;
+  color: #176df3;
+  cursor: pointer;
+}
+
 .otpFailedAttemptContainer {
   @apply flex flex-col;
   @apply gap-y-2;
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.settingsCardSaveBarClearance {
+  margin-bottom: 5.5rem;
 }

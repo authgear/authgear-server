@@ -1,21 +1,24 @@
 import React, { useMemo, useContext, useState, useCallback } from "react";
 import cn from "classnames";
 import {
-  ShimmeredDetailsList,
-  DetailsListLayoutMode,
-  SelectionMode,
-  IColumn,
-  IDetailsRowProps,
-  DetailsRow,
-  ColumnActionsMode,
-  Persona,
-  PersonaSize,
+  Avatar,
+  Badge,
+  DropdownMenu,
+  IconButton as RadixIconButton,
   Text,
-  MessageBar,
-  IListProps,
-} from "@fluentui/react";
+} from "@radix-ui/themes";
+import {
+  CaretDownIcon,
+  CaretSortIcon,
+  CaretUpIcon,
+  DotsVerticalIcon,
+  EyeNoneIcon,
+  LockClosedIcon,
+  Pencil1Icon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
-import { Link, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { UsersListFragment } from "./query/usersListQuery.generated";
 import {
   UserSortBy,
@@ -27,21 +30,16 @@ import {
 import PaginationWidget from "../../PaginationWidget";
 import {
   AccountStatusDialog,
-  getMostAppropriateAction,
+  AccountStatusDialogProps,
 } from "./UserDetailsAccountStatus";
 
 import { extractRawID } from "../../util/graphql";
 import { formatDatetime } from "../../util/formatDatetime";
+import { formatDateOnly } from "../../util/formatDateOnly";
+import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 
 import styles from "./UsersList.module.css";
 import { useDebounced } from "../../hook/useDebounced";
-import TextCell from "../../components/roles-and-groups/list/common/TextCell";
-import ActionButtonCell from "../../components/roles-and-groups/list/common/ActionButtonCell";
-import BaseCell from "../../components/roles-and-groups/list/common/BaseCell";
-
-function onShouldVirtualize(_: IListProps): boolean {
-  return false;
-}
 
 interface UsersListProps {
   className?: string;
@@ -85,7 +83,9 @@ interface UserListItem {
   temporarilyDisabledFrom: string | null;
   temporarilyDisabledUntil: string | null;
   createdAt: string | null;
+  createdAtDateOnly: string | null;
   lastLoginAt: string | null;
+  lastLoginAtDateOnly: string | null;
   profilePictureURL: string | null;
   formattedName: string | null;
   endUserAccountID: string | null;
@@ -98,18 +98,10 @@ interface UserListItem {
 
 interface DisableUserDialogData {
   accountStatus: UserListItem;
+  mode: AccountStatusDialogProps["mode"];
 }
 
 const USER_LIST_PLACEHOLDER = "-";
-
-const isUserListItem = (value: unknown): value is UserListItem => {
-  if (!(value instanceof Object)) {
-    return false;
-  }
-  return (
-    "id" in value && "username" in value && "phone" in value && "email" in value
-  );
-};
 
 interface UserInfoProps {
   item: UserListItem;
@@ -124,33 +116,137 @@ function UserInfo(props: UserInfoProps) {
       rawID,
       isAnonymous,
       isAnonymized,
+      isDisabled,
     },
   } = props;
+  const displayName = isAnonymous ? (
+    <Text className={styles.anonymousUserLabel}>
+      <FormattedMessage id="UsersList.anonymous-user" />
+    </Text>
+  ) : isAnonymized ? (
+    <Text className={styles.anonymizedUserLabel}>
+      <FormattedMessage id="UsersList.anonymized-user" />
+    </Text>
+  ) : (
+    formattedName ?? endUserAccountID ?? rawID
+  );
+  const fallback =
+    (formattedName ?? endUserAccountID ?? rawID)
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "?";
+
   return (
     <div className={styles.userInfo}>
-      <div className={styles.userInfoPicture}>
-        <Persona
-          imageUrl={profilePictureURL ?? undefined}
-          size={PersonaSize.size40}
-          hidePersonaDetails={true}
-        />
+      <Avatar
+        className={styles.userInfoPicture}
+        size="3"
+        radius="full"
+        src={profilePictureURL ?? undefined}
+        fallback={fallback}
+      />
+      <div className={styles.userInfoDisplayName}>
+        <Text
+          size="2"
+          weight="medium"
+          className={styles.userInfoDisplayNameText}
+        >
+          {displayName}
+        </Text>
+        {isDisabled && !isAnonymized ? (
+          <Badge
+            color="red"
+            size="1"
+            radius="small"
+            className={styles.disabledBadge}
+          >
+            <FormattedMessage id="AccountStatusBadge.disabled" />
+          </Badge>
+        ) : null}
       </div>
-
-      <Text className={styles.userInfoDisplayName}>
-        {isAnonymous ? (
-          <Text className={styles.anonymousUserLabel}>
-            <FormattedMessage id="UsersList.anonymous-user" />
-          </Text>
-        ) : isAnonymized ? (
-          <Text className={styles.anonymizedUserLabel}>
-            <FormattedMessage id="UsersList.anonymized-user" />
-          </Text>
-        ) : (
-          formattedName ?? endUserAccountID
-        )}
+      <Text size="1" color="gray" className={styles.userInfoRawID}>
+        {rawID}
       </Text>
-      <div className={styles.userInfoRawID}>{rawID}</div>
     </div>
+  );
+}
+
+function CellText({ value }: { value: string | null }) {
+  return (
+    <Text size="2" className={styles.cellText}>
+      {value ?? USER_LIST_PLACEHOLDER}
+    </Text>
+  );
+}
+
+function UserTextCell({ value }: { value: string | null }) {
+  return (
+    <div className={styles.tableCellStandard}>
+      <CellText value={value} />
+    </div>
+  );
+}
+
+// Shows the date only, with the full datetime (incl. timezone) on hover.
+function DateCell({
+  dateOnly,
+  datetime,
+}: {
+  dateOnly: string | null;
+  datetime: string | null;
+}) {
+  if (dateOnly == null || datetime == null) {
+    return (
+      <div className={styles.tableCellDate}>
+        <CellText value={dateOnly} />
+      </div>
+    );
+  }
+  return (
+    <div className={styles.tableCellDate}>
+      <Tooltip content={datetime}>
+        <Text size="2" className={styles.cellText}>
+          {dateOnly}
+        </Text>
+      </Tooltip>
+    </div>
+  );
+}
+
+function getRelatedItemsText(
+  relatedItems: UserListRoles | UserListGroups
+): string {
+  if (relatedItems.totalCount === 0) {
+    return USER_LIST_PLACEHOLDER;
+  }
+  const firstItem = relatedItems.items[0];
+  const additionalCount = relatedItems.totalCount - 1;
+  return `${firstItem.name ?? firstItem.key}${
+    additionalCount > 0 ? ` +${additionalCount}` : ""
+  }`;
+}
+
+function SortHeader({
+  active,
+  sortDirection,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  sortDirection?: SortDirection;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  const SortIcon = !active
+    ? CaretSortIcon
+    : sortDirection === SortDirection.Asc
+    ? CaretUpIcon
+    : CaretDownIcon;
+  return (
+    <button type="button" className={styles.sortButton} onClick={onClick}>
+      {children}
+      <SortIcon className={styles.sortIcon} />
+    </button>
   );
 }
 
@@ -174,83 +270,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
 
   const { renderToString, locale } = useContext(Context);
   const { appID } = useParams() as { appID: string };
-
-  const columns: IColumn[] = useMemo(() => {
-    const rolesAndGroupsColumns = showRolesAndGroups
-      ? [
-          {
-            key: "roles",
-            name: renderToString("UsersList.column.roles"),
-            minWidth: 150,
-            columnActionsMode: ColumnActionsMode.disabled,
-          },
-          {
-            key: "groups",
-            name: renderToString("UsersList.column.groups"),
-            minWidth: 150,
-            columnActionsMode: ColumnActionsMode.disabled,
-          },
-        ]
-      : [];
-
-    return [
-      {
-        key: "info",
-        name: renderToString("UsersList.column.raw-id"),
-        minWidth: 300,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-      {
-        key: "username",
-        fieldName: "username",
-        name: renderToString("UsersList.column.username"),
-        minWidth: 150,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-      {
-        key: "email",
-        fieldName: "email",
-        name: renderToString("UsersList.column.email"),
-        minWidth: 150,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-      {
-        key: "phone",
-        fieldName: "phone",
-        name: renderToString("UsersList.column.phone"),
-        minWidth: 120,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-      ...rolesAndGroupsColumns,
-      {
-        key: "createdAt",
-        fieldName: "createdAt",
-        name: renderToString("UsersList.column.signed-up"),
-        minWidth: 240,
-        isSorted: sortBy === "CREATED_AT",
-        isSortedDescending: sortDirection === SortDirection.Desc,
-        iconName: "SortLines",
-        iconClassName: styles.sortIcon,
-      },
-      {
-        key: "lastLoginAt",
-        fieldName: "lastLoginAt",
-        name: renderToString("UsersList.column.last-login-at"),
-        minWidth: 240,
-        isSorted: sortBy === "LAST_LOGIN_AT",
-        isSortedDescending: sortDirection === SortDirection.Desc,
-        iconName: "SortLines",
-        iconClassName: styles.sortIcon,
-      },
-      {
-        key: "action",
-        fieldName: "action",
-        name: renderToString("action"),
-        minWidth: 150,
-        columnActionsMode: ColumnActionsMode.disabled,
-      },
-    ];
-  }, [renderToString, showRolesAndGroups, sortBy, sortDirection]);
+  const navigate = useNavigate();
 
   const [isDisableUserDialogHidden, setIsDisableUserDialogHidden] =
     useState(true);
@@ -277,7 +297,9 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             temporarilyDisabledFrom: node.temporarilyDisabledFrom,
             temporarilyDisabledUntil: node.temporarilyDisabledUntil,
             createdAt: formatDatetime(locale, node.createdAt),
+            createdAtDateOnly: formatDateOnly(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
+            lastLoginAtDateOnly: formatDateOnly(locale, node.lastLoginAt),
             profilePictureURL: node.standardAttributes.picture ?? null,
             formattedName: node.formattedName ?? null,
             endUserAccountID: node.endUserAccountID ?? null,
@@ -303,186 +325,199 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
     return items;
   }, [edges, locale]);
 
-  const onRenderUserRow = React.useCallback(
-    (props?: IDetailsRowProps) => {
-      if (props == null) {
-        return null;
-      }
-      const targetPath = isUserListItem(props.item)
-        ? `/project/${appID}/users/${props.item.id}/details`
-        : ".";
-      return (
-        <Link to={targetPath}>
-          <DetailsRow {...props} />
-        </Link>
-      );
-    },
-    [appID]
-  );
-
-  const onUserActionClick = useCallback(
-    (e: React.MouseEvent<unknown>, item: UserListItem) => {
-      e.preventDefault();
-      e.stopPropagation();
+  const openAccountStatusDialog = useCallback(
+    (item: UserListItem, mode: AccountStatusDialogProps["mode"]) => {
       setDisableUserDialogData({
         accountStatus: item,
+        mode,
       });
       setIsDisableUserDialogHidden(false);
     },
     []
   );
 
-  const renderUserInfoCell = useCallback((item: UserListItem) => {
-    return <UserInfo item={item} />;
-  }, []);
   const renderActionCell = useCallback(
     (item: UserListItem) => {
-      let variant: "destructive" | "default" | "no-action";
-      let text: string;
-      const action = getMostAppropriateAction(item);
-
-      switch (action) {
-        case "disable":
-          variant = "destructive";
-          text = renderToString("UsersList.disable-user");
-          break;
-        case "re-enable":
-          variant = "default";
-          text = renderToString("UsersList.reenable-user");
-          break;
-        case "unschedule-deletion":
-          variant = "default";
-          text = renderToString("UsersList.cancel-removal");
-          break;
-        case "unschedule-anonymization":
-          variant = "default";
-          text = renderToString("UsersList.cancel-anonymization");
-          break;
-        case "edit-account-valid-period":
-          variant = "default";
-          text = renderToString("UsersList.edit-account-valid-period");
-          break;
-        case "no-action":
-          variant = "no-action";
-          text = "-";
-          break;
-      }
-
       return (
-        <ActionButtonCell
-          variant={variant}
-          onClick={(e) => onUserActionClick(e, item)}
-          text={text}
-        />
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            <RadixIconButton
+              className={styles.rowActionsButton}
+              variant="soft"
+              color="gray"
+              size="2"
+              aria-label={renderToString("action")}
+            >
+              <DotsVerticalIcon width="1rem" height="1rem" />
+            </RadixIconButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end">
+            <DropdownMenu.Item
+              onSelect={() => {
+                navigate(`/project/${appID}/users/${item.id}/details`);
+              }}
+            >
+              <Pencil1Icon />
+              <FormattedMessage id="edit" />
+            </DropdownMenu.Item>
+            <DropdownMenu.Separator />
+            <DropdownMenu.Item
+              color="red"
+              onSelect={() => {
+                openAccountStatusDialog(item, "disable");
+              }}
+            >
+              <LockClosedIcon />
+              <FormattedMessage id="disable" />
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              color="red"
+              onSelect={() => {
+                openAccountStatusDialog(item, "anonymize-or-schedule");
+              }}
+            >
+              <EyeNoneIcon />
+              <FormattedMessage id="UserDetailsAccountStatus.anonymize-user.action.anonymize" />
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              color="red"
+              onSelect={() => {
+                openAccountStatusDialog(item, "delete-or-schedule");
+              }}
+            >
+              <TrashIcon />
+              <FormattedMessage id="delete" />
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       );
     },
-    [onUserActionClick, renderToString]
-  );
-  const renderRoleCell = useCallback((item: UserListItem) => {
-    let text = "-";
-    if (item.roles.totalCount !== 0) {
-      const addtionalInfo =
-        item.roles.totalCount === 1 ? "" : ` +${item.roles.totalCount - 1}`;
-      text = `${item.roles.items[0].name}${addtionalInfo}`;
-    }
-    return (
-      <BaseCell>
-        <Text className={"whitespace-normal"}>{text}</Text>
-      </BaseCell>
-    );
-  }, []);
-  const renderGroupCell = useCallback((item: UserListItem) => {
-    let text = "-";
-    if (item.groups.totalCount !== 0) {
-      const addtionalInfo =
-        item.groups.totalCount === 1 ? "" : ` +${item.groups.totalCount - 1}`;
-      text = `${item.groups.items[0].name}${addtionalInfo}`;
-    }
-    return (
-      <BaseCell>
-        <Text className={"whitespace-normal"}>{text}</Text>
-      </BaseCell>
-    );
-  }, []);
-  const renderDefaultCell = useCallback(
-    (item: UserListItem, column: IColumn | undefined) => {
-      return (
-        <TextCell>
-          {(item[column?.key as keyof UserListItem] as React.ReactNode) ??
-            USER_LIST_PLACEHOLDER}
-        </TextCell>
-      );
-    },
-    []
-  );
-
-  const onRenderUserItemColumn = useCallback(
-    (item: UserListItem, _index?: number, column?: IColumn) => {
-      switch (column?.key) {
-        case "info": {
-          return renderUserInfoCell(item);
-        }
-        case "action": {
-          return renderActionCell(item);
-        }
-        case "groups": {
-          return renderGroupCell(item);
-        }
-        case "roles": {
-          return renderRoleCell(item);
-        }
-        default: {
-          return renderDefaultCell(item, column);
-        }
-      }
-    },
-    [
-      renderActionCell,
-      renderDefaultCell,
-      renderGroupCell,
-      renderRoleCell,
-      renderUserInfoCell,
-    ]
+    [appID, navigate, openAccountStatusDialog, renderToString]
   );
 
   const dismissDisableUserDialog = useCallback(() => {
     setIsDisableUserDialogHidden(true);
   }, []);
 
-  const onColumnHeaderClick = useCallback(
-    (_e, column) => {
-      if (column != null) {
-        if (column.key === "createdAt") {
-          onColumnClick?.(UserSortBy.CreatedAt);
-        }
-        if (column.key === "lastLoginAt") {
-          onColumnClick?.(UserSortBy.LastLoginAt);
-        }
-      }
-    },
-    [onColumnClick]
-  );
-
   const isEmpty = !loading && items.length === 0;
 
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <div className={cn(styles.listWrapper, isEmpty && styles.empty)}>
-          <ShimmeredDetailsList
-            className={styles.list}
-            enableShimmer={loading}
-            enableUpdateAnimations={false}
-            onRenderRow={onRenderUserRow}
-            onRenderItemColumn={onRenderUserItemColumn}
-            onColumnHeaderClick={onColumnHeaderClick}
-            selectionMode={SelectionMode.none}
-            layoutMode={DetailsListLayoutMode.justified}
-            columns={columns}
-            items={items}
-            // UserList always render fixed number of items, which is not infinite scroll, so no need virtualization
-            onShouldVirtualize={onShouldVirtualize}
-          />
+        <div className={styles.tableWrapper}>
+          <div className={styles.table}>
+            <div className={styles.tableHeader}>
+              <div className={styles.tableHeaderCellInfo}>
+                <FormattedMessage id="UsersList.column.raw-id" />
+              </div>
+              <div className={styles.tableHeaderCellStandard}>
+                <FormattedMessage id="UsersList.column.username" />
+              </div>
+              <div className={styles.tableHeaderCellStandard}>
+                <FormattedMessage id="UsersList.column.email" />
+              </div>
+              <div className={styles.tableHeaderCellPhone}>
+                <FormattedMessage id="UsersList.column.phone" />
+              </div>
+              {showRolesAndGroups ? (
+                <>
+                  <div className={styles.tableHeaderCellStandard}>
+                    <FormattedMessage id="UsersList.column.roles" />
+                  </div>
+                  <div className={styles.tableHeaderCellStandard}>
+                    <FormattedMessage id="UsersList.column.groups" />
+                  </div>
+                </>
+              ) : null}
+              <div className={styles.tableHeaderCellDate}>
+                <SortHeader
+                  active={sortBy === UserSortBy.CreatedAt}
+                  sortDirection={sortDirection}
+                  onClick={() => onColumnClick?.(UserSortBy.CreatedAt)}
+                >
+                  <FormattedMessage id="UsersList.column.signed-up" />
+                </SortHeader>
+              </div>
+              <div className={styles.tableHeaderCellDate}>
+                <SortHeader
+                  active={sortBy === UserSortBy.LastLoginAt}
+                  sortDirection={sortDirection}
+                  onClick={() => onColumnClick?.(UserSortBy.LastLoginAt)}
+                >
+                  <FormattedMessage id="UsersList.column.last-login-at" />
+                </SortHeader>
+              </div>
+              <div className={styles.tableHeaderCellAction} />
+            </div>
+            {loading
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className={styles.shimmerRow}>
+                    <div className={styles.shimmerBlock} />
+                  </div>
+                ))
+              : items.map((item) => (
+                  <div
+                    key={item.id}
+                    className={styles.tableRow}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      navigate(`/project/${appID}/users/${item.id}/details`);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate(`/project/${appID}/users/${item.id}/details`);
+                      }
+                    }}
+                  >
+                    <div className={styles.tableCellInfo}>
+                      <UserInfo item={item} />
+                    </div>
+                    <UserTextCell value={item.username} />
+                    <UserTextCell value={item.email} />
+                    <div className={styles.tableCellPhone}>
+                      <CellText value={item.phone} />
+                    </div>
+                    {showRolesAndGroups ? (
+                      <>
+                        <UserTextCell value={getRelatedItemsText(item.roles)} />
+                        <UserTextCell
+                          value={getRelatedItemsText(item.groups)}
+                        />
+                      </>
+                    ) : null}
+                    <DateCell
+                      dateOnly={item.createdAtDateOnly}
+                      datetime={item.createdAt}
+                    />
+                    <DateCell
+                      dateOnly={item.lastLoginAtDateOnly}
+                      datetime={item.lastLoginAt}
+                    />
+                    <div
+                      className={styles.tableCellAction}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      {renderActionCell(item)}
+                    </div>
+                  </div>
+                ))}
+            {isEmpty ? (
+              <div className={styles.emptyRow}>
+                <Text size="2" color="gray">
+                  <FormattedMessage
+                    id={
+                      isSearch
+                        ? "UsersList.empty.search"
+                        : "UsersList.empty.normal"
+                    }
+                  />
+                </Text>
+              </div>
+            ) : null}
+          </div>
         </div>
         {!isSearch ? (
           <PaginationWidget
@@ -493,22 +528,14 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             onChangeOffset={onChangeOffset}
           />
         ) : null}
-        {isEmpty ? (
-          <MessageBar>
-            {isSearch ? (
-              <FormattedMessage id="UsersList.empty.search" />
-            ) : (
-              <FormattedMessage id="UsersList.empty.normal" />
-            )}
-          </MessageBar>
-        ) : null}
       </div>
       {disableUserDialogData != null ? (
         <AccountStatusDialog
+          key={`${disableUserDialogData.accountStatus.id}:${disableUserDialogData.mode}`}
           isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
           accountStatus={disableUserDialogData.accountStatus}
-          mode="auto"
+          mode={disableUserDialogData.mode}
         />
       ) : null}
     </>

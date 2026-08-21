@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 
-import NavBreadcrumb from "../../NavBreadcrumb";
+import Link from "../../Link";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
@@ -47,24 +49,22 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
   props
 ) {
   const { appConfig, form, firstEmail } = props;
-  const { userID } = useParams() as { userID: string };
-
-  const navBreadcrumbItems = useMemo(() => {
-    return [
-      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
-      {
-        to: `~/users/${userID}/details`,
-        label: <FormattedMessage id="UserDetailsScreen.title" />,
-      },
-      { to: ".", label: <FormattedMessage id="ChangePasswordScreen.title" /> },
-    ];
-  }, [userID]);
 
   return (
     <ScreenContent>
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+      <div className={styles.widget}>
+        <Link to="..#account-security" className={styles.backLink}>
+          <ChevronLeftIcon className={styles.backLinkIcon} />
+          <span>
+            <FormattedMessage id="UserDetailsScreen.title" />
+          </span>
+        </Link>
+        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <FormattedMessage id="ChangePasswordScreen.title" />
+        </Text>
+      </div>
       <ResetPasswordForm
-        className={styles.widget}
+        className={`${styles.widget} ${styles.form}`}
         submitMessageID="ChangePasswordScreen.change"
         form={form}
         appConfig={appConfig}

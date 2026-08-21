@@ -1,38 +1,49 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
-import { generatePath, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "../../intl";
 import {
+  Button,
   Dialog,
-  DialogFooter,
-  Icon,
-  IContextualMenuItem,
-  IContextualMenuProps,
-  List,
+  DropdownMenu,
+  IconButton,
   Text,
-} from "@fluentui/react";
+} from "@radix-ui/themes";
+import {
+  CheckCircledIcon,
+  CrossCircledIcon,
+  DotsVerticalIcon,
+  EnvelopeClosedIcon,
+  IdCardIcon,
+  MobileIcon,
+  Pencil1Icon,
+  PersonIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 
 // import PrimaryIdentitiesSelectionForm from "./PrimaryIdentitiesSelectionForm";
-import ButtonWithLoading from "../../ButtonWithLoading";
 import ListCellLayout from "../../ListCellLayout";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
 import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
+import { formatDateOnly } from "../../util/formatDateOnly";
 import { LoginIDKeyType, OAuthSSOProviderType } from "../../types";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 
 import styles from "./UserDetailsConnectedIdentities.module.css";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import listStyles from "./UserDetailsListTable.module.css";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import ExternalLink, { ExternalLinkProps } from "../../ExternalLink";
-
-// Always disable virtualization for List component, as it wont work properly with mobile view
-const onShouldVirtualize = () => {
-  return false;
-};
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { useCreateLoginIDIdentityMutation } from "./mutations/createIdentityMutation";
+import PhoneTextField from "../../PhoneTextField";
+import phoneDialogStyles from "../../PhoneDialog.module.css";
+import { useUpdateLoginIDIdentityMutation } from "./mutations/updateIdentityMutation";
 
 interface IdentityClaim extends Record<string, unknown> {
   email?: string;
@@ -66,9 +77,11 @@ interface UserDetailsConnectedIdentitiesProps {
   identities: Identity[];
   verifiedClaims: VerifiedClaims;
   availableLoginIdIdentities: string[];
+  phoneInputAllowlist?: string[];
+  phoneInputPinnedList?: string[];
+  onIdentityCreated?: () => unknown;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
 type LoginIDIdentityType = (typeof loginIdIdentityTypes)[number];
 type IdentityType =
@@ -94,6 +107,7 @@ interface OAuthIdentityListItem {
   claimValue?: string;
   verified?: boolean;
   connectedOn: string;
+  connectedOnDateOnly: string;
 }
 
 interface LoginIDIdentityListItem {
@@ -104,6 +118,7 @@ interface LoginIDIdentityListItem {
   claimValue: string;
   verified?: boolean;
   connectedOn: string;
+  connectedOnDateOnly: string;
 }
 
 interface BiometricIdentityListItem {
@@ -141,16 +156,447 @@ export interface IdentityLists {
   ldap: LDAPIdentityListItem[];
 }
 
-interface VerifyButtonProps {
-  disabled?: boolean;
-  verified: boolean;
-  verifying: boolean;
-  toggleVerified: (verified: boolean) => void;
-}
-
 interface ConfirmationDialogData {
   identityID: string;
   identityName: string;
+}
+
+interface AddEmailDialogProps {
+  open: boolean;
+  userID: string;
+  identityToEdit?: {
+    id: string;
+    value: string;
+  };
+  onOpenChange: (open: boolean) => void;
+  onCreated?: () => unknown;
+}
+
+function AddEmailDialog({
+  open,
+  userID,
+  identityToEdit,
+  onOpenChange,
+  onCreated,
+}: AddEmailDialogProps): React.ReactElement {
+  const [email, setEmail] = useState(() =>
+    open ? identityToEdit?.value ?? "" : ""
+  );
+  const { createIdentity, loading, error } =
+    useCreateLoginIDIdentityMutation(userID);
+  const {
+    updateIdentity,
+    loading: updating,
+    error: updateError,
+  } = useUpdateLoginIDIdentityMutation(userID);
+  const isLoading = loading || updating;
+  useLoading(isLoading);
+  useProvideError(error ?? updateError);
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevIdentityToEdit, setPrevIdentityToEdit] = useState(identityToEdit);
+  if (prevOpen !== open || prevIdentityToEdit !== identityToEdit) {
+    setPrevOpen(open);
+    setPrevIdentityToEdit(identityToEdit);
+    setEmail(open ? identityToEdit?.value ?? "" : "");
+  }
+
+  const onSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const value = email.trim();
+      if (value === "" || isLoading) {
+        return;
+      }
+
+      try {
+        const identity =
+          identityToEdit == null
+            ? await createIdentity({ key: "email", value })
+            : await updateIdentity(identityToEdit.id, {
+                key: "email",
+                value,
+              });
+        if (identity != null) {
+          await onCreated?.();
+          onOpenChange(false);
+        }
+      } catch {
+        // The mutation error is surfaced by useProvideError.
+      }
+    },
+    [
+      createIdentity,
+      email,
+      identityToEdit,
+      isLoading,
+      onCreated,
+      onOpenChange,
+      updateIdentity,
+    ]
+  );
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content maxWidth="480px" size="3">
+        <Dialog.Title>
+          <FormattedMessage
+            id={
+              identityToEdit == null
+                ? "EmailScreen.add.title"
+                : "EmailScreen.edit.title"
+            }
+          />
+        </Dialog.Title>
+        <Dialog.Description size="2">
+          {identityToEdit == null ? (
+            <FormattedMessage id="EmailScreen.add.description" />
+          ) : (
+            <FormattedMessage
+              id="EmailScreen.edit.current-value"
+              values={{ value: identityToEdit.value }}
+            />
+          )}
+        </Dialog.Description>
+        <form
+          className={styles.addIdentityForm}
+          onSubmit={(event) => {
+            onSubmit(event).finally(() => {});
+          }}
+        >
+          <TextField
+            size="2"
+            type="email"
+            label={<FormattedMessage id="EmailScreen.email.label" />}
+            value={email}
+            onChange={(event) => {
+              setEmail(event.currentTarget.value);
+            }}
+          />
+          <div className={styles.addIdentityDialogActions}>
+            <SecondaryButton
+              size="2"
+              disabled={isLoading}
+              text={<FormattedMessage id="cancel" />}
+              onClick={() => {
+                onOpenChange(false);
+              }}
+            />
+            <Button
+              type="submit"
+              size="2"
+              loading={isLoading}
+              disabled={email.trim() === ""}
+            >
+              <FormattedMessage id={identityToEdit == null ? "add" : "save"} />
+            </Button>
+          </div>
+        </form>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
+}
+
+interface AddUsernameDialogProps {
+  open: boolean;
+  userID: string;
+  identityToEdit?: {
+    id: string;
+    value: string;
+  };
+  onOpenChange: (open: boolean) => void;
+  onCreated?: () => unknown;
+}
+
+function AddUsernameDialog({
+  open,
+  userID,
+  identityToEdit,
+  onOpenChange,
+  onCreated,
+}: AddUsernameDialogProps): React.ReactElement {
+  const [username, setUsername] = useState(() =>
+    open ? identityToEdit?.value ?? "" : ""
+  );
+  const { createIdentity, loading, error } =
+    useCreateLoginIDIdentityMutation(userID);
+  const {
+    updateIdentity,
+    loading: updating,
+    error: updateError,
+  } = useUpdateLoginIDIdentityMutation(userID);
+  const isLoading = loading || updating;
+  useLoading(isLoading);
+  useProvideError(error ?? updateError);
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevIdentityToEdit, setPrevIdentityToEdit] = useState(identityToEdit);
+  if (prevOpen !== open || prevIdentityToEdit !== identityToEdit) {
+    setPrevOpen(open);
+    setPrevIdentityToEdit(identityToEdit);
+    setUsername(open ? identityToEdit?.value ?? "" : "");
+  }
+
+  const onSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const value = username.trim();
+      if (value === "" || isLoading) {
+        return;
+      }
+
+      try {
+        const identity =
+          identityToEdit == null
+            ? await createIdentity({ key: "username", value })
+            : await updateIdentity(identityToEdit.id, {
+                key: "username",
+                value,
+              });
+        if (identity != null) {
+          await onCreated?.();
+          onOpenChange(false);
+        }
+      } catch {
+        // The mutation error is surfaced by useProvideError.
+      }
+    },
+    [
+      createIdentity,
+      username,
+      identityToEdit,
+      isLoading,
+      onCreated,
+      onOpenChange,
+      updateIdentity,
+    ]
+  );
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content maxWidth="480px" size="3">
+        <Dialog.Title>
+          <FormattedMessage
+            id={
+              identityToEdit == null
+                ? "UsernameScreen.add.title"
+                : "UsernameScreen.edit.title"
+            }
+          />
+        </Dialog.Title>
+        <Dialog.Description size="2">
+          {identityToEdit == null ? (
+            <FormattedMessage id="UsernameScreen.add.description" />
+          ) : (
+            <FormattedMessage
+              id="UsernameScreen.edit.current-value"
+              values={{ value: identityToEdit.value }}
+            />
+          )}
+        </Dialog.Description>
+        <form
+          className={styles.addIdentityForm}
+          onSubmit={(event) => {
+            onSubmit(event).finally(() => {});
+          }}
+        >
+          <TextField
+            size="2"
+            type="text"
+            label={<FormattedMessage id="UsernameScreen.username.label" />}
+            value={username}
+            onChange={(event) => {
+              setUsername(event.currentTarget.value);
+            }}
+          />
+          <div className={styles.addIdentityDialogActions}>
+            <SecondaryButton
+              size="2"
+              disabled={isLoading}
+              text={<FormattedMessage id="cancel" />}
+              onClick={() => {
+                onOpenChange(false);
+              }}
+            />
+            <Button
+              type="submit"
+              size="2"
+              loading={isLoading}
+              disabled={username.trim() === ""}
+            >
+              <FormattedMessage id={identityToEdit == null ? "add" : "save"} />
+            </Button>
+          </div>
+        </form>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
+}
+
+interface AddPhoneDialogProps {
+  open: boolean;
+  userID: string;
+  identityToEdit?: {
+    id: string;
+    value: string;
+  };
+  phoneInputAllowlist?: string[];
+  phoneInputPinnedList?: string[];
+  onOpenChange: (open: boolean) => void;
+  onCreated?: () => unknown;
+}
+
+function AddPhoneDialog({
+  open,
+  userID,
+  identityToEdit,
+  phoneInputAllowlist,
+  phoneInputPinnedList,
+  onOpenChange,
+  onCreated,
+}: AddPhoneDialogProps): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  const [e164, setE164] = useState(() =>
+    open ? identityToEdit?.value ?? "" : ""
+  );
+  const [rawInputValue, setRawInputValue] = useState(() =>
+    open ? identityToEdit?.value ?? "" : ""
+  );
+  const [fieldKey, setFieldKey] = useState(0);
+  const { createIdentity, loading, error } =
+    useCreateLoginIDIdentityMutation(userID);
+  const {
+    updateIdentity,
+    loading: updating,
+    error: updateError,
+  } = useUpdateLoginIDIdentityMutation(userID);
+  const isLoading = loading || updating;
+  useLoading(isLoading);
+  useProvideError(error ?? updateError);
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevIdentityToEdit, setPrevIdentityToEdit] = useState(identityToEdit);
+  if (prevOpen !== open || prevIdentityToEdit !== identityToEdit) {
+    setPrevOpen(open);
+    setPrevIdentityToEdit(identityToEdit);
+    if (!open) {
+      setE164("");
+      setRawInputValue("");
+    } else {
+      setE164(identityToEdit?.value ?? "");
+      setRawInputValue(identityToEdit?.value ?? "");
+      setFieldKey((key) => key + 1);
+    }
+  }
+
+  const onSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (e164 === "" || isLoading) {
+        return;
+      }
+
+      try {
+        const identity =
+          identityToEdit == null
+            ? await createIdentity({ key: "phone", value: e164 })
+            : await updateIdentity(identityToEdit.id, {
+                key: "phone",
+                value: e164,
+              });
+        if (identity != null) {
+          await onCreated?.();
+          onOpenChange(false);
+        }
+      } catch {
+        // The mutation error is surfaced by useProvideError.
+      }
+    },
+    [
+      createIdentity,
+      e164,
+      identityToEdit,
+      isLoading,
+      onCreated,
+      onOpenChange,
+      updateIdentity,
+    ]
+  );
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content
+        maxWidth="480px"
+        size="3"
+        className={phoneDialogStyles.phoneDialogContent}
+        data-phone-dialog="true"
+      >
+        <Dialog.Title>
+          <FormattedMessage
+            id={
+              identityToEdit == null
+                ? "PhoneScreen.add.title"
+                : "PhoneScreen.edit.title"
+            }
+          />
+        </Dialog.Title>
+        <Dialog.Description size="2">
+          {identityToEdit == null ? (
+            <FormattedMessage id="PhoneScreen.add.description" />
+          ) : (
+            <FormattedMessage
+              id="PhoneScreen.edit.current-value"
+              values={{ value: identityToEdit.value }}
+            />
+          )}
+        </Dialog.Description>
+        <form
+          className={cn(
+            styles.addIdentityForm,
+            phoneDialogStyles.phoneDialogForm
+          )}
+          onSubmit={(event) => {
+            onSubmit(event).finally(() => {});
+          }}
+        >
+          <PhoneTextField
+            key={fieldKey}
+            label={renderToString("PhoneScreen.phone.label")}
+            allowlist={phoneInputAllowlist}
+            pinnedList={phoneInputPinnedList}
+            initialInputValue={rawInputValue}
+            onChange={(values) => {
+              setE164(values.e164 ?? "");
+              setRawInputValue(values.rawInputValue);
+            }}
+          />
+          <div
+            className={cn(
+              styles.addIdentityDialogActions,
+              phoneDialogStyles.phoneDialogActions
+            )}
+          >
+            <SecondaryButton
+              size="2"
+              disabled={isLoading}
+              text={<FormattedMessage id="cancel" />}
+              onClick={() => {
+                onOpenChange(false);
+              }}
+            />
+            <Button
+              type="submit"
+              size="2"
+              loading={isLoading}
+              disabled={e164 === ""}
+            >
+              <FormattedMessage id={identityToEdit == null ? "add" : "save"} />
+            </Button>
+          </div>
+        </form>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
 }
 
 const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
@@ -166,14 +612,14 @@ const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
 };
 
 const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
-  email: <Icon iconName="Mail" />,
-  phone: <Icon iconName="CellPhone" />,
-  username: <Icon iconName="Accounts" />,
+  email: <EnvelopeClosedIcon />,
+  phone: <MobileIcon />,
+  username: <PersonIcon />,
 };
 
-const biometricIcon: React.ReactNode = <Icon iconName="Fingerprint" />;
-const anonymousIcon: React.ReactNode = <Icon iconName="People" />;
-const ldapIcon: React.ReactNode = <Icon iconName="Contact" />;
+const biometricIcon: React.ReactNode = <IdCardIcon />;
+const anonymousIcon: React.ReactNode = <PersonIcon />;
+const ldapIcon: React.ReactNode = <IdCardIcon />;
 
 const removeButtonTextId: Record<IdentityType, "remove" | "disconnect" | ""> = {
   oauth: "disconnect",
@@ -226,46 +672,6 @@ function checkIsClaimVerified(
   return matchedClaim != null;
 }
 
-const VerifyButton: React.VFC<VerifyButtonProps> = function VerifyButton(
-  props: VerifyButtonProps
-) {
-  const { verified, verifying, toggleVerified } = props;
-  const { themes } = useSystemConfig();
-  const loading = useIsLoading();
-
-  const onClickVerify = useCallback(() => {
-    toggleVerified(true);
-  }, [toggleVerified]);
-
-  const onClickUnverify = useCallback(() => {
-    toggleVerified(false);
-  }, [toggleVerified]);
-
-  if (verified) {
-    return (
-      <ButtonWithLoading
-        className={cn(styles.controlButton, styles.unverifyButton)}
-        disabled={loading}
-        theme={themes.defaultButton}
-        onClick={onClickUnverify}
-        labelId="make-as-unverified"
-        loading={verifying}
-      />
-    );
-  }
-
-  return (
-    <ButtonWithLoading
-      className={cn(styles.controlButton, styles.verifyButton)}
-      disabled={loading}
-      theme={themes.verifyButton}
-      onClick={onClickVerify}
-      loading={verifying}
-      labelId="make-as-verified"
-    />
-  );
-};
-
 interface BaseIdentityListCellTitleProps {
   icon?: React.ReactNode;
   as?: "ExternalLink" | "Text";
@@ -283,12 +689,18 @@ const BaseIdentityListCellTitle: React.VFC<BaseIdentityListCellTitleProps> = (
       <div className={styles.cellIcon}>{icon}</div>
       {as === "ExternalLink" ? (
         <ExternalLink {...externalLinkProps}>
-          <Text className={cn(styles.cellName, styles.cellNameExternalLink)}>
+          <Text
+            size="2"
+            weight="medium"
+            className={cn(styles.cellName, styles.cellNameExternalLink)}
+          >
             {children}
           </Text>
         </ExternalLink>
       ) : (
-        <Text className={styles.cellName}>{children}</Text>
+        <Text size="2" weight="medium" className={styles.cellName}>
+          {children}
+        </Text>
       )}
     </>
   );
@@ -305,21 +717,19 @@ const BaseIdentityListCellDescription: React.VFC<
   const { verified, children } = props;
 
   return (
-    <Text className={styles.cellDesc}>
+    <Text as="div" size="2" color="gray" className={styles.cellDesc}>
       {verified != null ? (
         <>
           {verified ? (
-            <Text className={styles.cellDescVerified}>
+            <Text color="green" className={styles.cellDescVerified}>
               <FormattedMessage id="verified" />
             </Text>
           ) : (
-            <Text className={styles.cellDescUnverified}>
+            <Text color="amber" className={styles.cellDescUnverified}>
               <FormattedMessage id="unverified" />
             </Text>
           )}
-          <Text block={true} className={styles.cellDescSeparator}>
-            {" | "}
-          </Text>
+          <Text className={styles.cellDescSeparator}>{" | "}</Text>
         </>
       ) : null}
       {children}
@@ -327,84 +737,8 @@ const BaseIdentityListCellDescription: React.VFC<
   );
 };
 
-interface BaseIdentityListCellButtonGroupProps {
-  identityID?: string;
-  identityType: IdentityType;
-  identityName?: string;
-  claimName?: string;
-  claimValue?: string;
-  verified?: boolean;
-  setVerifiedStatus?: (
-    claimName: string,
-    claimValue: string,
-    verified: boolean
-  ) => Promise<boolean>;
-  onRemoveClicked?: (identityID: string, identityName: string) => void;
-}
-
-const BaseIdentityListCellButtonGroup: React.VFC<
-  BaseIdentityListCellButtonGroupProps
-> = (props) => {
-  const {
-    identityID,
-    identityType,
-    identityName,
-    claimName,
-    claimValue,
-    verified,
-    setVerifiedStatus,
-    onRemoveClicked: _onRemoveClicked,
-  } = props;
-
-  const { themes } = useSystemConfig();
-  const loading = useIsLoading();
-  const [verifying, setVerifying] = useState(false);
-  const onRemoveClicked = useCallback(() => {
-    if (identityID == null || identityName == null) {
-      return;
-    }
-
-    _onRemoveClicked?.(identityID, identityName);
-  }, [identityID, identityName, _onRemoveClicked]);
-
-  const onVerifyClicked = useCallback(
-    (verified: boolean) => {
-      if (claimName === undefined || claimValue === undefined) {
-        return;
-      }
-      setVerifying(true);
-      setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
-        setVerifying(false);
-      });
-    },
-    [setVerifiedStatus, claimName, claimValue]
-  );
-
-  const shouldShowVerifyButton = verified != null && setVerifiedStatus != null;
-
-  return (
-    <div className={styles.buttonGroup}>
-      {shouldShowVerifyButton ? (
-        <VerifyButton
-          verified={verified}
-          verifying={verifying}
-          toggleVerified={onVerifyClicked}
-        />
-      ) : null}
-      {removeButtonTextId[identityType] !== "" ? (
-        <DefaultButton
-          className={cn(styles.controlButton, styles.removeButton)}
-          disabled={loading}
-          theme={themes.destructive}
-          onClick={onRemoveClicked}
-          text={<FormattedMessage id={removeButtonTextId[identityType]} />}
-        />
-      ) : null}
-    </div>
-  );
-};
-
 interface BaseIdentityListCellActionButtonProps {
+  className?: string;
   identityID?: string;
   identityType: IdentityType;
   identityName?: string;
@@ -424,6 +758,7 @@ const BaseIdentityListCellActionButton: React.VFC<
   BaseIdentityListCellActionButtonProps
 > = (props) => {
   const {
+    className,
     identityID,
     identityType,
     identityName,
@@ -436,7 +771,6 @@ const BaseIdentityListCellActionButton: React.VFC<
   } = props;
 
   const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
   const loading = useIsLoading();
   const [verifying, setVerifying] = useState(false);
   const onRemoveClicked = useCallback(() => {
@@ -470,62 +804,56 @@ const BaseIdentityListCellActionButton: React.VFC<
 
   const shouldShowEditButton = identityType === "login_id";
   const shouldShowVerifyButton = verified != null && setVerifiedStatus != null;
+  const shouldShowRemoveButton = removeButtonTextId[identityType] !== "";
 
-  const menuItems = useMemo<IContextualMenuItem[]>(() => {
-    const items: IContextualMenuItem[] = [];
-    if (shouldShowVerifyButton) {
-      items.push({
-        key: "verify",
-        text: renderToString(
-          verified ? "make-as-unverified" : "make-as-verified"
-        ),
-        onClick: () => onVerifyClicked(!verified),
-        disabled: verifying,
-      });
-    }
-    if (shouldShowEditButton) {
-      items.push({
-        key: "edit",
-        text: renderToString("edit"),
-        onClick: () => onEditClicked(),
-      });
-    }
-    if (removeButtonTextId[identityType] !== "") {
-      items.push({
-        key: "remove",
-        text: renderToString(removeButtonTextId[identityType]),
-        onClick: () => onRemoveClicked(),
-      });
-    }
-    return items;
-  }, [
-    identityType,
-    onEditClicked,
-    onRemoveClicked,
-    onVerifyClicked,
-    renderToString,
-    shouldShowEditButton,
-    shouldShowVerifyButton,
-    verified,
-    verifying,
-  ]);
-
-  const menuProps = useMemo<IContextualMenuProps>(() => {
-    return {
-      shouldFocusOnMount: true,
-      items: menuItems,
-    };
-  }, [menuItems]);
+  const hasActions =
+    shouldShowVerifyButton || shouldShowEditButton || shouldShowRemoveButton;
 
   return (
-    <div className={styles.actionButton}>
-      {menuItems.length > 0 ? (
-        <DefaultButton
-          disabled={loading}
-          theme={themes.main}
-          text={<FormattedMessage id="action" />}
-          menuProps={menuProps}
-        />
+    <div className={className ?? styles.actionButton}>
+      {hasActions ? (
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            <IconButton
+              className={listStyles.rowActionsButton}
+              size="2"
+              variant="soft"
+              color="gray"
+              disabled={loading}
+              aria-label={renderToString("action")}
+            >
+              <DotsVerticalIcon width="1rem" height="1rem" />
+            </IconButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end">
+            {shouldShowVerifyButton ? (
+              <DropdownMenu.Item
+                disabled={verifying}
+                onSelect={() => onVerifyClicked(!verified)}
+              >
+                <FormattedMessage
+                  id={verified ? "make-as-unverified" : "make-as-verified"}
+                />
+              </DropdownMenu.Item>
+            ) : null}
+            {shouldShowEditButton ? (
+              <DropdownMenu.Item onSelect={onEditClicked}>
+                <Pencil1Icon />
+                <FormattedMessage id="edit" />
+              </DropdownMenu.Item>
+            ) : null}
+            {shouldShowRemoveButton &&
+            (shouldShowVerifyButton || shouldShowEditButton) ? (
+              <DropdownMenu.Separator />
+            ) : null}
+            {shouldShowRemoveButton ? (
+              <DropdownMenu.Item color="red" onSelect={onRemoveClicked}>
+                <TrashIcon />
+                <FormattedMessage id={removeButtonTextId[identityType]} />
+              </DropdownMenu.Item>
+            ) : null}
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       ) : null}
     </div>
   );
@@ -590,14 +918,18 @@ const BaseIdentityListCell: React.VFC<BaseIdentityListCellProps> = (props) => {
 
 interface LoginIDIdentityListCellProps extends BaseIdentityListCellProps {
   loginIDKey: LoginIDKeyType;
-  onEditClicked: (identityID: string, loginIDKey: LoginIDKeyType) => void;
+  connectedOnDateOnly: string;
+  onEditClicked: (
+    identityID: string,
+    loginIDKey: LoginIDKeyType,
+    identityValue: string
+  ) => void;
 }
 
 const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
   props
 ) => {
   const {
-    icon,
     identityID,
     identityType,
     loginIDKey,
@@ -606,27 +938,48 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
     claimValue,
     verified,
     connectedOn,
+    connectedOnDateOnly,
     setVerifiedStatus,
     onRemoveClicked,
     onEditClicked: _onEditClicked,
   } = props;
 
   const onEditClicked = useCallback(() => {
-    _onEditClicked(identityID, loginIDKey);
-  }, [_onEditClicked, identityID, loginIDKey]);
+    _onEditClicked(identityID, loginIDKey, identityName);
+  }, [_onEditClicked, identityID, identityName, loginIDKey]);
 
   return (
-    <ListCellLayout className={styles.cellContainer}>
-      <BaseIdentityListCellTitle as="Text" icon={icon}>
-        {identityName}
-      </BaseIdentityListCellTitle>
-      <BaseIdentityListCellDescription verified={verified}>
-        <FormattedMessage
-          id="UserDetails.connected-identities.added-on"
-          values={{ datetime: connectedOn }}
-        />
-      </BaseIdentityListCellDescription>
+    <ListCellLayout className={listStyles.row}>
+      <div className={listStyles.rowValue}>
+        <Text size="2" className={listStyles.rowValueText}>
+          {identityName}
+        </Text>
+        {verified != null ? (
+          <span
+            className={cn(
+              styles.verificationStatus,
+              verified ? styles.verifiedStatus : styles.unverifiedStatus
+            )}
+          >
+            {verified ? (
+              <CheckCircledIcon className={styles.verificationIcon} />
+            ) : (
+              <CrossCircledIcon className={styles.verificationIcon} />
+            )}
+            <FormattedMessage id={verified ? "verified" : "unverified"} />
+          </span>
+        ) : null}
+      </div>
+      <Tooltip content={connectedOn}>
+        <Text size="2" color="gray" className={listStyles.rowDate}>
+          <FormattedMessage
+            id="UserDetails.connected-identities.added-on"
+            values={{ datetime: connectedOnDateOnly }}
+          />
+        </Text>
+      </Tooltip>
       <BaseIdentityListCellActionButton
+        className={listStyles.rowAction}
         verified={verified}
         identityID={identityID}
         identityName={identityName}
@@ -641,7 +994,9 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
   );
 };
 
-interface OAuthIdentityListCellProps extends BaseIdentityListCellProps {}
+interface OAuthIdentityListCellProps extends BaseIdentityListCellProps {
+  connectedOnDateOnly: string;
+}
 
 const OAuthIdentityListCell: React.VFC<OAuthIdentityListCellProps> = (
   props
@@ -655,22 +1010,44 @@ const OAuthIdentityListCell: React.VFC<OAuthIdentityListCellProps> = (
     claimValue,
     verified,
     connectedOn,
+    connectedOnDateOnly,
     setVerifiedStatus,
     onRemoveClicked,
   } = props;
 
   return (
-    <ListCellLayout className={styles.cellContainer}>
-      <BaseIdentityListCellTitle as="Text" icon={icon}>
-        {identityName}
-      </BaseIdentityListCellTitle>
-      <BaseIdentityListCellDescription verified={verified}>
-        <FormattedMessage
-          id="UserDetails.connected-identities.connected-on"
-          values={{ datetime: connectedOn }}
-        />
-      </BaseIdentityListCellDescription>
-      <BaseIdentityListCellButtonGroup
+    <ListCellLayout className={listStyles.row}>
+      <div className={listStyles.rowValue}>
+        <span className={styles.socialIcon}>{icon}</span>
+        <Text size="2" className={listStyles.rowValueText}>
+          {identityName}
+        </Text>
+        {verified != null ? (
+          <span
+            className={cn(
+              styles.verificationStatus,
+              verified ? styles.verifiedStatus : styles.unverifiedStatus
+            )}
+          >
+            {verified ? (
+              <CheckCircledIcon className={styles.verificationIcon} />
+            ) : (
+              <CrossCircledIcon className={styles.verificationIcon} />
+            )}
+            <FormattedMessage id={verified ? "verified" : "unverified"} />
+          </span>
+        ) : null}
+      </div>
+      <Tooltip content={connectedOn}>
+        <Text size="2" color="gray" className={listStyles.rowDate}>
+          <FormattedMessage
+            id="UserDetails.connected-identities.connected-on"
+            values={{ datetime: connectedOnDateOnly }}
+          />
+        </Text>
+      </Tooltip>
+      <BaseIdentityListCellActionButton
+        className={listStyles.rowAction}
         verified={verified}
         identityID={identityID}
         identityName={identityName}
@@ -710,7 +1087,7 @@ const LDAPIdentityListCell: React.VFC<LDAPIdentityListCellProps> = (props) => {
       <BaseIdentityListCellTitle as="Text" icon={icon}>
         {identityName ? identityName : "-"}
       </BaseIdentityListCellTitle>
-      <Text className={styles.cellLDAPInfo} variant="medium">
+      <Text size="2" className={styles.cellLDAPInfo}>
         {userIDAttributeName && userIDAttributeValue
           ? `${userIDAttributeName}=${userIDAttributeValue}`
           : "-"}
@@ -729,11 +1106,17 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
   function UserDetailsConnectedIdentities(
     props: UserDetailsConnectedIdentitiesProps
   ) {
-    const { identities, verifiedClaims, availableLoginIdIdentities } = props;
+    const {
+      identities,
+      verifiedClaims,
+      availableLoginIdIdentities,
+      phoneInputAllowlist,
+      phoneInputPinnedList,
+      onIdentityCreated,
+    } = props;
     const { locale, renderToString } = useContext(Context);
 
     const { userID } = useParams() as { userID: string };
-    const navigate = useNavigate();
 
     /* TODO: implement save primary identities
   const [remountIdentifier, setRemountIdentifier] = useState(0);
@@ -760,6 +1143,22 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
 
     const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
       useState(false);
+    const [isAddEmailDialogOpen, setIsAddEmailDialogOpen] = useState(false);
+    const [emailIdentityToEdit, setEmailIdentityToEdit] = useState<{
+      id: string;
+      value: string;
+    }>();
+    const [isAddPhoneDialogOpen, setIsAddPhoneDialogOpen] = useState(false);
+    const [phoneIdentityToEdit, setPhoneIdentityToEdit] = useState<{
+      id: string;
+      value: string;
+    }>();
+    const [isAddUsernameDialogOpen, setIsAddUsernameDialogOpen] =
+      useState(false);
+    const [usernameIdentityToEdit, setUsernameIdentityToEdit] = useState<{
+      id: string;
+      value: string;
+    }>();
 
     const [confirmationDialogData, setConfirmationDialogData] =
       useState<ConfirmationDialogData>({
@@ -778,6 +1177,8 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
 
       for (const identity of identities) {
         const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
+        const createdAtDateOnlyStr =
+          formatDateOnly(locale, identity.createdAt) ?? "";
         if (identity.type === "OAUTH") {
           const providerType =
             identity.claims["https://authgear.com/claims/oauth/provider_type"]!;
@@ -799,6 +1200,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 ? undefined
                 : checkIsClaimVerified(verifiedClaims, claimName, claimValue),
             connectedOn: createdAtStr,
+            connectedOnDateOnly: createdAtDateOnlyStr,
           });
         }
 
@@ -822,6 +1224,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 claimValue
               ),
               connectedOn: createdAtStr,
+              connectedOnDateOnly: createdAtDateOnlyStr,
             });
           }
 
@@ -844,6 +1247,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 claimValue
               ),
               connectedOn: createdAtStr,
+              connectedOnDateOnly: createdAtDateOnlyStr,
             });
           }
 
@@ -858,6 +1262,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
               claimName: "preferred_username",
               claimValue: identity.claims.preferred_username!,
               connectedOn: createdAtStr,
+              connectedOnDateOnly: createdAtDateOnlyStr,
             });
           }
         }
@@ -928,18 +1333,26 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
     );
 
     const onEditLoginIDClicked = useCallback(
-      (identityID: string, loginIDKey: LoginIDKeyType) => {
+      (
+        identityID: string,
+        loginIDKey: LoginIDKeyType,
+        identityValue: string
+      ) => {
         switch (loginIDKey) {
           case "username":
-            navigate(
-              generatePath("./edit-username/:identityID", { identityID })
-            );
+            setUsernameIdentityToEdit({
+              id: identityID,
+              value: identityValue,
+            });
+            setIsAddUsernameDialogOpen(true);
             break;
           case "phone":
-            navigate(generatePath("./edit-phone/:identityID", { identityID }));
+            setPhoneIdentityToEdit({ id: identityID, value: identityValue });
+            setIsAddPhoneDialogOpen(true);
             break;
           case "email":
-            navigate(generatePath("./edit-email/:identityID", { identityID }));
+            setEmailIdentityToEdit({ id: identityID, value: identityValue });
+            setIsAddEmailDialogOpen(true);
             break;
           default:
             console.error(
@@ -948,7 +1361,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             break;
         }
       },
-      [navigate]
+      []
     );
 
     const onDismissConfirmationDialog = useCallback(() => {
@@ -989,6 +1402,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 claimValue={item.claimValue}
                 verified={verified}
                 connectedOn={connectedOn}
+                connectedOnDateOnly={item.connectedOnDateOnly}
                 setVerifiedStatus={setVerifiedStatus}
                 onRemoveClicked={onRemoveClicked}
                 onEditClicked={onEditLoginIDClicked}
@@ -1005,6 +1419,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 claimValue={item.claimValue}
                 verified={verified}
                 connectedOn={connectedOn}
+                connectedOnDateOnly={item.connectedOnDateOnly}
                 setVerifiedStatus={setVerifiedStatus}
                 onRemoveClicked={onRemoveClicked}
               />
@@ -1055,41 +1470,19 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       [renderToString, setVerifiedStatus, onRemoveClicked, onEditLoginIDClicked]
     );
 
-    const addIdentitiesMenuProps: IContextualMenuProps = useMemo(() => {
-      const availableMenuItem = [
-        {
-          key: "email",
-          text: renderToString("UserDetails.connected-identities.email"),
-          iconProps: { iconName: "Mail" },
-          onClick: () => {
-            void navigate("./add-email");
-          },
-        },
-        {
-          key: "phone",
-          text: renderToString("UserDetails.connected-identities.phone"),
-          iconProps: { iconName: "CellPhone" },
-          onClick: () => {
-            void navigate("./add-phone");
-          },
-        },
-        {
-          key: "username",
-          text: renderToString("UserDetails.connected-identities.username"),
-          iconProps: { iconName: "Accounts" },
-          onClick: () => {
-            void navigate("./add-username");
-          },
-        },
-      ];
-      const enabledItems = availableMenuItem.filter((item) => {
-        return availableLoginIdIdentities.includes(item.key);
-      });
-      return {
-        items: enabledItems,
-        directionalHintFixed: true,
-      };
-    }, [renderToString, navigate, availableLoginIdIdentities]);
+    // Sections appear in Email → Phone number → User name order.
+    // Show a section when the login ID type is enabled in the project, or
+    // when the user already has such an identity (it may have been added
+    // before the configuration changed).
+    const loginIdentityTypesToShow = useMemo(
+      () =>
+        loginIdIdentityTypes.filter(
+          (type) =>
+            availableLoginIdIdentities.includes(type) ||
+            identityLists[type].length > 0
+        ),
+      [availableLoginIdIdentities, identityLists]
+    );
 
     const confirmationDialogContentProps = useMemo(() => {
       return {
@@ -1105,128 +1498,184 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
 
     return (
       <div className={styles.root}>
-        <Dialog
-          hidden={!isConfirmationDialogVisible}
-          dialogContentProps={confirmationDialogContentProps}
-          modalProps={{ isBlocking: deletingIdentity }}
-          onDismiss={onDismissConfirmationDialog}
-        >
-          <DialogFooter>
-            <ButtonWithLoading
-              labelId="confirm"
-              onClick={onConfirmRemoveIdentity}
-              loading={deletingIdentity}
-              disabled={!isConfirmationDialogVisible}
-            />
-            <DefaultButton
-              disabled={deletingIdentity || !isConfirmationDialogVisible}
-              onClick={onDismissConfirmationDialog}
-              text={<FormattedMessage id="cancel" />}
-            />
-          </DialogFooter>
-        </Dialog>
+        <ConfirmationDialog
+          open={isConfirmationDialogVisible}
+          onOpenChange={(open) => {
+            if (!open) {
+              onDismissConfirmationDialog();
+            }
+          }}
+          title={confirmationDialogContentProps.title}
+          description={confirmationDialogContentProps.subText}
+          confirmText={<FormattedMessage id="confirm" />}
+          cancelText={<FormattedMessage id="cancel" />}
+          onConfirm={onConfirmRemoveIdentity}
+          onCancel={onDismissConfirmationDialog}
+          loading={deletingIdentity}
+          confirmColor="red"
+        />
+        <AddEmailDialog
+          open={isAddEmailDialogOpen}
+          userID={userID}
+          identityToEdit={emailIdentityToEdit}
+          onOpenChange={(open) => {
+            setIsAddEmailDialogOpen(open);
+            if (!open) {
+              setEmailIdentityToEdit(undefined);
+            }
+          }}
+          onCreated={onIdentityCreated}
+        />
+        <AddPhoneDialog
+          open={isAddPhoneDialogOpen}
+          userID={userID}
+          identityToEdit={phoneIdentityToEdit}
+          phoneInputAllowlist={phoneInputAllowlist}
+          phoneInputPinnedList={phoneInputPinnedList}
+          onOpenChange={(open) => {
+            setIsAddPhoneDialogOpen(open);
+            if (!open) {
+              setPhoneIdentityToEdit(undefined);
+            }
+          }}
+          onCreated={onIdentityCreated}
+        />
+        <AddUsernameDialog
+          open={isAddUsernameDialogOpen}
+          userID={userID}
+          identityToEdit={usernameIdentityToEdit}
+          onOpenChange={(open) => {
+            setIsAddUsernameDialogOpen(open);
+            if (!open) {
+              setUsernameIdentityToEdit(undefined);
+            }
+          }}
+          onCreated={onIdentityCreated}
+        />
         <section className={styles.headerSection}>
-          <Text as="h2" variant="medium" className={styles.header}>
+          <Text as="p" size="3" weight="medium" className={styles.header}>
             <FormattedMessage id="UserDetails.connected-identities.title" />
           </Text>
-          <PrimaryButton
-            disabled={addIdentitiesMenuProps.items.length === 0}
-            iconProps={{ iconName: "CirclePlus" }}
-            menuProps={addIdentitiesMenuProps}
-            styles={{
-              menuIcon: { paddingLeft: "3px" },
-              icon: { paddingRight: "3px" },
-            }}
-            text={
-              <FormattedMessage id="UserDetails.connected-identities.add-identity" />
-            }
-          />
+          <Text as="p" size="2" color="gray" className={styles.description}>
+            <FormattedMessage id="UserDetails.connected-identities.description" />
+          </Text>
         </section>
-        <section className={styles.identityLists}>
-          {identityLists.oauth.length > 0 ? (
-            <div>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.oauth" />
-              </Text>
-              <List
-                items={identityLists.oauth}
-                onRenderCell={onRenderIdentityCell}
-                onShouldVirtualize={onShouldVirtualize}
-              />
-            </div>
-          ) : null}
-          {identityLists.email.length > 0 ? (
-            <div>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.email" />
-              </Text>
-              <List
-                items={identityLists.email}
-                onRenderCell={onRenderIdentityCell}
-                onShouldVirtualize={onShouldVirtualize}
-              />
-            </div>
-          ) : null}
-          {identityLists.phone.length > 0 ? (
-            <div>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.phone" />
-              </Text>
-              <List
-                items={identityLists.phone}
-                onRenderCell={onRenderIdentityCell}
-                onShouldVirtualize={onShouldVirtualize}
-              />
-            </div>
-          ) : null}
-          {identityLists.username.length > 0 ? (
-            <div>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.username" />
-              </Text>
-              <List
-                items={identityLists.username}
-                onRenderCell={onRenderIdentityCell}
-                onShouldVirtualize={onShouldVirtualize}
-              />
-            </div>
-          ) : null}
-          {identityLists.biometric.length > 0 ? (
-            <div>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.biometric" />
-              </Text>
-              <List
-                items={identityLists.biometric}
-                onRenderCell={onRenderIdentityCell}
-                onShouldVirtualize={onShouldVirtualize}
-              />
-            </div>
-          ) : null}
-          {identityLists.anonymous.length > 0 ? (
-            <div>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.anonymous" />
-              </Text>
-              <List
-                items={identityLists.anonymous}
-                onRenderCell={onRenderIdentityCell}
-                onShouldVirtualize={onShouldVirtualize}
-              />
-            </div>
-          ) : null}
-          {identityLists.ldap.length > 0 ? (
-            <div>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.ldap" />
-              </Text>
-              <List
-                items={identityLists.ldap}
-                onRenderCell={onRenderIdentityCell}
-                onShouldVirtualize={onShouldVirtualize}
-              />
-            </div>
-          ) : null}
+        <section className={styles.content}>
+          <section className={styles.identityLists}>
+            {loginIdentityTypesToShow.map((type) => (
+              <div className={styles.loginIdentityGroup} key={type}>
+                <div className={listStyles.table}>
+                  <div className={listStyles.tableHeader}>
+                    <Text
+                      as="p"
+                      size="2"
+                      weight="medium"
+                      className={listStyles.tableTitle}
+                    >
+                      <FormattedMessage
+                        id={`UserDetails.connected-identities.${type}`}
+                      />
+                    </Text>
+                  </div>
+                  {identityLists[type].map((item) => (
+                    <React.Fragment key={item.id}>
+                      {onRenderIdentityCell(item)}
+                    </React.Fragment>
+                  ))}
+                </div>
+                {availableLoginIdIdentities.includes(type) ? (
+                  <button
+                    type="button"
+                    className={listStyles.addButton}
+                    onClick={() => {
+                      if (type === "email") {
+                        setEmailIdentityToEdit(undefined);
+                        setIsAddEmailDialogOpen(true);
+                      } else if (type === "phone") {
+                        setIsAddPhoneDialogOpen(true);
+                      } else {
+                        setUsernameIdentityToEdit(undefined);
+                        setIsAddUsernameDialogOpen(true);
+                      }
+                    }}
+                  >
+                    <PlusIcon width="1rem" height="1rem" />
+                    <FormattedMessage
+                      id={`UserDetails.connected-identities.add-${type}`}
+                    />
+                  </button>
+                ) : null}
+              </div>
+            ))}
+            {identityLists.oauth.length > 0 ? (
+              <div>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.subHeader}
+                >
+                  <FormattedMessage id="UserDetails.connected-identities.oauth" />
+                </Text>
+                {identityLists.oauth.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderIdentityCell(item)}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
+            {identityLists.biometric.length > 0 ? (
+              <div>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.subHeader}
+                >
+                  <FormattedMessage id="UserDetails.connected-identities.biometric" />
+                </Text>
+                {identityLists.biometric.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderIdentityCell(item)}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
+            {identityLists.anonymous.length > 0 ? (
+              <div>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.subHeader}
+                >
+                  <FormattedMessage id="UserDetails.connected-identities.anonymous" />
+                </Text>
+                {identityLists.anonymous.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderIdentityCell(item)}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
+            {identityLists.ldap.length > 0 ? (
+              <div>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.subHeader}
+                >
+                  <FormattedMessage id="UserDetails.connected-identities.ldap" />
+                </Text>
+                {identityLists.ldap.map((item) => (
+                  <React.Fragment key={item.id}>
+                    {onRenderIdentityCell(item)}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : null}
+          </section>
         </section>
       </div>
     );

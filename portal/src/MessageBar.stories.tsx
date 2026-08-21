@@ -2,12 +2,11 @@ import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MessageBar, MessageBarType, ThemeProvider } from "@fluentui/react";
 import RedMessageBar from "./RedMessageBar";
-import BlueMessageBar from "./BlueMessageBar";
 
-export type PortalMessageBarVariant = "Primary" | "Error" | "Warning";
+export type PortalMessageBarVariant = "Error" | "Warning";
 
 export interface PortalMessageBarStoryProps {
-  /** Primary → `BlueMessageBar`; Error → `RedMessageBar`; Warning → Fluent `MessageBar`. */
+  /** Error → `RedMessageBar`; Warning → Fluent `MessageBar`. */
   variant: PortalMessageBarVariant;
   isMultiline?: boolean;
   children: React.ReactNode;
@@ -21,14 +20,8 @@ function renderPortalMessageBar(
   const isMultiline = props.isMultiline !== false;
 
   switch (variant) {
-    case "Primary":
-      return (
-        <BlueMessageBar isMultiline={isMultiline}>{children}</BlueMessageBar>
-      );
     case "Error":
-      return (
-        <RedMessageBar isMultiline={isMultiline}>{children}</RedMessageBar>
-      );
+      return <RedMessageBar>{children}</RedMessageBar>;
     case "Warning":
       return (
         <MessageBar
@@ -58,13 +51,8 @@ const meta = {
   argTypes: {
     variant: {
       control: "select",
-      options: [
-        "Primary",
-        "Error",
-        "Warning",
-      ] satisfies PortalMessageBarVariant[],
-      description:
-        "Primary → BlueMessageBar, Error → RedMessageBar, Warning → Fluent MessageBar",
+      options: ["Error", "Warning"] satisfies PortalMessageBarVariant[],
+      description: "Error → RedMessageBar, Warning → Fluent MessageBar",
     },
     children: {
       control: "text",
@@ -74,23 +62,15 @@ const meta = {
     },
   },
   args: {
-    variant: "Primary",
+    variant: "Error",
     isMultiline: true,
     children:
-      "Informational notice using primary-tint styling (e.g. quota or feature hints). This sentence is long enough to wrap inside a 480px-wide message bar when multiline is on.",
+      "Something went wrong. Check your configuration and try again. Add more detail here so the line wraps when multiline is enabled — Fluent uses single-line ellipsis when multiline is off.",
   },
 } satisfies Meta<PortalMessageBarStoryProps>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Primary: Story = {
-  args: {
-    variant: "Primary",
-    children:
-      "Informational notice using primary-tint styling (e.g. quota or feature hints). This sentence is long enough to wrap inside a 480px-wide message bar when multiline is on.",
-  },
-};
 
 export const Error: Story = {
   args: {

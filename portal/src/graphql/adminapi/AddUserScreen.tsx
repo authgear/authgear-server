@@ -1,33 +1,17 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
-import { Context, FormattedMessage } from "../../intl";
-import {
-  Checkbox,
-  ChoiceGroup,
-  IChoiceGroupOption,
-  IChoiceGroupOptionProps,
-  IChoiceGroupStyleProps,
-  IChoiceGroupStyles,
-  IStyleFunctionOrObject,
-  Label,
-  MessageBar,
-  Text,
-} from "@fluentui/react";
+import * as Collapsible from "@radix-ui/react-collapsible";
+import { ChevronDownIcon, ChevronLeftIcon } from "@radix-ui/react-icons";
+import { Checkbox, Flex, RadioGroup, Separator, Text } from "@radix-ui/themes";
+import { FormattedMessage } from "../../intl";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useCreateUserMutation } from "./mutations/createUserMutation";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ScreenContent from "../../ScreenContent";
+import Link from "../../Link";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import PasswordField from "../../PasswordField";
-import { useCheckbox, useTextField } from "../../hook/useInput";
 import {
   PrimaryAuthenticatorType,
   LoginIDKeyType,
@@ -40,19 +24,17 @@ import {
   makeInvariantViolatedErrorParseRule,
 } from "../../error/parse";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
-import FormTextField from "../../FormTextField";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { PhoneTextFieldValues } from "../../PhoneTextField";
-import FormContainer, { FormSaveButton } from "../../FormContainer";
+import FormContainer from "../../FormContainer";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { Callout } from "../../components/v2/Callout/Callout";
+import { AccountValidPeriodForm } from "./UserDetailsAccountStatus";
+import { validatePassword } from "../../error/password";
 
 import styles from "./AddUserScreen.module.css";
-import { validatePassword } from "../../error/password";
-import HorizontalDivider from "../../HorizontalDivider";
-import { AccountValidPeriodForm } from "./UserDetailsAccountStatus";
-import WidgetTitle from "../../WidgetTitle";
-import WidgetDescription from "../../WidgetDescription";
-import { useSystemConfig } from "../../context/SystemConfigContext";
-import FoldableDiv from "../../FoldableDiv";
 
 enum PasswordCreationType {
   ManualEntry = "manual_entry",
@@ -78,6 +60,25 @@ const loginIdTypeNameIds: Record<LoginIDKeyType, string> = {
   email: "login-id-key.email",
   phone: "login-id-key.phone",
 };
+
+const passwordCreationTypeLabelIds: Record<PasswordCreationType, string> = {
+  [PasswordCreationType.ManualEntry]:
+    "AddUserScreen.password-creation-type.manual",
+  [PasswordCreationType.AutoGenerate]:
+    "AddUserScreen.password-creation-type.auto",
+  [PasswordCreationType.NoPassword]:
+    "AddUserScreen.password-creation-type.no-password",
+};
+
+const passwordCreationTypeDescriptionIds: Record<PasswordCreationType, string> =
+  {
+    [PasswordCreationType.ManualEntry]:
+      "AddUserScreen.password-creation-type.manual.description",
+    [PasswordCreationType.AutoGenerate]:
+      "AddUserScreen.password-creation-type.auto-generate.description",
+    [PasswordCreationType.NoPassword]:
+      "AddUserScreen.password-creation-type.no-password.description",
+  };
 
 function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
   if (loginIDTypes.length === 1) {
@@ -218,7 +219,7 @@ const PhoneField: React.VFC<PhoneFieldProps> = function PhoneField(props) {
     <FormPhoneTextField
       className={className}
       parentJSONPointer=""
-      fieldName="phone"
+      fieldName="login_id"
       errorRules={errorRules}
       allowlist={allowlist}
       pinnedList={pinnedList}
@@ -232,16 +233,10 @@ const ManualEntryPasswordField: React.VFC<{
   disabled: boolean;
   passwordPolicy: PasswordPolicyConfig;
   password: string;
-  onPasswordChange: (
-    event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-    newValue?: string
-  ) => void;
+  onPasswordChange: (value: string) => void;
   selectedLoginIDType: LoginIDKeyType | null;
   sendPassword: boolean;
-  onChangeSendPassword: (
-    event?: React.FormEvent<HTMLElement | HTMLInputElement>,
-    checked?: boolean
-  ) => void;
+  onChangeSendPassword: (checked: boolean | "indeterminate") => void;
 }> = function ManualEntryPasswordField(props) {
   const {
     disabled,
@@ -252,12 +247,11 @@ const ManualEntryPasswordField: React.VFC<{
     sendPassword,
     onChangeSendPassword,
   } = props;
-  const { renderToString } = useContext(Context);
 
   return (
-    <div>
+    <div className={styles.manualPasswordFields}>
       <PasswordField
-        label={renderToString("AddUserScreen.password.label")}
+        label={<FormattedMessage id="AddUserScreen.password.label" />}
         disabled={disabled}
         value={password}
         canRevealPassword={true}
@@ -268,13 +262,16 @@ const ManualEntryPasswordField: React.VFC<{
         fieldName="password"
       />
       {selectedLoginIDType === "email" ? (
-        <Checkbox
-          disabled={disabled}
-          className={styles.checkbox}
-          label={renderToString("AddUserScreen.send-password")}
-          checked={sendPassword}
-          onChange={onChangeSendPassword}
-        />
+        <label className={styles.checkboxRow}>
+          <Checkbox
+            disabled={disabled}
+            checked={sendPassword}
+            onCheckedChange={onChangeSendPassword}
+          />
+          <Text size="2">
+            <FormattedMessage id="AddUserScreen.send-password" />
+          </Text>
+        </label>
       ) : null}
     </div>
   );
@@ -292,11 +289,9 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     phoneInputAllowlist,
     phoneInputPinnedList,
   } = props;
-  const { renderToString } = useContext(Context);
+  const { canSave, isUpdating, onSave } = useFormContainerBaseContext();
 
-  const [advancedFolded, setAdvancedFolded] = useState(true);
-
-  const { themes } = useSystemConfig();
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const {
     username,
@@ -305,27 +300,48 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     selectedLoginIDType,
   } = state;
 
-  const { onChange: onUsernameChange } = useTextField((value) => {
-    setState((prev) => ({ ...prev, username: value }));
-  });
-  const { onChange: onEmailChange } = useTextField((value) => {
-    setState((prev) => ({ ...prev, email: value }));
-  });
+  const onUsernameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.currentTarget.value;
+      setState((prev) => ({ ...prev, username: value }));
+    },
+    [setState]
+  );
+  const onEmailChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.currentTarget.value;
+      setState((prev) => ({ ...prev, email: value }));
+    },
+    [setState]
+  );
   const onPhoneChange = useCallback(
     (value: string) => {
       setState((prev) => ({ ...prev, phone: value }));
     },
     [setState]
   );
-  const { onChange: onPasswordChange } = useTextField((value) => {
-    setState((prev) => ({ ...prev, manualEntryPassword: value }));
-  });
-  const { onChange: onChangeSendPassword } = useCheckbox((value) => {
-    setState((prev) => ({ ...prev, manualEntrySendPassword: value }));
-  });
-  const { onChange: onChangeForceChangeOnLogin } = useCheckbox((value) => {
-    setState((prev) => ({ ...prev, setPasswordExpired: value }));
-  });
+  const onPasswordChange = useCallback(
+    (value: string) => {
+      setState((prev) => ({ ...prev, manualEntryPassword: value }));
+    },
+    [setState]
+  );
+  const onChangeSendPassword = useCallback(
+    (checked: boolean | "indeterminate") => {
+      if (typeof checked === "boolean") {
+        setState((prev) => ({ ...prev, manualEntrySendPassword: checked }));
+      }
+    },
+    [setState]
+  );
+  const onChangeForceChangeOnLogin = useCallback(
+    (checked: boolean | "indeterminate") => {
+      if (typeof checked === "boolean") {
+        setState((prev) => ({ ...prev, setPasswordExpired: checked }));
+      }
+    },
+    [setState]
+  );
   const onPickAccountValidFrom = useCallback(
     (date: Date | null) => {
       setState((prev) => ({ ...prev, accountValidFrom: date }));
@@ -339,162 +355,37 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     [setState]
   );
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: ".", label: <FormattedMessage id="AddUserScreen.title" /> },
-    ];
-  }, []);
-
-  const renderManualEntryField = useCallback(
-    (
-      props?: IChoiceGroupOption & IChoiceGroupOptionProps,
-      defaultRender?: (
-        props?: IChoiceGroupOption & IChoiceGroupOptionProps
-      ) => JSX.Element | null
-    ) => {
-      return (
-        <>
-          {defaultRender?.(props)}
-          <div className={styles.choiceGroupOptionContent}>
-            <Text block={true}>
-              <FormattedMessage id="AddUserScreen.password-creation-type.manual.description" />
-            </Text>
-            {props?.checked ? (
-              <ManualEntryPasswordField
-                disabled={!props.checked}
-                passwordPolicy={passwordPolicy}
-                password={password}
-                onPasswordChange={onPasswordChange}
-                selectedLoginIDType={selectedLoginIDType}
-                sendPassword={state.manualEntrySendPassword}
-                onChangeSendPassword={onChangeSendPassword}
-              />
-            ) : null}
-          </div>
-        </>
-      );
-    },
-    [
-      passwordPolicy,
-      password,
-      onPasswordChange,
-      selectedLoginIDType,
-      state.manualEntrySendPassword,
-      onChangeSendPassword,
-    ]
-  );
-
-  const renderAutoGenerateField = useCallback(
-    (
-      props?: IChoiceGroupOption & IChoiceGroupOptionProps,
-      defaultRender?: (
-        props?: IChoiceGroupOption & IChoiceGroupOptionProps
-      ) => JSX.Element | null
-    ) => {
-      return (
-        <>
-          {defaultRender?.(props)}
-          <div className={styles.choiceGroupOptionContent}>
-            <Text block={true}>
-              <FormattedMessage id="AddUserScreen.password-creation-type.auto-generate.description" />
-            </Text>
-          </div>
-        </>
-      );
-    },
-    []
-  );
-
-  const renderNoPasswordField = useCallback(
-    (
-      props?: IChoiceGroupOption & IChoiceGroupOptionProps,
-      defaultRender?: (
-        props?: IChoiceGroupOption & IChoiceGroupOptionProps
-      ) => JSX.Element | null
-    ) => {
-      return (
-        <>
-          {defaultRender?.(props)}
-          <div className={styles.choiceGroupOptionContent}>
-            <Text block={true}>
-              <FormattedMessage id="AddUserScreen.password-creation-type.no-password.description" />
-            </Text>
-          </div>
-        </>
-      );
-    },
-    []
-  );
-
-  const passwordCreateionTypeOptions = useMemo((): IChoiceGroupOption[] => {
-    return [
-      {
-        key: PasswordCreationType.ManualEntry,
-        text: renderToString("AddUserScreen.password-creation-type.manual"),
-        onRenderField: renderManualEntryField,
-        styles: {
-          choiceFieldWrapper: { flex: "1 1 0px" },
-          field: { fontWeight: "600" },
-        },
-      },
-      {
-        key: PasswordCreationType.AutoGenerate,
-        text: renderToString("AddUserScreen.password-creation-type.auto"),
-        onRenderField: renderAutoGenerateField,
-        styles: {
-          choiceFieldWrapper: { flex: "1 1 0px" },
-          field: { fontWeight: "600" },
-        },
-      },
-      {
-        key: PasswordCreationType.NoPassword,
-        text: renderToString(
-          "AddUserScreen.password-creation-type.no-password"
-        ),
-        onRenderField: renderNoPasswordField,
-        styles: {
-          choiceFieldWrapper: { flex: "1 1 0px" },
-          field: { fontWeight: "600" },
-        },
-      },
-    ].filter((options) => {
-      switch (selectedLoginIDType) {
-        case "email":
-          return true;
-        case "phone":
-        case "username":
-          return [
-            PasswordCreationType.ManualEntry,
-            PasswordCreationType.NoPassword,
-          ].includes(options.key);
-        default:
-          return false;
-      }
-    });
-  }, [
-    renderToString,
-    renderManualEntryField,
-    renderAutoGenerateField,
-    renderNoPasswordField,
-    selectedLoginIDType,
-  ]);
+  const passwordCreationTypes = useMemo((): PasswordCreationType[] => {
+    switch (selectedLoginIDType) {
+      case "email":
+        return [
+          PasswordCreationType.ManualEntry,
+          PasswordCreationType.AutoGenerate,
+          PasswordCreationType.NoPassword,
+        ];
+      case "phone":
+      case "username":
+        return [
+          PasswordCreationType.ManualEntry,
+          PasswordCreationType.NoPassword,
+        ];
+      default:
+        return [];
+    }
+  }, [selectedLoginIDType]);
 
   const onChangePasswordCreationType = useCallback(
-    (_e, option: IChoiceGroupOption | undefined) => {
-      if (option != null) {
-        setState((prev) => {
-          const newPasswordCreationType = option.key as PasswordCreationType;
-          if (prev.passwordCreationType === newPasswordCreationType) {
-            return prev;
-          }
-
-          return {
-            ...prev,
-            passwordCreationType: newPasswordCreationType,
-          };
-        });
-      }
+    (value: string) => {
+      setState((prev) => {
+        const newPasswordCreationType = value as PasswordCreationType;
+        if (prev.passwordCreationType === newPasswordCreationType) {
+          return prev;
+        }
+        return {
+          ...prev,
+          passwordCreationType: newPasswordCreationType,
+        };
+      });
     },
     [setState]
   );
@@ -504,9 +395,9 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   }, [primaryAuthenticators, selectedLoginIDType]);
 
   const onSelectLoginIdType = useCallback(
-    (_event, options?: IChoiceGroupOption) => {
-      const loginIdType = (options?.key ?? null) as LoginIDKeyType | null;
-      if (!loginIdType || !loginIDKeyTypes.includes(loginIdType)) {
+    (value: string) => {
+      const loginIdType = value as LoginIDKeyType;
+      if (!loginIDKeyTypes.includes(loginIdType)) {
         return;
       }
       setState(() => ({
@@ -516,79 +407,14 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     },
     [setState]
   );
-  const renderUsernameField = useCallback(() => {
-    return (
-      <FormTextField
-        className={styles.textField}
-        value={username}
-        onChange={onUsernameChange}
-        parentJSONPointer=""
-        fieldName="username"
-        errorRules={errorRules}
-      />
-    );
-  }, [username, onUsernameChange]);
-
-  const renderEmailField = useCallback(() => {
-    return (
-      <FormTextField
-        className={styles.textField}
-        value={email}
-        onChange={onEmailChange}
-        parentJSONPointer=""
-        fieldName="email"
-        errorRules={errorRules}
-      />
-    );
-  }, [email, onEmailChange]);
-
-  const renderPhoneField = useCallback(() => {
-    return (
-      <PhoneField
-        className={styles.textField}
-        allowlist={phoneInputAllowlist}
-        pinnedList={phoneInputPinnedList}
-        onChange={onPhoneChange}
-      />
-    );
-  }, [onPhoneChange, phoneInputAllowlist, phoneInputPinnedList]);
-
-  const textFieldRenderer: Record<LoginIDKeyType, () => React.ReactNode> =
-    useMemo(
-      () => ({
-        username: renderUsernameField,
-        email: renderEmailField,
-        phone: renderPhoneField,
-      }),
-      [renderUsernameField, renderEmailField, renderPhoneField]
-    );
-
-  const loginIdTypeOptions: IChoiceGroupOption[] = useMemo(() => {
-    return loginIDTypes.map((loginIdType) => {
-      const messageId = loginIdTypeNameIds[loginIdType];
-      return {
-        key: loginIdType,
-        text: renderToString(messageId),
-      };
-    });
-  }, [loginIDTypes, renderToString]);
 
   // NOTE: cannot add user identity if none of three field is available
-  const canAddUser = loginIdTypeOptions.length > 0;
-
-  const loginIDTypeOptionChoiceGroupStyle = useMemo<
-    IStyleFunctionOrObject<IChoiceGroupStyleProps, IChoiceGroupStyles>
-  >(() => {
-    return {
-      flexContainer: { display: "flex", gap: "16px" },
-      label: { fontSize: "14px" },
-    };
-  }, []);
+  const canAddUser = loginIDTypes.length > 0;
 
   // TODO: improve empty state
   if (!canAddUser) {
     return (
-      <Text>
+      <Text as="p" size="2">
         <FormattedMessage id="AddUserScreen.cannot-add-user" />
       </Text>
     );
@@ -596,113 +422,260 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
 
   return (
     <ScreenContent>
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+      <div className={styles.widget}>
+        <Link to=".." className={styles.backLink}>
+          <ChevronLeftIcon className={styles.backLinkIcon} />
+          <span>
+            <FormattedMessage id="UsersScreen.title" />
+          </span>
+        </Link>
+        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <FormattedMessage id="AddUserScreen.title" />
+        </Text>
+      </div>
       <div className={styles.verticalForm}>
         {isPasskeyOnly ? (
           <div className={styles.widget}>
-            <MessageBar>
-              <FormattedMessage id="AddUserScreen.passkey-only.message" />
-            </MessageBar>
+            <Callout
+              type="info"
+              showCloseButton={false}
+              text={
+                <FormattedMessage id="AddUserScreen.passkey-only.message" />
+              }
+            />
           </div>
         ) : (
           <>
-            <ChoiceGroup
-              className={styles.widget}
-              styles={loginIDTypeOptionChoiceGroupStyle}
-              selectedKey={selectedLoginIDType}
-              options={loginIdTypeOptions}
-              onChange={onSelectLoginIdType}
-              label={renderToString(
-                "AddUserScreen.select-sign-in-method.label"
-              )}
-            />
+            <div className={styles.widget}>
+              <Text
+                as="p"
+                size="2"
+                weight="medium"
+                className={styles.fieldLabel}
+              >
+                <FormattedMessage id="AddUserScreen.select-sign-in-method.label" />
+              </Text>
+              <RadioGroup.Root
+                value={selectedLoginIDType ?? undefined}
+                onValueChange={onSelectLoginIdType}
+                className={styles.loginIdRadioGroup}
+              >
+                <Flex gap="4" wrap="wrap">
+                  {loginIDTypes.map((loginIdType) => (
+                    <Text
+                      key={loginIdType}
+                      as="label"
+                      size="2"
+                      className={styles.radioOptionLabel}
+                    >
+                      <Flex gap="2" align="center">
+                        <RadioGroup.Item value={loginIdType} />
+                        <FormattedMessage
+                          id={loginIdTypeNameIds[loginIdType]}
+                        />
+                      </Flex>
+                    </Text>
+                  ))}
+                </Flex>
+              </RadioGroup.Root>
+            </div>
 
-            {selectedLoginIDType ? (
-              <div className={styles.identityOption}>
-                <Label className={styles.identityOptionLabel}>
-                  <FormattedMessage
-                    id={loginIdTypeNameIds[selectedLoginIDType]}
-                  />
-                </Label>
-                {textFieldRenderer[selectedLoginIDType]()}
+            {selectedLoginIDType === "username" ? (
+              <div className={styles.widget}>
+                <TextField
+                  size="2"
+                  label={<FormattedMessage id={loginIdTypeNameIds.username} />}
+                  value={username}
+                  onChange={onUsernameChange}
+                  parentJSONPointer=""
+                  fieldName="login_id"
+                  errorRules={errorRules}
+                />
+              </div>
+            ) : null}
+
+            {selectedLoginIDType === "email" ? (
+              <div className={styles.widget}>
+                <TextField
+                  size="2"
+                  label={<FormattedMessage id={loginIdTypeNameIds.email} />}
+                  value={email}
+                  onChange={onEmailChange}
+                  parentJSONPointer=""
+                  fieldName="login_id"
+                  errorRules={errorRules}
+                />
+              </div>
+            ) : null}
+
+            {selectedLoginIDType === "phone" ? (
+              <div className={styles.widget}>
+                <Text
+                  as="label"
+                  size="2"
+                  weight="medium"
+                  className={styles.fieldLabel}
+                >
+                  <FormattedMessage id={loginIdTypeNameIds.phone} />
+                </Text>
+                <PhoneField
+                  allowlist={phoneInputAllowlist}
+                  pinnedList={phoneInputPinnedList}
+                  onChange={onPhoneChange}
+                />
               </div>
             ) : null}
 
             {passwordFieldNeeded ? (
               <>
-                <ChoiceGroup
-                  className={styles.widget}
-                  selectedKey={state.passwordCreationType}
-                  options={passwordCreateionTypeOptions}
-                  onChange={onChangePasswordCreationType}
-                  label={renderToString("AddUserScreen.password-setup.label")}
-                />
-                <HorizontalDivider className={styles.widget} />
                 <div className={styles.widget}>
-                  <Label>
+                  <Text
+                    as="p"
+                    size="2"
+                    weight="medium"
+                    className={styles.fieldLabel}
+                  >
+                    <FormattedMessage id="AddUserScreen.password-setup.label" />
+                  </Text>
+                  <RadioGroup.Root
+                    value={state.passwordCreationType}
+                    onValueChange={onChangePasswordCreationType}
+                    className={styles.passwordRadioGroup}
+                  >
+                    <Flex direction="column" gap="3">
+                      {passwordCreationTypes.map((option) => (
+                        <div key={option} className={styles.passwordRadioBlock}>
+                          <Text
+                            as="label"
+                            size="2"
+                            className={styles.radioOptionLabel}
+                          >
+                            <Flex gap="2" align="start">
+                              <RadioGroup.Item
+                                value={option}
+                                className={styles.passwordRadioItem}
+                              />
+                              <div className={styles.passwordRadioContent}>
+                                <Text as="span" size="2" weight="medium">
+                                  <FormattedMessage
+                                    id={passwordCreationTypeLabelIds[option]}
+                                  />
+                                </Text>
+                                <Text as="p" size="1" color="gray">
+                                  <FormattedMessage
+                                    id={
+                                      passwordCreationTypeDescriptionIds[option]
+                                    }
+                                  />
+                                </Text>
+                              </div>
+                            </Flex>
+                          </Text>
+                          {option === PasswordCreationType.ManualEntry &&
+                          state.passwordCreationType ===
+                            PasswordCreationType.ManualEntry ? (
+                            <div className={styles.passwordOptionExtra}>
+                              <ManualEntryPasswordField
+                                disabled={false}
+                                passwordPolicy={passwordPolicy}
+                                password={password}
+                                onPasswordChange={onPasswordChange}
+                                selectedLoginIDType={selectedLoginIDType}
+                                sendPassword={state.manualEntrySendPassword}
+                                onChangeSendPassword={onChangeSendPassword}
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </Flex>
+                  </RadioGroup.Root>
+                </div>
+                <Separator size="4" className={styles.widget} />
+                <div className={styles.widget}>
+                  <Text
+                    as="p"
+                    size="2"
+                    weight="medium"
+                    className={styles.fieldLabel}
+                  >
                     <FormattedMessage id="AddUserScreen.additional-option.label" />
-                  </Label>
-                  <Checkbox
-                    className={styles.checkbox}
-                    label={renderToString(
-                      "AddUserScreen.force-change-on-login"
-                    )}
-                    checked={
-                      state.passwordCreationType ===
-                      PasswordCreationType.NoPassword
-                        ? false
-                        : state.setPasswordExpired
-                    }
-                    onChange={onChangeForceChangeOnLogin}
-                    disabled={
-                      state.passwordCreationType ===
-                      PasswordCreationType.NoPassword
-                    }
-                  />
+                  </Text>
+                  <label className={styles.checkboxRow}>
+                    <Checkbox
+                      checked={
+                        state.passwordCreationType ===
+                        PasswordCreationType.NoPassword
+                          ? false
+                          : state.setPasswordExpired
+                      }
+                      onCheckedChange={onChangeForceChangeOnLogin}
+                      disabled={
+                        state.passwordCreationType ===
+                        PasswordCreationType.NoPassword
+                      }
+                    />
+                    <Text size="2">
+                      <FormattedMessage id="AddUserScreen.force-change-on-login" />
+                    </Text>
+                  </label>
                 </div>
               </>
             ) : null}
             {selectedLoginIDType ? (
-              <FoldableDiv
-                className={cn(styles.widget)}
-                label={<FormattedMessage id="AdduserScreen.advanced" />}
-                folded={advancedFolded}
-                setFolded={setAdvancedFolded}
+              <Collapsible.Root
+                className={cn(styles.widget, styles.advancedSection)}
+                open={advancedOpen}
+                onOpenChange={setAdvancedOpen}
               >
-                <div className={styles.accountValidPeriodSection}>
-                  <WidgetTitle>
-                    <FormattedMessage id="AddUserScreen.valid-period.title" />
-                  </WidgetTitle>
-                  <WidgetDescription
-                    styles={{
-                      root: {
-                        color: themes.main.semanticColors.bodySubtext,
-                      },
-                    }}
-                  >
-                    <FormattedMessage id="AddUserScreen.valid-period.description" />
-                  </WidgetDescription>
-                  <AccountValidPeriodForm
-                    className={styles.accountValidPeriodForm}
-                    accountValidFrom={state.accountValidFrom}
-                    accountValidUntil={state.accountValidUntil}
-                    onPickAccountValidFrom={onPickAccountValidFrom}
-                    onPickAccountValidUntil={onPickAccountValidUntil}
+                <Collapsible.Trigger className={styles.advancedTrigger}>
+                  <Text as="span" size="2" weight="medium">
+                    <FormattedMessage id="AdduserScreen.advanced" />
+                  </Text>
+                  <ChevronDownIcon
+                    className={styles.advancedChevron}
+                    aria-hidden={true}
                   />
-                </div>
-              </FoldableDiv>
+                </Collapsible.Trigger>
+                <Collapsible.Content className={styles.advancedContent}>
+                  <div className={styles.accountValidPeriodSection}>
+                    <Text
+                      as="p"
+                      size="3"
+                      weight="medium"
+                      className={styles.sectionTitle}
+                    >
+                      <FormattedMessage id="AddUserScreen.valid-period.title" />
+                    </Text>
+                    <Text
+                      as="p"
+                      size="2"
+                      color="gray"
+                      className={styles.sectionDescription}
+                    >
+                      <FormattedMessage id="AddUserScreen.valid-period.description" />
+                    </Text>
+                    <AccountValidPeriodForm
+                      className={styles.accountValidPeriodForm}
+                      accountValidFrom={state.accountValidFrom}
+                      accountValidUntil={state.accountValidUntil}
+                      onPickAccountValidFrom={onPickAccountValidFrom}
+                      onPickAccountValidUntil={onPickAccountValidUntil}
+                    />
+                  </div>
+                </Collapsible.Content>
+              </Collapsible.Root>
             ) : null}
           </>
         )}
       </div>
-      <div className={cn(styles.widget, "pt-7")}>
-        <FormSaveButton
-          saveButtonProps={{
-            labelId: "AddUserScreen.add-user.label",
-            iconProps: {
-              iconName: "Add",
-            },
-          }}
+      <div className={cn(styles.widget, styles.saveButtonRow)}>
+        <PrimaryButton
+          size="2"
+          disabled={!canSave}
+          loading={isUpdating}
+          text={<FormattedMessage id="AddUserScreen.add-user.label" />}
+          onClick={onSave}
         />
       </div>
     </ScreenContent>

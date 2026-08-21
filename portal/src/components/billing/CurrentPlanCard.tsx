@@ -1,18 +1,11 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import {
-  IButtonProps,
-  ITooltipHostProps,
-  PartialTheme,
-  ProgressIndicator,
-  Text,
-  ThemeProvider,
-  TooltipHost,
-  useTheme,
-} from "@fluentui/react";
+import cn from "classnames";
+import { Text as RadixText } from "@radix-ui/themes";
+import { useNavigate } from "react-router-dom";
 import styles from "./CurrentPlanCard.module.css";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import { useId } from "@fluentui/react-hooks";
-import LinkButton from "../../LinkButton";
+import { Tooltip } from "../v2/Tooltip/Tooltip";
+import { TextButton } from "../v2/Button/TextButton/TextButton";
 import {
   SMSCost,
   SMSUsage,
@@ -32,7 +25,6 @@ import {
   SubscriptionUsage,
   Usage,
 } from "../../graphql/portal/globalTypes.generated";
-import { useNavigate } from "react-router-dom";
 
 interface CurrentPlanCardProps {
   planName: string;
@@ -53,7 +45,6 @@ export function CurrentPlanCard({
     if (!isStripePlan(planName)) {
       return undefined;
     }
-    // show subscription fee only when subscription is active
     if (!hasSubscription) {
       return undefined;
     }
@@ -71,7 +62,6 @@ export function CurrentPlanCard({
     if (thisMonthSubscriptionUsage == null) {
       return undefined;
     }
-    // show sms cost only when subscription is active
     if (!hasSubscription) {
       return undefined;
     }
@@ -89,7 +79,6 @@ export function CurrentPlanCard({
     if (thisMonthSubscriptionUsage == null) {
       return undefined;
     }
-    // show whatsapp cost only when subscription is active
     if (!hasSubscription) {
       return undefined;
     }
@@ -149,11 +138,13 @@ function CostItemRow({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex items-end justify-between">
-      <Text variant="medium" className="font-semibold">
+    <div className={styles.costItemRow}>
+      <RadixText size="2" className={styles.costItemLabel}>
         {label}
-      </Text>
-      <Text variant="medium">{value}</Text>
+      </RadixText>
+      <RadixText size="2" className={styles.costItemValue}>
+        {value}
+      </RadixText>
     </div>
   );
 }
@@ -190,30 +181,40 @@ function FixedCostSection({
 
   return (
     <section className={styles.card}>
-      <div className="space-y-2">
-        <Text block={true} variant="mediumPlus" className="font-semibold">
+      <div className={styles.sectionHeader}>
+        <RadixText
+          as="p"
+          size="3"
+          weight="medium"
+          className={styles.sectionTitle}
+        >
           <FormattedMessage id="CurrentPlanCard.subscriptionFee.title" />
-        </Text>
+        </RadixText>
         {baseAmount != null ? (
-          <div className="flex items-end">
-            <Text variant="xxLarge">
+          <div className={styles.priceRow}>
+            <RadixText size="8">
               <FormattedMessage
                 id="CurrentPlanCard.subscriptionFee.value"
                 values={{ price: baseAmount.toLocaleString(locale) }}
               />
-            </Text>
-            <Text variant="large" className="ml-2 font-semibold">
+            </RadixText>
+            <RadixText size="4" weight="medium" className={styles.priceUnit}>
               <FormattedMessage id="CurrentPlanCard.subscriptionFee.unit" />
-            </Text>
+            </RadixText>
           </div>
         ) : (
-          <Text variant="xxLarge">-</Text>
+          <RadixText size="8">-</RadixText>
         )}
       </div>
-      <div className="space-y-2">
-        <Text block={true} variant="medium" className="font-semibold">
+      <div className={styles.detailsSection}>
+        <RadixText
+          as="p"
+          size="2"
+          weight="medium"
+          className={styles.detailsSectionTitle}
+        >
           <FormattedMessage id="CurrentPlanCard.subscriptionFee.include" />
-        </Text>
+        </RadixText>
         <CostItemRow
           label={
             <FormattedMessage
@@ -243,6 +244,88 @@ function formatMessagePrice(locale: string, price: number) {
   });
 }
 
+function FormattedLabelWithParenBreak({
+  id,
+}: {
+  id: string;
+}): React.ReactElement {
+  return (
+    <FormattedMessage
+      id={id}
+      values={{
+        // eslint-disable-next-line react/no-unstable-nested-components
+        suffix: (chunks: React.ReactNode) => (
+          <>
+            <br />
+            {chunks}
+          </>
+        ),
+      }}
+    />
+  );
+}
+
+function MeteredCostCard({
+  label,
+  total,
+  unitPrice,
+  quantity,
+  countOnly,
+}: {
+  label: React.ReactNode;
+  total?: number;
+  unitPrice?: number;
+  quantity?: number;
+  countOnly?: number;
+}) {
+  const { locale } = useContext(MessageContext);
+
+  return (
+    <div className={styles.meteredCostCard}>
+      <RadixText
+        as="p"
+        size="2"
+        weight="medium"
+        className={styles.meteredCostCardLabel}
+      >
+        {label}
+      </RadixText>
+      {total != null && unitPrice != null && quantity != null ? (
+        <>
+          <RadixText
+            as="p"
+            size="7"
+            weight="medium"
+            className={styles.meteredCostCardValue}
+          >
+            <FormattedMessage
+              id="CurrentPlanCard.whatsappSMSFee.value"
+              values={{ price: formatMessagePrice(locale, total) }}
+            />
+          </RadixText>
+          <RadixText as="p" size="2" className={styles.meteredCostCardDetail}>
+            <FormattedMessage
+              id="CurrentPlanCard.whatsappSMSFee.value"
+              values={{ price: formatMessagePrice(locale, unitPrice) }}
+            />
+            {" × "}
+            {quantity.toLocaleString(locale)}
+          </RadixText>
+        </>
+      ) : countOnly != null ? (
+        <RadixText
+          as="p"
+          size="7"
+          weight="medium"
+          className={styles.meteredCostCardValue}
+        >
+          {countOnly.toLocaleString(locale)}
+        </RadixText>
+      ) : null}
+    </div>
+  );
+}
+
 function MeteredCostSection({
   smsCost,
   smsUsage,
@@ -265,156 +348,95 @@ function MeteredCostSection({
 
   return (
     <section className={styles.card}>
-      <div className="space-y-2">
-        <Text block={true} variant="mediumPlus" className="font-semibold">
-          <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.title" />
-        </Text>
-        <div className="flex items-end">
+      <div className={styles.sectionHeader}>
+        <RadixText
+          as="p"
+          size="3"
+          weight="medium"
+          className={styles.sectionTitle}
+        >
+          <FormattedLabelWithParenBreak id="CurrentPlanCard.whatsappSMSFee.title" />
+        </RadixText>
+        <div className={styles.priceRow}>
           {totalCost != null ? (
             <>
-              <Text variant="xxLarge">
+              <RadixText size="8">
                 <FormattedMessage
                   id="CurrentPlanCard.whatsappSMSFee.value"
                   values={{ price: totalCost.toLocaleString(locale) }}
                 />
-              </Text>
-              <Text variant="large" className="ml-2 font-semibold">
+              </RadixText>
+              <RadixText size="4" weight="medium" className={styles.priceUnit}>
                 <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.unit" />
-              </Text>
+              </RadixText>
             </>
           ) : (
-            <Text variant="large" className="ml-2 font-semibold">
+            <RadixText size="4" weight="medium">
               -
-            </Text>
+            </RadixText>
           )}
         </div>
       </div>
-      <div className="space-y-2">
+      <div className={styles.meteredCostGrid}>
         {smsCost != null || smsUsage != null ? (
-          <CostItemRow
+          <MeteredCostCard
             label={
-              <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.sms.northAmerica" />
+              <FormattedLabelWithParenBreak id="CurrentPlanCard.whatsappSMSFee.sms.northAmerica" />
             }
-            value={
-              smsCost != null ? (
-                <FormattedMessage
-                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-                  values={{
-                    unitPrice: formatMessagePrice(
-                      locale,
-                      smsCost.northAmericaUnitCost
-                    ),
-                    quantity: smsCost.northAmericaCount,
-                    total: formatMessagePrice(
-                      locale,
-                      smsCost.northAmericaTotalCost
-                    ),
-                  }}
-                />
-              ) : (
-                <FormattedMessage
-                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSCount"
-                  values={{
-                    quantity: smsUsage!.northAmericaCount,
-                  }}
-                />
-              )
+            total={smsCost?.northAmericaTotalCost}
+            unitPrice={smsCost?.northAmericaUnitCost}
+            quantity={smsCost?.northAmericaCount ?? smsUsage?.northAmericaCount}
+            countOnly={
+              smsCost == null ? smsUsage?.northAmericaCount : undefined
             }
           />
         ) : null}
         {smsCost != null || smsUsage != null ? (
-          <CostItemRow
+          <MeteredCostCard
             label={
-              <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.sms.other" />
+              <FormattedLabelWithParenBreak id="CurrentPlanCard.whatsappSMSFee.sms.other" />
             }
-            value={
-              smsCost != null ? (
-                <FormattedMessage
-                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-                  values={{
-                    unitPrice: formatMessagePrice(
-                      locale,
-                      smsCost.otherRegionsUnitCost
-                    ),
-                    quantity: smsCost.otherRegionsCount,
-                    total: formatMessagePrice(
-                      locale,
-                      smsCost.otherRegionsTotalCost
-                    ),
-                  }}
-                />
-              ) : (
-                <FormattedMessage
-                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSCount"
-                  values={{
-                    quantity: smsUsage!.otherRegionsCount,
-                  }}
-                />
-              )
+            total={smsCost?.otherRegionsTotalCost}
+            unitPrice={smsCost?.otherRegionsUnitCost}
+            quantity={smsCost?.otherRegionsCount ?? smsUsage?.otherRegionsCount}
+            countOnly={
+              smsCost == null ? smsUsage?.otherRegionsCount : undefined
             }
           />
         ) : null}
         {whatsappCost != null || whatsappUsage != null ? (
-          <CostItemRow
+          <MeteredCostCard
             label={
-              <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica" />
+              <FormattedLabelWithParenBreak id="CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica" />
             }
-            value={
-              whatsappCost != null ? (
-                <FormattedMessage
-                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-                  values={{
-                    unitPrice: formatMessagePrice(
-                      locale,
-                      whatsappCost.northAmericaUnitCost
-                    ),
-                    quantity: whatsappCost.northAmericaCount,
-                    total: formatMessagePrice(
-                      locale,
-                      whatsappCost.northAmericaTotalCost
-                    ),
-                  }}
-                />
-              ) : (
-                <FormattedMessage
-                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSCount"
-                  values={{
-                    quantity: whatsappUsage!.northAmericaCount,
-                  }}
-                />
-              )
+            total={whatsappCost?.northAmericaTotalCost}
+            unitPrice={whatsappCost?.northAmericaUnitCost}
+            quantity={
+              whatsappCost?.northAmericaCount ??
+              whatsappUsage?.northAmericaCount
+            }
+            countOnly={
+              whatsappCost == null
+                ? whatsappUsage?.northAmericaCount
+                : undefined
             }
           />
         ) : null}
         {whatsappCost != null || whatsappUsage != null ? (
-          <CostItemRow
+          <MeteredCostCard
             label={
-              <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.whatsapp.other" />
+              <FormattedLabelWithParenBreak id="CurrentPlanCard.whatsappSMSFee.whatsapp.other" />
             }
-            value={
-              whatsappCost != null ? (
-                <FormattedMessage
-                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-                  values={{
-                    unitPrice: formatMessagePrice(
-                      locale,
-                      whatsappCost.otherRegionsUnitCost
-                    ),
-                    quantity: whatsappCost.otherRegionsCount,
-                    total: formatMessagePrice(
-                      locale,
-                      whatsappCost.otherRegionsTotalCost
-                    ),
-                  }}
-                />
-              ) : (
-                <FormattedMessage
-                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSCount"
-                  values={{
-                    quantity: whatsappUsage!.otherRegionsCount,
-                  }}
-                />
-              )
+            total={whatsappCost?.otherRegionsTotalCost}
+            unitPrice={whatsappCost?.otherRegionsUnitCost}
+            quantity={
+              whatsappCost?.otherRegionsCount ??
+              whatsappUsage?.otherRegionsCount
+            }
+            countOnly={
+              whatsappCost == null
+                ? whatsappUsage?.otherRegionsCount
+                : undefined
             }
           />
         ) : null}
@@ -432,119 +454,127 @@ function MAUUsageSection({
   mauLimit: number | undefined;
   mauPrevious: number | undefined;
 }) {
+  const { locale } = useContext(MessageContext);
   const navigate = useNavigate();
   const onUpgrade = useCallback(() => {
     navigate({ hash: "Subscription" });
   }, [navigate]);
 
+  const percentComplete =
+    mauCurrent != null && mauLimit != null ? mauCurrent / mauLimit : null;
+  const limitReached =
+    mauCurrent != null && mauLimit != null ? mauCurrent >= mauLimit : false;
+
+  const mauTooltip = (
+    <FormattedMessage
+      id="CurrentPlanCard.mau.tooltip"
+      values={{
+        // eslint-disable-next-line react/no-unstable-nested-components
+        br: () => <br />,
+      }}
+    />
+  );
+
   return (
     <section className={styles.card}>
-      <UsageMeter
-        title={<FormattedMessage id="CurrentPlanCard.mau.title" />}
-        current={mauCurrent}
-        limit={mauLimit}
-        previous={mauPrevious}
-        warnPercentage={0.8}
-        tooltip={<FormattedMessage id="CurrentPlanCard.mau.tooltip" />}
-        onClickUpgrade={onUpgrade}
-      />
-    </section>
-  );
-}
-
-interface UsageMeterProps {
-  title: React.ReactNode;
-  tooltip: ITooltipHostProps["content"];
-  current?: number;
-  limit?: number;
-  previous?: number;
-  warnPercentage: number;
-  onClickUpgrade?: IButtonProps["onClick"];
-}
-
-const USAGE_METER_THEME_WARN: PartialTheme = {
-  palette: {
-    themePrimary: "#F9597A",
-  },
-};
-
-function UsageMeter(props: UsageMeterProps): React.ReactElement {
-  const {
-    title,
-    tooltip,
-    current,
-    limit,
-    previous,
-    warnPercentage,
-    onClickUpgrade,
-  } = props;
-  const percentComplete =
-    current != null && limit != null ? current / limit : null;
-  const id = useId("usage-meter");
-  const calloutProps = useMemo(() => {
-    return {
-      target: `#${id}`,
-    };
-  }, [id]);
-  const currentTheme = useTheme();
-  const limitReached =
-    current != null && limit != null ? current >= limit : false;
-  const theme = limitReached ? USAGE_METER_THEME_WARN : currentTheme;
-  const usageStyles = {
-    root: {
-      color: limitReached
-        ? USAGE_METER_THEME_WARN.palette?.themePrimary
-        : currentTheme.palette.neutralSecondary,
-    },
-  };
-  return (
-    <TooltipHost
-      hostClassName="col-span-2"
-      content={tooltip}
-      calloutProps={calloutProps}
-    >
-      <div className="flex flex-col">
-        <Text
-          id={id}
-          block={true}
-          variant="mediumPlus"
-          className="self-start font-semibold mb-2"
-        >
-          {title}
-        </Text>
-        <ThemeProvider theme={theme}>
-          {percentComplete != null ? (
-            <ProgressIndicator
-              className="w-full"
-              percentComplete={percentComplete}
-            />
-          ) : null}
-          <Text block={true} styles={usageStyles} variant="medium">
-            {limit != null && current != null
-              ? `${current} / ${limit}`
-              : limit == null && current != null
-              ? `${current}`
-              : null}
-            {previous != null ? (
+      <div className={styles.sectionHeader}>
+        <Tooltip content={mauTooltip}>
+          <RadixText
+            as="p"
+            size="3"
+            weight="medium"
+            className={cn(styles.sectionTitle, styles.sectionTitleWithTooltip)}
+          >
+            <FormattedMessage id="CurrentPlanCard.mau.title" />
+          </RadixText>
+        </Tooltip>
+      </div>
+      <div className={styles.meteredCostGrid}>
+        <div className={cn(styles.meteredCostCard, styles.mauMonthCard)}>
+          <RadixText
+            as="p"
+            size="2"
+            weight="medium"
+            className={styles.meteredCostCardLabel}
+          >
+            <FormattedMessage id="CurrentPlanCard.mau.thisMonth" />
+          </RadixText>
+          <RadixText
+            as="p"
+            size="7"
+            weight="medium"
+            className={cn(
+              styles.meteredCostCardValue,
+              limitReached ? styles["usageText--warn"] : null
+            )}
+          >
+            {mauCurrent != null ? mauCurrent.toLocaleString(locale) : "-"}
+          </RadixText>
+          {mauLimit != null && mauCurrent != null ? (
+            <RadixText as="p" size="2" className={styles.meteredCostCardDetail}>
               <FormattedMessage
-                id="CurrentPlanCard.mau.previous"
+                id="CurrentPlanCard.mau.usageOfLimit"
                 values={{
-                  count: previous,
+                  current: mauCurrent.toLocaleString(locale),
+                  limit: mauLimit.toLocaleString(locale),
                 }}
               />
-            ) : null}
-          </Text>
-          {limitReached ? (
-            <LinkButton onClick={onClickUpgrade}>
-              <FormattedMessage id="CurrentPlanCard.mau.limitReached" />
-            </LinkButton>
-          ) : percentComplete != null && percentComplete >= warnPercentage ? (
-            <LinkButton onClick={onClickUpgrade}>
-              <FormattedMessage id="CurrentPlanCard.mau.approachingLimit" />
-            </LinkButton>
+            </RadixText>
           ) : null}
-        </ThemeProvider>
+          {percentComplete != null ? (
+            <div className={styles.progressBar}>
+              <div
+                className={cn(
+                  styles.progressBarFill,
+                  limitReached ? styles["progressBarFill--warn"] : null
+                )}
+                style={{ width: `${Math.min(percentComplete, 1) * 100}%` }}
+              />
+            </div>
+          ) : null}
+          {limitReached ? (
+            <div className={styles.upgradeLink}>
+              <TextButton
+                variant="default"
+                size="3"
+                text={
+                  <FormattedMessage id="CurrentPlanCard.mau.limitReached" />
+                }
+                onClick={onUpgrade}
+              />
+            </div>
+          ) : percentComplete != null && percentComplete >= 0.8 ? (
+            <div className={styles.upgradeLink}>
+              <TextButton
+                variant="default"
+                size="3"
+                text={
+                  <FormattedMessage id="CurrentPlanCard.mau.approachingLimit" />
+                }
+                onClick={onUpgrade}
+              />
+            </div>
+          ) : null}
+        </div>
+        <div className={cn(styles.meteredCostCard, styles.mauMonthCard)}>
+          <RadixText
+            as="p"
+            size="2"
+            weight="medium"
+            className={styles.meteredCostCardLabel}
+          >
+            <FormattedMessage id="CurrentPlanCard.mau.lastMonth" />
+          </RadixText>
+          <RadixText
+            as="p"
+            size="7"
+            weight="medium"
+            className={styles.meteredCostCardValue}
+          >
+            {mauPrevious != null ? mauPrevious.toLocaleString(locale) : "-"}
+          </RadixText>
+        </div>
       </div>
-    </TooltipHost>
+    </section>
   );
 }

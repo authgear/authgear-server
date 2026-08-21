@@ -6,47 +6,68 @@
 }
 
 .body {
-  padding: 20px 40px 40px;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
   display: flex;
   flex-direction: column;
-  row-gap: 30px;
-}
-
-.createButton {
-  align-self: flex-start;
-}
-
-.cardsContainer {
-  display: flex;
-  flex-wrap: wrap;
   row-gap: 20px;
-  column-gap: 20px;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  /* The v2 TextField reserves an error/hint row below the input, making its
+     box 4px taller than the input. Align to the top so the input lines up
+     with the Create Project button instead of being centered against that
+     reserved space. */
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
 }
 
 .card {
-  display: block;
-  padding: 20px;
-  width: 100%;
-  max-width: 300px;
-  min-height: 125px;
-  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  padding: 16px;
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-3);
+  background-color: var(--color-panel-solid);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--accent-8);
+  background-color: var(--accent-a2);
 }
 
 .cardAppID {
-  display: block;
-  font-weight: 700;
-  color: #000000;
-  margin-bottom: 15px;
-  font-size: 14px;
-}
-
-.cardAppName {
-  display: block;
-  font-weight: 500;
-  color: #176df3;
-  margin-bottom: 20px;
-  font-size: 22px;
+  color: var(--gray-12);
   /* Deprecated but safari does not support "overflow-wrap: break-word;" */
   /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated */
   word-break: break-word;
+}
+
+.cardAppName {
+  color: var(--gray-a11);
+  /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated */
+  word-break: break-word;
+}
+
+.emptyText {
+  padding: 24px 0;
+  text-align: center;
 }

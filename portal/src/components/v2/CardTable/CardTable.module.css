@@ -1,0 +1,59 @@
+.wrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide the horizontal scrollbar on desktop; the table can still scroll if a
+   caller's columns exceed the available width. */
+@media (min-width: 1081px) {
+  .wrapper {
+    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .wrapper::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.table {
+  min-width: 100%;
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-3);
+  overflow: hidden;
+  background-color: var(--color-panel-solid);
+}
+
+.header {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  background-color: var(--gray-a2);
+}
+
+.headerCell {
+  @apply flex items-center px-4 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.row {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a4);
+  background-color: transparent;
+  transition: background-color 0.12s ease;
+}
+
+.row:hover {
+  background-color: var(--gray-a2);
+}
+
+.cell {
+  @apply flex items-center px-4 py-3 text-sm;
+  color: var(--gray-12);
+}

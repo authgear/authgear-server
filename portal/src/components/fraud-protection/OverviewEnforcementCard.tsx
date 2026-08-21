@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
-import { Icon, Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
+import { LockClosedIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 import { Context } from "../../intl";
-import Tooltip from "../../Tooltip";
+import { Tooltip } from "../v2/Tooltip/Tooltip";
 import styles from "./OverviewMetricCard.module.css";
 
 export interface OverviewEnforcementCardProps {
@@ -19,32 +20,28 @@ const OverviewEnforcementCard: React.VFC<OverviewEnforcementCardProps> =
       <div className={styles.metricCardPrimary}>
         <div className={styles.metricCardHeader}>
           <div className={styles.metricIcon}>
-            <Icon iconName="Shield" />
+            <LockClosedIcon />
           </div>
           <div className={styles.metricHeadingGroup}>
             <div className={styles.metricTitleRow}>
               <Text
-                as="h3"
-                variant="medium"
-                block={true}
+                as="p"
+                size="2"
+                weight="medium"
                 className={styles.metricTitle}
               >
                 {title}
               </Text>
               <Tooltip
-                tooltipMessageId="FraudProtectionConfigurationScreen.enforcement.tooltip"
-                className={styles.metricInfoTooltip}
+                content={renderToString(
+                  "FraudProtectionConfigurationScreen.enforcement.tooltip"
+                )}
               >
-                <Icon iconName="Info" className={styles.metricInfoIcon} />
+                <InfoCircledIcon className={styles.metricInfoIcon} />
               </Tooltip>
             </div>
             {description != null ? (
-              <Text
-                as="div"
-                variant="medium"
-                block={true}
-                className={styles.metricDescription}
-              >
+              <Text as="div" size="2" className={styles.metricDescription}>
                 {description}
               </Text>
             ) : null}

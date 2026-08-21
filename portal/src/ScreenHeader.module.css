@@ -3,78 +3,220 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid gray;
+  border-bottom: 1px solid var(--gray-a6);
+  background-color: var(--color-background);
   height: var(--screen-header-height);
   position: sticky;
   top: 0;
   z-index: 9999;
+  /* Right padding for the avatar/links; on mobile also pad the left so the
+     hamburger isn't flush against the edge (on desktop the logo pads left). */
+  padding-right: 16px;
+
+  @apply mobile:pl-4;
 }
 
 .mobileView {
-  @apply hidden mobile:flex mobile:flex-row mobile:items-center mobile:text-white;
+  @apply hidden mobile:flex mobile:flex-row mobile:items-center;
 }
 
 .desktopView {
-  @apply mobile:hidden flex flex-row items-center text-white;
-}
-
-.headerMobile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: var(--screen-header-height);
+  @apply mobile:hidden flex flex-row items-center;
 }
 
 .headerDivider {
   display: inline-block;
   flex-shrink: 0;
   width: 1px;
-  height: 16px;
-  margin: 0 10px;
-  background-color: rgb(255 255 255 / 0.5);
+  height: 20px;
+  margin: 0 12px;
+  background-color: var(--gray-a5);
 }
 
 .logoLink {
   display: flex;
-}
-
-.logo {
-  height: 24px;
-  margin: 12px 10px;
-}
-
-.logoNavHeader {
-  height: 24px;
-  margin: 12px;
-}
-
-.logoutButton {
-  display: block;
-  padding: 6px;
-  margin: 6px;
-  border-radius: 2px;
-  background-color: orange;
+  align-items: center;
 }
 
 .hamburger {
-  margin: 8px 20px 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-2);
+  cursor: pointer;
+  color: var(--gray-12);
 }
 
-.links {
-  @apply ml-auto mr-5 mobile:mr-4;
-  @apply flex;
-  @apply gap-10 tablet:gap-4;
+.hamburger:hover {
+  background-color: var(--gray-a3);
 }
 
-.link {
-  @apply inline-flex;
-  @apply text-center;
+.hamburgerIcon {
+  width: 20px;
+  height: 20px;
+}
 
-  &:hover {
-    text-decoration: none;
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+
+.drawerOverlay {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background-color: var(--black-a6);
+  cursor: pointer;
+  animation: drawerOverlayIn 0.2s ease;
+}
+
+.drawerPanel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: 280px;
+  max-width: 85vw;
+  flex-direction: column;
+  background-color: var(--color-background);
+  box-shadow: var(--shadow-5);
+  animation: drawerPanelIn 0.2s ease;
+}
+
+/* Exit animations while the drawer is closing (still mounted). */
+.drawerClosing .drawerOverlay {
+  animation: drawerOverlayOut 0.2s ease forwards;
+}
+
+.drawerClosing .drawerPanel {
+  animation: drawerPanelOut 0.2s ease forwards;
+}
+
+@keyframes drawerOverlayIn {
+  from {
+    opacity: 0;
   }
 
-  span {
-    @apply text-white;
+  to {
+    opacity: 1;
   }
+}
+
+@keyframes drawerOverlayOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes drawerPanelIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawerPanelOut {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.drawerHeader {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  height: var(--screen-header-height);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--gray-a6);
+}
+
+.drawerBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.actions {
+  @apply ml-auto flex items-center;
+  gap: 16px;
+}
+
+.actionLinks {
+  @apply mobile:hidden flex items-center;
+  gap: 20px;
+}
+
+.actionLink {
+  @apply inline-flex items-center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--gray-a11);
+}
+
+.actionLink:hover {
+  text-decoration: none;
+  color: var(--gray-12);
+}
+
+.actionIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.avatarButton {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 9999px;
+}
+
+.userMenuIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 220px;
+  padding: var(--space-2) var(--space-3);
+}
+
+.userMenuName {
+  font-size: var(--font-size-2);
+  font-weight: 500;
+  color: var(--gray-12);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuEmail {
+  font-size: var(--font-size-1);
+  color: var(--gray-a11);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

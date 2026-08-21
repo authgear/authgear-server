@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useState, useContext } from "react";
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import WidgetTitle from "../../WidgetTitle";
-import { SearchBox, Text } from "@fluentui/react";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { useAddResourceToClientIdMutation } from "../../graphql/adminapi/mutations/addResourceToClientID.generated";
 import { useRemoveResourceFromClientIdMutation } from "../../graphql/adminapi/mutations/removeResourceFromClientID.generated";
@@ -17,8 +17,14 @@ import {
 } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { parseRawError } from "../../error/parse";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { PortalAPIAppConfig } from "../../types";
+import Link from "../../Link";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import styles from "./APIResourceDetailsApplicationsTab.module.css";
 
 export function APIResourceDetailsScreenApplicationsTab({
   resource,
@@ -32,7 +38,6 @@ export function APIResourceDetailsScreenApplicationsTab({
   const [removeResource] = useRemoveResourceFromClientIdMutation();
   const { setErrors } = useErrorMessageBarContext();
   const { renderToString } = useContext(MessageContext);
-  const { themes } = useSystemConfig();
   const [disabledToggleClientIDs, setDisabledToggleClientIDs] = useState<
     string[]
   >([]);
@@ -71,14 +76,15 @@ export function APIResourceDetailsScreenApplicationsTab({
   }, [applications, searchKeyword]);
 
   const onSearchQueryChange = useCallback(
-    (
-      _event: React.ChangeEvent<HTMLInputElement> | undefined,
-      newValue: string | undefined
-    ) => {
-      setSearchKeyword(newValue ?? "");
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchKeyword(e.target.value);
     },
     []
   );
+
+  const onClearSearchKeyword = useCallback(() => {
+    setSearchKeyword("");
+  }, []);
 
   const navigate = useNavigate();
 
@@ -102,82 +108,33 @@ export function APIResourceDetailsScreenApplicationsTab({
     setApplicationToUnauthorize(null);
   }, []);
 
-  const handleConfirmUnauthorize = useCallback(async () => {
+  const handleConfirmUnauthorize = useCallback(() => {
     if (!applicationToUnauthorize) {
       return;
     }
-    try {
-      setDisabledToggleClientIDs((prev) => [
-        ...prev,
-        applicationToUnauthorize.clientID,
-      ]);
-
-      const newResource = {
-        ...resource,
-        clientIDs: resource.clientIDs.filter(
-          (clientID) => clientID !== applicationToUnauthorize.clientID
-        ),
-      };
-
-      await removeResource({
-        variables: {
-          clientID: applicationToUnauthorize.clientID,
-          resourceURI: resource.resourceURI,
-        },
-        refetchQueries: [ResourceQueryDocument],
-        awaitRefetchQueries: true,
-        optimisticResponse: {
-          removeResourceFromClientID: {
-            resource: newResource,
-          },
-        },
-        update: (cache) => {
-          cache.writeQuery<ResourceQueryQuery>({
-            query: ResourceQueryDocument,
-            variables: { id: resource.id },
-            data: { node: newResource },
-          });
-        },
-      });
-    } catch (e: unknown) {
-      setErrors(parseRawError(e));
-    } finally {
-      setDisabledToggleClientIDs((prev) =>
-        prev.filter(
-          (clientID) => clientID !== applicationToUnauthorize.clientID
-        )
-      );
-      handleCloseUnauthorizeDialog();
-    }
-  }, [
-    applicationToUnauthorize,
-    resource,
-    removeResource,
-    setErrors,
-    handleCloseUnauthorizeDialog,
-  ]);
-
-  const onToggleAuthorized = useCallback(
-    async (item: ApplicationListItem, checked: boolean) => {
-      if (!checked) {
-        handleOpenUnauthorizeDialog(item);
-        return;
-      }
+    const unauthorize = async () => {
       try {
-        setDisabledToggleClientIDs((prev) => [...prev, item.clientID]);
+        setDisabledToggleClientIDs((prev) => [
+          ...prev,
+          applicationToUnauthorize.clientID,
+        ]);
+
         const newResource = {
           ...resource,
-          clientIDs: [...resource.clientIDs, item.clientID],
+          clientIDs: resource.clientIDs.filter(
+            (clientID) => clientID !== applicationToUnauthorize.clientID
+          ),
         };
-        await addResource({
+
+        await removeResource({
           variables: {
-            clientID: item.clientID,
+            clientID: applicationToUnauthorize.clientID,
             resourceURI: resource.resourceURI,
           },
           refetchQueries: [ResourceQueryDocument],
           awaitRefetchQueries: true,
           optimisticResponse: {
-            addResourceToClientID: {
+            removeResourceFromClientID: {
               resource: newResource,
             },
           },
@@ -193,9 +150,64 @@ export function APIResourceDetailsScreenApplicationsTab({
         setErrors(parseRawError(e));
       } finally {
         setDisabledToggleClientIDs((prev) =>
-          prev.filter((clientID) => clientID !== item.clientID)
+          prev.filter(
+            (clientID) => clientID !== applicationToUnauthorize.clientID
+          )
         );
+        handleCloseUnauthorizeDialog();
       }
+    };
+    void unauthorize();
+  }, [
+    applicationToUnauthorize,
+    resource,
+    removeResource,
+    setErrors,
+    handleCloseUnauthorizeDialog,
+  ]);
+
+  const onToggleAuthorized = useCallback(
+    (item: ApplicationListItem, checked: boolean) => {
+      if (!checked) {
+        handleOpenUnauthorizeDialog(item);
+        return;
+      }
+      const authorize = async () => {
+        try {
+          setDisabledToggleClientIDs((prev) => [...prev, item.clientID]);
+          const newResource = {
+            ...resource,
+            clientIDs: [...resource.clientIDs, item.clientID],
+          };
+          await addResource({
+            variables: {
+              clientID: item.clientID,
+              resourceURI: resource.resourceURI,
+            },
+            refetchQueries: [ResourceQueryDocument],
+            awaitRefetchQueries: true,
+            optimisticResponse: {
+              addResourceToClientID: {
+                resource: newResource,
+              },
+            },
+            update: (cache) => {
+              cache.writeQuery<ResourceQueryQuery>({
+                query: ResourceQueryDocument,
+                variables: { id: resource.id },
+                data: { node: newResource },
+              });
+            },
+          });
+        } catch (e: unknown) {
+          setErrors(parseRawError(e));
+        } finally {
+          setDisabledToggleClientIDs((prev) =>
+            prev.filter((clientID) => clientID !== item.clientID)
+          );
+        }
+      };
+      void authorize();
     },
     [resource, addResource, setErrors, handleOpenUnauthorizeDialog]
   );
@@ -203,49 +215,72 @@ export function APIResourceDetailsScreenApplicationsTab({
   const isEmpty = applications.length === 0;
 
   return (
-    <div className="pt-5 flex-1 flex flex-col space-y-4">
-      <header className="space-y-2">
-        <WidgetTitle>
-          <FormattedMessage id="APIResourceDetailsScreen.tab.applications" />
-        </WidgetTitle>
-        <Text block={true}>
-          <FormattedMessage id="APIResourceDetailsScreen.applications.description" />
-        </Text>
-        {isEmpty ? (
-          <Text
-            styles={{ root: { color: themes.main.palette.neutralTertiary } }}
-          >
-            <FormattedMessage
-              id="APIResourceDetailsScreen.applications.empty"
-              values={{
-                to: `/project/${appID}/configuration/apps`,
-              }}
-            />
-          </Text>
-        ) : null}
-      </header>
-
-      {isEmpty ? null : (
-        <>
-          <SearchBox
-            onChange={onSearchQueryChange}
-            styles={{ root: { width: 300 } }}
-            value={searchKeyword}
-            placeholder={renderToString("search")}
-          />
-          <div className="flex-1 flex flex-col max-w-180">
-            <ApplicationList
-              applications={filteredApplications}
-              className="flex-1 min-h-0"
-              loading={false} // The app config query should always be completed
-              // eslint-disable-next-line @typescript-eslint/strict-void-return
-              onToggleAuthorized={onToggleAuthorized}
-              onManageScopes={onManageScopes}
-              disabledToggleClientIDs={disabledToggleClientIDs}
-            />
-          </div>
-        </>
-      )}
+    <div className={styles.root}>
+      <div className={styles.body}>
+        <SettingsSectionCard
+          title={
+            <FormattedMessage id="APIResourceDetailsScreen.tab.applications" />
+          }
+          description={
+            <FormattedMessage id="APIResourceDetailsScreen.applications.description" />
+          }
+          contentClassName={styles.cardContent}
+        >
+          {isEmpty ? (
+            <Text as="p" size="2" color="gray" className={styles.empty}>
+              <FormattedMessage
+                id="APIResourceDetailsScreen.applications.empty"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  ReactRouterLink: (chunks: React.ReactNode) => (
+                    <Link to={`/project/${appID}/configuration/apps`}>
+                      {chunks}
+                    </Link>
+                  ),
+                }}
+              />
+            </Text>
+          ) : (
+            <>
+              <div className={styles.searchField}>
+                <TextField
+                  size="2"
+                  type="search"
+                  onChange={onSearchQueryChange}
+                  value={searchKeyword}
+                  placeholder={renderToString("search")}
+                  iconStart={TextFieldIcon.MagnifyingGlass}
+                  suffixPlain={true}
+                  suffix={
+                    searchKeyword !== "" ? (
+                      <button
+                        type="button"
+                        className={styles.searchClearButton}
+                        aria-label={renderToString(
+                          "APIResourcesScreen.clear-search"
+                        )}
+                        onClick={onClearSearchKeyword}
+                      >
+                        <Cross2Icon className={styles.searchClearIcon} />
+                      </button>
+                    ) : undefined
+                  }
+                />
+              </div>
+              <div className={styles.listContainer}>
+                <ApplicationList
+                  applications={filteredApplications}
+                  className={styles.list}
+                  loading={false}
+                  onToggleAuthorized={onToggleAuthorized}
+                  onManageScopes={onManageScopes}
+                  disabledToggleClientIDs={disabledToggleClientIDs}
+                />
+              </div>
+            </>
+          )}
+        </SettingsSectionCard>
+      </div>
       <UnauthorizeApplicationDialog
         data={
           applicationToUnauthorize
@@ -253,9 +288,7 @@ export function APIResourceDetailsScreenApplicationsTab({
             : null
         }
         onDismiss={handleCloseUnauthorizeDialog}
-        // eslint-disable-next-line @typescript-eslint/strict-void-return
         onConfirm={handleConfirmUnauthorize}
-        onDismissed={handleCloseUnauthorizeDialog}
       />
     </div>
   );

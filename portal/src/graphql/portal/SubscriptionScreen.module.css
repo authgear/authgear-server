@@ -1,12 +1,91 @@
-.root {
-  padding: 24px;
+.widget {
+  grid-column: 1 / span 9;
+
+  @apply tablet:col-span-full;
+}
+
+.widgetWide {
+  grid-column: 1 / span 12;
+
+  @apply tablet:col-span-full;
+}
+
+.pageHeader {
   display: flex;
   flex-direction: column;
-  row-gap: 24px;
+  gap: 8px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.tabsRoot {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tabsList {
+  width: 100%;
+  box-shadow: none;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--gray-a6);
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.planDetailsTabContent {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.planDetailsTabContent > * {
+  grid-column: 1 / span 9;
+  min-width: 0;
+}
+
+@media (max-width: 1080px) {
+  .planDetailsTabContent > * {
+    grid-column: 1 / -1;
+  }
+}
+
+.planDetailsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.planDetailsHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .section {
-  max-width: 1252px;
+  width: 100%;
+  min-width: 0;
 }
 
 .cardsContainer {
@@ -33,17 +112,35 @@
   row-gap: 10px;
 }
 
+.processingPaymentRoot {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 24px;
+}
+
 .processingPaymentSection {
   display: flex;
   flex-direction: column;
   padding: 20px;
   max-width: 560px;
   row-gap: 10px;
+  box-shadow: var(--shadow-4);
 }
 
 .processingPaymentSpinner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   padding: 24px 0;
-  justify-content: left;
+}
+
+.processingPaymentSpinnerLabel {
+  margin-left: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  white-space: pre-line;
 }
 
 .processingPaymentErrorMessage {
@@ -53,4 +150,11 @@
 
 .processingPaymentButtonContainer {
   text-align: right;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
 }

@@ -1,16 +1,15 @@
 import React, { useCallback, useContext, useMemo } from "react";
+import { RadioGroup, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import { FraudProtectionDecisionAction } from "../../types";
-import FormTextField from "../../FormTextField";
-import CustomTagPicker from "../../CustomTagPicker";
+import { TextArea } from "../v2/TextArea/TextArea";
+import { FormField } from "../v2/FormField/FormField";
+import { SettingsSectionCard } from "../v2/SettingsSectionCard/SettingsSectionCard";
+import CustomTagPicker, { Tag } from "../../CustomTagPicker";
 import { useMakeAlpha2Options } from "../../util/alpha2";
 import { APIError } from "../../error/error";
 import { ErrorParseRuleResult, ParsedAPIError } from "../../error/parse";
-import ChoiceGroupWithDescriptions, {
-  ChoiceGroupWithDescriptionOption,
-} from "../common/ChoiceGroupWithDescriptions";
 import styles from "./FraudProtectionSettingsTab.module.css";
-import { IChoiceGroupOption, ITag } from "@fluentui/react";
 
 export interface FraudProtectionSettingsTabProps {
   isModifiable: boolean;
@@ -19,20 +18,13 @@ export interface FraudProtectionSettingsTabProps {
   phoneAllowlist: string;
   ipCountryAllowlist: string[];
   phoneCountryAllowlist: string[];
-  onEnforcementModeChange: (
-    event?: React.FormEvent<HTMLElement | HTMLInputElement>,
-    option?: IChoiceGroupOption
-  ) => void;
-  onIPAllowlistChange: (
-    event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-    newValue?: string
-  ) => void;
+  onEnforcementModeChange: (value: FraudProtectionDecisionAction) => void;
+  onIPAllowlistChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onPhoneAllowlistChange: (
-    event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-    newValue?: string
+    event: React.ChangeEvent<HTMLTextAreaElement>
   ) => void;
-  onIPCountryAllowlistChange: (items?: ITag[]) => void;
-  onPhoneCountryAllowlistChange: (items?: ITag[]) => void;
+  onIPCountryAllowlistChange: (items?: Tag[]) => void;
+  onPhoneCountryAllowlistChange: (items?: Tag[]) => void;
 }
 
 const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
@@ -54,29 +46,33 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
     const { alpha2Options } = useMakeAlpha2Options();
 
     const enforcementModeOptions = useMemo<
-      ChoiceGroupWithDescriptionOption[]
+      {
+        value: FraudProtectionDecisionAction;
+        title: React.ReactNode;
+        subtitle: React.ReactNode;
+      }[]
     >(() => {
       return [
         {
-          key: "record_only",
-          text: renderToString(
-            "FraudProtectionConfigurationScreen.enforcement.observe.label"
+          value: "record_only",
+          title: (
+            <FormattedMessage id="FraudProtectionConfigurationScreen.enforcement.observe.label" />
           ),
-          description: (
+          subtitle: (
             <FormattedMessage id="FraudProtectionConfigurationScreen.enforcement.observe.description" />
           ),
         },
         {
-          key: "deny_if_any_warning",
-          text: renderToString(
-            "FraudProtectionConfigurationScreen.enforcement.protect.label"
+          value: "deny_if_any_warning",
+          title: (
+            <FormattedMessage id="FraudProtectionConfigurationScreen.enforcement.protect.label" />
           ),
-          description: (
+          subtitle: (
             <FormattedMessage id="FraudProtectionConfigurationScreen.enforcement.protect.description" />
           ),
         },
       ];
-    }, [renderToString]);
+    }, []);
 
     const splitRawItems = useMemo(() => {
       return (raw: string): string[] =>
@@ -126,7 +122,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
     );
 
     const onResolveCountryCodeSuggestions = useCallback(
-      (filter: string): ITag[] => {
+      (filter: string): Tag[] => {
         const matchedOptions = alpha2Options.filter(
           (opt) =>
             opt.key.startsWith(filter.toUpperCase()) ||
@@ -151,7 +147,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
       [alpha2Options]
     );
 
-    const selectedIPCountryTags: ITag[] = useMemo(
+    const selectedIPCountryTags: Tag[] = useMemo(
       () =>
         ipCountryAllowlist.map((alpha2) => ({
           key: alpha2,
@@ -160,7 +156,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
       [ipCountryAllowlist, alpha2Options]
     );
 
-    const selectedPhoneCountryTags: ITag[] = useMemo(
+    const selectedPhoneCountryTags: Tag[] = useMemo(
       () =>
         phoneCountryAllowlist.map((alpha2) => ({
           key: alpha2,
@@ -170,28 +166,61 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
     );
 
     return (
-      <section className={styles.section}>
-        <ChoiceGroupWithDescriptions
-          label={renderToString(
-            "FraudProtectionConfigurationScreen.enforcement.mode.title"
-          )}
-          disabled={!isModifiable}
-          selectedKey={enforcementMode}
-          options={enforcementModeOptions}
-          onChange={onEnforcementModeChange}
-        />
-        <FormTextField
+      <SettingsSectionCard
+        className={styles.card}
+        title={
+          <FormattedMessage id="FraudProtectionConfigurationScreen.tab.settings.title" />
+        }
+        contentClassName={styles.cardContent}
+      >
+        <FormField
+          size="2"
+          label={
+            <FormattedMessage id="FraudProtectionConfigurationScreen.enforcement.mode.title" />
+          }
+        >
+          <RadioGroup.Root
+            className={styles.modeGroup}
+            value={enforcementMode}
+            onValueChange={(value) =>
+              onEnforcementModeChange(value as FraudProtectionDecisionAction)
+            }
+          >
+            {enforcementModeOptions.map((option) => (
+              <label key={option.value} className={styles.modeOption}>
+                <RadioGroup.Item
+                  className={styles.modeRadio}
+                  value={option.value}
+                  disabled={!isModifiable}
+                />
+                <span className={styles.modeText}>
+                  <Text
+                    as="span"
+                    size="2"
+                    weight="medium"
+                    className={styles.modeTitle}
+                  >
+                    {option.title}
+                  </Text>
+                  <Text as="span" size="2" className={styles.modeDescription}>
+                    {option.subtitle}
+                  </Text>
+                </span>
+              </label>
+            ))}
+          </RadioGroup.Root>
+        </FormField>
+        <TextArea
+          size="2"
           parentJSONPointer="/fraud_protection/decision/always_allow/ip_address"
           fieldName="cidrs"
           label={renderToString(
             "FraudProtectionConfigurationScreen.allowlist.ip.label"
           )}
-          description={renderToString(
+          hint={renderToString(
             "FraudProtectionConfigurationScreen.allowlist.ip.description"
           )}
           placeholder="127.0.0.1/32"
-          multiline={true}
-          resizable={false}
           disabled={!isModifiable}
           value={ipAllowlist}
           onChange={onIPAllowlistChange}
@@ -206,18 +235,17 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
           selectedItems={selectedIPCountryTags}
           onChange={onIPCountryAllowlistChange}
         />
-        <FormTextField
+        <TextArea
+          size="2"
           parentJSONPointer="/fraud_protection/decision/always_allow/phone_number"
           fieldName="regex"
           label={renderToString(
             "FraudProtectionConfigurationScreen.allowlist.phone.label"
           )}
-          description={renderToString(
+          hint={renderToString(
             "FraudProtectionConfigurationScreen.allowlist.phone.description"
           )}
           placeholder="+1 555 123 4567"
-          multiline={true}
-          resizable={false}
           disabled={!isModifiable}
           value={phoneAllowlist}
           onChange={onPhoneAllowlistChange}
@@ -231,7 +259,7 @@ const FraudProtectionSettingsTab: React.VFC<FraudProtectionSettingsTabProps> =
           selectedItems={selectedPhoneCountryTags}
           onChange={onPhoneCountryAllowlistChange}
         />
-      </section>
+      </SettingsSectionCard>
     );
   };
 

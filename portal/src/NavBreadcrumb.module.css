@@ -1,0 +1,22 @@
+.root {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.current {
+  color: var(--gray-12);
+}
+
+.link {
+  text-decoration: none;
+}
+
+.separator {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--gray-9);
+}

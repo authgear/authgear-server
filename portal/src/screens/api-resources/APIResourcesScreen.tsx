@@ -1,6 +1,13 @@
-import React, { useState, useCallback, useMemo, useContext } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useContext,
+  useEffect,
+} from "react";
+import { Text } from "@radix-ui/themes";
+import { Cross2Icon } from "@radix-ui/react-icons";
 import { encodeOffsetToCursor } from "../../util/pagination";
-import ScreenDescription from "../../ScreenDescription";
 import { FormattedMessage, Context as MessageContext } from "../../intl";
 import { ResourceList } from "../../components/api-resources/ResourceList";
 import { useResourcesQueryQuery } from "../../graphql/adminapi/query/resourcesQuery.generated";
@@ -9,15 +16,20 @@ import ShowError from "../../ShowError";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { PaginationProps } from "../../PaginationWidget";
 import { CreateResourceButton } from "../../components/api-resources/CreateResourceButton";
+import { CreateAPIResourceDialog } from "../../components/api-resources/CreateAPIResourceDialog";
 import {
   DeleteResourceDialog,
   DeleteResourceDialogData,
 } from "../../components/api-resources/DeleteResourceDialog";
-import { SearchBox } from "@fluentui/react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { useDebounced } from "../../hook/useDebounced";
 import ExternalLink from "../../ExternalLink";
+import styles from "./APIResourcesScreen.module.css";
 
 const PAGE_SIZE = 10;
 
@@ -27,20 +39,45 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
   const [deleteDialogData, setDeleteDialogData] =
     useState<DeleteResourceDialogData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const [debouncedSearchKeyword] = useDebounced(searchKeyword, 300);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { renderToString } = useContext(MessageContext);
   const navigate = useNavigate();
   const { appID } = useParams<{ appID: string }>();
 
+  const wantCreateDialog = searchParams.get("create") === "1";
+  const [prevWantCreateDialog, setPrevWantCreateDialog] = useState(false);
+  if (prevWantCreateDialog !== wantCreateDialog) {
+    setPrevWantCreateDialog(wantCreateDialog);
+    if (wantCreateDialog) {
+      setCreateDialogOpen(true);
+    }
+  }
+
+  useEffect(() => {
+    if (searchParams.get("create") === "1") {
+      const next = new URLSearchParams(searchParams);
+      next.delete("create");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const onSearchQueryChange = useCallback(
-    (_, newValue) => {
-      setOffset(0); // Reset offset to 0 on search query change
-      setSearchKeyword(newValue ?? "");
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setOffset(0);
+      setSearchKeyword(e.target.value);
     },
-    [setOffset, setSearchKeyword]
+    []
   );
+
+  const onClearSearchKeyword = useCallback(() => {
+    setOffset(0);
+    setSearchKeyword("");
+  }, []);
+
   const { data, loading, error, refetch } = useResourcesQueryQuery({
     variables: {
       first: PAGE_SIZE,
@@ -70,31 +107,36 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
         setIsDeleting(false);
       }
     },
-    [deleteResource, refetch, setIsDeleting, setDeleteDialogData]
+    [deleteResource, refetch]
   );
 
   const onDismissDeleteDialog = useCallback(() => {
     setDeleteDialogData(null);
-  }, [setDeleteDialogData]);
+  }, []);
 
-  const onDelete = useCallback(
-    (resource: Resource) => {
-      setDeleteDialogData({
-        resourceURI: resource.resourceURI,
-        resourceName: resource.name ?? null,
-      });
-    },
-    [setDeleteDialogData]
-  );
+  const onDelete = useCallback((resource: Resource) => {
+    setDeleteDialogData({
+      resourceURI: resource.resourceURI,
+      resourceName: resource.name ?? null,
+    });
+  }, []);
 
   const onEdit = useCallback(
-    (resource) => {
+    (resource: ResourceListItem) => {
       navigate(
         `/project/${appID}/api-resources/${encodeURIComponent(resource.id)}`
       );
     },
     [navigate, appID]
   );
+
+  const onOpenCreateDialog = useCallback(() => {
+    setCreateDialogOpen(true);
+  }, []);
+
+  const onDismissCreateDialog = useCallback(() => {
+    setCreateDialogOpen(false);
+  }, []);
 
   const resources = useMemo(() => {
     return (
@@ -106,8 +148,13 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
     );
   }, [data]);
 
-  const onChangeOffset = useCallback((offset: number) => {
-    setOffset(offset);
+  const isEmpty =
+    !loading &&
+    searchKeyword === "" &&
+    (data?.resources?.totalCount ?? 0) === 0;
+
+  const onChangeOffset = useCallback((nextOffset: number) => {
+    setOffset(nextOffset);
   }, []);
 
   const pagination: PaginationProps = {
@@ -132,7 +179,7 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
           },
         ]}
         headerDescription={
-          <ScreenDescription>
+          <Text as="p" size="2" className={styles.headerDescription}>
             <FormattedMessage
               id="APIResourcesScreen.description"
               values={{
@@ -144,32 +191,63 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
                 ),
               }}
             />
-          </ScreenDescription>
+          </Text>
         }
         headerSuffix={
-          resources.length !== 0 ? (
-            <CreateResourceButton className="self-start" />
+          !isEmpty ? (
+            <CreateResourceButton
+              className="self-start"
+              onClick={onOpenCreateDialog}
+            />
           ) : null
         }
       >
-        <div className="col-span-full flex flex-col">
-          <SearchBox
-            className="mb-4"
-            styles={{ root: { width: 300 } }}
-            onChange={onSearchQueryChange}
-            value={searchKeyword}
-            placeholder={renderToString("search")}
-          />
+        <div className={styles.content}>
+          {!isEmpty ? (
+            <div className={styles.searchField}>
+              <TextField
+                size="2"
+                type="search"
+                value={searchKeyword}
+                placeholder={renderToString("search")}
+                iconStart={TextFieldIcon.MagnifyingGlass}
+                onChange={onSearchQueryChange}
+                suffixPlain={true}
+                suffix={
+                  searchKeyword !== "" ? (
+                    <button
+                      type="button"
+                      className={styles.searchClearButton}
+                      aria-label={renderToString(
+                        "APIResourcesScreen.clear-search"
+                      )}
+                      onClick={onClearSearchKeyword}
+                    >
+                      <Cross2Icon className={styles.searchClearIcon} />
+                    </button>
+                  ) : undefined
+                }
+              />
+            </div>
+          ) : null}
           <ResourceList
-            className="flex-1"
+            className={styles.list}
             resources={resources}
             loading={loading}
             pagination={pagination}
             onDelete={onDelete}
             onItemClicked={onEdit}
+            onCreateClick={onOpenCreateDialog}
           />
         </div>
       </APIResourceScreenLayout>
+      <CreateAPIResourceDialog
+        open={createDialogOpen}
+        onDismiss={onDismissCreateDialog}
+        onCreated={() => {
+          void refetch();
+        }}
+      />
       <DeleteResourceDialog
         data={deleteDialogData}
         isLoading={isDeleting}
@@ -180,5 +258,11 @@ const APIResourcesScreen: React.VFC = function APIResourcesScreen() {
     </>
   );
 };
+
+interface ResourceListItem {
+  id: string;
+  name?: string | null;
+  resourceURI: string;
+}
 
 export default APIResourcesScreen;

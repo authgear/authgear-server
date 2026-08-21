@@ -1,64 +1,29 @@
-import React, { useMemo } from "react";
-import {
-  MessageBar,
-  IMessageBarProps,
-  useTheme,
-  MessageBarType,
-  PartialTheme,
-  ThemeProvider,
-} from "@fluentui/react";
+import React from "react";
 import { FormattedMessage } from "./intl";
 import { Link as ReactRouterLink, useParams } from "react-router-dom";
-import { useMergedStyles } from "./util/mergeStyles";
+import { Callout } from "./components/v2/Callout/Callout";
+
+export interface RedMessageBarProps {
+  className?: string;
+  children?: React.ReactNode;
+}
 
 export default function RedMessageBar(
-  props: IMessageBarProps
+  props: RedMessageBarProps
 ): React.ReactElement {
-  const theme = useTheme();
-  const newTheme: PartialTheme = useMemo(
-    () => ({
-      semanticColors: {
-        messageText: theme.semanticColors.errorText,
-        messageLink: theme.semanticColors.errorText,
-        messageLinkHovered: theme.semanticColors.errorText,
-      },
-    }),
-    [theme.semanticColors.errorText]
-  );
-
-  const { styles: stylesProp, ...rest } = props;
-
-  const styles = useMergedStyles(
-    {
-      root: {
-        selectors: {
-          ".ms-Link": {
-            // Since both the text and the link are of the same color (errorText),
-            // we need to add an underline to the link to make them distinguishable.
-            textDecoration: "underline",
-          },
-        },
-      },
-    },
-    stylesProp
-  );
-
+  const { className, children } = props;
   return (
-    <ThemeProvider as={React.Fragment} theme={newTheme}>
-      <MessageBar
-        messageBarType={MessageBarType.error}
-        messageBarIconProps={{
-          iconName: "Warning",
-        }}
-        styles={styles}
-        {...rest}
-      />
-    </ThemeProvider>
+    <Callout
+      className={className}
+      type="error"
+      showCloseButton={false}
+      text={children}
+    />
   );
 }
 
 export function RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen(
-  props: IMessageBarProps
+  props: RedMessageBarProps
 ): React.ReactElement {
   const { appID } = useParams() as { appID: string };
   return (
@@ -79,7 +44,7 @@ export function RedMessageBar_RemindConfigureSMSProviderInNonSMSProviderScreen(
 }
 
 export function RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen(
-  props: IMessageBarProps
+  props: RedMessageBarProps
 ): React.ReactElement {
   return (
     <RedMessageBar {...props}>
@@ -89,7 +54,7 @@ export function RedMessageBar_RemindConfigureSMSProviderInSMSProviderScreen(
 }
 
 export function RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen(
-  props: IMessageBarProps
+  props: RedMessageBarProps
 ): React.ReactElement {
   return (
     <RedMessageBar {...props}>
@@ -99,7 +64,7 @@ export function RedMessageBar_RemindConfigureSMTPInSMTPConfigurationScreen(
 }
 
 export function RedMessageBar_RemindConfigureSMTPInNonSMTPConfigurationScreen(
-  props: IMessageBarProps
+  props: RedMessageBarProps
 ): React.ReactElement {
   const { appID } = useParams() as { appID: string };
   return (

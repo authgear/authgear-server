@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "./intl";
 
 import styles from "./PasswordStrengthMeter.module.css";
@@ -23,11 +23,11 @@ const PasswordStrengthMeter: React.VFC<PasswordStrengthMeterProps> =
       <div className={className}>
         <meter className={styles.passwordStrengthMeter} value={level} />
         <div className={styles.passwordStrengthMeterDescriptionContainer}>
-          <Text>
+          <Text as="span" size="1">
             <FormattedMessage id="PasswordStrengthMeter.password-strength" />
             {": "}
           </Text>
-          <Text className={descriptionClassName}>
+          <Text as="span" size="1" className={descriptionClassName}>
             {guessableLevelNames[level]}
           </Text>
         </div>

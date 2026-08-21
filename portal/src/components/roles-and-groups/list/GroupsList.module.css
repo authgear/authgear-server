@@ -1,4 +1,175 @@
-.root {
+.listRoot {
+  @apply flex flex-col min-h-0 overflow-hidden;
+
+  @apply mobile:min-h-min mobile:overflow-visible;
+}
+
+/* ── Table wrapper ── */
+
+.tableWrapper {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  border-radius: var(--radius-3);
+  border: 1px solid var(--gray-a6);
+
+  @apply mobile:flex-none mobile:min-h-min mobile:overflow-y-visible;
+}
+
+/* ── Table ── */
+
+.table {
+  min-width: 100%;
+}
+
+/* ── Header row ── */
+
+.tableHeader {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  min-height: 2.75rem;
+  background-color: var(--gray-2);
+  border-top-left-radius: var(--radius-3);
+  border-top-right-radius: var(--radius-3);
+
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.tableHeaderCellName,
+.tableHeaderCellKey,
+.tableHeaderCellDescription,
+.tableHeaderCellActions {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.tableHeaderCellName {
+  flex: 1 1 0;
+  min-width: 10rem;
+}
+
+.tableHeaderCellKey {
+  flex: 1 1 0;
+  min-width: 10rem;
+}
+
+.tableHeaderCellDescription {
+  flex: 1.5 1 0;
+  min-width: 12rem;
+}
+
+.tableHeaderCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+/* ── Data rows ── */
+
+.tableRow {
+  display: flex;
+  align-items: center;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  background-color: var(--gray-a2);
+}
+
+/* ── Data cells ── */
+
+.tableCellName,
+.tableCellKey,
+.tableCellDescription,
+.tableCellActions {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--gray-12);
+}
+
+.tableCellName {
+  flex: 1 1 0;
+  min-width: 10rem;
+  overflow: hidden;
+}
+
+.tableCellKey {
+  flex: 1 1 0;
+  min-width: 10rem;
+  overflow: hidden;
+}
+
+.tableCellDescription {
+  flex: 1.5 1 0;
+  min-width: 12rem;
+  overflow: hidden;
+}
+
+.tableCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.nameText {
+  min-width: 0;
+  @apply truncate;
+  margin: 0;
+}
+
+.descriptionText {
+  min-width: 0;
+  @apply truncate;
+  margin: 0;
+}
+
+.keyCell {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.keyText {
+  min-width: 0;
+  @apply truncate;
+  margin: 0;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
+}
+
+/* ── Pagination ── */
+
+.paginator {
+  align-self: flex-end;
+  padding: 12px 0;
+}
+
+/* ── Loading / empty states ── */
+
+.loading {
+  padding: 16px;
+  color: var(--gray-11);
+}
+
+.empty {
+  padding: 16px;
+  color: var(--gray-11);
+  margin: 0;
 }

@@ -1,22 +1,12 @@
-import React, { useContext } from "react";
-import { Spinner } from "@fluentui/react";
-import { Context } from "./intl";
+import React from "react";
+import { Spinner } from "@radix-ui/themes";
 import styles from "./ShowLoading.module.css";
 
-interface ShowLoadingProps {
-  label?: string;
-}
-
 // ShowLoading show a 100% width and 100% height spinner.
-// For better UX, please use Shimmer instead.
-const ShowLoading: React.VFC<ShowLoadingProps> = function ShowLoading({
-  label,
-}) {
-  const { renderToString } = useContext(Context);
-
+const ShowLoading: React.VFC = function ShowLoading() {
   return (
     <div className={styles.loading}>
-      <Spinner label={label ?? renderToString("loading")} />
+      <Spinner size="3" />
     </div>
   );
 };

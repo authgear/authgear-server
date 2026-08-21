@@ -1,0 +1,42 @@
+.root {
+  @apply pt-5 flex flex-col gap-4;
+}
+
+.body {
+  @apply flex flex-col gap-5;
+}
+
+.cardContent {
+  @apply gap-4;
+}
+
+.empty {
+  margin: 0;
+}
+
+.searchField {
+  width: 18.75rem;
+  max-width: 100%;
+}
+
+.searchClearButton {
+  @apply inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer;
+  color: var(--gray-a11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.listContainer {
+  @apply flex flex-col w-full min-w-0;
+}
+
+.list {
+  @apply w-full min-w-0;
+}

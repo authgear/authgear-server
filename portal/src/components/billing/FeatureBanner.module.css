@@ -1,18 +1,98 @@
 .bannerContainer {
-  @apply p-8 border border-solid border-border-primary rounded-xl;
-  @apply flex flex-row flex-wrap;
-  @apply gap-x-16 gap-y-4;
-  @apply whitespace-nowrap;
-  @apply overflow-x-auto;
+  padding: 32px;
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-4);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 64px;
+  row-gap: 16px;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.contentSection {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--gray-a11);
 }
 
 .featureList {
-  @apply grid gap-x-8 gap-y-4;
+  display: grid;
+  gap: 16px 32px;
   grid-template-columns: repeat(auto-fill, minmax(min-content, 300px));
-  @apply list-none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+}
+
+.featureIcon {
+  flex-shrink: 0;
+  color: var(--accent-9);
+}
+
+.featureText {
+  margin-left: 8px;
+}
+
+.highlightedSection {
+  flex: 1;
+  min-width: 25rem;
 }
 
 .highlightedFeatureList {
-  @apply grid gap-2 grid-cols-1 grid-flow-row;
-  @apply list-none;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.highlightedFeatureItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: var(--radius-4);
+  background-color: var(--accent-a3);
+}
+
+.highlightedFeatureIconBox {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-3);
+  background-color: white;
+  flex-shrink: 0;
+}
+
+.highlightedFeatureIcon {
+  color: var(--accent-9);
+}
+
+.highlightedFeatureText {
+  margin-left: 16px;
 }

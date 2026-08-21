@@ -1,7 +1,6 @@
 import React, { useContext } from "react";
-import { Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import { Context as MFContext, FormattedMessage } from "../../intl";
-import cn from "classnames";
 
 import { LanguageTag } from "../../util/resource";
 
@@ -13,11 +12,7 @@ const FallbackDescription: React.VFC<FallbackDescriptionProps> =
     const { fallbackLanguage } = props;
     const { renderToString } = useContext(MFContext);
     return (
-      <Text
-        className={cn("text-neutral-secondary")}
-        variant="small"
-        block={true}
-      >
+      <Text as="p" size="1" color="gray">
         <FormattedMessage
           id="DesignScreen.configuration.fallback"
           values={{

@@ -1,25 +1,25 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
-  ColumnActionsMode,
-  DetailsRow,
-  IColumn,
-  IDetailsRowProps,
-} from "@fluentui/react";
+  DropdownMenu,
+  IconButton as RadixIconButton,
+  Text,
+} from "@radix-ui/themes";
+import {
+  DotsVerticalIcon,
+  Pencil1Icon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
+import { useNavigate, useParams } from "react-router-dom";
 import styles from "./GroupsList.module.css";
-import { useParams } from "react-router-dom";
-import { Context } from "../../../intl";
-import Link from "../../../Link";
+import { Context, FormattedMessage } from "../../../intl";
+import PaginationWidget from "../../../PaginationWidget";
+import { CopyIconButton } from "../../v2/CopyIconButton/CopyIconButton";
 import DeleteGroupDialog, {
   DeleteGroupDialogData,
 } from "../dialog/DeleteGroupDialog";
-import DescriptionCell from "./common/DescriptionCell";
-import ActionButtonCell from "./common/ActionButtonCell";
-import TextCell, { TextCellText } from "./common/TextCell";
-import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
 import { GroupsListFragment } from "../../../graphql/adminapi/query/groupsListQuery.generated";
-import { TextWithCopyButton } from "../../common/TextWithCopyButton";
-import BaseCell from "./common/BaseCell";
+
 interface GroupsListProps {
   className?: string;
   isSearch: boolean;
@@ -38,13 +38,6 @@ interface GroupListItem {
   description: string | null;
 }
 
-const isGroupListItem = (value: unknown): value is GroupListItem => {
-  if (!(value instanceof Object)) {
-    return false;
-  }
-  return "key" in value && "id" in value;
-};
-
 const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
   const {
     className,
@@ -58,39 +51,8 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
   const edges = props.groups?.edges;
   const { renderToString } = useContext(Context);
   const { appID } = useParams() as { appID: string };
-  const columns: IColumn[] = [
-    {
-      key: "name",
-      fieldName: "name",
-      name: renderToString("GroupsList.column.name"),
-      minWidth: 150,
-      maxWidth: 260,
-      columnActionsMode: ColumnActionsMode.disabled,
-    },
-    {
-      key: "key",
-      fieldName: "key",
-      name: renderToString("GroupsList.column.key"),
-      minWidth: 150,
-      maxWidth: 260,
-      columnActionsMode: ColumnActionsMode.disabled,
-    },
-    {
-      key: "description",
-      fieldName: "description",
-      name: renderToString("GroupsList.column.description"),
-      minWidth: 300,
-      columnActionsMode: ColumnActionsMode.disabled,
-    },
-    {
-      key: "action",
-      fieldName: "action",
-      name: renderToString("GroupsList.column.action"),
-      minWidth: 87,
-      maxWidth: 87,
-      columnActionsMode: ColumnActionsMode.disabled,
-    },
-  ];
+  const navigate = useNavigate();
+
   const items: GroupListItem[] = useMemo(() => {
     const items: GroupListItem[] = [];
     if (edges != null) {
@@ -109,112 +71,195 @@ const GroupsList: React.VFC<GroupsListProps> = function GroupsList(props) {
     return items;
   }, [edges]);
 
-  const onRenderGroupRow = React.useCallback(
-    (props?: IDetailsRowProps) => {
-      if (props == null) {
-        return null;
-      }
-      const targetPath = isGroupListItem(props.item)
-        ? `/project/${appID}/user-management/groups/${props.item.id}/details`
-        : ".";
-      return (
-        <Link to={targetPath} className="contents">
-          <DetailsRow {...props} />
-        </Link>
-      );
+  const onItemClicked = useCallback(
+    (item: GroupListItem) => {
+      navigate(`/project/${appID}/user-management/groups/${item.id}/details`);
     },
-    [appID]
+    [appID, navigate]
   );
+
   const [deleteGroupDialogData, setDeleteGroupDialogData] =
     useState<DeleteGroupDialogData | null>(null);
-  const onClickDeleteGroup = useCallback(
-    (e: React.MouseEvent<unknown>, item: GroupListItem) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDeleteGroupDialogData({
-        groupID: item.id,
-        groupName: item.name,
-        groupKey: item.key,
-      });
-    },
-    []
-  );
+  const onClickDeleteGroup = useCallback((item: GroupListItem) => {
+    setDeleteGroupDialogData({
+      groupID: item.id,
+      groupName: item.name,
+      groupKey: item.key,
+    });
+  }, []);
   const dismissDeleteGroupDialog = useCallback(() => {
     setDeleteGroupDialogData(null);
   }, []);
 
-  const onRenderGroupItemColumn = useCallback(
-    (item: GroupListItem, _index?: number, column?: IColumn) => {
-      switch (column?.key) {
-        case "description":
-          return (
-            <DescriptionCell>
-              {item[column.key as keyof GroupListItem] ?? ""}
-            </DescriptionCell>
-          );
-        case "action": {
-          return (
-            <ActionButtonCell
-              variant="destructive"
-              text={renderToString("GroupsList.delete-group")}
-              onClick={(e) => {
-                onClickDeleteGroup(e, item);
-              }}
-            />
-          );
-        }
-        case "key":
-          return (
-            <BaseCell>
-              <TextWithCopyButton
-                text={item.key}
-                TextComponent={TextCellText}
-              />
-            </BaseCell>
-          );
-        default:
-          return (
-            <TextCell>
-              {item[column?.key as keyof GroupListItem] ?? ""}
-            </TextCell>
-          );
-      }
-    },
-    [renderToString, onClickDeleteGroup]
-  );
-
   const paginationProps = useMemo(
     () => ({
-      isSearch,
       offset,
       pageSize,
       totalCount,
       onChangeOffset,
     }),
-    [isSearch, offset, pageSize, totalCount, onChangeOffset]
+    [offset, pageSize, totalCount, onChangeOffset]
   );
 
-  const listEmptyText = renderToString("GroupsList.empty.search");
+  const rowActionsLabel = renderToString("GroupsList.row-actions");
 
-  return (
-    <>
-      <div className={cn(styles.root, className)}>
-        <RolesAndGroupsBaseList
-          emptyText={listEmptyText}
-          loading={loading}
-          onRenderRow={onRenderGroupRow}
-          onRenderItemColumn={onRenderGroupItemColumn}
-          items={items}
-          columns={columns}
-          pagination={paginationProps}
-        />
+  if (items.length === 0 && loading) {
+    return (
+      <Text as="p" size="2" color="gray" className={styles.loading}>
+        <FormattedMessage id="loading" />
+      </Text>
+    );
+  }
+
+  if (items.length === 0 && !loading) {
+    return (
+      <>
+        <Text as="p" size="2" color="gray" className={styles.empty}>
+          <FormattedMessage id="GroupsList.empty.search" />
+        </Text>
         <DeleteGroupDialog
           onDismiss={dismissDeleteGroupDialog}
           data={deleteGroupDialogData}
         />
+      </>
+    );
+  }
+
+  return (
+    <div className={cn(className, styles.listRoot)}>
+      <div className={styles.tableWrapper}>
+        <div className={styles.table}>
+          <div className={styles.tableHeader}>
+            <div className={styles.tableHeaderCellName}>
+              <FormattedMessage id="GroupsList.column.name" />
+            </div>
+            <div className={styles.tableHeaderCellKey}>
+              <FormattedMessage id="GroupsList.column.key" />
+            </div>
+            <div className={styles.tableHeaderCellDescription}>
+              <FormattedMessage id="GroupsList.column.description" />
+            </div>
+            <div className={styles.tableHeaderCellActions} />
+          </div>
+          {items.map((item) => (
+            <GroupRow
+              key={item.id}
+              item={item}
+              onDelete={onClickDeleteGroup}
+              onItemClicked={onItemClicked}
+              rowActionsLabel={rowActionsLabel}
+            />
+          ))}
+        </div>
       </div>
-    </>
+      {!isSearch ? (
+        <PaginationWidget className={styles.paginator} {...paginationProps} />
+      ) : null}
+      <DeleteGroupDialog
+        onDismiss={dismissDeleteGroupDialog}
+        data={deleteGroupDialogData}
+      />
+    </div>
   );
 };
+
+interface GroupRowProps {
+  item: GroupListItem;
+  onDelete: (item: GroupListItem) => void;
+  onItemClicked: (item: GroupListItem) => void;
+  rowActionsLabel: string;
+}
+
+function GroupRow({
+  item,
+  onDelete,
+  onItemClicked,
+  rowActionsLabel,
+}: GroupRowProps) {
+  const onRowClick = useCallback(() => {
+    onItemClicked(item);
+  }, [onItemClicked, item]);
+
+  const onRowKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onItemClicked(item);
+      }
+    },
+    [onItemClicked, item]
+  );
+
+  return (
+    <div
+      className={styles.tableRow}
+      role="button"
+      tabIndex={0}
+      onClick={onRowClick}
+      onKeyDown={onRowKeyDown}
+    >
+      <div className={styles.tableCellName}>
+        <Text size="2" className={styles.nameText}>
+          {item.name}
+        </Text>
+      </div>
+      <div className={styles.tableCellKey}>
+        <div
+          className={styles.keyCell}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <Text size="2" className={styles.keyText}>
+            {item.key}
+          </Text>
+          <CopyIconButton textToCopy={item.key} />
+        </div>
+      </div>
+      <div className={styles.tableCellDescription}>
+        <Text size="2" color="gray" className={styles.descriptionText}>
+          {item.description}
+        </Text>
+      </div>
+      <div
+        className={styles.tableCellActions}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            <RadixIconButton
+              className={styles.rowActionsButton}
+              variant="soft"
+              color="gray"
+              size="2"
+              aria-label={rowActionsLabel}
+            >
+              <DotsVerticalIcon width="1rem" height="1rem" />
+            </RadixIconButton>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end">
+            <DropdownMenu.Item
+              onSelect={() => {
+                onItemClicked(item);
+              }}
+            >
+              <Pencil1Icon />
+              <FormattedMessage id="edit" />
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              color="red"
+              onSelect={() => {
+                onDelete(item);
+              }}
+            >
+              <TrashIcon />
+              <FormattedMessage id="GroupsList.delete-group" />
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
+      </div>
+    </div>
+  );
+}
 
 export default GroupsList;

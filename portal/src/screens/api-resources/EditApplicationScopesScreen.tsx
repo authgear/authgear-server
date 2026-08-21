@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useRef } from "react";
 import { useFormWithExternalInitialState } from "../../hook/useFormWithExternalInitialState";
 import { FormattedMessage } from "../../intl";
 import {
@@ -21,6 +21,7 @@ import { OAuthClientConfig } from "../../types";
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
 import { useLoadableView } from "../../hook/useLoadableView";
 import FormContainer from "../../FormContainer";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
 
 const pageSize = 1000;
@@ -42,6 +43,7 @@ export function EditApplicationScopesScreenContent({
 }): React.ReactElement {
   const [replaceScopesOfClientIdMutation] =
     useReplaceScopesOfClientIdMutation();
+  const contentWidthAnchorRef = useRef<HTMLDivElement | null>(null);
 
   const resource =
     resourceScopesQueryData.node?.__typename === "Resource"
@@ -94,6 +96,7 @@ export function EditApplicationScopesScreenContent({
       [];
     return allScopes.map((scope) => ({
       scope: scope.scope,
+      description: scope.description,
       isAssigned: assignedScopes.has(scope.scope),
     }));
   }, [assignedScopes, resource]);
@@ -102,38 +105,44 @@ export function EditApplicationScopesScreenContent({
     <FormContainer
       form={form}
       className="flex-1-0-auto flex flex-col"
-      stickyFooterComponent={true}
-      showDiscardButton={true}
+      hideFooterComponent={true}
     >
       <APIResourceScreenLayout breadcrumbItems={breadcrumbItems}>
-        <EditApplicationScopesList
-          className="flex-1-0-auto col-span-full"
-          scopes={scopes}
-          onToggleAssignedScopes={useCallback(
-            (
-              updatedScopes: EditApplicationScopesListItem[],
-              isAssigned: boolean
-            ) => {
-              form.setState((state) => {
-                const currentAssignedScopes = state.assignedScopes;
-                const newSet = new Set(currentAssignedScopes);
+        <div
+          ref={contentWidthAnchorRef}
+          className="col-span-full flex-1-0-auto flex flex-col"
+        >
+          <EditApplicationScopesList
+            className="flex-1-0-auto"
+            scopes={scopes}
+            bottomInset={form.getIsDirty()}
+            onToggleAssignedScopes={useCallback(
+              (
+                updatedScopes: EditApplicationScopesListItem[],
+                isAssigned: boolean
+              ) => {
+                form.setState((state) => {
+                  const currentAssignedScopes = state.assignedScopes;
+                  const newSet = new Set(currentAssignedScopes);
 
-                updatedScopes.forEach((scopeItem) => {
-                  if (isAssigned) {
-                    newSet.add(scopeItem.scope);
-                  } else {
-                    newSet.delete(scopeItem.scope);
-                  }
+                  updatedScopes.forEach((scopeItem) => {
+                    if (isAssigned) {
+                      newSet.add(scopeItem.scope);
+                    } else {
+                      newSet.delete(scopeItem.scope);
+                    }
+                  });
+
+                  return {
+                    assignedScopes: Array.from(newSet),
+                  };
                 });
-
-                return {
-                  assignedScopes: Array.from(newSet),
-                };
-              });
-            },
-            [form]
-          )}
-        />
+              },
+              [form]
+            )}
+          />
+        </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </APIResourceScreenLayout>
     </FormContainer>
   );

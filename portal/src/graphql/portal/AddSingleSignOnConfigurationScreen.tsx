@@ -1,10 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
-
-import NavBreadcrumb from "../../NavBreadcrumb";
+import { Text } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import ScreenContent from "../../ScreenContent";
+import Link from "../../Link";
 import {
   createOAuthSSOProviderItemKey,
   OAuthSSOProviderItemKey,
@@ -13,13 +19,11 @@ import {
   OAuthSSOWeChatAppType,
   parseOAuthSSOProviderItemKey,
 } from "../../types";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import styles from "./AddSingleSignOnConfigurationScreen.module.css";
 import SingleSignOnConfigurationWidget, {
   OAuthClientCard,
   useSingleSignOnConfigurationWidget,
 } from "./SingleSignOnConfigurationWidget";
-import ScreenContentHeader from "../../ScreenContentHeader";
 import {
   OAuthProviderFormModel,
   SSOProviderFormState,
@@ -30,6 +34,8 @@ import FormContainer from "../../FormContainer";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { EffectiveSecretConfig } from "./globalTypes.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 interface OAuthClientMenuProps {
   form: OAuthProviderFormModel;
@@ -119,6 +125,69 @@ const OAuthClientForm: React.VFC<OAuthClientFormProps> =
     );
   };
 
+interface AddSingleSignOnConfigurationFormProps {
+  form: OAuthProviderFormModel;
+  effectiveSecretConfig: EffectiveSecretConfig | undefined;
+  publicOrigin: string;
+  selectedProviderKey: OAuthSSOProviderItemKey | undefined;
+  newAlias: string | null;
+  onMenuSelect: (itemKey: OAuthSSOProviderItemKey) => void;
+}
+
+const AddSingleSignOnConfigurationForm: React.VFC<AddSingleSignOnConfigurationFormProps> =
+  function AddSingleSignOnConfigurationForm(props) {
+    const {
+      form,
+      effectiveSecretConfig,
+      publicOrigin,
+      selectedProviderKey,
+      newAlias,
+      onMenuSelect,
+    } = props;
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+    const { appID } = useParams() as { appID: string };
+
+    return (
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Link
+            to={`/project/${appID}/configuration/authentication/external-oauth`}
+            className={styles.backLink}
+          >
+            <ChevronLeftIcon className={styles.backLinkIcon} />
+            <span>
+              <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+            </span>
+          </Link>
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="AddSingleSignOnConfigurationScreen.title" />
+          </Text>
+        </div>
+        <>
+          {newAlias != null && selectedProviderKey != null ? (
+            <OAuthClientForm
+              initialAlias={newAlias}
+              form={form}
+              providerItemKey={selectedProviderKey}
+              effectiveSecretConfig={effectiveSecretConfig}
+              publicOrigin={publicOrigin}
+            />
+          ) : (
+            <OAuthClientMenu form={form} onSelect={onMenuSelect} />
+          )}
+        </>
+        {selectedProviderKey != null ? (
+          <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+        ) : null}
+      </ScreenContent>
+    );
+  };
+
 const AddSingleSignOnConfigurationContent: React.VFC =
   function AddSingleSignOnConfigurationContent() {
     const navigate = useNavigate();
@@ -130,23 +199,6 @@ const AddSingleSignOnConfigurationContent: React.VFC =
     const [selectedProviderKey, setSelectedProviderKey] =
       useState<OAuthSSOProviderItemKey>();
     const [newAlias, setNewAlias] = useState<string | null>(null);
-
-    const navBreadcrumbItems = useMemo(() => {
-      return [
-        {
-          to: "..",
-          label: (
-            <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: (
-            <FormattedMessage id="AddSingleSignOnConfigurationScreen.title" />
-          ),
-        },
-      ];
-    }, []);
 
     const onMenuSelect = useCallback((itemKey: OAuthSSOProviderItemKey) => {
       setSelectedProviderKey(itemKey);
@@ -180,36 +232,18 @@ const AddSingleSignOnConfigurationContent: React.VFC =
           <FormContainer
             form={form}
             afterSave={onSaveSuccess}
-            hideFooterComponent={selectedProviderKey == null}
+            hideFooterComponent={true}
           >
-            <ScreenContent
-              header={
-                <ScreenContentHeader
-                  title={
-                    <NavBreadcrumb
-                      className={cn(styles.widget, styles.breadcrumb)}
-                      items={navBreadcrumbItems}
-                    />
-                  }
-                />
+            <AddSingleSignOnConfigurationForm
+              form={form}
+              effectiveSecretConfig={
+                effectiveSecretConfigQuery.effectiveSecretConfig
               }
-            >
-              <ShowOnlyIfSIWEIsDisabled>
-                {newAlias != null && selectedProviderKey != null ? (
-                  <OAuthClientForm
-                    initialAlias={newAlias}
-                    form={form}
-                    providerItemKey={selectedProviderKey}
-                    effectiveSecretConfig={
-                      effectiveSecretConfigQuery.effectiveSecretConfig
-                    }
-                    publicOrigin={publicOrigin}
-                  />
-                ) : (
-                  <OAuthClientMenu form={form} onSelect={onMenuSelect} />
-                )}
-              </ShowOnlyIfSIWEIsDisabled>
-            </ScreenContent>
+              publicOrigin={publicOrigin}
+              selectedProviderKey={selectedProviderKey}
+              newAlias={newAlias}
+              onMenuSelect={onMenuSelect}
+            />
           </FormContainer>
         );
       },

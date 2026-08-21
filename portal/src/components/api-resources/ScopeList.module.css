@@ -1,9 +1,36 @@
 .listRoot {
-  @apply flex flex-col min-h-0 overflow-hidden;
+  @apply flex flex-col;
 }
 
-.listWrapper {
-  @apply flex-1 overflow-y-auto h-0 max-h-full;
+.colScope {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 10rem;
+}
+
+.colDescription {
+  @apply min-w-0 flex-[1.5] overflow-hidden;
+  min-width: 12rem;
+}
+
+.colActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.scopeChip {
+  @apply inline-flex max-w-full truncate rounded px-1.5 py-0.5 text-sm;
+  background-color: var(--gray-a3);
+  color: var(--gray-12);
+}
+
+.description {
+  @apply min-w-0 truncate;
+  margin: 0;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
 
 .paginator {
