@@ -20,6 +20,7 @@ import { Context, FormattedMessage } from "../../intl";
 import ExternalLink from "../../ExternalLink";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import ButtonWithLoading from "../../ButtonWithLoading";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import {
   findFramework,
@@ -109,19 +110,22 @@ export function EditOAuthClientFormFrameworkQuickStart<
 
   const applyFramework = useCallback(
     async (newFrameworkId: Framework) => {
+      const newState = produce(form.state, (draft) => {
+        draft.clients = draft.clients.map((c) =>
+          c.client_id === client.client_id
+            ? { ...c, x_framework: newFrameworkId }
+            : c
+        );
+        if (draft.editedClient?.client_id === client.client_id) {
+          draft.editedClient.x_framework = newFrameworkId;
+        }
+      });
       setApplying(true);
       try {
-        const newState = produce(form.state, (draft) => {
-          draft.clients = draft.clients.map((c) =>
-            c.client_id === client.client_id
-              ? { ...c, x_framework: newFrameworkId }
-              : c
-          );
-          if (draft.editedClient?.client_id === client.client_id) {
-            draft.editedClient.x_framework = newFrameworkId;
-          }
-        });
-        form.setState(() => newState);
+        // Do not touch the form state before the save: saveWithState reloads
+        // the config on success, so the content behind the dialog updates at
+        // the same moment the dialog dismisses. Updating the state upfront
+        // made the dialog look hung while the request was still in flight.
         await form.saveWithState(newState);
         setDialogVisible(false);
       } finally {
@@ -402,12 +406,11 @@ function ChangeFrameworkDialog(props: ChangeFrameworkDialogProps) {
         />
       </div>
       <DialogFooter>
-        <PrimaryButton
+        <ButtonWithLoading
           onClick={onApplyClick}
           disabled={!canApply}
-          text={
-            <FormattedMessage id="EditOAuthClientFormFrameworkQuickStart.change-dialog.apply" />
-          }
+          loading={applying}
+          labelId="EditOAuthClientFormFrameworkQuickStart.change-dialog.apply"
         />
         <DefaultButton
           onClick={onDismiss}
