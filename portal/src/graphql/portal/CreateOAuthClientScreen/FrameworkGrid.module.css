@@ -7,17 +7,15 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-.grid {
-  display: grid;
-  /* Let CSS decide how many columns fit. Each card needs ~240px to comfortably
-     fit the icon + name + one-line helper text. */
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 10px;
-  /* ChoiceButton renders a 1px outline outside its border-box when checked;
-     add a small padding so the outermost cards' outlines don't clip against
-     a parent's overflow boundary. */
-  padding: 2px;
+.sectionLabel {
+  color: var(--gray-12);
+}
+
+.icon {
+  font-size: 24px;
+  line-height: 1;
+  color: #0969da;
 }

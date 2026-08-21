@@ -13,7 +13,40 @@
   @apply mobile:min-h-min mobile:flex-none mobile:overflow-y-visible;
 }
 
-.wizardWidget {
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.wizardPanel {
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -25,4 +58,36 @@
   align-items: center;
   gap: 12px;
   margin-top: 8px;
+}
+
+.m2mNameBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.m2mNameLabel {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.m2mNameValue {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.m2mDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.searchField {
+  width: 300px;
+  max-width: 100%;
+}
+
+.resourceListContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
 }
