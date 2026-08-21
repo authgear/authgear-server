@@ -2536,6 +2536,7 @@
   "ApplicationResourcesList.columns.authorized": "Authorized",
   "ApplicationResourcesList.columns.manageScopes": "Manage Scopes",
   "ApplicationResourcesList.empty": "No API Resources yet. To assign an API Resource to this application, please first create one in the <ReactRouterLink>API Resources</ReactRouterLink> section.",
+  "ApplicationResourcesList.empty-search": "No API Resources found.",
   "EditScopeScreen.title": "Edit Scope",
   "ScopeForm.scope.label": "Scope",
   "ScopeForm.description.label": "Description",

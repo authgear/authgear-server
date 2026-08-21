@@ -256,6 +256,7 @@ export const EditOAuthClientFormResourcesContent: React.FC<{
         onToggleAuthorization={handleToggleAuthorization}
         disabledToggleClientIDs={disabledToggleClientIDs}
         onManageScopes={onManageScopes}
+        isSearchActive={debouncedSearchKeyword !== ""}
       />
       <UnauthorizeApplicationDialog
         data={

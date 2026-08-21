@@ -26,6 +26,9 @@ interface ApplicationResourcesListProps {
   ) => void;
   disabledToggleClientIDs?: string[];
   onManageScopes?: (item: ApplicationResourceListItem) => void;
+  /** When true, an empty result means "no match" rather than "no resources
+   * exist yet", and the empty state must not suggest creating one. */
+  isSearchActive?: boolean;
 }
 
 export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
@@ -38,6 +41,7 @@ export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
       onToggleAuthorization,
       onManageScopes,
       disabledToggleClientIDs,
+      isSearchActive = false,
     } = props;
     const { appNodeID } = useAppContext();
     const { renderToString } = useContext(Context);
@@ -109,17 +113,21 @@ export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
 
         {isEmpty ? (
           <Text as="p" size="2" color="gray" className={styles.empty}>
-            <FormattedMessage
-              id="ApplicationResourcesList.empty"
-              values={{
-                // eslint-disable-next-line react/no-unstable-nested-components
-                ReactRouterLink: (chunks: React.ReactNode) => (
-                  <Link to={`/project/${appNodeID}/api-resources`}>
-                    {chunks}
-                  </Link>
-                ),
-              }}
-            />
+            {isSearchActive ? (
+              <FormattedMessage id="ApplicationResourcesList.empty-search" />
+            ) : (
+              <FormattedMessage
+                id="ApplicationResourcesList.empty"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  ReactRouterLink: (chunks: React.ReactNode) => (
+                    <Link to={`/project/${appNodeID}/api-resources`}>
+                      {chunks}
+                    </Link>
+                  ),
+                }}
+              />
+            )}
           </Text>
         ) : null}
       </div>
