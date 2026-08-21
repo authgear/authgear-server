@@ -1,0 +1,72 @@
+.toggleDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.radioOptionLabelDisabled {
+  color: var(--gray-a8);
+}
+
+.metadataUploadedIndicator {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--gray-a11);
+}
+
+.textAreaList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.textAreaListLabel {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.textAreaListItems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.textAreaListRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.textAreaListRowField {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.textAreaListDeleteButton {
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+
+.textAreaListErrors {
+  margin: 0;
+}
+
+.textAreaListAddButton {
+  width: fit-content;
+}
+
+.textAreaListDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.textAreaListTextArea {
+  min-height: 160px;
+}
+
+.textAreaListTextArea textarea {
+  min-height: 160px;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- progressive enhancement: desktop-only resize affordance */
+  resize: vertical;
+}
