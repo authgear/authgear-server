@@ -8,6 +8,7 @@ package resolver
 
 import (
 	"context"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -623,7 +624,19 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
 		Store:    store3,
 		Password: passwordProvider,
@@ -979,21 +992,25 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	userBlockingEventContextProvider := &oauth2.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: identityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      identityFacade,
-		Clock:           clock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    identityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		RemoteIP:        remoteIP,

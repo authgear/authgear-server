@@ -37,22 +37,19 @@ type BaseURLProvider interface {
 	Origin() *url.URL
 }
 
-type IDTokenIssuerIdentityService interface {
-	ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error)
-}
-
 type IDTokenIssuerEventService interface {
-	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload) (e *event.Event, err error)
+	PrepareBlockingEventWithTx(ctx context.Context, payload event.BlockingPayload, opts event.PrepareBlockingEventOptions) (e *event.Event, err error)
 	DispatchEventWithoutTx(ctx context.Context, e *event.Event) (err error)
+	WillDeliverBlockingEvent(eventType event.Type) bool
 }
 
 type IDTokenIssuer struct {
-	Secrets         *config.OAuthKeyMaterials
-	BaseURL         BaseURLProvider
-	UserInfoService UserInfoService
-	Events          IDTokenIssuerEventService
-	Identities      IDTokenIssuerIdentityService
-	Clock           clock.Clock
+	Secrets                   *config.OAuthKeyMaterials
+	BaseURL                   BaseURLProvider
+	UserInfoService           UserInfoService
+	Events                    IDTokenIssuerEventService
+	UserBlockingEventContexts *oauth.UserBlockingEventContextProvider
+	Clock                     clock.Clock
 }
 
 // IDTokenValidDuration is the valid period of ID token.
@@ -77,13 +74,14 @@ func (ti *IDTokenIssuer) sign(token jwt.Token) (string, error) {
 }
 
 type PrepareIDTokenOptions struct {
-	ClientID           string
-	SID                string
-	Nonce              string
-	AuthenticationInfo authenticationinfo.T
-	ClientLike         *oauth.ClientLike
-	DeviceSecretHash   string
-	IdentitySpecs      []*identity.Spec
+	ClientID                 string
+	SID                      string
+	Nonce                    string
+	AuthenticationInfo       authenticationinfo.T
+	ClientLike               *oauth.ClientLike
+	DeviceSecretHash         string
+	IdentitySpecs            []*identity.Spec
+	UserBlockingEventContext *oauth.UserBlockingEventContext
 }
 
 type PrepareIDTokenResult struct {
@@ -145,14 +143,15 @@ func (ti *IDTokenIssuer) PrepareIDToken(ctx context.Context, opts PrepareIDToken
 		return nil, err
 	}
 
-	identities, err := ti.Identities.ListIdentitiesThatHaveStandardAttributes(ctx, opts.AuthenticationInfo.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	var identityModels []model.Identity
-	for _, i := range identities {
-		identityModels = append(identityModels, i.ToModel())
+	var eventUserCtx *oauth.UserBlockingEventContext
+	if ti.Events.WillDeliverBlockingEvent(blocking.OIDCIDTokenPreCreate) {
+		eventUserCtx = opts.UserBlockingEventContext
+		if eventUserCtx == nil || eventUserCtx.UserID != opts.AuthenticationInfo.UserID {
+			eventUserCtx, err = ti.UserBlockingEventContexts.Get(ctx, opts.AuthenticationInfo.UserID)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	eventPayload := &blocking.OIDCIDTokenPreCreateBlockingEventPayload{
@@ -161,13 +160,15 @@ func (ti *IDTokenIssuer) PrepareIDToken(ctx context.Context, opts PrepareIDToken
 				ID: opts.AuthenticationInfo.UserID,
 			},
 		},
-		Identities: identityModels,
+		Identities: eventUserCtx.GetIdentities(),
 		IDToken: blocking.OIDCIDToken{
 			Payload: forMutation,
 		},
 	}
 
-	event, err := ti.Events.PrepareBlockingEventWithTx(ctx, eventPayload)
+	event, err := ti.Events.PrepareBlockingEventWithTx(ctx, eventPayload, event.PrepareBlockingEventOptions{
+		ResolvedUser: eventUserCtx.GetUserModel(),
+	})
 	if err != nil {
 		return nil, err
 	}

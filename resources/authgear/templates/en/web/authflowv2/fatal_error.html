@@ -66,6 +66,8 @@
       {{ $error_message = include "v2.error.hook-delivery-timeout" nil }}
     {{ else if eq .Error.reason "HookDeliveryUnknownFailure" }}
       {{ $error_message = include "v2.error.hook-delivery-failed" nil }}
+    {{ else if or (eq .Error.reason "AuthenticationFlowStepNotFound") (eq .Error.reason "AuthenticationFlowInvalidTargetStep") (eq .Error.reason "AuthenticationFlowInvalidFlowConfig") }}
+      {{ $error_message = include "v2.error.flow-misconfigured" nil }}
     {{ end }}
   {{ end }}
 

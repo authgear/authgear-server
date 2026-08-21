@@ -13,6 +13,7 @@ var DependencySet = wire.NewSet(
 
 	wire.Struct(new(AccessTokenEncoding), "*"),
 	wire.Bind(new(AccessTokenDecoder), new(*AccessTokenEncoding)),
+	wire.Struct(new(UserBlockingEventContextProvider), "*"),
 	wire.Struct(new(AuthorizationService), "*"),
 	wire.Bind(new(OfflineGrantSessionManager), new(*SessionManager)),
 

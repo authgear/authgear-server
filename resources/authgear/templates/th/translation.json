@@ -467,6 +467,7 @@
   "v2.error.email-required-github": "โปรดเพิ่ม \"อีเมลสาธารณะ\" ในโปรไฟล์ GitHub ของคุณ จัดการโปรไฟล์ของคุณที่นี่: <a class=\"link\" target=\"_blank\" href=\"https://github.com/settings/profile\">https://github.com/settings/profile</a>",
   "v2.error.error-account-not-found-login-id-name": "{ LoginIDType, select, email {อีเมล} phone {หมายเลขโทรศัพท์} username {ชื่อผู้ใช้} other {{ LoginIDKey, select, email {อีเมล} phone {หมายเลขโทรศัพท์} username {ชื่อผู้ใช้} other {ข้อมูลตัวตน} }} }",
   "v2.error.error-account-not-found-oauth-provider-name": "{ OAuthProviderType, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Entra ID} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }",
+  "v2.error.flow-misconfigured": "[นักพัฒนา] Authentication Flow นี้กำหนดค่าไม่ถูกต้องและไม่สามารถดำเนินการให้เสร็จสิ้นได้ ตรวจสอบการกำหนดค่าของคุณในพอร์ทัล",
   "v2.error.hook-delivery-failed": "การดำเนินการไม่ได้รับอนุญาตเนื่องจากการส่งมอบ webhook ส่งผลให้เกิดข้อผิดพลาดที่ไม่รู้จัก",
   "v2.error.hook-delivery-timeout": "ไม่อนุญาตให้ดำเนินการเนื่องจากการส่งมอบ Webhook หมดเวลา",
   "v2.error.hook-disallowed": "ไม่อนุญาตให้ดำเนินการ",

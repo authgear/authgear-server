@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
@@ -76,6 +77,7 @@ type IDTokenIssuer interface {
 
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
+	WillDeliverBlockingEvent(eventType event.Type) bool
 }
 
 type TokenHandlerUserFacade interface {
@@ -232,6 +234,7 @@ type TokenHandler struct {
 	TokenService                    TokenHandlerTokenService
 	AccessTokenEncoding             TokenHandlerAccessTokenEncoding
 	Events                          EventService
+	UserBlockingEventContexts       *oauth.UserBlockingEventContextProvider
 	SessionManager                  SessionManager
 	App2App                         App2AppService
 	Challenges                      ChallengeProvider
@@ -1130,13 +1133,19 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
+	eventUserCtx, err := h.resolveUserBlockingEventContext(ctx, offlineGrant.GetAuthenticationInfo().UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
-		ClientConfig:            client,
-		Scopes:                  scopes,
-		AuthorizationID:         authz.ID,
-		AuthenticationInfo:      offlineGrant.GetAuthenticationInfo(),
-		SessionLike:             offlineGrant,
-		InitialRefreshTokenHash: newTokenHash,
+		ClientConfig:             client,
+		Scopes:                   scopes,
+		AuthorizationID:          authz.ID,
+		AuthenticationInfo:       offlineGrant.GetAuthenticationInfo(),
+		SessionLike:              offlineGrant,
+		InitialRefreshTokenHash:  newTokenHash,
+		UserBlockingEventContext: eventUserCtx,
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
@@ -1149,11 +1158,12 @@ func (h *TokenHandler) handleAnonymousRequest(
 	var prepareIDTokenResult *oidc.PrepareIDTokenResult
 	if slice.ContainsString(scopes, "openid") {
 		prepareIDTokenResult, err = h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
-			ClientID:           client.ClientID,
-			SID:                oauth.EncodeSID(offlineGrant),
-			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-			ClientLike:         oauth.ClientClientLike(client, scopes),
-			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
+			ClientID:                 client.ClientID,
+			SID:                      oauth.EncodeSID(offlineGrant),
+			AuthenticationInfo:       offlineGrant.GetAuthenticationInfo(),
+			ClientLike:               oauth.ClientClientLike(client, scopes),
+			DeviceSecretHash:         offlineGrant.DeviceSecretHash,
+			UserBlockingEventContext: eventUserCtx,
 		})
 		if err != nil {
 			return nil, err
@@ -1417,13 +1427,19 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
+	eventUserCtx, err := h.resolveUserBlockingEventContext(ctx, offlineGrant.GetAuthenticationInfo().UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
-		ClientConfig:            client,
-		Scopes:                  scopes,
-		AuthorizationID:         authz.ID,
-		AuthenticationInfo:      offlineGrant.GetAuthenticationInfo(),
-		SessionLike:             offlineGrant,
-		InitialRefreshTokenHash: newTokenHash,
+		ClientConfig:             client,
+		Scopes:                   scopes,
+		AuthorizationID:          authz.ID,
+		AuthenticationInfo:       offlineGrant.GetAuthenticationInfo(),
+		SessionLike:              offlineGrant,
+		InitialRefreshTokenHash:  newTokenHash,
+		UserBlockingEventContext: eventUserCtx,
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
@@ -1436,11 +1452,12 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	var prepareIDTokenResult *oidc.PrepareIDTokenResult
 	if slice.ContainsString(scopes, "openid") {
 		prepareIDTokenResult, err = h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
-			ClientID:           client.ClientID,
-			SID:                oauth.EncodeSID(offlineGrant),
-			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-			ClientLike:         oauth.ClientClientLike(client, scopes),
-			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
+			ClientID:                 client.ClientID,
+			SID:                      oauth.EncodeSID(offlineGrant),
+			AuthenticationInfo:       offlineGrant.GetAuthenticationInfo(),
+			ClientLike:               oauth.ClientClientLike(client, scopes),
+			DeviceSecretHash:         offlineGrant.DeviceSecretHash,
+			UserBlockingEventContext: eventUserCtx,
 		})
 		if err != nil {
 			return nil, err
@@ -1937,6 +1954,11 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		return nil, protocol.NewError("invalid_request", "cannot issue access token")
 	}
 
+	eventUserCtx, err := h.resolveUserBlockingEventContext(ctx, info.UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:       client,
 		Scopes:             code.AuthorizationRequest.Scope(),
@@ -1946,7 +1968,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			ID:               accessTokenSessionID,
 			GrantSessionKind: accessTokenSessionKind,
 		},
-		InitialRefreshTokenHash: initialRefreshTokenHash,
+		InitialRefreshTokenHash:  initialRefreshTokenHash,
+		UserBlockingEventContext: eventUserCtx,
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(
 		ctx,
@@ -1964,13 +1987,14 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			return nil, protocol.NewError("invalid_request", "cannot issue ID token")
 		}
 		prepareIDTokenResult, err = h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
-			ClientID:           client.ClientID,
-			SID:                sid,
-			Nonce:              code.AuthorizationRequest.Nonce(),
-			AuthenticationInfo: info,
-			ClientLike:         oauth.ClientClientLike(client, code.AuthorizationRequest.Scope()),
-			DeviceSecretHash:   deviceSecretHash,
-			IdentitySpecs:      code.IdentitySpecs,
+			ClientID:                 client.ClientID,
+			SID:                      sid,
+			Nonce:                    code.AuthorizationRequest.Nonce(),
+			AuthenticationInfo:       info,
+			ClientLike:               oauth.ClientClientLike(client, code.AuthorizationRequest.Scope()),
+			DeviceSecretHash:         deviceSecretHash,
+			IdentitySpecs:            code.IdentitySpecs,
+			UserBlockingEventContext: eventUserCtx,
 		})
 		if err != nil {
 			return nil, err
@@ -2004,14 +2028,20 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		return nil, err
 	}
 
+	eventUserCtx, err := h.resolveUserBlockingEventContext(ctx, offlineGrantSession.GetAuthenticationInfo().UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	var prepareIDTokenResult *oidc.PrepareIDTokenResult
 	if issueIDToken {
 		prepareIDTokenResult, err = h.IDTokenIssuer.PrepareIDToken(ctx, oidc.PrepareIDTokenOptions{
-			ClientID:           client.ClientID,
-			SID:                oauth.EncodeSID(offlineGrantSession.OfflineGrant),
-			AuthenticationInfo: offlineGrantSession.GetAuthenticationInfo(),
-			ClientLike:         oauth.ClientClientLike(client, authz.Scopes),
-			DeviceSecretHash:   offlineGrant.DeviceSecretHash,
+			ClientID:                 client.ClientID,
+			SID:                      oauth.EncodeSID(offlineGrantSession.OfflineGrant),
+			AuthenticationInfo:       offlineGrantSession.GetAuthenticationInfo(),
+			ClientLike:               oauth.ClientClientLike(client, authz.Scopes),
+			DeviceSecretHash:         offlineGrant.DeviceSecretHash,
+			UserBlockingEventContext: eventUserCtx,
 		})
 		if err != nil {
 			return nil, err
@@ -2019,12 +2049,13 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	}
 
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
-		ClientConfig:            client,
-		Scopes:                  offlineGrantSession.Scopes,
-		AuthorizationID:         authz.ID,
-		AuthenticationInfo:      offlineGrantSession.GetAuthenticationInfo(),
-		SessionLike:             offlineGrantSession,
-		InitialRefreshTokenHash: offlineGrantSession.InitialTokenHash,
+		ClientConfig:             client,
+		Scopes:                   offlineGrantSession.Scopes,
+		AuthorizationID:          authz.ID,
+		AuthenticationInfo:       offlineGrantSession.GetAuthenticationInfo(),
+		SessionLike:              offlineGrantSession,
+		InitialRefreshTokenHash:  offlineGrantSession.InitialTokenHash,
+		UserBlockingEventContext: eventUserCtx,
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
@@ -2283,6 +2314,18 @@ func (h *TokenHandler) validateClientSecret(client *config.OAuthClientConfig, cl
 func (h *TokenHandler) checkUserRateLimit(ctx context.Context, userID string) error {
 	spec := NewBucketSpecOAuthTokenPerUser(userID)
 	return h.checkRateLimit(ctx, spec)
+}
+
+// resolveUserBlockingEventContext reads the values shared by the
+// oidc.id_token.pre_create and oidc.jwt.pre_create payloads, once, so the two
+// preparations in this request do not each read the same rows. It returns nil
+// when neither event will be delivered.
+func (h *TokenHandler) resolveUserBlockingEventContext(ctx context.Context, userID string) (*oauth.UserBlockingEventContext, error) {
+	if !h.Events.WillDeliverBlockingEvent(blocking.OIDCIDTokenPreCreate) &&
+		!h.Events.WillDeliverBlockingEvent(blocking.OIDCJWTPreCreate) {
+		return nil, nil
+	}
+	return h.UserBlockingEventContexts.Get(ctx, userID)
 }
 
 func (h *TokenHandler) checkRateLimit(ctx context.Context, spec ratelimit.BucketSpec) error {

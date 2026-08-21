@@ -116,9 +116,9 @@ func verifyBotProtectionToken(ctx context.Context, deps *authflow.Dependencies, 
 
 	switch {
 	case errors.Is(err, botprotection.ErrVerificationFailed):
-		return authflow.ErrorBotProtectionVerificationFailed, nil
+		return authflow.NewErrorBotProtectionVerificationFailed(err), nil
 	case errors.Is(err, botprotection.ErrVerificationServiceUnavailable):
-		return authflow.ErrorBotProtectionVerificationServiceUnavailable, nil
+		return authflow.NewErrorBotProtectionVerificationServiceUnavailable(err), nil
 	case errors.Is(err, nil):
 		return authflow.ErrorBotProtectionVerificationSuccess, nil
 	default:

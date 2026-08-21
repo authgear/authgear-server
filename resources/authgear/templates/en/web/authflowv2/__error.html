@@ -307,6 +307,8 @@
       {{ else }}
         <span>{{ include "v2.error.oauth-error" (dict "error" $error_code "error_description" .Error.info.error_description) }}</span>
       {{ end }}
+    {{ else if or (eq .Error.reason "AuthenticationFlowStepNotFound") (eq .Error.reason "AuthenticationFlowInvalidTargetStep") (eq .Error.reason "AuthenticationFlowInvalidFlowConfig") }}
+      <span>{{ include "v2.error.flow-misconfigured" nil }}</span>
     {{ else }}
       <span>{{ include "v2.error.unknown" (dict "TrackingID" .TrackingID "HasTrackingID" (not (empty .TrackingID))) }}</span>
     {{ end }}

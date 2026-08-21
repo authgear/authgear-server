@@ -14,6 +14,7 @@ import (
 	service3 "github.com/authgear/authgear-server/pkg/admin/service"
 	"github.com/authgear/authgear-server/pkg/admin/transport"
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -622,7 +623,20 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	limiter := &ratelimit.Limiter{
 		Database:     handle,
 		Storage:      storageRedis,
@@ -957,7 +971,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -1261,30 +1274,34 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations: authorizationService,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	userBlockingEventContextProvider := &oauth2.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets:         oAuthKeyMaterials,
-		BaseURL:         endpointsEndpoints,
-		UserInfoService: userInfoService,
-		Events:          eventService,
-		Identities:      facadeIdentityFacade,
-		Clock:           clockClock,
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	oauthAccessTokenEncoding := oauth2.AccessTokenEncoding{
-		Secrets:       oAuthKeyMaterials,
-		Clock:         clockClock,
-		IDTokenIssuer: idTokenIssuer,
-		BaseURL:       endpointsEndpoints,
-		Events:        eventService,
-		Identities:    facadeIdentityFacade,
+		Secrets:                   oAuthKeyMaterials,
+		Clock:                     clockClock,
+		IDTokenIssuer:             idTokenIssuer,
+		BaseURL:                   endpointsEndpoints,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
 	}
 	accessGrantService := &oauth2.AccessGrantService{
 		AppID:             appID,
@@ -1826,7 +1843,20 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
@@ -2284,7 +2314,20 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{
@@ -2743,7 +2786,20 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	userinfoSink := &userinfo.Sink{
 		UserInfoService: userInfoService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
 	sender := &mail.Sender{

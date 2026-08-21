@@ -173,6 +173,7 @@ func (d AuthgearYAMLDescriptor) validate(ctx context.Context, original *config.A
 		return err
 	}
 	d.validateOAuthClients(validationCtx, incoming, original)
+	d.validateAuthenticationFlowTargetSteps(validationCtx, original, incoming)
 
 	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearYAML))
 }

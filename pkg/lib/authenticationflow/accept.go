@@ -223,7 +223,9 @@ func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *Acce
 				result.BotProtectionVerificationResult = &BotProtectionVerificationResult{
 					Outcome: BotProtectionVerificationOutcomeFailed,
 				}
-				err = botprotection.ErrVerificationFailed
+				// The end user only sees ErrVerificationFailed.
+				// Keep the cause as a secondary error so that it appears in the log.
+				err = errorutil.WithSecondaryError(botprotection.ErrVerificationFailed, errBotProtectionVerification.Cause)
 				return
 			case ErrorBotProtectionVerificationStatusServiceUnavailable:
 				// We still consider the flow has something changes.
@@ -231,7 +233,9 @@ func doAccept(ctx context.Context, deps *Dependencies, flows Flows, result *Acce
 				result.BotProtectionVerificationResult = &BotProtectionVerificationResult{
 					Outcome: BotProtectionVerificationOutcomeFailed,
 				}
-				err = botprotection.ErrVerificationServiceUnavailable
+				// The end user only sees ErrVerificationServiceUnavailable.
+				// Keep the cause as a secondary error so that it appears in the log.
+				err = errorutil.WithSecondaryError(botprotection.ErrVerificationServiceUnavailable, errBotProtectionVerification.Cause)
 				return
 			default:
 				// unrecognized status

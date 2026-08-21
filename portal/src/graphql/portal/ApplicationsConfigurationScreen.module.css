@@ -62,3 +62,43 @@
   justify-content: space-between;
   align-items: center;
 }
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  min-width: 0;
+}
+
+.nameCellIcon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  color: #57606a;
+}
+
+.nameCellText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.nameCellTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nameCellSubtitle {
+  font-size: 12px;
+  line-height: 16px;
+  color: #57606a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

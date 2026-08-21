@@ -38,7 +38,7 @@ func NewNodePostIdentified(ctx context.Context, deps *authflow.Dependencies, flo
 		BotProtectionRequirements: nil,
 		RateLimits:                nil,
 	}
-	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload)
+	e, err := deps.Events.PrepareBlockingEventWithTx(ctx, payload, eventapi.PrepareBlockingEventOptions{})
 	if err != nil {
 		return nil, err
 	}

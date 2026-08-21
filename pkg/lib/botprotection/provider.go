@@ -4,12 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var ProviderLogger = slogutil.NewLogger("bot-protection")
 
 type EventService interface {
 	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
@@ -38,6 +42,16 @@ func (p *Provider) Verify(ctx context.Context, token string) (err error) {
 		err = p.verifyTokenByRecaptchaV2(ctx, token)
 	default:
 		panic(fmt.Errorf("unknown bot_protection provider"))
+	}
+
+	if errors.Is(err, ErrVerificationServiceUnavailable) {
+		// The caller turns this into BotProtectionVerificationServiceUnavailable,
+		// which does not tell why the provider was unavailable.
+		// Log the actual error here, otherwise there is no way to obtain it.
+		logger := ProviderLogger.GetLogger(ctx)
+		logger.WithError(err).Error(ctx, "bot protection verification service unavailable",
+			slog.String("provider_type", string(p.Config.Provider.Type)),
+		)
 	}
 
 	if errors.Is(err, ErrVerificationFailed) {

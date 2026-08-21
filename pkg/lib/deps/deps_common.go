@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -197,6 +198,11 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
+		analytic.FirstAuthSinkDependencySet,
+		ProvideAnalyticConfig,
+	),
+
+	wire.NewSet(
 		networkprotection.DependencySet,
 	),
 
@@ -365,8 +371,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(userimport.AuthenticatorService), new(*facade.AuthenticatorFacade)),
 		wire.Bind(new(accountmanagement.IdentityService), new(*facade.IdentityFacade)),
 		wire.Bind(new(accountmanagement.MFAService), new(*facade.MFAFacade)),
-		wire.Bind(new(oauth.AccessTokenEncodingIdentityService), new(*facade.IdentityFacade)),
-		wire.Bind(new(oidc.IDTokenIssuerIdentityService), new(*facade.IdentityFacade)),
+		wire.Bind(new(oauth.UserBlockingEventContextIdentityService), new(*facade.IdentityFacade)),
 		wire.Bind(new(authenticationflow.UserFacade), new(*facade.UserFacade)),
 		wire.Bind(new(handlersaml.SAMLUserFacade), new(*facade.UserFacade)),
 	),
@@ -390,6 +395,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),
 		wire.Bind(new(oauthhandler.UserProvider), new(*user.Queries)),
 		wire.Bind(new(event.ResolverUserQueries), new(*user.Queries)),
+		wire.Bind(new(oauth.UserBlockingEventContextUserService), new(*user.Queries)),
 		wire.Bind(new(libes.UserQueries), new(*user.Queries)),
 		wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
 		wire.Bind(new(userimport.UserQueries), new(*user.RawQueries)),

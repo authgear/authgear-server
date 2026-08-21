@@ -9,7 +9,6 @@ import {
   PortalAPIAppConfig,
 } from "../../types";
 import { useResourcesQueryQuery } from "../adminapi/query/resourcesQuery.generated";
-import styles from "./EditOAuthClientFormQuickStartContent.module.css";
 import { useLoadableView } from "../../hook/useLoadableView";
 import {
   ExampleCodeVariant,
@@ -19,13 +18,15 @@ import { useEndpoints } from "../../hook/useEndpoints";
 import { CodeField } from "../../components/common/CodeField";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import DefaultButton from "../../DefaultButton";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import PortalLink from "../../Link";
 import { useStartReauthentication } from "../../graphql/portal/Authenticated";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { Resource } from "../adminapi/globalTypes.generated";
 import { useSearchParamsState } from "../../hook/useSearchParamsState";
 import { LocationState } from "./EditOAuthClientScreen";
 import ExternalLink from "../../ExternalLink";
+import { QuickStartStep } from "./QuickStartStep";
 
 interface EditOAuthClientFormQuickStartContentProps {
   className?: string;
@@ -191,7 +192,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
               values={{
                 // eslint-disable-next-line react/no-unstable-nested-components
                 reactRouterLink: (chunks: React.ReactNode) => (
-                  <Link to="?tab=api-resources">{chunks}</Link>
+                  <PortalLink to="?tab=api-resources">{chunks}</PortalLink>
                 ),
               }}
             />
@@ -260,54 +261,5 @@ function EditOAuthClientFormQuickStartContentLoaded(
         <CodeField className="mt-1">{`Authorization: Bearer <token>`}</CodeField>
       </QuickStartStep>
     </div>
-  );
-}
-
-function QuickStartStep({
-  className,
-  stepNumber,
-  title,
-  children,
-}: {
-  className?: string;
-  stepNumber: string;
-  title: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={className}>
-      <header className={styles.quickStartStep__header}>
-        <Text
-          variant="mediumPlus"
-          styles={{
-            root: {
-              fontWeight: 600,
-              color: "var(--gray-12)",
-              backgroundColor: "var(--gray-a3)",
-              width: 22,
-              height: 22,
-              borderRadius: 999,
-              textAlign: "center",
-              lineHeight: 20,
-            },
-          }}
-          block={true}
-        >
-          {stepNumber}
-        </Text>
-        <Text
-          variant="mediumPlus"
-          styles={{
-            root: {
-              fontWeight: 600,
-              color: "var(--gray-12)",
-            },
-          }}
-        >
-          {title}
-        </Text>
-      </header>
-      <div className={styles.quickStartStep__childrenContainer}>{children}</div>
-    </section>
   );
 }
