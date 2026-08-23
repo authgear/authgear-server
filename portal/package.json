@@ -84,7 +84,6 @@
     "@apollo/client": "^3.14.0",
     "@authgear/web": "^2.15.0",
     "@elgorditosalsero/react-gtm-hook": "^2.7.2",
-    "@fluentui/react": "^8.125.1",
     "@fortawesome/fontawesome-free": "^5.15.4",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-collapsible": "^1.1.16",

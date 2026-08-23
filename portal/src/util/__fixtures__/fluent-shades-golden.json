@@ -1,0 +1,342 @@
+{
+  "#176df3": {
+    "deriveColors": {
+      "original": "#176df3",
+      "variant": "#1151b8"
+    },
+    "getShades": [
+      "#176df3",
+      "#f5f9fe",
+      "#d8e6fd",
+      "#b7d1fb",
+      "#70a4f7",
+      "#317bf4",
+      "#1460da",
+      "#1151b8",
+      "#0c3c88"
+    ]
+  },
+  "#ffffff": {
+    "deriveColors": {
+      "original": "#ffffff",
+      "variant": "#f4f4f4"
+    },
+    "getShades": [
+      "#ffffff",
+      "#767676",
+      "#a6a6a6",
+      "#c8c8c8",
+      "#d0d0d0",
+      "#dadada",
+      "#eaeaea",
+      "#f4f4f4",
+      "#f8f8f8"
+    ]
+  },
+  "#000000": {
+    "deriveColors": {
+      "original": "#000000",
+      "variant": "#151515"
+    },
+    "getShades": [
+      "#000000",
+      "#898989",
+      "#737373",
+      "#595959",
+      "#373737",
+      "#2f2f2f",
+      "#252525",
+      "#151515",
+      "#0b0b0b"
+    ]
+  },
+  "#ff0000": {
+    "deriveColors": {
+      "original": "#ff0000",
+      "variant": "#c20000"
+    },
+    "getShades": [
+      "#ff0000",
+      "#fff5f5",
+      "#ffd6d6",
+      "#ffb3b3",
+      "#ff6666",
+      "#ff1f1f",
+      "#e60000",
+      "#c20000",
+      "#8f0000"
+    ]
+  },
+  "#00ff00": {
+    "deriveColors": {
+      "original": "#00ff00",
+      "variant": "#00c200"
+    },
+    "getShades": [
+      "#00ff00",
+      "#f5fff5",
+      "#d6ffd6",
+      "#b3ffb3",
+      "#66ff66",
+      "#1fff1f",
+      "#00e600",
+      "#00c200",
+      "#008f00"
+    ]
+  },
+  "#0000ff": {
+    "deriveColors": {
+      "original": "#0000ff",
+      "variant": "#0000c2"
+    },
+    "getShades": [
+      "#0000ff",
+      "#f5f5ff",
+      "#d6d6ff",
+      "#b3b3ff",
+      "#6666ff",
+      "#1f1fff",
+      "#0000e6",
+      "#0000c2",
+      "#00008f"
+    ]
+  },
+  "#f9e2af": {
+    "deriveColors": {
+      "original": "#f9e2af",
+      "variant": "#393428"
+    },
+    "getShades": [
+      "#f9e2af",
+      "#dec99c",
+      "#c3b088",
+      "#a79875",
+      "#8c7f62",
+      "#70664f",
+      "#554d3b",
+      "#393428",
+      "#1e1b15"
+    ]
+  },
+  "#333333": {
+    "deriveColors": {
+      "original": "#333333",
+      "variant": "#272727"
+    },
+    "getShades": [
+      "#333333",
+      "#f7f7f7",
+      "#dedede",
+      "#c2c2c2",
+      "#858585",
+      "#4b4b4b",
+      "#2e2e2e",
+      "#272727",
+      "#1d1d1d"
+    ]
+  },
+  "#eeeeee": {
+    "deriveColors": {
+      "original": "#eeeeee",
+      "variant": "#373737"
+    },
+    "getShades": [
+      "#eeeeee",
+      "#d3d3d3",
+      "#b9b9b9",
+      "#9f9f9f",
+      "#858585",
+      "#6b6b6b",
+      "#515151",
+      "#373737",
+      "#1c1c1c"
+    ]
+  },
+  "#0c3c88": {
+    "deriveColors": {
+      "original": "#0c3c88",
+      "variant": "#092d67"
+    },
+    "getShades": [
+      "#0c3c88",
+      "#f1f5fa",
+      "#c9d7ec",
+      "#9fb6db",
+      "#5379b7",
+      "#1e4c96",
+      "#0b357a",
+      "#092d67",
+      "#07214c"
+    ]
+  },
+  "#abcdef": {
+    "deriveColors": {
+      "original": "#abcdef",
+      "variant": "#282f37"
+    },
+    "getShades": [
+      "#abcdef",
+      "#9ab7d5",
+      "#87a1bb",
+      "#748aa1",
+      "#617386",
+      "#4e5d6c",
+      "#3b4651",
+      "#282f37",
+      "#15191d"
+    ]
+  },
+  "#123": {
+    "deriveColors": {
+      "original": "#123",
+      "variant": "#2e4760"
+    },
+    "getShades": [
+      "#123",
+      "#d4dde7",
+      "#b0c0d0",
+      "#8fa4ba",
+      "#728ba3",
+      "#58728d",
+      "#415c76",
+      "#2e4760",
+      "#1e3449"
+    ]
+  },
+  "#01f": {
+    "deriveColors": {
+      "original": "#01f",
+      "variant": "#000dc2"
+    },
+    "getShades": [
+      "#01f",
+      "#f5f5ff",
+      "#d6d9ff",
+      "#b3b8ff",
+      "#6670ff",
+      "#1f2eff",
+      "#000fe6",
+      "#000dc2",
+      "#000a8f"
+    ]
+  },
+  "#7f7f7f": {
+    "deriveColors": {
+      "original": "#7f7f7f",
+      "variant": "#616161"
+    },
+    "getShades": [
+      "#7f7f7f",
+      "#fafafa",
+      "#ebebeb",
+      "#d9d9d9",
+      "#b3b3b3",
+      "#8f8f8f",
+      "#737373",
+      "#616161",
+      "#474747"
+    ]
+  },
+  "#fefefe": {
+    "deriveColors": {
+      "original": "#fefefe",
+      "variant": "#3b3b3b"
+    },
+    "getShades": [
+      "#fefefe",
+      "#e3e3e3",
+      "#c7c7c7",
+      "#ababab",
+      "#8f8f8f",
+      "#737373",
+      "#575757",
+      "#3b3b3b",
+      "#1f1f1f"
+    ]
+  },
+  "#010101": {
+    "deriveColors": {
+      "original": "#010101",
+      "variant": "#383838"
+    },
+    "getShades": [
+      "#010101",
+      "#e0e0e0",
+      "#c4c4c4",
+      "#a8a8a8",
+      "#8c8c8c",
+      "#707070",
+      "#545454",
+      "#383838",
+      "#1c1c1c"
+    ]
+  },
+  "#ffd700": {
+    "deriveColors": {
+      "original": "#ffd700",
+      "variant": "#c2a500"
+    },
+    "getShades": [
+      "#ffd700",
+      "#fffdf5",
+      "#fff9d6",
+      "#fff4b3",
+      "#ffe866",
+      "#ffdd1f",
+      "#e6c300",
+      "#c2a500",
+      "#8f7900"
+    ]
+  },
+  "#8b0000": {
+    "deriveColors": {
+      "original": "#8b0000",
+      "variant": "#6b0000"
+    },
+    "getShades": [
+      "#8b0000",
+      "#faf0f0",
+      "#edc7c7",
+      "#dd9a9a",
+      "#ba4a4a",
+      "#9a1212",
+      "#7e0000",
+      "#6b0000",
+      "#4f0000"
+    ]
+  },
+  "rgba(23, 109, 243, 0.5)": {
+    "deriveColors": {
+      "original": "rgba(23, 109, 243, 0.5)",
+      "variant": "rgba(17, 81, 184, 0.5)"
+    },
+    "getShades": [
+      "rgba(23, 109, 243, 0.5)",
+      "rgba(245, 249, 254, 0.5)",
+      "rgba(216, 230, 253, 0.5)",
+      "rgba(183, 209, 251, 0.5)",
+      "rgba(112, 164, 247, 0.5)",
+      "rgba(49, 123, 244, 0.5)",
+      "rgba(20, 96, 218, 0.5)",
+      "rgba(17, 81, 184, 0.5)",
+      "rgba(12, 60, 136, 0.5)"
+    ]
+  },
+  "#1f2937": {
+    "deriveColors": {
+      "original": "#1f2937",
+      "variant": "#425064"
+    },
+    "getShades": [
+      "#1f2937",
+      "#dbe0e7",
+      "#bcc5d1",
+      "#9fabbb",
+      "#8592a5",
+      "#6c7b90",
+      "#56657a",
+      "#425064",
+      "#2f3c4e"
+    ]
+  }
+}
