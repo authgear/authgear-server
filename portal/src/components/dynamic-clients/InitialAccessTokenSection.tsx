@@ -57,7 +57,6 @@ function InitialAccessTokenSectionContent(): React.ReactElement {
         variables: { input: { type, expiresIn } },
       })
         .then(async (result) => {
-          setIsCreateDialogVisible(false);
           const token = result.data?.createInitialAccessToken.token;
           if (token != null) {
             setRevealedToken(token);
@@ -66,6 +65,11 @@ function InitialAccessTokenSectionContent(): React.ReactElement {
         })
         .catch((e: unknown) => {
           setErrors(parseRawError(e));
+        })
+        .finally(() => {
+          // Close the dialog on failure too — the error message bar renders
+          // behind the modal overlay and would otherwise be invisible.
+          setIsCreateDialogVisible(false);
         });
     },
     [createInitialAccessToken, refetch, setErrors]
@@ -96,12 +100,14 @@ function InitialAccessTokenSectionContent(): React.ReactElement {
     revokeInitialAccessToken({
       variables: { input: { id: tokenToRevoke.id } },
     })
-      .then(async () => {
-        setTokenToRevoke(null);
-        return refetch();
-      })
+      .then(async () => refetch())
       .catch((e: unknown) => {
         setErrors(parseRawError(e));
+      })
+      .finally(() => {
+        // Close the dialog on failure too — the error message bar renders
+        // behind the modal overlay and would otherwise be invisible.
+        setTokenToRevoke(null);
       });
   }, [tokenToRevoke, revokeInitialAccessToken, refetch, setErrors]);
 

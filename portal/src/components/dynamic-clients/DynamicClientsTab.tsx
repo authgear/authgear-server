@@ -129,8 +129,6 @@ function DynamicClientsTabContent({
         variables: { input: { clientID: data.clientID } },
       })
         .then(async () => {
-          setDeleteDialogData(null);
-          setDetailsClient(null);
           // If the last item of a later page was deleted, step back a page so
           // the list does not show an empty page.
           if (clients.length === 1 && offset > 0) {
@@ -143,6 +141,10 @@ function DynamicClientsTabContent({
         })
         .finally(() => {
           setIsDeleting(false);
+          // Close the dialogs on failure too — the error message bar renders
+          // behind the modal overlay and would otherwise be invisible.
+          setDeleteDialogData(null);
+          setDetailsClient(null);
         });
     },
     [deleteDynamicClient, clients.length, offset, refetch, setErrors]
