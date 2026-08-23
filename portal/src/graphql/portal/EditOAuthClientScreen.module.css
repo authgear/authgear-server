@@ -15,6 +15,10 @@
   row-gap: 16px;
 }
 
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
 .backLink {
   display: inline-flex;
   align-items: center;

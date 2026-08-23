@@ -526,9 +526,17 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       return null;
     }
 
+    const showSaveBar =
+      formTab === FormTab.SETTINGS || formTab === FormTab.SAML2;
+
     return (
       <ScreenContent
-        className="flex-1-0-auto"
+        className={cn(
+          "flex-1-0-auto",
+          // Constant clearance for the floating save bar on the tabs that can
+          // show it, so the layout doesn't jump when the bar appears.
+          showSaveBar ? styles.contentWithSaveBar : null
+        )}
         layout={formTab === FormTab.API_RESOURCES ? "list" : "auto-rows"}
       >
         <header
@@ -599,9 +607,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             client={client}
           />
         ) : null}
-        {formTab === FormTab.SETTINGS || formTab === FormTab.SAML2 ? (
-          <SaveFunctionBar anchorRef={headerRef} />
-        ) : null}
+        {showSaveBar ? <SaveFunctionBar anchorRef={headerRef} /> : null}
       </ScreenContent>
     );
   };
