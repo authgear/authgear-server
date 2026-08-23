@@ -1,0 +1,5 @@
+mutation DeleteDynamicClientMutation($input: DeleteDynamicClientInput!) {
+  deleteDynamicClient(input: $input) {
+    ok
+  }
+}

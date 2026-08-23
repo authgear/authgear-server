@@ -1,0 +1,11 @@
+mutation CreateInitialAccessTokenMutation($input: CreateInitialAccessTokenInput!) {
+  createInitialAccessToken(input: $input) {
+    token
+    initialAccessToken {
+      id
+      createdAt
+      expiresAt
+      type
+    }
+  }
+}
