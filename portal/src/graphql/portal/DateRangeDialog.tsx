@@ -45,12 +45,25 @@ function toFieldValue(date?: Date): string {
   return date != null ? DateTime.fromJSDate(date).toFormat("yyyy-LL-dd") : "";
 }
 
-function fromFieldValue(value: string): Date | null {
-  // The native date input only ever emits "" or a valid yyyy-MM-dd string.
+function fromFieldValue(
+  value: string,
+  min: Date | undefined,
+  max: Date | undefined
+): Date | null {
+  // The native date input only ever emits "" or a valid yyyy-MM-dd string,
+  // but typing (as opposed to picking) can produce out-of-range values; the
+  // old FluentUI calendar picker could not, so clamp to preserve behavior.
   if (value === "") {
     return null;
   }
-  return DateTime.fromISO(value).toJSDate();
+  let date = DateTime.fromISO(value).toJSDate();
+  if (min != null && date.getTime() < min.getTime()) {
+    date = min;
+  }
+  if (max != null && date.getTime() > max.getTime()) {
+    date = max;
+  }
+  return date;
 }
 
 const DateRangeDialog: React.VFC<DateRangeDialogProps> =
@@ -88,16 +101,20 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
 
     const onFromFieldChange = useCallback(
       (value: string) => {
-        onSelectRangeFrom?.(fromFieldValue(value));
+        onSelectRangeFrom?.(
+          fromFieldValue(value, fromDatePickerMinDate, fromDatePickerMaxDate)
+        );
       },
-      [onSelectRangeFrom]
+      [onSelectRangeFrom, fromDatePickerMinDate, fromDatePickerMaxDate]
     );
 
     const onToFieldChange = useCallback(
       (value: string) => {
-        onSelectRangeTo?.(fromFieldValue(value));
+        onSelectRangeTo?.(
+          fromFieldValue(value, toDatePickerMinDate, toDatePickerMaxDate)
+        );
       },
-      [onSelectRangeTo]
+      [onSelectRangeTo, toDatePickerMinDate, toDatePickerMaxDate]
     );
 
     return (
