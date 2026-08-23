@@ -21,6 +21,7 @@ import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { InitialAccessTokenSection } from "../../components/dynamic-clients/InitialAccessTokenSection";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 import styles from "./DynamicClientRegistrationScreen.module.css";
@@ -269,6 +270,7 @@ const DynamicClientRegistrationScreenContent: React.VFC<DynamicClientRegistratio
               <FormattedMessage id="DynamicClientRegistrationScreen.iat-required.toggle.description" />
             </Text>
           </div>
+          <InitialAccessTokenSection />
         </SettingsSectionCard>
 
         <SettingsSectionCard
