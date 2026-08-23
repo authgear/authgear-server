@@ -15,6 +15,9 @@ query ResourceScopesQuery(
             id
             scope
             description
+            accessPolicy {
+              allowDynamicThirdPartyClientAccess
+            }
             createdAt
             updatedAt
           }

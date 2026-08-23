@@ -37,6 +37,7 @@ export function APIResourceDetailsScreenScopesTab({
   const [initialState] = useState<CreateScopeFormState>({
     scope: "",
     description: "",
+    allowDynamicThirdPartyClientAccess: false,
   });
   const form = useSimpleForm<CreateScopeFormState, any>({
     defaultState: initialState,
@@ -48,6 +49,10 @@ export function APIResourceDetailsScreenScopesTab({
             resourceURI: resource.resourceURI,
             scope: sanitized.scope,
             description: sanitized.description,
+            accessPolicy: {
+              allowDynamicThirdPartyClientAccess:
+                sanitized.allowDynamicThirdPartyClientAccess,
+            },
           },
         },
         refetchQueries: [ResourceScopesQueryDocument],

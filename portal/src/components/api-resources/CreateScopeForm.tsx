@@ -4,6 +4,7 @@ import { useLoading } from "../../hook/loading";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useFormTopErrors } from "../../form";
+import { Checkbox } from "@fluentui/react";
 import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import { Context as MessageContext } from "../../intl";
@@ -11,6 +12,7 @@ import { Context as MessageContext } from "../../intl";
 export interface CreateScopeFormState {
   scope: string;
   description: string;
+  allowDynamicThirdPartyClientAccess: boolean;
 }
 
 export interface CreateScopeFormProps {
@@ -25,6 +27,8 @@ export function sanitizeCreateScopeFormState(
   return {
     scope: state.scope.trim(),
     description: state.description.trim(),
+    allowDynamicThirdPartyClientAccess:
+      state.allowDynamicThirdPartyClientAccess,
   };
 }
 
@@ -50,6 +54,17 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
     );
     const handleDescriptionChange = useCallback(
       (_e, value) => setState((s) => ({ ...s, description: value ?? "" })),
+      [setState]
+    );
+    const handleAllowDynamicAccessChange = useCallback(
+      (
+        _e?: React.FormEvent<HTMLElement | HTMLInputElement>,
+        checked?: boolean
+      ) =>
+        setState((s) => ({
+          ...s,
+          allowDynamicThirdPartyClientAccess: checked ?? false,
+        })),
       [setState]
     );
 
@@ -80,6 +95,12 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
           placeholder={renderToString(
             "CreateScopeForm.description.placeholder"
           )}
+        />
+        <Checkbox
+          className="flex-none mt-[37px]"
+          label={renderToString("CreateScopeForm.allow-dynamic-access.label")}
+          checked={state.allowDynamicThirdPartyClientAccess}
+          onChange={handleAllowDynamicAccessChange}
         />
         <PrimaryButton
           className="flex-none mt-[30px]"

@@ -75,16 +75,31 @@ export const ScopeList: React.VFC<ScopeListProps> = function ScopeList(props) {
     [onEdit, onDelete]
   );
 
-  const onRenderScope = useCallback((item?: Scope) => {
-    if (item == null) {
-      return null;
-    }
-    return (
-      <div className="py-0.5 px-1 bg-[#F3F2F1] rounded">
-        <Text variant="smallPlus">{item.scope}</Text>
-      </div>
-    );
-  }, []);
+  const onRenderScope = useCallback(
+    (item?: Scope) => {
+      if (item == null) {
+        return null;
+      }
+      return (
+        <div className="flex items-center gap-x-2">
+          <div className="py-0.5 px-1 bg-[#F3F2F1] rounded">
+            <Text variant="smallPlus">{item.scope}</Text>
+          </div>
+          {item.accessPolicy.allowDynamicThirdPartyClientAccess ? (
+            <div className="py-0.5 px-1 rounded border border-solid border-[var(--gray-a6)]">
+              <Text
+                variant="smallPlus"
+                styles={{ root: { color: "var(--gray-11)" } }}
+              >
+                {renderToString("ScopeList.dynamic-badge")}
+              </Text>
+            </div>
+          ) : null}
+        </div>
+      );
+    },
+    [renderToString]
+  );
 
   const columns = useMemo(
     (): IColumn[] => [

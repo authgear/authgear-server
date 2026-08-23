@@ -41,6 +41,8 @@ function EditScopeScreenContent({
     () => ({
       scope: scope.scope,
       description: scope.description ?? "",
+      allowDynamicThirdPartyClientAccess:
+        scope.accessPolicy.allowDynamicThirdPartyClientAccess,
     }),
     [scope]
   );
@@ -63,6 +65,10 @@ function EditScopeScreenContent({
             resourceURI: resource.resourceURI,
             scope: state.scope,
             description: state.description,
+            accessPolicy: {
+              allowDynamicThirdPartyClientAccess:
+                state.allowDynamicThirdPartyClientAccess,
+            },
           },
         },
       });
@@ -103,6 +109,9 @@ function EditScopeScreenContent({
           mode="edit"
           state={form.state}
           setState={form.setState}
+          resourceAllowsDynamicAccess={
+            resource.accessPolicy.allowDynamicThirdPartyClientAccess
+          }
         />
       </FormContainerBase>
     </APIResourceScreenLayout>
