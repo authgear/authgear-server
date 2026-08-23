@@ -21,44 +21,11 @@
   width: 210px;
 }
 
-.searchBox {
-  max-width: 300px;
-}
-
 .titleLabel {
   margin: 4px;
+  color: var(--gray-12);
 }
 
-.dialogDesc {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 15px;
-}
-
-.dialogColumnHeader {
-  display: block;
-  padding: 12px 16px;
-}
-
-.dialogListWrapper {
-  position: relative;
-  height: 50vh;
-  overflow-y: scroll;
-  border: 1px solid #b0b0b0;
-}
-
-.cellRoot {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin: 6px;
-}
-
-.cellCheckbox {
-  margin: 4px;
-}
-
-.cellText {
-  display: block;
-  flex: 1;
+.optionDisabled {
+  font-style: italic;
 }
