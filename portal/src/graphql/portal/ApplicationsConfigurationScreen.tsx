@@ -17,6 +17,7 @@ import {
   IDetailsRowStyleProps,
   IDialogContentProps,
   MessageBar,
+  PivotItem,
   SelectionMode,
   Text,
 } from "@fluentui/react";
@@ -52,6 +53,9 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import DefaultButton from "../../DefaultButton";
 import { useOAuthClientForm } from "../../hook/useOAuthClientForm";
 import { getNextPlan } from "../../util/plan";
+import { AGPivot } from "../../components/common/AGPivot";
+import { usePivotNavigation } from "../../hook/usePivot";
+import { DynamicClientsTab } from "../../components/dynamic-clients/DynamicClientsTab";
 
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: "0 4px" },
@@ -223,12 +227,19 @@ const ClientCardList: React.VFC<ClientCardListProps> = (props) => {
   );
 };
 
+type ApplicationsTabKey = "applications" | "dynamic-clients";
+
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   planName: string | null;
   oauthClientsSoftMaximum: number | undefined;
   oauthClientsHardMaximum: number | undefined;
   showNotification: (msg: string) => void;
+  selectedKey: ApplicationsTabKey;
+  onLinkClick: (item?: PivotItem) => void;
+  dynamicClientRegistrationEnabled: boolean;
+  publicOrigin: string;
+  dcrClientQuota: number | null;
 }
 
 const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContentProps> =
@@ -238,6 +249,11 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       planName,
       oauthClientsHardMaximum,
       oauthClientsSoftMaximum,
+      selectedKey,
+      onLinkClick,
+      dynamicClientRegistrationEnabled,
+      publicOrigin,
+      dcrClientQuota,
     } = props;
     const navigate = useNavigate();
     const { themes } = useSystemConfig();
@@ -424,46 +440,76 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
           <ScreenTitle className={styles.widget}>
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           </ScreenTitle>
-          <PrimaryButton
-            text={renderToString(
-              "ApplicationsConfigurationScreen.add-client-button"
-            )}
-            iconProps={{ iconName: "Add" }}
-            onClick={goToCreateApp}
-            disabled={hardLimitReached}
-          />
+          {selectedKey === "applications" ? (
+            <PrimaryButton
+              text={renderToString(
+                "ApplicationsConfigurationScreen.add-client-button"
+              )}
+              iconProps={{ iconName: "Add" }}
+              onClick={goToCreateApp}
+              disabled={hardLimitReached}
+            />
+          ) : null}
         </div>
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="ApplicationsConfigurationScreen.description" />
         </ScreenDescription>
-        <div className={styles.widget}>
-          {displayMaximumWarning ? (
-            <FeatureDisabledMessageBar
-              messageID={
-                canUpgradePlan
-                  ? "FeatureConfig.oauth-clients.maximum.upgrade"
-                  : "FeatureConfig.oauth-clients.maximum.contact-us"
-              }
-              messageValues={{ maximum: displayedClientMaximum! }}
-            />
-          ) : null}
-          <div className={styles.desktopView}>
-            <DetailsList
-              onRenderRow={onRenderOAuthClientRow}
-              className={styles.clientList}
-              columns={oauthClientListColumns}
-              items={state.clients}
-              selectionMode={SelectionMode.none}
-              onRenderItemColumn={onRenderOAuthClientColumns}
+        <AGPivot
+          className={styles.widget}
+          selectedKey={selectedKey}
+          onLinkClick={onLinkClick}
+        >
+          <PivotItem
+            headerText={renderToString(
+              "ApplicationsConfigurationScreen.tab.applications"
+            )}
+            itemKey="applications"
+          />
+          <PivotItem
+            headerText={renderToString(
+              "ApplicationsConfigurationScreen.tab.dynamic-clients"
+            )}
+            itemKey="dynamic-clients"
+          />
+        </AGPivot>
+        {selectedKey === "applications" ? (
+          <div className={styles.widget}>
+            {displayMaximumWarning ? (
+              <FeatureDisabledMessageBar
+                messageID={
+                  canUpgradePlan
+                    ? "FeatureConfig.oauth-clients.maximum.upgrade"
+                    : "FeatureConfig.oauth-clients.maximum.contact-us"
+                }
+                messageValues={{ maximum: displayedClientMaximum! }}
+              />
+            ) : null}
+            <div className={styles.desktopView}>
+              <DetailsList
+                onRenderRow={onRenderOAuthClientRow}
+                className={styles.clientList}
+                columns={oauthClientListColumns}
+                items={state.clients}
+                selectionMode={SelectionMode.none}
+                onRenderItemColumn={onRenderOAuthClientColumns}
+              />
+            </div>
+            <div className={styles.mobileView}>
+              <ClientCardList
+                className={styles.clientList}
+                items={state.clients}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className={styles.widget}>
+            <DynamicClientsTab
+              registrationEnabled={dynamicClientRegistrationEnabled}
+              publicOrigin={publicOrigin}
+              dcrClientQuota={dcrClientQuota}
             />
           </div>
-          <div className={styles.mobileView}>
-            <ClientCardList
-              className={styles.clientList}
-              items={state.clients}
-            />
-          </div>
-        </div>
+        )}
         <Dialog
           hidden={!isRemoveDialogVisible}
           dialogContentProps={dialogContentProps}
@@ -500,6 +546,33 @@ const ApplicationsConfigurationScreen: React.VFC =
       constructConfig,
     });
     const featureConfig = useAppFeatureConfigQuery(appID);
+    const { selectedKey, onLinkClick } = usePivotNavigation<ApplicationsTabKey>(
+      ["applications", "dynamic-clients"]
+    );
+
+    const dynamicClientRegistrationEnabled = useMemo(() => {
+      return (
+        form.effectiveConfig.oauth?.dynamic_client_registration?.enabled ??
+        false
+      );
+    }, [form.effectiveConfig]);
+
+    const publicOrigin = useMemo(() => {
+      return form.effectiveConfig.http?.public_origin ?? "";
+    }, [form.effectiveConfig]);
+
+    const dcrClientQuota = useMemo<number | null>(() => {
+      const limits =
+        featureConfig.effectiveFeatureConfig?.usage?.limits?.oauth_client_dcr;
+      const blockQuotas = (limits ?? [])
+        .filter((limit) => limit.action === "block")
+        .map((limit) => limit.quota)
+        .filter((quota): quota is number => quota != null);
+      if (blockQuotas.length === 0) {
+        return null;
+      }
+      return Math.min(...blockQuotas);
+    }, [featureConfig.effectiveFeatureConfig]);
 
     const [messageBar, setMessageBar] = useState<React.ReactNode>(null);
     const showNotification = useCallback((msg: string) => {
@@ -539,10 +612,15 @@ const ApplicationsConfigurationScreen: React.VFC =
     }, [form, featureConfig]);
 
     useEffect(() => {
-      if (!isLoading && !error && form.state.clients.length === 0) {
+      if (
+        !isLoading &&
+        !error &&
+        form.state.clients.length === 0 &&
+        selectedKey === "applications"
+      ) {
         navigate("./add", { replace: true });
       }
-    }, [isLoading, error, form.state.clients.length, navigate]);
+    }, [isLoading, error, form.state.clients.length, navigate, selectedKey]);
 
     if (isLoading) {
       return <ShowLoading />;
@@ -564,6 +642,11 @@ const ApplicationsConfigurationScreen: React.VFC =
           oauthClientsHardMaximum={oauthClientsHardMaximum}
           oauthClientsSoftMaximum={oauthClientsSoftMaximum}
           showNotification={showNotification}
+          selectedKey={selectedKey}
+          onLinkClick={onLinkClick}
+          dynamicClientRegistrationEnabled={dynamicClientRegistrationEnabled}
+          publicOrigin={publicOrigin}
+          dcrClientQuota={dcrClientQuota}
         />
       </FormContainer>
     );
