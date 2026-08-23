@@ -43,7 +43,6 @@ import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import FormContainer from "../../FormContainer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import styles from "./EditOAuthClientScreen.module.css";
-import Widget from "../../Widget";
 import ExternalLink from "../../ExternalLink";
 import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
@@ -791,7 +790,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
       <ScreenLayoutScrollView>
         <ScreenContent>
           <EditOAuthClientBackLink />
-          <Widget className={styles.widget}>
+          <div className={cn(styles.widget, styles.quickStartScreenPanel)}>
             <Text as="p" size="4" weight="bold">
               <i
                 className={cn(
@@ -827,7 +826,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
                 text={<FormattedMessage id="next" />}
               />
             </div>
-          </Widget>
+          </div>
         </ScreenContent>
       </ScreenLayoutScrollView>
     );

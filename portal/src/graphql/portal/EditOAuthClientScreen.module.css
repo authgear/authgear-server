@@ -175,3 +175,13 @@
   width: 24px;
   height: 24px;
 }
+
+.quickStartScreenPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-3);
+  background-color: var(--color-panel-solid);
+  padding: 24px;
+}

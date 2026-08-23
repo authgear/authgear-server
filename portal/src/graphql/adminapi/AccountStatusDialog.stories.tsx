@@ -6,7 +6,7 @@ import {
   type AccountStatus,
   type AccountStatusDialogProps,
 } from "./UserDetailsAccountStatus";
-import DefaultButton from "../../DefaultButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { SystemConfigContext } from "../../context/SystemConfigContext";
 import {
   defaultSystemConfig,
@@ -42,7 +42,8 @@ function AccountStatusDialogStoryChrome({
         boxSizing: "border-box",
       }}
     >
-      <DefaultButton
+      <SecondaryButton
+        size="2"
         text="Open dialog"
         onClick={() => setOpen(true)}
         disabled={open}
