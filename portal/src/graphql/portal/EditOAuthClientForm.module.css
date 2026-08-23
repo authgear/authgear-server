@@ -4,3 +4,8 @@
   line-height: 20px;
   padding: 8px 12px;
 }
+
+.cookieSettingsText {
+  margin: 0;
+  color: var(--gray-a11);
+}

@@ -1115,7 +1115,11 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             title={
               <FormattedMessage id="EditOAuthClientForm.cookie-settings.title" />
             }
-            description={
+          >
+            {/* This section has no controls; the pointer to Session settings
+                is the content, keeping the two-column rhythm of its
+                siblings. */}
+            <Text as="p" size="2" className={styles.cookieSettingsText}>
               <FormattedMessage
                 id="EditOAuthClientForm.cookie-settings.description"
                 values={{
@@ -1128,9 +1132,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                   ),
                 }}
               />
-            }
-          >
-            {null}
+            </Text>
           </SettingsSectionCard>
         ) : null}
         {showApp2AppSettings ? (
