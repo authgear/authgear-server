@@ -70,3 +70,7 @@
   /* stylelint-disable-next-line plugin/no-unsupported-browser-features -- progressive enhancement: desktop-only resize affordance */
   resize: vertical;
 }
+
+.fingerprintInput {
+  font-family: var(--code-font-family);
+}

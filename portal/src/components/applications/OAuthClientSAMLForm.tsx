@@ -362,6 +362,7 @@ function IdpCertificateSection({
   configAppID: string;
   samlIdpSigningCertificate: SAMLIdpSigningCertificate;
 }) {
+  const { renderToString } = useContext(MessageFormatContext);
   const onDownloadIdpCertificate = useCallback(() => {
     downloadStringAsFile({
       content: samlIdpSigningCertificate.certificatePEM,
@@ -379,28 +380,33 @@ function IdpCertificateSection({
         <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.title" />
       </WidgetTitle>
       <div className="grid gap-y-4 grid-cols-1">
-        <div>
-          <span className="inline-block">
-            <SecondaryButton
-              size="2"
-              onClick={onDownloadIdpCertificate}
-              text={
-                <>
-                  <DownloadIcon />
-                  <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
-                </>
-              }
+        <TextField
+          size="2"
+          label={renderToString(
+            "OAuthClientSAMLForm.idpCertificate.fingerprint.label"
+          )}
+          value={samlIdpSigningCertificate.certificateFingerprint}
+          readOnly={true}
+          inputClassName={styles.fingerprintInput}
+          suffixPlain={true}
+          suffix={
+            <CopyIconButton
+              textToCopy={samlIdpSigningCertificate.certificateFingerprint}
             />
-          </span>
-          <Text as="p" size="2" className="mt-1">
-            <FormattedMessage
-              id="OAuthClientSAMLForm.idpCertificate.fingerprint"
-              values={{
-                fingerprint: samlIdpSigningCertificate.certificateFingerprint,
-              }}
-            />
-          </Text>
-        </div>
+          }
+        />
+        <span className="inline-block">
+          <SecondaryButton
+            size="2"
+            onClick={onDownloadIdpCertificate}
+            text={
+              <>
+                <DownloadIcon />
+                <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
+              </>
+            }
+          />
+        </span>
 
         <Callout
           type="info"
