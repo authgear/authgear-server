@@ -1,10 +1,11 @@
-import { DatePicker, Dialog, DialogFooter } from "@fluentui/react";
+import React, { useCallback } from "react";
+import { Dialog } from "@radix-ui/themes";
+import { DateTime } from "luxon";
 import { FormattedMessage } from "../../intl";
-import React, { useMemo } from "react";
 import styles from "./DateRangeDialog.module.css";
-import TextField from "../../TextField";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { DateField } from "../../components/v2/DateField/DateField";
 import DateTimePicker from "../../DateTimePicker";
 
 interface DateRangeDialogBaseProps {
@@ -40,6 +41,18 @@ type DateRangeDialogProps = DateRangeDialogBaseProps &
       }
   );
 
+function toFieldValue(date?: Date): string {
+  return date != null ? DateTime.fromJSDate(date).toFormat("yyyy-LL-dd") : "";
+}
+
+function fromFieldValue(value: string): Date | null {
+  // The native date input only ever emits "" or a valid yyyy-MM-dd string.
+  if (value === "") {
+    return null;
+  }
+  return DateTime.fromISO(value).toJSDate();
+}
+
 const DateRangeDialog: React.VFC<DateRangeDialogProps> =
   function DateRangeDialog(props) {
     const {
@@ -64,81 +77,114 @@ const DateRangeDialog: React.VFC<DateRangeDialogProps> =
       ? undefined
       : props.toDatePickerMinDate;
 
-    const dateRangeDialogContentProps = useMemo(() => {
-      return {
-        title,
-      };
-    }, [title]);
+    const onOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onDismiss?.();
+        }
+      },
+      [onDismiss]
+    );
+
+    const onFromFieldChange = useCallback(
+      (value: string) => {
+        onSelectRangeFrom?.(fromFieldValue(value));
+      },
+      [onSelectRangeFrom]
+    );
+
+    const onToFieldChange = useCallback(
+      (value: string) => {
+        onSelectRangeTo?.(fromFieldValue(value));
+      },
+      [onSelectRangeTo]
+    );
 
     return (
-      <Dialog
-        hidden={hidden}
-        onDismiss={onDismiss}
-        dialogContentProps={dateRangeDialogContentProps}
-        minWidth={showTimePicker ? 480 : 340}
-      >
-        {/* Dialog is based on Modal, which will focus the first child on open. *
-    However, we do not want the date picker to be opened at the same time. *
-    So we make the first focusable element a hidden TextField */}
-        <TextField className={styles.hidden} />
-        {showTimePicker ? (
-          <>
-            <DateTimePicker
-              className={styles.dateTimePicker}
-              label={
-                <span className={styles.dateTimePickerLabel}>
-                  {fromDatePickerLabel}
-                </span>
-              }
-              pickedDateTime={rangeFrom ?? null}
-              minDateTime={null}
-              maxDateTime={fromDatePickerMaxDate ?? null}
-              onPickDateTime={onSelectRangeFrom ?? (() => {})}
-              showClearButton={false}
+      <Dialog.Root open={!hidden} onOpenChange={onOpenChange}>
+        <Dialog.Content maxWidth={showTimePicker ? "480px" : "340px"} size="3">
+          <Dialog.Title>{title}</Dialog.Title>
+          <div className={styles.fields}>
+            {showTimePicker ? (
+              <>
+                <DateTimePicker
+                  className={styles.dateTimePicker}
+                  label={
+                    <span className={styles.dateTimePickerLabel}>
+                      {fromDatePickerLabel}
+                    </span>
+                  }
+                  pickedDateTime={rangeFrom ?? null}
+                  minDateTime={null}
+                  maxDateTime={fromDatePickerMaxDate ?? null}
+                  onPickDateTime={onSelectRangeFrom ?? (() => {})}
+                  showClearButton={false}
+                />
+                <DateTimePicker
+                  className={styles.dateTimePicker}
+                  label={
+                    <span className={styles.dateTimePickerLabel}>
+                      {toDatePickerLabel}
+                    </span>
+                  }
+                  pickedDateTime={rangeTo ?? null}
+                  minDateTime={null}
+                  maxDateTime={toDatePickerMaxDate ?? null}
+                  onPickDateTime={onSelectRangeTo ?? (() => {})}
+                  showClearButton={false}
+                />
+              </>
+            ) : (
+              <>
+                <DateField
+                  size="2"
+                  label={fromDatePickerLabel}
+                  value={toFieldValue(rangeFrom)}
+                  min={
+                    fromDatePickerMinDate != null
+                      ? toFieldValue(fromDatePickerMinDate)
+                      : undefined
+                  }
+                  max={
+                    fromDatePickerMaxDate != null
+                      ? toFieldValue(fromDatePickerMaxDate)
+                      : undefined
+                  }
+                  onChange={onFromFieldChange}
+                />
+                <DateField
+                  size="2"
+                  label={toDatePickerLabel}
+                  value={toFieldValue(rangeTo)}
+                  min={
+                    toDatePickerMinDate != null
+                      ? toFieldValue(toDatePickerMinDate)
+                      : undefined
+                  }
+                  max={
+                    toDatePickerMaxDate != null
+                      ? toFieldValue(toDatePickerMaxDate)
+                      : undefined
+                  }
+                  onChange={onToFieldChange}
+                />
+              </>
+            )}
+          </div>
+          <div className={styles.actions}>
+            <SecondaryButton
+              size="2"
+              onClick={onDismiss}
+              text={<FormattedMessage id="cancel" />}
             />
-            <DateTimePicker
-              className={styles.dateTimePicker}
-              label={
-                <span className={styles.dateTimePickerLabel}>
-                  {toDatePickerLabel}
-                </span>
-              }
-              pickedDateTime={rangeTo ?? null}
-              minDateTime={null}
-              maxDateTime={toDatePickerMaxDate ?? null}
-              onPickDateTime={onSelectRangeTo ?? (() => {})}
-              showClearButton={false}
+            <PrimaryButton
+              size="2"
+              onClick={onCommitDateRange}
+              text={<FormattedMessage id="done" />}
             />
-          </>
-        ) : (
-          <>
-            <DatePicker
-              label={fromDatePickerLabel}
-              value={rangeFrom}
-              minDate={fromDatePickerMinDate}
-              maxDate={fromDatePickerMaxDate}
-              onSelectDate={onSelectRangeFrom}
-            />
-            <DatePicker
-              label={toDatePickerLabel}
-              value={rangeTo}
-              minDate={toDatePickerMinDate}
-              maxDate={toDatePickerMaxDate}
-              onSelectDate={onSelectRangeTo}
-            />
-          </>
-        )}
-        <DialogFooter>
-          <PrimaryButton
-            onClick={onCommitDateRange}
-            text={<FormattedMessage id="done" />}
-          />
-          <DefaultButton
-            onClick={onDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
     );
   };
 

@@ -1,6 +1,10 @@
 import { useCallback, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { IPivotItemProps } from "@fluentui/react";
+// Structural stand-in for the old FluentUI IPivotItemProps; callers only
+// ever read itemKey.
+interface PivotItemPropsLike {
+  itemKey?: string;
+}
 
 function isKeyValid<K extends string>(
   validItemKeys: K[],
@@ -19,7 +23,7 @@ export function usePivotNavigation<K extends string = string>(
   pushHistory: boolean = false
 ): {
   selectedKey: K;
-  onLinkClick: (item?: { props: IPivotItemProps }) => void;
+  onLinkClick: (item?: { props: PivotItemPropsLike }) => void;
   onChangeKey: (key: K) => void;
 } {
   if (validItemKeys.length <= 0) {
@@ -74,7 +78,7 @@ export function usePivotNavigation<K extends string = string>(
   }, [validItemKeys, currentTabKey, initialSelectedKey, changeTabKey]);
 
   const onLinkClick = useCallback(
-    (item?: { props: IPivotItemProps }) => {
+    (item?: { props: PivotItemPropsLike }) => {
       const itemKey = item?.props.itemKey;
       if (typeof itemKey === "string") {
         if (itemKey !== currentTabKey) {

@@ -1,8 +1,8 @@
 import cn from "classnames";
 import React, { useCallback, useState } from "react";
-import { Text, FontIcon } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
+import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
 import styles from "./Accordion.module.css";
-import ActionButton from "../../ActionButton";
 
 export function Accordion({
   className,
@@ -21,34 +21,21 @@ export function Accordion({
 
   return (
     <div className={cn(className, styles.accordionRoot)}>
-      <ActionButton
+      <button
         className={styles.accordionToggle}
         type="button"
         onClick={toggle}
-        styles={{
-          root: {
-            padding: 0,
-            height: "auto",
-          },
-          label: {
-            margin: 0,
-          },
-        }}
-        text={
-          <div className={styles.accordionToggleText}>
-            <Text
-              styles={{ root: { color: "inherit", lineHeight: "1.25rem" } }}
-              variant="medium"
-            >
-              {text}
-            </Text>
-            <FontIcon
-              className="w-4 h-4 text-base leading-none ml-2"
-              iconName={isExpanded ? "ChevronUp" : "ChevronDown"}
-            />
-          </div>
-        }
-      />
+        aria-expanded={isExpanded}
+      >
+        <div className={styles.accordionToggleText}>
+          <Text size="2">{text}</Text>
+          {isExpanded ? (
+            <ChevronUpIcon className={styles.accordionToggleIcon} />
+          ) : (
+            <ChevronDownIcon className={styles.accordionToggleIcon} />
+          )}
+        </div>
+      </button>
       <div
         className={cn(
           styles.accordionContent,

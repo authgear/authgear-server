@@ -3,13 +3,22 @@
 }
 
 .accordionToggle {
-  @apply w-auto;
-  @apply text-theme-primary;
+  @apply w-auto cursor-pointer border-0 bg-transparent p-0;
+  color: var(--accent-9);
+}
+
+.accordionToggle:hover {
+  color: var(--accent-10);
 }
 
 .accordionToggleText {
   @apply flex items-center;
   @apply py-1.5;
+}
+
+.accordionToggleIcon {
+  @apply ml-2 h-4 w-4;
+  flex-shrink: 0;
 }
 
 .accordionContent {
