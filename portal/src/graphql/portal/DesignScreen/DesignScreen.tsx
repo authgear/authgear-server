@@ -1146,8 +1146,6 @@ const DesignScreen: React.VFC = function DesignScreen() {
       form={form}
       canSave={form.validationError == null}
       errorRules={form.errorRules}
-      stickyFooterComponent={true}
-      hideFooterComponent={true}
       localError={form.validationError}
     >
       <DesignScreenContent

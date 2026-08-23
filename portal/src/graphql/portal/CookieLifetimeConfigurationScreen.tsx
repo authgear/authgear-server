@@ -296,7 +296,7 @@ const CookieLifetimeConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true}>
+      <FormContainer form={form}>
         <CookieLifetimeConfigurationScreenContent form={form} />
       </FormContainer>
     );

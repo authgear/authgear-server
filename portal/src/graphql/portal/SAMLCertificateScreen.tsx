@@ -106,7 +106,7 @@ function EditSAMLCertificateFormContainer({
   }
 
   return (
-    <FormContainer form={form} hideFooterComponent={true}>
+    <FormContainer form={form}>
       <EditSAMLCertificateContent
         configAppID={configAppID}
         certificates={certificates}

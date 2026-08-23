@@ -876,7 +876,6 @@ function SMSProviderConfigurationScreen1({
     <FormContainer
       form={form}
       beforeSave={validateForm}
-      hideFooterComponent={true}
       localError={
         checkDenoHookHandle.error ?? sendTestSMSHandle.error ?? localError
       }

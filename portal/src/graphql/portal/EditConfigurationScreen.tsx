@@ -198,7 +198,7 @@ const EditConfigurationScreen: React.VFC = function EditConfigurationScreen() {
   }
 
   return (
-    <FormContainer form={form} hideFooterComponent={true}>
+    <FormContainer form={form}>
       <EditConfigurationContent
         rawAuthgearYAML={rawAuthgearYAML}
         onChange={onChange}

@@ -178,11 +178,7 @@ const EditCustomAttributeScreen: React.VFC =
     }
 
     return (
-      <FormContainer
-        form={form}
-        afterSave={afterSave}
-        hideFooterComponent={true}
-      >
+      <FormContainer form={form} afterSave={afterSave}>
         <EditCustomAttributeContent form={form} index={index} />
       </FormContainer>
     );

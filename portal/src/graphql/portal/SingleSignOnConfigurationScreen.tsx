@@ -273,7 +273,7 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
     loadables: [form, featureConfigQuery, effectiveSecretConfigQuery] as const,
     render: ([form, _, effectiveSecretConfigQuery]) => {
       return (
-        <FormContainer form={form} hideFooterComponent={true}>
+        <FormContainer form={form}>
           <SingleSignOnConfigurationContent
             form={form}
             oauthClientsMaximum={oauthClientsMaximum}

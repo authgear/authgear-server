@@ -184,7 +184,7 @@ const AccountDeletionConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true}>
+      <FormContainer form={form}>
         <AccountDeletionConfigurationContent form={form} />
       </FormContainer>
     );

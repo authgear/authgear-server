@@ -481,7 +481,7 @@ function EndpointDirectAccessScreen1(props: EndpointDirectAccessScreen1Props) {
   }
 
   return (
-    <FormContainer form={redirectURLForm} hideFooterComponent={true}>
+    <FormContainer form={redirectURLForm}>
       <EndpointDirectAccessContent form={redirectURLForm} />
     </FormContainer>
   );

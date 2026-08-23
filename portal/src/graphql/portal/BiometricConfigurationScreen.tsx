@@ -183,7 +183,7 @@ const BiometricConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true}>
+      <FormContainer form={form}>
         <BiometricConfigurationContent
           form={form}
           identityFeatureConfig={featureConfig.effectiveFeatureConfig?.identity}

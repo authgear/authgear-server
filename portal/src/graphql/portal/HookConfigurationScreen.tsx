@@ -2004,11 +2004,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     const contentWidthAnchorRef = React.useRef<HTMLDivElement>(null);
 
     return (
-      <FormContainer
-        form={form}
-        hideFooterComponent={true}
-        beforeSave={beforeSave}
-      >
+      <FormContainer form={form} beforeSave={beforeSave}>
         <HookScreenWithSaveBar
           codeEditorState={codeEditorState}
           anchorRef={contentWidthAnchorRef}

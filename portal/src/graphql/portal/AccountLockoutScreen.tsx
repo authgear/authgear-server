@@ -229,7 +229,7 @@ const AccountLockoutScreen: React.VFC = function AccountLockoutScreen() {
   }
 
   return (
-    <FormContainer form={form} hideFooterComponent={true}>
+    <FormContainer form={form}>
       <AccountLockoutContent form={form} />
     </FormContainer>
   );

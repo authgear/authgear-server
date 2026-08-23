@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import ErrorBoundSuspense, {
   type ErrorBoundSuspenseProps,
   type ErrorBoundaryFallbackProps,

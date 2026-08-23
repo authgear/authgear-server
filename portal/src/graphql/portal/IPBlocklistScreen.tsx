@@ -252,7 +252,6 @@ const IPBlocklistScreen: React.FC = function IPBlocklistScreen() {
   return (
     <FormContainer
       form={form}
-      hideFooterComponent={true}
       canSave={true}
       localError={checkIPError}
       beforeSave={clearCheckIPError}

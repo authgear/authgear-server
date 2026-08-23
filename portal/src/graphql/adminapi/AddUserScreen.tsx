@@ -845,7 +845,7 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
   }
 
   return (
-    <FormContainer form={form} canSave={canSave} hideFooterComponent={true}>
+    <FormContainer form={form} canSave={canSave}>
       <AddUserContent
         form={form}
         primaryAuthenticators={primaryAuthenticators}

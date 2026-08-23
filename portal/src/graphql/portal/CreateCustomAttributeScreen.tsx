@@ -169,12 +169,7 @@ const CreateCustomAttributeScreen: React.VFC =
         ?.length ?? 0;
 
     return (
-      <FormContainer
-        form={form}
-        afterSave={afterSave}
-        hideFooterComponent={true}
-        canSave={true}
-      >
+      <FormContainer form={form} afterSave={afterSave} canSave={true}>
         <CreateCustomAttributeContent form={form} index={index} />
       </FormContainer>
     );

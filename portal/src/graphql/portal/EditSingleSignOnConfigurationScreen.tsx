@@ -238,11 +238,7 @@ const EditSingleSignOnConfigurationScreen1: React.VFC<{
         effectiveSecretConfigQuery.effectiveAppConfig?.http?.public_origin ??
         "";
       return (
-        <FormContainer
-          form={form}
-          afterSave={onSaveSuccess}
-          hideFooterComponent={true}
-        >
+        <FormContainer form={form} afterSave={onSaveSuccess}>
           <EditSingleSignOnConfigurationContent
             form={form}
             alias={alias}

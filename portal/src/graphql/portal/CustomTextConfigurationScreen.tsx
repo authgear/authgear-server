@@ -402,7 +402,7 @@ const CustomTextConfigurationScreen: React.VFC =
     }, [builtinLanguages, state.fallbackLanguage, state.selectedLanguage]);
 
     return (
-      <FormContainer form={form} canSave={true} hideFooterComponent={true}>
+      <FormContainer form={form} canSave={true}>
         <CustomTextConfigurationContent
           form={form}
           languageOptions={languageOptions}

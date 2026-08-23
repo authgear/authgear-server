@@ -421,7 +421,7 @@ const ApplicationsConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true}>
+      <FormContainer form={form}>
         <OAuthClientConfigurationContent
           form={form}
           planName={featureConfig.planName}

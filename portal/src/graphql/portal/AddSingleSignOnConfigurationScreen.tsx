@@ -229,11 +229,7 @@ const AddSingleSignOnConfigurationContent: React.VFC =
           effectiveSecretConfigQuery.effectiveAppConfig?.http?.public_origin ??
           "";
         return (
-          <FormContainer
-            form={form}
-            afterSave={onSaveSuccess}
-            hideFooterComponent={true}
-          >
+          <FormContainer form={form} afterSave={onSaveSuccess}>
             <AddSingleSignOnConfigurationForm
               form={form}
               effectiveSecretConfig={

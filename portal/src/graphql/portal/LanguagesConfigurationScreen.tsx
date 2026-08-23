@@ -666,7 +666,7 @@ const LanguagesConfigurationScreen: React.VFC =
 
     return (
       <PageContext.Provider value={pageContextValue}>
-        <FormContainer form={form} hideFooterComponent={true}>
+        <FormContainer form={form}>
           <LanguagesConfigurationContent
             form={form}
             availableLanguages={sortedLanguages.availableLanguages}

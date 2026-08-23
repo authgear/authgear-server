@@ -971,7 +971,6 @@ const SMTPConfigurationScreen1: React.VFC<{
   return (
     <FormContainer
       form={form}
-      hideFooterComponent={true}
       errorRules={ERROR_RULES}
       localError={sendTestEmailHandle.error}
     >

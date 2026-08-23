@@ -139,7 +139,7 @@ const AccountAnonymizationConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true}>
+      <FormContainer form={form}>
         <AccountAnonymizationConfigurationContent form={form} />
       </FormContainer>
     );

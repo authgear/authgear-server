@@ -748,7 +748,6 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
             className={styles.formContainer}
             errorRules={ERROR_RULES}
             form={form}
-            hideFooterComponent={true}
           >
             <UserDetailsScreenForm
               form={form}

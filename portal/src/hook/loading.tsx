@@ -6,7 +6,6 @@ import React, {
   useMemo,
   useEffect,
 } from "react";
-import { useId } from "@fluentui/react-hooks";
 
 interface LoadingContextValue {
   loadables: Map<string, boolean>;
@@ -92,7 +91,7 @@ export function LoadingContextProvider(
 }
 
 export function useLoading(isLoading: boolean): void {
-  const id = useId();
+  const id = React.useId();
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const { addLoadable, removeLoadable } = useContext(LoadingContext);
   useEffect(() => {

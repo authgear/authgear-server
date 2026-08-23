@@ -102,11 +102,7 @@ export function EditApplicationScopesScreenContent({
   }, [assignedScopes, resource]);
 
   return (
-    <FormContainer
-      form={form}
-      className="flex-1-0-auto flex flex-col"
-      hideFooterComponent={true}
-    >
+    <FormContainer form={form} className="flex-1-0-auto flex flex-col">
       <APIResourceScreenLayout breadcrumbItems={breadcrumbItems}>
         <div
           ref={contentWidthAnchorRef}

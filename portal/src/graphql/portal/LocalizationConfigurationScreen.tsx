@@ -1430,7 +1430,7 @@ const LocalizationConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} canSave={true} hideFooterComponent={true}>
+      <FormContainer form={form} canSave={true}>
         <ResourcesConfigurationContent
           form={form}
           initialSupportedLanguages={initialSupportedLanguages}

@@ -477,7 +477,7 @@ const AnonymousUserConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true}>
+      <FormContainer form={form}>
         <AnonymousUserConfigurationContent form={form} />
       </FormContainer>
     );

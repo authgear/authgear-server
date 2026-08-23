@@ -975,7 +975,6 @@ function FormContainerContent({
       <FormContainer
         className="flex-1-0-auto flex flex-col"
         form={form}
-        hideFooterComponent={true}
         localError={clientSecretHook.saveError}
       >
         <EditOAuthClientContent

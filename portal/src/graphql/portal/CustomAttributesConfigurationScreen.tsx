@@ -273,7 +273,7 @@ const CustomAttributesConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true} canSave={true}>
+      <FormContainer form={form} canSave={true}>
         <CustomAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );

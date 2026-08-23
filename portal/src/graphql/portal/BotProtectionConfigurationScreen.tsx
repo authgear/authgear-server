@@ -1132,7 +1132,7 @@ const BotProtectionConfigurationScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer form={form} hideFooterComponent={true} canSave={true}>
+    <FormContainer form={form} canSave={true}>
       <BotProtectionConfigurationContent form={form} />
     </FormContainer>
   );
