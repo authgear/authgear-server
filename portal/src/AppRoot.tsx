@@ -239,9 +239,8 @@ const EditOAuthClientResourceScopeScreen = lazy(
   async () =>
     import("./screens/api-resources/EditOAuthClientResourceScopeScreen")
 );
-const DynamicClientRegistrationScreen = lazy(
-  async () =>
-    import("./screens/dynamic-clients/DynamicClientRegistrationScreen")
+const DynamicClientListScreen = lazy(
+  async () => import("./screens/dynamic-clients/DynamicClientListScreen")
 );
 
 const AppRoot: React.VFC = function AppRoot() {
@@ -780,7 +779,7 @@ const AppRoot: React.VFC = function AppRoot() {
                 path="dcr"
                 element={
                   <Suspense fallback={<ShowLoading />}>
-                    <DynamicClientRegistrationScreen />
+                    <DynamicClientListScreen />
                   </Suspense>
                 }
               />

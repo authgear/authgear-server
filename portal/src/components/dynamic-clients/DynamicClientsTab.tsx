@@ -1,228 +1,318 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Text } from "@fluentui/react";
-import { Context, FormattedMessage } from "../../intl";
-import DefaultButton from "../../DefaultButton";
-import ShowError from "../../ShowError";
-import {
-  ErrorMessageBar,
-  ErrorMessageBarContextProvider,
-  useErrorMessageBarContext,
-} from "../../ErrorMessageBar";
-import { parseRawError } from "../../error/parse";
-import { encodeOffsetToCursor } from "../../util/pagination";
-import { PaginationProps } from "../../PaginationWidget";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
+import { FormattedMessage } from "../../intl";
+import type { FormState as ApplicationsFormState } from "../../graphql/portal/ApplicationsConfigurationScreen";
+import { AppConfigFormModel } from "../../hook/useAppConfigForm";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
+import { SettingsSectionCard } from "../v2/SettingsSectionCard/SettingsSectionCard";
+import { Toggle } from "../v2/Toggle/Toggle";
+import { TextField } from "../v2/TextField/TextField";
+import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
+import { CopyIconButton } from "../v2/CopyIconButton/CopyIconButton";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
+import { SaveFunctionBar } from "../v2/SaveFunctionBar/SaveFunctionBar";
+import { InitialAccessTokenSection } from "./InitialAccessTokenSection";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
-import { useDeleteDynamicClientMutationMutation } from "../../graphql/adminapi/mutations/deleteDynamicClientMutation.generated";
-import { DynamicClientList, DynamicClientListItem } from "./DynamicClientList";
-import { DynamicClientsEmptyView } from "./DynamicClientsEmptyView";
-import { DynamicClientDetailsDialog } from "./DynamicClientDetailsDialog";
-import {
-  DeleteDynamicClientDialog,
-  DeleteDynamicClientDialogData,
-} from "./DeleteDynamicClientDialog";
-import { TextWithCopyButton } from "../common/TextWithCopyButton";
 import styles from "./DynamicClientsTab.module.css";
 
-const PAGE_SIZE = 10;
+// Effective defaults applied by the server when the corresponding
+// default_client_config field is absent. Mirrors
+// OAuthDynamicClientRegistrationDefaultClientConfig.SetDefaults() in
+// pkg/lib/config/oauth_dynamic_client_registration.go.
+const DEFAULT_ACCESS_TOKEN_LIFETIME_SECONDS = 1800;
+const DEFAULT_REFRESH_TOKEN_LIFETIME_SECONDS = 2592000;
+const DEFAULT_REFRESH_TOKEN_IDLE_TIMEOUT_SECONDS = 1209600;
 
 export interface DynamicClientsTabProps {
-  registrationEnabled: boolean;
+  form: AppConfigFormModel<ApplicationsFormState>;
   publicOrigin: string;
   // The smallest block-action quota configured for oauth_client_dcr, or null
   // when the plan does not limit dynamic clients.
   dcrClientQuota: number | null;
 }
 
-function DynamicClientsTabContent({
-  registrationEnabled,
-  publicOrigin,
-  dcrClientQuota,
-}: DynamicClientsTabProps): React.ReactElement {
-  const navigate = useNavigate();
-  const { renderToString } = useContext(Context);
-  const { setErrors } = useErrorMessageBarContext();
-
-  const [offset, setOffset] = useState(0);
-  const [detailsClient, setDetailsClient] =
-    useState<DynamicClientListItem | null>(null);
-  const [deleteDialogData, setDeleteDialogData] =
-    useState<DeleteDynamicClientDialogData | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const { data, loading, error, refetch } = useDynamicClientsQueryQuery({
-    variables: {
-      first: PAGE_SIZE,
-      after: encodeOffsetToCursor(offset),
-    },
-    fetchPolicy: "network-only",
-    skip: !registrationEnabled,
-  });
-
-  const [deleteDynamicClient] = useDeleteDynamicClientMutationMutation();
-
-  const clients = useMemo((): DynamicClientListItem[] => {
-    return (
-      data?.dynamicClients?.edges
-        ?.map((edge) => edge?.node)
-        .filter((node): node is NonNullable<typeof node> => !!node)
-        .map((node) => ({
-          id: node.id,
-          clientID: node.clientID,
-          clientName: node.clientName ?? null,
-          name: node.name,
-          kind: node.kind,
-          source: node.source,
-          registeredAt: node.registeredAt ?? null,
-          applicationType: node.applicationType ?? null,
-          redirectURIs: [...node.redirectURIs],
-          grantTypes: [...node.grantTypes],
-          responseTypes: [...node.responseTypes],
-          logoURI: node.logoURI ?? null,
-          clientURI: node.clientURI ?? null,
-          tosURI: node.tosURI ?? null,
-          policyURI: node.policyURI ?? null,
-        })) ?? []
-    );
-  }, [data]);
-
-  const totalCount = data?.dynamicClients?.totalCount ?? undefined;
-
-  const onChangeOffset = useCallback((offset: number) => {
-    setOffset(offset);
-  }, []);
-
-  const pagination: PaginationProps = {
-    offset,
-    pageSize: PAGE_SIZE,
-    totalCount,
-    onChangeOffset,
-  };
-
-  const onSettingsClick = useCallback(() => {
-    navigate("./dcr");
-  }, [navigate]);
-
-  const onItemClicked = useCallback((item: DynamicClientListItem) => {
-    setDetailsClient(item);
-  }, []);
-
-  const onDismissDetails = useCallback(() => {
-    setDetailsClient(null);
-  }, []);
-
-  const onRequestDelete = useCallback((client: DynamicClientListItem) => {
-    setDeleteDialogData({
-      clientID: client.clientID,
-      clientName: client.name,
-    });
-  }, []);
-
-  const onDismissDeleteDialog = useCallback(() => {
-    setDeleteDialogData(null);
-  }, []);
-
-  const onConfirmDelete = useCallback(
-    (data: DeleteDynamicClientDialogData) => {
-      setIsDeleting(true);
-      deleteDynamicClient({
-        variables: { input: { clientID: data.clientID } },
-      })
-        .then(async () => {
-          // If the last item of a later page was deleted, step back a page so
-          // the list does not show an empty page.
-          if (clients.length === 1 && offset > 0) {
-            setOffset(Math.max(0, offset - PAGE_SIZE));
-          }
-          return refetch();
-        })
-        .catch((e: unknown) => {
-          setErrors(parseRawError(e));
-        })
-        .finally(() => {
-          setIsDeleting(false);
-          // Close the dialogs on failure too — the error message bar renders
-          // behind the modal overlay and would otherwise be invisible.
-          setDeleteDialogData(null);
-          setDetailsClient(null);
-        });
-    },
-    [deleteDynamicClient, clients.length, offset, refetch, setErrors]
-  );
-
-  if (!registrationEnabled) {
-    return <DynamicClientsEmptyView registrationEnabled={false} />;
-  }
-
-  if (error != null) {
-    // eslint-disable-next-line @typescript-eslint/strict-void-return
-    return <ShowError error={error} onRetry={refetch} />;
-  }
-
-  const isEmpty = !loading && clients.length === 0 && offset === 0;
-
-  return (
-    <div className={styles.root}>
-      <ErrorMessageBar />
-      <div className={styles.header}>
-        <div className={styles.headerText}>
-          <Text
-            variant="medium"
-            block={true}
-            styles={{ root: { color: "var(--gray-11)" } }}
-          >
-            <FormattedMessage id="DynamicClientsTab.registration-endpoint.label" />
-          </Text>
-          <TextWithCopyButton text={`${publicOrigin}/oauth2/register`} />
-          {dcrClientQuota != null && totalCount != null ? (
-            <Text
-              variant="medium"
-              block={true}
-              styles={{ root: { color: "var(--gray-11)" } }}
-            >
-              <FormattedMessage
-                id="DynamicClientsTab.quota"
-                values={{ count: totalCount, quota: dcrClientQuota }}
-              />
-            </Text>
-          ) : null}
-        </div>
-        <DefaultButton
-          text={renderToString("DynamicClientsTab.settings-button")}
-          onClick={onSettingsClick}
-        />
-      </div>
-      {isEmpty ? (
-        <DynamicClientsEmptyView registrationEnabled={true} />
-      ) : (
-        <DynamicClientList
-          clients={clients}
-          loading={loading}
-          pagination={pagination}
-          onDelete={onRequestDelete}
-          onItemClicked={onItemClicked}
-        />
-      )}
-      <DynamicClientDetailsDialog
-        client={detailsClient}
-        onDelete={onRequestDelete}
-        onDismiss={onDismissDetails}
-      />
-      <DeleteDynamicClientDialog
-        data={deleteDialogData}
-        isLoading={isDeleting}
-        onConfirm={onConfirmDelete}
-        onDismiss={onDismissDeleteDialog}
-      />
-    </div>
-  );
-}
-
 export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
-  function DynamicClientsTab(props) {
+  function DynamicClientsTab({ form, publicOrigin, dcrClientQuota }) {
+    const navigate = useNavigate();
+    const { state, setState, saveWith, isUpdating } = form;
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const anchorRef = useRef<HTMLDivElement>(null);
+
+    const [
+      isOpenRegistrationConfirmationVisible,
+      setIsOpenRegistrationConfirmationVisible,
+    ] = useState(false);
+
+    const registrationEnabled = state.dynamicClientRegistrationEnabled;
+    const registrationEndpoint = `${publicOrigin}/oauth2/register`;
+
+    const { data } = useDynamicClientsQueryQuery({
+      variables: { first: 1 },
+      fetchPolicy: "cache-and-network",
+      skip: !registrationEnabled,
+    });
+    const totalCount = data?.dynamicClients?.totalCount ?? null;
+
+    const onEnabledChange = useCallback(
+      (checked: boolean) => {
+        // Save immediately so the registration endpoint becomes live at once.
+        saveWith((current) => ({
+          ...current,
+          dynamicClientRegistrationEnabled: checked,
+        })).catch(() => {
+          // The update error is surfaced by FormContainer's error message bar.
+        });
+      },
+      [saveWith]
+    );
+
+    const onViewAllClick = useCallback(() => {
+      navigate("./dcr");
+    }, [navigate]);
+
+    const onInitialAccessTokenRequiredChange = useCallback(
+      (checked: boolean) => {
+        if (!checked) {
+          // Turning the requirement off enables open registration — confirm
+          // before reflecting it in the form state.
+          setIsOpenRegistrationConfirmationVisible(true);
+          return;
+        }
+        setState((prev) => ({
+          ...prev,
+          initialAccessTokenRequired: true,
+        }));
+      },
+      [setState]
+    );
+
+    const onConfirmOpenRegistration = useCallback(() => {
+      setIsOpenRegistrationConfirmationVisible(false);
+      setState((prev) => ({
+        ...prev,
+        initialAccessTokenRequired: false,
+      }));
+    }, [setState]);
+
+    const onCancelOpenRegistration = useCallback(() => {
+      setIsOpenRegistrationConfirmationVisible(false);
+    }, []);
+
+    const onAccessTokenLifetimeChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setState((prev) => ({
+          ...prev,
+          accessTokenLifetimeSeconds: parseIntegerAllowLeadingZeros(value),
+        }));
+      },
+      [setState]
+    );
+
+    const onRefreshTokenLifetimeChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setState((prev) => ({
+          ...prev,
+          refreshTokenLifetimeSeconds: parseIntegerAllowLeadingZeros(value),
+        }));
+      },
+      [setState]
+    );
+
+    const onRefreshTokenIdleTimeoutEnabledChange = useCallback(
+      (checked: boolean) => {
+        setState((prev) => ({
+          ...prev,
+          refreshTokenIdleTimeoutEnabled: checked,
+        }));
+      },
+      [setState]
+    );
+
+    const onRefreshTokenIdleTimeoutChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setState((prev) => ({
+          ...prev,
+          refreshTokenIdleTimeoutSeconds: parseIntegerAllowLeadingZeros(value),
+        }));
+      },
+      [setState]
+    );
+
     return (
-      <ErrorMessageBarContextProvider>
-        <DynamicClientsTabContent {...props} />
-      </ErrorMessageBarContextProvider>
+      <div
+        ref={anchorRef}
+        className={cn(styles.root, isDirty && styles.rootWithSaveBar)}
+      >
+        <SettingsSectionCard
+          contentClassName="gap-4"
+          title={
+            <FormattedMessage id="DynamicClientsTab.section.registration.title" />
+          }
+        >
+          <div className="flex flex-col gap-1">
+            <Toggle
+              checked={registrationEnabled}
+              disabled={isUpdating}
+              onCheckedChange={onEnabledChange}
+              text={
+                <FormattedMessage id="DynamicClientsTab.enable.toggle.label" />
+              }
+            />
+            <Text as="p" size="1" color="gray">
+              <FormattedMessage id="DynamicClientsTab.enable.description" />
+            </Text>
+          </div>
+          {registrationEnabled ? (
+            <TextField
+              size="2"
+              labelSize="2"
+              label={
+                <FormattedMessage id="DynamicClientsTab.registration-endpoint.label" />
+              }
+              value={registrationEndpoint}
+              readOnly={true}
+              suffixPlain={true}
+              suffix={<CopyIconButton textToCopy={registrationEndpoint} />}
+            />
+          ) : null}
+        </SettingsSectionCard>
+
+        {registrationEnabled ? (
+          <SettingsSectionCard
+            contentClassName="gap-4"
+            title={<FormattedMessage id="DynamicClientsTab.clients.title" />}
+          >
+            {totalCount != null ? (
+              <Text as="p" size="2">
+                {dcrClientQuota != null ? (
+                  <FormattedMessage
+                    id="DynamicClientsTab.quota"
+                    values={{ count: totalCount, quota: dcrClientQuota }}
+                  />
+                ) : (
+                  <FormattedMessage
+                    id="DynamicClientsTab.clients.count"
+                    values={{ count: totalCount }}
+                  />
+                )}
+              </Text>
+            ) : null}
+            <div className="self-start">
+              <SecondaryButton
+                size="2"
+                text={
+                  <FormattedMessage id="DynamicClientsTab.clients.view-all" />
+                }
+                onClick={onViewAllClick}
+              />
+            </div>
+          </SettingsSectionCard>
+        ) : null}
+
+        <SettingsSectionCard
+          contentClassName="gap-4"
+          title={<FormattedMessage id="DynamicClientsTab.security.title" />}
+        >
+          <div className="flex flex-col gap-1">
+            <Toggle
+              checked={state.initialAccessTokenRequired}
+              onCheckedChange={onInitialAccessTokenRequiredChange}
+              text={
+                <FormattedMessage id="DynamicClientsTab.iat-required.toggle.label" />
+              }
+            />
+            <Text as="p" size="1" color="gray">
+              <FormattedMessage id="DynamicClientsTab.iat-required.toggle.description" />
+            </Text>
+          </div>
+          <InitialAccessTokenSection />
+        </SettingsSectionCard>
+
+        <SettingsSectionCard
+          className={cn(isDirty && styles.saveBarClearance)}
+          contentClassName="gap-4"
+          title={
+            <FormattedMessage id="DynamicClientsTab.default-client-config.title" />
+          }
+        >
+          <Text as="p" size="2" color="gray">
+            <FormattedMessage id="DynamicClientsTab.default-client-config.description" />
+          </Text>
+          <TextField
+            size="2"
+            labelSize="2"
+            type="text"
+            label={
+              <FormattedMessage id="DynamicClientsTab.access-token-lifetime.label" />
+            }
+            placeholder={DEFAULT_ACCESS_TOKEN_LIFETIME_SECONDS.toFixed(0)}
+            value={state.accessTokenLifetimeSeconds?.toFixed(0) ?? ""}
+            onChange={onAccessTokenLifetimeChange}
+          />
+          <TextField
+            size="2"
+            labelSize="2"
+            type="text"
+            label={
+              <FormattedMessage id="DynamicClientsTab.refresh-token-lifetime.label" />
+            }
+            placeholder={DEFAULT_REFRESH_TOKEN_LIFETIME_SECONDS.toFixed(0)}
+            value={state.refreshTokenLifetimeSeconds?.toFixed(0) ?? ""}
+            onChange={onRefreshTokenLifetimeChange}
+          />
+          <div className="flex flex-col gap-1">
+            <Toggle
+              checked={state.refreshTokenIdleTimeoutEnabled}
+              onCheckedChange={onRefreshTokenIdleTimeoutEnabledChange}
+              text={
+                <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.label" />
+              }
+            />
+            <Text as="p" size="1" color="gray">
+              <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.description" />
+            </Text>
+          </div>
+          <TextField
+            size="2"
+            labelSize="2"
+            type="text"
+            disabled={!state.refreshTokenIdleTimeoutEnabled}
+            label={
+              <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout.label" />
+            }
+            placeholder={DEFAULT_REFRESH_TOKEN_IDLE_TIMEOUT_SECONDS.toFixed(0)}
+            value={state.refreshTokenIdleTimeoutSeconds?.toFixed(0) ?? ""}
+            onChange={onRefreshTokenIdleTimeoutChange}
+          />
+        </SettingsSectionCard>
+
+        <ConfirmationDialog
+          open={isOpenRegistrationConfirmationVisible}
+          onOpenChange={setIsOpenRegistrationConfirmationVisible}
+          title={
+            <FormattedMessage id="DynamicClientsTab.open-registration.confirm.title" />
+          }
+          description={
+            <FormattedMessage id="DynamicClientsTab.open-registration.confirm.description" />
+          }
+          confirmText={
+            <FormattedMessage id="DynamicClientsTab.open-registration.confirm.confirm" />
+          }
+          cancelText={
+            <FormattedMessage id="DynamicClientsTab.open-registration.confirm.cancel" />
+          }
+          onConfirm={onConfirmOpenRegistration}
+          onCancel={onCancelOpenRegistration}
+        />
+
+        <SaveFunctionBar anchorRef={anchorRef} />
+      </div>
     );
   };

@@ -68,13 +68,31 @@ const cellActionButtonStyles: IButtonStyles = {
   label: { margin: 0 },
 };
 
-interface FormState {
+export interface FormState {
   clients: OAuthClientConfig[];
+  dynamicClientRegistrationEnabled: boolean;
+  initialAccessTokenRequired: boolean;
+  accessTokenLifetimeSeconds: number | undefined;
+  refreshTokenLifetimeSeconds: number | undefined;
+  refreshTokenIdleTimeoutEnabled: boolean;
+  refreshTokenIdleTimeoutSeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
+  const dcr = config.oauth?.dynamic_client_registration;
   return {
     clients: config.oauth?.clients ?? [],
+    dynamicClientRegistrationEnabled: dcr?.enabled ?? false,
+    // Absent means required — the spec default.
+    initialAccessTokenRequired: dcr?.initial_access_token_required ?? true,
+    accessTokenLifetimeSeconds:
+      dcr?.default_client_config?.access_token_lifetime_seconds,
+    refreshTokenLifetimeSeconds:
+      dcr?.default_client_config?.refresh_token_lifetime_seconds,
+    refreshTokenIdleTimeoutEnabled:
+      dcr?.default_client_config?.refresh_token_idle_timeout_enabled ?? true,
+    refreshTokenIdleTimeoutSeconds:
+      dcr?.default_client_config?.refresh_token_idle_timeout_seconds,
   };
 }
 
@@ -88,6 +106,54 @@ function constructConfig(
     ([config, currentState]) => {
       config.oauth ??= {};
       config.oauth.clients = currentState.clients;
+
+      config.oauth.dynamic_client_registration ??= {};
+      const dcr = config.oauth.dynamic_client_registration;
+
+      if (currentState.dynamicClientRegistrationEnabled) {
+        dcr.enabled = true;
+      } else {
+        delete dcr.enabled;
+      }
+
+      if (currentState.initialAccessTokenRequired) {
+        // Absent means required — keep the config minimal.
+        delete dcr.initial_access_token_required;
+      } else {
+        dcr.initial_access_token_required = false;
+      }
+
+      dcr.default_client_config ??= {};
+      const defaultClientConfig = dcr.default_client_config;
+
+      if (currentState.accessTokenLifetimeSeconds != null) {
+        defaultClientConfig.access_token_lifetime_seconds =
+          currentState.accessTokenLifetimeSeconds;
+      } else {
+        delete defaultClientConfig.access_token_lifetime_seconds;
+      }
+
+      if (currentState.refreshTokenLifetimeSeconds != null) {
+        defaultClientConfig.refresh_token_lifetime_seconds =
+          currentState.refreshTokenLifetimeSeconds;
+      } else {
+        delete defaultClientConfig.refresh_token_lifetime_seconds;
+      }
+
+      if (currentState.refreshTokenIdleTimeoutEnabled) {
+        // Absent means enabled — the server default.
+        delete defaultClientConfig.refresh_token_idle_timeout_enabled;
+      } else {
+        defaultClientConfig.refresh_token_idle_timeout_enabled = false;
+      }
+
+      if (currentState.refreshTokenIdleTimeoutSeconds != null) {
+        defaultClientConfig.refresh_token_idle_timeout_seconds =
+          currentState.refreshTokenIdleTimeoutSeconds;
+      } else {
+        delete defaultClientConfig.refresh_token_idle_timeout_seconds;
+      }
+
       clearEmptyObject(config);
     }
   );
@@ -237,7 +303,6 @@ interface OAuthClientConfigurationContentProps {
   showNotification: (msg: string) => void;
   selectedKey: ApplicationsTabKey;
   onLinkClick: (item?: PivotItem) => void;
-  dynamicClientRegistrationEnabled: boolean;
   publicOrigin: string;
   dcrClientQuota: number | null;
 }
@@ -251,7 +316,6 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       oauthClientsSoftMaximum,
       selectedKey,
       onLinkClick,
-      dynamicClientRegistrationEnabled,
       publicOrigin,
       dcrClientQuota,
     } = props;
@@ -504,7 +568,7 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
         ) : (
           <div className={styles.widget}>
             <DynamicClientsTab
-              registrationEnabled={dynamicClientRegistrationEnabled}
+              form={props.form}
               publicOrigin={publicOrigin}
               dcrClientQuota={dcrClientQuota}
             />
@@ -549,13 +613,6 @@ const ApplicationsConfigurationScreen: React.VFC =
     const { selectedKey, onLinkClick } = usePivotNavigation<ApplicationsTabKey>(
       ["applications", "dynamic-clients"]
     );
-
-    const dynamicClientRegistrationEnabled = useMemo(() => {
-      return (
-        form.effectiveConfig.oauth?.dynamic_client_registration?.enabled ??
-        false
-      );
-    }, [form.effectiveConfig]);
 
     const publicOrigin = useMemo(() => {
       return form.effectiveConfig.http?.public_origin ?? "";
@@ -644,7 +701,6 @@ const ApplicationsConfigurationScreen: React.VFC =
           showNotification={showNotification}
           selectedKey={selectedKey}
           onLinkClick={onLinkClick}
-          dynamicClientRegistrationEnabled={dynamicClientRegistrationEnabled}
           publicOrigin={publicOrigin}
           dcrClientQuota={dcrClientQuota}
         />
