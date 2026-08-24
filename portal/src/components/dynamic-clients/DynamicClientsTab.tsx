@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
+import PortalLink from "../../Link";
 import type { FormState as ApplicationsFormState } from "../../graphql/portal/ApplicationsConfigurationScreen";
 import { AppConfigFormModel } from "../../hook/useAppConfigForm";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -15,6 +16,7 @@ import { CopyIconButton } from "../v2/CopyIconButton/CopyIconButton";
 import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 import { SaveFunctionBar } from "../v2/SaveFunctionBar/SaveFunctionBar";
 import { InitialAccessTokenSection } from "./InitialAccessTokenSection";
+import { DynamicClientAllowedResources } from "./DynamicClientAllowedResources";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
 import styles from "./DynamicClientsTab.module.css";
 
@@ -37,6 +39,7 @@ export interface DynamicClientsTabProps {
 export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
   function DynamicClientsTab({ form, publicOrigin, dcrClientQuota }) {
     const navigate = useNavigate();
+    const { appID } = useParams() as { appID: string };
     const { state, setState, saveWith, isUpdating } = form;
     const { getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
@@ -236,7 +239,6 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
         </SettingsSectionCard>
 
         <SettingsSectionCard
-          className={cn(isDirty && styles.saveBarClearance)}
           contentClassName="gap-4"
           title={
             <FormattedMessage id="DynamicClientsTab.default-client-config.title" />
@@ -292,6 +294,30 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             onChange={onRefreshTokenIdleTimeoutChange}
           />
         </SettingsSectionCard>
+
+        {registrationEnabled ? (
+          <SettingsSectionCard
+            contentClassName="gap-4"
+            title={
+              <FormattedMessage id="DynamicClientsTab.allowed-resources.title" />
+            }
+          >
+            <Text as="p" size="2" color="gray">
+              <FormattedMessage
+                id="DynamicClientsTab.allowed-resources.description"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  apiResourcesLink: (chunks: React.ReactNode) => (
+                    <PortalLink to={`/project/${appID}/api-resources`}>
+                      {chunks}
+                    </PortalLink>
+                  ),
+                }}
+              />
+            </Text>
+            <DynamicClientAllowedResources />
+          </SettingsSectionCard>
+        ) : null}
 
         <ConfirmationDialog
           open={isOpenRegistrationConfirmationVisible}

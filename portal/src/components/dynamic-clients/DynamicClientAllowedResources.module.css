@@ -1,0 +1,20 @@
+.resources {
+  @apply flex flex-col gap-3;
+}
+
+.resource {
+  @apply flex flex-col gap-1;
+  border: 1px solid var(--gray-a5);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.scopes {
+  @apply flex flex-row flex-wrap gap-1;
+  margin-top: 0.125rem;
+}
+
+.scopeChip {
+  @apply py-0.5 px-1 rounded;
+  background-color: #f3f2f1;
+}

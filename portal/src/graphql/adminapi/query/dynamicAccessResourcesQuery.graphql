@@ -1,0 +1,25 @@
+query dynamicAccessResourcesQuery($first: Int, $scopesFirst: Int) {
+  resources(first: $first) {
+    edges {
+      node {
+        id
+        name
+        resourceURI
+        accessPolicy {
+          allowDynamicThirdPartyClientAccess
+        }
+        scopes(first: $scopesFirst) {
+          edges {
+            node {
+              id
+              scope
+              accessPolicy {
+                allowDynamicThirdPartyClientAccess
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
