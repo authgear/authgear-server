@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -21,6 +22,25 @@ import (
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
+
+// CLIBinary identifies which built binary a `run_cli` step should invoke.
+const (
+	CLIBinaryAuthgear       = "authgear"
+	CLIBinaryAuthgearPortal = "authgear-portal"
+)
+
+// cliBinaryPath resolves a CLIBinary constant to the path of the binary
+// built by e2e/run.sh (relative to execCmdArgs' working directory, e2e/).
+func cliBinaryPath(binary string) (string, bool) {
+	switch binary {
+	case CLIBinaryAuthgear:
+		return "../dist/authgear", true
+	case CLIBinaryAuthgearPortal:
+		return "../dist/authgear-portal", true
+	default:
+		return "", false
+	}
+}
 
 type End2EndCmd struct {
 	AppID    string
@@ -209,6 +229,43 @@ func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
 		userID,
 		"--app-id", e.AppID,
 	)
+}
+
+// RunCLI runs a subcommand of the authgear or authgear-portal binary and
+// captures its exit code, stdout, and stderr separately. Unlike execCmdArgs,
+// a non-zero exit is not treated as a failure here: it is caller-visible
+// data (a `run_cli` step may be deliberately asserting a command fails),
+// mirroring how an HTTP step's status code is only checked if the step asks
+// for it. err is only set when the command could not be run at all (e.g.
+// unknown binary, or the process could not be started).
+func (e *End2EndCmd) RunCLI(binary string, args []string) (exitCode int, stdout string, stderr string, err error) {
+	binaryPath, ok := cliBinaryPath(binary)
+	if !ok {
+		err = fmt.Errorf("unknown cli binary: %s", binary)
+		return
+	}
+
+	var outb, errb bytes.Buffer
+	execCmd := exec.Command(binaryPath, args...)
+	execCmd.Dir = "../../"
+	execCmd.Stdout = &outb
+	execCmd.Stderr = &errb
+
+	runErr := execCmd.Run()
+	stdout = outb.String()
+	stderr = errb.String()
+
+	var exitErr *exec.ExitError
+	switch {
+	case runErr == nil:
+		exitCode = 0
+	case errors.As(runErr, &exitErr):
+		exitCode = exitErr.ExitCode()
+	default:
+		err = fmt.Errorf("failed to run %s %s: %w", binaryPath, strings.Join(quoteArgs(args), " "), runErr)
+	}
+
+	return
 }
 
 func (e *End2EndCmd) resolvePath(p string) string {

@@ -274,7 +274,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"generate_app_session_token",
 			"generate_refresh_token",
 			"generate_pkce",
-			"clear_cookies"
+			"clear_cookies",
+			"run_cli"
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
@@ -339,7 +340,13 @@ var _ = TestCaseSchema.Add("Step", `
 		"admin_api_user_import_id": { "type": "string" },
 		"generate_app_session_token_refresh_token": { "type": "string" },
 		"generate_refresh_token_user_id": { "type": "string" },
-		"generate_refresh_token_client_id": { "type": "string" }
+		"generate_refresh_token_client_id": { "type": "string" },
+		"run_cli_binary": { "type": "string", "enum": ["authgear", "authgear-portal"] },
+		"run_cli_args": {
+			"type": "array",
+			"items": { "type": "string" }
+		},
+		"run_cli_output": { "$ref": "#/$defs/CLIOutput" }
 	},
 	"allOf": [
 		{
@@ -563,6 +570,19 @@ var _ = TestCaseSchema.Add("Step", `
 							"generate_refresh_token_client_id"
 						]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "run_cli" }
+						}
+					},
+					"then": {
+						"required": [
+							"run_cli_binary",
+							"run_cli_args"
+						]
+					}
 				}
     ]
 }
@@ -671,6 +691,11 @@ type Step struct {
 	// `action` == "generate_refresh_token"
 	GenerateRefreshTokenUserID   string `json:"generate_refresh_token_user_id"`
 	GenerateRefreshTokenClientID string `json:"generate_refresh_token_client_id"`
+
+	// `action` == "run_cli"
+	RunCLIBinary string     `json:"run_cli_binary"`
+	RunCLIArgs   []string   `json:"run_cli_args"`
+	RunCLIOutput *CLIOutput `json:"run_cli_output"`
 }
 
 func (s Step) ResolveHTTPRequestFollowRedirects() bool {
@@ -705,6 +730,7 @@ const (
 	StepActionGenerateRefreshToken     StepAction = "generate_refresh_token"
 	StepActionGeneratePKCE             StepAction = "generate_pkce"
 	StepActionClearCookies             StepAction = "clear_cookies"
+	StepActionRunCLI                   StepAction = "run_cli"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `
@@ -826,6 +852,24 @@ var _ = TestCaseSchema.Add("Output", `
 type Output struct {
 	Result string `json:"result"`
 	Error  string `json:"error"`
+}
+
+var _ = TestCaseSchema.Add("CLIOutput", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"exit_code": { "type": "string" },
+		"stdout": { "type": "string" },
+		"stderr": { "type": "string" }
+	}
+}
+`)
+
+type CLIOutput struct {
+	ExitCode string `json:"exit_code"`
+	Stdout   string `json:"stdout"`
+	Stderr   string `json:"stderr"`
 }
 
 // AdminAPIOutput is used for admin_api_graphql output validation

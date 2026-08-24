@@ -829,6 +829,63 @@ func (tc *TestCase) executeStep(
 			Error: nil,
 		}
 
+	case StepActionRunCLI:
+		renderedArgs := make([]string, len(step.RunCLIArgs))
+		for i, arg := range step.RunCLIArgs {
+			renderedArg, argOk := renderTemplateString(t, cmd, prevSteps, arg)
+			if !argOk {
+				return nil, state, false
+			}
+			renderedArgs[i] = renderedArg
+		}
+
+		exitCode, stdout, stderr, runErr := cmd.RunCLI(step.RunCLIBinary, renderedArgs)
+		if runErr != nil {
+			t.Errorf("failed to run cli command in '%s': %v", step.Name, runErr)
+			return nil, state, false
+		}
+
+		// A run_cli step that doesn't assert on the exit code is expected to
+		// succeed, same as any other fixture/action step.
+		if step.RunCLIOutput == nil && exitCode != 0 {
+			t.Errorf("cli command in '%s' exited with code %d\nstdout: %s\nstderr: %s", step.Name, exitCode, stdout, stderr)
+			return nil, state, false
+		}
+
+		result = &StepResult{
+			Result: map[string]interface{}{
+				"exit_code": exitCode,
+				"stdout":    stdout,
+				"stderr":    stderr,
+			},
+			Error: nil,
+		}
+
+		if step.RunCLIOutput != nil {
+			renderedExitCode, exitCodeOk := renderTemplateString(t, cmd, prevSteps, step.RunCLIOutput.ExitCode)
+			if !exitCodeOk {
+				return nil, state, false
+			}
+			renderedStdout, stdoutOk := renderTemplateString(t, cmd, prevSteps, step.RunCLIOutput.Stdout)
+			if !stdoutOk {
+				return nil, state, false
+			}
+			renderedStderr, stderrOk := renderTemplateString(t, cmd, prevSteps, step.RunCLIOutput.Stderr)
+			if !stderrOk {
+				return nil, state, false
+			}
+			renderedStep := step
+			renderedStep.RunCLIOutput = &CLIOutput{
+				ExitCode: renderedExitCode,
+				Stdout:   renderedStdout,
+				Stderr:   renderedStderr,
+			}
+			ok = validateCLIOutput(t, renderedStep, exitCode, stdout, stderr)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
 	default:
 		t.Errorf("unknown action in '%s': %s", step.Name, step.Action)
 		return nil, state, false
@@ -1000,6 +1057,32 @@ func validateQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) 
 
 	return true
 
+}
+
+func validateCLIOutput(t *testing.T, step Step, exitCode int, stdout string, stderr string) (ok bool) {
+	actualJSON, _ := json.MarshalIndent(map[string]interface{}{
+		"exit_code": exitCode,
+		"stdout":    stdout,
+		"stderr":    stderr,
+	}, "", "  ")
+
+	violations, err := MatchCLIOutput(*step.RunCLIOutput, exitCode, stdout, stderr)
+	if err != nil {
+		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+		t.Errorf("  result: %s\n", actualJSON)
+		return false
+	}
+
+	if len(violations) > 0 {
+		t.Errorf("result output mismatch in '%s':\n", step.Name)
+		for _, violation := range violations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %s\n", actualJSON)
+		return false
+	}
+
+	return true
 }
 
 func validateAuditQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) {

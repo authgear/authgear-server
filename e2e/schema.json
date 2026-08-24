@@ -254,9 +254,30 @@
       ],
       "type": "object"
     },
+    "CLIOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "exit_code": {
+          "type": "string"
+        },
+        "stderr": {
+          "type": "string"
+        },
+        "stdout": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "HTTPOutput": {
       "additionalProperties": false,
       "properties": {
+        "headers": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
         "html_text_contains": {
           "items": {
             "type": "string"
@@ -569,6 +590,20 @@
           "if": {
             "properties": {
               "action": {
+                "const": "oauth_refresh_token"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "oauth_refresh_token_refresh_token"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
                 "const": "admin_api_graphql"
               }
             }
@@ -636,6 +671,21 @@
               "generate_refresh_token_client_id"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "run_cli"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "run_cli_binary",
+              "run_cli_args"
+            ]
+          }
         }
       ],
       "properties": {
@@ -655,13 +705,15 @@
             "oauth_setup",
             "oauth_approve_consent",
             "oauth_exchange_code",
+            "oauth_refresh_token",
             "admin_api_graphql",
             "admin_api_user_import_create",
             "admin_api_user_import_get",
             "generate_app_session_token",
             "generate_refresh_token",
             "generate_pkce",
-            "clear_cookies"
+            "clear_cookies",
+            "run_cli"
           ],
           "type": "string"
         },
@@ -759,6 +811,15 @@
         "oauth_exchange_code_redirect_uri": {
           "type": "string"
         },
+        "oauth_refresh_token_client_id": {
+          "type": "string"
+        },
+        "oauth_refresh_token_refresh_token": {
+          "type": "string"
+        },
+        "oauth_refresh_token_resource": {
+          "type": "string"
+        },
         "oauth_setup_client_id": {
           "type": "string"
         },
@@ -788,6 +849,22 @@
         },
         "redirect_uri": {
           "type": "string"
+        },
+        "run_cli_args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "run_cli_binary": {
+          "enum": [
+            "authgear",
+            "authgear-portal"
+          ],
+          "type": "string"
+        },
+        "run_cli_output": {
+          "$ref": "#/$defs/CLIOutput"
         },
         "saml_element": {
           "type": "string"
