@@ -18,6 +18,7 @@ func init() {
 	cmdDatabase.AddCommand(cmdMigrate)
 	cmdDatabase.AddCommand(cmdDump)
 	cmdDatabase.AddCommand(cmdRestore)
+	cmdDatabase.AddCommand(cmdPrune)
 
 	cmdMigrate.AddCommand(cmdMigrateNew)
 	cmdMigrate.AddCommand(cmdMigrateUp)
@@ -36,6 +37,10 @@ func init() {
 	binder.BindString(cmdRestore.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdRestore.Flags(), portalcmd.ArgDatabaseSchema)
 	binder.BindString(cmdRestore.Flags(), portalcmd.ArgInputDirectoryPath)
+
+	binder.BindString(cmdPrune.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdPrune.Flags(), portalcmd.ArgDatabaseSchema)
+	cmdPrune.Flags().Bool("force", false, "Actually delete the rows. Without this flag, only prints how many rows per table would be deleted.")
 
 	portalcmd.Root.AddCommand(cmdDatabase)
 }
@@ -237,5 +242,39 @@ var cmdRestore = &cobra.Command{
 		)
 
 		return restorer.Restore(cmd.Context())
+	},
+}
+
+var cmdPrune = &cobra.Command{
+	Use:   "prune <app-id> ...",
+	Short: "Permanently delete the given apps' rows from the portal database.",
+	Args:  cobra.MinimumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		binder := portalcmd.GetBinder()
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
+		if err != nil {
+			return
+		}
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
+		if err != nil {
+			return
+		}
+		force, err := cmd.Flags().GetBool("force")
+		if err != nil {
+			return
+		}
+
+		pruner := dbutil.NewPruner(
+			db.ConnectionInfo{
+				Purpose:     db.ConnectionPurposeGlobal,
+				DatabaseURL: dbURL,
+			},
+			dbSchema,
+			args,
+			tableNames,
+			!force,
+		)
+
+		return pruner.Prune(cmd.Context())
 	},
 }
