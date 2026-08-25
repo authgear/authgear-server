@@ -241,7 +241,7 @@ type ResourceScopeFacade interface {
 
 type DCRFacade interface {
 	CreateInitialAccessToken(ctx context.Context, options *dcr.NewInitialAccessTokenOptions) (token string, iat *apimodel.OAuthInitialAccessToken, err error)
-	RevokeInitialAccessToken(ctx context.Context, id string) error
+	RevokeInitialAccessToken(ctx context.Context, id string) (*apimodel.OAuthInitialAccessToken, error)
 	ListInitialAccessTokens(ctx context.Context) ([]*apimodel.OAuthInitialAccessToken, error)
 
 	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)

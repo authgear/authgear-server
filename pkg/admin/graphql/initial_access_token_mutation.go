@@ -6,6 +6,7 @@ import (
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/dcr"
 )
 
@@ -69,6 +70,15 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationCreateInitialAccessTokenExecutedEventPayload{
+				InitialAccessTokenID: iat.ID,
+				Type:                 iat.Type,
+				ExpiresAt:            iat.ExpiresAt,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return map[string]any{
 				"token":              token,
 				"initialAccessToken": iat,
@@ -117,7 +127,17 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			if err := gqlCtx.DCRFacade.RevokeInitialAccessToken(ctx, resolvedNodeID.ID); err != nil {
+			iat, err := gqlCtx.DCRFacade.RevokeInitialAccessToken(ctx, resolvedNodeID.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationRevokeInitialAccessTokenExecutedEventPayload{
+				InitialAccessTokenID: iat.ID,
+				Type:                 iat.Type,
+				ExpiresAt:            iat.ExpiresAt,
+			})
+			if err != nil {
 				return nil, err
 			}
 

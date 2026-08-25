@@ -38,8 +38,18 @@ func (c *Commands) CreateInitialAccessToken(ctx context.Context, options *NewIni
 	return plaintext, t.ToModel(), nil
 }
 
-func (c *Commands) RevokeInitialAccessToken(ctx context.Context, id string) error {
-	return c.Store.DeleteInitialAccessToken(ctx, id)
+// RevokeInitialAccessToken reads the token row before deleting it so the
+// caller can audit-log what was revoked; the row is gone afterwards and the
+// audit entry is the only remaining record of its type.
+func (c *Commands) RevokeInitialAccessToken(ctx context.Context, id string) (*model.OAuthInitialAccessToken, error) {
+	t, err := c.Store.GetInitialAccessTokenByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.Store.DeleteInitialAccessToken(ctx, id); err != nil {
+		return nil, err
+	}
+	return t.ToModel(), nil
 }
 
 // DeleteClient is re-exported from oauthclient.Commands so that
