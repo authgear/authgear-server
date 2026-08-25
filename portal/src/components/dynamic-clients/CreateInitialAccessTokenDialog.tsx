@@ -4,11 +4,13 @@ import { FormattedMessage } from "../../intl";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import { Callout } from "../v2/Callout/Callout";
+import { TextField } from "../v2/TextField/TextField";
 import { InitialAccessTokenType } from "../../graphql/adminapi/globalTypes.generated";
 import styles from "./CreateInitialAccessTokenDialog.module.css";
 
-const EXPIRES_IN_OPTIONS = [3600, 86400, 604800, 2592000] as const;
-export type ExpiresInSeconds = (typeof EXPIRES_IN_OPTIONS)[number];
+const PRESET_EXPIRES_IN_OPTIONS = [3600, 86400, 604800, 2592000] as const;
+
+type ExpiresInSelection = "3600" | "86400" | "604800" | "2592000" | "custom";
 
 export interface CreateInitialAccessTokenDialogProps {
   open: boolean;
@@ -26,14 +28,18 @@ export function CreateInitialAccessTokenDialog({
   const [tokenType, setTokenType] = useState<InitialAccessTokenType>(
     InitialAccessTokenType.ThirdParty
   );
-  const [expiresIn, setExpiresIn] = useState<ExpiresInSeconds>(3600);
+  const [expiresInSelection, setExpiresInSelection] =
+    useState<ExpiresInSelection>("3600");
+  // Value of the datetime-local input, e.g. "2026-09-30T18:00".
+  const [customExpiryValue, setCustomExpiryValue] = useState("");
 
   useEffect(() => {
     if (open) {
       // Reset the selection every time the dialog is (re)opened.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTokenType(InitialAccessTokenType.ThirdParty);
-      setExpiresIn(3600);
+      setExpiresInSelection("3600");
+      setCustomExpiryValue("");
     }
   }, [open]);
 
@@ -47,17 +53,75 @@ export function CreateInitialAccessTokenDialog({
   }, []);
 
   const onExpiresInChange = useCallback((newValue: string) => {
-    const parsed = Number(newValue);
-    for (const option of EXPIRES_IN_OPTIONS) {
-      if (parsed === option) {
-        setExpiresIn(option);
-      }
+    switch (newValue) {
+      case "3600":
+      case "86400":
+      case "604800":
+      case "2592000":
+      case "custom":
+        setExpiresInSelection(newValue);
+        break;
+      default:
+        break;
     }
   }, []);
 
+  // Seconds until the given custom expiry, or null when the value is empty,
+  // unparsable, or not in the future. datetime-local values are interpreted
+  // in the browser's local time zone, matching what the admin picked in the
+  // native picker.
+  const computeCustomExpiresInSeconds = useCallback(
+    (value: string): number | null => {
+      if (value === "") {
+        return null;
+      }
+      const expiryMillis = new Date(value).getTime();
+      if (Number.isNaN(expiryMillis)) {
+        return null;
+      }
+      const seconds = Math.floor((expiryMillis - Date.now()) / 1000);
+      if (seconds <= 0) {
+        return null;
+      }
+      return seconds;
+    },
+    []
+  );
+
+  const [isCustomExpiryValid, setIsCustomExpiryValid] = useState(false);
+
+  const onCustomExpiryChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setCustomExpiryValue(value);
+      setIsCustomExpiryValid(computeCustomExpiresInSeconds(value) != null);
+    },
+    [computeCustomExpiresInSeconds]
+  );
+
+  const isCustomInvalid =
+    expiresInSelection === "custom" && !isCustomExpiryValid;
+
   const onSubmit = useCallback(() => {
-    onCreate(tokenType, expiresIn);
-  }, [onCreate, tokenType, expiresIn]);
+    if (expiresInSelection === "custom") {
+      // Recompute at submit time: the expiry may have slipped into the past
+      // while the dialog sat open.
+      const seconds = computeCustomExpiresInSeconds(customExpiryValue);
+      if (seconds == null) {
+        setIsCustomExpiryValid(false);
+        return;
+      }
+      onCreate(tokenType, seconds);
+      return;
+    }
+    onCreate(tokenType, Number(expiresInSelection));
+  }, [
+    onCreate,
+    tokenType,
+    expiresInSelection,
+    customExpiryValue,
+    computeCustomExpiresInSeconds,
+  ]);
 
   const onCancel = useCallback(() => {
     onOpenChange(false);
@@ -130,11 +194,11 @@ export function CreateInitialAccessTokenDialog({
               <FormattedMessage id="CreateInitialAccessTokenDialog.expires-in.label" />
             </Text>
             <RadioGroup.Root
-              value={expiresIn.toFixed(0)}
+              value={expiresInSelection}
               onValueChange={onExpiresInChange}
             >
               <Flex direction="column" gap="2">
-                {EXPIRES_IN_OPTIONS.map((option) => (
+                {PRESET_EXPIRES_IN_OPTIONS.map((option) => (
                   <Text
                     key={option}
                     as="label"
@@ -154,8 +218,32 @@ export function CreateInitialAccessTokenDialog({
                     </Flex>
                   </Text>
                 ))}
+                <Text as="label" size="2" className={styles.radioOption}>
+                  <Flex gap="2" align="center">
+                    <RadioGroup.Item
+                      value="custom"
+                      className={styles.radioItem}
+                    />
+                    <FormattedMessage id="CreateInitialAccessTokenDialog.expires-in.option.custom" />
+                  </Flex>
+                </Text>
               </Flex>
             </RadioGroup.Root>
+            {expiresInSelection === "custom" ? (
+              <TextField
+                size="2"
+                labelSize="2"
+                type="datetime-local"
+                label={
+                  <FormattedMessage id="CreateInitialAccessTokenDialog.expires-in.custom.label" />
+                }
+                hint={
+                  <FormattedMessage id="CreateInitialAccessTokenDialog.expires-in.custom.hint" />
+                }
+                value={customExpiryValue}
+                onChange={onCustomExpiryChange}
+              />
+            ) : null}
           </div>
         </Flex>
         <div className={styles.actions}>
@@ -170,6 +258,7 @@ export function CreateInitialAccessTokenDialog({
           <PrimaryButton
             size="2"
             loading={loading}
+            disabled={isCustomInvalid}
             text={
               <FormattedMessage id="CreateInitialAccessTokenDialog.create" />
             }
