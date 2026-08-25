@@ -4152,9 +4152,6 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
-	featureConfig := config.FeatureConfig
-	rateLimitsFeatureConfig := featureConfig.RateLimits
 	userAgentString := deps.ProvideUserAgentString(request)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
@@ -4173,6 +4170,7 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
@@ -4587,6 +4585,8 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		Posthog:       posthogService,
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Database:     handle,
 		Storage:      storageRedis,
@@ -4621,6 +4621,7 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		DCR:          dcrCommands,
 		IAT:          dcrQueries,
 		Clock:        clockClock,
+		Events:       eventService,
 		RemoteIP:     remoteIP,
 		RateLimiter:  limiter,
 		UsageLimiter: usageLimiter,

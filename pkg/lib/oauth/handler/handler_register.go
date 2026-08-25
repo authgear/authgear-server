@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/dcr"
@@ -46,6 +47,7 @@ type RegistrationHandler struct {
 	DCR         RegistrationHandlerDCRService
 	IAT         RegistrationHandlerIATService
 	Clock       clock.Clock
+	Events      EventService
 
 	RemoteIP     httputil.RemoteIP
 	RateLimiter  RegistrationHandlerRateLimiter
@@ -156,14 +158,16 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	// go through h.Database's SQLExecutor, which requires an active tx-like
 	// context on every query.
 	var client *model.OAuthClient
+	var iat *model.OAuthInitialAccessToken
 	var countBeforeCreate int
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		kind := model.OAuthClientKindThirdParty
 		if token != "" {
-			iat, err := h.IAT.ValidateAndGetByToken(ctx, token)
+			t, err := h.IAT.ValidateAndGetByToken(ctx, token)
 			if err != nil {
 				return err
 			}
+			iat = t
 			if iat.Type == model.OAuthInitialAccessTokenTypeFirstParty {
 				kind = model.OAuthClientKindFirstParty
 			}
@@ -197,7 +201,8 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 			return err
 		}
 		client = c
-		return nil
+
+		return h.Events.DispatchEventOnCommit(ctx, newOAuthClientRegisteredEventPayload(client, iat))
 	})
 	if err != nil {
 		if errors.Is(err, dcr.ErrInitialAccessTokenNotFound) {
@@ -240,4 +245,31 @@ func derefStringOr(s *string, fallback string) string {
 		return fallback
 	}
 	return *s
+}
+
+// newOAuthClientRegisteredEventPayload builds the audit event payload for a
+// successful registration. iat is nil under open registration
+// (initial_access_token_required: false), in which case the payload's
+// InitialAccessToken field is left nil too — see
+// nonblocking.OAuthClientRegisteredEventPayload.
+func newOAuthClientRegisteredEventPayload(client *model.OAuthClient, iat *model.OAuthInitialAccessToken) *nonblocking.OAuthClientRegisteredEventPayload {
+	payload := &nonblocking.OAuthClientRegisteredEventPayload{
+		Client: nonblocking.OAuthClientRegisteredEventPayloadClient{
+			ClientID:        client.ClientID,
+			Source:          client.Source,
+			Kind:            client.Kind,
+			ClientName:      client.Name,
+			ApplicationType: derefStringOr(client.ApplicationType, ""),
+			RedirectURIs:    client.RedirectURIs,
+			GrantTypes:      client.GrantTypes,
+			ResponseTypes:   client.ResponseTypes,
+		},
+	}
+	if iat != nil {
+		payload.InitialAccessToken = &nonblocking.OAuthClientRegisteredEventPayloadInitialAccessToken{
+			ID:   iat.ID,
+			Type: iat.Type,
+		}
+	}
+	return payload
 }
