@@ -1,0 +1,299 @@
+name: POST /oauth2/register under open registration writes oauth.client.registered with no IAT fields
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "PR #123 preview",
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             client_id,
+             user_id,
+             data->'payload'->'client'->>'source' AS source,
+             data->'payload'->'client'->>'kind' AS kind,
+             data->'payload'->'client'->>'client_name' AS client_name,
+             data->'payload' ? 'initial_access_token' AS has_iat
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}' AND activity_type = 'oauth.client.registered'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.registered",
+            "client_id": "{{ .steps.register.result.http_json_body.client_id }}",
+            "user_id": "",
+            "source": "DCR",
+            "kind": "THIRD_PARTY",
+            "client_name": "PR #123 preview",
+            "has_iat": false
+          }
+        ]
+
+---
+
+name: DCR lifecycle with a first-party IAT emits all four audit log events and never leaks the plaintext IAT
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+            initialAccessToken {
+              id
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]",
+              "initialAccessToken": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: revoke_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation($id: ID!) {
+          revokeInitialAccessToken(input: { id: $id }) {
+            ok
+          }
+        }
+      variables: |
+        {
+          "id": "{{ .steps.create_iat.result.data.createInitialAccessToken.initialAccessToken.id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "revokeInitialAccessToken": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - name: delete_client
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation($clientID: String!) {
+          deleteDynamicClient(input: { clientID: $clientID }) {
+            ok
+          }
+        }
+      variables: |
+        {
+          "clientID": "{{ .steps.register.result.http_json_body.client_id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "deleteDynamicClient": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             client_id,
+             data->'payload'->'client'->>'kind' AS client_kind,
+             data->'payload'->'initial_access_token'->>'type' AS registered_iat_type,
+             data->'payload'->>'type' AS iat_type,
+             data->'payload'->>'expires_at' AS iat_expires_at,
+             data->'payload'->>'source' AS deleted_source,
+             data->'payload'->>'kind' AS deleted_kind
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN (
+          'admin_api.mutation.create_initial_access_token.executed',
+          'oauth.client.registered',
+          'admin_api.mutation.revoke_initial_access_token.executed',
+          'admin_api.mutation.delete_dynamic_client.executed'
+        )
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "admin_api.mutation.create_initial_access_token.executed",
+            "client_id": "",
+            "client_kind": null,
+            "registered_iat_type": null,
+            "iat_type": "FIRST_PARTY",
+            "iat_expires_at": "[[string]]",
+            "deleted_source": null,
+            "deleted_kind": null
+          },
+          {
+            "activity_type": "oauth.client.registered",
+            "client_id": "{{ .steps.register.result.http_json_body.client_id }}",
+            "client_kind": "FIRST_PARTY",
+            "registered_iat_type": "FIRST_PARTY",
+            "iat_type": null,
+            "iat_expires_at": null,
+            "deleted_source": null,
+            "deleted_kind": null
+          },
+          {
+            "activity_type": "admin_api.mutation.revoke_initial_access_token.executed",
+            "client_id": "",
+            "client_kind": null,
+            "registered_iat_type": null,
+            "iat_type": "FIRST_PARTY",
+            "iat_expires_at": "[[string]]",
+            "deleted_source": null,
+            "deleted_kind": null
+          },
+          {
+            "activity_type": "admin_api.mutation.delete_dynamic_client.executed",
+            "client_id": "{{ .steps.register.result.http_json_body.client_id }}",
+            "client_kind": null,
+            "registered_iat_type": null,
+            "iat_type": null,
+            "iat_expires_at": null,
+            "deleted_source": "DCR",
+            "deleted_kind": "FIRST_PARTY"
+          }
+        ]
+  # Regression guard: the plaintext IAT (iat_fp_...) must never appear
+  # anywhere in _audit_log, through any payload field.
+  - name: verify_no_plaintext_iat_leak
+    action: audit_query
+    audit_query: |
+      SELECT count(*) AS leaked
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND data::text LIKE '%iat_fp_%'
+    audit_query_output:
+      rows: |
+        [
+          {
+            "leaked": "0"
+          }
+        ]
+
+---
+
+name: auditLogs Admin API query returns oauth.client.registered with a null user
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: query_audit_logs
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query($activityTypes: [AuditLogActivityType!]) {
+          auditLogs(activityTypes: $activityTypes) {
+            totalCount
+            edges {
+              node {
+                activityType
+                clientID
+                user {
+                  id
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "activityTypes": ["OAUTH_CLIENT_REGISTERED"]
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "auditLogs": {
+              "totalCount": 1,
+              "edges": [
+                {
+                  "node": {
+                    "activityType": "OAUTH_CLIENT_REGISTERED",
+                    "clientID": "{{ .steps.register.result.http_json_body.client_id }}",
+                    "user": null
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
