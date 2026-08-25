@@ -13,7 +13,7 @@ import (
 type DCRCommands interface {
 	CreateInitialAccessToken(ctx context.Context, options *dcr.NewInitialAccessTokenOptions) (string, *model.OAuthInitialAccessToken, error)
 	RevokeInitialAccessToken(ctx context.Context, id string) (*model.OAuthInitialAccessToken, error)
-	DeleteClient(ctx context.Context, clientID string) error
+	DeleteClient(ctx context.Context, clientID string) (*model.OAuthClient, error)
 }
 
 type DCRQueries interface {
@@ -38,7 +38,7 @@ func (f *DCRFacade) ListInitialAccessTokens(ctx context.Context) ([]*model.OAuth
 	return f.DCRQueries.ListInitialAccessTokens(ctx)
 }
 
-func (f *DCRFacade) DeleteClient(ctx context.Context, clientID string) error {
+func (f *DCRFacade) DeleteClient(ctx context.Context, clientID string) (*model.OAuthClient, error) {
 	return f.DCRCommands.DeleteClient(ctx, clientID)
 }
 

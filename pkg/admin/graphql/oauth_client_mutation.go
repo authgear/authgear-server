@@ -2,6 +2,8 @@ package graphql
 
 import (
 	"github.com/graphql-go/graphql"
+
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 )
 
 var deleteDynamicClientInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -40,7 +42,18 @@ var _ = registerMutationField(
 			ctx := p.Context
 			gqlCtx := GQLContext(ctx)
 
-			if err := gqlCtx.DCRFacade.DeleteClient(ctx, clientID); err != nil {
+			client, err := gqlCtx.DCRFacade.DeleteClient(ctx, clientID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationDeleteDynamicClientExecutedEventPayload{
+				ClientID:   client.ClientID,
+				Source:     client.Source,
+				Kind:       client.Kind,
+				ClientName: client.Name,
+			})
+			if err != nil {
 				return nil, err
 			}
 

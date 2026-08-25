@@ -55,6 +55,11 @@ func (c *Commands) RevokeInitialAccessToken(ctx context.Context, id string) (*mo
 // DeleteClient is re-exported from oauthclient.Commands so that
 // pkg/admin/facade.DCRCommands depends on one collaborator rather than
 // reaching into pkg/lib/oauthclient directly.
-func (c *Commands) DeleteClient(ctx context.Context, clientID string) error {
-	return c.OAuthClient.DeleteClient(ctx, clientID)
+func (c *Commands) DeleteClient(ctx context.Context, clientID string) (*model.OAuthClient, error) {
+	client, err := c.OAuthClient.DeleteClient(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	tokenLifetimes := oauthclient.ResolveTokenLifetimes(c.OAuthConfig, client.Source)
+	return client.ToModel(tokenLifetimes), nil
 }

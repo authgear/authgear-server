@@ -245,7 +245,7 @@ type DCRFacade interface {
 	ListInitialAccessTokens(ctx context.Context) ([]*apimodel.OAuthInitialAccessToken, error)
 
 	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
-	DeleteClient(ctx context.Context, clientID string) error
+	DeleteClient(ctx context.Context, clientID string) (*apimodel.OAuthClient, error)
 }
 
 type Context struct {

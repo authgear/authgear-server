@@ -44,9 +44,16 @@ func (c *Commands) CreateClient(ctx context.Context, options *NewClientOptions) 
 // expires. Running only after the commit is known to have succeeded closes
 // that gap; dynamicClientCacheTTL is the bound on the residual window if
 // this hook itself never runs (e.g. process crash before DidCommitTx).
-func (c *Commands) DeleteClient(ctx context.Context, clientID string) error {
+//
+// It returns the deleted client, read before the delete, so the caller can
+// audit-log what was removed — the row is gone afterwards.
+func (c *Commands) DeleteClient(ctx context.Context, clientID string) (*Client, error) {
+	client, err := c.Store.GetClientByClientID(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
 	if err := c.Store.DeleteClientByClientID(ctx, clientID); err != nil {
-		return err
+		return nil, err
 	}
 
 	if !c.hooked {
@@ -54,7 +61,7 @@ func (c *Commands) DeleteClient(ctx context.Context, clientID string) error {
 		c.hooked = true
 	}
 	c.pendingInvalidations = append(c.pendingInvalidations, clientID)
-	return nil
+	return client, nil
 }
 
 func (c *Commands) WillCommitTx(ctx context.Context) error {
