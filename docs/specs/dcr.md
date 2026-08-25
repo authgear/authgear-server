@@ -27,6 +27,7 @@ Authgear supports Dynamic Client Registration as defined by:
   - [Access Token Audience Binding](#access-token-audience-binding)
 - [Admin API](#admin-api)
   - [IAT management](#iat-management)
+- [Audit Log](#audit-log)
 - [Future Works](#future-works)
 
 ## Glossary
@@ -374,7 +375,7 @@ See [Accepted Client Metadata](#accepted-client-metadata) for the full list of r
 
 ### Response
 
-**201 Created** on success.
+**201 Created** on success. A successful registration is recorded in the [audit log](#audit-log); a failed one is not.
 
 ```json
 {
@@ -534,6 +535,8 @@ The portal displays registered clients by querying the Admin GraphQL API. Client
 
 ### IAT management
 
+Creating and revoking an IAT are both recorded in the [audit log](#audit-log). The plaintext token is never recorded.
+
 ```graphql
 type Query {
   """Returns all active (non-expired) Initial Access Tokens for the project."""
@@ -663,6 +666,18 @@ type DeleteDynamicClientPayload {
 > **Implementation status:** the token and authorization revocation described above is not yet implemented. The first implementation of this mutation removes the persisted client record only, which frees the client-limit slot and stops any new authorization, but leaves already-issued access tokens valid until they expire and already-issued refresh tokens usable. Until revocation lands, deleting a DCR client is not a way to cut off a client that is actively misbehaving.
 
 For a DCR client, deletion is permanent: the same `client_id` never reappears unless a new `POST /oauth2/register` call creates it again. For a CIMD client, deletion only evicts the current persisted record — the same `client_id` URL can produce a new record on its very next successful resolution, since nothing prevents a caller from presenting that URL again. This mutation frees a slot immediately in both cases, but for CIMD it is not a durable ban; see [cimd.md — Domain Trust](./cimd.md#domain-trust) for the closest thing to one.
+
+Deleting a client is recorded in the [audit log](#audit-log). Because the client record itself is removed, that audit entry is the only remaining record of what was deleted.
+
+## Audit Log
+
+Every DCR lifecycle action is recorded in the [audit log](./audit-log.md).
+
+A successful registration emits [`oauth.client.registered`](./event.md#oauthclientregistered). A rejected registration attempt emits nothing: under open registration `POST /oauth2/register` is unauthenticated, so logging failures would let any caller write audit entries at will. Attempts rejected by the [rate limits](#rate-limits) are already covered by `rate_limit.blocked`.
+
+Creating and revoking an IAT, and deleting a dynamic client, are recorded the same way as every other Admin API mutation.
+
+**No token value is ever written to the audit log** — not the plaintext IAT, not a client secret. An IAT is returned exactly once at creation and stored only as a hash ([IAT storage](#iat-storage)); an audit entry containing it would be a second, admin-readable copy, retained for the audit log's retention period, of a credential this design treats as unrecoverable. The audit entry identifies an IAT by its ID and type only.
 
 ## Future Works
 

@@ -160,7 +160,9 @@ type AuditLog implements Node {
   id: ID!
   createdAt: DateTime!
   activityType: AuditLogActivityType!
-  user: User!
+  # Null when the entry is not associated with an end user, for example an
+  # Admin API mutation that does not target a user, or oauth.client.registered.
+  user: User
   ipAddress: String
   userAgent: String
   clientID: String
