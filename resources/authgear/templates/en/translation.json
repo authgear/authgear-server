@@ -582,6 +582,8 @@
   "v2.page.consent.scopes.address": "Access your address.",
   "v2.page.consent.scopes.email": "Access your email address.",
   "v2.page.consent.scopes.full-userinfo": "Access full information in your profile such as name, email address, phone number, and address.",
+  "v2.page.consent.scopes.offline-access": "Maintain access to data you have given it access to.",
+  "v2.page.consent.scopes.openid": "Sign you in.",
   "v2.page.consent.scopes.phone": "Access your phone number.",
   "v2.page.consent.scopes.profile": "Access your profile such as name, but excluding email address, phone number, and address.",
   "v2.page.create-password.default.title": "Create Password",

@@ -1,0 +1,39 @@
+name: Discovery metadata includes registration_endpoint when DCR is enabled
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+steps:
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/openid-configuration
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "registration_endpoint": "[[string]]"
+        }
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/oauth-authorization-server
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "registration_endpoint": "[[string]]"
+        }
+
+---
+
+name: Discovery metadata omits registration_endpoint when DCR is disabled
+steps:
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/openid-configuration
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "registration_endpoint": "[[never]]"
+        }

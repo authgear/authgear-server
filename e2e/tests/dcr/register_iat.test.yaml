@@ -1,0 +1,163 @@
+name: POST /oauth2/register requires an IAT by default
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 401
+      json_body: |
+        {
+          "error": "invalid_initial_access_token"
+        }
+
+---
+
+name: POST /oauth2/register with a first-party IAT registers a first-party public client
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "PR #123 preview",
+        "redirect_uris": ["https://example.com/callback"],
+        "application_type": "web"
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]",
+          "client_id_issued_at": "[[number]]",
+          "client_name": "PR #123 preview",
+          "redirect_uris": ["https://example.com/callback"],
+          "grant_types": ["authorization_code", "refresh_token"],
+          "response_types": ["code"],
+          "application_type": "web",
+          "client_secret": "[[never]]",
+          "client_secret_expires_at": "[[never]]"
+        }
+
+---
+
+name: POST /oauth2/register with a third-party IAT registers a third-party client
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: {}) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: verify_third_party
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            edges {
+              node {
+                clientID
+                kind
+                source
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "edges": [
+                {
+                  "node": {
+                    "clientID": "{{ .steps.register.result.http_json_body.client_id }}",
+                    "kind": "THIRD_PARTY",
+                    "source": "DCR"
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }

@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
@@ -30,6 +31,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
@@ -164,11 +166,50 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clock,
+		AppID:       configAppID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: configAppID,
+		Clock: clock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -321,7 +362,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -332,7 +373,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clock,
 	}
 	sourceProvider := &reindex.SourceProvider{

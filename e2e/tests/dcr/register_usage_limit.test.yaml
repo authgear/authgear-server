@@ -1,0 +1,191 @@
+name: DCR registration is blocked once the oauth_client_dcr quota is reached
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+authgear.features.yaml:
+  override: |
+    usage:
+      limits:
+        oauth_client_dcr:
+        - quota: 2
+          action: "block"
+steps:
+  - name: register_1
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-1.example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: register_2
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-2.example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: register_3_blocked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-3.example.com/callback"]
+      }
+    http_output:
+      http_status: 403
+      json_body: |
+        {
+          "error": "access_denied"
+        }
+  - name: delete_client_1
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation($clientID: String!) {
+          deleteDynamicClient(input: { clientID: $clientID }) {
+            ok
+          }
+        }
+      variables: |
+        {
+          "clientID": "{{ .steps.register_1.result.http_json_body.client_id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "deleteDynamicClient": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - name: register_4_succeeds_after_delete
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-4.example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+---
+
+name: DCR registration fires usage.alert.triggered for both alert and block quotas
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+authgear.features.yaml:
+  override: |
+    usage:
+      hooks:
+      - url: 'http://127.0.0.1:2626/[[.AppID]]/usage'
+        match: "oauth_client_dcr"
+      limits:
+        oauth_client_dcr:
+        - quota: 1
+          action: "alert"
+        - quota: 2
+          action: "block"
+steps:
+  - name: register_1
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-1.example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: register_2
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-2.example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: wait for hook delivery
+    action: sleep
+    sleep_for: 2s
+  - name: query hook server
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/usage"
+    hook_server_output:
+      rows: |
+        [
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "oauth_client_dcr",
+                "action": "alert",
+                "period": "",
+                "quota": 1,
+                "current_value": 1
+              }
+            }
+          },
+          {
+            "type": "usage.alert.triggered",
+            "payload": {
+              "usage": {
+                "name": "oauth_client_dcr",
+                "action": "block",
+                "period": "",
+                "quota": 2,
+                "current_value": 2
+              }
+            }
+          }
+        ]

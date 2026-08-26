@@ -88,7 +88,7 @@ type UIInfoResolverCookieManager interface {
 }
 
 type UIInfoClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 type UIInfoResolver struct {
@@ -148,7 +148,7 @@ func (r *UIInfoResolver) RemoveOAuthSessionID(w http.ResponseWriter, req *http.R
 }
 
 func (r *UIInfoResolver) ResolveForUI(ctx context.Context, req protocol.AuthorizationRequest) (*UIInfo, error) {
-	client := r.ClientResolver.ResolveClient(req.ClientID())
+	client := r.ClientResolver.ResolveClient(ctx, req.ClientID())
 	if client == nil {
 		return nil, fmt.Errorf("client not found: %v", req.ClientID())
 	}

@@ -43,7 +43,7 @@ type OAuthAccessTokenEncoding interface {
 }
 
 type OAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 type OAuthFacade struct {
@@ -67,7 +67,7 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 		AuthenticatedAt: f.Clock.NowUTC(),
 	}
 
-	client := f.OAuthClientResolver.ResolveClient(clientID)
+	client := f.OAuthClientResolver.ResolveClient(ctx, clientID)
 	if client == nil {
 		return nil, nil, apierrors.NewInvalid("invalid client ID")
 	}

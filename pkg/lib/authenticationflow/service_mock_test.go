@@ -249,17 +249,17 @@ func (m *MockOAuthClientResolver) EXPECT() *MockOAuthClientResolverMockRecorder 
 }
 
 // ResolveClient mocks base method.
-func (m *MockOAuthClientResolver) ResolveClient(clientID string) *config.OAuthClientConfig {
+func (m *MockOAuthClientResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResolveClient", clientID)
+	ret := m.ctrl.Call(m, "ResolveClient", ctx, clientID)
 	ret0, _ := ret[0].(*config.OAuthClientConfig)
 	return ret0
 }
 
 // ResolveClient indicates an expected call of ResolveClient.
-func (mr *MockOAuthClientResolverMockRecorder) ResolveClient(clientID interface{}) *gomock.Call {
+func (mr *MockOAuthClientResolverMockRecorder) ResolveClient(ctx, clientID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveClient", reflect.TypeOf((*MockOAuthClientResolver)(nil).ResolveClient), clientID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveClient", reflect.TypeOf((*MockOAuthClientResolver)(nil).ResolveClient), ctx, clientID)
 }
 
 // MockOAuthSessionStore is a mock of OAuthSessionStore interface.

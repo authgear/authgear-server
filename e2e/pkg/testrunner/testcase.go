@@ -504,11 +504,24 @@ func (tc *TestCase) executeStep(
 			Error:  nil,
 		}
 	case StepActionOAuthSetup:
+		var clientID string
+		clientID, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthSetupClientID)
+		if !ok {
+			return nil, state, false
+		}
+
+		var resource string
+		resource, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthSetupResource)
+		if !ok {
+			return nil, state, false
+		}
+
 		output, err := client.SetupOAuth(authflowclient.SetupOAuthOptions{
-			ClientID:          step.OAuthSetupClientID,
+			ClientID:          clientID,
 			Scope:             step.OAuthSetupScope,
 			SSOEnabled:        step.OAuthSetupSSOEnabled,
 			SSOEnabledOmitted: step.OAuthSetupSSOEnabledOmitted,
+			Resource:          resource,
 		})
 		if err != nil {
 			t.Errorf("failed to setup oauth: %v", err)
@@ -551,12 +564,27 @@ func (tc *TestCase) executeStep(
 
 		var redirectURI string
 		redirectURI, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthExchangeCodeRedirectURI)
+		if !ok {
+			return nil, state, false
+		}
+
+		var exchangeClientID string
+		exchangeClientID, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthExchangeCodeClientID)
+		if !ok {
+			return nil, state, false
+		}
+
+		var exchangeClientSecret string
+		exchangeClientSecret, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthExchangeCodeClientSecret)
+		if !ok {
+			return nil, state, false
+		}
 
 		output, err := client.OAuthExchangeCode(authflowclient.OAuthExchangeCodeOptions{
 			CodeVerifier: codeVerifier,
 			RedirectURI:  redirectURI,
-			ClientID:     step.OAuthExchangeCodeClientID,
-			ClientSecret: step.OAuthExchangeCodeClientSecret,
+			ClientID:     exchangeClientID,
+			ClientSecret: exchangeClientSecret,
 		})
 		if err != nil {
 			t.Errorf("failed to exchange code: %v\n", err)
@@ -565,6 +593,47 @@ func (tc *TestCase) executeStep(
 
 		if step.Output != nil {
 			ok := validateOAuthExchangeCodeOutput(t, step, output)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
+		result = &StepResult{
+			Result: output,
+			Error:  nil,
+		}
+
+	case StepActionOAuthRefreshToken:
+		var refreshToken string
+		refreshToken, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthRefreshTokenRefreshToken)
+		if !ok {
+			return nil, state, false
+		}
+
+		var refreshClientID string
+		refreshClientID, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthRefreshTokenClientID)
+		if !ok {
+			return nil, state, false
+		}
+
+		var refreshResource string
+		refreshResource, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthRefreshTokenResource)
+		if !ok {
+			return nil, state, false
+		}
+
+		output, err := client.OAuthRefreshToken(authflowclient.OAuthRefreshTokenOptions{
+			RefreshToken: refreshToken,
+			ClientID:     refreshClientID,
+			Resource:     refreshResource,
+		})
+		if err != nil {
+			t.Errorf("failed to refresh token: %v\n", err)
+			return
+		}
+
+		if step.Output != nil {
+			ok := validateOAuthRefreshTokenOutput(t, step, output)
 			if !ok {
 				return nil, state, false
 			}
@@ -1233,6 +1302,22 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 			}
 		}
 	}
+	if len(httpOutput.LocationContains) > 0 {
+		location := response.Header.Get("Location")
+		for _, substr := range httpOutput.LocationContains {
+			if !strings.Contains(location, substr) {
+				t.Errorf("Location header unexpectedly missing %q in '%s': %s", substr, step.Name, location)
+				ok = false
+			}
+		}
+	}
+	for name, expected := range httpOutput.Headers {
+		actual := response.Header.Get(name)
+		if actual != expected {
+			t.Errorf("header %q mismatch in '%s': expected %q, got %q", name, step.Name, expected, actual)
+			ok = false
+		}
+	}
 	return ok
 }
 
@@ -1269,6 +1354,28 @@ func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Res
 }
 
 func validateOAuthExchangeCodeOutput(t *testing.T, step Step, output *authflowclient.OAuthExchangeCodeResult) (ok bool) {
+	outputJSON, _ := json.MarshalIndent(output, "", "  ")
+
+	violations, err := MatchJSON(string(outputJSON), step.Output.Result)
+	if err != nil {
+		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+		t.Errorf("  result: %v\n", string(outputJSON))
+		return false
+	}
+
+	if len(violations) > 0 {
+		t.Errorf("result output mismatch in '%v':\n", step.Name)
+		for _, violation := range violations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %v\n", string(outputJSON))
+		return false
+	}
+
+	return true
+}
+
+func validateOAuthRefreshTokenOutput(t *testing.T, step Step, output *authflowclient.OAuthRefreshTokenResult) (ok bool) {
 	outputJSON, _ := json.MarshalIndent(output, "", "  ")
 
 	violations, err := MatchJSON(string(outputJSON), step.Output.Result)

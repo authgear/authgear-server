@@ -432,6 +432,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 			DPoPJKT:          options.DPoPJKT,
 			AccessInfo:       &options.AccessInfo,
 			ExpireAt:         options.ShortLivedRefreshTokenExpireAt,
+			ResourceURI:      options.ResourceURI,
 		}
 		grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)
 		if err = s.updateOfflineGrant(ctx, grant, options.OfflineGrantExpireAt); err != nil {

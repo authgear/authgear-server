@@ -267,6 +267,7 @@ var _ = TestCaseSchema.Add("Step", `
 			"oauth_setup",
 			"oauth_approve_consent",
 			"oauth_exchange_code",
+			"oauth_refresh_token",
 			"admin_api_graphql",
 			"admin_api_user_import_create",
 			"admin_api_user_import_get",
@@ -318,6 +319,7 @@ var _ = TestCaseSchema.Add("Step", `
 		},
 		"oauth_setup_sso_enabled": { "type": "boolean" },
 		"oauth_setup_sso_enabled_omitted": { "type": "boolean" },
+		"oauth_setup_resource": { "type": "string" },
 		"oauth_approve_consent_redirect_uri": { "type": "string" },
 		"clear_cookies_names": {
 			"type": "array",
@@ -327,6 +329,9 @@ var _ = TestCaseSchema.Add("Step", `
 		"oauth_exchange_code_redirect_uri": { "type": "string" },
 		"oauth_exchange_code_client_id": { "type": "string" },
 		"oauth_exchange_code_client_secret": { "type": "string" },
+		"oauth_refresh_token_refresh_token": { "type": "string" },
+		"oauth_refresh_token_client_id": { "type": "string" },
+		"oauth_refresh_token_resource": { "type": "string" },
 		"admin_api_request": { "$ref": "#/$defs/AdminAPIRequest" },
 		"admin_api_output": { "$ref": "#/$defs/AdminAPIOutput" },
 		"admin_api_user_import_request": { "$ref": "#/$defs/AdminAPIUserImportRequest" },
@@ -488,6 +493,18 @@ var _ = TestCaseSchema.Add("Step", `
 				{
 					"if": {
 						"properties": {
+							"action": { "const": "oauth_refresh_token" }
+						}
+					},
+					"then": {
+						"required": [
+							"oauth_refresh_token_refresh_token"
+						]
+					}
+				},
+				{
+					"if": {
+						"properties": {
 							"action": { "const": "admin_api_graphql" }
 						}
 					},
@@ -615,6 +632,10 @@ type Step struct {
 	OAuthSetupScope             []string `json:"oauth_setup_scope"`
 	OAuthSetupSSOEnabled        bool     `json:"oauth_setup_sso_enabled"`
 	OAuthSetupSSOEnabledOmitted bool     `json:"oauth_setup_sso_enabled_omitted"`
+	// OAuthSetupResource is the RFC 8707 resource indicator, omitted from
+	// /oauth2/authorize entirely when empty (not the same as an
+	// explicitly-empty resource=, which this framework has no way to send).
+	OAuthSetupResource string `json:"oauth_setup_resource"`
 
 	// `action` == "oauth_approve_consent"
 	OAuthApproveConsentRedirectURI string `json:"oauth_approve_consent_redirect_uri"`
@@ -627,6 +648,11 @@ type Step struct {
 	OAuthExchangeCodeRedirectURI  string `json:"oauth_exchange_code_redirect_uri"`
 	OAuthExchangeCodeClientID     string `json:"oauth_exchange_code_client_id"`
 	OAuthExchangeCodeClientSecret string `json:"oauth_exchange_code_client_secret"`
+
+	// `action` == "oauth_refresh_token"
+	OAuthRefreshTokenRefreshToken string `json:"oauth_refresh_token_refresh_token"`
+	OAuthRefreshTokenClientID     string `json:"oauth_refresh_token_client_id"`
+	OAuthRefreshTokenResource     string `json:"oauth_refresh_token_resource"`
 
 	// `action` == "admin_api_graphql"
 	AdminAPIRequest *AdminAPIRequest `json:"admin_api_request"`
@@ -671,6 +697,7 @@ const (
 	StepActionOAuthSetup               StepAction = "oauth_setup"
 	StepActionOAuthApproveConsent      StepAction = "oauth_approve_consent"
 	StepActionOAuthExchangeCode        StepAction = "oauth_exchange_code"
+	StepActionOAuthRefreshToken        StepAction = "oauth_refresh_token"
 	StepActionAdminAPIQuery            StepAction = "admin_api_graphql"
 	StepActionAdminAPIUserImportCreate StepAction = "admin_api_user_import_create"
 	StepActionAdminAPIUserImportGet    StepAction = "admin_api_user_import_get"
@@ -725,7 +752,12 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 		"json_body": { "type": "string" },
 		"html_xpath_exists": { "type": "array", "items": { "type": "string" } },
 		"html_text_contains": { "type": "array", "items": { "type": "string" } },
-		"location_not_contains": { "type": "array", "items": { "type": "string" } }
+		"location_not_contains": { "type": "array", "items": { "type": "string" } },
+		"location_contains": { "type": "array", "items": { "type": "string" } },
+		"headers": {
+			"type": "object",
+			"additionalProperties": { "type": "string" }
+		}
 	}
 }
 `)
@@ -736,8 +768,15 @@ type HTTPOutput struct {
 	SAMLElement         *OuputSAMLElement `json:"saml_element"`
 	JSONBody            *string           `json:"json_body"`
 	LocationNotContains []string          `json:"location_not_contains"`
+	LocationContains    []string          `json:"location_contains"`
 	HTMLXPathExists     []string          `json:"html_xpath_exists"`
 	HTMLTextContains    []string          `json:"html_text_contains"`
+	// Headers asserts exact values of specific response headers (e.g. the
+	// resolver endpoint's X-Authgear-Session-Valid, which -- unlike every
+	// other action in this file -- signals its result purely through a
+	// response header on an always-200 response, not the status code or
+	// body). Headers not listed here are ignored.
+	Headers map[string]string `json:"headers"`
 }
 
 var _ = TestCaseSchema.Add("OuputSAMLElement", `

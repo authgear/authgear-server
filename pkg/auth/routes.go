@@ -459,6 +459,7 @@ func NewRouter(ctx context.Context, p *deps.RootProvider, configSource *configso
 	router.Add(oauthhandler.ConfigureTokenRoute(dpopOauthAPIRoute), p.Handler(newOAuthTokenHandler))
 	router.Add(oauthhandler.ConfigureRevokeRoute(dpopOauthAPIRoute), p.Handler(newOAuthRevokeHandler))
 	router.Add(oauthhandler.ConfigureEndSessionRoute(oauthAPIRoute), p.Handler(newOAuthEndSessionHandler))
+	router.Add(oauthhandler.ConfigureRegisterRoute(oauthAPIRoute), p.Handler(newOAuthRegisterHandler))
 
 	router.Add(oauthhandler.ConfigureChallengeRoute(apiRoute), p.Handler(newOAuthChallengeHandler))
 	router.Add(oauthhandler.ConfigureAppSessionTokenRoute(dpopApiRoute), p.Handler(newOAuthAppSessionTokenHandler))

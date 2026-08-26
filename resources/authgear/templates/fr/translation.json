@@ -582,6 +582,8 @@
   "v2.page.consent.scopes.address": "Accédez à votre adresse.",
   "v2.page.consent.scopes.email": "Accédez à votre adresse e-mail.",
   "v2.page.consent.scopes.full-userinfo": "Accédez aux informations complètes de votre profil telles que le nom, l''adresse e-mail, le numéro de téléphone et l''adresse.",
+  "v2.page.consent.scopes.offline-access": "Conserver l''accès aux données auxquelles vous lui avez donné accès.",
+  "v2.page.consent.scopes.openid": "Vous connecter.",
   "v2.page.consent.scopes.phone": "Accédez à votre numéro de téléphone.",
   "v2.page.consent.scopes.profile": "Accédez à votre profil tel que le nom, mais excluant l''adresse e-mail, le numéro de téléphone et l''adresse.",
   "v2.page.create-password.default.title": "Créer un mot de passe",

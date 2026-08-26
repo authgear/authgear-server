@@ -19,7 +19,7 @@ var _ = Schema.Add("UsageLimitAction", `
 var _ = Schema.Add("UsageMatch", `
 {
 	"type": "string",
-	"enum": ["*", "user_export", "user_import", "email", "whatsapp", "sms"]
+	"enum": ["*", "user_export", "user_import", "email", "whatsapp", "sms", "oauth_client_dcr", "oauth_client_cimd"]
 }
 `)
 

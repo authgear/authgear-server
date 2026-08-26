@@ -337,20 +337,11 @@ In my own interpretation:
 
 To support M2M, we need to introduce Resource and its associated Scope.
 
+The canonical specification of Resources and Scopes — including URI requirements, scope requirements, the access policy, and the data model — is in [API Resources and Scopes](./api-resource.md).
+
 Per `RFC8707`, resource has to be identified with a URI.
 Therefore, it follows naturally that we mandate a Resource identified by a non-modifiable URI.
 Both Auth0 and Kinde disallow changing this URI identifier, so it should be a sane design decision.
-
-The URI of a Resource must satisfy the following requirements:
-
-- It is a URI as defined in [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986).
-- It must be unique within a Project.
-- It must be of `https:` scheme.
-- It must not be a subdomain of the default domains of Authgear. For example, if Authgear has default domains `authgearapps.com` and `authgear.cloud`, then its domain must not be those, of subdomains of those.
-- It can optionally have a path component. For example, both `https://api.myapp.com` and `https://api.myapp.com/` are valid. They are treated as different Resources though. No path normalization is taken.
-- It must not have a query component. For example, `https://api.myapp.com?a=b` is NOT a valid URI of a Resource.
-- It must not have a fragment component. For example, `https://api.myapp.com#a` is NOT a valid URI of a Resource.
-- It must not have a userinfo component. For example, `https://username:password@api.myapp.com` is NOT a valid URI of a Resource.
 
 To maximize the compatibility of M2M with a wide range of software,
 we make Scope local to a specific Resource.
@@ -360,18 +351,7 @@ This means the `read:orders` of `https://onlinestore.myapp.com` is different fro
 
 It is observed that `OIDC-Core` defined scopes **CANNOT** be used to create Permission of API in Auth0.
 
-A list of well-known scopes:
-
-- [openid](https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest)
-- [profile email address phone](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims)
-- [offline_access](https://openid.net/specs/openid-connect-core-1_0.html#OfflineAccess)
-- [device_sso](https://openid.net/specs/openid-connect-native-sso-1_0.html#section-3.1)
-
-The Scope of a Resource must satisfy the following requirements:
-
-- It must not be one of the following: `openid`, `profile`, `email`, `address`, `phone`, `offline_access`, or `device_sso`.
-- It must not start with `https://authgear.com`.
-- It must be valid for the grammar defined in [RFC6749 section-3.3](https://datatracker.ietf.org/doc/html/rfc6749#section-3.3)
+See [API Resources and Scopes — Scope Requirements](./api-resource.md#scope-requirements) for the canonical list of constraints.
 
 ### Discussion: Resource, Scope, Client, and downscoping
 
@@ -855,65 +835,13 @@ This means
 
 ### Changes in data models
 
-Here are the schema of the changes:
+The `_auth_resource`, `_auth_resource_scope`, `_auth_client_resource`, and `_auth_client_resource_scope` tables are specified in [API Resources and Scopes — Data Model](./api-resource.md#data-model).
+
+The following table tracks user consent for a specific (client, resource) pair and is **not** part of the M2M MVP. It is included here for completeness:
 
 ```sql
-CREATE TABLE _auth_resource (
-  id text PRIMARY KEY,
-  app_id text NOT NULL,
-  created_at timestamp without time zone NOT NULL,
-  updated_at timestamp without time zone NOT NULL,
-  uri text NOT NULL,
-  name text,
-  metadata jsonb
-);
--- Each project has its own set of Resources. The URI must be unique within a project.
-CREATE UNIQUE INDEX _auth_resource_uri_unique ON _auth_resource USING btree (app_id, uri);
--- Support typeahead search
-CREATE INDEX _auth_resource_uri_typeahead ON _auth_resource USING btree (app_id, uri text_pattern_ops);
-CREATE INDEX _auth_resource_name_typeahead ON _auth_resource USING btree (app_id, name text_pattern_ops);
-
-CREATE TABLE _auth_resource_scope (
-  id text PRIMARY KEY,
-  app_id text NOT NULL,
-  created_at timestamp without time zone NOT NULL,
-  updated_at timestamp without time zone NOT NULL,
-  resource_id text NOT NULL REFERENCES _auth_resource(id),
-  scope text NOT NULL,
-  description text,
-  metadata jsonb
-);
--- Each Resource has its own set of Scopes. The scope must be unique within a Resource.
-CREATE UNIQUE INDEX _auth_resource_scope_unique ON _auth_resource_scope USING btree (app_id, resource_id, scope);
--- Support typeahead search
-CREATE INDEX _auth_resource_scope_scope_typeahead ON _auth_resource_scope USING btree (app_id, resource_id, scope text_pattern_ops);
-
-CREATE TABLE _auth_client_resource (
-  id text PRIMARY KEY,
-  app_id text NOT NULL,
-  created_at timestamp without time zone NOT NULL,
-  updated_at timestamp without time zone NOT NULL,
-  -- Since client is not stored in the database, it is not a foreign key.
-  client_id text NOT NULL,
-  resource_id text NOT NULL REFERENCES _auth_resource(id),
-);
--- Each Client can only associate with a Resource once.
-CREATE UNIQUE INDEX _auth_client_resource_unique ON _auth_client_resource USING btree (app_id, client_id, resource_id);
-
-CREATE TABLE _auth_client_resource_scope (
-  id text PRIMARY KEY,
-  app_id text NOT NULL,
-  created_at timestamp without time zone NOT NULL,
-  updated_at timestamp without time zone NOT NULL,
-  -- Since client is not stored in the database, it is not a foreign key.
-  client_id text NOT NULL,
-  resource_id text NOT NULL REFERENCES _auth_resource(id),
-  scope_id text NOT NULL REFERENCES _auth_resource_scope(id)
-);
--- Each Client can only associate with a Resource scope once.
-CREATE UNIQUE INDEX _auth_client_resource_scope_unique ON _auth_client_resource USING btree (app_id, client_id, resource_id, scope_id);
-
 -- A sibling table of _auth_oauth_authorization, that takes resource_id into account.
+-- NOT part of the MVP. Required when resource indicators are supported in the Authorization Code flow.
 CREATE TABLE _auth_oauth_authorization_resource (
   id text PRIMARY KEY,
   app_id text NOT NULL,
@@ -921,194 +849,13 @@ CREATE TABLE _auth_oauth_authorization_resource (
   user_id text NOT NULL REFERENCES _auth_user(id),
   resource_id text NOT NULL REFERENCES _auth_resource(id),
   scope_id text NOT NULL REFERENCES _auth_resource_scope(id)
-)
+);
 CREATE UNIQUE INDEX _auth_oauth_authorization_resource_unique ON _auth_oauth_authorization_resource USING btree (app_id, client_id, user_id, resource_id, scope_id);
 ```
 
 ### Changes in Admin API
 
-The changes are mainly the CRUD of Resources and Scopes.
-
-The CRUD of Resources and Scopes DO NOT generate events.
-
-The following GraphQL schema snippet describe the changes to the Admin API GraphQL schema.
-
-```graphql
-type Query {
-  """If clientID is null, then all resources are returned in a paginated fashion."""
-  """If clientID is specified, then all resources associated with the clientID are returned in a paginated fashion."""
-  """If searchKeyword is non-null, a prefix search of resourceURI or name is performed."""
-  """If both clientID and searchKeyword are specified, they are AND-ed."""
-  resources(clientID: String, searchKeyword: String, after: String, before: String, first: Int, last: Int): ResourceConnection
-}
-
-type Mutation {
-  createResource(input: CreateResourceInput!): CreateResourcePayload!
-  updateResource(input: UpdateResourceInput!): UpdateResourcePayload!
-  deleteResource(input: DeleteResourceInput!): DeleteResourcePayload!
-
-  createScope(input: CreateScopeInput!): CreateScopePayload!
-  updateScope(input: UpdateScopeInput!): UpdateScopePayload!
-  deleteScope(input: DeleteScopeInput!): DeleteScopePayload!
-
-  addResourceToClientID(input: AddResourceToClientIDInput!): AddResourceToClientIDPayload!
-  removeResourceFromClientID(input: RemoveResourceFromClientIDInput!): RemoveResourceFromClientIDPayload!
-  addScopesToClientID(input: AddScopesToClientIDInput!): AddScopesToClientIDPayload!
-  removeScopesFromClientID(input: RemoveScopesFromClientIDInput!): RemoveScopesFromClientIDPayload!
-  replaceScopesOfClientID(input: ReplaceScopesOfClientIDInput!): ReplaceScopesOfClientIDPayload!
-}
-
-type Resource implements Entity & Node {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  resourceURI: String!
-  name: String
-  """If clientID is null, then all scopes of this Resource is returned."""
-  """If clientID is specified, then only scopes that are associated with clientID is returned."""
-  """If searchKeyword is non-null, a prefix search of scope is performed."""
-  """If both clientID and searchKeyword are specified, they are AND-ed."""
-  scopes(clientID: String, searchKeyword: String, after: String, before: string, first: Int, last: Int): ScopeConnection
-  """The list of client IDs associated with this Resource."""
-  clientIDs: [String!]!
-}
-
-type Scope implements Entity & Node {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  resourceID: ID!
-  scope: String!
-  description: String
-}
-
-type ResourceEdge {
-  cursor: String!
-  resource: Resource
-}
-
-type ResourceConnection {
-  edges: [ResourceEdge]
-  pageInfo: PageInfo!
-  totalCount: Int
-}
-
-type ScopeEdge {
-  cursor: String!
-  scope: Scope
-}
-
-type ScopeConnection {
-  edges: [ScopeEdge]
-  pageInfo: PageInfo!
-  totalCount: Int
-}
-
-input CreateResourceInput {
-  resourceURI: String!
-  name: String
-}
-
-type CreateResourcePayload {
-  resource: Resource!
-}
-
-input UpdateResourceInput {
-  resourceURI: String!
-  """The new name"""
-  name: String
-}
-
-type UpdateResourcePayload {
-  resource: Resource!
-}
-
-input DeleteResourceInput {
-  resourceURI: String!
-}
-
-type DeleteResourcePayload {
-  ok: Boolean
-}
-
-input CreateScopeInput {
-  resourceURI: String!
-  scope: String!
-  description: String
-}
-
-type CreateScopePayload {
-  scope: Scope!
-}
-
-input UpdateScopeInput {
-  resourceURI: String!
-  scope: String!
-  """The new description"""
-  description: String
-}
-
-type UpdateScopePayload {
-  scope: Scope!
-}
-
-input DeleteScopeInput {
-  resourceURI: String!
-  scope: String!
-}
-
-type DeleteScopePayload {
-  ok: Boolean
-}
-
-input AddResourceToClientIDInput {
-  resourceURI: String!
-  clientID: String!
-}
-
-type AddResourceToClientIDPayload {
-  resource: Resource!
-}
-
-input RemoveResourceFromClientIDInput {
-  resourceURI: String!
-  clientID: String!
-}
-
-type RemoveResourceFromClientIDPayload {
-  resource: Resource!
-}
-
-input AddScopesToClientIDInput {
-  resourceURI: String!
-  scopes: [String!]!
-  clientID: String!
-}
-
-type AddScopesToClientIDPayload {
-  scopes: [Scope!]!
-}
-
-input RemoveScopesFromClientIDInput {
-  resourceURI: String!
-  scopes: [String!]!
-  clientID: String!
-}
-
-type RemoveScopesFromClientIDPayload {
-  scopes: [Scope!]!
-}
-
-input ReplaceScopesOfClientIDInput {
-  resourceURI: String!
-  clientID: String!
-  scopes: [String!]!
-}
-
-type ReplaceScopesOfClientIDPayload {
-  scopes: [Scope!]!
-}
-```
+The Admin API changes for managing Resources, Scopes, and Client-Resource Associations are specified in [API Resources and Scopes — Admin API](./api-resource.md#admin-api).
 
 ### Changes in OAuth 2.0 implementation
 

@@ -62,7 +62,7 @@ type ServiceUIInfoResolver interface {
 }
 
 type OAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 type OAuthSessionStore interface {
@@ -81,7 +81,7 @@ type Service struct {
 }
 
 func (s *Service) CreateNewFlow(ctx context.Context, publicFlow PublicFlow, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
-	err = s.validateNewFlow(publicFlow, sessionOptions)
+	err = s.validateNewFlow(ctx, publicFlow, sessionOptions)
 	if err != nil {
 		return
 	}
@@ -102,11 +102,11 @@ func (s *Service) CreateNewFlow(ctx context.Context, publicFlow PublicFlow, sess
 	return s.createNewFlowWithSession(ctx, publicFlow, session)
 }
 
-func (s *Service) validateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOptions) (err error) {
+func (s *Service) validateNewFlow(ctx context.Context, publicFlow PublicFlow, sessionOptions *SessionOptions) (err error) {
 	// Enforce flow allowlist if clientID is provided.
 	if sessionOptions.ClientID != "" {
 		flowReference := publicFlow.FlowFlowReference()
-		client := s.OAuthClientResolver.ResolveClient(sessionOptions.ClientID)
+		client := s.OAuthClientResolver.ResolveClient(ctx, sessionOptions.ClientID)
 		if client != nil {
 			allowlist := NewFlowAllowlist(client.AuthenticationFlowAllowlist, s.UIConfig.AuthenticationFlow.Groups)
 			if !allowlist.CanCreateFlow(flowReference) {

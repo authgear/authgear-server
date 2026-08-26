@@ -46,11 +46,24 @@ type ConsentUserService interface {
 	Get(ctx context.Context, userID string, role accesscontrol.Role) (*model.User, error)
 }
 
+// ConsentScope is a requested scope not covered by the consent template's
+// own hardcoded, translated entries (profile/email/phone/address/full-
+// userinfo) -- currently, resource-bound scopes requested via the
+// "resource" parameter (e.g. DCR/MCP clients' custom scopes like
+// "read:tools"). DisplayText is the scope's configured Description, or the
+// raw scope name if none was configured, so a requested permission is never
+// silently omitted from the consent screen.
+type ConsentScope struct {
+	Scope       string
+	DisplayText string
+}
+
 type ConsentViewModel struct {
 	ClientName          string
 	ClientPolicyURI     string
 	ClientTOSURI        string
 	Scopes              []string
+	CustomScopes        []ConsentScope
 	IdentityDisplayName string
 	UserProfile         webapp.UserProfile
 }
@@ -147,6 +160,11 @@ func (h *ConsentHandler) renderConsentPage(ctx context.Context, rw http.Response
 
 	viewModel := ConsentViewModel{}
 	viewModel.Scopes = consentRequired.Scopes
+	for _, s := range consentRequired.Scopes {
+		if displayText, ok := consentRequired.ScopeDisplayNames[s]; ok {
+			viewModel.CustomScopes = append(viewModel.CustomScopes, ConsentScope{Scope: s, DisplayText: displayText})
+		}
+	}
 	viewModel.ClientName = consentRequired.Client.ClientName
 	viewModel.ClientPolicyURI = consentRequired.Client.PolicyURI
 	viewModel.ClientTOSURI = consentRequired.Client.TOSURI

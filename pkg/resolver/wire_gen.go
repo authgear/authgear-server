@@ -330,11 +330,33 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -487,7 +509,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -498,7 +520,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
@@ -514,7 +536,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -921,7 +943,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
@@ -936,10 +958,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -1176,11 +1194,50 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -1333,7 +1390,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -1344,7 +1401,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
@@ -1360,14 +1417,15 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
 	}
 	resolveHandler := &handler.ResolveHandler{
-		Database:        handle,
-		UserInfoService: userInfoService,
+		Database:            handle,
+		UserInfoService:     userInfoService,
+		OAuthClientResolver: oauthclientResolver,
 	}
 	return resolveHandler
 }

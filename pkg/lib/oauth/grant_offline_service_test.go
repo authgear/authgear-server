@@ -19,7 +19,7 @@ type staticClientResolver struct {
 	Config *config.OAuthClientConfig
 }
 
-func (r *staticClientResolver) ResolveClient(clientID string) *config.OAuthClientConfig {
+func (r *staticClientResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
 	if clientID == "testclient" {
 		return r.Config
 	}

@@ -1,0 +1,999 @@
+name: THIRD_PARTY DCR client completes a full authorization-code flow with consent, and its access token works at userinfo
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # No Authorization header, and initial_access_token_required is false, so
+  # this registers a THIRD_PARTY client by default (Part 2 behavior).
+  # application_type must be "native" so redirect_uris can legally use
+  # http://localhost:4000 -- the e2e test client's oauth_setup/
+  # oauth_exchange_code actions hardcode that exact URL and cannot be
+  # overridden (a "web" client would reject it outright, requiring https).
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E third-party DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  # full-access scope is excluded: HasFullAccessScope() is false for a
+  # dynamic third-party client (docs/plans/dcr/2026-08-17-03-client-resolution.md
+  # §2), and the default e2e scope set includes it.
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - offline_access
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # This client is a dynamically resolved THIRD_PARTY client, so it must
+  # require explicit consent exactly like a static third_party_app client
+  # does -- oauth_approve_consent only succeeds if a consent page was
+  # actually reached.
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "iss": "[[string]]"
+          }
+        }
+
+  # DCR clients always issue opaque access tokens (IssueJWTAccessToken is
+  # fixed to false), so this also proves the opaque token is accepted at
+  # userinfo, not just that the code exchange succeeded.
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }
+
+---
+
+name: FIRST_PARTY DCR client completes a full authorization-code flow with consent skipped, and its access token works at userinfo
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "E2E first-party DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  # No scope override: HasFullAccessScope() is true for a first-party DCR
+  # client, so the e2e default scope set (including full-access) is fine.
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # Straight from finish_redirect_uri, no oauth_approve_consent step: a
+  # FIRST_PARTY DCR client must skip consent exactly like a static
+  # first-party client. If consent were wrongly required, finish_redirect_uri
+  # would carry a redirect to /oauth2/consent instead of a code, and this
+  # exchange would fail to find one.
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "iss": "[[string]]"
+          }
+        }
+
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }
+
+---
+
+name: /oauth2/revoke revokes a DCR client's refresh token
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "E2E revoke DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  - name: revoke
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/revoke
+    http_request_form_urlencoded_body:
+      token: "{{ .steps.exchange_code.result.refresh_token }}"
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    http_output:
+      http_status: 200
+
+  # Independent proof the grant is actually gone, not just that /oauth2/revoke
+  # returned 200 (RevokeHandler.Handle never errors on an already-gone grant
+  # either, so the 200 above alone would not distinguish "revoked" from
+  # "the resolver silently failed to find it").
+  - name: verify_offline_grant_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_grant"
+        }
+
+---
+
+name: /oauth2/end_session silently logs out a DCR client's session
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "E2E end_session DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_sso_enabled: true
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  # client.IsFirstParty() && same SSO group fires the silent-logout fast path
+  # (handler_end_session.go's resolveIDTokenHintSession, which must resolve
+  # the DCR client via OAuthClientResolver -- not h.Config.GetClient -- to
+  # find it at all), which is what proves the DCR client resolved correctly.
+  # The final redirect is still 302, not 303: DCR clients never have any
+  # PostLogoutRedirectURIs (client.md), so validateRedirectURI (a separate,
+  # deliberately still-static-only check, Part 3 plan §6) can never match
+  # this DCR client's post_logout_redirect_uri and falls back to the
+  # settings page. A URI not shared with any static e2e client is used here
+  # specifically so that fallback isn't accidentally bypassed by a
+  # coincidental string match against an unrelated static client's own
+  # registered redirect URIs.
+  - name: end_session
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/end_session
+    http_request_query:
+      id_token_hint: "{{ .steps.exchange_code.result.raw_id_token }}"
+      post_logout_redirect_uri: http://localhost:4000/dcr-e2e-not-a-registered-redirect-uri
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Independent proof the session/offline grant was actually revoked by the
+  # silent-logout fast path, not just that some redirect happened.
+  - name: verify_offline_grant_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_grant"
+        }
+
+---
+
+name: refresh_token grant issues a new usable access token for a DCR client
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "E2E refresh DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  # Exercises grant_offline_service.go / client_like.go's ResolveClient call
+  # sites: refreshing must re-resolve the DCR client to compute the new
+  # access token's lifetime and scopes.
+  - name: refresh
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer"
+        }
+
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.refresh.result.http_json_body.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }
+
+---
+
+name: An OTP email sent during a DCR client's login flow resolves the client name without error
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+before:
+  - type: user_import
+    user_import: users_email.json
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E notification DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - offline_access
+
+  # url_query carries the DCR client_id into the flow's UIParams, which is
+  # what translation.Service.prepareTemplateVariables reads via
+  # OAuthClientResolver.ResolveClient (pkg/lib/translation/service.go) when
+  # composing the OTP email below.
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "login@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  # Triggering the OTP send is the point of this test: if
+  # OAuthClientResolver.ResolveClient panicked or errored for this DCR
+  # client_id (e.g. a wiring regression, or the resolver being called
+  # outside any DB scope -- see Part 3 plan §4.2), this step would fail
+  # instead of advancing to verify_oob_otp_data.
+  - name: send_otp
+    action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 1,
+        "channel": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "authentication": "primary_oob_otp_email",
+            "data": {
+              "type": "verify_oob_otp_data"
+            }
+          }
+        }
+
+  - name: verify_email_sent
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        data->'payload'->>'recipient' AS recipient
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'email.sent'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "email.sent",
+            "recipient": "login@example.com"
+          }
+        ]
+
+---
+
+name: Cache invalidation - deleting a DCR client immediately blocks a new authorize request, not just after the TTL
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "E2E cache invalidation DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  # Completing the flow forces at least one resolve of this client_id
+  # (ValidateRequestWithoutTx at /oauth2/authorize, and again at token
+  # exchange), which is enough to warm the Redis cache
+  # (pkg/lib/oauthclient/cache_client.go) with a positive entry.
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+
+  - name: delete_client
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation($clientID: String!) {
+          deleteDynamicClient(input: { clientID: $clientID }) {
+            ok
+          }
+        }
+      variables: |
+        {
+          "clientID": "{{ .steps.register.result.http_json_body.client_id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "deleteDynamicClient": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+
+  # Run immediately after deletion, with no sleep: this must fail because
+  # Commands.DeleteClient's DidCommitTx hook invalidated the Redis cache
+  # entry, not because the cache TTL (5 minutes) happened to expire. A
+  # broken invalidation would instead resolve the client from the stale
+  # cache entry and let this request through.
+  - name: authorize_after_delete
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      response_type: code
+      redirect_uri: http://localhost:4000
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client

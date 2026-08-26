@@ -37,6 +37,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/dcr"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
@@ -299,11 +300,50 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -456,7 +496,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -467,7 +507,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	userLoader := loader.NewUserLoader(userQueries)
@@ -615,7 +655,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -754,8 +794,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Lockout:         serviceLockout,
 	}
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
-	roleLoader := loader.NewRoleLoader(queries)
-	groupLoader := loader.NewGroupLoader(queries)
+	roleLoader := loader.NewRoleLoader(rolesgroupsQueries)
+	groupLoader := loader.NewGroupLoader(rolesgroupsQueries)
 	readStore := &audit.ReadStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: readSQLExecutor,
@@ -776,6 +816,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	resourceLoader := loader.NewResourceLoader(resourcescopeQueries)
 	resourceClientLoader := loader.NewResourceClientLoader(resourcescopeQueries)
 	scopeLoader := loader.NewScopeLoader(resourcescopeQueries)
+	dcrStore := &dcr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	dcrQueries := &dcr.Queries{
+		Store:              dcrStore,
+		Clock:              clockClock,
+		OAuthClientQueries: queries,
+	}
+	initialAccessTokenLoader := loader.NewInitialAccessTokenLoader(dcrQueries)
+	dynamicClientLoader := loader.NewDynamicClientLoader(queries)
 	searchService := &search.Service{
 		SearchConfig:               searchConfig,
 		ElasticsearchService:       elasticsearchService,
@@ -794,7 +846,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 	}
 	userProvider := &user.Provider{
 		Commands: userCommands,
@@ -992,27 +1044,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:          sessionConfig,
 		Clock:           clockClock,
 		Random:          rand,
-	}
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		RemoteIP:        remoteIP,
@@ -1214,7 +1245,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rolesGroupsFacade := &facade2.RolesGroupsFacade{
 		RolesGroupsCommands: commands,
-		RolesGroupsQueries:  queries,
+		RolesGroupsQueries:  rolesgroupsQueries,
 	}
 	auditLogFeatureConfig := featureConfig.AuditLog
 	auditLogFacade := &facade2.AuditLogFacade{
@@ -1353,6 +1384,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LockoutConfig: authenticationLockoutConfig,
 		Lockout:       lockoutService,
 	}
+	oauthclientCommands := &oauthclient.Commands{
+		Store:    oauthclientStore,
+		Database: handle,
+		Cache:    clientCache,
+	}
+	dcrCommands := &dcr.Commands{
+		Store:              dcrStore,
+		OAuthClient:        oauthclientCommands,
+		OAuthClientQueries: queries,
+		OAuthConfig:        oAuthConfig,
+	}
+	dcrFacade := &facade2.DCRFacade{
+		DCRCommands: dcrCommands,
+		DCRQueries:  dcrQueries,
+	}
 	graphqlContext := &graphql.Context{
 		Config:                appConfig,
 		OAuthConfig:           oAuthConfig,
@@ -1366,6 +1412,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resources:             resourceLoader,
 		ResourceClients:       resourceClientLoader,
 		Scopes:                scopeLoader,
+		InitialAccessTokens:   initialAccessTokenLoader,
+		DynamicClients:        dynamicClientLoader,
 		UserFacade:            facadeUserFacade,
 		RolesGroupsFacade:     rolesGroupsFacade,
 		AuditLogFacade:        auditLogFacade,
@@ -1382,6 +1430,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:                eventService,
 		ResourceScopeFacade:   resourceScopeFacade,
 		AccountLockoutFacade:  lockoutFacade,
+		DCRFacade:             dcrFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
@@ -1552,11 +1601,50 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -1709,7 +1797,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -1720,7 +1808,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -1835,7 +1923,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -2023,11 +2111,50 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -2180,7 +2307,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -2191,7 +2318,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -2306,7 +2433,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,
@@ -2495,11 +2622,50 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
 	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthConfig:                     oAuthConfig,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -2652,7 +2818,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	queries := &rolesgroups.Queries{
+	rolesgroupsQueries := &rolesgroups.Queries{
 		Store: rolesgroupsStore,
 	}
 	userQueries := &user.Queries{
@@ -2663,7 +2829,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		RolesAndGroups:     queries,
+		RolesAndGroups:     rolesgroupsQueries,
 		Clock:              clockClock,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -2778,7 +2944,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                 appID,
 		AuthenticationConfig:  authenticationConfig,
 		UserQueries:           userQueries,
-		RolesAndGroupsQueries: queries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
 		AuthenticatorService:  readOnlyService,
 		MFAService:            mfaReadOnlyService,
 		IdentityService:       serviceService,

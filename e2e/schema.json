@@ -275,6 +275,18 @@
         "json_body": {
           "type": "string"
         },
+        "location_contains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "location_not_contains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "redirect_path": {
           "type": "string"
         },
@@ -528,6 +540,20 @@
           "if": {
             "properties": {
               "action": {
+                "const": "oauth_approve_consent"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "oauth_approve_consent_redirect_uri"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
                 "const": "oauth_exchange_code"
               }
             }
@@ -581,6 +607,35 @@
               "admin_api_user_import_output"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "generate_app_session_token"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "generate_app_session_token_refresh_token"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "generate_refresh_token"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "generate_refresh_token_user_id",
+              "generate_refresh_token_client_id"
+            ]
+          }
         }
       ],
       "properties": {
@@ -598,10 +653,15 @@
             "hook_server_query",
             "smtp_log_query",
             "oauth_setup",
+            "oauth_approve_consent",
             "oauth_exchange_code",
             "admin_api_graphql",
             "admin_api_user_import_create",
-            "admin_api_user_import_get"
+            "admin_api_user_import_get",
+            "generate_app_session_token",
+            "generate_refresh_token",
+            "generate_pkce",
+            "clear_cookies"
           ],
           "type": "string"
         },
@@ -625,6 +685,21 @@
         },
         "audit_query_output": {
           "$ref": "#/$defs/QueryOutput"
+        },
+        "clear_cookies_names": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "generate_app_session_token_refresh_token": {
+          "type": "string"
+        },
+        "generate_refresh_token_client_id": {
+          "type": "string"
+        },
+        "generate_refresh_token_user_id": {
+          "type": "string"
         },
         "hook_server_output": {
           "$ref": "#/$defs/QueryOutput"
@@ -669,11 +744,38 @@
         "name": {
           "type": "string"
         },
+        "oauth_approve_consent_redirect_uri": {
+          "type": "string"
+        },
+        "oauth_exchange_code_client_id": {
+          "type": "string"
+        },
+        "oauth_exchange_code_client_secret": {
+          "type": "string"
+        },
         "oauth_exchange_code_code_verifier": {
           "type": "string"
         },
         "oauth_exchange_code_redirect_uri": {
           "type": "string"
+        },
+        "oauth_setup_client_id": {
+          "type": "string"
+        },
+        "oauth_setup_resource": {
+          "type": "string"
+        },
+        "oauth_setup_scope": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "oauth_setup_sso_enabled": {
+          "type": "boolean"
+        },
+        "oauth_setup_sso_enabled_omitted": {
+          "type": "boolean"
         },
         "output": {
           "$ref": "#/$defs/Output"
@@ -710,6 +812,9 @@
           "type": "string"
         },
         "saml_request_session_cookie": {
+          "$ref": "#/$defs/SessionCookie"
+        },
+        "session_cookie": {
           "$ref": "#/$defs/SessionCookie"
         },
         "sleep_for": {
@@ -751,6 +856,10 @@
     },
     "TestCase": {
       "properties": {
+        "app_id": {
+          "description": "Fixed app ID; random if omitted",
+          "type": "string"
+        },
         "authgear.features.yaml": {
           "$ref": "#/$defs/AuthgearFeaturesYAMLSource"
         },

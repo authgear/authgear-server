@@ -20,6 +20,12 @@
           {{ include "v2.page.consent.default.subtitle" (dict "ClientName" $clientName) }}
         </p>
         <ul class="list-disc list-inside text-start">
+          {{ if (has "openid" $.Scopes) }}
+            <li>
+              {{ include "v2.page.consent.scopes.openid" nil }}
+            </li>
+          {{ end }}
+
           {{ if (has "https://authgear.com/scopes/full-userinfo" $.Scopes) }}
             <li>
               {{ include "v2.page.consent.scopes.full-userinfo" nil }}
@@ -47,6 +53,16 @@
           {{ if (has "address" $.Scopes) }}
             <li>
               {{ include "v2.page.consent.scopes.address" nil }}
+            </li>
+          {{ end }}
+
+          {{ range $.CustomScopes }}
+            <li>{{ .DisplayText }}</li>
+          {{ end }}
+
+          {{ if (has "offline_access" $.Scopes) }}
+            <li>
+              {{ include "v2.page.consent.scopes.offline-access" nil }}
             </li>
           {{ end }}
         </ul>

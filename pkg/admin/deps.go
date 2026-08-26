@@ -14,6 +14,7 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/dcr"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	libfacade "github.com/authgear/authgear-server/pkg/lib/facade"
@@ -58,6 +59,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.ResourceClientLoaderResources), new(*resourcescope.Queries)),
 	wire.Bind(new(loader.ScopeLoaderScopes), new(*resourcescope.Queries)),
 	wire.Bind(new(loader.AuditLogQuery), new(*audit.Query)),
+	wire.Bind(new(loader.InitialAccessTokenLoaderInitialAccessTokens), new(*dcr.Queries)),
+	wire.Bind(new(loader.DynamicClientLoaderClients), new(*oauthclient.Queries)),
 
 	facade.DependencySet,
 	wire.Bind(new(facade.UserService), new(*libfacade.UserFacade)),
@@ -81,6 +84,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(facade.OAuthAccessTokenEncoding), new(*oauth.AccessTokenEncoding)),
 	wire.Bind(new(facade.LockoutProvider), new(*lockoutpkg.Service)),
+	wire.Bind(new(facade.DCRCommands), new(*dcr.Commands)),
+	wire.Bind(new(facade.DCRQueries), new(*dcr.Queries)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
@@ -92,6 +97,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.ResourceLoader), new(*loader.ResourceLoader)),
 	wire.Bind(new(graphql.ResourceClientLoader), new(*loader.ResourceClientLoader)),
 	wire.Bind(new(graphql.ScopeLoader), new(*loader.ScopeLoader)),
+	wire.Bind(new(graphql.InitialAccessTokenLoader), new(*loader.InitialAccessTokenLoader)),
+	wire.Bind(new(graphql.DynamicClientLoader), new(*loader.DynamicClientLoader)),
 	wire.Bind(new(graphql.UserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(graphql.RolesGroupsFacade), new(*facade.RolesGroupsFacade)),
 	wire.Bind(new(graphql.ResourceScopeFacade), new(*facade.ResourceScopeFacade)),
@@ -108,6 +115,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.OTPCodeService), new(*otp.Service)),
 	wire.Bind(new(graphql.ForgotPasswordService), new(*forgotpassword.Service)),
 	wire.Bind(new(graphql.EventService), new(*event.Service)),
+	wire.Bind(new(graphql.DCRFacade), new(*facade.DCRFacade)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),

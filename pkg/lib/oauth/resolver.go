@@ -135,6 +135,16 @@ func (re *Resolver) resolveAccessToken(ctx context.Context, token string) (sessi
 		if !ok {
 			return nil, session.ErrInvalidSession
 		}
+		// The presented bearer access token decoded either as a JWT
+		// (isHash=true, tok is its jti) or as an opaque token (isHash=false).
+		// Record this on the session itself so /resolve's opaque-token gate
+		// (pkg/resolver/handler/resolve.go) can read it back without a
+		// separate context channel.
+		if isHash {
+			as.TokenType = session.TokenTypeJWT
+		} else {
+			as.TokenType = session.TokenTypeOpaque
+		}
 		authSession = as
 	default:
 		panic("oauth: resolving unknown grant session kind")
@@ -210,6 +220,10 @@ func (re *Resolver) resolveAppSessionCookie(ctx context.Context, r *http.Request
 		// This should never fail as it was a success above, so it is a panic
 		panic("unexpected: invalid refresh token hash")
 	}
+	// Resolved via the app session token cookie, not a bearer access token
+	// -- always full-access (checked above), so /resolve's opaque-token
+	// gate must always accept it, same as an IDP session cookie.
+	offlineGrantSession.TokenType = session.TokenTypeAppSession
 
 	return offlineGrantSession, nil
 }

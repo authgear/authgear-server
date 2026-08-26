@@ -22,6 +22,10 @@ Supported usage names are:
 - `email`
 - `whatsapp`
 - `sms`
+- `oauth_client_dcr` — see [dcr.md — Client Limit](./dcr.md#client-limit)
+- `oauth_client_cimd` — see [cimd.md — Client Limit](./cimd.md#client-limit)
+
+The first five are **periodic**: a count of events accumulated over a `period` (`day`/`month`) that resets each period. `oauth_client_dcr` and `oauth_client_cimd` are **standing**: a cap on the *current* count of persisted `OAuthClient` records. See [Usage Limits](#usage-limits) for how this changes the shape of the limit entry.
 
 ## Usage
 
@@ -71,9 +75,17 @@ usage:
       - quota: 900
         period: month
         action: block
+    oauth_client_dcr:
+      - quota: 20
+        action: block
+    oauth_client_cimd:
+      - quota: 20
+        action: block
 ```
 
 `usage.hooks`: The list of hook deliveries configured in `authgear.features.yaml`. Read [Alert Delivery](#alert-delivery) for detail.
+
+`oauth_client_dcr` and `oauth_client_cimd` are plan-tier limits and are only meaningful here, in the feature-config hierarchy described in [Feature Config Merging of Usage](#feature-config-merging-of-usage) — not in the project-editable `authgear.yaml` section below, since a project admin doesn't set their own DCR/CIMD client cap.
 
 `usage.hooks[].url`: Required. The endpoint to receive the hook request. The url can also be a deno script url. Read [hooks](#hooks) for detail.
 
@@ -127,11 +139,11 @@ usage:
 
 `usage.limits.<usage_name>`: A list of limits for the corresponding usage name. Supported `<usage_name>` values are listed in [Supported Usage Names](#supported-usage-names).
 
-`usage.limits.<usage_name>[].quota`: Required. Integer. The usage value that triggers this limit.
+`usage.limits.<usage_name>[].quota`: Required. Integer. The usage value that triggers this limit. For a periodic usage name this is a count of events since the start of the current `period`; for a standing usage name (`oauth_client_dcr`, `oauth_client_cimd`) this is the current count of persisted records.
 
-`usage.limits.<usage_name>[].period`: Required. Depends on the usage name. For example, messaging usage may use `month`, while admin API usage may use `day`.
+`usage.limits.<usage_name>[].period`: Required for periodic usage names, depending on the usage name — for example, messaging usage may use `month`, while admin API usage may use `day`. Omitted for standing usage names (`oauth_client_dcr`, `oauth_client_cimd`): the quota applies to whatever the current record count is at the moment of the check.
 
-`usage.limits.<usage_name>[].action`: Required. The action to take when usage reaches the quota. Supported values are `alert` and `block`.
+`usage.limits.<usage_name>[].action`: Required. The action to take when usage reaches the quota. Supported values are `alert` and `block`. For a standing usage name, `block` is what actually enforces the cap (rejects the request that would create the next record); an additional lower-`quota` entry with `action: alert` can be configured to notify the admin as the project approaches its cap, without denying anything.
 
 ## Alert Delivery
 

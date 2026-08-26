@@ -472,18 +472,18 @@ func (m *MockTokenServiceOfflineGrantService) EXPECT() *MockTokenServiceOfflineG
 }
 
 // ComputeOfflineGrantExpiry mocks base method.
-func (m *MockTokenServiceOfflineGrantService) ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (time.Time, error) {
+func (m *MockTokenServiceOfflineGrantService) ComputeOfflineGrantExpiry(ctx context.Context, session *oauth.OfflineGrant) (time.Time, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ComputeOfflineGrantExpiry", session)
+	ret := m.ctrl.Call(m, "ComputeOfflineGrantExpiry", ctx, session)
 	ret0, _ := ret[0].(time.Time)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ComputeOfflineGrantExpiry indicates an expected call of ComputeOfflineGrantExpiry.
-func (mr *MockTokenServiceOfflineGrantServiceMockRecorder) ComputeOfflineGrantExpiry(session interface{}) *gomock.Call {
+func (mr *MockTokenServiceOfflineGrantServiceMockRecorder) ComputeOfflineGrantExpiry(ctx, session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ComputeOfflineGrantExpiry", reflect.TypeOf((*MockTokenServiceOfflineGrantService)(nil).ComputeOfflineGrantExpiry), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ComputeOfflineGrantExpiry", reflect.TypeOf((*MockTokenServiceOfflineGrantService)(nil).ComputeOfflineGrantExpiry), ctx, session)
 }
 
 // CreateNewRefreshToken mocks base method.

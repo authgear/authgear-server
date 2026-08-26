@@ -88,7 +88,7 @@ func (s *OfflineGrantService) GetOfflineGrant(ctx context.Context, id string) (*
 		return nil, err
 	}
 
-	expiry, err := s.ComputeOfflineGrantExpiry(g)
+	expiry, err := s.ComputeOfflineGrantExpiry(ctx, g)
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +118,8 @@ func (s *OfflineGrantService) GetOfflineGrant(ctx context.Context, id string) (*
 	return g, nil
 }
 
-func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {
-	clientConfig := s.ClientResolver.ResolveClient(session.InitialClientID)
+func (s *OfflineGrantService) ComputeOfflineGrantExpiry(ctx context.Context, session *OfflineGrant) (expiry time.Time, err error) {
+	clientConfig := s.ClientResolver.ResolveClient(ctx, session.InitialClientID)
 
 	if clientConfig == nil {
 		err = ErrGrantNotFound
@@ -133,9 +133,9 @@ func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (
 	return
 }
 
-func (s *OfflineGrantService) CheckSessionExpired(session *OfflineGrant) (bool, time.Time, error) {
+func (s *OfflineGrantService) CheckSessionExpired(ctx context.Context, session *OfflineGrant) (bool, time.Time, error) {
 	now := s.Clock.NowUTC()
-	expiry, err := s.ComputeOfflineGrantExpiry(session)
+	expiry, err := s.ComputeOfflineGrantExpiry(ctx, session)
 	if errors.Is(err, ErrGrantNotFound) {
 		return true, now, nil
 	} else if err != nil {
@@ -169,6 +169,7 @@ type CreateNewRefreshTokenOptions struct {
 	AuthorizationID                string
 	DPoPJKT                        string
 	ShortLivedRefreshTokenExpireAt *time.Time
+	ResourceURI                    string
 }
 
 type CreateNewRefreshTokenResult struct {
@@ -197,7 +198,7 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	ctx context.Context,
 	options CreateNewRefreshTokenOptions,
 ) (*CreateNewRefreshTokenResult, *OfflineGrant, error) {
-	expiry, err := s.ComputeOfflineGrantExpiry(options.OfflineGrant)
+	expiry, err := s.ComputeOfflineGrantExpiry(ctx, options.OfflineGrant)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -223,6 +224,7 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 			Scopes:                         options.Scopes,
 			AuthorizationID:                options.AuthorizationID,
 			DPoPJKT:                        options.DPoPJKT,
+			ResourceURI:                    options.ResourceURI,
 		},
 	)
 	if err != nil {
@@ -249,7 +251,7 @@ func (s *OfflineGrantService) RotateRefreshToken(
 	newToken := GenerateToken()
 	newTokenHash := HashToken(newToken)
 
-	expiry, err := s.ComputeOfflineGrantExpiry(options.OfflineGrant)
+	expiry, err := s.ComputeOfflineGrantExpiry(ctx, options.OfflineGrant)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -288,7 +290,7 @@ func (s *OfflineGrantService) AddSAMLServiceProviderParticipant(
 	grant *OfflineGrant,
 	serviceProviderID string,
 ) (*OfflineGrant, error) {
-	expiry, err := s.ComputeOfflineGrantExpiry(grant)
+	expiry, err := s.ComputeOfflineGrantExpiry(ctx, grant)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +326,7 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 		}
 
 		// If the client was removed, remove the refresh token.
-		clientConfig := s.ClientResolver.ResolveClient(token.ClientID)
+		clientConfig := s.ClientResolver.ResolveClient(ctx, token.ClientID)
 		if clientConfig == nil {
 			initialTokenHashesToRemove = append(initialTokenHashesToRemove, token.InitialTokenHash)
 			continue
@@ -348,7 +350,7 @@ func (s *OfflineGrantService) housekeepOfflineGrant(ctx context.Context, grant *
 		}
 	}
 
-	expiry, err := s.ComputeOfflineGrantExpiry(grant)
+	expiry, err := s.ComputeOfflineGrantExpiry(ctx, grant)
 	if err != nil {
 		return nil, err
 	}

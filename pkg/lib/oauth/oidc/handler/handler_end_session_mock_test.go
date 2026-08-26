@@ -10,6 +10,7 @@ import (
 	url "net/url"
 	reflect "reflect"
 
+	config "github.com/authgear/authgear-server/pkg/lib/config"
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	session "github.com/authgear/authgear-server/pkg/lib/session"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -285,4 +286,41 @@ func (m *MockIDTokenHintOfflineGrantService) GetOfflineGrant(ctx context.Context
 func (mr *MockIDTokenHintOfflineGrantServiceMockRecorder) GetOfflineGrant(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockIDTokenHintOfflineGrantService)(nil).GetOfflineGrant), ctx, id)
+}
+
+// MockEndSessionHandlerOAuthClientResolver is a mock of EndSessionHandlerOAuthClientResolver interface.
+type MockEndSessionHandlerOAuthClientResolver struct {
+	ctrl     *gomock.Controller
+	recorder *MockEndSessionHandlerOAuthClientResolverMockRecorder
+}
+
+// MockEndSessionHandlerOAuthClientResolverMockRecorder is the mock recorder for MockEndSessionHandlerOAuthClientResolver.
+type MockEndSessionHandlerOAuthClientResolverMockRecorder struct {
+	mock *MockEndSessionHandlerOAuthClientResolver
+}
+
+// NewMockEndSessionHandlerOAuthClientResolver creates a new mock instance.
+func NewMockEndSessionHandlerOAuthClientResolver(ctrl *gomock.Controller) *MockEndSessionHandlerOAuthClientResolver {
+	mock := &MockEndSessionHandlerOAuthClientResolver{ctrl: ctrl}
+	mock.recorder = &MockEndSessionHandlerOAuthClientResolverMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEndSessionHandlerOAuthClientResolver) EXPECT() *MockEndSessionHandlerOAuthClientResolverMockRecorder {
+	return m.recorder
+}
+
+// ResolveClient mocks base method.
+func (m *MockEndSessionHandlerOAuthClientResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResolveClient", ctx, clientID)
+	ret0, _ := ret[0].(*config.OAuthClientConfig)
+	return ret0
+}
+
+// ResolveClient indicates an expected call of ResolveClient.
+func (mr *MockEndSessionHandlerOAuthClientResolverMockRecorder) ResolveClient(ctx, clientID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveClient", reflect.TypeOf((*MockEndSessionHandlerOAuthClientResolver)(nil).ResolveClient), ctx, clientID)
 }

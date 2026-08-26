@@ -64,13 +64,14 @@ func (e *OAuthEndpoints) SharedSSOCallbackURL() *url.URL {
 	return u
 }
 
-func (e *Endpoints) AuthorizeEndpointURL() *url.URL  { return e.urlOf("oauth2/authorize") }
-func (e *Endpoints) ConsentEndpointURL() *url.URL    { return e.urlOf("oauth2/consent") }
-func (e *Endpoints) TokenEndpointURL() *url.URL      { return e.urlOf("oauth2/token") }
-func (e *Endpoints) RevokeEndpointURL() *url.URL     { return e.urlOf("oauth2/revoke") }
-func (e *Endpoints) JWKSEndpointURL() *url.URL       { return e.urlOf("oauth2/jwks") }
-func (e *Endpoints) UserInfoEndpointURL() *url.URL   { return e.urlOf("oauth2/userinfo") }
-func (e *Endpoints) EndSessionEndpointURL() *url.URL { return e.urlOf("oauth2/end_session") }
+func (e *Endpoints) AuthorizeEndpointURL() *url.URL    { return e.urlOf("oauth2/authorize") }
+func (e *Endpoints) ConsentEndpointURL() *url.URL      { return e.urlOf("oauth2/consent") }
+func (e *Endpoints) TokenEndpointURL() *url.URL        { return e.urlOf("oauth2/token") }
+func (e *Endpoints) RevokeEndpointURL() *url.URL       { return e.urlOf("oauth2/revoke") }
+func (e *Endpoints) RegistrationEndpointURL() *url.URL { return e.urlOf("oauth2/register") }
+func (e *Endpoints) JWKSEndpointURL() *url.URL         { return e.urlOf("oauth2/jwks") }
+func (e *Endpoints) UserInfoEndpointURL() *url.URL     { return e.urlOf("oauth2/userinfo") }
+func (e *Endpoints) EndSessionEndpointURL() *url.URL   { return e.urlOf("oauth2/end_session") }
 func (e *Endpoints) OAuthEntrypointURL() *url.URL {
 	return e.urlOf("_internals/oauth_entrypoint")
 }
