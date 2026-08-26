@@ -753,7 +753,11 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 		"html_xpath_exists": { "type": "array", "items": { "type": "string" } },
 		"html_text_contains": { "type": "array", "items": { "type": "string" } },
 		"location_not_contains": { "type": "array", "items": { "type": "string" } },
-		"location_contains": { "type": "array", "items": { "type": "string" } }
+		"location_contains": { "type": "array", "items": { "type": "string" } },
+		"headers": {
+			"type": "object",
+			"additionalProperties": { "type": "string" }
+		}
 	}
 }
 `)
@@ -767,6 +771,12 @@ type HTTPOutput struct {
 	LocationContains    []string          `json:"location_contains"`
 	HTMLXPathExists     []string          `json:"html_xpath_exists"`
 	HTMLTextContains    []string          `json:"html_text_contains"`
+	// Headers asserts exact values of specific response headers (e.g. the
+	// resolver endpoint's X-Authgear-Session-Valid, which -- unlike every
+	// other action in this file -- signals its result purely through a
+	// response header on an always-200 response, not the status code or
+	// body). Headers not listed here are ignored.
+	Headers map[string]string `json:"headers"`
 }
 
 var _ = TestCaseSchema.Add("OuputSAMLElement", `

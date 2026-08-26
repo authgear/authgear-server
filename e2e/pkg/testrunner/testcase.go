@@ -1311,6 +1311,13 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 			}
 		}
 	}
+	for name, expected := range httpOutput.Headers {
+		actual := response.Header.Get(name)
+		if actual != expected {
+			t.Errorf("header %q mismatch in '%s': expected %q, got %q", name, step.Name, expected, actual)
+			ok = false
+		}
+	}
 	return ok
 }
 
