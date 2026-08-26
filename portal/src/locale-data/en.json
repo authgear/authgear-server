@@ -1058,7 +1058,7 @@
   "StarterKit.step2.body": "The starter kit needs {count, plural, one {this redirect URI} other {these redirect URIs}} authorized in your application so users are returned to it after logging in with Authgear:",
   "StarterKit.step2.status.unauthorized": "Not yet authorized",
   "StarterKit.step2.status.authorized": "Authorized",
-  "StarterKit.step2.authorize": "Authorize",
+  "StarterKit.step2.authorize": "Add to Authorized Redirect URIs",
   "StarterKit.step2.manage": "Manage in Settings",
   "StarterKit.step3.title.dotenv": "Update Environment Variables",
   "StarterKit.step3.title.code": "Configure the application",
