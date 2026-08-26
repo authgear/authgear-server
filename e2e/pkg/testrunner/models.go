@@ -267,6 +267,7 @@ var _ = TestCaseSchema.Add("Step", `
 			"oauth_setup",
 			"oauth_approve_consent",
 			"oauth_exchange_code",
+			"oauth_refresh_token",
 			"admin_api_graphql",
 			"admin_api_user_import_create",
 			"admin_api_user_import_get",
@@ -328,6 +329,9 @@ var _ = TestCaseSchema.Add("Step", `
 		"oauth_exchange_code_redirect_uri": { "type": "string" },
 		"oauth_exchange_code_client_id": { "type": "string" },
 		"oauth_exchange_code_client_secret": { "type": "string" },
+		"oauth_refresh_token_refresh_token": { "type": "string" },
+		"oauth_refresh_token_client_id": { "type": "string" },
+		"oauth_refresh_token_resource": { "type": "string" },
 		"admin_api_request": { "$ref": "#/$defs/AdminAPIRequest" },
 		"admin_api_output": { "$ref": "#/$defs/AdminAPIOutput" },
 		"admin_api_user_import_request": { "$ref": "#/$defs/AdminAPIUserImportRequest" },
@@ -489,6 +493,18 @@ var _ = TestCaseSchema.Add("Step", `
 				{
 					"if": {
 						"properties": {
+							"action": { "const": "oauth_refresh_token" }
+						}
+					},
+					"then": {
+						"required": [
+							"oauth_refresh_token_refresh_token"
+						]
+					}
+				},
+				{
+					"if": {
+						"properties": {
 							"action": { "const": "admin_api_graphql" }
 						}
 					},
@@ -633,6 +649,11 @@ type Step struct {
 	OAuthExchangeCodeClientID     string `json:"oauth_exchange_code_client_id"`
 	OAuthExchangeCodeClientSecret string `json:"oauth_exchange_code_client_secret"`
 
+	// `action` == "oauth_refresh_token"
+	OAuthRefreshTokenRefreshToken string `json:"oauth_refresh_token_refresh_token"`
+	OAuthRefreshTokenClientID     string `json:"oauth_refresh_token_client_id"`
+	OAuthRefreshTokenResource     string `json:"oauth_refresh_token_resource"`
+
 	// `action` == "admin_api_graphql"
 	AdminAPIRequest *AdminAPIRequest `json:"admin_api_request"`
 	AdminAPIOutput  *AdminAPIOutput  `json:"admin_api_output"`
@@ -676,6 +697,7 @@ const (
 	StepActionOAuthSetup               StepAction = "oauth_setup"
 	StepActionOAuthApproveConsent      StepAction = "oauth_approve_consent"
 	StepActionOAuthExchangeCode        StepAction = "oauth_exchange_code"
+	StepActionOAuthRefreshToken        StepAction = "oauth_refresh_token"
 	StepActionAdminAPIQuery            StepAction = "admin_api_graphql"
 	StepActionAdminAPIUserImportCreate StepAction = "admin_api_user_import_create"
 	StepActionAdminAPIUserImportGet    StepAction = "admin_api_user_import_get"

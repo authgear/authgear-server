@@ -603,6 +603,47 @@ func (tc *TestCase) executeStep(
 			Error:  nil,
 		}
 
+	case StepActionOAuthRefreshToken:
+		var refreshToken string
+		refreshToken, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthRefreshTokenRefreshToken)
+		if !ok {
+			return nil, state, false
+		}
+
+		var refreshClientID string
+		refreshClientID, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthRefreshTokenClientID)
+		if !ok {
+			return nil, state, false
+		}
+
+		var refreshResource string
+		refreshResource, ok = renderTemplateString(t, cmd, prevSteps, step.OAuthRefreshTokenResource)
+		if !ok {
+			return nil, state, false
+		}
+
+		output, err := client.OAuthRefreshToken(authflowclient.OAuthRefreshTokenOptions{
+			RefreshToken: refreshToken,
+			ClientID:     refreshClientID,
+			Resource:     refreshResource,
+		})
+		if err != nil {
+			t.Errorf("failed to refresh token: %v\n", err)
+			return
+		}
+
+		if step.Output != nil {
+			ok := validateOAuthRefreshTokenOutput(t, step, output)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
+		result = &StepResult{
+			Result: output,
+			Error:  nil,
+		}
+
 	case StepActionInput:
 		fallthrough
 	case "":
@@ -1306,6 +1347,28 @@ func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Res
 }
 
 func validateOAuthExchangeCodeOutput(t *testing.T, step Step, output *authflowclient.OAuthExchangeCodeResult) (ok bool) {
+	outputJSON, _ := json.MarshalIndent(output, "", "  ")
+
+	violations, err := MatchJSON(string(outputJSON), step.Output.Result)
+	if err != nil {
+		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+		t.Errorf("  result: %v\n", string(outputJSON))
+		return false
+	}
+
+	if len(violations) > 0 {
+		t.Errorf("result output mismatch in '%v':\n", step.Name)
+		for _, violation := range violations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %v\n", string(outputJSON))
+		return false
+	}
+
+	return true
+}
+
+func validateOAuthRefreshTokenOutput(t *testing.T, step Step, output *authflowclient.OAuthRefreshTokenResult) (ok bool) {
 	outputJSON, _ := json.MarshalIndent(output, "", "  ")
 
 	violations, err := MatchJSON(string(outputJSON), step.Output.Result)

@@ -623,7 +623,7 @@ steps:
 
 ---
 
-name: refresh_token grant carries the resource forward, and rejects a different resource
+name: refresh_token grant carries the resource forward, accepts the matching resource, and rejects a different resource
 authgear.yaml:
   override: |
     oauth:
@@ -783,18 +783,30 @@ steps:
     oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
 
   - name: refresh_without_resource
-    action: http_request
-    http_request_method: POST
-    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
-    http_request_form_urlencoded_body:
-      grant_type: refresh_token
-      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
-      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
-    http_output:
-      http_status: 200
-      json_body: |
+    action: oauth_refresh_token
+    oauth_refresh_token_refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    oauth_refresh_token_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    output:
+      result: |
         {
-          "access_token": "[[string]]"
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "aud": ["https://api.example.com/orders"]
+          }
+        }
+
+  - name: refresh_with_correct_resource
+    action: oauth_refresh_token
+    oauth_refresh_token_refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    oauth_refresh_token_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_refresh_token_resource: https://api.example.com/orders
+    output:
+      result: |
+        {
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "aud": ["https://api.example.com/orders"]
+          }
         }
 
   - name: refresh_with_different_resource

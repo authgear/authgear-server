@@ -460,6 +460,90 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 	return
 }
 
+type OAuthRefreshTokenOptions struct {
+	RefreshToken string
+	// ClientID defaults to "e2e" when empty.
+	ClientID string
+	// Resource is the RFC 8707 resource indicator, omitted from the
+	// refresh_token grant request entirely when empty (not the same as an
+	// explicitly-empty resource=, which this framework has no way to send).
+	Resource string
+}
+
+type OAuthRefreshTokenResult struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	// AccessTokenIsJWT and AccessTokenClaims are a best-effort decode of
+	// AccessToken, same rationale as OAuthExchangeCodeResult's fields of the
+	// same name -- lets a test assert on the refreshed access token's aud
+	// claim without a dedicated JWT-decoding action.
+	AccessTokenIsJWT  bool           `json:"access_token_is_jwt"`
+	AccessTokenClaims map[string]any `json:"access_token_claims,omitempty"`
+}
+
+func (c *Client) OAuthRefreshToken(opts OAuthRefreshTokenOptions) (result *OAuthRefreshTokenResult, err error) {
+	clientID := opts.ClientID
+	if clientID == "" {
+		clientID = "e2e"
+	}
+
+	u := c.MainEndpoint.JoinPath("/oauth2/token")
+
+	values := make(url.Values)
+	values.Set("grant_type", "refresh_token")
+	values.Set("client_id", clientID)
+	values.Set("refresh_token", opts.RefreshToken)
+	if opts.Resource != "" {
+		values.Set("resource", opts.Resource)
+	}
+
+	tokenReq, err := http.NewRequestWithContext(
+		c.Context,
+		"POST",
+		u.String(),
+		strings.NewReader(values.Encode()),
+	)
+	if err != nil {
+		return
+	}
+	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	tokenResp, err := c.NoRedirectClient.Do(tokenReq)
+	if err != nil {
+		return
+	}
+	defer tokenResp.Body.Close()
+
+	var tokenRespBody map[string]any
+	err = json.NewDecoder(tokenResp.Body).Decode(&tokenRespBody)
+	if err != nil {
+		return
+	}
+
+	accessToken, ok := tokenRespBody["access_token"].(string)
+	if !ok {
+		return nil, fmt.Errorf("refresh_token response missing access_token: %v", tokenRespBody)
+	}
+	refreshToken, _ := tokenRespBody["refresh_token"].(string)
+
+	var accessTokenIsJWT bool
+	var accessTokenClaims map[string]any
+	if accessTok, err := jwt.ParseInsecure([]byte(accessToken)); err == nil {
+		if m, err := accessTok.AsMap(c.Context); err == nil {
+			accessTokenIsJWT = true
+			accessTokenClaims = m
+		}
+	}
+
+	result = &OAuthRefreshTokenResult{
+		AccessToken:       accessToken,
+		RefreshToken:      refreshToken,
+		AccessTokenIsJWT:  accessTokenIsJWT,
+		AccessTokenClaims: accessTokenClaims,
+	}
+	return
+}
+
 // ApproveConsent approves the OAuth consent screen for a non-first-party
 // client on its first grant. redirectURI is the login flow's
 // finish_redirect_uri: reaching the consent page requires following the
