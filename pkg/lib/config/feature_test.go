@@ -335,6 +335,50 @@ collaborator:
 			Action: model.UsageLimitActionBlock,
 		}})
 	})
+
+	Convey("an explicit empty usage.limits.sms override survives Migrate's deprecated messaging.sms_usage fallback", t, func() {
+		// Migrate (feature.go) runs on the merge fold's re-parsed result and
+		// only backfills a limit from the deprecated messaging.sms_usage
+		// field when featureUsageLimits(SMS) is nil -- i.e. when it can't
+		// tell "explicitly cleared" apart from "never configured". If the
+		// explicit empty override doesn't survive the marshal/re-parse
+		// round trip (the omitempty bug this package's Merge fix
+		// addresses), Migrate wrongly treats it as unset and re-injects a
+		// limit derived from the deprecated field, clobbering the override.
+		ctx := context.Background()
+
+		planYAML := []byte(`
+messaging:
+  sms_usage:
+    enabled: true
+    quota: 50
+    period: month
+`)
+		appYAML := []byte(`
+usage:
+  limits:
+    sms: []
+`)
+
+		planCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, planYAML)
+		So(err, ShouldBeNil)
+		appCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, appYAML)
+		So(err, ShouldBeNil)
+
+		mergedConfig := &config.FeatureConfig{}
+		mergedConfig = mergedConfig.Merge(planCfg)
+		mergedConfig = mergedConfig.Merge(appCfg)
+
+		mergedYAML, err := yaml.Marshal(mergedConfig)
+		So(err, ShouldBeNil)
+
+		effective, err := config.ParseFeatureConfig(ctx, mergedYAML)
+		So(err, ShouldBeNil)
+
+		So(effective.Usage, ShouldNotBeNil)
+		So(effective.Usage.Limits, ShouldNotBeNil)
+		So(effective.Usage.Limits.SMS, ShouldResemble, []config.FeatureUsageLimitConfig{})
+	})
 }
 
 // These single-field sections have `false` as their real, correct default
