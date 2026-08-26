@@ -39,7 +39,7 @@ func (c *Client) ToModel(tokenLifetimes *config.OAuthDynamicClientRegistrationDe
 		RefreshTokenIdleTimeoutEnabled: *cfg.RefreshTokenIdleTimeoutEnabled, // non-nil after SetDefaults()
 		RefreshTokenIdleTimeoutSeconds: int(cfg.RefreshTokenIdleTimeout),
 		RefreshTokenRotationEnabled:    false,
-		IssueJWTAccessToken:            false, // fixed per client.md's DCR mapping table
+		IssueJWTAccessToken:            false, // fixed per client.md's "All Authgear extension fields are fixed at their zero values for DCR clients" rule
 		MaxConcurrentSession:           0,
 		// all remaining "static clients only" fields (CustomUIURI, App2appEnabled,
 		// App2appInsecureDeviceKeyBindingEnabled, DPoPDisabled,

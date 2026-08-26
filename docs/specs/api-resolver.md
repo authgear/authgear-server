@@ -6,6 +6,8 @@ In nginx, it is the `auth_request` directive while in Traefik, it is `ForwardAut
 
 The resolve endpoint `/resolve` looks at `Cookie:` and `Authentication:` to authenticate the request. `Cookie:` has higher precedence.
 
+A bearer access token presented this way is not always accepted, even if it is otherwise valid: an **opaque** access token belonging to a **third-party client** (DCR-registered or static `third_party_app`) is deliberately rejected here — `x-authgear-session-valid` below is `false` — since such a token is meant to be usable only at `/oauth2/userinfo`. Every other access token (a JWT, whether resource-bound or not; or an opaque token from a first-party client) is accepted normally. See [client.md — Access Token Behavior by Client Kind](./client.md#access-token-behavior-by-client-kind) for the full breakdown by client kind, and [access-token-audience-binding.md](./access-token-audience-binding.md) for why.
+
 The resolve endpoint does not write body. Instead, it adds the following headers in the response.
 
 - [x-authgear-session-valid](#x-authgear-session-valid)

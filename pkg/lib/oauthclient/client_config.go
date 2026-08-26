@@ -33,7 +33,7 @@ func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientRegistrationD
 		LogoURI:                        derefOr(c.LogoURI, ""),
 		TOSURI:                         derefOr(c.TOSURI, ""),
 		PolicyURI:                      derefOr(c.PolicyURI, ""),
-		IssueJWTAccessToken:            false, // fixed per client.md's DCR mapping table
+		IssueJWTAccessToken:            false, // fixed per client.md's "All Authgear extension fields are fixed at their zero values for DCR clients" rule
 		IsDynamic:                      true,  // every client built by ToClientConfig is DCR/CIMD-resolved, regardless of Kind
 	}
 	// nil here means this source has no default_client_config concept at all

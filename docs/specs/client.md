@@ -15,6 +15,7 @@ This document defines the unified client model and presents it as a GraphQL type
 - [GraphQL Type](#graphql-type)
 - [Mapping from Static Config](#mapping-from-static-config)
 - [Mapping from DCR](#mapping-from-dcr)
+- [Access Token Behavior by Client Kind](#access-token-behavior-by-client-kind)
 
 ## GraphQL Type
 
@@ -353,3 +354,24 @@ Each field falls back independently, so a `default_client_config` that sets only
 All Authgear extension fields are fixed at their zero values for DCR clients and cannot be changed at registration time.
 
 Static clients are implicitly bounded — each one requires a project admin to edit and deploy `authgear.yaml`. DCR-registered and CIMD-resolved clients are not, since neither requires a per-client admin action; each source defines its own `authgear.features.yaml` limit — see [dcr.md — Client Limit](./dcr.md#client-limit) and [cimd.md — Client Limit](./cimd.md#client-limit).
+
+## Access Token Behavior by Client Kind
+
+For a client using the `authorization_code` / `refresh_token` grants, this table summarizes whether its access token is a JWT or opaque, whether it can be used at the [session resolver endpoint](./api-resolver.md) (`/resolve`) and at `/oauth2/userinfo`, and whether the consent screen is shown. The authoritative rules live in [access-token-audience-binding.md](./access-token-audience-binding.md) (token type, `aud`, resolver/userinfo usability) and [dcr.md](./dcr.md) (consent screen, via IAT type) — this table exists so the whole picture is visible in one place, not to redefine any rule.
+
+| Client | `resource=` | Access token | `aud` | `/resolve` usable? | `/oauth2/userinfo` usable? | Consent screen |
+|---|---|---|---|---|---|---|
+| Static first-party (`spa` / `traditional_webapp` / `native` / `confidential`), `issue_jwt_access_token: false` (the default when unset) | Not usable* | Opaque | — | No | Yes | Bypassed |
+| Static first-party, `issue_jwt_access_token: true` | Not usable* | JWT | `[<project_endpoint>]` | Yes | Yes | Bypassed |
+| Static third-party (`third_party_app`, deprecated) | Not usable* | Opaque | — | No | Yes | Shown |
+| DCR first-party (registered with a first-party IAT) | Not usable* | Opaque (`issue_jwt_access_token` is fixed `false` for every DCR client — see [Mapping from DCR](#mapping-from-dcr)) | — | No | Yes | Bypassed |
+| DCR third-party, `resource` omitted | Omitted | Opaque | — | No | Yes | Shown |
+| DCR third-party, `resource` provided | Provided, and the Resource/Scope grant `allowDynamicThirdPartyClientAccess` | JWT | `[<resource_uri>]` | Yes | Yes | Shown |
+
+\* `resource=` is, today, usable **only** by a dynamic third-party client (DCR-registered now, CIMD-resolved once built) — every other row above gets `invalid_target` outright, regardless of any Resource's `access_policy`. First-party support (static or dynamic) is planned separately, and a static third-party client has no mechanism to be associated with a Resource for these grants at all. See access-token-audience-binding.md's Implementation Status.
+
+Not covered above:
+
+- **M2M clients** (`client_credentials` grant) follow an entirely different flow: no `/oauth2/authorize`, no consent screen, `resource` is *required* rather than optional, and token type is controlled purely by `issue_jwt_access_token` with no third-party override. See [m2m.md](./m2m.md).
+- **CIMD clients** *(proposed, not yet implemented)* are dynamic third-party clients like DCR ones — once built, they are expected to follow the same two DCR-third-party rows above. See [cimd.md](./cimd.md).
+- `/oauth2/userinfo` usability assumes the granted `scope` includes the relevant OIDC scope (e.g. `openid`) for the claim being requested; it is evaluated against `scope`, not `aud`, so it is unaffected by resource binding either way.
