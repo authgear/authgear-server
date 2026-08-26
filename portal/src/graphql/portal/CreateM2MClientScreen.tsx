@@ -43,6 +43,7 @@ import {
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
 import { useLoadableView } from "../../hook/useLoadableView";
+import { FROM_CREATE_APPLICATION_FLOW_STATE } from "./ApplicationsConfigurationScreen";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -290,6 +291,7 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
         <div className={cn(styles.widget, styles.pageHeader)}>
           <Link
             to={`/project/${appID}/configuration/apps`}
+            state={FROM_CREATE_APPLICATION_FLOW_STATE}
             className={styles.backLink}
           >
             <ChevronLeftIcon className={styles.backLinkIcon} />
@@ -342,7 +344,9 @@ const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
   }, [appID, navigate]);
 
   const goToAppsList = useCallback(() => {
-    navigate(`/project/${appID}/configuration/apps`);
+    navigate(`/project/${appID}/configuration/apps`, {
+      state: FROM_CREATE_APPLICATION_FLOW_STATE,
+    });
   }, [appID, navigate]);
 
   const onNoResourcesDialogOpenChange = useCallback(

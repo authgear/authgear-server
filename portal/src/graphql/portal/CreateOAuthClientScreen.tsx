@@ -38,6 +38,7 @@ import {
 import { useCapture } from "../../gtm_v2";
 import { useLoadableView } from "../../hook/useLoadableView";
 import { updateClientConfig } from "./EditOAuthClientForm";
+import { FROM_CREATE_APPLICATION_FLOW_STATE } from "./ApplicationsConfigurationScreen";
 
 import { FrameworkGrid } from "./CreateOAuthClientScreen/FrameworkGrid";
 import { AuthMethodChoiceComponent } from "./CreateOAuthClientScreen/AuthMethodChoice";
@@ -279,7 +280,9 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     }, [appID, navigate, client.name]);
 
     const onClickCancel = useCallback(() => {
-      navigate(`/project/${appID}/configuration/apps`);
+      navigate(`/project/${appID}/configuration/apps`, {
+        state: FROM_CREATE_APPLICATION_FLOW_STATE,
+      });
     }, [appID, navigate]);
 
     const onClickSave = useCallback(() => {
@@ -346,6 +349,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
         <div className={cn(styles.widget, styles.pageHeader)}>
           <Link
             to={`/project/${appID}/configuration/apps`}
+            state={FROM_CREATE_APPLICATION_FLOW_STATE}
             className={styles.backLink}
           >
             <ChevronLeftIcon className={styles.backLinkIcon} />

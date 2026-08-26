@@ -26,6 +26,27 @@
   @apply flex flex-col gap-4;
 }
 
+.emptyState {
+  @apply py-12;
+}
+
+/* The list-row blue icon tile, scaled to the empty view's 2rem icon slot. */
+.emptyStateIconWrap {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: #eef4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyStateIcon {
+  font-size: 20px;
+  line-height: 1;
+  color: #0969da;
+}
+
 .colName {
   @apply min-w-0 gap-3 overflow-hidden;
   flex: 2 1 0;

@@ -13,7 +13,7 @@ import {
 } from "@radix-ui/themes";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { produce } from "immer";
 
 import ShowError from "../../ShowError";
@@ -38,6 +38,15 @@ import { FeatureDisabledCallout } from "../../components/v2/FeatureDisabledCallo
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import { useOAuthClientForm } from "../../hook/useOAuthClientForm";
 import { getNextPlan } from "../../util/plan";
+import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
+
+// Navigation state the create-application screens attach when they send the
+// user back to this list (breadcrumb / Cancel). It suppresses the empty-list
+// auto-redirect to ./add, so cancelling the create flow can actually land on
+// the empty list instead of bouncing back to the wizard (DEV-3810).
+export const FROM_CREATE_APPLICATION_FLOW_STATE = {
+  fromCreateApplicationFlow: true,
+};
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -280,72 +289,107 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       return state.clients.length >= displayedClientMaximum;
     }, [state, displayedClientMaximum]);
 
+    const isEmpty = state.clients.length === 0;
+
     return (
       <ScreenContent layout="list">
         <div className={styles.pageHeader}>
           <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           </Text>
-          <Tooltip
-            content={
-              <FormattedMessage
-                id="ApplicationsConfigurationScreen.add-client-button.hard-limit-tooltip"
-                values={{ maximum: oauthClientsHardMaximum ?? 0 }}
-              />
-            }
-            disabled={!hardLimitReached}
-          >
-            {/* The tooltip must still fire when the button is disabled, so it
-                anchors on a wrapper span instead of the button itself. */}
-            <span>
-              <PrimaryButton
-                size="2"
-                text={
-                  <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
-                }
-                onClick={goToCreateApp}
-                disabled={hardLimitReached}
-              />
-            </span>
-          </Tooltip>
-        </div>
-        <Text
-          as="p"
-          size="2"
-          className={cn(styles.widget, styles.pageDescription)}
-        >
-          <FormattedMessage id="ApplicationsConfigurationScreen.description" />
-        </Text>
-        <div className={cn(styles.widget, styles.listSection)}>
-          {displayMaximumWarning ? (
-            <FeatureDisabledCallout
-              messageID={
-                canUpgradePlan
-                  ? "FeatureConfig.oauth-clients.maximum.upgrade"
-                  : "FeatureConfig.oauth-clients.maximum.contact-us"
+          {isEmpty ? null : (
+            <Tooltip
+              content={
+                <FormattedMessage
+                  id="ApplicationsConfigurationScreen.add-client-button.hard-limit-tooltip"
+                  values={{ maximum: oauthClientsHardMaximum ?? 0 }}
+                />
               }
-              messageValues={{ maximum: displayedClientMaximum! }}
-            />
-          ) : null}
-          <CardTable>
-            <CardTable.Header>
-              <CardTable.HeaderCell className={styles.colName}>
-                <FormattedMessage id="ApplicationsConfigurationScreen.client-list.name" />
-              </CardTable.HeaderCell>
-              <CardTable.HeaderCell className={styles.colClientId}>
-                <FormattedMessage id="ApplicationsConfigurationScreen.client-list.client-id" />
-              </CardTable.HeaderCell>
-              <CardTable.HeaderCell className={styles.colActions} />
-            </CardTable.Header>
-            {state.clients.map((client) => (
-              <ClientRow
-                key={client.client_id}
-                client={client}
-                onDeleteClick={showDialogAndSetRemoveClientByID}
-              />
-            ))}
-          </CardTable>
+              disabled={!hardLimitReached}
+            >
+              {/* The tooltip must still fire when the button is disabled, so it
+                anchors on a wrapper span instead of the button itself. */}
+              <span>
+                <PrimaryButton
+                  size="2"
+                  text={
+                    <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
+                  }
+                  onClick={goToCreateApp}
+                  disabled={hardLimitReached}
+                />
+              </span>
+            </Tooltip>
+          )}
         </div>
+        {isEmpty ? (
+          <div className={cn(styles.widget, styles.emptyState)}>
+            <RolesAndGroupsEmptyView
+              icon={
+                <span className={styles.emptyStateIconWrap}>
+                  <i
+                    className={cn("ti", "ti-apps", styles.emptyStateIcon)}
+                    aria-hidden={true}
+                  />
+                </span>
+              }
+              title={
+                <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.title" />
+              }
+              description={
+                <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.description" />
+              }
+              button={
+                <RolesAndGroupsEmptyView.CreateButton
+                  onClick={goToCreateApp}
+                  text={
+                    <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
+                  }
+                />
+              }
+            />
+          </div>
+        ) : (
+          <>
+            <Text
+              as="p"
+              size="2"
+              className={cn(styles.widget, styles.pageDescription)}
+            >
+              <FormattedMessage id="ApplicationsConfigurationScreen.description" />
+            </Text>
+            <div className={cn(styles.widget, styles.listSection)}>
+              {displayMaximumWarning ? (
+                <FeatureDisabledCallout
+                  messageID={
+                    canUpgradePlan
+                      ? "FeatureConfig.oauth-clients.maximum.upgrade"
+                      : "FeatureConfig.oauth-clients.maximum.contact-us"
+                  }
+                  messageValues={{ maximum: displayedClientMaximum! }}
+                />
+              ) : null}
+              <CardTable>
+                <CardTable.Header>
+                  <CardTable.HeaderCell className={styles.colName}>
+                    <FormattedMessage id="ApplicationsConfigurationScreen.client-list.name" />
+                  </CardTable.HeaderCell>
+                  <CardTable.HeaderCell className={styles.colClientId}>
+                    <FormattedMessage id="ApplicationsConfigurationScreen.client-list.client-id" />
+                  </CardTable.HeaderCell>
+                  <CardTable.HeaderCell className={styles.colActions} />
+                </CardTable.Header>
+                {state.clients.map((client) => (
+                  <ClientRow
+                    key={client.client_id}
+                    client={client}
+                    onDeleteClick={showDialogAndSetRemoveClientByID}
+                  />
+                ))}
+              </CardTable>
+            </div>
+          </>
+        )}
         <ConfirmationDialog
           open={isRemoveDialogVisible}
           onOpenChange={onRemoveDialogOpenChange}
@@ -370,6 +414,16 @@ const ApplicationsConfigurationScreen: React.VFC =
   function ApplicationsConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const fromCreateApplicationFlow =
+      (location.state as { fromCreateApplicationFlow?: boolean } | null)
+        ?.fromCreateApplicationFlow === true;
+
+    // Whether this mounted screen has ever shown a non-empty list. Deleting
+    // the last application should reveal the empty state, not throw the user
+    // into the create wizard.
+    const [hadClients, setHadClients] = useState(false);
 
     const form = useAppConfigForm({
       appID,
@@ -406,13 +460,29 @@ const ApplicationsConfigurationScreen: React.VFC =
       }
     }, [form, featureConfig]);
 
+    if (!isLoading && !error && form.state.clients.length > 0 && !hadClients) {
+      // Adjust-state-during-render pattern; React re-renders immediately
+      // without committing the stale output.
+      setHadClients(true);
+    }
+
+    // A visit with no application still lands directly on the create wizard
+    // (e.g. clicking Applications in the nav), unless the user is coming back
+    // from that wizard — then show the empty list so the flow can be quit.
+    const shouldRedirectToAdd =
+      !isLoading &&
+      !error &&
+      form.state.clients.length === 0 &&
+      !fromCreateApplicationFlow &&
+      !hadClients;
+
     useEffect(() => {
-      if (!isLoading && !error && form.state.clients.length === 0) {
+      if (shouldRedirectToAdd) {
         navigate("./add", { replace: true });
       }
-    }, [isLoading, error, form.state.clients.length, navigate]);
+    }, [shouldRedirectToAdd, navigate]);
 
-    if (isLoading) {
+    if (isLoading || shouldRedirectToAdd) {
       return <ShowLoading />;
     }
 

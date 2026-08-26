@@ -834,6 +834,8 @@
   "ApplicationsConfigurationScreen.title": "Applications",
   "ApplicationsConfigurationScreen.description": "Configure applications to use this project for authentication.",
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
+  "ApplicationsConfigurationScreen.empty-state.title": "You don't have any applications yet.",
+  "ApplicationsConfigurationScreen.empty-state.description": "Add an application to let your app or service use this project for authentication.",
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
   "ApplicationsConfigurationScreen.client-list.application-type": "Type",
