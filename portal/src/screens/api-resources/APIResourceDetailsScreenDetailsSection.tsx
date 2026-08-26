@@ -11,9 +11,9 @@ import {
 } from "../../components/api-resources/ResourceForm";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
-import styles from "./APIResourceDetailsTab.module.css";
+import styles from "./APIResourceDetailsDetailsSection.module.css";
 
-export function APIResourceDetailsScreenDetailsTab({
+export function APIResourceDetailsScreenDetailsSection({
   resource,
 }: {
   resource: Resource;
@@ -49,7 +49,9 @@ export function APIResourceDetailsScreenDetailsTab({
     <FormContainerBase form={form} canSave={form.state.name.trim() !== ""}>
       <div ref={contentWidthAnchorRef} className={styles.root}>
         <SettingsSectionCard
-          title={<FormattedMessage id="APIResourceDetailsScreen.tab.details" />}
+          title={
+            <FormattedMessage id="APIResourceDetailsScreen.section.details" />
+          }
         >
           <ResourceForm
             mode="edit"

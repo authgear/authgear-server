@@ -11,7 +11,7 @@ const EditScopeScreen: React.VFC = function EditScopeScreen() {
     <Navigate
       to={`/project/${encodeURIComponent(
         appID ?? ""
-      )}/api-resources/${encodeURIComponent(resourceID ?? "")}#scopes`}
+      )}/api-resources/${encodeURIComponent(resourceID ?? "")}`}
       replace={true}
     />
   );

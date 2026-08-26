@@ -1,16 +1,14 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
 import { useLoadableView } from "../../hook/useLoadableView";
-import { FormattedMessage, Context as MessageContext } from "../../intl";
+import { FormattedMessage } from "../../intl";
 import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
-import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
-import { usePivotNavigation } from "../../hook/usePivot";
-import { APIResourceDetailsScreenDetailsTab } from "./APIResourceDetailsScreenDetailsTab";
-import { APIResourceDetailsScreenScopesTab } from "./APIResourceDetailsScreenScopesTab";
-import { APIResourceDetailsScreenApplicationsTab } from "./APIResourceDetailsScreenApplicationsTab";
-import { APIResourceDetailsScreenTestTab } from "./APIResourceDetailsScreenTestTab";
+import { APIResourceDetailsScreenDetailsSection } from "./APIResourceDetailsScreenDetailsSection";
+import { APIResourceDetailsScreenScopesSection } from "./APIResourceDetailsScreenScopesSection";
+import { APIResourceDetailsScreenApplicationsSection } from "./APIResourceDetailsScreenApplicationsSection";
+import { APIResourceDetailsScreenTestSection } from "./APIResourceDetailsScreenTestSection";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "../../graphql/portal/mutations/generateAppSecretVisitTokenMutation";
 import { useAppAndSecretConfigQuery } from "../../graphql/portal/query/appAndSecretConfigQuery";
@@ -31,8 +29,6 @@ function isLocationState(raw: unknown): raw is LocationState {
   );
 }
 
-const TAB_KEYS = ["details", "scopes", "applications", "test"] as const;
-
 function APIResourceDetailsContent({
   resource,
   effectiveAppConfig,
@@ -42,60 +38,19 @@ function APIResourceDetailsContent({
   effectiveAppConfig: PortalAPIAppConfig;
   secretConfig: PortalAPISecretConfig | null;
 }) {
-  const { selectedKey, onChangeKey } = usePivotNavigation([...TAB_KEYS]);
-  const { renderToString } = useContext(MessageContext);
-
-  const tabs = useMemo(
-    () => [
-      {
-        value: "details",
-        label: renderToString("APIResourceDetailsScreen.tab.details"),
-      },
-      {
-        value: "scopes",
-        label: renderToString("APIResourceDetailsScreen.tab.scopes"),
-      },
-      {
-        value: "applications",
-        label: renderToString("APIResourceDetailsScreen.tab.applications"),
-      },
-      {
-        value: "test",
-        label: renderToString("APIResourceDetailsScreen.tab.test"),
-      },
-    ],
-    [renderToString]
-  );
-
   return (
     <div className={styles.content}>
-      <OverflowTabs
-        value={selectedKey}
-        onValueChange={(value) => {
-          onChangeKey(value as (typeof TAB_KEYS)[number]);
-        }}
-        listClassName={styles.tabsList}
-        tabs={tabs}
+      <APIResourceDetailsScreenDetailsSection resource={resource} />
+      <APIResourceDetailsScreenScopesSection resource={resource} />
+      <APIResourceDetailsScreenApplicationsSection
+        resource={resource}
+        effectiveAppConfig={effectiveAppConfig}
       />
-      {selectedKey === "details" ? (
-        <APIResourceDetailsScreenDetailsTab resource={resource} />
-      ) : null}
-      {selectedKey === "scopes" ? (
-        <APIResourceDetailsScreenScopesTab resource={resource} />
-      ) : null}
-      {selectedKey === "applications" ? (
-        <APIResourceDetailsScreenApplicationsTab
-          resource={resource}
-          effectiveAppConfig={effectiveAppConfig}
-        />
-      ) : null}
-      {selectedKey === "test" ? (
-        <APIResourceDetailsScreenTestTab
-          resource={resource}
-          effectiveAppConfig={effectiveAppConfig}
-          secretConfig={secretConfig}
-        />
-      ) : null}
+      <APIResourceDetailsScreenTestSection
+        resource={resource}
+        effectiveAppConfig={effectiveAppConfig}
+        secretConfig={secretConfig}
+      />
     </div>
   );
 }

@@ -228,7 +228,7 @@ const EditApplicationScopesScreen: React.VFC =
                 label: <FormattedMessage id="ScreenNav.api-resources" />,
               },
               {
-                to: `~/api-resources/${resource.id}#applications`,
+                to: `~/api-resources/${resource.id}`,
                 label: resource.name ?? resource.resourceURI,
               },
               {

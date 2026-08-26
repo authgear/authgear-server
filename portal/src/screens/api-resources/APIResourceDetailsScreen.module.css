@@ -2,9 +2,6 @@
   @apply pt-6 flex flex-col gap-4;
   grid-column: 1 / span 9;
   @apply tablet:col-span-full;
-}
-
-.tabsList {
-  box-shadow: none;
-  border-bottom: 1px solid var(--gray-a6);
+  /* Clearance for the Details section's SaveFunctionBar. */
+  padding-bottom: 5.5rem;
 }

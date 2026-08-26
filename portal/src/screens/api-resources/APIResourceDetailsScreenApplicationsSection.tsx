@@ -24,9 +24,9 @@ import {
   TextFieldIcon,
 } from "../../components/v2/TextField/TextField";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
-import styles from "./APIResourceDetailsApplicationsTab.module.css";
+import styles from "./APIResourceDetailsApplicationsSection.module.css";
 
-export function APIResourceDetailsScreenApplicationsTab({
+export function APIResourceDetailsScreenApplicationsSection({
   resource,
   effectiveAppConfig,
 }: {
@@ -219,7 +219,7 @@ export function APIResourceDetailsScreenApplicationsTab({
       <div className={styles.body}>
         <SettingsSectionCard
           title={
-            <FormattedMessage id="APIResourceDetailsScreen.tab.applications" />
+            <FormattedMessage id="APIResourceDetailsScreen.section.applications" />
           }
           description={
             <FormattedMessage id="APIResourceDetailsScreen.applications.description" />

@@ -21,9 +21,9 @@ import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/Seco
 import { FormField } from "../../components/v2/FormField/FormField";
 import ExternalLink from "../../ExternalLink";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
-import styles from "./APIResourceDetailsTestTab.module.css";
+import styles from "./APIResourceDetailsTestSection.module.css";
 
-export function APIResourceDetailsScreenTestTab({
+export function APIResourceDetailsScreenTestSection({
   resource,
   effectiveAppConfig,
   secretConfig,
@@ -176,7 +176,7 @@ export function APIResourceDetailsScreenTestTab({
   return (
     <div className={styles.root}>
       <SettingsSectionCard
-        title={<FormattedMessage id="APIResourceDetailsScreen.tab.test" />}
+        title={<FormattedMessage id="APIResourceDetailsScreen.section.test" />}
         description={
           <FormattedMessage id="APIResourceDetailsScreen.test.description" />
         }

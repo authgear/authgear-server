@@ -31,9 +31,9 @@ import {
 } from "../../components/v2/TextField/TextField";
 import { usePaginatedSearchParams } from "../../hook/usePaginatedSearchParams";
 import { useDebounced } from "../../hook/useDebounced";
-import styles from "./APIResourceDetailsScopesTab.module.css";
+import styles from "./APIResourceDetailsScopesSection.module.css";
 
-export function APIResourceDetailsScreenScopesTab({
+export function APIResourceDetailsScreenScopesSection({
   resource,
 }: {
   resource: Resource;
