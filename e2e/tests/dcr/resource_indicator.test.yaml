@@ -623,6 +623,149 @@ steps:
 
 ---
 
+name: A dynamic first-party client requesting resource= always gets invalid_target
+# Regression test: IsDynamicClient() alone is not enough to reach the
+# dynamic-third-party-only access policy path (see
+# AuthorizationHandler.validateResource) -- IsThirdParty() must also hold.
+# A first-party IAT (per docs/specs/dcr.md) registers exactly this kind of
+# client, and first-party support for the resource parameter is deferred
+# regardless of whether the client is static or dynamically registered
+# (access-token-audience-binding.md's Implementation Status).
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "E2E dynamic first-party client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: authorize_with_resource
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      response_type: code
+      redirect_uri: http://localhost:4000
+      scope: openid
+      resource: https://api.example.com/anything
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+      location_contains:
+        # Asserting error_description too, not just error=invalid_target,
+        # matters here specifically: if IsThirdParty() were ever (bugfully)
+        # true for this client, it would instead fall into the
+        # dynamic-third-party "resource not found" branch, which is also
+        # invalid_target -- same error code, wrong reason, and this
+        # regression would go undetected without checking the description.
+        - "error=invalid_target"
+        - "error_description=this+client+is+not+permitted+to+use+the+resource+parameter"
+
+---
+
+name: resource= prefixed by the Authgear project endpoint gets invalid_target
+# Regression test for validateResource's project-endpoint guard, using a
+# dynamic third-party client -- the one client type that would otherwise be
+# allowed to use resource= at all -- so this specifically exercises the
+# "prefixed by the project endpoint" rejection rather than the "client not
+# permitted" rejection covered by the other cases in this file.
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E project-endpoint-resource DCR client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: authorize_with_resource
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      response_type: code
+      redirect_uri: http://localhost:4000
+      scope: openid
+      resource: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/userinfo
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+      location_contains:
+        # Asserting error_description too, not just error=invalid_target:
+        # this client would otherwise be allowed to use resource= at all
+        # (it's a genuine dynamic third-party client with no created
+        # Resource here), so without checking the description, a broken
+        # project-endpoint guard would silently fall through to the
+        # unrelated "resource not found" rejection and this test would
+        # still pass for the wrong reason.
+        - "error=invalid_target"
+        - "error_description=resource+URI+must+not+be+a+prefixed+by+authgear+endpoint"
+
+---
+
 name: refresh_token grant carries the resource forward, accepts the matching resource, and rejects a different resource
 authgear.yaml:
   override: |
