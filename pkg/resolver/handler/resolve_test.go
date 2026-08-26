@@ -130,7 +130,7 @@ func TestResolveHandler(t *testing.T) {
 }
 
 func TestResolveHandlerThirdPartyOpaqueTokenGate(t *testing.T) {
-	Convey("/resolve rejects only the conjunction opaque-token AND third-party-client", t, func() {
+	Convey("/resolve rejects every third-party client access token, regardless of token shape", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -193,8 +193,24 @@ func TestResolveHandlerThirdPartyOpaqueTokenGate(t *testing.T) {
 			})
 		})
 
-		Convey("third-party client, resource-bound JWT: succeeds", func() {
+		Convey("third-party client, resource-bound JWT: invalid", func() {
 			s := offlineGrantSession("third-party-client")
+			s.TokenType = session.TokenTypeJWT
+			r, _ := http.NewRequest("POST", "/", nil)
+			r = r.WithContext(session.WithSession(r.Context(), s))
+
+			rw := httptest.NewRecorder()
+			h.ServeHTTP(rw, r)
+
+			resp := rw.Result()
+			So(resp.StatusCode, ShouldEqual, 200)
+			So(resp.Header, ShouldResemble, http.Header{
+				"X-Authgear-Session-Valid": []string{"false"},
+			})
+		})
+
+		Convey("first-party client, JWT (project-endpoint default or resource-bound): succeeds, unchanged", func() {
+			s := offlineGrantSession("first-party-client")
 			s.TokenType = session.TokenTypeJWT
 			r, _ := http.NewRequest("POST", "/", nil)
 			r = r.WithContext(session.WithSession(r.Context(), s))
@@ -223,8 +239,24 @@ func TestResolveHandlerThirdPartyOpaqueTokenGate(t *testing.T) {
 			So(resp.Header.Get("X-Authgear-Session-Valid"), ShouldEqual, "true")
 		})
 
-		Convey("third-party client, resolved via the app session token cookie: unaffected regardless of client", func() {
+		Convey("third-party client, app session token cookie: invalid, even though this combination cannot occur in practice", func() {
 			s := offlineGrantSession("third-party-client")
+			s.TokenType = session.TokenTypeAppSession
+			r, _ := http.NewRequest("POST", "/", nil)
+			r = r.WithContext(session.WithSession(r.Context(), s))
+
+			rw := httptest.NewRecorder()
+			h.ServeHTTP(rw, r)
+
+			resp := rw.Result()
+			So(resp.StatusCode, ShouldEqual, 200)
+			So(resp.Header, ShouldResemble, http.Header{
+				"X-Authgear-Session-Valid": []string{"false"},
+			})
+		})
+
+		Convey("first-party client, app session token cookie: succeeds, unchanged", func() {
+			s := offlineGrantSession("first-party-client")
 			s.TokenType = session.TokenTypeAppSession
 			r, _ := http.NewRequest("POST", "/", nil)
 			r = r.WithContext(session.WithSession(r.Context(), s))

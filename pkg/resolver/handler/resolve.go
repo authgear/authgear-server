@@ -77,13 +77,26 @@ func (h *ResolveHandler) resolve(ctx context.Context, r *http.Request) (*model.S
 
 	var info *model.SessionInfo
 	if valid && userID != nil && s != nil {
-		// A third-party client's opaque access token must not work here: it
-		// is scoped to the userinfo endpoint only (dcr.md, access-token-audience-binding.md).
-		// Only an OfflineGrantSession resolved via a bearer access token
-		// (TokenTypeOpaque) is subject to this gate; every other case --
-		// an IDP session, or an OfflineGrantSession resolved via the app
-		// session token cookie (TokenTypeAppSession) or a resource-bound
-		// JWT (TokenTypeJWT) -- is unaffected regardless of client kind.
+		// A third-party client's access token -- opaque, or a resource-bound
+		// JWT -- must not work here, regardless of `resource`: /resolve has
+		// no notion of "resource" and its response never exposes the
+		// token's aud (docs/specs/api-resolver.md). This is a decision to
+		// avoid audience confusion -- see docs/specs/client.md's "Access
+		// Token Behavior by Client Kind" table and
+		// access-token-audience-binding.md.
+		//
+		// An IDP session is unaffected: it can never back a third-party
+		// client's access grant in the first place (see
+		// idpsession.IDPSession.GetTokenType's doc comment).
+		//
+		// Every OfflineGrantSession token shape is checked the same way,
+		// including TokenTypeAppSession even though it can never actually
+		// belong to a third-party client either (IssueAppSessionToken
+		// requires FullAccessScope, which
+		// OAuthClientApplicationType.HasFullAccessScope() is false for
+		// every third-party type): checking it anyway costs nothing and
+		// fails closed if that invariant is ever broken elsewhere, rather
+		// than silently trusting it here.
 		switch sess := s.(type) {
 		case *idpsession.IDPSession:
 			// Always accept, matching oauth.SessionClientLike's existing
@@ -92,9 +105,7 @@ func (h *ResolveHandler) resolve(ctx context.Context, r *http.Request) (*model.S
 			// IDPSession can never back a third-party client's access grant.
 		case *oauth.OfflineGrantSession:
 			switch sess.GetTokenType() {
-			case session.TokenTypeJWT, session.TokenTypeAppSession:
-				// Always accept.
-			case session.TokenTypeOpaque:
+			case session.TokenTypeJWT, session.TokenTypeOpaque, session.TokenTypeAppSession:
 				clientLike := oauth.SessionClientLike(ctx, s, h.OAuthClientResolver)
 				if !clientLike.IsFirstParty {
 					return &model.SessionInfo{IsValid: false}, nil

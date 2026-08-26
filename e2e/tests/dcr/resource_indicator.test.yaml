@@ -286,22 +286,6 @@ steps:
           "sub": "[[string]]"
         }
 
-  # The resolver's opaque-token gate (pkg/resolver/handler/resolve.go) only
-  # rejects the conjunction "opaque token AND third-party client" -- a
-  # resource-bound JWT is TokenTypeJWT, always accepted regardless of
-  # client kind. Contrast with the opaque-token case in the sibling test
-  # below, which is otherwise the same third-party client.
-  - name: resolve_resource_bound_jwt
-    action: http_request
-    http_request_method: GET
-    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4001/resolve
-    http_request_headers:
-      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
-    http_output:
-      http_status: 200
-      headers:
-        X-Authgear-Session-Valid: "true"
-
 ---
 
 name: DCR third-party client without resource= gets an opaque access token
@@ -416,22 +400,6 @@ steps:
         {
           "sub": "[[string]]"
         }
-
-  # Opaque access token + third-party client is exactly the conjunction
-  # pkg/resolver/handler/resolve.go's opaque-token gate rejects: this token
-  # is scoped to /oauth2/userinfo only (asserted above) and must not also
-  # work at the resolver, unlike the resource-bound JWT case in the sibling
-  # test above (same third-party client, different token type).
-  - name: resolve_opaque_token
-    action: http_request
-    http_request_method: GET
-    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4001/resolve
-    http_request_headers:
-      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
-    http_output:
-      http_status: 200
-      headers:
-        X-Authgear-Session-Valid: "false"
 
 ---
 

@@ -90,6 +90,8 @@ An **opaque** access token is issued instead of a JWT. The opaque token:
 
 This solves the audience confusion problem for third-party clients by design: without specifying a `resource`, a third-party client can only access userinfo and nothing else.
 
+**A third-party client's access token is never accepted by the `/resolve` endpoint, whether it is this opaque default or a resource-bound JWT (below).** `/resolve` is used to gate access to the project's own resources (e.g. an nginx `auth_request`); it has no notion of "resource" and its response never exposes the token's `aud` for a caller to check independently (see [api-resolver.md](./api-resolver.md)). This is a decision to avoid audience confusion. Only a first-party client's access token, opaque or JWT, may be used with `/resolve`.
+
 **Both client types (with `resource` parameter):**
 
 A JWT access token is issued with:
@@ -98,7 +100,7 @@ A JWT access token is issued with:
 aud = ["<resource_uri>"]
 ```
 
-The project endpoint is **not** included. See [How It Works](#how-it-works) for the access precondition.
+The project endpoint is **not** included. See [How It Works](#how-it-works) for the access precondition. For a third-party client specifically, this JWT is still not accepted by `/resolve` — see above.
 
 ## How It Works
 
@@ -202,7 +204,7 @@ When `resource` is specified, `aud` contains **only** the requested resource URI
 }
 ```
 
-The userinfo endpoint accepts tokens where `scope` contains OIDC scopes (e.g. `openid`, `profile`, `email`), regardless of the `aud` claim. Resource servers should validate `aud` contains their own URI and `scope` contains the required resource-specific scopes.
+The userinfo endpoint accepts tokens where `scope` contains OIDC scopes (e.g. `openid`, `profile`, `email`), regardless of the `aud` claim. Resource servers should validate `aud` contains their own URI and `scope` contains the required resource-specific scopes. A resource-bound token issued to a **third-party** client is additionally never accepted by the `/resolve` endpoint (see [Authgear's decision](#authgears-decision)) — only the resource server it names in `aud` should accept it.
 
 ### Default — first-party client
 

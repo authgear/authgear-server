@@ -361,14 +361,16 @@ For a client using the `authorization_code` / `refresh_token` grants, this table
 
 | Client | `resource=` | Access token | `aud` | `/resolve` usable? | `/oauth2/userinfo` usable? | Consent screen |
 |---|---|---|---|---|---|---|
-| Static first-party (`spa` / `traditional_webapp` / `native` / `confidential`), `issue_jwt_access_token: false` (the default when unset) | Not usable* | Opaque | — | No | Yes | Bypassed |
+| Static first-party (`spa` / `traditional_webapp` / `native` / `confidential`), `issue_jwt_access_token: false` (the default when unset) | Not usable* | Opaque | — | Yes | Yes | Bypassed |
 | Static first-party, `issue_jwt_access_token: true` | Not usable* | JWT | `[<project_endpoint>]` | Yes | Yes | Bypassed |
-| Static third-party (`third_party_app`, deprecated) | Not usable* | Opaque | — | No | Yes | Shown |
-| DCR first-party (registered with a first-party IAT) | Not usable* | Opaque (`issue_jwt_access_token` is fixed `false` for every DCR client — see [Mapping from DCR](#mapping-from-dcr)) | — | No | Yes | Bypassed |
-| DCR third-party, `resource` omitted | Omitted | Opaque | — | No | Yes | Shown |
-| DCR third-party, `resource` provided | Provided, and the Resource/Scope grant `allowDynamicThirdPartyClientAccess` | JWT | `[<resource_uri>]` | Yes | Yes | Shown |
+| Static third-party (`third_party_app`, deprecated) | Not usable* | Opaque | — | **No†** | Yes | Shown |
+| DCR first-party (registered with a first-party IAT) | Not usable* | Opaque (`issue_jwt_access_token` is fixed `false` for every DCR client — see [Mapping from DCR](#mapping-from-dcr)) | — | Yes | Yes | Bypassed |
+| DCR third-party, `resource` omitted | Omitted | Opaque | — | **No†** | Yes | Shown |
+| DCR third-party, `resource` provided | Provided, and the Resource/Scope grant `allowDynamicThirdPartyClientAccess` | JWT | `[<resource_uri>]` | **No†** | Yes | Shown |
 
 \* `resource=` is, today, usable **only** by a dynamic third-party client (DCR-registered now, CIMD-resolved once built) — every other row above gets `invalid_target` outright, regardless of any Resource's `access_policy`. First-party support (static or dynamic) is planned separately, and a static third-party client has no mechanism to be associated with a Resource for these grants at all. See access-token-audience-binding.md's Implementation Status.
+
+† **`/resolve` never accepts a third-party client's access token, of any shape** — opaque, or a resource-bound JWT — while a first-party client's access token (opaque or JWT) always works there. `/resolve` has no notion of "resource" and never exposes a token's `aud` to its caller (see [api-resolver.md](./api-resolver.md)), so this is a deliberate decision to avoid audience confusion, not a side effect of the opaque-token default.
 
 Not covered above:
 
