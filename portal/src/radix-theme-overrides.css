@@ -1,6 +1,13 @@
 .radix-themes {
   --default-font-family: inherit;
 
+  /* Keep identical to Tailwind's default `font-mono` stack, so Radix <Code>,
+     var(--code-font-family) and Tailwind's preflight <code>/font-mono all
+     render code in the same font. Radix's own default starts with Menlo,
+     which differs from ui-monospace (SF Mono) on macOS. */
+  --code-font-family: ui-monospace, "SFMono-Regular", "Menlo", "Monaco",
+    "Consolas", "Liberation Mono", "Courier New", monospace;
+
   /* See https://www.radix-ui.com/themes/docs/theme/typography#custom-font-weights */
   /* Reference https://www.figma.com/design/wAIzBnO9un4fYcq5ampR5k/Authgear---Radix-Themes--Storybook-?node-id=610-103 */
   --font-weight-light: 300;
