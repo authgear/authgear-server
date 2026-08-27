@@ -262,6 +262,10 @@ type afterSentResult struct {
 
 func (s *MessageSender) updateCodeAfterSent(ctx context.Context, opts SendOptions, result afterSentResult) error {
 	logger := SenderLogger.GetLogger(ctx)
+	// Detach the deadline so that the context is not canceled along with the request.
+	// Nothing other than this update ever records a delivery attempt, so losing it
+	// leaves the code looking like one that was never sent, until it expires.
+	ctx = context.WithoutCancel(ctx)
 	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to get code in result callback")
