@@ -20,6 +20,13 @@ import { DynamicClientAllowedResources } from "./DynamicClientAllowedResources";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
 import styles from "./DynamicClientsTab.module.css";
 
+// JSON pointer of the object holding the default_client_config fields. Passing
+// it (with fieldName) lets the config schema's validation errors -- e.g.
+// "minimum" when a lifetime is 0 or negative -- bind to the field that caused
+// them instead of only reaching the generic error bar.
+const DEFAULT_CLIENT_CONFIG_JSON_POINTER =
+  "/oauth/dynamic_client_registration/default_client_config";
+
 export interface DynamicClientsTabProps {
   form: AppConfigFormModel<ApplicationsFormState>;
   publicOrigin: string;
@@ -256,6 +263,8 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             label={
               <FormattedMessage id="DynamicClientsTab.access-token-lifetime.label" />
             }
+            parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
+            fieldName="access_token_lifetime_seconds"
             placeholder={effectiveDefaultClientConfig?.access_token_lifetime_seconds?.toFixed(
               0
             )}
@@ -269,6 +278,8 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             label={
               <FormattedMessage id="DynamicClientsTab.refresh-token-lifetime.label" />
             }
+            parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
+            fieldName="refresh_token_lifetime_seconds"
             placeholder={effectiveDefaultClientConfig?.refresh_token_lifetime_seconds?.toFixed(
               0
             )}
@@ -295,6 +306,8 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             label={
               <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout.label" />
             }
+            parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
+            fieldName="refresh_token_idle_timeout_seconds"
             placeholder={effectiveDefaultClientConfig?.refresh_token_idle_timeout_seconds?.toFixed(
               0
             )}
