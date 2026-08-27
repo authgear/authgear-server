@@ -20,14 +20,6 @@ import { DynamicClientAllowedResources } from "./DynamicClientAllowedResources";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
 import styles from "./DynamicClientsTab.module.css";
 
-// Effective defaults applied by the server when the corresponding
-// default_client_config field is absent. Mirrors
-// OAuthDynamicClientRegistrationDefaultClientConfig.SetDefaults() in
-// pkg/lib/config/oauth_dynamic_client_registration.go.
-const DEFAULT_ACCESS_TOKEN_LIFETIME_SECONDS = 1800;
-const DEFAULT_REFRESH_TOKEN_LIFETIME_SECONDS = 2592000;
-const DEFAULT_REFRESH_TOKEN_IDLE_TIMEOUT_SECONDS = 1209600;
-
 export interface DynamicClientsTabProps {
   form: AppConfigFormModel<ApplicationsFormState>;
   publicOrigin: string;
@@ -40,10 +32,18 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
   function DynamicClientsTab({ form, publicOrigin, dcrClientQuota }) {
     const navigate = useNavigate();
     const { appID } = useParams() as { appID: string };
-    const { state, setState, saveWith, isUpdating } = form;
+    const { state, setState, saveWith, isUpdating, effectiveConfig } = form;
     const { getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const anchorRef = useRef<HTMLDivElement>(null);
+
+    // The server resolves every default_client_config field via
+    // OAuthDynamicClientRegistrationDefaultClientConfig.SetDefaults(), so the
+    // effective config always carries a concrete value even when authgear.yaml
+    // omits the whole section. Read the placeholders from there instead of
+    // duplicating the defaults here, where they silently drift.
+    const effectiveDefaultClientConfig =
+      effectiveConfig.oauth?.dynamic_client_registration?.default_client_config;
 
     const [
       isOpenRegistrationConfirmationVisible,
@@ -254,7 +254,9 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             label={
               <FormattedMessage id="DynamicClientsTab.access-token-lifetime.label" />
             }
-            placeholder={DEFAULT_ACCESS_TOKEN_LIFETIME_SECONDS.toFixed(0)}
+            placeholder={effectiveDefaultClientConfig?.access_token_lifetime_seconds?.toFixed(
+              0
+            )}
             value={state.accessTokenLifetimeSeconds?.toFixed(0) ?? ""}
             onChange={onAccessTokenLifetimeChange}
           />
@@ -265,7 +267,9 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             label={
               <FormattedMessage id="DynamicClientsTab.refresh-token-lifetime.label" />
             }
-            placeholder={DEFAULT_REFRESH_TOKEN_LIFETIME_SECONDS.toFixed(0)}
+            placeholder={effectiveDefaultClientConfig?.refresh_token_lifetime_seconds?.toFixed(
+              0
+            )}
             value={state.refreshTokenLifetimeSeconds?.toFixed(0) ?? ""}
             onChange={onRefreshTokenLifetimeChange}
           />
@@ -289,7 +293,9 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             label={
               <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout.label" />
             }
-            placeholder={DEFAULT_REFRESH_TOKEN_IDLE_TIMEOUT_SECONDS.toFixed(0)}
+            placeholder={effectiveDefaultClientConfig?.refresh_token_idle_timeout_seconds?.toFixed(
+              0
+            )}
             value={state.refreshTokenIdleTimeoutSeconds?.toFixed(0) ?? ""}
             onChange={onRefreshTokenIdleTimeoutChange}
           />
