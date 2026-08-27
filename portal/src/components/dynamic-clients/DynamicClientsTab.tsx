@@ -32,7 +32,7 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
   function DynamicClientsTab({ form, publicOrigin, dcrClientQuota }) {
     const navigate = useNavigate();
     const { appID } = useParams() as { appID: string };
-    const { state, setState, saveWith, isUpdating, effectiveConfig } = form;
+    const { state, setState, isUpdating, effectiveConfig } = form;
     const { getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const anchorRef = useRef<HTMLDivElement>(null);
@@ -62,15 +62,17 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
 
     const onEnabledChange = useCallback(
       (checked: boolean) => {
-        // Save immediately so the registration endpoint becomes live at once.
-        saveWith((current) => ({
-          ...current,
+        // Deferred like every other control on this tab: nothing is written
+        // until the admin presses Save. Saving from here would commit the
+        // whole form state, including edits elsewhere on the tab (and on the
+        // sibling Applications tab, which shares this form) that the admin
+        // has not confirmed yet.
+        setState((prev) => ({
+          ...prev,
           dynamicClientRegistrationEnabled: checked,
-        })).catch(() => {
-          // The update error is surfaced by FormContainer's error message bar.
-        });
+        }));
       },
-      [saveWith]
+      [setState]
     );
 
     const onViewAllClick = useCallback(() => {
