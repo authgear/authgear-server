@@ -83,6 +83,11 @@ export function CreateInitialAccessTokenDialog({
       if (seconds <= 0) {
         return null;
       }
+      // expiresIn is a GraphQL Int (32-bit signed); a far-future date (e.g. a
+      // typo'd year) would fail Int coercion at the API. Treat it as invalid.
+      if (seconds > 2147483647) {
+        return null;
+      }
       return seconds;
     },
     []
