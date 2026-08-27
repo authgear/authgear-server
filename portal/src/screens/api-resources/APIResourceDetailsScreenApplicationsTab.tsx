@@ -11,7 +11,7 @@ import {
 } from "../../components/api-resources/ApplicationList";
 import { UnauthorizeApplicationDialog } from "../../components/api-resources/UnauthorizeApplicationDialog";
 import { DynamicClientsAccessRow } from "../../components/api-resources/DynamicClientsAccessRow";
-import ReactRouterLink from "../../ReactRouterLink";
+import PortalLink from "../../Link";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ResourceQueryDocument,
@@ -222,9 +222,9 @@ export function APIResourceDetailsScreenApplicationsTab({
               values={{
                 // eslint-disable-next-line react/no-unstable-nested-components
                 ReactRouterLink: (chunks: React.ReactNode) => (
-                  <ReactRouterLink to={`/project/${appID}/configuration/apps`}>
+                  <PortalLink to={`/project/${appID}/configuration/apps`}>
                     {chunks}
-                  </ReactRouterLink>
+                  </PortalLink>
                 ),
               }}
             />
