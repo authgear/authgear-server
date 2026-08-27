@@ -1,0 +1,227 @@
+name: Email OTP login actually delivers the code by email
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_email
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/login?{{ .steps.oauth_setup.result.query }}
+    http_output:
+      http_status: 200
+      redirect_path: /login
+
+  - name: submit_login_id
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_login_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: email
+      x_login_id: oob-otp-delivery@example.com
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/enter_oob_otp
+      html_xpath_exists:
+        - /html/body//input[@name='x_code']
+
+  # The message is dispatched in a detached goroutine, so both the smtp log and
+  # the audit event land after the response.
+  - name: wait_for_email_delivery
+    action: sleep
+    sleep_for: 2s
+
+  # Landing on the OTP screen is not evidence that anything was sent. This is.
+  - name: verify_smtp_actually_received_the_message
+    action: smtp_log_query
+    smtp_log_subject: "Log in to Authgear"
+    smtp_log_recipient: "oob-otp-delivery@example.com"
+    smtp_log_output:
+      rows: |
+        [
+          {
+            "subject": "Log in to Authgear",
+            "recipient": "oob-otp-delivery@example.com"
+          }
+        ]
+
+  # Asserting the full set of send/suppress rows, so an unexpected recipient or a
+  # suppressed message fails the test rather than passing unnoticed.
+  - name: verify_exactly_one_email_was_sent_and_none_suppressed
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        data->'payload'->>'recipient' AS recipient
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('email.sent', 'email.suppressed')
+      ORDER BY activity_type, created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "email.sent",
+            "recipient": "oob-otp-delivery@example.com"
+          }
+        ]
+
+  - name: submit_code
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_login_id.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_code: "111111"
+      x_action: submit
+    http_output:
+      http_status: 302
+
+  - name: finish_flow
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.submit_code.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+
+---
+
+name: Email OTP login in project test mode suppresses the email but the code still works
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_email
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+    test_mode:
+      email:
+        enabled: true
+        rules:
+        - regex: "^oob-otp-suppressed@example\\.com$"
+          suppressed: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/login?{{ .steps.oauth_setup.result.query }}
+    http_output:
+      http_status: 200
+      redirect_path: /login
+
+  - name: submit_login_id
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_login_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: email
+      x_login_id: oob-otp-suppressed@example.com
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/enter_oob_otp
+      html_xpath_exists:
+        - /html/body//input[@name='x_code']
+
+  - name: wait_for_email_delivery
+    action: sleep
+    sleep_for: 2s
+
+  # The whole set, so an email.sent row for this recipient fails the test.
+  - name: verify_the_email_was_suppressed_and_not_sent
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        data->'payload'->>'recipient' AS recipient
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('email.sent', 'email.suppressed')
+      ORDER BY activity_type, created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "email.suppressed",
+            "recipient": "oob-otp-suppressed@example.com"
+          }
+        ]
+
+  # Suppressing delivery must not stop the flow from accepting the code.
+  - name: submit_code
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_login_id.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_code: "111111"
+      x_action: submit
+    http_output:
+      http_status: 302
+
+  - name: finish_flow
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.submit_code.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }

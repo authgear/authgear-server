@@ -1,0 +1,17 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "oob-otp-delivery@example.com",
+      "name": "OOB OTP Delivery"
+    },
+    {
+      "email": "oob-otp-suppressed@example.com",
+      "name": "OOB OTP Suppressed"
+    },
+    {
+      "email": "oob-otp-admin@example.com",
+      "name": "OOB OTP Admin Generated"
+    }
+  ]
+}
