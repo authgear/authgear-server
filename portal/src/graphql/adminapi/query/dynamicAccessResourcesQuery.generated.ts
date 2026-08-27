@@ -9,12 +9,13 @@ export type DynamicAccessResourcesQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type DynamicAccessResourcesQueryQuery = { __typename?: 'Query', resources?: { __typename?: 'ResourceConnection', edges?: Array<{ __typename?: 'ResourceEdge', node?: { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, accessPolicy: { __typename?: 'AccessPolicy', allowDynamicThirdPartyClientAccess: boolean }, scopes?: { __typename?: 'ScopeConnection', edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, accessPolicy: { __typename?: 'AccessPolicy', allowDynamicThirdPartyClientAccess: boolean } } | null } | null> | null } | null } | null } | null> | null } | null };
+export type DynamicAccessResourcesQueryQuery = { __typename?: 'Query', resources?: { __typename?: 'ResourceConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ResourceEdge', node?: { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, accessPolicy: { __typename?: 'AccessPolicy', allowDynamicThirdPartyClientAccess: boolean }, scopes?: { __typename?: 'ScopeConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, accessPolicy: { __typename?: 'AccessPolicy', allowDynamicThirdPartyClientAccess: boolean } } | null } | null> | null } | null } | null } | null> | null } | null };
 
 
 export const DynamicAccessResourcesQueryDocument = gql`
     query dynamicAccessResourcesQuery($first: Int, $scopesFirst: Int) {
   resources(first: $first) {
+    totalCount
     edges {
       node {
         id
@@ -24,6 +25,7 @@ export const DynamicAccessResourcesQueryDocument = gql`
           allowDynamicThirdPartyClientAccess
         }
         scopes(first: $scopesFirst) {
+          totalCount
           edges {
             node {
               id

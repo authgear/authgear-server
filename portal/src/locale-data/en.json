@@ -826,6 +826,8 @@
   "DynamicClientsTab.allowed-resources.description": "All dynamic third-party clients share the same access: the API resources and scopes below. First-party clients registered with a first-party token are not affected. Manage access in the <apiResourcesLink>API Resources</apiResourcesLink> section.",
   "DynamicClientAllowedResources.empty": "No API resources currently allow dynamic client access.",
   "DynamicClientAllowedResources.no-scopes": "No scopes allowed yet.",
+  "DynamicClientAllowedResources.resources-truncated": "This list may be incomplete: only the first {shown} of {total} API resources were checked. Review the full list on the API Resources screen.",
+  "DynamicClientAllowedResources.scopes-truncated": "Only the first {shown} of {total} scopes on this resource were checked.",
   "DynamicClientDetailsDialog.delete": "Delete",
   "DynamicClientDetailsDialog.close": "Close",
   "DeleteDynamicClientDialog.title": "Delete dynamic client",

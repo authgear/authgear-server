@@ -1,5 +1,6 @@
 query dynamicAccessResourcesQuery($first: Int, $scopesFirst: Int) {
   resources(first: $first) {
+    totalCount
     edges {
       node {
         id
@@ -9,6 +10,7 @@ query dynamicAccessResourcesQuery($first: Int, $scopesFirst: Int) {
           allowDynamicThirdPartyClientAccess
         }
         scopes(first: $scopesFirst) {
+          totalCount
           edges {
             node {
               id
