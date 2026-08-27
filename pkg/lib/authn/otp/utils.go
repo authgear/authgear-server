@@ -27,7 +27,7 @@ func whatsappMessageStatusToOTPDeliveryStatus(ctx context.Context, messageStatus
 	var deliveryStatus OTPDeliveryStatusInternal
 	switch messageStatus {
 	case whatsapp.WhatsappMessageStatusAccepted:
-		deliveryStatus = OTPDeliveryStatusInternalSending
+		deliveryStatus = OTPDeliveryStatusInternalWaitingForConfirmation
 	case whatsapp.WhatsappMessageStatusSent,
 		whatsapp.WhatsappMessageStatusDelivered,
 		whatsapp.WhatsappMessageStatusRead:

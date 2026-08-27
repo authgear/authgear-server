@@ -242,6 +242,7 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 	resultCallback := func(ctx context.Context, result *messaging.SendWhatsappResult) {
 		_ = s.updateCodeAfterSent(ctx, opts, afterSentResult{
 			WhatsappMessageID: result.MessageID,
+			AwaitConfirmation: true,
 		})
 	}
 
@@ -258,29 +259,40 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 type afterSentResult struct {
 	SendError         error
 	WhatsappMessageID string
+	// AwaitConfirmation indicates the provider reports the outcome asynchronously.
+	AwaitConfirmation bool
 }
 
 func (s *MessageSender) updateCodeAfterSent(ctx context.Context, opts SendOptions, result afterSentResult) error {
 	logger := SenderLogger.GetLogger(ctx)
 	// Detach the deadline so that the context is not canceled along with the request.
 	// Nothing other than this update ever records a delivery attempt, so losing it
-	// leaves the code looking like one that was never sent, until it expires.
+	// leaves the code waiting to send until it expires.
 	ctx = context.WithoutCancel(ctx)
 	code, err := s.CodeStore.Get(ctx, opts.Kind.Purpose(), opts.Target)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to get code in result callback")
 		return err
 	}
-	if code.SendMessageError != nil {
+	if code.SendMessageError != nil || code.InternalDeliveryStatus == OTPDeliveryStatusInternalFailed {
 		// If it was error, ignore any later updates
 		return nil
 	}
-	if result.SendError != nil {
+
+	switch {
+	case result.SendError != nil:
 		code.SendMessageError = apierrors.AsAPIErrorWithContext(ctx, result.SendError)
+		code.InternalDeliveryStatus = OTPDeliveryStatusInternalFailed
+	case result.AwaitConfirmation:
+		code.InternalDeliveryStatus = OTPDeliveryStatusInternalWaitingForConfirmation
+	default:
+		code.InternalDeliveryStatus = OTPDeliveryStatusInternalSent
 	}
+
 	if result.WhatsappMessageID != "" {
 		code.WhatsappMessageID = result.WhatsappMessageID
 	}
+	// Still read by consumeCode and by deriveLegacyDeliveryStatus.
 	code.OOBChannel = opts.Channel
 	err = s.CodeStore.Update(ctx, opts.Kind.Purpose(), code)
 	if err != nil {
@@ -299,9 +311,16 @@ func (s *MessageSender) SendAsync(ctx context.Context, opts SendOptions) error {
 }
 
 func (s *MessageSender) send(ctx context.Context, opts SendOptions, preferAsync bool) (err error) {
+	// A channel whose provider gains asynchronous reporting only has to set this;
+	// nothing downstream looks at the channel.
+	var awaitConfirmation bool
+
+	// This records the delivery attempt synchronously, before the request returns,
+	// even though the delivery itself may be asynchronous. Readers depend on that.
 	defer func() {
 		updateErr := s.updateCodeAfterSent(ctx, opts, afterSentResult{
-			SendError: err,
+			SendError:         err,
+			AwaitConfirmation: awaitConfirmation,
 		})
 		if updateErr != nil {
 			SenderLogger.GetLogger(ctx).WithError(updateErr).Error(ctx, "failed to update code after sent")
@@ -317,6 +336,8 @@ func (s *MessageSender) send(ctx context.Context, opts SendOptions, preferAsync 
 		err = s.sendSMS(ctx, opts, preferAsync)
 		return
 	case model.AuthenticatorOOBChannelWhatsapp:
+		// The outcome arrives later through the message status callback.
+		awaitConfirmation = true
 		err = s.sendWhatsapp(ctx, opts)
 		return
 	default:
