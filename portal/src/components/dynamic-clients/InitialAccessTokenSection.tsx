@@ -57,6 +57,11 @@ function InitialAccessTokenSectionContent(): React.ReactElement {
         variables: { input: { type, expiresIn } },
       })
         .then(async (result) => {
+          // Close the create dialog before opening the reveal dialog, and
+          // before awaiting the refetch: handing over in the other order left
+          // both modals mounted -- each with its own overlay and focus trap --
+          // for the whole duration of the network round-trip.
+          setIsCreateDialogVisible(false);
           const token = result.data?.createInitialAccessToken.token;
           if (token != null) {
             setRevealedToken(token);
@@ -64,12 +69,10 @@ function InitialAccessTokenSectionContent(): React.ReactElement {
           return refetch();
         })
         .catch((e: unknown) => {
-          setErrors(parseRawError(e));
-        })
-        .finally(() => {
           // Close the dialog on failure too — the error message bar renders
           // behind the modal overlay and would otherwise be invisible.
           setIsCreateDialogVisible(false);
+          setErrors(parseRawError(e));
         });
     },
     [createInitialAccessToken, refetch, setErrors]
