@@ -59,7 +59,10 @@ export const DynamicClientsAccessRow: React.VFC<DynamicClientsAccessRowProps> =
           setIsConfirmDialogVisible(true);
           return;
         }
-        setAllowed(true).finally(() => {});
+        // setAllowed swallows its own errors, so there is nothing to chain;
+        // void it rather than an empty .finally (which would not even mark a
+        // rejection as handled). onConfirmDisallow's .finally below is real.
+        void setAllowed(true);
       },
       [setAllowed]
     );

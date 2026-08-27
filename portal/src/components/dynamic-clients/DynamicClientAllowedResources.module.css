@@ -16,5 +16,5 @@
 
 .scopeChip {
   @apply py-0.5 px-1 rounded;
-  background-color: #f3f2f1;
+  background-color: var(--gray-a3);
 }
