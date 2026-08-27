@@ -12,6 +12,16 @@ const PRESET_EXPIRES_IN_OPTIONS = [3600, 86400, 604800, 2592000] as const;
 
 type ExpiresInSelection = "3600" | "86400" | "604800" | "2592000" | "custom";
 
+// expiresIn is a GraphQL Int, i.e. 32-bit signed.
+const MAX_EXPIRES_IN_SECONDS = 2147483647;
+
+interface CustomExpiryResult {
+  // Seconds until the expiry, or null when it was rejected.
+  seconds: number | null;
+  // Why it was rejected, or null when it is valid or still empty.
+  errorMessageID: string | null;
+}
+
 export interface CreateInitialAccessTokenDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,6 +42,13 @@ export function CreateInitialAccessTokenDialog({
     useState<ExpiresInSelection>("3600");
   // Value of the datetime-local input, e.g. "2026-09-30T18:00".
   const [customExpiryValue, setCustomExpiryValue] = useState("");
+  // Seconds until customExpiryValue, or null when it is empty or rejected.
+  const [customExpirySeconds, setCustomExpirySeconds] = useState<number | null>(
+    null
+  );
+  const [customExpiryErrorMessageID, setCustomExpiryErrorMessageID] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (open) {
@@ -40,6 +57,8 @@ export function CreateInitialAccessTokenDialog({
       setTokenType(InitialAccessTokenType.ThirdParty);
       setExpiresInSelection("3600");
       setCustomExpiryValue("");
+      setCustomExpirySeconds(null);
+      setCustomExpiryErrorMessageID(null);
     }
   }, [open]);
 
@@ -66,57 +85,72 @@ export function CreateInitialAccessTokenDialog({
     }
   }, []);
 
-  // Seconds until the given custom expiry, or null when the value is empty,
-  // unparsable, or not in the future. datetime-local values are interpreted
-  // in the browser's local time zone, matching what the admin picked in the
-  // native picker.
-  const computeCustomExpiresInSeconds = useCallback(
-    (value: string): number | null => {
+  // Seconds until the given custom expiry, plus the message ID explaining why
+  // it was rejected so the admin is told which of the several ways it can be
+  // wrong applies. datetime-local values are interpreted in the browser's
+  // local time zone, matching what the admin picked in the native picker.
+  const computeCustomExpiry = useCallback(
+    (value: string): CustomExpiryResult => {
       if (value === "") {
-        return null;
+        // Nothing entered yet: block Create, but do not report an error for a
+        // field the admin has not filled in.
+        return { seconds: null, errorMessageID: null };
       }
       const expiryMillis = new Date(value).getTime();
       if (Number.isNaN(expiryMillis)) {
-        return null;
+        return {
+          seconds: null,
+          errorMessageID:
+            "CreateInitialAccessTokenDialog.expires-in.custom.error.invalid",
+        };
       }
       const seconds = Math.floor((expiryMillis - Date.now()) / 1000);
       if (seconds <= 0) {
-        return null;
+        return {
+          seconds: null,
+          errorMessageID:
+            "CreateInitialAccessTokenDialog.expires-in.custom.error.not-future",
+        };
       }
       // expiresIn is a GraphQL Int (32-bit signed); a far-future date (e.g. a
       // typo'd year) would fail Int coercion at the API. Treat it as invalid.
-      if (seconds > 2147483647) {
-        return null;
+      if (seconds > MAX_EXPIRES_IN_SECONDS) {
+        return {
+          seconds: null,
+          errorMessageID:
+            "CreateInitialAccessTokenDialog.expires-in.custom.error.too-far",
+        };
       }
-      return seconds;
+      return { seconds, errorMessageID: null };
     },
     []
   );
-
-  const [isCustomExpiryValid, setIsCustomExpiryValid] = useState(false);
 
   const onCustomExpiryChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setCustomExpiryValue(value);
-      setIsCustomExpiryValid(computeCustomExpiresInSeconds(value) != null);
+      const result = computeCustomExpiry(value);
+      setCustomExpirySeconds(result.seconds);
+      setCustomExpiryErrorMessageID(result.errorMessageID);
     },
-    [computeCustomExpiresInSeconds]
+    [computeCustomExpiry]
   );
 
   const isCustomInvalid =
-    expiresInSelection === "custom" && !isCustomExpiryValid;
+    expiresInSelection === "custom" && customExpirySeconds == null;
 
   const onSubmit = useCallback(() => {
     if (expiresInSelection === "custom") {
       // Recompute at submit time: the expiry may have slipped into the past
       // while the dialog sat open.
-      const seconds = computeCustomExpiresInSeconds(customExpiryValue);
-      if (seconds == null) {
-        setIsCustomExpiryValid(false);
+      const result = computeCustomExpiry(customExpiryValue);
+      if (result.seconds == null) {
+        setCustomExpirySeconds(null);
+        setCustomExpiryErrorMessageID(result.errorMessageID);
         return;
       }
-      onCreate(tokenType, seconds);
+      onCreate(tokenType, result.seconds);
       return;
     }
     onCreate(tokenType, Number(expiresInSelection));
@@ -125,7 +159,7 @@ export function CreateInitialAccessTokenDialog({
     tokenType,
     expiresInSelection,
     customExpiryValue,
-    computeCustomExpiresInSeconds,
+    computeCustomExpiry,
   ]);
 
   const onCancel = useCallback(() => {
@@ -244,6 +278,11 @@ export function CreateInitialAccessTokenDialog({
                 }
                 hint={
                   <FormattedMessage id="CreateInitialAccessTokenDialog.expires-in.custom.hint" />
+                }
+                error={
+                  customExpiryErrorMessageID != null ? (
+                    <FormattedMessage id={customExpiryErrorMessageID} />
+                  ) : undefined
                 }
                 value={customExpiryValue}
                 onChange={onCustomExpiryChange}
