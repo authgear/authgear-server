@@ -11,7 +11,7 @@ var accessPolicyType = graphql.NewObject(graphql.ObjectConfig{
 	Fields: graphql.Fields{
 		"allowDynamicThirdPartyClientAccess": &graphql.Field{
 			Type:        graphql.NewNonNull(graphql.Boolean),
-			Description: "Whether a dynamically registered (DCR) or static third-party client can request this resource/scope via the resource parameter.",
+			Description: "Whether a dynamic third-party client (DCR or CIMD) can request this resource/scope via the resource parameter. Static third-party clients are never covered by this flag, and neither are dynamic first-party clients.",
 		},
 	},
 })
