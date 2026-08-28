@@ -228,59 +228,65 @@ export function APIResourceDetailsScreenApplicationsSection({
           contentClassName={styles.cardContent}
         >
           <DynamicClientsAccessRow resource={resource} />
-          {isEmpty ? (
-            <Text as="p" size="2" color="gray" className={styles.empty}>
-              <FormattedMessage
-                id="APIResourceDetailsScreen.applications.empty"
-                values={{
-                  // eslint-disable-next-line react/no-unstable-nested-components
-                  ReactRouterLink: (chunks: React.ReactNode) => (
-                    <Link to={`/project/${appID}/configuration/apps`}>
-                      {chunks}
-                    </Link>
-                  ),
-                }}
-              />
+          <hr className={styles.divider} />
+          <div className={styles.m2mSection}>
+            <Text as="p" size="3" weight="medium" className={styles.m2mHeading}>
+              <FormattedMessage id="APIResourceDetailsScreen.applications.m2m.title" />
             </Text>
-          ) : (
-            <>
-              <div className={styles.searchField}>
-                <TextField
-                  size="2"
-                  type="search"
-                  onChange={onSearchQueryChange}
-                  value={searchKeyword}
-                  placeholder={renderToString("search")}
-                  iconStart={TextFieldIcon.MagnifyingGlass}
-                  suffixPlain={true}
-                  suffix={
-                    searchKeyword !== "" ? (
-                      <button
-                        type="button"
-                        className={styles.searchClearButton}
-                        aria-label={renderToString(
-                          "APIResourcesScreen.clear-search"
-                        )}
-                        onClick={onClearSearchKeyword}
-                      >
-                        <Cross2Icon className={styles.searchClearIcon} />
-                      </button>
-                    ) : undefined
-                  }
+            {isEmpty ? (
+              <Text as="p" size="2" color="gray" className={styles.empty}>
+                <FormattedMessage
+                  id="APIResourceDetailsScreen.applications.empty"
+                  values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    ReactRouterLink: (chunks: React.ReactNode) => (
+                      <Link to={`/project/${appID}/configuration/apps`}>
+                        {chunks}
+                      </Link>
+                    ),
+                  }}
                 />
-              </div>
-              <div className={styles.listContainer}>
-                <ApplicationList
-                  applications={filteredApplications}
-                  className={styles.list}
-                  loading={false}
-                  onToggleAuthorized={onToggleAuthorized}
-                  onManageScopes={onManageScopes}
-                  disabledToggleClientIDs={disabledToggleClientIDs}
-                />
-              </div>
-            </>
-          )}
+              </Text>
+            ) : (
+              <>
+                <div className={styles.searchField}>
+                  <TextField
+                    size="2"
+                    type="search"
+                    onChange={onSearchQueryChange}
+                    value={searchKeyword}
+                    placeholder={renderToString("search")}
+                    iconStart={TextFieldIcon.MagnifyingGlass}
+                    suffixPlain={true}
+                    suffix={
+                      searchKeyword !== "" ? (
+                        <button
+                          type="button"
+                          className={styles.searchClearButton}
+                          aria-label={renderToString(
+                            "APIResourcesScreen.clear-search"
+                          )}
+                          onClick={onClearSearchKeyword}
+                        >
+                          <Cross2Icon className={styles.searchClearIcon} />
+                        </button>
+                      ) : undefined
+                    }
+                  />
+                </div>
+                <div className={styles.listContainer}>
+                  <ApplicationList
+                    applications={filteredApplications}
+                    className={styles.list}
+                    loading={false}
+                    onToggleAuthorized={onToggleAuthorized}
+                    onManageScopes={onManageScopes}
+                    disabledToggleClientIDs={disabledToggleClientIDs}
+                  />
+                </div>
+              </>
+            )}
+          </div>
         </SettingsSectionCard>
       </div>
       <UnauthorizeApplicationDialog

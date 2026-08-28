@@ -193,9 +193,6 @@ export function APIResourceDetailsScreenScopesSection({
               className={styles.createForm}
               state={form.state}
               setState={form.setState}
-              resourceAllowsDynamicAccess={
-                resource.accessPolicy.allowDynamicThirdPartyClientAccess
-              }
             />
           </div>
           <hr className={styles.divider} />
@@ -253,9 +250,6 @@ export function APIResourceDetailsScreenScopesSection({
       <EditScopeDialog
         resourceURI={resource.resourceURI}
         scope={editingScope}
-        resourceAllowsDynamicAccess={
-          resource.accessPolicy.allowDynamicThirdPartyClientAccess
-        }
         onDismiss={onDismissEditDialog}
         onSaved={() => {
           refetch().catch(() => {});

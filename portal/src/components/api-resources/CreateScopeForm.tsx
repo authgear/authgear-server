@@ -21,11 +21,6 @@ export interface CreateScopeFormProps {
   className?: string;
   state: CreateScopeFormState;
   setState: (fn: (state: CreateScopeFormState) => CreateScopeFormState) => void;
-  // Whether the parent resource allows dynamic third-party client access.
-  // When it does not, the scope-level checkbox has no effect yet, and the
-  // form says so -- same description pair EditScopeDialog shows on the edit
-  // path.
-  resourceAllowsDynamicAccess: boolean;
 }
 
 export function sanitizeCreateScopeFormState(
@@ -45,12 +40,7 @@ function isFormIncomplete(state: CreateScopeFormState): boolean {
 }
 
 export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
-  function CreateScopeForm({
-    className,
-    state,
-    setState,
-    resourceAllowsDynamicAccess,
-  }) {
+  function CreateScopeForm({ className, state, setState }) {
     const { renderToString } = useContext(MessageContext);
     const { onSubmit, canSave, isUpdating } = useFormContainerBaseContext();
     useLoading(isUpdating);
@@ -134,26 +124,17 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
             />
           </div>
         </div>
-        {/* Full width under the fields, mirroring EditScopeDialog's block on
-            the edit path: same label, same two descriptions, same trigger. */}
-        <div className={styles.dynamicAccess}>
-          <label className={styles.dynamicAccessLabel}>
-            <Checkbox
-              checked={state.allowDynamicThirdPartyClientAccess}
-              onCheckedChange={handleAllowDynamicAccessChange}
-            />
-            <Text size="2">
-              <FormattedMessage id="ScopeForm.allow-dynamic-access.label" />
-            </Text>
-          </label>
-          <Text as="p" size="1" color="gray">
-            {resourceAllowsDynamicAccess ? (
-              <FormattedMessage id="ScopeForm.allow-dynamic-access.description" />
-            ) : (
-              <FormattedMessage id="ScopeForm.allow-dynamic-access.resource-off" />
-            )}
+        {/* Full width under the fields, mirroring EditScopeDialog's checkbox
+            on the edit path: same label, same trigger. */}
+        <label className={styles.dynamicAccessLabel}>
+          <Checkbox
+            checked={state.allowDynamicThirdPartyClientAccess}
+            onCheckedChange={handleAllowDynamicAccessChange}
+          />
+          <Text size="2">
+            <FormattedMessage id="ScopeForm.allow-dynamic-access.label" />
           </Text>
-        </div>
+        </label>
       </form>
     );
   };

@@ -20,23 +20,12 @@ interface EditScopeFormState {
 export interface EditScopeDialogProps {
   resourceURI: string;
   scope: Scope | null;
-  // Whether the parent resource allows dynamic third-party client access.
-  // When it does not, the scope-level checkbox has no effect yet, and the
-  // dialog shows a hint saying so -- same description pair CreateScopeForm
-  // shows on the create path.
-  resourceAllowsDynamicAccess: boolean;
   onDismiss: () => void;
   onSaved?: () => void;
 }
 
 export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
-  function EditScopeDialog({
-    resourceURI,
-    scope,
-    resourceAllowsDynamicAccess,
-    onDismiss,
-    onSaved,
-  }) {
+  function EditScopeDialog({ resourceURI, scope, onDismiss, onSaved }) {
     const { renderToString } = useContext(Context);
     const [updateScope] = useUpdateScopeMutationMutation();
     const open = scope != null;
@@ -177,24 +166,15 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
                 "CreateScopeForm.description.placeholder"
               )}
             />
-            <div className={styles.dynamicAccess}>
-              <label className={styles.dynamicAccessLabel}>
-                <Checkbox
-                  checked={state.allowDynamicThirdPartyClientAccess}
-                  onCheckedChange={onAllowDynamicAccessChange}
-                />
-                <Text size="2">
-                  <FormattedMessage id="ScopeForm.allow-dynamic-access.label" />
-                </Text>
-              </label>
-              <Text as="p" size="1" color="gray">
-                {resourceAllowsDynamicAccess ? (
-                  <FormattedMessage id="ScopeForm.allow-dynamic-access.description" />
-                ) : (
-                  <FormattedMessage id="ScopeForm.allow-dynamic-access.resource-off" />
-                )}
+            <label className={styles.dynamicAccessLabel}>
+              <Checkbox
+                checked={state.allowDynamicThirdPartyClientAccess}
+                onCheckedChange={onAllowDynamicAccessChange}
+              />
+              <Text size="2">
+                <FormattedMessage id="ScopeForm.allow-dynamic-access.label" />
               </Text>
-            </div>
+            </label>
             <Flex gap="3" mt="4" justify="end">
               <SecondaryButton
                 size="2"
