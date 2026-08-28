@@ -57,12 +57,16 @@ export function usePivotNavigation<K extends string = string>(
           hash: newHash,
           pathname: location.pathname,
         },
-        { replace }
+        // Carry location.state through: the invalid-key correction effect
+        // below rewrites the URL on mount, and dropping the state there
+        // would erase navigation state the screen may still need.
+        { replace, state: location.state }
       );
     },
     [
       location.hash,
       location.pathname,
+      location.state,
       navigate,
       searchParamKey,
       searchParams,
