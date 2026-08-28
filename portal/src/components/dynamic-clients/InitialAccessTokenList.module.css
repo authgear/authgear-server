@@ -1,6 +1,11 @@
 .table {
+  /* Every row repeats this template instead of using subgrid, which
+     stylelint's browser matrix does not accept yet; the shared custom
+     property keeps the copies from drifting. */
+  --iat-columns: 7rem 1fr 1fr auto;
+
   display: grid;
-  grid-template-columns: 7rem 1fr 1fr auto;
+  grid-template-columns: var(--iat-columns);
   column-gap: 1rem;
 }
 
@@ -8,7 +13,8 @@
 .row {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: subgrid;
+  grid-template-columns: var(--iat-columns);
+  column-gap: 1rem;
   align-items: center;
   padding: 0.5rem 0;
 }
