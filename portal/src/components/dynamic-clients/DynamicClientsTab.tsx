@@ -60,12 +60,16 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
     const registrationEnabled = state.dynamicClientRegistrationEnabled;
     const registrationEndpoint = `${publicOrigin}/oauth2/register`;
 
+    // Always fetched (not skipped when registration is off): disabling
+    // registration does not delete or disable already-registered clients,
+    // so the clients card must stay visible while any exist — otherwise
+    // still-usable clients silently vanish from the UI.
     const { data } = useDynamicClientsQueryQuery({
       variables: { first: 1 },
       fetchPolicy: "cache-and-network",
-      skip: !registrationEnabled,
     });
     const totalCount = data?.dynamicClients?.totalCount ?? null;
+    const hasClients = totalCount != null && totalCount > 0;
 
     const onEnabledChange = useCallback(
       (checked: boolean) => {
@@ -201,7 +205,7 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
           ) : null}
         </SettingsSectionCard>
 
-        {registrationEnabled ? (
+        {registrationEnabled || hasClients ? (
           <SettingsSectionCard
             contentClassName="gap-4"
             title={<FormattedMessage id="DynamicClientsTab.clients.title" />}

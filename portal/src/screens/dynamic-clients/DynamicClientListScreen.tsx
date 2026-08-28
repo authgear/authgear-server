@@ -1,7 +1,10 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import { Text } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
+import { useParams } from "react-router-dom";
+import Link from "../../Link";
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
 import {
@@ -29,6 +32,7 @@ import styles from "./DynamicClientListScreen.module.css";
 const PAGE_SIZE = 10;
 
 function DynamicClientListScreenContent(): React.ReactElement {
+  const { appID } = useParams() as { appID: string };
   const { setErrors } = useErrorMessageBarContext();
 
   const [offset, setOffset] = useState(0);
@@ -37,20 +41,6 @@ function DynamicClientListScreenContent(): React.ReactElement {
   const [deleteDialogData, setDeleteDialogData] =
     useState<DeleteDynamicClientDialogData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const breadcrumbItems: BreadcrumbItem[] = useMemo(
-    () => [
-      {
-        to: "~/configuration/apps#dynamic-clients",
-        label: <FormattedMessage id="ApplicationsConfigurationScreen.title" />,
-      },
-      {
-        to: ".",
-        label: <FormattedMessage id="DynamicClientListScreen.title" />,
-      },
-    ],
-    []
-  );
 
   const { data, loading, error, refetch } = useDynamicClientsQueryQuery({
     variables: {
@@ -152,7 +142,18 @@ function DynamicClientListScreenContent(): React.ReactElement {
   return (
     <ScreenContent>
       <div className={cn(styles.widget, styles.pageHeader)}>
-        <NavBreadcrumb items={breadcrumbItems} />
+        <Link
+          to={`/project/${appID}/configuration/apps#dynamic-clients`}
+          className={styles.backLink}
+        >
+          <ChevronLeftIcon className={styles.backLinkIcon} />
+          <span>
+            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+          </span>
+        </Link>
+        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <FormattedMessage id="DynamicClientListScreen.title" />
+        </Text>
       </div>
       <div className={cn(styles.widget, styles.content)}>
         <ErrorMessageBar />
