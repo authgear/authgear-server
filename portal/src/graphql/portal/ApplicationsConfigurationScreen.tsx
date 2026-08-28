@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
   DropdownMenu,
@@ -13,7 +7,7 @@ import {
 } from "@radix-ui/themes";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { produce } from "immer";
 
 import ShowError from "../../ShowError";
@@ -42,14 +36,6 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import { getNextPlan } from "../../util/plan";
 import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
 import { DynamicClientsTab } from "../../components/dynamic-clients/DynamicClientsTab";
-
-// Navigation state the create-application screens attach when they send the
-// user back to this list (breadcrumb / Cancel). It suppresses the empty-list
-// auto-redirect to ./add, so cancelling the create flow can actually land on
-// the empty list instead of bouncing back to the wizard (DEV-3810).
-export const FROM_CREATE_APPLICATION_FLOW_STATE = {
-  fromCreateApplicationFlow: true,
-};
 
 export interface FormState {
   clients: OAuthClientConfig[];
@@ -539,17 +525,6 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
 const ApplicationsConfigurationScreen: React.VFC =
   function ApplicationsConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    const fromCreateApplicationFlow =
-      (location.state as { fromCreateApplicationFlow?: boolean } | null)
-        ?.fromCreateApplicationFlow === true;
-
-    // Whether this mounted screen has ever shown a non-empty list. Deleting
-    // the last application should reveal the empty state, not throw the user
-    // into the create wizard.
-    const [hadClients, setHadClients] = useState(false);
 
     const form = useAppConfigForm({
       appID,
@@ -606,31 +581,7 @@ const ApplicationsConfigurationScreen: React.VFC =
       }
     }, [form, featureConfig]);
 
-    if (!isLoading && !error && form.state.clients.length > 0 && !hadClients) {
-      // Adjust-state-during-render pattern; React re-renders immediately
-      // without committing the stale output.
-      setHadClients(true);
-    }
-
-    // A visit with no application still lands directly on the create wizard
-    // (e.g. clicking Applications in the nav), unless the user is coming back
-    // from that wizard — then show the empty list so the flow can be quit.
-    // A deep link to the dynamic-clients tab must never bounce to the wizard.
-    const shouldRedirectToAdd =
-      !isLoading &&
-      !error &&
-      form.state.clients.length === 0 &&
-      !fromCreateApplicationFlow &&
-      !hadClients &&
-      selectedKey === "applications";
-
-    useEffect(() => {
-      if (shouldRedirectToAdd) {
-        navigate("./add", { replace: true });
-      }
-    }, [shouldRedirectToAdd, navigate]);
-
-    if (isLoading || shouldRedirectToAdd) {
+    if (isLoading) {
       return <ShowLoading />;
     }
 
