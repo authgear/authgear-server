@@ -254,7 +254,9 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
                 <FormattedMessage id="DynamicClientsTab.iat-required.toggle.description" />
               </Text>
             </div>
-            <InitialAccessTokenSection />
+            <InitialAccessTokenSection
+              registrationEndpoint={registrationEndpoint}
+            />
           </SettingsSectionCard>
         ) : null}
 

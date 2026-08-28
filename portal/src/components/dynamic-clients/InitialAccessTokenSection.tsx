@@ -21,7 +21,15 @@ import { CreateInitialAccessTokenDialog } from "./CreateInitialAccessTokenDialog
 import { InitialAccessTokenRevealDialog } from "./InitialAccessTokenRevealDialog";
 import styles from "./InitialAccessTokenSection.module.css";
 
-function InitialAccessTokenSectionContent(): React.ReactElement {
+interface InitialAccessTokenSectionProps {
+  // The project's client registration endpoint, for the reveal dialog's
+  // example request.
+  registrationEndpoint: string;
+}
+
+function InitialAccessTokenSectionContent({
+  registrationEndpoint,
+}: InitialAccessTokenSectionProps): React.ReactElement {
   const { setErrors } = useErrorMessageBarContext();
 
   const { data, refetch } = useInitialAccessTokensQueryQuery();
@@ -141,6 +149,7 @@ function InitialAccessTokenSectionContent(): React.ReactElement {
       />
       <InitialAccessTokenRevealDialog
         token={revealedToken}
+        registrationEndpoint={registrationEndpoint}
         onDismiss={onDismissReveal}
       />
       <ConfirmationDialog
@@ -166,10 +175,12 @@ function InitialAccessTokenSectionContent(): React.ReactElement {
   );
 }
 
-export function InitialAccessTokenSection(): React.ReactElement {
+export function InitialAccessTokenSection(
+  props: InitialAccessTokenSectionProps
+): React.ReactElement {
   return (
     <ErrorMessageBarContextProvider>
-      <InitialAccessTokenSectionContent />
+      <InitialAccessTokenSectionContent {...props} />
     </ErrorMessageBarContextProvider>
   );
 }

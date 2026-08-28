@@ -2640,6 +2640,7 @@
   "InitialAccessTokenRevealDialog.title": "Token created",
   "InitialAccessTokenRevealDialog.description": "Copy the token now and store it securely.",
   "InitialAccessTokenRevealDialog.token.label": "Initial access token",
+  "InitialAccessTokenRevealDialog.example.label": "Example: register a client",
   "InitialAccessTokenRevealDialog.warning": "You won't see this token again after closing this dialog.",
   "InitialAccessTokenRevealDialog.done": "Done",
   "LoginIDKeyType.email": "Email address",

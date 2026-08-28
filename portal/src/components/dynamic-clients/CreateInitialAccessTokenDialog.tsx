@@ -222,6 +222,7 @@ export function CreateInitialAccessTokenDialog({
             {tokenType === InitialAccessTokenType.FirstParty ? (
               <Callout
                 type="warning"
+                showCloseButton={false}
                 text={
                   <FormattedMessage id="CreateInitialAccessTokenDialog.first-party.warning" />
                 }
