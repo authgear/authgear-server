@@ -175,19 +175,17 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             <FormattedMessage id="DynamicClientsTab.section.registration.title" />
           }
         >
-          <div className="flex flex-col gap-1">
-            <Toggle
-              checked={registrationEnabled}
-              disabled={isUpdating}
-              onCheckedChange={onEnabledChange}
-              text={
-                <FormattedMessage id="DynamicClientsTab.enable.toggle.label" />
-              }
-            />
-            <Text as="p" size="1" color="gray">
-              <FormattedMessage id="DynamicClientsTab.enable.description" />
-            </Text>
-          </div>
+          <Text as="p" size="2" color="gray">
+            <FormattedMessage id="DynamicClientsTab.enable.description" />
+          </Text>
+          <Toggle
+            checked={registrationEnabled}
+            disabled={isUpdating}
+            onCheckedChange={onEnabledChange}
+            text={
+              <FormattedMessage id="DynamicClientsTab.enable.toggle.label" />
+            }
+          />
           {registrationEnabled ? (
             <TextField
               size="2"
@@ -262,10 +260,10 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             title={
               <FormattedMessage id="DynamicClientsTab.default-client-config.title" />
             }
-          >
-            <Text as="p" size="2" color="gray">
+            description={
               <FormattedMessage id="DynamicClientsTab.default-client-config.description" />
-            </Text>
+            }
+          >
             <TextField
               size="2"
               labelSize="2"
@@ -301,11 +299,11 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
                 checked={state.refreshTokenIdleTimeoutEnabled}
                 onCheckedChange={onRefreshTokenIdleTimeoutEnabledChange}
                 text={
-                  <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.label" />
+                  <FormattedMessage id="EditOAuthClientForm.refresh-token-idle-timeout-enabled.label" />
                 }
               />
               <Text as="p" size="1" color="gray">
-                <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.description" />
+                <FormattedMessage id="EditOAuthClientForm.refresh-token-idle-timeout-enabled.description" />
               </Text>
             </div>
             <TextField
@@ -333,10 +331,14 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             title={
               <FormattedMessage id="DynamicClientsTab.allowed-resources.title" />
             }
+            description={
+              <FormattedMessage id="DynamicClientsTab.allowed-resources.description" />
+            }
           >
+            <DynamicClientAllowedResources />
             <Text as="p" size="2" color="gray">
               <FormattedMessage
-                id="DynamicClientsTab.allowed-resources.description"
+                id="DynamicClientsTab.allowed-resources.manage"
                 values={{
                   // eslint-disable-next-line react/no-unstable-nested-components
                   apiResourcesLink: (chunks: React.ReactNode) => (
@@ -347,7 +349,6 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
                 }}
               />
             </Text>
-            <DynamicClientAllowedResources />
           </SettingsSectionCard>
         ) : null}
 

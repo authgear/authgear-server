@@ -1,8 +1,11 @@
 .table {
   /* Every row repeats this template instead of using subgrid, which
      stylelint's browser matrix does not accept yet; the shared custom
-     property keeps the copies from drifting. */
-  --iat-columns: 7rem 1fr 1fr auto;
+     property keeps the copies from drifting. Every track must be
+     content-independent (no auto/min-content), or the rows -- each its own
+     grid -- would resolve different track sizes and the columns would
+     drift out of alignment. */
+  --iat-columns: 7rem 1fr 1fr 6rem;
 
   display: grid;
   grid-template-columns: var(--iat-columns);
@@ -17,6 +20,11 @@
   column-gap: 1rem;
   align-items: center;
   padding: 0.5rem 0;
+}
+
+.headerRow > :last-child,
+.row > :last-child {
+  justify-self: end;
 }
 
 .headerRow {
