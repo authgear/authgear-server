@@ -841,7 +841,6 @@
   "ScopeForm.allow-dynamic-access.label": "Allow dynamic third-party clients to request this scope",
   "ScopeForm.allow-dynamic-access.description": "Dynamically registered clients can request this scope when accessing this resource.",
   "ScopeForm.allow-dynamic-access.resource-off": "Dynamic client access is currently turned off for this resource, so this setting has no effect yet. Turn it on in the resource's Applications tab.",
-  "CreateScopeForm.allow-dynamic-access.label": "Allow dynamic third-party clients",
   "ScopeList.dynamic-badge": "Dynamic",
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
   "ApplicationsConfigurationScreen.client-list.name": "Name",

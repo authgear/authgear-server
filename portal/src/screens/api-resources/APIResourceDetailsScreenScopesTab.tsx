@@ -186,6 +186,9 @@ export function APIResourceDetailsScreenScopesTab({
               className="flex-1-0-auto min-w-40"
               state={form.state}
               setState={form.setState}
+              resourceAllowsDynamicAccess={
+                resource.accessPolicy.allowDynamicThirdPartyClientAccess
+              }
             />
             <SearchBox
               styles={{
