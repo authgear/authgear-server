@@ -41,6 +41,12 @@ func ProvideNilSMTPServerCredentialsSecretItem() *config.SMTPServerCredentialsSe
 	return nil
 }
 
-func ProvideEmptyOAuthConfig() *config.OAuthConfig {
-	return &config.OAuthConfig{}
+type NoopOAuthClientResolver struct{}
+
+func (r *NoopOAuthClientResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
+	panic("NoopOAuthClientResolver is not supposed to be reachable")
+}
+
+func ProvideOAuthClientResolver() *NoopOAuthClientResolver {
+	return &NoopOAuthClientResolver{}
 }

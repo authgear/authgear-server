@@ -216,11 +216,23 @@ func ValidateScopes(scopes []string, allowedScopes []string) error {
 	return nil
 }
 
-func ValidateScopesByClientConfig(client *config.OAuthClientConfig, scopes []string) error {
+// ValidateScopesByClientConfig validates scopes against the client's
+// allowed scopes. allowedResourceScopes is nil when no resource= was
+// requested; when non-empty, it is the resource-specific scope list of the
+// resource bound to this request (see docs/plans/dcr/2026-08-17-04-resource-access-policy.md
+// §5.2), additionally allowed on top of the normal AllowedScopes set. A
+// resource-specific scope requested without a matching resource is rejected
+// as invalid_scope by the ValidateScopes call below, since it is absent
+// from both lists.
+func ValidateScopesByClientConfig(client *config.OAuthClientConfig, scopes []string, allowedResourceScopes []string) error {
 	allowOfflineAccess := slices.Contains(GetAllowedGrantTypes(client), RefreshTokenGrantType)
 	hasOIDC := false
 	hasDeviceSSO := false
-	if err := ValidateScopes(scopes, AllowedScopes); err != nil {
+	allowedScopes := AllowedScopes
+	if len(allowedResourceScopes) > 0 {
+		allowedScopes = append(slices.Clone(AllowedScopes), allowedResourceScopes...)
+	}
+	if err := ValidateScopes(scopes, allowedScopes); err != nil {
 		return err
 	}
 	for _, s := range scopes {

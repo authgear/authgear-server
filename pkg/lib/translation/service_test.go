@@ -130,17 +130,23 @@ Authgear Team{{ end }}`, lang, path))
 		}
 		engine := &template.Engine{Resolver: resolver}
 
-		service := translation.Service{
-			TemplateEngine: engine,
-			StaticAssets:   NewMockStaticAssetResolver(ctl),
-			OAuthConfig: &config.OAuthConfig{
-				Clients: []config.OAuthClientConfig{
-					{
+		mockOAuthClientResolver := NewMockOAuthClientResolver(ctl)
+		mockOAuthClientResolver.EXPECT().ResolveClient(gomock.Any(), gomock.Any()).AnyTimes().DoAndReturn(
+			func(ctx context.Context, clientID string) *config.OAuthClientConfig {
+				if clientID == "my client id" {
+					return &config.OAuthClientConfig{
 						ClientID: "my client id",
 						Name:     "my client name",
-					},
-				},
+					}
+				}
+				return nil
 			},
+		)
+
+		service := translation.Service{
+			TemplateEngine:      engine,
+			StaticAssets:        NewMockStaticAssetResolver(ctl),
+			OAuthClientResolver: mockOAuthClientResolver,
 		}
 		return &service
 	}

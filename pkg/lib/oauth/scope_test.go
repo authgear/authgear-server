@@ -4,7 +4,39 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
+
+func TestValidateScopesByClientConfig(t *testing.T) {
+	Convey("ValidateScopesByClientConfig", t, func() {
+		client := &config.OAuthClientConfig{
+			ClientID:                       "client",
+			ApplicationType:                config.OAuthClientApplicationTypeSPA,
+			GrantTypes_do_not_use_directly: []string{"authorization_code", "refresh_token"},
+		}
+
+		Convey("baseline: openid alone with nil allowedResourceScopes is unchanged", func() {
+			err := ValidateScopesByClientConfig(client, []string{"openid"}, nil)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("a resource-specific scope matching allowedResourceScopes is allowed", func() {
+			err := ValidateScopesByClientConfig(client, []string{"openid", "read:orders"}, []string{"read:orders"})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("a resource-specific scope with no matching resource (nil allowedResourceScopes) is invalid_scope", func() {
+			err := ValidateScopesByClientConfig(client, []string{"openid", "read:orders"}, nil)
+			So(err, ShouldBeError, "specified scope is not allowed: read:orders")
+		})
+
+		Convey("a resource-specific scope not in the resource's own scope list is invalid_scope", func() {
+			err := ValidateScopesByClientConfig(client, []string{"openid", "read:orders"}, []string{"read:inventory"})
+			So(err, ShouldBeError, "specified scope is not allowed: read:orders")
+		})
+	})
+}
 
 func TestScopeAllowsClaim(t *testing.T) {
 	Convey("ScopeAllowsClaim", t, func() {

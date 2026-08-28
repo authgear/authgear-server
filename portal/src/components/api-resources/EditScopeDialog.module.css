@@ -5,3 +5,11 @@
 .formError {
   margin: 0;
 }
+
+.dynamicAccess {
+  @apply flex flex-col gap-1;
+}
+
+.dynamicAccessLabel {
+  @apply flex items-center gap-2;
+}

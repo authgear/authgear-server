@@ -43,6 +43,7 @@ export function APIResourceDetailsScreenScopesSection({
   const [initialState] = useState<CreateScopeFormState>({
     scope: "",
     description: "",
+    allowDynamicThirdPartyClientAccess: false,
   });
   const form = useSimpleForm<CreateScopeFormState, any>({
     defaultState: initialState,
@@ -54,6 +55,10 @@ export function APIResourceDetailsScreenScopesSection({
             resourceURI: resource.resourceURI,
             scope: sanitized.scope,
             description: sanitized.description,
+            accessPolicy: {
+              allowDynamicThirdPartyClientAccess:
+                sanitized.allowDynamicThirdPartyClientAccess,
+            },
           },
         },
         refetchQueries: [ResourceScopesQueryDocument],
@@ -188,6 +193,9 @@ export function APIResourceDetailsScreenScopesSection({
               className={styles.createForm}
               state={form.state}
               setState={form.setState}
+              resourceAllowsDynamicAccess={
+                resource.accessPolicy.allowDynamicThirdPartyClientAccess
+              }
             />
           </div>
           <hr className={styles.divider} />
@@ -245,6 +253,9 @@ export function APIResourceDetailsScreenScopesSection({
       <EditScopeDialog
         resourceURI={resource.resourceURI}
         scope={editingScope}
+        resourceAllowsDynamicAccess={
+          resource.accessPolicy.allowDynamicThirdPartyClientAccess
+        }
         onDismiss={onDismissEditDialog}
         onSaved={() => {
           refetch().catch(() => {});

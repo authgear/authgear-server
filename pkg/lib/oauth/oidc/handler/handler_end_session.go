@@ -61,16 +61,28 @@ type IDTokenHintOfflineGrantService interface {
 	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 }
 
+// EndSessionHandlerOAuthClientResolver resolves id_token_hint's aud claim to
+// a client, including a dynamically registered (DCR) one — unlike
+// h.Config.GetClient, which only knows about authgear.yaml clients. Without
+// this, a DCR client's id_token_hint could never be resolved, so the silent
+// RP-initiated logout fast path (client.IsFirstParty() below) would never
+// fire for a DCR client and every logout would fall through to the
+// confirmation page.
+type EndSessionHandlerOAuthClientResolver interface {
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
+}
+
 type EndSessionHandler struct {
-	Config           *config.OAuthConfig
-	Endpoints        oidc.EndpointsProvider
-	URLs             WebAppURLsProvider
-	SessionManager   LogoutSessionManager
-	SessionCookieDef session.CookieDef
-	Cookies          CookieManager
-	IDTokenVerifier  IDTokenVerifier
-	Sessions         IDTokenHintSessionProvider
-	OfflineGrants    IDTokenHintOfflineGrantService
+	Config              *config.OAuthConfig
+	OAuthClientResolver EndSessionHandlerOAuthClientResolver
+	Endpoints           oidc.EndpointsProvider
+	URLs                WebAppURLsProvider
+	SessionManager      LogoutSessionManager
+	SessionCookieDef    session.CookieDef
+	Cookies             CookieManager
+	IDTokenVerifier     IDTokenVerifier
+	Sessions            IDTokenHintSessionProvider
+	OfflineGrants       IDTokenHintOfflineGrantService
 }
 
 func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSession, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
@@ -267,8 +279,8 @@ func (h *EndSessionHandler) resolveIDTokenHintSession(ctx context.Context, idTok
 		return nil, nil, false
 	}
 
-	client, ok = h.Config.GetClient(aud[0])
-	if !ok {
+	client = h.OAuthClientResolver.ResolveClient(ctx, aud[0])
+	if client == nil {
 		return nil, nil, false
 	}
 

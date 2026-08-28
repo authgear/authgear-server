@@ -544,6 +544,7 @@ Use this event to add custom fields to the ID token.
 - [identity.biometric.disabled](#identitybiometricdisabled)
 - [usage.alert.triggered](#usagealerttriggered)
 - [rate_limit.blocked](#rate_limitblocked)
+- [oauth.client.registered](#oauthclientregistered)
 
 #### user.created
 
@@ -1178,6 +1179,44 @@ Payload:
 }
 ```
 
+#### oauth.client.registered
+
+Occurs after a client registers itself through the registration endpoint described in [Dynamic Client Registration](./dcr.md). It does not occur for a client declared in `authgear.yaml`, nor for a registration attempt that was rejected.
+
+`context.client_id` is the `client_id` of the newly registered client.
+
+Payload:
+```json5
+{
+  "payload": {
+    "client": {
+      "client_id": "dcrc_Xf2kLmNpQrStUvWx",
+      "source": "DCR",
+      "kind": "THIRD_PARTY",
+      "client_name": "PR #123 preview",
+      "application_type": "web",
+      "redirect_uris": ["https://pr-123.preview.example.com/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"]
+    },
+    "initial_access_token": {
+      "id": "60f4c2a1-9d3e-4a7b-8c15-2e6f0b9d4a83",
+      "type": "FIRST_PARTY"
+    }
+  }
+}
+```
+
+- `client.client_id`: The `client_id` assigned to the client. See [Client ID Format](./dcr.md#client-id-format).
+- `client.source`: How the client came to exist. `DCR` for a client created by the registration endpoint.
+- `client.kind`: `FIRST_PARTY` or `THIRD_PARTY`. Determined by the type of Initial Access Token used, not by `application_type`. See [Initial Access Token](./dcr.md#initial-access-token).
+- `client.client_name`: The registered client name. Absent if the client did not provide one.
+- `client.application_type`: `web` or `native`.
+- `client.redirect_uris`, `client.grant_types`, `client.response_types`: The registered values, after defaults have been applied. See [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
+- `initial_access_token`: The Initial Access Token that authorized the registration. **The field does not exist** when the project allows open registration (`initial_access_token_required: false`) and the client presented no token.
+  - `initial_access_token.id`: The ID of the token, as returned by the `initialAccessTokens` Admin API query. The token value itself is never included.
+  - `initial_access_token.type`: `FIRST_PARTY` or `THIRD_PARTY`.
+
 ### Events that support audit log
 
 The following documented events have audit log support.
@@ -1225,6 +1264,7 @@ Read [Audit Logs](./audit-log.md) for details.
 - `identity.biometric.enabled`
 - `identity.biometric.disabled`
 - `rate_limit.blocked`
+- `oauth.client.registered`
 
 ## Trigger Points Diagrams
 

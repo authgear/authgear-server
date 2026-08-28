@@ -8,6 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	config "github.com/authgear/authgear-server/pkg/lib/config"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -47,4 +48,41 @@ func (m *MockStaticAssetResolver) StaticAssetURL(ctx context.Context, id string)
 func (mr *MockStaticAssetResolverMockRecorder) StaticAssetURL(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StaticAssetURL", reflect.TypeOf((*MockStaticAssetResolver)(nil).StaticAssetURL), ctx, id)
+}
+
+// MockOAuthClientResolver is a mock of OAuthClientResolver interface.
+type MockOAuthClientResolver struct {
+	ctrl     *gomock.Controller
+	recorder *MockOAuthClientResolverMockRecorder
+}
+
+// MockOAuthClientResolverMockRecorder is the mock recorder for MockOAuthClientResolver.
+type MockOAuthClientResolverMockRecorder struct {
+	mock *MockOAuthClientResolver
+}
+
+// NewMockOAuthClientResolver creates a new mock instance.
+func NewMockOAuthClientResolver(ctrl *gomock.Controller) *MockOAuthClientResolver {
+	mock := &MockOAuthClientResolver{ctrl: ctrl}
+	mock.recorder = &MockOAuthClientResolverMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockOAuthClientResolver) EXPECT() *MockOAuthClientResolverMockRecorder {
+	return m.recorder
+}
+
+// ResolveClient mocks base method.
+func (m *MockOAuthClientResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResolveClient", ctx, clientID)
+	ret0, _ := ret[0].(*config.OAuthClientConfig)
+	return ret0
+}
+
+// ResolveClient indicates an expected call of ResolveClient.
+func (mr *MockOAuthClientResolverMockRecorder) ResolveClient(ctx, clientID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveClient", reflect.TypeOf((*MockOAuthClientResolver)(nil).ResolveClient), ctx, clientID)
 }

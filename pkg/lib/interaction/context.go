@@ -213,7 +213,7 @@ type OfflineGrantStore interface {
 }
 
 type OAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 type OAuthSessions interface {

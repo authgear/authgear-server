@@ -1,0 +1,24 @@
+.fields {
+  @apply flex flex-col gap-3;
+}
+
+.field {
+  @apply flex flex-col gap-0.5;
+}
+
+.uriList {
+  @apply flex flex-col gap-0.5;
+}
+
+.uri {
+  @apply break-all;
+}
+
+.copyRow {
+  @apply inline-flex items-center gap-1 min-w-0 max-w-full;
+}
+
+.copyRowText {
+  @apply min-w-0 break-all;
+  font-family: var(--code-font-family);
+}

@@ -20,11 +20,15 @@ type StaticAssetResolver interface {
 	StaticAssetURL(ctx context.Context, id string) (url string, err error)
 }
 
+type OAuthClientResolver interface {
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
+}
+
 type Service struct {
 	TemplateEngine                  *template.Engine
 	StaticAssets                    StaticAssetResolver
 	SMTPServerCredentialsSecretItem *config.SMTPServerCredentialsSecretItem
-	OAuthConfig                     *config.OAuthConfig
+	OAuthClientResolver             OAuthClientResolver
 
 	translations *template.TranslationMap `wire:"-"`
 }
@@ -278,7 +282,7 @@ func (s *Service) prepareTemplateVariables(ctx context.Context, v *PartialTempla
 	uiParams := uiparam.GetUIParam(ctx)
 	clientName := ""
 	if uiParams.ClientID != "" {
-		if client, ok := s.OAuthConfig.GetClient(uiParams.ClientID); ok {
+		if client := s.OAuthClientResolver.ResolveClient(ctx, uiParams.ClientID); client != nil {
 			clientName = client.Name
 		}
 	}

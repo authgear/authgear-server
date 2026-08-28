@@ -3,6 +3,7 @@ package resourcescope
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	databaseutil "github.com/authgear/authgear-server/pkg/util/databaseutil"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -17,17 +19,27 @@ import (
 
 func (s *Store) NewScope(resource *Resource, options *NewScopeOptions) *Scope {
 	now := s.Clock.NowUTC()
+	accessPolicy := model.AccessPolicy{}
+	if options.AccessPolicy != nil {
+		accessPolicy = *options.AccessPolicy
+	}
 	return &Scope{
-		ID:          uuid.NewString(),
-		CreatedAt:   now,
-		UpdatedAt:   now,
-		ResourceID:  resource.ID,
-		Scope:       options.Scope.Value,
-		Description: options.Description,
+		ID:           uuid.NewString(),
+		CreatedAt:    now,
+		UpdatedAt:    now,
+		ResourceID:   resource.ID,
+		Scope:        options.Scope.Value,
+		Description:  options.Description,
+		AccessPolicy: accessPolicy,
 	}
 }
 
 func (s *Store) CreateScope(ctx context.Context, scope *Scope) error {
+	accessPolicy, err := json.Marshal(scope.AccessPolicy)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_resource_scope")).
 		Columns(
@@ -37,6 +49,7 @@ func (s *Store) CreateScope(ctx context.Context, scope *Scope) error {
 			"resource_id",
 			"scope",
 			"description",
+			"access_policy",
 		).
 		Values(
 			scope.ID,
@@ -45,9 +58,10 @@ func (s *Store) CreateScope(ctx context.Context, scope *Scope) error {
 			scope.ResourceID,
 			scope.Scope,
 			scope.Description,
+			accessPolicy,
 		)
 
-	_, err := s.SQLExecutor.ExecWith(ctx, q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		if databaseutil.IsDuplicateKeyError(err) {
 			return ErrScopeDuplicate
@@ -76,6 +90,14 @@ func (s *Store) UpdateScope(ctx context.Context, options *UpdateScopeOptions) er
 		} else {
 			q = q.Set("description", *options.NewDesc)
 		}
+	}
+
+	if options.AccessPolicy != nil {
+		accessPolicy, err := json.Marshal(*options.AccessPolicy)
+		if err != nil {
+			return err
+		}
+		q = q.Set("access_policy", accessPolicy)
 	}
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
@@ -265,12 +287,15 @@ func (s *Store) selectScopeQuery(alias string) db.SelectBuilder {
 			aliasedColumn("resource_id"),
 			aliasedColumn("scope"),
 			aliasedColumn("description"),
+			aliasedColumn("access_policy"),
 		).
 		From(s.SQLBuilder.TableName("_auth_resource_scope"), alias)
 }
 
 func (s *Store) scanScope(scanner db.Scanner) (*Scope, error) {
 	sc := &Scope{}
+
+	var accessPolicy []byte
 
 	err := scanner.Scan(
 		&sc.ID,
@@ -279,12 +304,25 @@ func (s *Store) scanScope(scanner db.Scanner) (*Scope, error) {
 		&sc.ResourceID,
 		&sc.Scope,
 		&sc.Description,
+		&accessPolicy,
 	)
 	if err != nil {
 		return nil, err
 	}
 
+	if err := json.Unmarshal(accessPolicy, &sc.AccessPolicy); err != nil {
+		return nil, err
+	}
+
 	return sc, nil
+}
+
+// ListScopesForThirdPartyAccess returns only the scopes of resourceID whose
+// access_policy allows third-party access.
+func (s *Store) ListScopesForThirdPartyAccess(ctx context.Context, resourceID string) ([]*Scope, error) {
+	q := s.selectScopeQuery("s").
+		Where(fmt.Sprintf("s.resource_id = ? AND (s.access_policy->>'%s')::boolean IS TRUE", accessPolicyAllowDynamicThirdPartyClientAccessKey), resourceID)
+	return s.queryScopes(ctx, q)
 }
 
 func (s *Store) GetScopesByResourceIDAndScopes(ctx context.Context, resourceID string, scopes []string) (map[string]*Scope, error) {

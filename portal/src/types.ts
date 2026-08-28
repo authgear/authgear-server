@@ -613,6 +613,22 @@ export interface OAuthClientConfig {
 
 export interface OAuthConfig {
   clients?: OAuthClientConfig[];
+  dynamic_client_registration?: OAuthDynamicClientRegistrationConfig;
+}
+
+export interface OAuthDynamicClientRegistrationDefaultClientConfig {
+  access_token_lifetime_seconds?: DurationSeconds;
+  refresh_token_lifetime_seconds?: DurationSeconds;
+  refresh_token_idle_timeout_enabled?: boolean;
+  refresh_token_idle_timeout_seconds?: DurationSeconds;
+}
+
+export interface OAuthDynamicClientRegistrationConfig {
+  enabled?: boolean;
+  initial_access_token_required?: boolean;
+  default_client_config?: OAuthDynamicClientRegistrationDefaultClientConfig;
+  // rate_limits is intentionally not modeled: it has no portal UI, and the
+  // config form round-trips unknown keys through the full config document.
 }
 
 // SessionConfig
@@ -983,6 +999,20 @@ export interface PortalAPIFeatureConfig {
   messaging?: MessagingFeatureConfig;
   fraud_protection?: FraudProtectionFeatureConfig;
   collaborator?: CollaboratorFeatureConfig;
+  usage?: UsageFeatureConfig;
+}
+
+export interface UsageFeatureConfig {
+  limits?: UsageLimitsFeatureConfig;
+}
+
+export interface UsageLimitsFeatureConfig {
+  oauth_client_dcr?: StandingUsageLimitConfig[];
+}
+
+export interface StandingUsageLimitConfig {
+  quota?: number;
+  action?: "block" | "alert";
 }
 
 export interface AuthenticatorFeatureConfig {

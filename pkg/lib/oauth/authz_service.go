@@ -69,7 +69,7 @@ func (s *AuthorizationService) Delete(ctx context.Context, a *Authorization) err
 			} else if len(initialTokenHashes) > 0 {
 				// ComputeOfflineGrantExpiry is needed because SessionManager.List
 				// does not populate ExpireAtForResolvedSession.
-				expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+				expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(ctx, offlineGrant)
 				if err != nil {
 					return err
 				}

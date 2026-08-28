@@ -1,0 +1,28 @@
+query dynamicClientsQuery($first: Int, $after: String) {
+  dynamicClients(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        clientID
+        clientName
+        name
+        kind
+        source
+        registeredAt
+        applicationType
+        redirectURIs
+        grantTypes
+        responseTypes
+        logoURI
+        clientURI
+        tosURI
+        policyURI
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+    totalCount
+  }
+}

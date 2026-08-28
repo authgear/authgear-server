@@ -10,6 +10,7 @@ import {
   ApplicationListItem,
 } from "../../components/api-resources/ApplicationList";
 import { UnauthorizeApplicationDialog } from "../../components/api-resources/UnauthorizeApplicationDialog";
+import { DynamicClientsAccessRow } from "../../components/api-resources/DynamicClientsAccessRow";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ResourceQueryDocument,
@@ -226,6 +227,7 @@ export function APIResourceDetailsScreenApplicationsSection({
           }
           contentClassName={styles.cardContent}
         >
+          <DynamicClientsAccessRow resource={resource} />
           {isEmpty ? (
             <Text as="p" size="2" color="gray" className={styles.empty}>
               <FormattedMessage

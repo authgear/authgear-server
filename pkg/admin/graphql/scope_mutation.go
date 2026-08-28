@@ -48,6 +48,10 @@ var createScopeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.String,
 			Description: "The optional description of the scope.",
 		},
+		"accessPolicy": &graphql.InputObjectFieldConfig{
+			Type:        accessPolicyInputType,
+			Description: "The optional access policy of the scope. Defaults to no third-party access if omitted.",
+		},
 	},
 })
 
@@ -88,8 +92,9 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.NewScopeOptions{
-				Scope:       resourcescope.NewScope(ctx, scopeStr),
-				Description: description,
+				Scope:        resourcescope.NewScope(ctx, scopeStr),
+				Description:  description,
+				AccessPolicy: decodeAccessPolicyInput(input),
 			}
 
 			gqlCtx := GQLContext(ctx)
@@ -127,6 +132,10 @@ var updateScopeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.String,
 			Description: "The new description of the scope. Pass null if you do not need to update the description. Pass an empty string to remove the description.",
 		},
+		"accessPolicy": &graphql.InputObjectFieldConfig{
+			Type:        accessPolicyInputType,
+			Description: "The new access policy of the scope. If omitted, the existing access policy is unchanged.",
+		},
 	},
 })
 
@@ -161,9 +170,10 @@ var _ = registerMutationField(
 			}
 
 			options := &resourcescope.UpdateScopeOptions{
-				ResourceURI: resourceURI,
-				Scope:       scopeStr,
-				NewDesc:     newDescription,
+				ResourceURI:  resourceURI,
+				Scope:        scopeStr,
+				NewDesc:      newDescription,
+				AccessPolicy: decodeAccessPolicyInput(input),
 			}
 
 			ctx := p.Context

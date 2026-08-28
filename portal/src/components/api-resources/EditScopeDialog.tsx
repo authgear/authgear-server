@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo } from "react";
-import { Dialog, Flex, Text } from "@radix-ui/themes";
+import { Checkbox, Dialog, Flex, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import { parseAPIErrors, parseRawError } from "../../error/parse";
 import { useUpdateScopeMutationMutation } from "../../graphql/adminapi/mutations/updateScopeMutation.generated";
@@ -14,24 +14,39 @@ import styles from "./EditScopeDialog.module.css";
 
 interface EditScopeFormState {
   description: string;
+  allowDynamicThirdPartyClientAccess: boolean;
 }
 
 export interface EditScopeDialogProps {
   resourceURI: string;
   scope: Scope | null;
+  // Whether the parent resource allows dynamic third-party client access.
+  // When it does not, the scope-level checkbox has no effect yet, and the
+  // dialog shows a hint saying so -- same description pair CreateScopeForm
+  // shows on the create path.
+  resourceAllowsDynamicAccess: boolean;
   onDismiss: () => void;
   onSaved?: () => void;
 }
 
 export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
-  function EditScopeDialog({ resourceURI, scope, onDismiss, onSaved }) {
+  function EditScopeDialog({
+    resourceURI,
+    scope,
+    resourceAllowsDynamicAccess,
+    onDismiss,
+    onSaved,
+  }) {
     const { renderToString } = useContext(Context);
     const [updateScope] = useUpdateScopeMutationMutation();
     const open = scope != null;
     const scopeName = scope?.scope ?? "";
 
     const form = useSimpleForm<EditScopeFormState, Scope>({
-      defaultState: { description: "" },
+      defaultState: {
+        description: "",
+        allowDynamicThirdPartyClientAccess: false,
+      },
       submit: async (state) => {
         if (scope == null) {
           throw new Error("unexpected null scope");
@@ -42,6 +57,10 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
               resourceURI,
               scope: scope.scope,
               description: state.description.trim(),
+              accessPolicy: {
+                allowDynamicThirdPartyClientAccess:
+                  state.allowDynamicThirdPartyClientAccess,
+              },
             },
           },
           refetchQueries: [ResourceScopesQueryDocument],
@@ -63,6 +82,8 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
       }
       setState(() => ({
         description: scope.description ?? "",
+        allowDynamicThirdPartyClientAccess:
+          scope.accessPolicy.allowDynamicThirdPartyClientAccess,
       }));
     }, [scope, reset, setState]);
 
@@ -85,6 +106,19 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const description = e.target.value;
         setState((s) => ({ ...s, description }));
+      },
+      [setState]
+    );
+
+    const onAllowDynamicAccessChange = useCallback(
+      (checked: boolean | "indeterminate") => {
+        if (checked === "indeterminate") {
+          return;
+        }
+        setState((s) => ({
+          ...s,
+          allowDynamicThirdPartyClientAccess: checked,
+        }));
       },
       [setState]
     );
@@ -143,6 +177,24 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
                 "CreateScopeForm.description.placeholder"
               )}
             />
+            <div className={styles.dynamicAccess}>
+              <label className={styles.dynamicAccessLabel}>
+                <Checkbox
+                  checked={state.allowDynamicThirdPartyClientAccess}
+                  onCheckedChange={onAllowDynamicAccessChange}
+                />
+                <Text size="2">
+                  <FormattedMessage id="ScopeForm.allow-dynamic-access.label" />
+                </Text>
+              </label>
+              <Text as="p" size="1" color="gray">
+                {resourceAllowsDynamicAccess ? (
+                  <FormattedMessage id="ScopeForm.allow-dynamic-access.description" />
+                ) : (
+                  <FormattedMessage id="ScopeForm.allow-dynamic-access.resource-off" />
+                )}
+              </Text>
+            </div>
             <Flex gap="3" mt="4" justify="end">
               <SecondaryButton
                 size="2"

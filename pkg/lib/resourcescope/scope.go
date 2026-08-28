@@ -24,12 +24,18 @@ func NewScope(ctx context.Context, str string) newScope {
 type NewScopeOptions struct {
 	Scope       newScope
 	Description *string
+	// AccessPolicy is nil when the caller did not specify one, in which case
+	// the scope is created with the zero value (no third-party access).
+	AccessPolicy *model.AccessPolicy
 }
 
 type UpdateScopeOptions struct {
 	ResourceURI string
 	Scope       string
 	NewDesc     *string
+	// AccessPolicy is nil when the caller did not specify one, in which case
+	// the existing access policy is left unchanged.
+	AccessPolicy *model.AccessPolicy
 }
 
 type ListScopeOptions struct {
@@ -38,12 +44,13 @@ type ListScopeOptions struct {
 }
 
 type Scope struct {
-	ID          string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	ResourceID  string
-	Scope       string
-	Description *string
+	ID           string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	ResourceID   string
+	Scope        string
+	Description  *string
+	AccessPolicy model.AccessPolicy
 }
 
 func (s *Scope) ToModel() *model.Scope {
@@ -53,9 +60,10 @@ func (s *Scope) ToModel() *model.Scope {
 			CreatedAt: s.CreatedAt,
 			UpdatedAt: s.UpdatedAt,
 		},
-		ResourceID:  s.ResourceID,
-		Scope:       s.Scope,
-		Description: s.Description,
+		ResourceID:   s.ResourceID,
+		Scope:        s.Scope,
+		Description:  s.Description,
+		AccessPolicy: s.AccessPolicy,
 	}
 }
 

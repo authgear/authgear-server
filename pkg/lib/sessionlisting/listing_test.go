@@ -97,7 +97,7 @@ func TestSessionListingService(t *testing.T) {
 			offlineGrant2 := makeOfflineGrant("4", time.Date(2006, 4, 1, 1, 1, 1, 0, time.UTC), deviceInfo, idpSession.ID, "third-party-app-client-id", false)
 
 			idpSessions.EXPECT().CheckSessionExpired(any).Times(2).Return(false)
-			offlineGrants.EXPECT().CheckSessionExpired(any).Times(1).Return(false, time.Time{}, nil)
+			offlineGrants.EXPECT().CheckSessionExpired(any, any).Times(1).Return(false, time.Time{}, nil)
 
 			ctx := context.Background()
 			session, err := svc.FilterForDisplay(ctx, []session.ListableSession{
@@ -122,7 +122,7 @@ func TestSessionListingService(t *testing.T) {
 			offlineGrant2 := makeOfflineGrant("4", time.Date(2006, 4, 1, 1, 1, 1, 0, time.UTC), deviceInfo, idpSession.ID, "spa-client-id", false)
 
 			idpSessions.EXPECT().CheckSessionExpired(any).Times(2).Return(false)
-			offlineGrants.EXPECT().CheckSessionExpired(any).Times(2).Return(false, time.Time{}, nil)
+			offlineGrants.EXPECT().CheckSessionExpired(any, any).Times(2).Return(false, time.Time{}, nil)
 
 			ctx := context.Background()
 			session, err := svc.FilterForDisplay(ctx, []session.ListableSession{
@@ -149,8 +149,8 @@ func TestSessionListingService(t *testing.T) {
 
 			idpSessions.EXPECT().CheckSessionExpired(idpSession).Return(true)
 			idpSessions.EXPECT().CheckSessionExpired(idpSession2).Return(false)
-			offlineGrants.EXPECT().CheckSessionExpired(offlineGrant).Return(true, time.Time{}, nil)
-			offlineGrants.EXPECT().CheckSessionExpired(offlineGrant2).Return(false, time.Time{}, nil)
+			offlineGrants.EXPECT().CheckSessionExpired(gomock.Any(), offlineGrant).Return(true, time.Time{}, nil)
+			offlineGrants.EXPECT().CheckSessionExpired(gomock.Any(), offlineGrant2).Return(false, time.Time{}, nil)
 
 			ctx := context.Background()
 			session, err := svc.FilterForDisplay(ctx, []session.ListableSession{
@@ -176,7 +176,7 @@ func TestSessionListingService(t *testing.T) {
 			offlineGrant3 := makeOfflineGrant("5", time.Date(2006, 5, 1, 1, 1, 1, 0, time.UTC), deviceInfo2, idpSession.ID, "spa-client-id", true)
 
 			idpSessions.EXPECT().CheckSessionExpired(any).AnyTimes().Return(false)
-			offlineGrants.EXPECT().CheckSessionExpired(any).AnyTimes().Return(false, time.Time{}, nil)
+			offlineGrants.EXPECT().CheckSessionExpired(any, any).AnyTimes().Return(false, time.Time{}, nil)
 
 			updatedIDPSessionModel := idpSession.ToAPIModel()
 			offlineGrant3SessionModel := offlineGrant3.ToAPIModel()

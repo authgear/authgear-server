@@ -582,6 +582,8 @@
   "v2.page.consent.scopes.address": "あなたの住所にアクセスします。",
   "v2.page.consent.scopes.email": "あなたのメールアドレスにアクセスします。",
   "v2.page.consent.scopes.full-userinfo": "名前、メールアドレス、電話番号、住所など、プロフィール内の完全な情報にアクセスします。",
+  "v2.page.consent.scopes.offline-access": "アクセスを許可したデータへのアクセスを維持します。",
+  "v2.page.consent.scopes.openid": "サインインします。",
   "v2.page.consent.scopes.phone": "あなたの電話番号にアクセスします。",
   "v2.page.consent.scopes.profile": "メールアドレス、電話番号、住所を除く、名前などのプロフィール情報にアクセスします。",
   "v2.page.create-password.default.title": "パスワードの作成",

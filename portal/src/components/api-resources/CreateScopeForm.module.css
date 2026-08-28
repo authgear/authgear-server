@@ -23,3 +23,15 @@
     @apply self-start;
   }
 }
+
+.form {
+  @apply flex flex-col w-full min-w-0 gap-y-3;
+}
+
+.dynamicAccess {
+  @apply flex flex-col gap-1;
+}
+
+.dynamicAccessLabel {
+  @apply flex items-center gap-2;
+}

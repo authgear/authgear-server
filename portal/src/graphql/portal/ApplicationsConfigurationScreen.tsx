@@ -35,10 +35,13 @@ import { CardTable } from "../../components/v2/CardTable/CardTable";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import { FeatureDisabledCallout } from "../../components/v2/FeatureDisabledCallout/FeatureDisabledCallout";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import { useOAuthClientForm } from "../../hook/useOAuthClientForm";
+import { usePivotNavigation } from "../../hook/usePivot";
 import { getNextPlan } from "../../util/plan";
 import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
+import { DynamicClientsTab } from "../../components/dynamic-clients/DynamicClientsTab";
 
 // Navigation state the create-application screens attach when they send the
 // user back to this list (breadcrumb / Cancel). It suppresses the empty-list
@@ -48,13 +51,36 @@ export const FROM_CREATE_APPLICATION_FLOW_STATE = {
   fromCreateApplicationFlow: true,
 };
 
-interface FormState {
+export interface FormState {
   clients: OAuthClientConfig[];
+  dynamicClientRegistrationEnabled: boolean;
+  initialAccessTokenRequired: boolean;
+  accessTokenLifetimeSeconds: number | undefined;
+  refreshTokenLifetimeSeconds: number | undefined;
+  refreshTokenIdleTimeoutEnabled: boolean;
+  refreshTokenIdleTimeoutSeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
+  const dcr = config.oauth?.dynamic_client_registration;
   return {
     clients: config.oauth?.clients ?? [],
+    dynamicClientRegistrationEnabled: dcr?.enabled ?? false,
+    // Absent means required — the spec default. The requirement only means
+    // anything while registration is enabled, so normalise it back to required
+    // whenever registration is off: that way enabling registration can never
+    // silently open it, including for a config that arrived with the
+    // requirement already turned off. constructConfig then drops the key.
+    initialAccessTokenRequired:
+      dcr?.enabled ?? false ? dcr?.initial_access_token_required ?? true : true,
+    accessTokenLifetimeSeconds:
+      dcr?.default_client_config?.access_token_lifetime_seconds,
+    refreshTokenLifetimeSeconds:
+      dcr?.default_client_config?.refresh_token_lifetime_seconds,
+    refreshTokenIdleTimeoutEnabled:
+      dcr?.default_client_config?.refresh_token_idle_timeout_enabled ?? true,
+    refreshTokenIdleTimeoutSeconds:
+      dcr?.default_client_config?.refresh_token_idle_timeout_seconds,
   };
 }
 
@@ -68,6 +94,54 @@ function constructConfig(
     ([config, currentState]) => {
       config.oauth ??= {};
       config.oauth.clients = currentState.clients;
+
+      config.oauth.dynamic_client_registration ??= {};
+      const dcr = config.oauth.dynamic_client_registration;
+
+      if (currentState.dynamicClientRegistrationEnabled) {
+        dcr.enabled = true;
+      } else {
+        delete dcr.enabled;
+      }
+
+      if (currentState.initialAccessTokenRequired) {
+        // Absent means required — keep the config minimal.
+        delete dcr.initial_access_token_required;
+      } else {
+        dcr.initial_access_token_required = false;
+      }
+
+      dcr.default_client_config ??= {};
+      const defaultClientConfig = dcr.default_client_config;
+
+      if (currentState.accessTokenLifetimeSeconds != null) {
+        defaultClientConfig.access_token_lifetime_seconds =
+          currentState.accessTokenLifetimeSeconds;
+      } else {
+        delete defaultClientConfig.access_token_lifetime_seconds;
+      }
+
+      if (currentState.refreshTokenLifetimeSeconds != null) {
+        defaultClientConfig.refresh_token_lifetime_seconds =
+          currentState.refreshTokenLifetimeSeconds;
+      } else {
+        delete defaultClientConfig.refresh_token_lifetime_seconds;
+      }
+
+      if (currentState.refreshTokenIdleTimeoutEnabled) {
+        // Absent means enabled — the server default.
+        delete defaultClientConfig.refresh_token_idle_timeout_enabled;
+      } else {
+        defaultClientConfig.refresh_token_idle_timeout_enabled = false;
+      }
+
+      if (currentState.refreshTokenIdleTimeoutSeconds != null) {
+        defaultClientConfig.refresh_token_idle_timeout_seconds =
+          currentState.refreshTokenIdleTimeoutSeconds;
+      } else {
+        delete defaultClientConfig.refresh_token_idle_timeout_seconds;
+      }
+
       clearEmptyObject(config);
     }
   );
@@ -199,11 +273,17 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow(props) {
   );
 };
 
+type ApplicationsTabKey = "applications" | "dynamic-clients";
+
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   planName: string | null;
   oauthClientsSoftMaximum: number | undefined;
   oauthClientsHardMaximum: number | undefined;
+  selectedKey: ApplicationsTabKey;
+  onChangeKey: (key: ApplicationsTabKey) => void;
+  publicOrigin: string;
+  dcrClientQuota: number | null;
 }
 
 const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContentProps> =
@@ -213,8 +293,13 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       planName,
       oauthClientsHardMaximum,
       oauthClientsSoftMaximum,
+      selectedKey,
+      onChangeKey,
+      publicOrigin,
+      dcrClientQuota,
     } = props;
     const navigate = useNavigate();
+    const { renderToString } = useContext(Context);
     const { appID } = useParams() as { appID: string };
 
     const deleteForm = useOAuthClientForm(appID, null);
@@ -289,6 +374,31 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       return state.clients.length >= displayedClientMaximum;
     }, [state, displayedClientMaximum]);
 
+    const onTabChange = useCallback(
+      (value: string) => {
+        onChangeKey(value as ApplicationsTabKey);
+      },
+      [onChangeKey]
+    );
+
+    const tabOptions = useMemo(
+      () => [
+        {
+          value: "applications",
+          label: renderToString(
+            "ApplicationsConfigurationScreen.tab.applications"
+          ),
+        },
+        {
+          value: "dynamic-clients",
+          label: renderToString(
+            "ApplicationsConfigurationScreen.tab.dynamic-clients"
+          ),
+        },
+      ],
+      [renderToString]
+    );
+
     const isEmpty = state.clients.length === 0;
 
     return (
@@ -297,7 +407,7 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
           <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           </Text>
-          {isEmpty ? null : (
+          {selectedKey === "applications" && !isEmpty ? (
             <Tooltip
               content={
                 <FormattedMessage
@@ -320,75 +430,91 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
                 />
               </span>
             </Tooltip>
-          )}
+          ) : null}
         </div>
-        {isEmpty ? (
-          <div className={cn(styles.widget, styles.emptyState)}>
-            <RolesAndGroupsEmptyView
-              icon={
-                <span className={styles.emptyStateIconWrap}>
-                  <i
-                    className={cn("ti", "ti-apps", styles.emptyStateIcon)}
-                    aria-hidden={true}
+        <OverflowTabs
+          className={styles.widget}
+          value={selectedKey}
+          onValueChange={onTabChange}
+          tabs={tabOptions}
+        />
+        {selectedKey === "applications" ? (
+          isEmpty ? (
+            <div className={cn(styles.widget, styles.emptyState)}>
+              <RolesAndGroupsEmptyView
+                icon={
+                  <span className={styles.emptyStateIconWrap}>
+                    <i
+                      className={cn("ti", "ti-apps", styles.emptyStateIcon)}
+                      aria-hidden={true}
+                    />
+                  </span>
+                }
+                title={
+                  <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.title" />
+                }
+                description={
+                  <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.description" />
+                }
+                button={
+                  <RolesAndGroupsEmptyView.CreateButton
+                    onClick={goToCreateApp}
+                    text={
+                      <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
+                    }
                   />
-                </span>
-              }
-              title={
-                <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.title" />
-              }
-              description={
-                <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.description" />
-              }
-              button={
-                <RolesAndGroupsEmptyView.CreateButton
-                  onClick={goToCreateApp}
-                  text={
-                    <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
-                  }
-                />
-              }
+                }
+              />
+            </div>
+          ) : (
+            <>
+              <Text
+                as="p"
+                size="2"
+                className={cn(styles.widget, styles.pageDescription)}
+              >
+                <FormattedMessage id="ApplicationsConfigurationScreen.description" />
+              </Text>
+              <div className={cn(styles.widget, styles.listSection)}>
+                {displayMaximumWarning ? (
+                  <FeatureDisabledCallout
+                    messageID={
+                      canUpgradePlan
+                        ? "FeatureConfig.oauth-clients.maximum.upgrade"
+                        : "FeatureConfig.oauth-clients.maximum.contact-us"
+                    }
+                    messageValues={{ maximum: displayedClientMaximum! }}
+                  />
+                ) : null}
+                <CardTable>
+                  <CardTable.Header>
+                    <CardTable.HeaderCell className={styles.colName}>
+                      <FormattedMessage id="ApplicationsConfigurationScreen.client-list.name" />
+                    </CardTable.HeaderCell>
+                    <CardTable.HeaderCell className={styles.colClientId}>
+                      <FormattedMessage id="ApplicationsConfigurationScreen.client-list.client-id" />
+                    </CardTable.HeaderCell>
+                    <CardTable.HeaderCell className={styles.colActions} />
+                  </CardTable.Header>
+                  {state.clients.map((client) => (
+                    <ClientRow
+                      key={client.client_id}
+                      client={client}
+                      onDeleteClick={showDialogAndSetRemoveClientByID}
+                    />
+                  ))}
+                </CardTable>
+              </div>
+            </>
+          )
+        ) : (
+          <div className={styles.widget}>
+            <DynamicClientsTab
+              form={props.form}
+              publicOrigin={publicOrigin}
+              dcrClientQuota={dcrClientQuota}
             />
           </div>
-        ) : (
-          <>
-            <Text
-              as="p"
-              size="2"
-              className={cn(styles.widget, styles.pageDescription)}
-            >
-              <FormattedMessage id="ApplicationsConfigurationScreen.description" />
-            </Text>
-            <div className={cn(styles.widget, styles.listSection)}>
-              {displayMaximumWarning ? (
-                <FeatureDisabledCallout
-                  messageID={
-                    canUpgradePlan
-                      ? "FeatureConfig.oauth-clients.maximum.upgrade"
-                      : "FeatureConfig.oauth-clients.maximum.contact-us"
-                  }
-                  messageValues={{ maximum: displayedClientMaximum! }}
-                />
-              ) : null}
-              <CardTable>
-                <CardTable.Header>
-                  <CardTable.HeaderCell className={styles.colName}>
-                    <FormattedMessage id="ApplicationsConfigurationScreen.client-list.name" />
-                  </CardTable.HeaderCell>
-                  <CardTable.HeaderCell className={styles.colClientId}>
-                    <FormattedMessage id="ApplicationsConfigurationScreen.client-list.client-id" />
-                  </CardTable.HeaderCell>
-                  <CardTable.HeaderCell className={styles.colActions} />
-                </CardTable.Header>
-                {state.clients.map((client) => (
-                  <ClientRow
-                    key={client.client_id}
-                    client={client}
-                    onDeleteClick={showDialogAndSetRemoveClientByID}
-                  />
-                ))}
-              </CardTable>
-            </div>
-          </>
         )}
         <ConfirmationDialog
           open={isRemoveDialogVisible}
@@ -431,6 +557,26 @@ const ApplicationsConfigurationScreen: React.VFC =
       constructConfig,
     });
     const featureConfig = useAppFeatureConfigQuery(appID);
+    const { selectedKey, onChangeKey } = usePivotNavigation<ApplicationsTabKey>(
+      ["applications", "dynamic-clients"]
+    );
+
+    const publicOrigin = useMemo(() => {
+      return form.effectiveConfig.http?.public_origin ?? "";
+    }, [form.effectiveConfig]);
+
+    const dcrClientQuota = useMemo<number | null>(() => {
+      const limits =
+        featureConfig.effectiveFeatureConfig?.usage?.limits?.oauth_client_dcr;
+      const blockQuotas = (limits ?? [])
+        .filter((limit) => limit.action === "block")
+        .map((limit) => limit.quota)
+        .filter((quota): quota is number => quota != null);
+      if (blockQuotas.length === 0) {
+        return null;
+      }
+      return Math.min(...blockQuotas);
+    }, [featureConfig.effectiveFeatureConfig]);
 
     const oauthClientsHardMaximum = useMemo<number | undefined>(() => {
       return featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum;
@@ -469,12 +615,14 @@ const ApplicationsConfigurationScreen: React.VFC =
     // A visit with no application still lands directly on the create wizard
     // (e.g. clicking Applications in the nav), unless the user is coming back
     // from that wizard — then show the empty list so the flow can be quit.
+    // A deep link to the dynamic-clients tab must never bounce to the wizard.
     const shouldRedirectToAdd =
       !isLoading &&
       !error &&
       form.state.clients.length === 0 &&
       !fromCreateApplicationFlow &&
-      !hadClients;
+      !hadClients &&
+      selectedKey === "applications";
 
     useEffect(() => {
       if (shouldRedirectToAdd) {
@@ -497,6 +645,10 @@ const ApplicationsConfigurationScreen: React.VFC =
           planName={featureConfig.planName}
           oauthClientsHardMaximum={oauthClientsHardMaximum}
           oauthClientsSoftMaximum={oauthClientsSoftMaximum}
+          selectedKey={selectedKey}
+          onChangeKey={onChangeKey}
+          publicOrigin={publicOrigin}
+          dcrClientQuota={dcrClientQuota}
         />
       </FormContainer>
     );

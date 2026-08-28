@@ -1,0 +1,20 @@
+.radioOption {
+  cursor: pointer;
+}
+
+.radioItem {
+  @apply shrink-0;
+  margin-top: 0.125rem;
+}
+
+.radioContent {
+  @apply flex min-w-0 flex-col gap-1;
+}
+
+.radioContent p {
+  margin: 0;
+}
+
+.actions {
+  @apply mt-6 flex flex-row justify-end gap-3;
+}

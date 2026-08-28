@@ -582,6 +582,8 @@
   "v2.page.consent.scopes.address": "Truy cập địa chỉ của bạn.",
   "v2.page.consent.scopes.email": "Truy cập địa chỉ email của bạn.",
   "v2.page.consent.scopes.full-userinfo": "Truy cập thông tin đầy đủ trong hồ sơ của bạn như tên, địa chỉ email, số điện thoại và địa chỉ.",
+  "v2.page.consent.scopes.offline-access": "Duy trì quyền truy cập vào dữ liệu bạn đã cấp quyền truy cập.",
+  "v2.page.consent.scopes.openid": "Đăng nhập cho bạn.",
   "v2.page.consent.scopes.phone": "Truy cập số điện thoại của bạn.",
   "v2.page.consent.scopes.profile": "Truy cập hồ sơ của bạn như tên, nhưng không bao gồm địa chỉ email, số điện thoại và địa chỉ.",
   "v2.page.create-password.default.title": "Tạo Mật Khẩu",

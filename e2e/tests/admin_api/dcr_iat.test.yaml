@@ -1,0 +1,423 @@
+name: Create third-party initial access token by default
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: {}) {
+            token
+            initialAccessToken {
+              id
+              createdAt
+              expiresAt
+              type
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]",
+              "initialAccessToken": {
+                "id": "[[string]]",
+                "createdAt": "[[string]]",
+                "expiresAt": "[[string]]",
+                "type": "THIRD_PARTY"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: verify_token_format
+    action: query
+    query: |
+      SELECT
+        '{{ .steps.create_iat.result.data.createInitialAccessToken.token }}' LIKE 'iat_tp_%' AS has_correct_prefix,
+        length('{{ .steps.create_iat.result.data.createInitialAccessToken.token }}') AS token_length
+    query_output:
+      rows: |
+        [
+          {
+            "has_correct_prefix": true,
+            "token_length": 29
+          }
+        ]
+  - name: verify_stored_type
+    action: query
+    query: |
+      SELECT token_type
+      FROM _auth_oauth_initial_access_token
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "token_type": "THIRD_PARTY"
+          }
+        ]
+
+---
+
+name: Create first-party initial access token
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+            initialAccessToken {
+              id
+              type
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]",
+              "initialAccessToken": {
+                "id": "[[string]]",
+                "type": "FIRST_PARTY"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: verify_token_format
+    action: query
+    query: |
+      SELECT
+        '{{ .steps.create_iat.result.data.createInitialAccessToken.token }}' LIKE 'iat_fp_%' AS has_correct_prefix,
+        length('{{ .steps.create_iat.result.data.createInitialAccessToken.token }}') AS token_length
+    query_output:
+      rows: |
+        [
+          {
+            "has_correct_prefix": true,
+            "token_length": 29
+          }
+        ]
+  - name: verify_stored_type
+    action: query
+    query: |
+      SELECT token_type
+      FROM _auth_oauth_initial_access_token
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "token_type": "FIRST_PARTY"
+          }
+        ]
+
+---
+
+name: Create initial access token with explicit expiresIn
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { expiresIn: 120 }) {
+            token
+            initialAccessToken {
+              id
+              createdAt
+              expiresAt
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]",
+              "initialAccessToken": {
+                "id": "[[string]]",
+                "createdAt": "[[string]]",
+                "expiresAt": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: verify_expires_in
+    action: query
+    query: |
+      SELECT extract(epoch FROM (expires_at - created_at))::int AS diff_seconds
+      FROM _auth_oauth_initial_access_token
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "diff_seconds": 120
+          }
+        ]
+
+---
+
+name: List initial access tokens does not expose the plaintext token
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: {}) {
+            token
+            initialAccessToken {
+              id
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]",
+              "initialAccessToken": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: get_iat_row
+    action: query
+    query: |
+      SELECT id FROM _auth_oauth_initial_access_token
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+  - name: list_tokens
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          initialAccessTokens {
+            id
+            createdAt
+            expiresAt
+            type
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "initialAccessTokens": [
+              {
+                "id": "[[string]]",
+                "createdAt": "[[string]]",
+                "expiresAt": "[[string]]",
+                "type": "THIRD_PARTY"
+              }
+            ]
+          },
+          "errors": null
+        }
+  - name: list_tokens_token_field_rejected
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          initialAccessTokens {
+            id
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "",
+                "reason": ""
+              }
+            }
+          ]
+        }
+  - name: node_lookup_token_field_rejected
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query($id: ID!) {
+          node(id: $id) {
+            id
+            ... on InitialAccessToken {
+              token
+            }
+          }
+        }
+      variables: |
+        {
+          "id": "{{ nodeID "InitialAccessToken" (index .steps.get_iat_row.result.rows 0).id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "",
+                "reason": ""
+              }
+            }
+          ]
+        }
+
+---
+
+name: Revoke initial access token removes it from listing
+steps:
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: {}) {
+            token
+            initialAccessToken {
+              id
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]",
+              "initialAccessToken": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: get_iat_row
+    action: query
+    query: |
+      SELECT id FROM _auth_oauth_initial_access_token
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+  - name: revoke_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation($id: ID!) {
+          revokeInitialAccessToken(input: { id: $id }) {
+            ok
+          }
+        }
+      variables: |
+        {
+          "id": "{{ nodeID "InitialAccessToken" (index .steps.get_iat_row.result.rows 0).id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "revokeInitialAccessToken": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+  - name: verify_removed_from_list
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          initialAccessTokens {
+            id
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "initialAccessTokens": []
+          },
+          "errors": null
+        }
+  - name: verify_removed_from_db
+    action: query
+    query: |
+      SELECT id FROM _auth_oauth_initial_access_token
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        []
+
+---
+
+name: Revoke initial access token with a different node type ID returns error
+steps:
+  - name: revoke_wrong_type
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation($id: ID!) {
+          revokeInitialAccessToken(input: { id: $id }) {
+            ok
+          }
+        }
+      variables: |
+        {
+          "id": "{{ nodeID "Resource" "00000000-0000-0000-0000-000000000000" }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid"
+              }
+            }
+          ]
+        }

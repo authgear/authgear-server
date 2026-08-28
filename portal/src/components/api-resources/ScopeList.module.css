@@ -37,3 +37,12 @@
   @apply px-3 py-4;
   @apply self-end;
 }
+
+.colAccessPolicy {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 8rem;
+}
+
+.accessPolicyBadges {
+  @apply flex flex-row flex-wrap gap-1;
+}

@@ -43,6 +43,22 @@ func (s *IDPSession) ListableSession() {}
 func (s *IDPSession) SessionID() string         { return s.ID }
 func (s *IDPSession) SessionType() session.Type { return session.TypeIdentityProvider }
 
+// GetTokenType is always TokenTypeCookies: an IDPSession is resolved as a
+// ResolvedSession either via the IDP session cookie, or as the session
+// backing an access grant with no offline grant/refresh token
+// (GrantSessionKindSession in oauth.Resolver, selected via an
+// id_token_hint whose sid decodes to session.TypeIdentityProvider). The
+// latter never carries a third-party client: such an id_token can only be
+// minted by TokenHandler.handleIDToken (handler_token.go), which requires
+// client.HasFullAccessScope() -- true only for first-party SPA/Native/
+// TraditionalWeb clients (OAuthClientApplicationType.HasFullAccessScope,
+// pkg/lib/config/oauth.go), never for a third-party (static or dynamic) or
+// M2M client. Every other id_token issued via authorization_code/
+// refresh_token encodes an offline-grant SID instead (see the other
+// EncodeSID call sites in handler_token.go), so it can never produce this
+// grant kind at all.
+func (s *IDPSession) GetTokenType() session.TokenType { return session.TokenTypeCookies }
+
 func (s *IDPSession) GetCreatedAt() time.Time               { return s.CreatedAt }
 func (s *IDPSession) GetExpireAt() time.Time                { return s.ExpireAtForResolvedSession }
 func (s *IDPSession) GetAuthenticatedAt() time.Time         { return s.AuthenticatedAt }

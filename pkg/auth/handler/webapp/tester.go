@@ -190,7 +190,7 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 		h.notFound(w, r)
 		return nil
 	}
-	client := h.OAuthClientResolver.ResolveClient(tester.ClientIDTester)
+	client := h.OAuthClientResolver.ResolveClient(ctx, tester.ClientIDTester)
 	tokenRequest := protocol.TokenRequest{}
 	tokenRequest["code"] = []string{code}
 	tokenRequest["code_verifier"] = []string{testerToken.PKCEVerifier.CodeVerifier}

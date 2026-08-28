@@ -23,7 +23,21 @@ The portal has three link components. Use the right one — using the wrong one 
 | `ExternalLink` | `../../ExternalLink` | External URLs (`href`, opens in new tab) |
 | `LinkButton` | `../../LinkButton` | A button that visually looks like a link |
 
-**Never** use `Link` from `react-router-dom` directly — it renders a plain `<a>` tag with no FluentUI styling.
+**Never** use a component that renders a bare `<a>`. Two exist, and naming only
+the first is how this rule gets passed while being violated:
+
+- `Link` from `react-router-dom`
+- `ReactRouterLink` from `portal/src/ReactRouterLink.tsx` — a *local* file, so it
+  looks like a portal component, but it returns `<a {...rest} href={href} …>`
+  with no FluentUI wrapper
+
+Tailwind preflight ships `a{color:inherit;text-decoration:inherit}`, so a bare
+`<a>` inherits the surrounding colour and loses its underline: it renders as
+ordinary body text with no affordance that it is clickable. `portal/src/Link.tsx`
+and `ExternalLink.tsx` wrap FluentUI's `FluentLink`, which keeps its own styling.
+
+The test is what the component renders, not where it is imported from. If in
+doubt, open it and look for a bare `<a>`.
 
 ### Why this matters: the WidgetDescription / Text trap
 
@@ -83,13 +97,69 @@ onRenderLabel(
 
 **Never** cast JSX to string with `as any as string` — the link will not render correctly.
 
+## Config-backed forms (`useAppConfigForm`)
+
+Screens that edit `authgear.yaml` share three traps. All three shipped in the DCR
+settings tab and were caught only in review.
+
+**Never restate a server-side config default.** `effectiveAppConfig` resolves to
+`Context.Config.AppConfig`, which is post-`SetDefaults`, and `SetFieldDefaults`
+force-allocates whole sections — so `form.effectiveConfig` carries concrete values
+even when `authgear.yaml` omits the section entirely. Read placeholders and
+fallbacks from there. A local `const DEFAULT_FOO = 1800` duplicating a Go constant
+will drift, and the drift is silent because nothing type-checks it. If you think
+you need one, probe the real value first:
+
+```go
+// throwaway test in pkg/lib/config
+c := &SomeConfig{}; c.SetDefaults(); fmt.Printf("%+v\n", c)
+```
+
+**Bind schema validation errors to their field.** Any input written to app config
+must pass `parentJSONPointer` + `fieldName` (the v2 `TextField` and `FormTextField`
+both support them, plus `errorRules`). Without them a `minimum`/`type` violation
+falls through to the generic error bar with no indication which field caused it.
+The pointer is the parent object's, e.g.
+`/oauth/dynamic_client_registration/default_client_config` + `access_token_lifetime_seconds`.
+
+**Do not save from an individual control.** `saveWith(fn)` applies `fn` to
+`currentState` and saves *the whole form* — including edits elsewhere on the screen,
+and on sibling tabs that share the same form model — then clears the dirty flag, so
+the save bar disappears as if nothing had been pending. A toggle that "should take
+effect immediately" still belongs behind the Save button; use `setState` like every
+other control.
+
+## User-facing copy must match enforced behaviour
+
+Precision about *who* a permission covers is a correctness question, not a style one.
+Verify a claim against the code that enforces it, not against the config field's name:
+`allow_dynamic_third_party_client_access` gates only clients that are dynamic **and**
+third-party (`handler_authz.go`: `client.IsDynamicClient() && client.IsThirdParty()`),
+so "dynamically registered clients" and "third-party clients" are each wrong — one
+lets in dynamic first-party clients, the other static third-party ones.
+
+- After correcting one such string, grep for siblings making the same claim. These
+  travel in families and get fixed one at a time otherwise.
+- Go `Description` fields on GraphQL types ship in the published `schema.graphql` —
+  they are customer-facing docs, and are worth the same check.
+- A setting with both a create and an edit surface must **share** the string, not
+  own a near-duplicate key. Diverging labels for one setting is a bug: grep the
+  message id family (`Foo.bar.label` vs `CreateFoo.bar.label`) and reuse one key.
+- Copy shown for a state that is not yet in effect must say so, or be hidden until
+  it is. A warning that is false when displayed teaches admins to dismiss it.
+
 ## Verification checklist
 
 Before submitting a portal UI change:
 
 - [ ] No hardcoded user-facing string literals anywhere in the diff, including non-JSX config objects (chart library `label`/legend/tooltip config, form option lists, etc.) — all go through `renderToString`/`FormattedMessage`.
 - [ ] Every `Intl.DisplayNames`/`Intl.NumberFormat`/`Intl.DateTimeFormat`/luxon `toFormat`/`toLocaleString` call that produces user-visible text uses the active portal locale, not a hardcoded or default locale.
-- [ ] Links inside `WidgetDescription` or FluentUI `Text` use `Link` or `ExternalLink` from `portal/src`, not from `react-router-dom`.
+- [ ] Links inside `WidgetDescription` or FluentUI `Text` use `Link` or `ExternalLink` from `portal/src` — not `react-router-dom`'s `Link` and not `portal/src/ReactRouterLink`, both of which render a bare `<a>`.
 - [ ] Inline links in `FormattedMessage` `values` use `Link` or `ExternalLink` from `portal/src`.
 - [ ] Callbacks that may receive rich content (links, JSX) are typed `React.ReactNode`, not `string`.
+- [ ] No local constant restates a server-side config default; placeholders and fallbacks come from `form.effectiveConfig`.
+- [ ] Every config-backed input passes `parentJSONPointer` + `fieldName` so schema errors land on the field.
+- [ ] No individual control calls `saveWith`; nothing is written until Save.
+- [ ] Copy naming who a permission covers was checked against the enforcing code, and sibling strings making the same claim were grepped and fixed together.
+- [ ] A setting with create and edit surfaces shares one message id rather than near-duplicate keys.
 - [ ] Run `cd portal && npm run typecheck` — must pass clean.

@@ -15,4 +15,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthorizationFacade), "*"),
 	wire.Struct(new(OAuthFacade), "*"),
 	wire.Struct(new(LockoutFacade), "*"),
+	wire.Struct(new(DCRFacade), "*"),
 )

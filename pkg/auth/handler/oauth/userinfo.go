@@ -26,7 +26,7 @@ type ProtocolUserInfoProvider interface {
 var UserInfoHandlerLogger = slogutil.NewLogger("handler-user-info")
 
 type OAuthClientResolver interface {
-	ResolveClient(clientID string) *config.OAuthClientConfig
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 type UserInfoHandler struct {
@@ -39,7 +39,7 @@ type UserInfoHandler struct {
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	s := session.GetSession(ctx)
-	clientLike := oauth.SessionClientLike(s, h.OAuthClientResolver)
+	clientLike := oauth.SessionClientLike(ctx, s, h.OAuthClientResolver)
 	var userInfo map[string]any
 	err := h.Database.WithTx(ctx, func(ctx context.Context) (err error) {
 		userInfo, err = h.UserInfoProvider.GetUserInfo(ctx, s.GetAuthenticationInfo().UserID, clientLike)

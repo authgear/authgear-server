@@ -8,7 +8,7 @@ export type UpdateResourceMutationMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateResourceMutationMutation = { __typename?: 'Mutation', updateResource: { __typename?: 'UpdateResourcePayload', resource: { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, createdAt: any, updatedAt: any } } };
+export type UpdateResourceMutationMutation = { __typename?: 'Mutation', updateResource: { __typename?: 'UpdateResourcePayload', resource: { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, createdAt: any, updatedAt: any, accessPolicy: { __typename?: 'AccessPolicy', allowDynamicThirdPartyClientAccess: boolean } } } };
 
 
 export const UpdateResourceMutationDocument = gql`
@@ -18,6 +18,9 @@ export const UpdateResourceMutationDocument = gql`
       id
       name
       resourceURI
+      accessPolicy {
+        allowDynamicThirdPartyClientAccess
+      }
       createdAt
       updatedAt
     }
