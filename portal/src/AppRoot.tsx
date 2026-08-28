@@ -15,6 +15,9 @@ import {
 import { usePortalClient } from "./graphql/portal/apollo";
 import RequireAppFeature from "./RequireAppFeature";
 import RequireUser from "./RequireUser";
+import RequireAPIResource from "./RequireAPIResource";
+import RequireRole from "./RequireRole";
+import RequireGroup from "./RequireGroup";
 import { PortalAPIFeatureConfig } from "./types";
 
 // Feature-config predicates for the route-level RequireAppFeature guards. Each
@@ -365,7 +368,7 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":roleID">
+              <Route path=":roleID" element={<RequireRole />}>
                 <Route
                   index={true}
                   element={<Navigate to="details" replace={true} />}
@@ -400,7 +403,7 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":groupID">
+              <Route path=":groupID" element={<RequireGroup />}>
                 <Route
                   index={true}
                   element={<Navigate to="details" replace={true} />}
@@ -495,30 +498,32 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
-              path=":resourceID"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <APIResourceDetailsScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path=":resourceID/scopes/:scopeID"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <EditScopeScreen />
-                </Suspense>
-              }
-            />
-            <Route
-              path=":resourceID/applications/:clientID/scopes"
-              element={
-                <Suspense fallback={<ShowLoading />}>
-                  <EditApplicationScopesScreen />
-                </Suspense>
-              }
-            />
+            <Route path=":resourceID" element={<RequireAPIResource />}>
+              <Route
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <APIResourceDetailsScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="scopes/:scopeID"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <EditScopeScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="applications/:clientID/scopes"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <EditApplicationScopesScreen />
+                  </Suspense>
+                }
+              />
+            </Route>
           </Route>
 
           <Route path="branding">
