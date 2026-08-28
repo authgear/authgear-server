@@ -2490,7 +2490,7 @@
   "DynamicClientsTab.iat-required.toggle.label": "Require initial access token",
   "DynamicClientsTab.iat-required.toggle.description": "Only callers presenting a valid initial access token can register a client. Turning this off allows open registration: anyone can register a client with this project.",
   "DynamicClientsTab.open-registration.confirm.title": "Allow open registration?",
-  "DynamicClientsTab.open-registration.confirm.description": "Without the initial access token requirement, anyone can register OAuth clients with this project. If your plan caps the number of dynamic clients, strangers can use up the cap, and registration stays blocked until an admin deletes clients. You can turn the requirement back on at any time.",
+  "DynamicClientsTab.open-registration.confirm.description": "Anyone will be able to register OAuth clients with this project without an initial access token. If your plan caps the number of dynamic clients, strangers can use up the cap, and registration stays blocked until an admin deletes clients. You can turn the requirement back on at any time.",
   "DynamicClientsTab.open-registration.confirm.confirm": "Allow open registration",
   "DynamicClientsTab.open-registration.confirm.cancel": "Cancel",
   "DynamicClientsTab.default-client-config.title": "Default client configuration",

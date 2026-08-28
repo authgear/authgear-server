@@ -77,6 +77,13 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
         setState((prev) => ({
           ...prev,
           dynamicClientRegistrationEnabled: checked,
+          // Switching registration off resets the initial access token
+          // requirement, so re-enabling always starts from the safe default
+          // rather than quietly restoring open registration. Turning the
+          // requirement off again is an explicit, separately confirmed act.
+          initialAccessTokenRequired: checked
+            ? prev.initialAccessTokenRequired
+            : true,
         }));
       },
       [setState]
@@ -228,93 +235,97 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
           </SettingsSectionCard>
         ) : null}
 
-        <SettingsSectionCard
-          contentClassName="gap-4"
-          title={<FormattedMessage id="DynamicClientsTab.security.title" />}
-        >
-          <div className="flex flex-col gap-1">
-            <Toggle
-              checked={state.initialAccessTokenRequired}
-              onCheckedChange={onInitialAccessTokenRequiredChange}
-              text={
-                <FormattedMessage id="DynamicClientsTab.iat-required.toggle.label" />
-              }
-            />
-            <Text as="p" size="1" color="gray">
-              <FormattedMessage id="DynamicClientsTab.iat-required.toggle.description" />
-            </Text>
-          </div>
-          <InitialAccessTokenSection />
-        </SettingsSectionCard>
+        {registrationEnabled ? (
+          <SettingsSectionCard
+            contentClassName="gap-4"
+            title={<FormattedMessage id="DynamicClientsTab.security.title" />}
+          >
+            <div className="flex flex-col gap-1">
+              <Toggle
+                checked={state.initialAccessTokenRequired}
+                onCheckedChange={onInitialAccessTokenRequiredChange}
+                text={
+                  <FormattedMessage id="DynamicClientsTab.iat-required.toggle.label" />
+                }
+              />
+              <Text as="p" size="1" color="gray">
+                <FormattedMessage id="DynamicClientsTab.iat-required.toggle.description" />
+              </Text>
+            </div>
+            <InitialAccessTokenSection />
+          </SettingsSectionCard>
+        ) : null}
 
-        <SettingsSectionCard
-          contentClassName="gap-4"
-          title={
-            <FormattedMessage id="DynamicClientsTab.default-client-config.title" />
-          }
-        >
-          <Text as="p" size="2" color="gray">
-            <FormattedMessage id="DynamicClientsTab.default-client-config.description" />
-          </Text>
-          <TextField
-            size="2"
-            labelSize="2"
-            type="text"
-            label={
-              <FormattedMessage id="DynamicClientsTab.access-token-lifetime.label" />
+        {registrationEnabled ? (
+          <SettingsSectionCard
+            contentClassName="gap-4"
+            title={
+              <FormattedMessage id="DynamicClientsTab.default-client-config.title" />
             }
-            parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
-            fieldName="access_token_lifetime_seconds"
-            placeholder={effectiveDefaultClientConfig?.access_token_lifetime_seconds?.toFixed(
-              0
-            )}
-            value={state.accessTokenLifetimeSeconds?.toFixed(0) ?? ""}
-            onChange={onAccessTokenLifetimeChange}
-          />
-          <TextField
-            size="2"
-            labelSize="2"
-            type="text"
-            label={
-              <FormattedMessage id="DynamicClientsTab.refresh-token-lifetime.label" />
-            }
-            parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
-            fieldName="refresh_token_lifetime_seconds"
-            placeholder={effectiveDefaultClientConfig?.refresh_token_lifetime_seconds?.toFixed(
-              0
-            )}
-            value={state.refreshTokenLifetimeSeconds?.toFixed(0) ?? ""}
-            onChange={onRefreshTokenLifetimeChange}
-          />
-          <div className="flex flex-col gap-1">
-            <Toggle
-              checked={state.refreshTokenIdleTimeoutEnabled}
-              onCheckedChange={onRefreshTokenIdleTimeoutEnabledChange}
-              text={
-                <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.label" />
-              }
-            />
-            <Text as="p" size="1" color="gray">
-              <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.description" />
+          >
+            <Text as="p" size="2" color="gray">
+              <FormattedMessage id="DynamicClientsTab.default-client-config.description" />
             </Text>
-          </div>
-          <TextField
-            size="2"
-            labelSize="2"
-            type="text"
-            disabled={!state.refreshTokenIdleTimeoutEnabled}
-            label={
-              <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout.label" />
-            }
-            parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
-            fieldName="refresh_token_idle_timeout_seconds"
-            placeholder={effectiveDefaultClientConfig?.refresh_token_idle_timeout_seconds?.toFixed(
-              0
-            )}
-            value={state.refreshTokenIdleTimeoutSeconds?.toFixed(0) ?? ""}
-            onChange={onRefreshTokenIdleTimeoutChange}
-          />
-        </SettingsSectionCard>
+            <TextField
+              size="2"
+              labelSize="2"
+              type="text"
+              label={
+                <FormattedMessage id="DynamicClientsTab.access-token-lifetime.label" />
+              }
+              parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
+              fieldName="access_token_lifetime_seconds"
+              placeholder={effectiveDefaultClientConfig?.access_token_lifetime_seconds?.toFixed(
+                0
+              )}
+              value={state.accessTokenLifetimeSeconds?.toFixed(0) ?? ""}
+              onChange={onAccessTokenLifetimeChange}
+            />
+            <TextField
+              size="2"
+              labelSize="2"
+              type="text"
+              label={
+                <FormattedMessage id="DynamicClientsTab.refresh-token-lifetime.label" />
+              }
+              parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
+              fieldName="refresh_token_lifetime_seconds"
+              placeholder={effectiveDefaultClientConfig?.refresh_token_lifetime_seconds?.toFixed(
+                0
+              )}
+              value={state.refreshTokenLifetimeSeconds?.toFixed(0) ?? ""}
+              onChange={onRefreshTokenLifetimeChange}
+            />
+            <div className="flex flex-col gap-1">
+              <Toggle
+                checked={state.refreshTokenIdleTimeoutEnabled}
+                onCheckedChange={onRefreshTokenIdleTimeoutEnabledChange}
+                text={
+                  <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.label" />
+                }
+              />
+              <Text as="p" size="1" color="gray">
+                <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.description" />
+              </Text>
+            </div>
+            <TextField
+              size="2"
+              labelSize="2"
+              type="text"
+              disabled={!state.refreshTokenIdleTimeoutEnabled}
+              label={
+                <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout.label" />
+              }
+              parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
+              fieldName="refresh_token_idle_timeout_seconds"
+              placeholder={effectiveDefaultClientConfig?.refresh_token_idle_timeout_seconds?.toFixed(
+                0
+              )}
+              value={state.refreshTokenIdleTimeoutSeconds?.toFixed(0) ?? ""}
+              onChange={onRefreshTokenIdleTimeoutChange}
+            />
+          </SettingsSectionCard>
+        ) : null}
 
         {registrationEnabled ? (
           <SettingsSectionCard

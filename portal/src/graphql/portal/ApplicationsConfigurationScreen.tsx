@@ -83,8 +83,13 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     clients: config.oauth?.clients ?? [],
     dynamicClientRegistrationEnabled: dcr?.enabled ?? false,
-    // Absent means required — the spec default.
-    initialAccessTokenRequired: dcr?.initial_access_token_required ?? true,
+    // Absent means required — the spec default. The requirement only means
+    // anything while registration is enabled, so normalise it back to required
+    // whenever registration is off: that way enabling registration can never
+    // silently open it, including for a config that arrived with the
+    // requirement already turned off. constructConfig then drops the key.
+    initialAccessTokenRequired:
+      dcr?.enabled ?? false ? dcr?.initial_access_token_required ?? true : true,
     accessTokenLifetimeSeconds:
       dcr?.default_client_config?.access_token_lifetime_seconds,
     refreshTokenLifetimeSeconds:
