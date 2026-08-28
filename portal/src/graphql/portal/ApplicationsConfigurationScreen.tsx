@@ -393,30 +393,6 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
           <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           </Text>
-          {selectedKey === "applications" && !isEmpty ? (
-            <Tooltip
-              content={
-                <FormattedMessage
-                  id="ApplicationsConfigurationScreen.add-client-button.hard-limit-tooltip"
-                  values={{ maximum: oauthClientsHardMaximum ?? 0 }}
-                />
-              }
-              disabled={!hardLimitReached}
-            >
-              {/* The tooltip must still fire when the button is disabled, so it
-                anchors on a wrapper span instead of the button itself. */}
-              <span>
-                <PrimaryButton
-                  size="2"
-                  text={
-                    <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
-                  }
-                  onClick={goToCreateApp}
-                  disabled={hardLimitReached}
-                />
-              </span>
-            </Tooltip>
-          ) : null}
         </div>
         <OverflowTabs
           className={styles.widget}
@@ -454,13 +430,34 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
             </div>
           ) : (
             <>
-              <Text
-                as="p"
-                size="2"
-                className={cn(styles.widget, styles.pageDescription)}
-              >
-                <FormattedMessage id="ApplicationsConfigurationScreen.description" />
-              </Text>
+              <div className={cn(styles.widget, styles.listHeader)}>
+                <Text as="p" size="2" className={styles.pageDescription}>
+                  <FormattedMessage id="ApplicationsConfigurationScreen.description" />
+                </Text>
+                <Tooltip
+                  content={
+                    <FormattedMessage
+                      id="ApplicationsConfigurationScreen.add-client-button.hard-limit-tooltip"
+                      values={{ maximum: oauthClientsHardMaximum ?? 0 }}
+                    />
+                  }
+                  disabled={!hardLimitReached}
+                >
+                  {/* The tooltip must still fire when the button is disabled,
+                    so it anchors on a wrapper span instead of the button
+                    itself. */}
+                  <span>
+                    <PrimaryButton
+                      size="2"
+                      text={
+                        <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
+                      }
+                      onClick={goToCreateApp}
+                      disabled={hardLimitReached}
+                    />
+                  </span>
+                </Tooltip>
+              </div>
               <div className={cn(styles.widget, styles.listSection)}>
                 {displayMaximumWarning ? (
                   <FeatureDisabledCallout

@@ -127,3 +127,11 @@
 .rowActionsButton:not(:hover):not([data-state="open"]) {
   background-color: transparent;
 }
+
+.listHeader {
+  @apply flex items-center justify-between gap-4;
+}
+
+.listHeader .pageDescription {
+  @apply min-w-0 flex-1;
+}
