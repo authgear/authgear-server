@@ -52,8 +52,39 @@ import {
   ACTIVITY_TYPE_ALL,
   ActivityTypeFilterDropdownOptionKey,
 } from "../../components/audit-log/ActivityTypeFilterDropdown";
+import { formatCustomDateRangeLabel } from "../../util/formatDatetime";
 
 const pageSize = 100;
+
+function parseDateRangeSearchParam(
+  value: string | null,
+  bound: "from" | "to"
+): Date | null {
+  if (value == null || value === "") {
+    return null;
+  }
+  // Legacy bookmarks used yyyy-MM-dd. Backend rangeTo is exclusive
+  // (created_at < rangeTo), so `from` is start of day and `to` is end of day
+  // to keep the selected calendar day inclusive.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const dt = DateTime.fromISO(value);
+    if (!dt.isValid) {
+      return null;
+    }
+    return bound === "to"
+      ? dt.endOf("day").toJSDate()
+      : dt.startOf("day").toJSDate();
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatDateRangeSearchParam(date: Date | null): string {
+  if (date == null) {
+    return "";
+  }
+  return DateTime.fromJSDate(date).toISO() ?? "";
+}
 
 function isBareAuditLogListURL(
   queryAuditLogKind: string,
@@ -142,7 +173,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     commit: commitRangeFrom,
     rollback: rollbackRangeFrom,
   } = useTransactionalState<Date | null>(
-    queryFrom != null && queryFrom !== "" ? new Date(queryFrom) : null
+    parseDateRangeSearchParam(queryFrom, "from")
   );
 
   const {
@@ -153,7 +184,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     commit: commitRangeTo,
     rollback: rollbackRangeTo,
   } = useTransactionalState<Date | null>(
-    queryTo != null && queryTo !== "" ? new Date(queryTo) : null
+    parseDateRangeSearchParam(queryTo, "to")
   );
 
   const { appID } = useParams() as { appID: string };
@@ -192,15 +223,22 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const queryRangeTo = useMemo(() => {
     if (rangeTo != null) {
-      return DateTime.fromJSDate(rangeTo)
-        .plus({ days: 1 })
-        .toJSDate()
-        .toISOString();
+      return rangeTo.toISOString();
     }
     return lastUpdatedAt.toISOString();
   }, [rangeTo, lastUpdatedAt]);
 
   const isCustomDateRange = rangeFrom != null || rangeTo != null;
+
+  const { renderToString } = useContext(Context);
+
+  const customDateRangeLabel = useMemo(
+    () =>
+      isCustomDateRange
+        ? formatCustomDateRangeLabel(rangeFrom, rangeTo)
+        : undefined,
+    [isCustomDateRange, rangeFrom, rangeTo]
+  );
 
   const onClickAllDateRange = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
@@ -223,10 +261,16 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const filtersDateRange = useMemo<AuditLogFilterBarPropsDateRange>(() => {
     return {
       value: isCustomDateRange ? "customDateRange" : "allDateRange",
+      customRangeLabel: customDateRangeLabel,
       onClickAllDateRange,
       onClickCustomDateRange,
     };
-  }, [isCustomDateRange, onClickAllDateRange, onClickCustomDateRange]);
+  }, [
+    isCustomDateRange,
+    customDateRangeLabel,
+    onClickAllDateRange,
+    onClickCustomDateRange,
+  ]);
 
   const [debouncedSearchQuery] = useDebounced(filters.searchKeyword, 300);
 
@@ -275,8 +319,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setOffset(0);
   }, [debouncedSearchQuery]);
 
-  const { renderToString } = useContext(Context);
-
   // On first page load without a timestamp in the URL (e.g. sidebar nav),
   // set last_updated_at. When arriving via a link that already includes
   // last_updated_at (e.g. User Details "View all"), keep the URL value so we
@@ -300,10 +342,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
     const params: URLSearchParamsInit = {};
 
-    const newQueryFrom =
-      rangeFrom != null ? DateTime.fromJSDate(rangeFrom).toISODate() : "";
-    const newQueryTo =
-      rangeTo != null ? DateTime.fromJSDate(rangeTo).toISODate() : "";
+    const newQueryFrom = formatDateRangeSearchParam(rangeFrom);
+    const newQueryTo = formatDateRangeSearchParam(rangeTo);
     const newQueryOrderBy = sortDirection;
     const newQueryPage = page.toString();
     const newQueryActivityType = filters.activityType;
@@ -695,14 +735,13 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         toDatePickerLabel={renderToString("AuditLogScreen.date-range.end-date")}
         rangeFrom={uncommittedRangeFrom ?? undefined}
         rangeTo={uncommittedRangeTo ?? undefined}
-        fromDatePickerMinDate={datePickerMinDate}
         fromDatePickerMaxDate={lastUpdatedAt}
-        toDatePickerMinDate={datePickerMinDate}
         toDatePickerMaxDate={lastUpdatedAt}
         onSelectRangeFrom={onSelectRangeFrom}
         onSelectRangeTo={onSelectRangeTo}
         onCommitDateRange={commitDateRange}
         onDismiss={onDismissDateRangeDialog}
+        showTimePicker={true}
       />
     </>
   );

@@ -50,10 +50,11 @@ export function formatDatetimeWithoutTimezone(
 }
 
 export function formatCustomDateRangeLabel(
-  locale: string,
   rangeFrom: Date | null,
   rangeTo: Date | null
 ): string | undefined {
+  // Match DateTimePicker / Authgear datetime display (en-US 12-hour AM/PM).
+  const locale = "en-US";
   const fromLabel =
     rangeFrom != null
       ? toDateTime(rangeFrom)
