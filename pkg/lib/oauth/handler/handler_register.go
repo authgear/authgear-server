@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,9 +16,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+var RegistrationHandlerLogger = slogutil.NewLogger("oauth-dcr-register")
+
+//go:generate go tool mockgen -source=handler_register.go -destination=handler_register_mock_test.go -package handler_test
 
 type RegistrationHandlerDCRService interface {
 	RegisterClient(ctx context.Context, options *dcr.RegisterClientOptions) (*model.OAuthClient, error)
@@ -124,17 +131,20 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	if authHeader := r.Header.Get("Authorization"); authHeader != "" {
 		const prefix = "Bearer "
 		if !strings.HasPrefix(authHeader, prefix) {
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken, "malformed_header", "", 0, nil)
 			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid Authorization header", http.StatusUnauthorized)
 		}
 		token = strings.TrimPrefix(authHeader, prefix)
 	}
 
 	if token == "" && h.OAuthConfig.DynamicClientRegistration.IsInitialAccessTokenRequired() {
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken, "not_presented", "", 0, nil)
 		return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "an initial access token is required", http.StatusUnauthorized)
 	}
 
 	var body registrationRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidClientMetadata, "malformed_json", "", 0, nil)
 		return nil, protocol.NewErrorStatusCode("invalid_client_metadata", "malformed JSON body", http.StatusBadRequest)
 	}
 
@@ -151,7 +161,9 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 		TokenEndpointAuthMethod: body.TokenEndpointAuthMethod,
 	})
 	if err != nil {
-		return nil, mapDCRValidationError(err)
+		httpErr, reason := mapDCRValidationError(err)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidClientMetadata, reason, "", 0, nil)
+		return nil, httpErr
 	}
 
 	// The IAT lookup and the client insert must share one transaction: both
@@ -161,53 +173,27 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	var iat *model.OAuthInitialAccessToken
 	var countBeforeCreate int
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
-		kind := model.OAuthClientKindThirdParty
-		if token != "" {
-			t, err := h.IAT.ValidateAndGetByToken(ctx, token)
-			if err != nil {
-				return err
-			}
-			iat = t
-			if iat.Type == model.OAuthInitialAccessTokenTypeFirstParty {
-				kind = model.OAuthClientKindFirstParty
-			}
-		}
-
-		// Close the check-then-insert race between concurrent registrations
-		// for the same app: a plain "SELECT COUNT(*) then INSERT" has a
-		// TOCTOU window where two concurrent requests both observe a count
-		// under quota and both proceed. Serialize per-app with a
-		// transaction-scoped advisory lock.
-		if err := h.DCR.LockForClientCount(ctx, model.OAuthClientSourceDCR); err != nil {
-			return err
-		}
-
-		clientCount, err := h.DCR.CountClientsBySource(ctx, model.OAuthClientSourceDCR)
-		if err != nil {
-			return err
-		}
-		//nolint:gosec // G115
-		count := int(clientCount)
-		if err := h.UsageLimiter.CheckStanding(ctx, model.UsageNameOAuthClientDCR, count); err != nil {
-			return protocol.NewErrorStatusCode("access_denied", "the project has reached its dynamic client registration limit", http.StatusForbidden)
-		}
-		countBeforeCreate = count
-
-		c, err := h.DCR.RegisterClient(ctx, &dcr.RegisterClientOptions{
-			Kind:         kind,
-			Registration: normalized,
-		})
+		c, i, count, err := h.registerClientInTx(ctx, token, normalized)
+		iat = i // set even on error: see registerClientInTx's own comment
 		if err != nil {
 			return err
 		}
 		client = c
-
+		countBeforeCreate = count
 		return h.Events.DispatchEventOnCommit(ctx, newOAuthClientRegisteredEventPayload(client, iat))
 	})
 	if err != nil {
 		if errors.Is(err, dcr.ErrInitialAccessTokenNotFound) {
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken, "unknown", "", 0, nil)
 			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid or expired initial access token", http.StatusUnauthorized)
 		}
+		if errors.Is(err, dcr.ErrInitialAccessTokenExpired) {
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken, "expired", "", 0, iat)
+			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid or expired initial access token", http.StatusUnauthorized)
+		}
+		// Any other error -- including the limit_exceeded access_denied
+		// error already dispatched above, and a pure infrastructure
+		// failure, which is not an audit outcome -- is returned as-is.
 		return nil, err
 	}
 	h.UsageLimiter.ReportStandingCreated(ctx, model.UsageNameOAuthClientDCR, countBeforeCreate)
@@ -227,17 +213,150 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	}, nil
 }
 
-// mapDCRValidationError maps a dcr.ValidateAndNormalize sentinel error to
-// its exact (error, status) pair from docs/specs/dcr.md's Errors table.
-// Only ErrDCRRedirectURIInvalid maps to invalid_redirect_uri; every other
-// validation failure — including a missing redirect_uris, which the
-// spec's causes table places under invalid_client_metadata rather than
-// invalid_redirect_uri — maps to invalid_client_metadata.
-func mapDCRValidationError(err error) error {
-	if errors.Is(err, dcr.ErrDCRRedirectURIInvalid) {
-		return protocol.NewErrorStatusCode("invalid_redirect_uri", err.Error(), http.StatusBadRequest)
+// registerClientInTx runs inside h.Database.WithTx: the IAT lookup, the
+// quota check-then-insert, and the client insert all need the same
+// transaction, and factoring them out of Handle keeps Handle's own
+// cognitive complexity within the repo's lint budget.
+//
+// The returned *model.OAuthInitialAccessToken is non-nil whenever a token
+// was presented, even when err is also non-nil -- ValidateAndGetByToken
+// deliberately returns a non-nil token together with
+// dcr.ErrInitialAccessTokenExpired, so the caller's audit event can
+// describe the row even though registration is refused. Check err first;
+// the token is for reporting only, never for authorizing.
+func (h *RegistrationHandler) registerClientInTx(
+	ctx context.Context,
+	token string,
+	normalized *dcr.NormalizedRegistration,
+) (client *model.OAuthClient, iat *model.OAuthInitialAccessToken, countBeforeCreate int, err error) {
+	kind := model.OAuthClientKindThirdParty
+	if token != "" {
+		iat, err = h.IAT.ValidateAndGetByToken(ctx, token)
+		if err != nil {
+			return nil, iat, 0, err
+		}
+		if iat.Type == model.OAuthInitialAccessTokenTypeFirstParty {
+			kind = model.OAuthClientKindFirstParty
+		}
 	}
-	return protocol.NewErrorStatusCode("invalid_client_metadata", err.Error(), http.StatusBadRequest)
+
+	// Close the check-then-insert race between concurrent registrations for
+	// the same app: a plain "SELECT COUNT(*) then INSERT" has a TOCTOU
+	// window where two concurrent requests both observe a count under quota
+	// and both proceed. Serialize per-app with a transaction-scoped
+	// advisory lock.
+	if err := h.DCR.LockForClientCount(ctx, model.OAuthClientSourceDCR); err != nil {
+		return nil, iat, 0, err
+	}
+
+	clientCount, err := h.DCR.CountClientsBySource(ctx, model.OAuthClientSourceDCR)
+	if err != nil {
+		return nil, iat, 0, err
+	}
+	//nolint:gosec // G115
+	count := int(clientCount)
+	if limitErr := h.UsageLimiter.CheckStanding(ctx, model.UsageNameOAuthClientDCR, count); limitErr != nil {
+		// Dispatched here, inside this same transaction, before returning:
+		// DispatchEventImmediately writes through its own path rather than
+		// this transaction, so the record survives the rollback this
+		// triggers.
+		usageName, quota, _ := usage.StandingUsageLimitDetails(limitErr)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeLimitExceeded, "", usageName, quota, nil)
+		return nil, iat, 0, protocol.NewErrorStatusCode("access_denied", "the project has reached its dynamic client registration limit", http.StatusForbidden)
+	}
+
+	client, err = h.DCR.RegisterClient(ctx, &dcr.RegisterClientOptions{
+		Kind:         kind,
+		Registration: normalized,
+	})
+	if err != nil {
+		return nil, iat, 0, err
+	}
+
+	return client, iat, count, nil
+}
+
+// mapDCRValidationError maps a dcr.ValidateAndNormalize sentinel error to
+// its exact (error, status) pair from docs/specs/dcr.md's Errors table, and
+// to the audit-log reason naming the rule that failed -- kept in this one
+// function so a new validation rule cannot get an HTTP error without also
+// getting an audit reason. Only ErrDCRRedirectURIInvalid maps to
+// invalid_redirect_uri; every other validation failure — including a
+// missing redirect_uris, which the spec's causes table places under
+// invalid_client_metadata rather than invalid_redirect_uri — maps to
+// invalid_client_metadata. Unlike CIMD's uniform "unavailable" outcome,
+// there is no oracle constraint on reason here: POST /oauth2/register
+// fetches nothing, so there is no reachability to leak, and this function
+// already puts the same detail in the HTTP response.
+func mapDCRValidationError(err error) (httpErr error, reason string) {
+	switch {
+	case errors.Is(err, dcr.ErrDCRRedirectURIsMissing):
+		reason = "redirect_uris_missing"
+	case errors.Is(err, dcr.ErrDCRRedirectURIInvalid):
+		return protocol.NewErrorStatusCode("invalid_redirect_uri", err.Error(), http.StatusBadRequest), "redirect_uri_invalid"
+	case errors.Is(err, dcr.ErrDCRGrantTypeUnsupported):
+		reason = "grant_type_unsupported"
+	case errors.Is(err, dcr.ErrDCRResponseTypeInconsistent):
+		reason = "response_type_inconsistent"
+	case errors.Is(err, dcr.ErrDCRApplicationTypeUnsupported):
+		reason = "application_type_unsupported"
+	case errors.Is(err, dcr.ErrDCRTokenEndpointAuthMethodNotAccepted):
+		reason = "token_endpoint_auth_method_not_accepted"
+	case errors.Is(err, dcr.ErrDCRURIFieldNotHTTPS):
+		reason = "uri_field_not_https"
+	default:
+		// Unreachable in practice -- ValidateAndNormalize returns only the
+		// sentinels above -- but never silently emit an empty reason for a
+		// genuinely new rule.
+		reason = "unknown"
+	}
+	return protocol.NewErrorStatusCode("invalid_client_metadata", err.Error(), http.StatusBadRequest), reason
+}
+
+// dispatchRegistrationFailed builds and dispatches oauth.client.registration.failed.
+// usageName/quota are set only for the limit_exceeded outcome; iat is set
+// only for the "expired" reason, mirroring
+// OAuthClientRegistrationFailedEventPayload's own field comments.
+func (h *RegistrationHandler) dispatchRegistrationFailed(
+	ctx context.Context,
+	outcome nonblocking.OAuthClientRegistrationOutcome,
+	reason string,
+	usageName model.UsageName,
+	quota int,
+	iat *model.OAuthInitialAccessToken,
+) {
+	h.dispatchImmediately(ctx, &nonblocking.OAuthClientRegistrationFailedEventPayload{
+		Outcome:            outcome,
+		Reason:             reason,
+		UsageName:          usageName,
+		Quota:              quota,
+		InitialAccessToken: nonblocking.NewEventPayloadInitialAccessToken(iat),
+	})
+}
+
+// dispatchImmediately is used for oauth.client.registration.failed, which
+// cannot use DispatchEventOnCommit: most failures precede any transaction,
+// and the limit_exceeded path's transaction is about to roll back, so
+// OnCommit would drop exactly the record that matters. Same IsInTx/ReadOnly
+// branch as cimd.Service.dispatchImmediately and
+// usage.Limiter.dispatchEventImmediately.
+//
+// The dispatch error is deliberately swallowed, not returned: an audit
+// write failing must never turn a 400/401/403 into a 500.
+func (h *RegistrationHandler) dispatchImmediately(ctx context.Context, payload event.NonBlockingPayload) {
+	dispatch := func(ctx context.Context) error {
+		return h.Events.DispatchEventImmediately(ctx, payload)
+	}
+	var err error
+	if h.Database.IsInTx(ctx) {
+		err = dispatch(ctx)
+	} else {
+		err = h.Database.ReadOnly(ctx, dispatch)
+	}
+	if err != nil {
+		RegistrationHandlerLogger.GetLogger(ctx).WithError(err).
+			Error(ctx, "dcr: failed to dispatch audit event")
+	}
 }
 
 func derefStringOr(s *string, fallback string) string {

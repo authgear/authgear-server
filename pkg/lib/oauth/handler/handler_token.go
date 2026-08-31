@@ -78,6 +78,11 @@ type IDTokenIssuer interface {
 type EventService interface {
 	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 	WillDeliverBlockingEvent(eventType event.Type) bool
+	// DispatchEventImmediately is used by RegistrationHandler for
+	// oauth.client.registration.failed: every failure path either precedes
+	// any transaction or sits inside one that is about to roll back, so
+	// DispatchEventOnCommit would drop exactly the record that matters.
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 }
 
 type TokenHandlerUserFacade interface {
