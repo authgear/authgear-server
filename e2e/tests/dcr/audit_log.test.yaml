@@ -297,3 +297,180 @@ steps:
           },
           "errors": null
         }
+
+---
+
+name: a registration with an invalid bearer token writes oauth.client.registration.failed with outcome invalid_initial_access_token
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer not-a-real-token"
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 401
+      json_body: |
+        {
+          "error": "invalid_initial_access_token"
+        }
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             client_id,
+             data->'payload'->>'outcome' AS outcome,
+             data->'payload'->>'reason' AS reason,
+             data->'payload' ? 'initial_access_token' AS has_iat
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}' AND activity_type = 'oauth.client.registration.failed'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.registration.failed",
+            "client_id": "",
+            "outcome": "invalid_initial_access_token",
+            "reason": "unknown",
+            "has_iat": false
+          }
+        ]
+
+---
+
+name: a malformed registration body writes oauth.client.registration.failed with outcome invalid_client_metadata
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: "{not json"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_client_metadata"
+        }
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             data->'payload'->>'outcome' AS outcome,
+             data->'payload'->>'reason' AS reason
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}' AND activity_type = 'oauth.client.registration.failed'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.registration.failed",
+            "outcome": "invalid_client_metadata",
+            "reason": "malformed_json"
+          }
+        ]
+
+---
+
+name: a registration refused by the oauth_client_dcr quota writes oauth.client.registration.failed with outcome limit_exceeded
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+authgear.features.yaml:
+  override: |
+    usage:
+      limits:
+        oauth_client_dcr:
+        - quota: 2
+          action: "block"
+steps:
+  - name: register_1
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-1.example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: register_2
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-2.example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: register_3_blocked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://mcp-client-3.example.com/callback"]
+      }
+    http_output:
+      http_status: 403
+      json_body: |
+        {
+          "error": "access_denied"
+        }
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             data->'payload'->>'outcome' AS outcome,
+             data->'payload'->>'usage_name' AS usage_name,
+             data->'payload'->>'quota' AS quota
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}' AND activity_type = 'oauth.client.registration.failed'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.registration.failed",
+            "outcome": "limit_exceeded",
+            "usage_name": "oauth_client_dcr",
+            "quota": "2"
+          }
+        ]
