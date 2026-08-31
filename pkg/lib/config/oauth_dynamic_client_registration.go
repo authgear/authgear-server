@@ -21,10 +21,10 @@ var _ = Schema.Add("OAuthDynamicClientRegistrationConfig", `
 // has run (e.g. a test that yaml.Unmarshals a snippet directly); at
 // runtime the receiver is always non-nil.
 type OAuthDynamicClientRegistrationConfig struct {
-	Enabled                    bool                                               `json:"enabled,omitempty"`
-	InitialAccessTokenRequired *bool                                              `json:"initial_access_token_required,omitempty"`
-	DefaultClientConfig        *OAuthDynamicClientTokenLifetimesConfig `json:"default_client_config,omitempty"`
-	RateLimits                 *OAuthDynamicClientRegistrationRateLimitsConfig    `json:"rate_limits,omitempty"`
+	Enabled                    bool                                            `json:"enabled,omitempty"`
+	InitialAccessTokenRequired *bool                                           `json:"initial_access_token_required,omitempty"`
+	DefaultClientConfig        *OAuthDynamicClientTokenLifetimesConfig         `json:"default_client_config,omitempty"`
+	RateLimits                 *OAuthDynamicClientRegistrationRateLimitsConfig `json:"rate_limits,omitempty"`
 }
 
 func (c *OAuthDynamicClientRegistrationConfig) IsEnabled() bool {
