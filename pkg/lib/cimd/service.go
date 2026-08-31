@@ -126,14 +126,11 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 		return nil
 	}
 
-	// (3) Domain trust, before anything that could touch the network. Only
-	// here -- not on the read path, so removing a domain stops new clients
-	// and refetches without breaking existing ones.
-	if !oauthclient.IsCIMDClientIDAllowed(cfg.GetAllowedDomains(), u) {
-		return ErrUnresolvable()
-	}
-
-	// (4) Freshness. One Redis GET in the common case.
+	// (3) Freshness. One Redis GET in the common case. Deliberately BEFORE
+	// the domain-trust check: allowed_domains must never affect a row that
+	// already exists, fresh or stale (Part 1 §4.1 / D5a) -- only reordering
+	// it this way lets a fresh row bypass the check entirely instead of
+	// being incorrectly refused the moment its domain is delisted.
 	existing, err := s.Queries.GetClientByClientID(ctx, clientID)
 	switch {
 	case err == nil:
@@ -148,6 +145,21 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 	default:
 		// An infrastructure failure is not an unresolvable client.
 		return err
+	}
+
+	// (4) Domain trust, before anything that could touch the network. Only
+	// here -- not on the read path, and not for a row that already exists
+	// (handled above) -- so removing a domain stops brand-new clients from
+	// onboarding, and stops refetches (an existing-but-stale row on a now-
+	// disallowed domain serves its last-known-good metadata forever,
+	// exactly like a failed refetch would -- D5a's "freezes this one's
+	// metadata permanently"), without ever touching a row that is still
+	// fresh.
+	if !oauthclient.IsCIMDClientIDAllowed(cfg.GetAllowedDomains(), u) {
+		if existing != nil {
+			return nil // serve the frozen stale record; never refetch it
+		}
+		return ErrUnresolvable()
 	}
 
 	// (5) Single-flight. A Redis failure degrades to a possible stampede,

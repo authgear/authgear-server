@@ -1,0 +1,64 @@
+name: Removing a domain from allowed_domains does not break an already-resolved client on that host, but still refuses a new one
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+        allowed_domains: ["*.example.com"]
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+before:
+  - type: custom_sql
+    custom_sql:
+      path: revoked_allowed_domains_keeps_existing_fixtures.sql
+steps:
+  # localhost is not *.example.com, so this host would never be allowed to
+  # onboard a NEW client -- but the seeded row is fresh, so
+  # EnsureClientResolved never reaches the allowed_domains check for it at
+  # all (Part 1 §4.1: the allowlist gates fetching, not reading).
+  - name: authorize_seeded
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/revoked-domains-seeded.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # A different, never-seeded client_id on the same disallowed host is
+  # refused, and never reaches the document server -- allowed_domains
+  # short-circuits before any fetch attempt.
+  - name: authorize_unseeded
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/revoked-domains-unseeded.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+  - name: verify_no_fetch_for_unseeded
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=revoked-domains-unseeded.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }

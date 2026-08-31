@@ -223,6 +223,57 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(ds.hits.Load(), ShouldEqual, int64(0))
 		})
 
+		Convey("a FRESH existing record on a host that now fails allowed_domains still resolves -- domain trust never applies to an existing row", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
+			defer ds.Close()
+			oauthConfig := enabledOAuthConfig()
+			oauthConfig.ClientIDMetadataDocument.AllowedDomains = []string{"only-this.example.com"}
+			fetchedAt := time.Now().Add(-30 * time.Minute)
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
+			}}
+			svc := &cimd.Service{
+				OAuthConfig:  oauthConfig,
+				Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+				Fetcher:      fetcherFor(ds),
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  cimd.ProvideNoopServiceRateLimiter(),
+				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(err, ShouldBeNil)
+			So(ds.hits.Load(), ShouldEqual, int64(0))
+		})
+
+		Convey("a STALE existing record on a host that now fails allowed_domains is served frozen -- no refetch is attempted", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
+			defer ds.Close()
+			oauthConfig := enabledOAuthConfig()
+			oauthConfig.ClientIDMetadataDocument.AllowedDomains = []string{"only-this.example.com"}
+			fetchedAt := time.Now().Add(-2 * time.Hour)
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
+			}}
+			commands := &stubCommands{}
+			svc := &cimd.Service{
+				OAuthConfig:  oauthConfig,
+				Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  cimd.ProvideNoopServiceRateLimiter(),
+				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(err, ShouldBeNil)
+			So(ds.hits.Load(), ShouldEqual, int64(0))
+			So(commands.upsertCalls.Load(), ShouldEqual, int64(0))
+		})
+
 		Convey("no record, fetch+validate ok: UpsertCIMDClient called once, options match the document, created observed", func() {
 			var ds *documentServer
 			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
