@@ -1,0 +1,203 @@
+name: the oauth_client_cimd usage limit blocks a new client at quota, never blocks a refetch, and a delete frees a slot
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    usage:
+      limits:
+        oauth_client_cimd:
+          - quota: 1
+            action: block
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document_a
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "usage-limit-a.json",
+        "document": {
+          "client_id": "http://localhost:2727/usage-limit-a.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: configure_document_b
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "usage-limit-b.json",
+        "document": {
+          "client_id": "http://localhost:2727/usage-limit-b.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  # 1. client A resolves and fills the quota (1).
+  - name: authorize_a
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/usage-limit-a.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: verify_client_a_created
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            totalCount
+            edges {
+              node {
+                clientID
+                source
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 1,
+              "edges": [
+                {
+                  "node": {
+                    "clientID": "http://localhost:2727/usage-limit-a.json",
+                    "source": "CIMD"
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
+
+  # 2. client B is a brand-new client_id, refused for a DIFFERENT reason
+  # than an unresolvable client -- access_denied, not unauthorized_client.
+  - name: authorize_b
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/usage-limit-b.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - access_denied
+
+  - name: verify_client_b_not_created
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            totalCount
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 1
+            }
+          },
+          "errors": null
+        }
+
+  # 3. client A is already resolved -- a refetch (or a fresh-record short
+  # circuit) is never blocked by the quota, even though the project is
+  # exactly at it.
+  - name: authorize_a_again
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/usage-limit-a.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # 4. deleting A frees the slot -- and documents that the limit is not a
+  # ban: B can now resolve.
+  - name: delete_client_a
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          deleteDynamicClient(input: { clientID: "http://localhost:2727/usage-limit-a.json" }) {
+            ok
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "deleteDynamicClient": {
+              "ok": true
+            }
+          },
+          "errors": null
+        }
+
+  # The failed authorize_b attempt above (step 2) took client B's
+  # single-flight lock (Part 3 §4.3, 10s TTL) before it was refused by the
+  # quota -- wait it out so this attempt isn't refused as "in flight"
+  # instead of exercising the quota-freed path this step is actually about.
+  - name: wait_out_single_flight_lock
+    action: sleep
+    sleep_for: 11s
+
+  - name: authorize_b_after_delete
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/usage-limit-b.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
