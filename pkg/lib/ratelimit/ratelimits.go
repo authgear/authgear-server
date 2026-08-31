@@ -48,6 +48,9 @@ const (
 
 	// Dynamic Client Registration rate limits
 	RateLimitGroupOAuthRegister RateLimitGroup = "oauth.register"
+
+	// Client ID Metadata Document rate limits
+	RateLimitGroupOAuthCIMDFetch RateLimitGroup = "oauth.cimd_fetch"
 )
 
 const (
@@ -115,6 +118,10 @@ const (
 	// Dynamic Client Registration
 	RateLimitOAuthRegisterPerIP      RateLimitName = "oauth.register.per_ip"
 	RateLimitOAuthRegisterPerProject RateLimitName = "oauth.register.per_project"
+
+	// Client ID Metadata Document
+	RateLimitOAuthCIMDFetchPerIP      RateLimitName = "oauth.cimd_fetch.per_ip"
+	RateLimitOAuthCIMDFetchPerProject RateLimitName = "oauth.cimd_fetch.per_project"
 )
 
 const (
@@ -200,6 +207,9 @@ const (
 
 	OAuthRegisterPerIP      BucketName = "OAuthRegisterPerIP"
 	OAuthRegisterPerProject BucketName = "OAuthRegisterPerProject"
+
+	OAuthCIMDFetchPerIP      BucketName = "OAuthCIMDFetchPerIP"
+	OAuthCIMDFetchPerProject BucketName = "OAuthCIMDFetchPerProject"
 )
 
 func (n RateLimitGroup) resolvePerIP(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
