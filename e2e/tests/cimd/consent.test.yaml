@@ -1,0 +1,189 @@
+name: the consent screen shows the client_id hostname and client_name for a CIMD client
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "consent-cimd.json",
+        "document": {
+          "client_id": "http://localhost:2727/consent-cimd.json",
+          "client_name": "Example MCP Client",
+          "redirect_uris": ["http://localhost:4000"],
+          "grant_types": ["authorization_code", "refresh_token"],
+          "response_types": ["code"],
+          "token_endpoint_auth_method": "none"
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: http://localhost:2727/consent-cimd.json
+    oauth_setup_scope:
+      - openid
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # The consent GET is read-only (Part 6 spec: renderConsentPage rolls back
+  # its own transaction), so fetching it here for content assertions and
+  # again via oauth_approve_consent below is safe.
+  - name: view_consent_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_output:
+      http_status: 200
+      html_text_contains:
+        # ClientIDHostname is url.URL.Hostname() -- port-free.
+        - "localhost"
+        - "Example MCP Client"
+
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: http://localhost:2727/consent-cimd.json
+    output:
+      result: |
+        {
+          "access_token": "[[string]]"
+        }
+
+---
+
+name: the consent screen renders normally for a static third-party client -- the hostname absence itself is asserted by the consentViewModelForClient unit tests, since this harness has no negative-HTML-content assertion
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2ethirdparty
+    oauth_setup_scope:
+      - openid
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: view_consent_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_output:
+      http_status: 200
+      html_text_contains:
+        - "Third party app"
