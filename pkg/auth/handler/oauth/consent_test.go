@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"net/url"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -16,7 +17,7 @@ func TestConsentViewModelForClient(t *testing.T) {
 				ClientID: "static-client",
 				Name:     "Foo",
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientName, ShouldEqual, "Foo")
 		})
 
@@ -29,7 +30,7 @@ func TestConsentViewModelForClient(t *testing.T) {
 				ClientID: "static-client",
 				Name:     "static-client",
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientName, ShouldEqual, "static-client")
 			So(vm.ClientName, ShouldNotBeEmpty)
 		})
@@ -44,7 +45,7 @@ func TestConsentViewModelForClient(t *testing.T) {
 				ClientName: "",
 				Name:       "Client https://mcp-client.example.com/oauth/client-metadata.json",
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientName, ShouldEqual, "Client https://mcp-client.example.com/oauth/client-metadata.json")
 		})
 
@@ -55,7 +56,7 @@ func TestConsentViewModelForClient(t *testing.T) {
 				PolicyURI: "https://example.com/policy",
 				TOSURI:    "https://example.com/tos",
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientPolicyURI, ShouldEqual, "https://example.com/policy")
 			So(vm.ClientTOSURI, ShouldEqual, "https://example.com/tos")
 		})
@@ -66,7 +67,7 @@ func TestConsentViewModelForClient(t *testing.T) {
 				Name:          "Example MCP Client",
 				DynamicSource: model.OAuthClientSourceCIMD,
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientName, ShouldEqual, "Example MCP Client")
 			So(vm.ClientIDHostname, ShouldEqual, "mcp-client.example.com")
 		})
@@ -77,7 +78,7 @@ func TestConsentViewModelForClient(t *testing.T) {
 				Name:          "Client https://mcp-client.example.com/oauth/client-metadata.json",
 				DynamicSource: model.OAuthClientSourceCIMD,
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientName, ShouldEqual, "Client https://mcp-client.example.com/oauth/client-metadata.json")
 			So(vm.ClientIDHostname, ShouldEqual, "mcp-client.example.com")
 		})
@@ -91,7 +92,7 @@ func TestConsentViewModelForClient(t *testing.T) {
 				// CIMD-resolved one. A naive strings.HasPrefix(clientID,
 				// "https://") check would get this wrong.
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientIDHostname, ShouldBeEmpty)
 		})
 
@@ -101,18 +102,18 @@ func TestConsentViewModelForClient(t *testing.T) {
 				Name:          "Some DCR Client",
 				DynamicSource: model.OAuthClientSourceDCR,
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientIDHostname, ShouldBeEmpty)
 		})
 
-		Convey("a CIMD client with logo_uri: ClientLogoURI is set", func() {
+		Convey("a CIMD client with logo_uri, no endpoints supplied: ClientLogoURI is the raw logo_uri", func() {
 			client := &config.OAuthClientConfig{
 				ClientID:      "https://mcp-client.example.com/oauth/client-metadata.json",
 				Name:          "Example MCP Client",
 				DynamicSource: model.OAuthClientSourceCIMD,
 				LogoURI:       "https://mcp-client.example.com/logo.png",
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientLogoURI, ShouldEqual, "https://mcp-client.example.com/logo.png")
 		})
 
@@ -121,8 +122,83 @@ func TestConsentViewModelForClient(t *testing.T) {
 				ClientID: "static-client",
 				Name:     "Foo",
 			}
-			vm := consentViewModelForClient(client)
+			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientLogoURI, ShouldBeEmpty)
 		})
+
+		Convey("a CIMD client with logo_uri, endpoints supplied: ClientLogoURI is the Authgear proxy URL -- the browser's actual connection target (the URL's host) is Authgear's origin, not the client's", func() {
+			client := &config.OAuthClientConfig{
+				ClientID:      "https://mcp-client.example.com/oauth/client-metadata.json",
+				Name:          "Example MCP Client",
+				DynamicSource: model.OAuthClientSourceCIMD,
+				IsDynamic:     true,
+				LogoURI:       "https://mcp-client.example.com/logo.png",
+			}
+			vm := consentViewModelForClient(client, &stubConsentClientLogoEndpoint{})
+			So(vm.ClientLogoURI, ShouldStartWith, "https://authgear.example.com/_internals/client_logo?")
+			parsed, err := url.Parse(vm.ClientLogoURI)
+			So(err, ShouldBeNil)
+			// The client's own hostname still appears TEXTUALLY inside the
+			// client_id query parameter (it names that host) -- what
+			// actually matters, and what a plain substring check would
+			// miss, is that the URL's own authority (what the browser
+			// connects to) is Authgear's, not the client's.
+			So(parsed.Host, ShouldEqual, "authgear.example.com")
+		})
+
+		Convey("a DCR client with logo_uri, endpoints supplied: ClientLogoURI is also the proxy URL -- the proxy covers both dynamic sources", func() {
+			client := &config.OAuthClientConfig{
+				ClientID:      "dcrc_abc123",
+				Name:          "Some DCR Client",
+				DynamicSource: model.OAuthClientSourceDCR,
+				IsDynamic:     true,
+				LogoURI:       "https://dcr-client.example.com/logo.png",
+			}
+			vm := consentViewModelForClient(client, &stubConsentClientLogoEndpoint{})
+			So(vm.ClientLogoURI, ShouldStartWith, "https://authgear.example.com/_internals/client_logo?")
+			// The proxy URL is keyed on ClientID, not on LogoURI -- so the
+			// client's own logo host (unlike a CIMD client_id, which is
+			// itself a URL) never appears in it at all.
+			So(vm.ClientLogoURI, ShouldNotContainSubstring, "dcr-client.example.com")
+		})
+
+		Convey("a STATIC client with logo_uri, endpoints supplied: ClientLogoURI is still the raw logo_uri -- the proxy is dynamic-clients only", func() {
+			client := &config.OAuthClientConfig{
+				ClientID: "static-client",
+				Name:     "Foo",
+				LogoURI:  "https://static-client.example.com/logo.png",
+				// IsDynamic left false -- a static client.
+			}
+			vm := consentViewModelForClient(client, &stubConsentClientLogoEndpoint{})
+			So(vm.ClientLogoURI, ShouldEqual, "https://static-client.example.com/logo.png")
+		})
+
+		Convey("the client_id in the proxy URL round-trips exactly, even when it contains ':', '/' and a query string", func() {
+			clientID := "https://mcp-client.example.com:8443/a/b/oauth/client-metadata.json?tenant=acme&v=2"
+			client := &config.OAuthClientConfig{
+				ClientID:      clientID,
+				Name:          "Example MCP Client",
+				DynamicSource: model.OAuthClientSourceCIMD,
+				IsDynamic:     true,
+				LogoURI:       "https://mcp-client.example.com/logo.png",
+			}
+			vm := consentViewModelForClient(client, &stubConsentClientLogoEndpoint{})
+			parsed, err := url.Parse(vm.ClientLogoURI)
+			So(err, ShouldBeNil)
+			So(parsed.Query().Get("client_id"), ShouldEqual, clientID)
+		})
 	})
+}
+
+// stubConsentClientLogoEndpoint mirrors *endpoints.Endpoints.ClientLogoURL
+// closely enough to test the round trip (percent-encoding a client_id
+// containing reserved URL characters) without depending on that package.
+type stubConsentClientLogoEndpoint struct{}
+
+func (stubConsentClientLogoEndpoint) ClientLogoURL(clientID string) *url.URL {
+	u, _ := url.Parse("https://authgear.example.com/_internals/client_logo")
+	q := url.Values{}
+	q.Set("client_id", clientID)
+	u.RawQuery = q.Encode()
+	return u
 }

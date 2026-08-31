@@ -2432,6 +2432,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:      responseRenderer,
 		Identities:    serviceService,
 		Users:         userQueries,
+		Endpoints:     endpointsEndpoints,
 	}
 	return consentHandler
 }
