@@ -11,6 +11,11 @@
     <h1 class="screen-title">
       {{ include "v2.page.consent.default.title" (dict "ClientName" $clientName) }}
     </h1>
+    {{ if $.ClientIDHostname }}
+      <p class="text-center text-sm text-[var(--color-neutral-600)]">
+        {{ include "v2.page.consent.default.client-hostname-desc" (dict "hostname" $.ClientIDHostname) }}
+      </p>
+    {{ end }}
     <div class="flex flex-col gap-4">
       <p class="text-center text-[1rem] font-medium text-[var(--color-neutral-700)] leading-[1.5rem]">
         {{ include "v2.page.consent.default.signed-in-as-label" $.UserProfile }}
