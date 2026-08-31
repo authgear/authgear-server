@@ -83,6 +83,13 @@ configs:
         oauth_client_dcr:
           - quota: 50
             action: block
+  - usage:
+      limits:
+        oauth_client_cimd:
+          - quota: 20
+            action: block
+          - quota: 15
+            action: alert
   - admin_api:
       user_import_usage:
         enabled: true
@@ -261,3 +268,8 @@ result:
       oauth_client_dcr:
         - quota: 50
           action: block
+      oauth_client_cimd:
+        - quota: 20
+          action: block
+        - quota: 15
+          action: alert

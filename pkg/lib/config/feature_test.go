@@ -257,6 +257,82 @@ collaborator:
 	})
 }
 
+// The shared "merge feature config" fixture (testdata/merge_feature.yaml)
+// only ever sets usage.limits.oauth_client_cimd from one layer, which
+// catches a whole-FeatureUsageLimitsConfig-replace bug but not a
+// misimplemented merge that appends instead of replacing, or one that
+// treats an explicit `[]` the same as "not set" (e.g. `if len(layer.X) > 0`).
+// These two cases need their own isolated two-layer merges to observe.
+func TestFeatureConfigUsageLimitsOAuthClientCIMDMerge(t *testing.T) {
+	Convey("a later layer overriding usage.limits.oauth_client_cimd replaces the earlier layer's list wholesale, not appends", t, func() {
+		ctx := context.Background()
+
+		planYAML := []byte(`
+usage:
+  limits:
+    oauth_client_cimd:
+      - quota: 20
+        action: block
+      - quota: 15
+        action: alert
+`)
+		appYAML := []byte(`
+usage:
+  limits:
+    oauth_client_cimd:
+      - quota: 5
+        action: block
+`)
+
+		planCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, planYAML)
+		So(err, ShouldBeNil)
+		appCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, appYAML)
+		So(err, ShouldBeNil)
+
+		mergedConfig := &config.FeatureConfig{}
+		mergedConfig = mergedConfig.Merge(planCfg)
+		mergedConfig = mergedConfig.Merge(appCfg)
+		config.SetFieldDefaults(mergedConfig)
+
+		So(mergedConfig.Usage, ShouldNotBeNil)
+		So(mergedConfig.Usage.Limits, ShouldNotBeNil)
+		So(mergedConfig.Usage.Limits.OAuthClientCIMD, ShouldResemble, []config.StandingFeatureUsageLimitConfig{
+			{Quota: 5, Action: model.UsageLimitActionBlock},
+		})
+	})
+
+	Convey("a later layer setting usage.limits.oauth_client_cimd to an empty list removes the earlier layer's limit", t, func() {
+		ctx := context.Background()
+
+		planYAML := []byte(`
+usage:
+  limits:
+    oauth_client_cimd:
+      - quota: 20
+        action: block
+`)
+		appYAML := []byte(`
+usage:
+  limits:
+    oauth_client_cimd: []
+`)
+
+		planCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, planYAML)
+		So(err, ShouldBeNil)
+		appCfg, err := config.ParseFeatureConfigWithoutDefaults(ctx, appYAML)
+		So(err, ShouldBeNil)
+
+		mergedConfig := &config.FeatureConfig{}
+		mergedConfig = mergedConfig.Merge(planCfg)
+		mergedConfig = mergedConfig.Merge(appCfg)
+		config.SetFieldDefaults(mergedConfig)
+
+		So(mergedConfig.Usage, ShouldNotBeNil)
+		So(mergedConfig.Usage.Limits, ShouldNotBeNil)
+		So(mergedConfig.Usage.Limits.OAuthClientCIMD, ShouldResemble, []config.StandingFeatureUsageLimitConfig{})
+	})
+}
+
 // These single-field sections have `false` as their real, correct default
 // (not disabled) -- `omitempty` hid that from JSON output, making a
 // fully-resolved section marshal as an empty object indistinguishable from

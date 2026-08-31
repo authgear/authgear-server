@@ -300,3 +300,24 @@ config:
     client_id_metadata_document:
       rate_limits:
         unknown_key: foo
+---
+name: cimd-usage-limit-with-period-fails
+error: |-
+  invalid feature config:
+  /usage/limits/oauth_client_cimd/0/period: 
+config:
+  usage:
+    limits:
+      oauth_client_cimd:
+        - quota: 20
+          period: month
+          action: block
+---
+name: cimd-usage-limit-valid
+error: null
+config:
+  usage:
+    limits:
+      oauth_client_cimd:
+        - quota: 20
+          action: block
