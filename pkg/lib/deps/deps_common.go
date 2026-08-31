@@ -425,6 +425,18 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.RegistrationHandlerIATService), new(*dcr.Queries)),
 	),
 
+	// cimd.DependencySet is deliberately NOT included here. cimd.Service
+	// needs *appdb.Handle (via ServiceDatabase), and *appdb.Handle is
+	// provided per-binary (deps.RequestDependencySet, or an explicit
+	// appdb.NewHandle in a binary-local set) rather than by
+	// CommonDependencySet -- so a wire.Bind to it here would force every
+	// binary that pulls in CommonDependencySet (background workers,
+	// pgsearch, elasticsearch, the resolver, images) to also provide
+	// *appdb.Handle, breaking ones that don't need cimd.Service at all.
+	// Wired instead in pkg/auth/deps.go, alongside the sibling
+	// AuthorizationHandlerDatabase bind to *appdb.Handle that already lives
+	// in that request-scoped set.
+
 	wire.NewSet(
 		userinfo.DependencySet,
 		wire.Bind(new(oidc.UserInfoService), new(*userinfo.UserInfoService)),

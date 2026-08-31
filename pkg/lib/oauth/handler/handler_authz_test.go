@@ -2,6 +2,7 @@ package handler_test
 
 import (
 	"context"
+	"errors"
 	"html/template"
 	"net/http"
 	"net/http/httptest"
@@ -16,17 +17,31 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/cimd"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
+
+// orderCheckingResolver lets a test observe that CIMDService.EnsureClientResolved
+// ran to completion before ClientResolver.ResolveClient is invoked.
+type orderCheckingResolver struct {
+	inner     handler.OAuthClientResolver
+	onResolve func()
+}
+
+func (r *orderCheckingResolver) ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig {
+	r.onResolve()
+	return r.inner.ResolveClient(ctx, clientID)
+}
 
 const htmlRedirectTemplateString = `<!DOCTYPE html>
 <html>
@@ -73,6 +88,21 @@ func TestAuthorizationHandler(t *testing.T) {
 		preAuthenticatedURLTokenService := NewMockAuthorizationHandlerPreAuthenticatedURLTokenService(ctrl)
 		idTokenIssuer := NewMockIDTokenIssuer(ctrl)
 		accessTokenEncoding := NewMockAuthorizationHandlerAccessTokenEncoding(ctrl)
+		// cimdEnsureFn defaults to a no-op (nil): every existing test in this
+		// file uses a static-shaped client_id, so CIMD resolution is always
+		// a no-op -- this is the regression guard that CIMD wiring doesn't
+		// disturb any existing flow. A single AnyTimes() expectation
+		// delegates to this reassignable func, rather than each leaf test
+		// registering its own EXPECT() -- gomock matches expected calls in
+		// the order they were recorded, so a second, more specific
+		// expectation added inside a nested Convey would never be reached
+		// behind an earlier catch-all AnyTimes() one.
+		cimdEnsureFn := func(ctx context.Context, clientID string) error { return nil }
+		cimdService := NewMockAuthorizationHandlerCIMDService(ctrl)
+		cimdService.EXPECT().EnsureClientResolved(gomock.Any(), gomock.Any()).AnyTimes().DoAndReturn(
+			func(ctx context.Context, clientID string) error {
+				return cimdEnsureFn(ctx, clientID)
+			})
 
 		appID := config.AppID("app-id")
 		h := &handler.AuthorizationHandler{
@@ -99,6 +129,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			PreAuthenticatedURLTokenService:         preAuthenticatedURLTokenService,
 			IDTokenIssuer:                           idTokenIssuer,
 			AuthorizationHandlerAccessTokenEncoding: accessTokenEncoding,
+			CIMDService:                             cimdService,
 		}
 		handle := func(ctx context.Context, r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			ctx, params, errResult := h.ValidateRequestWithoutTx(ctx, r)
@@ -154,6 +185,109 @@ func TestAuthorizationHandler(t *testing.T) {
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"http://accounts.example.com/settings?error=unauthorized_client&error_description=response+type+is+not+allowed+for+this+client",
 				))
+			})
+		})
+
+		Convey("CIMD resolution", func() {
+			Convey("EnsureClientResolved is called before ClientResolver.ResolveClient", func() {
+				ensureCalled := false
+				cimdEnsureFn = func(ctx context.Context, clientID string) error {
+					So(clientID, ShouldEqual, "client-id")
+					ensureCalled = true
+					return nil
+				}
+				clientResolver.ClientConfigs["client-id"] = &config.OAuthClientConfig{
+					ClientID:     "client-id",
+					RedirectURIs: []string{"https://example.com/"},
+				}
+				h.ClientResolver = &orderCheckingResolver{
+					inner: clientResolver,
+					onResolve: func() {
+						So(ensureCalled, ShouldBeTrue)
+					},
+				}
+
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
+					"client_id":    "client-id",
+					"redirect_uri": "https://example.com/",
+				})
+				So(resp.Result().StatusCode, ShouldNotEqual, 500)
+				So(ensureCalled, ShouldBeTrue)
+			})
+
+			Convey("CIMDUnresolvable produces the byte-identical unknown-client_id response", func() {
+				cimdEnsureFn = func(ctx context.Context, clientID string) error {
+					return cimd.ErrUnresolvable()
+				}
+
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
+					"client_id": "https://mcp-client.example.com/oauth/client-metadata.json",
+				})
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				So(resp.Body.String(), ShouldEqual,
+					"Invalid OAuth authorization request:\n"+
+						"error: unauthorized_client\n"+
+						"error_description: invalid client ID\n")
+
+				// Byte-identical to the ordinary unknown-client_id response
+				// (spec § Authgear as an SSRF/Probing Oracle): compare
+				// against the existing "missing client ID" case's body.
+				missing := handle(context.Background(), protocol.AuthorizationRequest{})
+				So(resp.Body.String(), ShouldEqual, missing.Body.String())
+			})
+
+			Convey("CIMDClientLimitExceeded maps to access_denied", func() {
+				cimdEnsureFn = func(ctx context.Context, clientID string) error {
+					return cimd.ErrClientLimitExceeded()
+				}
+
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
+					"client_id": "https://mcp-client.example.com/oauth/client-metadata.json",
+				})
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				So(resp.Body.String(), ShouldEqual,
+					"Invalid OAuth authorization request:\n"+
+						"error: access_denied\n"+
+						"error_description: the project has reached its client limit\n")
+			})
+
+			Convey("a ratelimit.RateLimited error maps to x_rate_limited", func() {
+				cimdEnsureFn = func(ctx context.Context, clientID string) error {
+					return ratelimit.ErrRateLimited("", "", "")
+				}
+
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
+					"client_id": "https://mcp-client.example.com/oauth/client-metadata.json",
+				})
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				So(resp.Body.String(), ShouldEqual,
+					"Invalid OAuth authorization request:\n"+
+						"error: x_rate_limited\n"+
+						"error_description: rate limit exceeded, please try again later.\n")
+			})
+
+			Convey("any other error maps to server_error", func() {
+				cimdEnsureFn = func(ctx context.Context, clientID string) error {
+					return errors.New("boom")
+				}
+
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
+					"client_id": "https://mcp-client.example.com/oauth/client-metadata.json",
+				})
+				// AuthorizationResultError with no RedirectURI always
+				// renders as a 400 with the error body -- InternalError
+				// only marks it for logging/sentry (IsInternalError()), it
+				// is not the HTTP status.
+				So(resp.Result().StatusCode, ShouldEqual, 400)
+				So(resp.Body.String(), ShouldEqual,
+					"Invalid OAuth authorization request:\n"+
+						"error: server_error\n"+
+						"error_description: internal server error\n")
 			})
 		})
 
