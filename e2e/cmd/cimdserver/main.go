@@ -15,6 +15,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -32,6 +33,9 @@ const addr = "127.0.0.1:2727"
 type pathConfig struct {
 	// Status is the HTTP status to respond with. Zero means 200.
 	Status int
+	// ContentType overrides the response Content-Type. Empty means
+	// application/json, the CIMD document default.
+	ContentType string
 	// Body is the raw response body to serve, used when Bytes and Redirect
 	// are both zero/empty.
 	Body []byte
@@ -93,6 +97,12 @@ type setDocumentRequest struct {
 	Status   int             `json:"status"`
 	Document json.RawMessage `json:"document"`
 	Body     string          `json:"body"`
+	// BodyBase64, if non-empty, is base64-decoded and used as the response
+	// body instead of Body -- for content that is not valid UTF-8 (e.g. a
+	// real PNG's magic bytes), which cannot round-trip through a JSON
+	// string.
+	BodyBase64  string `json:"body_base64"`
+	ContentType string `json:"content_type"`
 }
 
 type setBytesRequest struct {
@@ -136,6 +146,14 @@ func (s *server) handleSet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	body := []byte(req.Body)
+	if req.BodyBase64 != "" {
+		decoded, err := base64.StdEncoding.DecodeString(req.BodyBase64)
+		if err != nil {
+			writeJSONError(w, err)
+			return
+		}
+		body = decoded
+	}
 	if len(req.Document) > 0 {
 		body = req.Document
 	}
@@ -143,7 +161,7 @@ func (s *server) handleSet(w http.ResponseWriter, r *http.Request) {
 	if status == 0 {
 		status = http.StatusOK
 	}
-	s.set(req.Path, &pathConfig{Status: status, Body: body})
+	s.set(req.Path, &pathConfig{Status: status, Body: body, ContentType: req.ContentType})
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -224,7 +242,11 @@ func writeDocument(w http.ResponseWriter, cfg *pathConfig) {
 	if status == 0 {
 		status = http.StatusOK
 	}
-	w.Header().Set("Content-Type", "application/json")
+	contentType := cfg.ContentType
+	if contentType == "" {
+		contentType = "application/json"
+	}
+	w.Header().Set("Content-Type", contentType)
 	w.WriteHeader(status)
 
 	if cfg.Bytes == 0 {
