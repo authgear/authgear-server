@@ -106,6 +106,7 @@ var payloadRegistry = []any{
 	&nonblocking.IdentityVerifiedEventPayload{},
 	&nonblocking.M2MTokenCreatedEventPayload{},
 	&nonblocking.OAuthClientRegisteredEventPayload{},
+	&nonblocking.OAuthClientRegistrationFailedEventPayload{},
 	&nonblocking.OAuthClientResolutionFailedEventPayload{},
 	&nonblocking.OAuthClientResolvedEventPayload{},
 	&nonblocking.ProjectAppCreatedEventPayload{},
