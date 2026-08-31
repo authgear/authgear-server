@@ -1,0 +1,175 @@
+name: the per-(project, IP) CIMD fetch bucket trips after its configured burst, and never throttles an already-resolved fresh client
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+        rate_limits:
+          per_ip:
+            enabled: true
+            period: 1m
+            burst: 2
+steps:
+  - name: configure_document_1
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "ratelimit-per-ip-1.json",
+        "document": {
+          "client_id": "http://localhost:2727/ratelimit-per-ip-1.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: configure_document_2
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "ratelimit-per-ip-2.json",
+        "document": {
+          "client_id": "http://localhost:2727/ratelimit-per-ip-2.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: configure_document_3
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "ratelimit-per-ip-3.json",
+        "document": {
+          "client_id": "http://localhost:2727/ratelimit-per-ip-3.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  # Fetch 1/2: within burst, each a distinct client_id so each forces a
+  # fresh fetch.
+  - name: authorize_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/ratelimit-per-ip-1.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: authorize_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/ratelimit-per-ip-2.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # Fetch 3: burst is exhausted -- refused before the outbound fetch ever
+  # happens.
+  - name: authorize_3
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/ratelimit-per-ip-3.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - x_rate_limited
+
+  - name: verify_hits_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-1.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 1
+        }
+
+  - name: verify_hits_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-2.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 1
+        }
+
+  - name: verify_no_fetch_3
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-3.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }
+
+  # A repeat authorization for client 1, already resolved and fresh, must
+  # still succeed -- the limiter is only consulted before a fetch, and a
+  # fresh client never fetches (Part 3 step 3 / Part 4 D4-D5). If this
+  # regressed to consuming a token per authorize request instead of per
+  # fetch, this would now be refused too.
+  - name: authorize_1_again
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/ratelimit-per-ip-1.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: verify_no_extra_fetch_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-1.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 1
+        }
