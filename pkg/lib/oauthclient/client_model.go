@@ -9,7 +9,7 @@ import (
 // tokenLifetimes should come from ResolveTokenLifetimes(oauthConfig,
 // c.Source) — one source of truth for resolved lifetimes: the same
 // synthesized config the resolver hands to the OAuth runtime (Part 3).
-func (c *Client) ToModel(tokenLifetimes *config.OAuthDynamicClientRegistrationDefaultClientConfig) *model.OAuthClient {
+func (c *Client) ToModel(tokenLifetimes *config.OAuthDynamicClientTokenLifetimesConfig) *model.OAuthClient {
 	cfg := c.ToClientConfig(tokenLifetimes)
 	applicationType := c.ApplicationType
 	return &model.OAuthClient{
