@@ -11,4 +11,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(RateLimiter), "*"),
 
 	wire.Struct(new(Service), "*"),
+
+	wire.Struct(new(LogoFetcher), "*"),
+	wire.Struct(new(LogoService), "*"),
 )
