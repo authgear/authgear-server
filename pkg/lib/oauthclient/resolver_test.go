@@ -106,5 +106,168 @@ func TestResolverResolveClient(t *testing.T) {
 			client := r.ResolveClient(ctx, "dcrc_missing")
 			So(client, ShouldBeNil)
 		})
+
+		cimdOAuthConfig := &config.OAuthConfig{
+			Clients: []config.OAuthClientConfig{staticClient},
+			ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentConfig{
+				Enabled: true,
+			},
+		}
+		const cimdClientID = "https://mcp-client.example.com/oauth/client-metadata.json"
+
+		Convey("CIMD disabled: a URL-shaped client_id returns nil without touching Queries", func() {
+			r := &oauthclient.Resolver{
+				OAuthConfig:     oauthConfig, // CIMD not configured -> disabled
+				TesterEndpoints: testTesterEndpoints{},
+				Queries:         nil, // must not be touched: CIMD off costs nothing
+			}
+			client := r.ResolveClient(ctx, cimdClientID)
+			So(client, ShouldBeNil)
+		})
+
+		Convey("CIMD enabled: a URL-shaped client_id reaches Queries.GetClientConfigByClientID with the exact string", func() {
+			cache, _ := newTestClientCache(t)
+			r := &oauthclient.Resolver{
+				OAuthConfig:     cimdOAuthConfig,
+				TesterEndpoints: testTesterEndpoints{},
+				Queries: &oauthclient.Queries{
+					Cache:       cache,
+					OAuthConfig: cimdOAuthConfig,
+				},
+			}
+
+			cachedClient := &oauthclient.Client{
+				ID:              "row-id",
+				ClientID:        cimdClientID,
+				Source:          model.OAuthClientSourceCIMD,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+				Kind:            model.OAuthClientKindThirdParty,
+				ApplicationType: "web",
+				RedirectURIs:    []string{"http://127.0.0.1:3000/callback"},
+				GrantTypes:      []string{"authorization_code", "refresh_token"},
+				ResponseTypes:   []string{"code"},
+			}
+			So(cache.Set(ctx, cachedClient), ShouldBeNil)
+
+			client := r.ResolveClient(ctx, cimdClientID)
+			So(client, ShouldNotBeNil)
+			So(client.ClientID, ShouldEqual, cimdClientID)
+			So(client.IsCIMDClient(), ShouldBeTrue)
+		})
+
+		Convey("CIMD enabled: a resolvable row on a host outside allowed_domains still resolves (allowed_domains gates fetching, not reading)", func() {
+			restrictedOAuthConfig := &config.OAuthConfig{
+				Clients: []config.OAuthClientConfig{staticClient},
+				ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentConfig{
+					Enabled:        true,
+					AllowedDomains: []string{"only-this-domain.example.com"},
+				},
+			}
+			cache, _ := newTestClientCache(t)
+			r := &oauthclient.Resolver{
+				OAuthConfig:     restrictedOAuthConfig,
+				TesterEndpoints: testTesterEndpoints{},
+				Queries: &oauthclient.Queries{
+					Cache:       cache,
+					OAuthConfig: restrictedOAuthConfig,
+				},
+			}
+			cachedClient := &oauthclient.Client{
+				ID:              "row-id",
+				ClientID:        cimdClientID, // host mcp-client.example.com, NOT in allowed_domains
+				Source:          model.OAuthClientSourceCIMD,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+				Kind:            model.OAuthClientKindThirdParty,
+				ApplicationType: "web",
+				RedirectURIs:    []string{"http://127.0.0.1:3000/callback"},
+				GrantTypes:      []string{"authorization_code", "refresh_token"},
+				ResponseTypes:   []string{"code"},
+			}
+			So(cache.Set(ctx, cachedClient), ShouldBeNil)
+
+			client := r.ResolveClient(ctx, cimdClientID)
+			So(client, ShouldNotBeNil)
+			So(client.ClientID, ShouldEqual, cimdClientID)
+		})
+
+		Convey("CIMD enabled: a resolvable http:// row reaches Queries regardless of insecure_http_allowed", func() {
+			const httpClientID = "http://x.example.com/y"
+			cache, _ := newTestClientCache(t)
+			r := &oauthclient.Resolver{
+				OAuthConfig:     cimdOAuthConfig, // insecure_http_allowed not set anywhere -- irrelevant to the read path
+				TesterEndpoints: testTesterEndpoints{},
+				Queries: &oauthclient.Queries{
+					Cache:       cache,
+					OAuthConfig: cimdOAuthConfig,
+				},
+			}
+			cachedClient := &oauthclient.Client{
+				ID:              "row-id",
+				ClientID:        httpClientID,
+				Source:          model.OAuthClientSourceCIMD,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+				Kind:            model.OAuthClientKindThirdParty,
+				ApplicationType: "web",
+				RedirectURIs:    []string{"http://127.0.0.1:3000/callback"},
+				GrantTypes:      []string{"authorization_code", "refresh_token"},
+				ResponseTypes:   []string{"code"},
+			}
+			So(cache.Set(ctx, cachedClient), ShouldBeNil)
+
+			client := r.ResolveClient(ctx, httpClientID)
+			So(client, ShouldNotBeNil)
+			So(client.ClientID, ShouldEqual, httpClientID)
+		})
+
+		Convey("CIMD enabled: a static client whose client_id happens to be an https:// URL is returned as static, without touching Queries", func() {
+			preRegisteredStatic := config.OAuthClientConfig{ClientID: cimdClientID}
+			preRegisteredOAuthConfig := &config.OAuthConfig{
+				Clients: []config.OAuthClientConfig{preRegisteredStatic},
+				ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentConfig{
+					Enabled: true,
+				},
+			}
+			r := &oauthclient.Resolver{
+				OAuthConfig:     preRegisteredOAuthConfig,
+				TesterEndpoints: testTesterEndpoints{},
+				Queries:         nil, // must not be touched: static lookup wins first
+			}
+			client := r.ResolveClient(ctx, cimdClientID)
+			So(client, ShouldNotBeNil)
+			So(client.ClientID, ShouldEqual, cimdClientID)
+			So(client.IsCIMDClient(), ShouldBeFalse)
+		})
+
+		Convey("CIMD enabled: a dcrc_-prefixed client_id is still resolved (no regression)", func() {
+			cache, _ := newTestClientCache(t)
+			r := &oauthclient.Resolver{
+				OAuthConfig:     cimdOAuthConfig,
+				TesterEndpoints: testTesterEndpoints{},
+				Queries: &oauthclient.Queries{
+					Cache:       cache,
+					OAuthConfig: cimdOAuthConfig,
+				},
+			}
+			cachedClient := &oauthclient.Client{
+				ID:              "row-id",
+				ClientID:        "dcrc_test",
+				Source:          model.OAuthClientSourceDCR,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+				Kind:            model.OAuthClientKindThirdParty,
+				ApplicationType: "web",
+				RedirectURIs:    []string{"https://example.com/callback"},
+				GrantTypes:      []string{"authorization_code", "refresh_token"},
+				ResponseTypes:   []string{"code"},
+			}
+			So(cache.Set(ctx, cachedClient), ShouldBeNil)
+
+			client := r.ResolveClient(ctx, "dcrc_test")
+			So(client, ShouldNotBeNil)
+			So(client.ClientID, ShouldEqual, "dcrc_test")
+		})
 	})
 }

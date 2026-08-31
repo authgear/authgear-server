@@ -1,5 +1,7 @@
 package config
 
+import "github.com/authgear/authgear-server/pkg/api/model"
+
 var _ = Schema.Add("OAuthConfig", `
 {
 	"type": "object",
@@ -314,6 +316,15 @@ type OAuthClientConfig struct {
 	// client gets the synthetic OAuthClientApplicationTypeDynamicThirdParty
 	// value. Read via IsDynamicClient(), not directly.
 	IsDynamic bool `json:"-"`
+
+	// DynamicSource is set only by oauthclient.Client.ToClientConfig, from
+	// the persisted row's own source column. It is "" for every statically
+	// configured client, including one whose client_id happens to be an
+	// https:// URL (docs/specs/cimd.md § Client ID Format's "pre-registering
+	// Client Identifier URLs" pattern) -- such a client is an ordinary
+	// static client and must not pick up any CIMD-specific behavior.
+	// json:"-" because it is synthetic and never present in authgear.yaml.
+	DynamicSource model.OAuthClientSource `json:"-"`
 }
 
 func (c *OAuthClientConfig) UseHTTP200() bool {
@@ -322,6 +333,13 @@ func (c *OAuthClientConfig) UseHTTP200() bool {
 
 func (c *OAuthClientConfig) IsDynamicClient() bool {
 	return c.IsDynamic
+}
+
+// IsCIMDClient reports whether this client resolved from a CIMD document,
+// used by the consent screen to decide whether to render the client_id
+// hostname (docs/specs/cimd.md § Phishing Mitigation).
+func (c *OAuthClientConfig) IsCIMDClient() bool {
+	return c.DynamicSource == model.OAuthClientSourceCIMD
 }
 
 var _ = Schema.Add("AuthenticationFlowAllowlist", `
