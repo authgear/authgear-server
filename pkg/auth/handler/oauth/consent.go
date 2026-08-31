@@ -64,6 +64,12 @@ type ConsentViewModel struct {
 	ClientName      string
 	ClientPolicyURI string
 	ClientTOSURI    string
+	// ClientLogoURI is the client's self-asserted logo. Empty unless the
+	// client declared one. Rendered directly here as a plain cross-origin
+	// <img>; Part 7 replaces this with a server-side proxy URL to close the
+	// tracking-pixel-shaped IP/UA leak that a direct fetch causes (see
+	// docs/specs/cimd.md § Privacy Considerations §9.2).
+	ClientLogoURI string
 	// ClientIDHostname is the hostname of a CIMD client's client_id URL, and
 	// EMPTY for every other client source. It is the only client-identifying
 	// value on this screen that the client did not assert about itself: it
@@ -196,6 +202,7 @@ func consentViewModelForClient(client *config.OAuthClientConfig) ConsentViewMode
 	viewModel.ClientName = client.Name
 	viewModel.ClientPolicyURI = client.PolicyURI
 	viewModel.ClientTOSURI = client.TOSURI
+	viewModel.ClientLogoURI = client.LogoURI
 	// IsCIMDClient(), not a client_id prefix check: a STATIC client whose
 	// client_id happens to be an https:// URL (spec § Client ID Format's
 	// pre-registration pattern) must not pick up a CIMD-specific hostname

@@ -8,6 +8,15 @@
 <div class="flex-1-0-auto screen-icon-layout">
   {{ template "authflowv2/__header.html" . }}
   <div class="screen-title-description">
+    {{ if $.ClientLogoURI }}
+      <img
+        class="mx-auto h-16 w-16 rounded-lg object-contain"
+        src="{{ $.ClientLogoURI }}"
+        alt=""
+        referrerpolicy="no-referrer"
+        loading="lazy"
+      >
+    {{ end }}
     <h1 class="screen-title">
       {{ include "v2.page.consent.default.title" (dict "ClientName" $clientName) }}
     </h1>

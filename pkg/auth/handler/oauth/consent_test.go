@@ -104,5 +104,25 @@ func TestConsentViewModelForClient(t *testing.T) {
 			vm := consentViewModelForClient(client)
 			So(vm.ClientIDHostname, ShouldBeEmpty)
 		})
+
+		Convey("a CIMD client with logo_uri: ClientLogoURI is set", func() {
+			client := &config.OAuthClientConfig{
+				ClientID:      "https://mcp-client.example.com/oauth/client-metadata.json",
+				Name:          "Example MCP Client",
+				DynamicSource: model.OAuthClientSourceCIMD,
+				LogoURI:       "https://mcp-client.example.com/logo.png",
+			}
+			vm := consentViewModelForClient(client)
+			So(vm.ClientLogoURI, ShouldEqual, "https://mcp-client.example.com/logo.png")
+		})
+
+		Convey("a client with no logo_uri: ClientLogoURI is empty", func() {
+			client := &config.OAuthClientConfig{
+				ClientID: "static-client",
+				Name:     "Foo",
+			}
+			vm := consentViewModelForClient(client)
+			So(vm.ClientLogoURI, ShouldBeEmpty)
+		})
 	})
 }
