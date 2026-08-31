@@ -1,0 +1,8 @@
+query initialAccessTokensQuery {
+  initialAccessTokens {
+    id
+    createdAt
+    expiresAt
+    type
+  }
+}

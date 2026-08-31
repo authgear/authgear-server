@@ -5,6 +5,9 @@ mutation CreateScopeMutation($input: CreateScopeInput!) {
       scope
       description
       resourceID
+      accessPolicy {
+        allowDynamicThirdPartyClientAccess
+      }
       createdAt
       updatedAt
     }

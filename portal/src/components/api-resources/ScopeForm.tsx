@@ -1,7 +1,8 @@
 import React, { useContext, useCallback, useEffect } from "react";
+import { Checkbox, Text } from "@fluentui/react";
 import FormTextField from "../../FormTextField";
 import styles from "./ScopeForm.module.css";
-import { Context } from "../../intl";
+import { Context, FormattedMessage } from "../../intl";
 import cn from "classnames";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useFormTopErrors } from "../../form";
@@ -12,6 +13,7 @@ import PrimaryButton from "../../PrimaryButton";
 export interface ScopeFormState {
   scope: string;
   description: string;
+  allowDynamicThirdPartyClientAccess: boolean;
 }
 
 export interface ScopeFormProps {
@@ -19,12 +21,18 @@ export interface ScopeFormProps {
   mode: "create" | "edit";
   state: ScopeFormState;
   setState: (fn: (state: ScopeFormState) => ScopeFormState) => void;
+  // Whether the parent resource allows dynamic third-party client access.
+  // When it does not, the scope-level checkbox has no effect yet, and the
+  // form shows a hint saying so.
+  resourceAllowsDynamicAccess: boolean;
 }
 
 export function sanitizeScopeFormState(state: ScopeFormState): ScopeFormState {
   return {
     scope: state.scope.trim(),
     description: state.description.trim(),
+    allowDynamicThirdPartyClientAccess:
+      state.allowDynamicThirdPartyClientAccess,
   };
 }
 
@@ -38,10 +46,19 @@ export const ScopeForm: React.VFC<ScopeFormProps> = function ScopeForm({
   state,
   setState,
   mode,
+  resourceAllowsDynamicAccess,
 }) {
   const { renderToString } = useContext(Context);
   const handleDescriptionChange = useCallback(
     (_e, value) => setState((s) => ({ ...s, description: value ?? "" })),
+    [setState]
+  );
+  const handleAllowDynamicAccessChange = useCallback(
+    (_e?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) =>
+      setState((s) => ({
+        ...s,
+        allowDynamicThirdPartyClientAccess: checked ?? false,
+      })),
     [setState]
   );
   const { onSubmit, canSave, isUpdating } = useFormContainerBaseContext();
@@ -74,6 +91,24 @@ export const ScopeForm: React.VFC<ScopeFormProps> = function ScopeForm({
           value={state.description}
           onChange={handleDescriptionChange}
         />
+        <div className={styles.dynamicAccess}>
+          <Checkbox
+            label={renderToString("ScopeForm.allow-dynamic-access.label")}
+            checked={state.allowDynamicThirdPartyClientAccess}
+            onChange={handleAllowDynamicAccessChange}
+          />
+          <Text
+            variant="small"
+            block={true}
+            styles={{ root: { color: "var(--gray-11)" } }}
+          >
+            {resourceAllowsDynamicAccess ? (
+              <FormattedMessage id="ScopeForm.allow-dynamic-access.description" />
+            ) : (
+              <FormattedMessage id="ScopeForm.allow-dynamic-access.resource-off" />
+            )}
+          </Text>
+        </div>
       </div>
       <PrimaryButton
         type="submit"

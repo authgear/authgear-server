@@ -1,0 +1,7 @@
+.content {
+  @apply mt-4 flex flex-col gap-4;
+}
+
+.actions {
+  @apply mt-6 flex flex-row justify-end;
+}

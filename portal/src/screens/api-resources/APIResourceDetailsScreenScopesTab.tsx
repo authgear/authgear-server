@@ -37,6 +37,7 @@ export function APIResourceDetailsScreenScopesTab({
   const [initialState] = useState<CreateScopeFormState>({
     scope: "",
     description: "",
+    allowDynamicThirdPartyClientAccess: false,
   });
   const form = useSimpleForm<CreateScopeFormState, any>({
     defaultState: initialState,
@@ -48,6 +49,10 @@ export function APIResourceDetailsScreenScopesTab({
             resourceURI: resource.resourceURI,
             scope: sanitized.scope,
             description: sanitized.description,
+            accessPolicy: {
+              allowDynamicThirdPartyClientAccess:
+                sanitized.allowDynamicThirdPartyClientAccess,
+            },
           },
         },
         refetchQueries: [ResourceScopesQueryDocument],
@@ -181,6 +186,9 @@ export function APIResourceDetailsScreenScopesTab({
               className="flex-1-0-auto min-w-40"
               state={form.state}
               setState={form.setState}
+              resourceAllowsDynamicAccess={
+                resource.accessPolicy.allowDynamicThirdPartyClientAccess
+              }
             />
             <SearchBox
               styles={{

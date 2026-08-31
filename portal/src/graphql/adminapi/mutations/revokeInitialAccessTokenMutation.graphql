@@ -1,0 +1,5 @@
+mutation RevokeInitialAccessTokenMutation($input: RevokeInitialAccessTokenInput!) {
+  revokeInitialAccessToken(input: $input) {
+    ok
+  }
+}

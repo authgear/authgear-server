@@ -1,0 +1,15 @@
+.fields {
+  @apply flex flex-col gap-3;
+}
+
+.field {
+  @apply flex flex-col gap-0.5;
+}
+
+.uriList {
+  @apply flex flex-col gap-0.5;
+}
+
+.uri {
+  @apply break-all;
+}

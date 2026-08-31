@@ -10,6 +10,8 @@ import {
   Text,
 } from "@fluentui/react";
 import { Context } from "../../intl";
+import { Badge } from "../v2/Badge/Badge";
+import { Tooltip } from "../v2/Tooltip/Tooltip";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
 import styles from "./ScopeList.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -59,6 +61,14 @@ function ActionButtonsColumn({
   );
 }
 
+// One enabled entry of a Scope's accessPolicy: a short badge label for the
+// table plus the full sentence shown on hover.
+interface AccessPolicyEntry {
+  key: string;
+  shortLabelID: string;
+  descriptionID: string;
+}
+
 export const ScopeList: React.VFC<ScopeListProps> = function ScopeList(props) {
   const { className, scopes, loading, pagination, onEdit, onDelete } = props;
   const { renderToString } = useContext(Context);
@@ -86,6 +96,59 @@ export const ScopeList: React.VFC<ScopeListProps> = function ScopeList(props) {
     );
   }, []);
 
+  // accessPolicy is an object the spec expects to grow more keys (see
+  // docs/specs/api-resource.md, "Current keys: ..."), so build the enabled
+  // policies as a list: a future policy becomes another badge here rather
+  // than another column. The badge stays short enough to scan; the full
+  // sentence lives in its tooltip, reusing the very string the scope form's
+  // checkbox carries so the table and the form describe the policy in the
+  // same words.
+  const onRenderAccessPolicy = useCallback(
+    (item?: Scope) => {
+      if (item == null) {
+        return null;
+      }
+      const enabled: AccessPolicyEntry[] = [];
+      if (item.accessPolicy.allowDynamicThirdPartyClientAccess) {
+        enabled.push({
+          key: "allowDynamicThirdPartyClientAccess",
+          shortLabelID:
+            "ScopeList.access-policy.allow-dynamic-third-party-client-access",
+          descriptionID: "ScopeForm.allow-dynamic-access.label",
+        });
+      }
+      if (enabled.length === 0) {
+        return (
+          <Text
+            variant="smallPlus"
+            styles={{ root: { color: "var(--gray-11)" } }}
+          >
+            {renderToString("ScopeList.access-policy.none")}
+          </Text>
+        );
+      }
+      return (
+        <div className="flex flex-row flex-wrap gap-1">
+          {enabled.map((entry) => (
+            <Tooltip
+              key={entry.key}
+              content={renderToString(entry.descriptionID)}
+            >
+              <span>
+                <Badge
+                  size="1"
+                  variant="neutral"
+                  text={renderToString(entry.shortLabelID)}
+                />
+              </span>
+            </Tooltip>
+          ))}
+        </div>
+      );
+    },
+    [renderToString]
+  );
+
   const columns = useMemo(
     (): IColumn[] => [
       {
@@ -105,6 +168,14 @@ export const ScopeList: React.VFC<ScopeListProps> = function ScopeList(props) {
         fieldName: "description",
       },
       {
+        key: "accessPolicy",
+        name: renderToString("ScopeList.columns.access-policy"),
+        minWidth: 160,
+        maxWidth: 220,
+        isResizable: true,
+        onRender: onRenderAccessPolicy,
+      },
+      {
         key: "actions",
         name: "",
         minWidth: 100,
@@ -113,7 +184,7 @@ export const ScopeList: React.VFC<ScopeListProps> = function ScopeList(props) {
         onRender: onRenderActions,
       },
     ],
-    [onRenderScope, onRenderActions, renderToString]
+    [onRenderScope, onRenderAccessPolicy, onRenderActions, renderToString]
   );
 
   return (

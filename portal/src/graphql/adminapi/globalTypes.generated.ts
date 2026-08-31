@@ -32,7 +32,7 @@ export type Scalars = {
 
 export type AccessPolicy = {
   __typename?: 'AccessPolicy';
-  /** Whether a dynamically registered (DCR) or static third-party client can request this resource/scope via the resource parameter. */
+  /** Whether a dynamic third-party client (DCR or CIMD) can request this resource/scope via the resource parameter. Static third-party clients are never covered by this flag, and neither are dynamic first-party clients. */
   allowDynamicThirdPartyClientAccess: Scalars['Boolean']['output'];
 };
 

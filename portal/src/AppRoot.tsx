@@ -239,6 +239,9 @@ const EditOAuthClientResourceScopeScreen = lazy(
   async () =>
     import("./screens/api-resources/EditOAuthClientResourceScopeScreen")
 );
+const DynamicClientListScreen = lazy(
+  async () => import("./screens/dynamic-clients/DynamicClientListScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -769,6 +772,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <CreateM2MClientScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="dcr"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <DynamicClientListScreen />
                   </Suspense>
                 }
               />
