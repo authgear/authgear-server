@@ -1299,6 +1299,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SingleFlight:       fetchSingleFlight,
 		RateLimiter:        rateLimiter,
 		UsageLimiter:       usageLimiter,
+		Events:             eventService,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
@@ -2358,6 +2359,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SingleFlight:       fetchSingleFlight,
 		RateLimiter:        rateLimiter,
 		UsageLimiter:       usageLimiter,
+		Events:             eventService,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,

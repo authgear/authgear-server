@@ -13,6 +13,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/cimd"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -116,6 +118,35 @@ func (s *stubUsageLimiter) ReportStandingCreated(ctx context.Context, name model
 	s.reportedCountBefore.Store(int64(countBeforeCreate))
 }
 
+// dispatchedEvent records one call to stubEventService, including which of
+// the two dispatch styles it went through -- the distinction Part 8's
+// design hinges on (oauth.client.resolved must go via OnCommit,
+// oauth.client.resolution.failed via Immediately).
+type dispatchedEvent struct {
+	Payload event.NonBlockingPayload
+	Style   string // "OnCommit" or "Immediately"
+}
+
+// stubEventService is a hand-rolled ServiceEventService: it records every
+// dispatched payload and its dispatch style, and returns a canned error
+// (nil by default) from each dispatch method independently.
+type stubEventService struct {
+	dispatched     []dispatchedEvent
+	onCommitErr    error
+	immediatelyErr error
+}
+
+func (s *stubEventService) DispatchEventOnCommit(ctx context.Context, payload event.Payload) error {
+	nbPayload, _ := payload.(event.NonBlockingPayload)
+	s.dispatched = append(s.dispatched, dispatchedEvent{Payload: nbPayload, Style: "OnCommit"})
+	return s.onCommitErr
+}
+
+func (s *stubEventService) DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error {
+	s.dispatched = append(s.dispatched, dispatchedEvent{Payload: payload, Style: "Immediately"})
+	return s.immediatelyErr
+}
+
 type stubDatabase struct {
 	inTx        bool
 	withTxCalls atomic.Int64
@@ -202,6 +233,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -222,6 +254,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 					Database:     &stubDatabase{},
 					RateLimiter:  &stubRateLimiter{},
 					UsageLimiter: &stubUsageLimiter{},
+					Events:       &stubEventService{},
 					SingleFlight: newWorkingSingleFlight(t),
 				}
 				err := svc.EnsureClientResolved(ctx, id)
@@ -242,6 +275,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -261,6 +295,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -286,6 +321,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -313,6 +349,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -344,6 +381,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 
@@ -356,6 +394,307 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(gotOptions.RedirectURIs, ShouldResemble, []string{"http://127.0.0.1:3000/callback"})
 			So(gotOptions.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
 			So(gotOptions.ResponseTypes, ShouldResemble, []string{"code"})
+		})
+
+		Convey("audit: new client, fetch ok: one resolved event, created: true, no changes, dispatched via OnCommit", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","client_name":"New Client","redirect_uris":["http://127.0.0.1:3000/callback"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+
+			commands := &stubCommands{upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{
+					ClientID:      o.ClientID,
+					Source:        model.OAuthClientSourceCIMD,
+					Kind:          model.OAuthClientKindThirdParty,
+					ClientName:    o.ClientName,
+					RedirectURIs:  o.RedirectURIs,
+					GrantTypes:    o.GrantTypes,
+					ResponseTypes: o.ResponseTypes,
+				}, true, nil
+			}}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      &stubQueries{},
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+
+			clientID := ds.URL + "/x"
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+			So(events.dispatched, ShouldHaveLength, 1)
+			So(events.dispatched[0].Style, ShouldEqual, "OnCommit")
+			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolvedEventPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.Created, ShouldBeTrue)
+			So(payload.Changes, ShouldBeEmpty)
+			So(payload.Client.ClientID, ShouldEqual, clientID)
+			So(payload.Client.ClientName, ShouldEqual, "New Client")
+		})
+
+		Convey("audit: refetch, metadata identical: no event at all -- the routine hourly case", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","client_name":"Same Name","redirect_uris":["http://127.0.0.1:3000/callback"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+			clientID := ds.URL + "/x"
+			mockClockAt20260831 := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClockAt20260831.NowUTC().Add(-2 * time.Hour)
+			existingName := "Same Name"
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{
+					ClientID:        clientID,
+					Source:          model.OAuthClientSourceCIMD,
+					ApplicationType: "web",
+					ClientName:      &existingName,
+					RedirectURIs:    []string{"http://127.0.0.1:3000/callback"},
+					GrantTypes:      []string{"authorization_code", "refresh_token"},
+					ResponseTypes:   []string{"code"},
+					LastFetchedAt:   &fetchedAt,
+				}, nil
+			}}
+			commands := &stubCommands{upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{ClientID: o.ClientID, Source: model.OAuthClientSourceCIMD}, false, nil
+			}}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        mockClockAt20260831,
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+			So(events.dispatched, ShouldBeEmpty)
+		})
+
+		Convey("audit: refetch, redirect_uris changed: one resolved event, created: false, changes naming exactly redirect_uris with old and new, via OnCommit", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","client_name":"Same Name","redirect_uris":["http://127.0.0.1:3000/new-callback"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+			clientID := ds.URL + "/x"
+			mockClockAt20260831 := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClockAt20260831.NowUTC().Add(-2 * time.Hour)
+			existingName := "Same Name"
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{
+					ClientID:        clientID,
+					Source:          model.OAuthClientSourceCIMD,
+					ApplicationType: "web",
+					ClientName:      &existingName,
+					RedirectURIs:    []string{"http://127.0.0.1:3000/old-callback"},
+					GrantTypes:      []string{"authorization_code", "refresh_token"},
+					ResponseTypes:   []string{"code"},
+					LastFetchedAt:   &fetchedAt,
+				}, nil
+			}}
+			commands := &stubCommands{upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{
+					ClientID:      o.ClientID,
+					Source:        model.OAuthClientSourceCIMD,
+					ClientName:    o.ClientName,
+					RedirectURIs:  o.RedirectURIs,
+					GrantTypes:    o.GrantTypes,
+					ResponseTypes: o.ResponseTypes,
+				}, false, nil
+			}}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        mockClockAt20260831,
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+			So(events.dispatched, ShouldHaveLength, 1)
+			So(events.dispatched[0].Style, ShouldEqual, "OnCommit")
+			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolvedEventPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.Created, ShouldBeFalse)
+			So(payload.Changes, ShouldHaveLength, 1)
+			So(payload.Changes[0].Field, ShouldEqual, "redirect_uris")
+			So(payload.Changes[0].Old, ShouldResemble, []string{"http://127.0.0.1:3000/old-callback"})
+			So(payload.Changes[0].New, ShouldResemble, []string{"http://127.0.0.1:3000/new-callback"})
+		})
+
+		Convey("audit: refetch, client_name nil -> \"\": no event -- normalization", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","client_name":"","redirect_uris":["http://127.0.0.1:3000/callback"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+			clientID := ds.URL + "/x"
+			mockClockAt20260831 := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClockAt20260831.NowUTC().Add(-2 * time.Hour)
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{
+					ClientID:        clientID,
+					Source:          model.OAuthClientSourceCIMD,
+					ApplicationType: "web",
+					ClientName:      nil,
+					RedirectURIs:    []string{"http://127.0.0.1:3000/callback"},
+					GrantTypes:      []string{"authorization_code", "refresh_token"},
+					ResponseTypes:   []string{"code"},
+					LastFetchedAt:   &fetchedAt,
+				}, nil
+			}}
+			commands := &stubCommands{upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{ClientID: o.ClientID, Source: model.OAuthClientSourceCIMD}, false, nil
+			}}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        mockClockAt20260831,
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+			So(events.dispatched, ShouldBeEmpty)
+		})
+
+		Convey("audit: refetch, redirect_uris reordered only: no event -- set comparison", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","client_name":"Same Name","redirect_uris":["http://127.0.0.1:3000/b","http://127.0.0.1:3000/a"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+			clientID := ds.URL + "/x"
+			mockClockAt20260831 := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClockAt20260831.NowUTC().Add(-2 * time.Hour)
+			existingName := "Same Name"
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{
+					ClientID:        clientID,
+					Source:          model.OAuthClientSourceCIMD,
+					ApplicationType: "web",
+					ClientName:      &existingName,
+					RedirectURIs:    []string{"http://127.0.0.1:3000/a", "http://127.0.0.1:3000/b"},
+					GrantTypes:      []string{"authorization_code", "refresh_token"},
+					ResponseTypes:   []string{"code"},
+					LastFetchedAt:   &fetchedAt,
+				}, nil
+			}}
+			commands := &stubCommands{upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{ClientID: o.ClientID, Source: model.OAuthClientSourceCIMD}, false, nil
+			}}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        mockClockAt20260831,
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+			So(events.dispatched, ShouldBeEmpty)
+		})
+
+		Convey("audit: refetch, three fields changed: one event, three entries, no last_fetched_at/updated_at entry", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","client_name":"New Name","logo_uri":"https://new.example.com/logo.png","redirect_uris":["http://127.0.0.1:3000/new-callback"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+			clientID := ds.URL + "/x"
+			mockClockAt20260831 := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClockAt20260831.NowUTC().Add(-2 * time.Hour)
+			existingName := "Old Name"
+			existingLogo := "https://old.example.com/logo.png"
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{
+					ClientID:        clientID,
+					Source:          model.OAuthClientSourceCIMD,
+					ApplicationType: "web",
+					ClientName:      &existingName,
+					LogoURI:         &existingLogo,
+					RedirectURIs:    []string{"http://127.0.0.1:3000/old-callback"},
+					GrantTypes:      []string{"authorization_code", "refresh_token"},
+					ResponseTypes:   []string{"code"},
+					LastFetchedAt:   &fetchedAt,
+				}, nil
+			}}
+			commands := &stubCommands{upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{
+					ClientID:      o.ClientID,
+					Source:        model.OAuthClientSourceCIMD,
+					ClientName:    o.ClientName,
+					LogoURI:       o.LogoURI,
+					RedirectURIs:  o.RedirectURIs,
+					GrantTypes:    o.GrantTypes,
+					ResponseTypes: o.ResponseTypes,
+				}, false, nil
+			}}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        mockClockAt20260831,
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+			So(events.dispatched, ShouldHaveLength, 1)
+			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolvedEventPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.Changes, ShouldHaveLength, 3)
+			var fields []string
+			for _, c := range payload.Changes {
+				fields = append(fields, c.Field)
+			}
+			So(fields, ShouldContain, "client_name")
+			So(fields, ShouldContain, "logo_uri")
+			So(fields, ShouldContain, "redirect_uris")
+			So(fields, ShouldNotContain, "last_fetched_at")
+			So(fields, ShouldNotContain, "updated_at")
 		})
 
 		Convey("usage limit: no limit configured, new client_id: succeeds, ReportStandingCreated called with countBefore", func() {
@@ -371,6 +710,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: usageLimiter,
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -395,6 +735,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     database,
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: usageLimiter,
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -429,6 +770,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: usageLimiter,
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, clientID)
@@ -463,6 +805,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: usageLimiter,
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, clientID)
@@ -482,6 +825,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: usageLimiter,
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err1 := svc.EnsureClientResolved(ctx, testClientID)
@@ -509,6 +853,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -532,6 +877,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -563,6 +909,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, ds.URL+"/x")
@@ -588,6 +935,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			// A NULL-LastFetchedAt record with a failing refetch serves stale (nil).
@@ -627,6 +975,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 						Database:     &stubDatabase{},
 						RateLimiter:  &stubRateLimiter{},
 						UsageLimiter: &stubUsageLimiter{},
+						Events:       &stubEventService{},
 						SingleFlight: newWorkingSingleFlight(t),
 					}
 					err := svc.EnsureClientResolved(ctx, testClientID)
@@ -659,6 +1008,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 					Database:     &stubDatabase{},
 					RateLimiter:  &stubRateLimiter{},
 					UsageLimiter: &stubUsageLimiter{},
+					Events:       &stubEventService{},
 					SingleFlight: newWorkingSingleFlight(t),
 				}
 				err := svc.EnsureClientResolved(ctx, testClientID)
@@ -695,6 +1045,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: sf,
 			}
 			err = svc.EnsureClientResolved(ctx, testClientID)
@@ -716,6 +1067,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: sf,
 			}
 			err = svc.EnsureClientResolved(ctx, testClientID)
@@ -738,6 +1090,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: sf,
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -757,6 +1110,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -788,6 +1142,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -812,6 +1167,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -841,6 +1197,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: sf,
 			}
 			err = svc.EnsureClientResolved(ctx, testClientID)
@@ -861,6 +1218,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -880,6 +1238,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -908,6 +1267,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
 				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
