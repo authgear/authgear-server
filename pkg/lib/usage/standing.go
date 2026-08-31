@@ -59,7 +59,7 @@ func crossedStandingUsageLimits(before, after int, limits []EffectiveStandingUsa
 func (l *Limiter) CheckStanding(ctx context.Context, name model.UsageName, currentCount int) error {
 	limits := l.effectiveStandingUsageLimits(name)
 	if blockQuota, ok := l.minBlockStandingQuota(limits); ok && currentCount+1 > blockQuota {
-		return ErrStandingUsageLimitExceeded(name)
+		return ErrStandingUsageLimitExceeded(name, blockQuota)
 	}
 	return nil
 }
