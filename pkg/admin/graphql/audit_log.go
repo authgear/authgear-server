@@ -161,6 +161,15 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"OAUTH_CLIENT_REGISTERED": &graphql.EnumValueConfig{
 			Value: "oauth.client.registered",
 		},
+		"OAUTH_CLIENT_REGISTRATION_FAILED": &graphql.EnumValueConfig{
+			Value: "oauth.client.registration.failed",
+		},
+		"OAUTH_CLIENT_RESOLUTION_FAILED": &graphql.EnumValueConfig{
+			Value: "oauth.client.resolution.failed",
+		},
+		"OAUTH_CLIENT_RESOLVED": &graphql.EnumValueConfig{
+			Value: "oauth.client.resolved",
+		},
 		// "PASSWORD_PRIMARY_RESET": &graphql.EnumValueConfig{
 		// 	Value: "password.primary.reset",
 		// },
