@@ -9,7 +9,8 @@ var _ = Schema.Add("OAuthConfig", `
 			"type": "array",
 			"items": { "$ref": "#/$defs/OAuthClientConfig" }
 		},
-		"dynamic_client_registration": { "$ref": "#/$defs/OAuthDynamicClientRegistrationConfig" }
+		"dynamic_client_registration": { "$ref": "#/$defs/OAuthDynamicClientRegistrationConfig" },
+		"client_id_metadata_document": { "$ref": "#/$defs/OAuthClientIDMetadataDocumentConfig" }
 	}
 }
 `)
@@ -17,6 +18,7 @@ var _ = Schema.Add("OAuthConfig", `
 type OAuthConfig struct {
 	Clients                   []OAuthClientConfig                   `json:"clients,omitempty"`
 	DynamicClientRegistration *OAuthDynamicClientRegistrationConfig `json:"dynamic_client_registration,omitempty"`
+	ClientIDMetadataDocument  *OAuthClientIDMetadataDocumentConfig  `json:"client_id_metadata_document,omitempty"`
 }
 
 func (c *OAuthConfig) GetClient(clientID string) (*OAuthClientConfig, bool) {
