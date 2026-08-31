@@ -56,9 +56,8 @@ type ServiceDatabase interface {
 	IsInTx(ctx context.Context) bool
 }
 
-// ServiceRateLimiter is a seam for the CIMD rate-limits feature. A no-op
-// implementation is bound today so this service is independently shippable;
-// a later part replaces the binding with the real bucket checks.
+// ServiceRateLimiter is the seam for the CIMD rate-limits feature, bound to
+// *RateLimiter (pkg/lib/cimd/ratelimit.go).
 type ServiceRateLimiter interface {
 	CheckFetchAllowed(ctx context.Context) error
 }

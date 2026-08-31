@@ -8,7 +8,8 @@ var DependencySet = wire.NewSet(
 
 	wire.Struct(new(FetchSingleFlight), "*"),
 
-	ProvideNoopServiceRateLimiter,
+	wire.Struct(new(RateLimiter), "*"),
+
 	ProvideNoopServiceUsageLimiter,
 
 	wire.Struct(new(Service), "*"),
