@@ -28,6 +28,14 @@ func (c *Commands) LockForClientCount(ctx context.Context, source Source) error 
 	return c.Store.LockForClientCount(ctx, source)
 }
 
+// CountClientsBySource is re-exported from Store so cimd.Service depends on
+// one collaborator (*oauthclient.Commands, alongside LockForClientCount and
+// UpsertCIMDClient) rather than also taking *oauthclient.Queries just for
+// this one method.
+func (c *Commands) CountClientsBySource(ctx context.Context, source Source) (uint64, error) {
+	return c.Store.CountClientsBySource(ctx, source)
+}
+
 func (c *Commands) CreateClient(ctx context.Context, options *NewClientOptions) (*Client, error) {
 	client := c.Store.NewClient(options)
 	if err := c.Store.CreateClient(ctx, client); err != nil {

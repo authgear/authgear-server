@@ -24,6 +24,7 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/cimd"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -73,6 +74,17 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(oauthhandler.TokenHandlerAppDatabase), new(*appdb.Handle)),
 	wire.Bind(new(oauthhandler.AuthorizationHandlerDatabase), new(*appdb.Handle)),
+
+	// cimd.DependencySet lives here, not in deps.CommonDependencySet: it
+	// needs *appdb.Handle (via ServiceDatabase), and *appdb.Handle is only
+	// provided in request-scoped sets like this one, not the shared common
+	// set every binary pulls in. See deps_common.go's comment at the same
+	// spot dcr.DependencySet's sibling block lives.
+	cimd.DependencySet,
+	wire.Bind(new(oauthhandler.AuthorizationHandlerCIMDService), new(*cimd.Service)),
+	wire.Bind(new(cimd.ServiceOAuthClientCommands), new(*oauthclient.Commands)),
+	wire.Bind(new(cimd.ServiceOAuthClientQueries), new(*oauthclient.Queries)),
+	wire.Bind(new(cimd.ServiceDatabase), new(*appdb.Handle)),
 
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 

@@ -44,6 +44,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/botprotection"
+	"github.com/authgear/authgear-server/pkg/lib/cimd"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/dcr"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -1266,6 +1267,36 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthFeatureConfig := featureConfig.OAuth
+	cimdhttpClients := cimd.ProvideCIMDHTTPClients()
+	fetcher := &cimd.Fetcher{
+		HTTPClients:        cimdhttpClients,
+		OAuthFeatureConfig: oAuthFeatureConfig,
+		AppID:              appID,
+	}
+	oauthclientCommands := &oauthclient.Commands{
+		Store:    oauthclientStore,
+		Database: handle,
+		Cache:    clientCache,
+	}
+	fetchSingleFlight := &cimd.FetchSingleFlight{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	serviceRateLimiter := cimd.ProvideNoopServiceRateLimiter()
+	serviceUsageLimiter := cimd.ProvideNoopServiceUsageLimiter()
+	cimdService := &cimd.Service{
+		OAuthConfig:        oAuthConfig,
+		OAuthFeatureConfig: oAuthFeatureConfig,
+		Clock:              clockClock,
+		Fetcher:            fetcher,
+		Commands:           oauthclientCommands,
+		Queries:            queries,
+		Database:           handle,
+		SingleFlight:       fetchSingleFlight,
+		RateLimiter:        serviceRateLimiter,
+		UsageLimiter:       serviceUsageLimiter,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
 		Config:                                  oAuthConfig,
@@ -1291,6 +1322,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenIssuer:                           idTokenIssuer,
 		AuthorizationHandlerAccessTokenEncoding: oauthAccessTokenEncoding,
 		ResourceScopeService:                    resourcescopeStore,
+		CIMDService:                             cimdService,
 	}
 	authorizeHandler := &oauth3.AuthorizeHandler{
 		AuthzHandler: authorizationHandler,
@@ -2291,6 +2323,36 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthFeatureConfig := featureConfig.OAuth
+	cimdhttpClients := cimd.ProvideCIMDHTTPClients()
+	fetcher := &cimd.Fetcher{
+		HTTPClients:        cimdhttpClients,
+		OAuthFeatureConfig: oAuthFeatureConfig,
+		AppID:              appID,
+	}
+	oauthclientCommands := &oauthclient.Commands{
+		Store:    oauthclientStore,
+		Database: handle,
+		Cache:    clientCache,
+	}
+	fetchSingleFlight := &cimd.FetchSingleFlight{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	serviceRateLimiter := cimd.ProvideNoopServiceRateLimiter()
+	serviceUsageLimiter := cimd.ProvideNoopServiceUsageLimiter()
+	cimdService := &cimd.Service{
+		OAuthConfig:        oAuthConfig,
+		OAuthFeatureConfig: oAuthFeatureConfig,
+		Clock:              clockClock,
+		Fetcher:            fetcher,
+		Commands:           oauthclientCommands,
+		Queries:            queries,
+		Database:           handle,
+		SingleFlight:       fetchSingleFlight,
+		RateLimiter:        serviceRateLimiter,
+		UsageLimiter:       serviceUsageLimiter,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
 		Config:                                  oAuthConfig,
@@ -2316,6 +2378,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenIssuer:                           idTokenIssuer,
 		AuthorizationHandlerAccessTokenEncoding: oauthAccessTokenEncoding,
 		ResourceScopeService:                    resourcescopeStore,
+		CIMDService:                             cimdService,
 	}
 	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword

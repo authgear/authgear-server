@@ -11,12 +11,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/cimd"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
@@ -134,6 +136,14 @@ type AuthorizationHandlerDatabase interface {
 	IsInTx(ctx context.Context) bool
 }
 
+// AuthorizationHandlerCIMDService resolves a CIMD Client Identifier URL by
+// fetching its metadata document, as a side effect of /oauth2/authorize and
+// nowhere else (docs/specs/cimd.md § Where resolution happens). It is a
+// no-op for every client_id that is not a CIMD candidate.
+type AuthorizationHandlerCIMDService interface {
+	EnsureClientResolved(ctx context.Context, clientID string) error
+}
+
 // AuthorizationHandlerResourceScopeService is the third-party access-policy
 // read path (docs/plans/dcr/2026-08-17-04-resource-access-policy.md §5.1) —
 // deliberately a different service shape from handler_token.go's
@@ -173,6 +183,7 @@ type AuthorizationHandler struct {
 	IDTokenIssuer                           IDTokenIssuer
 	AuthorizationHandlerAccessTokenEncoding AuthorizationHandlerAccessTokenEncoding
 	ResourceScopeService                    AuthorizationHandlerResourceScopeService
+	CIMDService                             AuthorizationHandlerCIMDService
 }
 
 // validateResource returns the resource-specific scopes the client is
@@ -1043,6 +1054,15 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 	ctx context.Context,
 	r protocol.AuthorizationRequest,
 ) (context.Context, *AuthorizationParams, *AuthorizationResultError) {
+	// CIMD resolution runs BEFORE resolveClient and outside any
+	// transaction. It is a no-op unless client_id is a CIMD candidate, in
+	// which case it may perform one outbound HTTP request and persist the
+	// result; resolveClient below then reads that record like any other
+	// dynamic client's.
+	if err := h.CIMDService.EnsureClientResolved(ctx, r.ClientID()); err != nil {
+		return ctx, nil, h.cimdResolutionError(ctx, r, err)
+	}
+
 	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
 	if client == nil {
 		return ctx, nil, &AuthorizationResultError{
@@ -1094,6 +1114,54 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 			Client:      client,
 			RedirectURI: redirectURI,
 		}, nil
+	}
+}
+
+// cimdResolutionError maps a cimd.Service failure onto an authorization
+// error response. There is no RedirectURI on any of these: without a
+// resolved client there are no registered redirect URIs to validate the
+// request's redirect_uri against, so every one of them must be rendered
+// directly to the user agent rather than redirected. This is the same
+// treatment the existing client == nil branch already gets.
+func (h *AuthorizationHandler) cimdResolutionError(
+	ctx context.Context,
+	r protocol.AuthorizationRequest,
+	err error,
+) *AuthorizationResultError {
+	switch {
+	case apierrors.IsKind(err, cimd.CIMDUnresolvable):
+		// docs/specs/cimd.md § Error Handling: the authorization request
+		// fails the same way it does today for a client_id that matches no
+		// known client. Byte-identical to the client == nil branch,
+		// deliberately: spec § Authgear as an SSRF/Probing Oracle requires
+		// that the error not distinguish WHY resolution failed, and that
+		// includes not distinguishing "CIMD fetch failed" from "no such
+		// client".
+		return &AuthorizationResultError{
+			ResponseMode: r.ResponseMode(),
+			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
+		}
+	case apierrors.IsKind(err, cimd.CIMDClientLimitExceeded):
+		// Spec § Error Handling makes this a distinct, non-uniform error
+		// precisely because it carries no information about the fetch
+		// target.
+		return &AuthorizationResultError{
+			ResponseMode: r.ResponseMode(),
+			Response:     protocol.NewErrorResponse("access_denied", "the project has reached its client limit"),
+		}
+	case apierrors.IsKind(err, ratelimit.RateLimited):
+		return &AuthorizationResultError{
+			ResponseMode: r.ResponseMode(),
+			Response:     protocol.NewErrorResponse("x_rate_limited", "rate limit exceeded, please try again later."),
+		}
+	default:
+		logger := AuthorizationHandlerLogger.GetLogger(ctx)
+		logger.WithError(err).Error(ctx, "cimd: unexpected error resolving client")
+		return &AuthorizationResultError{
+			ResponseMode:  r.ResponseMode(),
+			Response:      protocol.NewErrorResponse("server_error", "internal server error"),
+			InternalError: true,
+		}
 	}
 }
 
