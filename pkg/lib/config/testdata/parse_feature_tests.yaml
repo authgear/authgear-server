@@ -237,3 +237,29 @@ error: |-
 config:
   fraud_protection:
     invalid_key: foo
+---
+name: cimd-insecure-fetch-address-allowed-true
+error: null
+config:
+  oauth:
+    client_id_metadata_document:
+      insecure_fetch_address_allowed: true
+---
+name: cimd-insecure-http-allowed-wrong-type
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/insecure_http_allowed: type
+    map[actual:[string] expected:[boolean]]
+config:
+  oauth:
+    client_id_metadata_document:
+      insecure_http_allowed: "yes"
+---
+name: cimd-unknown-key
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/unknown_key: 
+config:
+  oauth:
+    client_id_metadata_document:
+      unknown_key: foo
