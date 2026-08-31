@@ -1,16 +1,27 @@
 package cimd
 
 import (
+	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
+	"log/slog"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"net/netip"
+	"net/url"
 	"strconv"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 // stubResolver lets a test control DNS resolution without touching the
@@ -210,3 +221,236 @@ func TestSafeDialerDialContext(t *testing.T) {
 		})
 	})
 }
+
+// newLoopbackHTTPClient builds an http.Client wired through SafeDialer
+// (AllowNonPublicAddresses: true, since httptest servers bind to loopback)
+// with rootCAs trusted, so Fetch-level tests exercise the real dial path
+// while only address-policy tests (above) need to assert on address
+// policy. resolver, if non-nil, overrides hostname resolution; nil means
+// the request's own host is used (works for httptest's default
+// "https://127.0.0.1:PORT" URLs, since 127.0.0.1 is an IP literal and never
+// touches the resolver).
+func newLoopbackHTTPClient(rootCAs *x509.CertPool, resolver netipResolver) *http.Client {
+	dialer := &SafeDialer{Resolver: resolver, AllowNonPublicAddresses: true}
+	transport := &http.Transport{
+		DialContext:     dialer.DialContext,
+		TLSClientConfig: &tls.Config{RootCAs: rootCAs},
+	}
+	return httputil.NewExternalClientWithOptions(FetchTimeout, httputil.ExternalClientOptions{
+		FollowRedirect: false,
+		Transport:      transport,
+	})
+}
+
+func certPool(srv *httptest.Server) *x509.CertPool {
+	pool := x509.NewCertPool()
+	pool.AddCert(srv.Certificate())
+	return pool
+}
+
+func addCert(pool *x509.CertPool, srv *httptest.Server) {
+	pool.AddCert(srv.Certificate())
+}
+
+func TestFetcherFetch(t *testing.T) {
+	Convey("Fetcher.Fetch", t, func() {
+		ctx := context.Background()
+		body := bytes.Repeat([]byte("a"), 100)
+		jsonBody := append([]byte(`{"padding":"`), append(body, []byte(`"}`)...)...)
+
+		Convey("200 with a small JSON body returns the bytes", func() {
+			srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write(jsonBody)
+			}))
+			defer srv.Close()
+
+			f := &Fetcher{HTTPClients: &CIMDHTTPClients{Strict: newLoopbackHTTPClient(certPool(srv), nil)}}
+			u, _ := url.Parse(srv.URL)
+			got, err := f.Fetch(ctx, u)
+			So(err, ShouldBeNil)
+			So(got, ShouldResemble, jsonBody)
+		})
+
+		Convey("exactly MaxDocumentBytes is accepted", func() {
+			exact := bytes.Repeat([]byte("a"), MaxDocumentBytes)
+			srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = w.Write(exact)
+			}))
+			defer srv.Close()
+
+			f := &Fetcher{HTTPClients: &CIMDHTTPClients{Strict: newLoopbackHTTPClient(certPool(srv), nil)}}
+			u, _ := url.Parse(srv.URL)
+			got, err := f.Fetch(ctx, u)
+			So(err, ShouldBeNil)
+			So(len(got), ShouldEqual, MaxDocumentBytes)
+		})
+
+		Convey("MaxDocumentBytes+1 is refused, via progressive enforcement rather than Content-Length", func() {
+			tooLarge := bytes.Repeat([]byte("a"), MaxDocumentBytes+1)
+			srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// No explicit Content-Length header is set before writing,
+				// so the server falls back to chunked transfer encoding:
+				// this exercises the unknown-length path, proving the +1
+				// read limit -- not a declared header -- is what catches an
+				// oversize body.
+				_, _ = w.Write(tooLarge)
+			}))
+			defer srv.Close()
+
+			f := &Fetcher{HTTPClients: &CIMDHTTPClients{Strict: newLoopbackHTTPClient(certPool(srv), nil)}}
+			u, _ := url.Parse(srv.URL)
+			_, err := f.Fetch(ctx, u)
+			So(errors.Is(err, ErrResponseTooLarge), ShouldBeTrue)
+		})
+
+		Convey("a 301 redirect is refused (0 redirects followed) and the target is never requested", func() {
+			targetHits := &atomic.Int64{}
+			target := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				targetHits.Add(1)
+				_, _ = w.Write(jsonBody)
+			}))
+			defer target.Close()
+
+			srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				http.Redirect(w, r, target.URL, http.StatusMovedPermanently)
+			}))
+			defer srv.Close()
+
+			pool := certPool(srv)
+			addCert(pool, target)
+			f := &Fetcher{HTTPClients: &CIMDHTTPClients{Strict: newLoopbackHTTPClient(pool, nil)}}
+			u, _ := url.Parse(srv.URL)
+			_, err := f.Fetch(ctx, u)
+			So(errors.Is(err, ErrResponseNotOK), ShouldBeTrue)
+			So(targetHits.Load(), ShouldEqual, int64(0))
+		})
+
+		for _, status := range []int{http.StatusNotFound, http.StatusInternalServerError} {
+			status := status
+			Convey("a non-2xx status is refused: "+strconv.Itoa(status), func() {
+				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(status)
+				}))
+				defer srv.Close()
+
+				f := &Fetcher{HTTPClients: &CIMDHTTPClients{Strict: newLoopbackHTTPClient(certPool(srv), nil)}}
+				u, _ := url.Parse(srv.URL)
+				_, err := f.Fetch(ctx, u)
+				So(errors.Is(err, ErrResponseNotOK), ShouldBeTrue)
+			})
+		}
+
+		Convey("204 No Content is a 2xx per spec's literal 'MUST be 2xx': Fetch succeeds with an empty body -- ParseAndValidate rejects it as not a JSON object, not Fetch", func() {
+			srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusNoContent)
+			}))
+			defer srv.Close()
+
+			f := &Fetcher{HTTPClients: &CIMDHTTPClients{Strict: newLoopbackHTTPClient(certPool(srv), nil)}}
+			u, _ := url.Parse(srv.URL)
+			got, err := f.Fetch(ctx, u)
+			So(err, ShouldBeNil)
+			So(got, ShouldBeEmpty)
+		})
+
+		Convey("a server that never responds times out well under the request context deadline", func() {
+			srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				select {
+				case <-time.After(10 * time.Second):
+				case <-r.Context().Done():
+				}
+			}))
+			defer srv.Close()
+
+			f := &Fetcher{HTTPClients: &CIMDHTTPClients{Strict: newLoopbackHTTPClient(certPool(srv), nil)}}
+			u, _ := url.Parse(srv.URL)
+
+			start := time.Now()
+			_, err := f.Fetch(ctx, u)
+			elapsed := time.Since(start)
+			So(err, ShouldNotBeNil)
+			So(elapsed, ShouldBeLessThan, 8*time.Second)
+		})
+
+		Convey("hostname verification survives the custom DialContext: a cert for the wrong hostname fails", func() {
+			srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = w.Write(jsonBody)
+			}))
+			defer srv.Close()
+
+			serverAddr := srv.Listener.Addr().(*net.TCPAddr)
+			resolver := &stubResolver{addrs: []netip.Addr{netip.MustParseAddr(serverAddr.IP.String())}}
+			f := &Fetcher{HTTPClients: &CIMDHTTPClients{Strict: newLoopbackHTTPClient(certPool(srv), resolver)}}
+
+			// The cert is valid for "example.com", not this hostname -- the
+			// SafeDialer resolves it to the real server's address anyway
+			// (that's the point being tested), but certificate verification
+			// must still fail on the hostname mismatch.
+			u, _ := url.Parse("https://wrong-hostname.invalid:" + strconv.Itoa(serverAddr.Port) + "/")
+			_, err := f.Fetch(ctx, u)
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "certificate")
+		})
+	})
+}
+
+func TestFetcherClientFor(t *testing.T) {
+	Convey("Fetcher.clientFor", t, func() {
+		strict := &http.Client{}
+		insecure := &http.Client{}
+		clients := &CIMDHTTPClients{Strict: strict, Insecure: insecure}
+		u, _ := url.Parse("https://mcp-client.example.com/oauth/client-metadata.json")
+
+		Convey("feature config absent -> Strict, nothing logged", func() {
+			var buf bytes.Buffer
+			ctx := slogutil.SetContextLogger(context.Background(), slog.New(slogutil.NewHandlerForTesting(slog.LevelWarn, &buf)))
+			f := &Fetcher{HTTPClients: clients, OAuthFeatureConfig: nil, AppID: "test-app"}
+
+			got := f.clientFor(ctx, u)
+			So(got, ShouldEqual, strict)
+			So(buf.String(), ShouldBeEmpty)
+		})
+
+		Convey("insecure_fetch_address_allowed: false -> Strict, nothing logged", func() {
+			var buf bytes.Buffer
+			ctx := slogutil.SetContextLogger(context.Background(), slog.New(slogutil.NewHandlerForTesting(slog.LevelWarn, &buf)))
+			f := &Fetcher{
+				HTTPClients: clients,
+				OAuthFeatureConfig: &config.OAuthFeatureConfig{
+					ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentFeatureConfig{
+						InsecureFetchAddressAllowed: boolPtr(false),
+					},
+				},
+				AppID: "test-app",
+			}
+
+			got := f.clientFor(ctx, u)
+			So(got, ShouldEqual, strict)
+			So(buf.String(), ShouldBeEmpty)
+		})
+
+		Convey("insecure_fetch_address_allowed: true -> Insecure, and a Warn record is emitted with app_id, host and flag name", func() {
+			var buf bytes.Buffer
+			ctx := slogutil.SetContextLogger(context.Background(), slog.New(slogutil.NewHandlerForTesting(slog.LevelWarn, &buf)))
+			f := &Fetcher{
+				HTTPClients: clients,
+				OAuthFeatureConfig: &config.OAuthFeatureConfig{
+					ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentFeatureConfig{
+						InsecureFetchAddressAllowed: boolPtr(true),
+					},
+				},
+				AppID: "test-app",
+			}
+
+			got := f.clientFor(ctx, u)
+			So(got, ShouldEqual, insecure)
+			logged := buf.String()
+			So(logged, ShouldContainSubstring, "test-app")
+			So(logged, ShouldContainSubstring, "mcp-client.example.com")
+			So(logged, ShouldContainSubstring, "oauth.client_id_metadata_document.insecure_fetch_address_allowed")
+		})
+	})
+}
+
+func boolPtr(b bool) *bool { return &b }
