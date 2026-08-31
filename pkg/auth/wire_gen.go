@@ -35623,15 +35623,15 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		OfflineGrants: oauthOfflineGrantService,
 	}
 	authflowV2SettingsSessionsHandler := &authflowv2.AuthflowV2SettingsSessionsHandler{
-		Database:          handle,
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		SettingsViewModel: settingsViewModeler,
-		Renderer:          responseRenderer,
-		Sessions:          manager2,
-		Authorizations:    authorizationService,
-		OAuthConfig:       oAuthConfig,
-		SessionListing:    sessionListingService,
+		Database:            handle,
+		ControllerFactory:   controllerFactory,
+		BaseViewModel:       baseViewModeler,
+		SettingsViewModel:   settingsViewModeler,
+		Renderer:            responseRenderer,
+		Sessions:            manager2,
+		Authorizations:      authorizationService,
+		OAuthClientResolver: resolver,
+		SessionListing:      sessionListingService,
 	}
 	return authflowV2SettingsSessionsHandler
 }

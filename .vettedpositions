@@ -151,8 +151,8 @@
 /pkg/auth/handler/webapp/authflowv2/settings_passkey.go:106:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_profile.go:40:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_profile_edit.go:171:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:127:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:129:39: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:142:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:144:39: requestcontext
 /pkg/auth/handler/webapp/authflowv2/setup_oob_otp.go:162:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/setup_totp.go:122:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/terminate_other_sessions.go:74:26: requestcontext

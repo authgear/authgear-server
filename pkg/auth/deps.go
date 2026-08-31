@@ -214,6 +214,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.SettingsVerificationService), new(*verification.Service)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsSessionManager), new(*session.Manager)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsAuthorizationService), new(*oauth.AuthorizationService)),
+	wire.Bind(new(handlerwebappauthflowv2.SettingsSessionsClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsSessionListingService), new(*sessionlisting.SessionListingService)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsMFAService), new(*mfa.Service)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsIdentityService), new(*identityservice.Service)),
