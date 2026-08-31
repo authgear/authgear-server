@@ -10,7 +10,7 @@ import (
 // docs/plans/dcr/2026-08-17-03-client-resolution.md). defaults comes from
 // whichever project config governs this row's source — see
 // ResolveTokenLifetimes.
-func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientRegistrationDefaultClientConfig) *config.OAuthClientConfig {
+func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientTokenLifetimesConfig) *config.OAuthClientConfig {
 	var appType config.OAuthClientApplicationType
 	switch {
 	case c.Kind == model.OAuthClientKindThirdParty:
@@ -40,8 +40,8 @@ func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientRegistrationD
 	// (see ResolveTokenLifetimes's default case, e.g. a not-yet-implemented
 	// CIMD), not "the admin configured no override" -- for DCR, defaults is
 	// always non-nil with real token-lifetime values once config defaults
-	// have run (config.OAuthDynamicClientRegistrationDefaultClientConfig's
-	// own SetDefaults()).
+	// have run (config.OAuthDynamicClientTokenLifetimesConfig's own
+	// SetDefaults()).
 	if defaults != nil {
 		cfg.AccessTokenLifetime = defaults.AccessTokenLifetime
 		cfg.RefreshTokenLifetime = defaults.RefreshTokenLifetime
@@ -57,7 +57,7 @@ func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientRegistrationD
 // remember which key applies to which source. DCR reads
 // oauth.dynamic_client_registration.default_client_config; CIMD will add
 // its own case when cimd.md ships.
-func ResolveTokenLifetimes(oauthConfig *config.OAuthConfig, source model.OAuthClientSource) *config.OAuthDynamicClientRegistrationDefaultClientConfig {
+func ResolveTokenLifetimes(oauthConfig *config.OAuthConfig, source model.OAuthClientSource) *config.OAuthDynamicClientTokenLifetimesConfig {
 	switch source {
 	case model.OAuthClientSourceDCR:
 		return oauthConfig.DynamicClientRegistration.GetDefaultClientConfig()
