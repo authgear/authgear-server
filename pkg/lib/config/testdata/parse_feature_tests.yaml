@@ -263,3 +263,40 @@ config:
   oauth:
     client_id_metadata_document:
       unknown_key: foo
+---
+name: cimd-rate-limits-burst-zero
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/rate_limits/per_project/burst: minimum
+    map[actual:0 minimum:1]
+config:
+  oauth:
+    client_id_metadata_document:
+      rate_limits:
+        per_project:
+          enabled: true
+          period: 1m
+          burst: 0
+---
+name: cimd-rate-limits-enabled-without-period
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/rate_limits/per_ip: required
+    map[actual:[burst enabled] expected:[period] missing:[period]]
+config:
+  oauth:
+    client_id_metadata_document:
+      rate_limits:
+        per_ip:
+          enabled: true
+          burst: 5
+---
+name: cimd-rate-limits-unknown-key
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/rate_limits/unknown_key: 
+config:
+  oauth:
+    client_id_metadata_document:
+      rate_limits:
+        unknown_key: foo
