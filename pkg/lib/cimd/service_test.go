@@ -159,6 +159,10 @@ func (s *stubDatabase) WithTx(ctx context.Context, do func(ctx context.Context) 
 
 func (s *stubDatabase) IsInTx(ctx context.Context) bool { return s.inTx }
 
+func (s *stubDatabase) ReadOnly(ctx context.Context, do func(ctx context.Context) error) error {
+	return do(ctx)
+}
+
 // documentServer is an httptest.Server (TLS, trusted via its own
 // srv.Client()) that counts every request it receives, so "fetcher never
 // called" is a direct assertion rather than an inference.
@@ -725,7 +729,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
 			defer ds.Close()
 			commands := &stubCommands{count: 20}
-			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD)}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD, 20)}
 			database := &stubDatabase{}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
@@ -760,7 +764,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			commands := &stubCommands{count: 20, upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
 				return &oauthclient.Client{ClientID: o.ClientID, Source: model.OAuthClientSourceCIMD}, false, nil
 			}}
-			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD)}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD, 20)}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
 				Clock:        mockClock,
@@ -795,7 +799,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			commands := &stubCommands{count: 25, upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
 				return &oauthclient.Client{ClientID: o.ClientID, Source: model.OAuthClientSourceCIMD}, false, nil
 			}}
-			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD)}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD, 20)}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
 				Clock:        mockClock,
@@ -816,7 +820,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
 			defer ds.Close()
 			commands := &stubCommands{count: 20}
-			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD)}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD, 20)}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
 				Fetcher:      fetcherFor(ds),
@@ -1022,6 +1026,190 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 					So(err.Error(), ShouldEqual, firstErr.Error())
 				}
 			}
+		})
+
+		Convey("audit: fetch fails (unavailable outcome), no record: resolution.failed with outcome unavailable, empty reason, served_stale_record false -- and every case is byte-identical", func() {
+			cases := map[string]http.HandlerFunc{
+				"404":      func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNotFound) },
+				"oversize": func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(make([]byte, cimd.MaxDocumentBytes+1)) },
+			}
+			var firstPayload *nonblocking.OAuthClientResolutionFailedEventPayload
+			for _, handler := range cases {
+				ds := newDocumentServer(handler)
+				events := &stubEventService{}
+				svc := &cimd.Service{
+					OAuthConfig:  enabledOAuthConfig(),
+					Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+					Fetcher:      fetcherFor(ds),
+					Commands:     &stubCommands{},
+					Queries:      &stubQueries{},
+					Database:     &stubDatabase{},
+					RateLimiter:  &stubRateLimiter{},
+					UsageLimiter: &stubUsageLimiter{},
+					Events:       events,
+					SingleFlight: newWorkingSingleFlight(t),
+				}
+				err := svc.EnsureClientResolved(ctx, testClientID)
+				ds.Close()
+				So(apierrors.IsKind(err, cimd.CIMDUnresolvable), ShouldBeTrue)
+				So(events.dispatched, ShouldHaveLength, 1)
+				So(events.dispatched[0].Style, ShouldEqual, "Immediately")
+				payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolutionFailedEventPayload)
+				So(ok, ShouldBeTrue)
+				So(payload.Outcome, ShouldEqual, nonblocking.OAuthClientResolutionOutcomeUnavailable)
+				So(payload.Reason, ShouldBeEmpty)
+				So(payload.ServedStaleRecord, ShouldBeFalse)
+				if firstPayload == nil {
+					firstPayload = payload
+				} else {
+					So(payload, ShouldResemble, firstPayload)
+				}
+			}
+		})
+
+		Convey("audit: fetch fails (invalid outcome), no record: resolution.failed with outcome invalid, reason names the failing rule", func() {
+			cases := map[string]struct {
+				handler        http.HandlerFunc
+				expectedReason string
+			}{
+				"invalid json": {
+					handler:        func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("not json")) },
+					expectedReason: "not_json_object",
+				},
+				"client_id mismatch": {
+					handler: func(w http.ResponseWriter, r *http.Request) {
+						_, _ = w.Write([]byte(`{"client_id":"https://wrong.example.com/x","redirect_uris":["https://x/cb"]}`))
+					},
+					expectedReason: "client_id_mismatch",
+				},
+			}
+			for name, tc := range cases {
+				name, tc := name, tc
+				Convey(name, func() {
+					ds := newDocumentServer(tc.handler)
+					defer ds.Close()
+					events := &stubEventService{}
+					svc := &cimd.Service{
+						OAuthConfig:  enabledOAuthConfig(),
+						Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+						Fetcher:      fetcherFor(ds),
+						Commands:     &stubCommands{},
+						Queries:      &stubQueries{},
+						Database:     &stubDatabase{},
+						RateLimiter:  &stubRateLimiter{},
+						UsageLimiter: &stubUsageLimiter{},
+						Events:       events,
+						SingleFlight: newWorkingSingleFlight(t),
+					}
+					err := svc.EnsureClientResolved(ctx, testClientID)
+					So(apierrors.IsKind(err, cimd.CIMDUnresolvable), ShouldBeTrue)
+					So(events.dispatched, ShouldHaveLength, 1)
+					payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolutionFailedEventPayload)
+					So(ok, ShouldBeTrue)
+					So(payload.Outcome, ShouldEqual, nonblocking.OAuthClientResolutionOutcomeInvalid)
+					So(payload.Reason, ShouldEqual, tc.expectedReason)
+				})
+			}
+		})
+
+		Convey("audit: fetch fails, record exists: served_stale_record true", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNotFound) })
+			defer ds.Close()
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour)
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
+			}}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        mockClock,
+				Fetcher:      fetcherFor(ds),
+				Commands:     &stubCommands{},
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(err, ShouldBeNil)
+			So(events.dispatched, ShouldHaveLength, 1)
+			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolutionFailedEventPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.ServedStaleRecord, ShouldBeTrue)
+		})
+
+		Convey("audit: new client at quota: resolution.failed with limit_exceeded, usage_name and quota, served_stale_record false, via Immediately; no resolved event; transaction rolled back", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
+			defer ds.Close()
+			commands := &stubCommands{count: 20}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD, 20)}
+			events := &stubEventService{}
+			database := &stubDatabase{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      &stubQueries{},
+				Database:     database,
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: usageLimiter,
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err, cimd.CIMDClientLimitExceeded), ShouldBeTrue)
+			So(events.dispatched, ShouldHaveLength, 1)
+			So(events.dispatched[0].Style, ShouldEqual, "Immediately")
+			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolutionFailedEventPayload)
+			So(ok, ShouldBeTrue)
+			So(payload.Outcome, ShouldEqual, nonblocking.OAuthClientResolutionOutcomeLimitExceeded)
+			So(payload.UsageName, ShouldEqual, model.UsageNameOAuthClientCIMD)
+			So(payload.Quota, ShouldEqual, 20)
+			So(payload.ServedStaleRecord, ShouldBeFalse)
+		})
+
+		Convey("audit: event dispatch returns an error on the Immediately path: EnsureClientResolved's own return value is unchanged", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNotFound) })
+			defer ds.Close()
+			dispatchErr := errors.New("event queue unavailable")
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+				Fetcher:      fetcherFor(ds),
+				Commands:     &stubCommands{},
+				Queries:      &stubQueries{},
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{immediatelyErr: dispatchErr},
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err, cimd.CIMDUnresolvable), ShouldBeTrue)
+		})
+
+		Convey("audit: allowed_domains refusal: no event", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
+			defer ds.Close()
+			oauthConfig := enabledOAuthConfig()
+			oauthConfig.ClientIDMetadataDocument.AllowedDomains = []string{"only-this.example.com"}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  oauthConfig,
+				Fetcher:      fetcherFor(ds),
+				Queries:      &stubQueries{},
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err, cimd.CIMDUnresolvable), ShouldBeTrue)
+			So(events.dispatched, ShouldBeEmpty)
 		})
 
 		Convey("single-flight not acquired, record exists: nil, fetcher never called", func() {

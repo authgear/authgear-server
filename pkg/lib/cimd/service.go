@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
@@ -57,6 +58,10 @@ type ServiceOAuthClientQueries interface {
 type ServiceDatabase interface {
 	WithTx(ctx context.Context, do func(ctx context.Context) error) error
 	IsInTx(ctx context.Context) bool
+	// ReadOnly is used only by dispatchImmediately, to give a dispatch
+	// outside any transaction (a fetch failure, before step 8) a database
+	// scope the same way usage.Limiter.dispatchEventImmediately does.
+	ReadOnly(ctx context.Context, do func(ctx context.Context) error) error
 }
 
 // ServiceRateLimiter is the seam for the CIMD rate-limits feature, bound to
@@ -202,15 +207,35 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 	}
 	body, fetchErr := s.Fetcher.Fetch(ctx, u)
 	var doc *Document
+	// The outcome is classified by WHICH function failed, never by
+	// inspecting the error's content (D9): Fetcher.Fetch is always
+	// "unavailable", ParseAndValidate is always "invalid". If a future
+	// refactor let a transport error fall into the "invalid" branch, the
+	// oracle-safety guarantee below would be gone.
+	var validationErr error
 	if fetchErr == nil {
-		doc, fetchErr = ParseAndValidate(clientID, body, allowInsecureHTTP)
+		doc, validationErr = ParseAndValidate(clientID, body, allowInsecureHTTP)
 	}
-	if fetchErr != nil {
+	if fetchErr != nil || validationErr != nil {
+		cause := fetchErr
+		outcome := nonblocking.OAuthClientResolutionOutcomeUnavailable
+		reason := ""
+		if fetchErr == nil {
+			cause = validationErr
+			outcome = nonblocking.OAuthClientResolutionOutcomeInvalid
+			reason = documentErrorReason(validationErr)
+		}
 		// The cause is logged here and nowhere else; it never reaches a
 		// response.
-		ServiceLogger.GetLogger(ctx).WithError(fetchErr).
+		ServiceLogger.GetLogger(ctx).WithError(cause).
 			With(slog.String("client_id", clientID)).
 			Info(ctx, "cimd: failed to resolve client metadata document")
+		s.dispatchImmediately(ctx, &nonblocking.OAuthClientResolutionFailedEventPayload{
+			ClientID:          clientID,
+			Outcome:           outcome,
+			Reason:            reason,
+			ServedStaleRecord: existing != nil,
+		})
 		if existing != nil {
 			return nil // serve the stale record
 		}
@@ -221,6 +246,65 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 	return s.Database.WithTx(ctx, func(ctx context.Context) error {
 		return s.upsert(ctx, clientID, doc, existing)
 	})
+}
+
+// documentErrorReason names the validation rule that failed, one per
+// ErrDocument* sentinel. Safe to expose in the audit log's "invalid"
+// outcome: reaching this function at all means a parseable JSON document
+// was retrieved, so the reason describes the client author's own published
+// content, not Authgear's network reachability (D7).
+func documentErrorReason(err error) string {
+	switch {
+	case errors.Is(err, ErrDocumentNotJSONObject):
+		return "not_json_object"
+	case errors.Is(err, ErrDocumentClientIDMismatch):
+		return "client_id_mismatch"
+	case errors.Is(err, ErrDocumentRedirectURIsMissing):
+		return "redirect_uris_missing"
+	case errors.Is(err, ErrDocumentRedirectURIInvalid):
+		return "redirect_uri_invalid"
+	case errors.Is(err, ErrDocumentGrantTypeUnsupported):
+		return "grant_type_unsupported"
+	case errors.Is(err, ErrDocumentResponseTypeInconsistent):
+		return "response_type_inconsistent"
+	case errors.Is(err, ErrDocumentApplicationTypeUnsupported):
+		return "application_type_unsupported"
+	case errors.Is(err, ErrDocumentTokenEndpointAuthMethodNotAccepted):
+		return "token_endpoint_auth_method_not_accepted"
+	case errors.Is(err, ErrDocumentURIFieldNotHTTPS):
+		return "uri_field_not_https"
+	default:
+		// Unreachable in practice -- ParseAndValidate returns only the
+		// sentinels above -- but never silently emit an empty reason for a
+		// genuinely new rule; that would look like a config problem was
+		// swallowed rather than surfaced.
+		return "unknown"
+	}
+}
+
+// dispatchImmediately is used for oauth.client.resolution.failed, which
+// cannot use DispatchEventOnCommit: on a fetch failure no transaction was
+// ever opened, and on the limit_exceeded path the transaction is about to
+// roll back, so OnCommit would drop exactly the record that matters. Same
+// IsInTx/ReadOnly branch as usage.Limiter.dispatchEventImmediately.
+//
+// The dispatch error is deliberately swallowed, not returned: an audit
+// write failing must never convert a resolvable client into an error, nor
+// a clean failure into a server_error.
+func (s *Service) dispatchImmediately(ctx context.Context, payload event.NonBlockingPayload) {
+	dispatch := func(ctx context.Context) error {
+		return s.Events.DispatchEventImmediately(ctx, payload)
+	}
+	var err error
+	if s.Database.IsInTx(ctx) {
+		err = dispatch(ctx)
+	} else {
+		err = s.Database.ReadOnly(ctx, dispatch)
+	}
+	if err != nil {
+		ServiceLogger.GetLogger(ctx).WithError(err).
+			Error(ctx, "cimd: failed to dispatch audit event")
+	}
 }
 
 // isFresh reports false for a NULL LastFetchedAt: that row was written by
@@ -275,6 +359,19 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, ex
 	}
 
 	if created && limitErr != nil {
+		// Dispatched via Immediately, inside this same transaction, before
+		// returning: DispatchEventImmediately writes through its own path
+		// rather than this transaction, so the record survives the
+		// rollback below. served_stale_record is always false here -- this
+		// path only runs when there was no existing record to fall back to.
+		usageName, quota, _ := usage.StandingUsageLimitDetails(limitErr)
+		s.dispatchImmediately(ctx, &nonblocking.OAuthClientResolutionFailedEventPayload{
+			ClientID:          clientID,
+			Outcome:           nonblocking.OAuthClientResolutionOutcomeLimitExceeded,
+			UsageName:         usageName,
+			Quota:             quota,
+			ServedStaleRecord: false,
+		})
 		// Rolls back the INSERT above (a non-nil error from inside
 		// Database.WithTx rolls the transaction back). A distinct error
 		// from the uniform CIMDUnresolvable one: spec § Error Handling
