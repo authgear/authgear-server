@@ -51,6 +51,9 @@ const (
 
 	// Client ID Metadata Document rate limits
 	RateLimitGroupOAuthCIMDFetch RateLimitGroup = "oauth.cimd_fetch"
+
+	// Client ID Metadata Document / DCR client logo rate limits
+	RateLimitGroupOAuthCIMDLogo RateLimitGroup = "oauth.cimd_logo"
 )
 
 const (
@@ -122,6 +125,9 @@ const (
 	// Client ID Metadata Document
 	RateLimitOAuthCIMDFetchPerIP      RateLimitName = "oauth.cimd_fetch.per_ip"
 	RateLimitOAuthCIMDFetchPerProject RateLimitName = "oauth.cimd_fetch.per_project"
+
+	// Client ID Metadata Document / DCR client logo
+	RateLimitOAuthCIMDLogoPerClient RateLimitName = "oauth.cimd_logo.per_client"
 )
 
 const (
@@ -210,6 +216,8 @@ const (
 
 	OAuthCIMDFetchPerIP      BucketName = "OAuthCIMDFetchPerIP"
 	OAuthCIMDFetchPerProject BucketName = "OAuthCIMDFetchPerProject"
+
+	OAuthCIMDLogoPerClient BucketName = "OAuthCIMDLogoPerClient"
 )
 
 func (n RateLimitGroup) resolvePerIP(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
