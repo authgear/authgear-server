@@ -163,7 +163,7 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 
 	// (5) Single-flight. A Redis failure degrades to a possible stampede,
 	// which beats refusing every request.
-	acquired, err := s.SingleFlight.Acquire(ctx, clientID)
+	acquired, err := s.SingleFlight.Acquire(ctx, singleFlightPurposeDocument, clientID)
 	if err != nil {
 		acquired = true
 	}

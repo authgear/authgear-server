@@ -37,41 +37,41 @@ func TestFetchSingleFlightAcquire(t *testing.T) {
 		sf, mr := newTestFetchSingleFlight(t)
 
 		Convey("the first caller for a client_id acquires", func() {
-			acquired, err := sf.Acquire(ctx, "https://mcp-client.example.com/oauth/client-metadata.json")
+			acquired, err := sf.Acquire(ctx, "cimd-fetch", "https://mcp-client.example.com/oauth/client-metadata.json")
 			So(err, ShouldBeNil)
 			So(acquired, ShouldBeTrue)
 		})
 
 		Convey("a second concurrent caller for the same client_id does not acquire", func() {
 			clientID := "https://mcp-client.example.com/oauth/client-metadata.json"
-			first, err := sf.Acquire(ctx, clientID)
+			first, err := sf.Acquire(ctx, "cimd-fetch", clientID)
 			So(err, ShouldBeNil)
 			So(first, ShouldBeTrue)
 
-			second, err := sf.Acquire(ctx, clientID)
+			second, err := sf.Acquire(ctx, "cimd-fetch", clientID)
 			So(err, ShouldBeNil)
 			So(second, ShouldBeFalse)
 		})
 
 		Convey("two different client_ids do not contend", func() {
-			a, err := sf.Acquire(ctx, "https://a.example.com/x")
+			a, err := sf.Acquire(ctx, "cimd-fetch", "https://a.example.com/x")
 			So(err, ShouldBeNil)
 			So(a, ShouldBeTrue)
 
-			b, err := sf.Acquire(ctx, "https://b.example.com/x")
+			b, err := sf.Acquire(ctx, "cimd-fetch", "https://b.example.com/x")
 			So(err, ShouldBeNil)
 			So(b, ShouldBeTrue)
 		})
 
 		Convey("the lock expires, letting a later caller acquire again", func() {
 			clientID := "https://mcp-client.example.com/oauth/client-metadata.json"
-			first, err := sf.Acquire(ctx, clientID)
+			first, err := sf.Acquire(ctx, "cimd-fetch", clientID)
 			So(err, ShouldBeNil)
 			So(first, ShouldBeTrue)
 
 			mr.FastForward(11 * 1000000000) // 11s > fetchLockTTL (10s)
 
-			again, err := sf.Acquire(ctx, clientID)
+			again, err := sf.Acquire(ctx, "cimd-fetch", clientID)
 			So(err, ShouldBeNil)
 			So(again, ShouldBeTrue)
 		})
@@ -82,12 +82,23 @@ func TestFetchSingleFlightAcquire(t *testing.T) {
 			// different Redis key prefix. Assert indirectly: the stored key
 			// name never contains the raw client_id substring.
 			clientID := "https://evil.example.com/a:app:other-app:cimd-fetch:x"
-			_, err := sf.Acquire(ctx, clientID)
+			_, err := sf.Acquire(ctx, "cimd-fetch", clientID)
 			So(err, ShouldBeNil)
 
 			for _, k := range mr.Keys() {
 				So(k, ShouldNotContainSubstring, clientID)
 			}
+		})
+
+		Convey("the same client_id under two different purposes does not contend -- the document fetch and the logo fetch locks are independent", func() {
+			clientID := "https://mcp-client.example.com/oauth/client-metadata.json"
+			docLock, err := sf.Acquire(ctx, "cimd-fetch", clientID)
+			So(err, ShouldBeNil)
+			So(docLock, ShouldBeTrue)
+
+			logoLock, err := sf.Acquire(ctx, "cimd-logo-fetch", clientID)
+			So(err, ShouldBeNil)
+			So(logoLock, ShouldBeTrue)
 		})
 	})
 }

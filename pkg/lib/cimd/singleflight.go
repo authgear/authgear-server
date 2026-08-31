@@ -16,6 +16,10 @@ import (
 // dies mid-fetch does not block refetches for long.
 const fetchLockTTL = 10 * time.Second
 
+// singleFlightPurposeDocument namespaces cimd.Service's document-fetch
+// single-flight lock.
+const singleFlightPurposeDocument = "cimd-fetch"
+
 // FetchSingleFlight prevents N concurrent authorization requests for the
 // same stale client_id from producing N simultaneous fetches of the same
 // document -- a self-inflicted amplification attack on the client's own
@@ -32,15 +36,19 @@ type FetchSingleFlight struct {
 // (or fails, if there is none) immediately rather than queueing behind a 5s
 // network call.
 //
+// purpose namespaces the lock key so the document fetch's single-flight and
+// the logo fetch's single-flight (LogoService.Get) never collide, despite
+// sharing this one implementation and TTL constant.
+//
 // There is no Release. Letting the key expire costs at most fetchLockTTL of
 // extra staleness on a 1 hour interval, and an explicit release would have
 // to be careful not to delete a lock a later holder now owns. Not worth the
 // complexity here.
-func (f *FetchSingleFlight) Acquire(ctx context.Context, clientID string) (bool, error) {
+func (f *FetchSingleFlight) Acquire(ctx context.Context, purpose string, clientID string) (bool, error) {
 	// clientID is hashed for the same reason ClientCache hashes it: it is an
 	// attacker-influenced URL, and a ':' in it would otherwise let one
 	// client_id collide with another's key namespace.
-	key := fmt.Sprintf("app:%s:cimd-fetch:%s", f.AppID, crypto.SHA256String(clientID))
+	key := fmt.Sprintf("app:%s:%s:%s", f.AppID, purpose, crypto.SHA256String(clientID))
 	var acquired bool
 	err := f.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		var err error

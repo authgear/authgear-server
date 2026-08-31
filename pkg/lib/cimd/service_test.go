@@ -676,7 +676,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 
 		Convey("single-flight not acquired, record exists: nil, fetcher never called", func() {
 			sf, _ := newTestSingleFlight(t)
-			acquired, err := sf.Acquire(ctx, testClientID)
+			acquired, err := sf.Acquire(ctx, "cimd-fetch", testClientID)
 			So(err, ShouldBeNil)
 			So(acquired, ShouldBeTrue) // consume the lock so Service's own Acquire fails
 
@@ -704,7 +704,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 
 		Convey("single-flight not acquired, no record: CIMDUnresolvable, fetcher never called", func() {
 			sf, _ := newTestSingleFlight(t)
-			_, err := sf.Acquire(ctx, testClientID)
+			_, err := sf.Acquire(ctx, "cimd-fetch", testClientID)
 			So(err, ShouldBeNil)
 
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
@@ -821,7 +821,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 
 		Convey("single-flight not acquired: CheckFetchAllowed never called", func() {
 			sf, _ := newTestSingleFlight(t)
-			acquired, err := sf.Acquire(ctx, testClientID)
+			acquired, err := sf.Acquire(ctx, "cimd-fetch", testClientID)
 			So(err, ShouldBeNil)
 			So(acquired, ShouldBeTrue) // consume the lock so Service's own Acquire fails
 
