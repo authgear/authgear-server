@@ -265,11 +265,6 @@ func newOAuthClientRegisteredEventPayload(client *model.OAuthClient, iat *model.
 			ResponseTypes:   client.ResponseTypes,
 		},
 	}
-	if iat != nil {
-		payload.InitialAccessToken = &nonblocking.OAuthClientRegisteredEventPayloadInitialAccessToken{
-			ID:   iat.ID,
-			Type: iat.Type,
-		}
-	}
+	payload.InitialAccessToken = nonblocking.NewEventPayloadInitialAccessToken(iat)
 	return payload
 }
