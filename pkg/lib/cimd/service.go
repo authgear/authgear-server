@@ -7,10 +7,13 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -69,6 +72,16 @@ type ServiceUsageLimiter interface {
 	ReportStandingCreated(ctx context.Context, name model.UsageName, countBeforeCreate int)
 }
 
+// ServiceEventService is the seam for CIMD's two audit events.
+// DispatchEventOnCommit is used for oauth.client.resolved, which is only
+// ever emitted from inside the upsert transaction; DispatchEventImmediately
+// is used for oauth.client.resolution.failed, whose two paths either have
+// no transaction at all or one that is about to roll back.
+type ServiceEventService interface {
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
+}
+
 type Service struct {
 	OAuthConfig *config.OAuthConfig
 	// OAuthFeatureConfig supplies insecure_http_allowed. Already fanned out
@@ -82,6 +95,7 @@ type Service struct {
 	SingleFlight       *FetchSingleFlight
 	RateLimiter        ServiceRateLimiter
 	UsageLimiter       ServiceUsageLimiter
+	Events             ServiceEventService
 }
 
 // EnsureClientResolved is the ONLY place in CIMD that performs an outbound
@@ -205,7 +219,7 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 
 	// (8) Persist. Short write transaction, opened only now.
 	return s.Database.WithTx(ctx, func(ctx context.Context) error {
-		return s.upsert(ctx, clientID, doc)
+		return s.upsert(ctx, clientID, doc, existing)
 	})
 }
 
@@ -218,7 +232,7 @@ func (s *Service) isFresh(c *oauthclient.Client) bool {
 	return s.Clock.NowUTC().Sub(*c.LastFetchedAt) < RefetchInterval
 }
 
-func (s *Service) upsert(ctx context.Context, clientID string, doc *Document) error {
+func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, existing *oauthclient.Client) error {
 	// Serialize concurrent first-resolutions for this app so the
 	// count-then-create sequence is atomic with respect to the quota. Same
 	// reasoning and the same helper POST /oauth2/register uses; the lock key
@@ -244,7 +258,7 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document) er
 	// TOCTOU hazard even under the advisory lock above.
 	limitErr := s.UsageLimiter.CheckStanding(ctx, model.UsageNameOAuthClientCIMD, countBefore)
 
-	_, created, err := s.Commands.UpsertCIMDClient(ctx, &oauthclient.UpsertCIMDClientOptions{
+	client, created, err := s.Commands.UpsertCIMDClient(ctx, &oauthclient.UpsertCIMDClientOptions{
 		ClientID:        clientID,
 		ApplicationType: doc.ApplicationType,
 		ClientName:      doc.ClientName,
@@ -276,5 +290,133 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document) er
 		s.UsageLimiter.ReportStandingCreated(ctx, model.UsageNameOAuthClientCIMD, countBefore)
 	}
 
+	// oauth.client.resolved: emitted on creation, or on a refetch that
+	// actually changed something. Never for a refetch that changed
+	// nothing -- the routine hourly case, which carries no information and
+	// would otherwise bury the records that matter.
+	var changes []nonblocking.OAuthClientResolvedEventPayloadChange
+	if !created {
+		changes = diffClientMetadata(existing, doc)
+	}
+	if created || len(changes) > 0 {
+		payload := &nonblocking.OAuthClientResolvedEventPayload{
+			Client:  oauthClientResolvedEventPayloadClient(client),
+			Created: created,
+			Changes: changes,
+		}
+		if err := s.Events.DispatchEventOnCommit(ctx, payload); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func oauthClientResolvedEventPayloadClient(c *oauthclient.Client) nonblocking.OAuthClientResolvedEventPayloadClient {
+	return nonblocking.OAuthClientResolvedEventPayloadClient{
+		ClientID:        c.ClientID,
+		Source:          c.Source,
+		Kind:            c.Kind,
+		ClientName:      derefStringOr(c.ClientName, ""),
+		ApplicationType: c.ApplicationType,
+		RedirectURIs:    c.RedirectURIs,
+		GrantTypes:      c.GrantTypes,
+		ResponseTypes:   c.ResponseTypes,
+	}
+}
+
+func derefStringOr(s *string, fallback string) string {
+	if s == nil {
+		return fallback
+	}
+	return *s
+}
+
+// diffClientMetadata compares existing (already in hand from the freshness
+// check) against doc (the freshly fetched document) and reports every
+// document-derived field that changed. Never last_fetched_at/updated_at,
+// which change on every refetch by construction -- including them would
+// make the event fire hourly for every client and render it useless.
+//
+// existing may be up to 5 minutes stale (the freshness read is cache-first).
+// The only writer to this row is this same path under a single-flight
+// guard, so a false "changed" is very unlikely -- and if it happens the
+// record is a duplicate, not a wrong one, which is the acceptable
+// direction. This does not re-read the row to close that gap; that would
+// put a Postgres round trip on the hot path to improve an audit record.
+func diffClientMetadata(existing *oauthclient.Client, doc *Document) []nonblocking.OAuthClientResolvedEventPayloadChange {
+	var changes []nonblocking.OAuthClientResolvedEventPayloadChange
+
+	addString := func(field string, old *string, new *string) {
+		// Normalize the same way Store.NewClient does: an explicit "" is
+		// stored as nil, so a document that switches between omitting a
+		// field and sending "" must not register as a change.
+		if old != nil && *old == "" {
+			old = nil
+		}
+		if new != nil && *new == "" {
+			new = nil
+		}
+		oldVal, newVal := derefStringOr(old, ""), derefStringOr(new, "")
+		if oldVal == newVal {
+			return
+		}
+		changes = append(changes, nonblocking.OAuthClientResolvedEventPayloadChange{
+			Field: field,
+			Old:   stringOrNil(old),
+			New:   stringOrNil(new),
+		})
+	}
+
+	addSet := func(field string, old []string, new []string) {
+		// Order carries no meaning in these fields, so a document that
+		// merely reorders entries is not a change worth a record. The
+		// reported New value is the value as stored, not a sorted set.
+		if setsEqual(old, new) {
+			return
+		}
+		changes = append(changes, nonblocking.OAuthClientResolvedEventPayloadChange{
+			Field: field,
+			Old:   old,
+			New:   new,
+		})
+	}
+
+	addString("client_name", existing.ClientName, doc.ClientName)
+	addString("client_uri", existing.ClientURI, doc.ClientURI)
+	addString("logo_uri", existing.LogoURI, doc.LogoURI)
+	addString("tos_uri", existing.TOSURI, doc.TOSURI)
+	addString("policy_uri", existing.PolicyURI, doc.PolicyURI)
+	if existing.ApplicationType != doc.ApplicationType {
+		changes = append(changes, nonblocking.OAuthClientResolvedEventPayloadChange{
+			Field: "application_type",
+			Old:   existing.ApplicationType,
+			New:   doc.ApplicationType,
+		})
+	}
+	addSet("redirect_uris", existing.RedirectURIs, doc.RedirectURIs)
+	addSet("grant_types", existing.GrantTypes, doc.GrantTypes)
+	addSet("response_types", existing.ResponseTypes, doc.ResponseTypes)
+
+	return changes
+}
+
+func stringOrNil(s *string) any {
+	if s == nil {
+		return nil
+	}
+	return *s
+}
+
+func setsEqual(a []string, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	setA := setutil.NewSetFromSlice(a, setutil.Identity)
+	for _, v := range b {
+		if !setA.Has(v) {
+			return false
+		}
+	}
+	return true
 }

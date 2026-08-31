@@ -29,6 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
+	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
@@ -90,6 +91,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(cimd.Limiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(cimd.ServiceUsageLimiter), new(*usage.Limiter)),
 	wire.Bind(new(cimd.LogoLimiter), new(*ratelimit.Limiter)),
+	wire.Bind(new(cimd.ServiceEventService), new(*event.Service)),
 	wire.Bind(new(handlerwebapp.ClientLogoClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(handlerwebapp.ClientLogoLogoService), new(*cimd.LogoService)),
 
