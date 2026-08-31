@@ -89,6 +89,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(cimd.ServiceRateLimiter), new(*cimd.RateLimiter)),
 	wire.Bind(new(cimd.Limiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(cimd.ServiceUsageLimiter), new(*usage.Limiter)),
+	wire.Bind(new(cimd.LogoLimiter), new(*ratelimit.Limiter)),
+	wire.Bind(new(handlerwebapp.ClientLogoClientResolver), new(*oauthclient.Resolver)),
+	wire.Bind(new(handlerwebapp.ClientLogoLogoService), new(*cimd.LogoService)),
 
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 

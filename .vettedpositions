@@ -163,6 +163,7 @@
 /pkg/auth/handler/webapp/authflowv2/wechat.go:148:26: requestcontext
 /pkg/auth/handler/webapp/change_password.go:72:27: requestcontext
 /pkg/auth/handler/webapp/change_secondary_password.go:71:27: requestcontext
+/pkg/auth/handler/webapp/client_logo.go:46:9: requestcontext
 /pkg/auth/handler/webapp/confirm_terminate_other_sessions.go:66:27: requestcontext
 /pkg/auth/handler/webapp/confirm_web3_account.go:96:27: requestcontext
 /pkg/auth/handler/webapp/confirm_web3_account.go:104:28: requestcontext

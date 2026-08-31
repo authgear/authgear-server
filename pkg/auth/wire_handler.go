@@ -423,6 +423,13 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	))
 }
 
+func newWebAppClientLogoHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.ClientLogoHandler)),
+	))
+}
+
 func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
