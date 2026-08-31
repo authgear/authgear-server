@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -158,20 +159,35 @@ func (h *ConsentHandler) renderConsentPage(ctx context.Context, rw http.Response
 	displayID := webapp.IdentitiesDisplayName(identities)
 	userProfile := webapp.GetUserProfile(user)
 
-	viewModel := ConsentViewModel{}
+	viewModel := consentViewModelForClient(consentRequired.Client)
 	viewModel.Scopes = consentRequired.Scopes
 	for _, s := range consentRequired.Scopes {
 		if displayText, ok := consentRequired.ScopeDisplayNames[s]; ok {
 			viewModel.CustomScopes = append(viewModel.CustomScopes, ConsentScope{Scope: s, DisplayText: displayText})
 		}
 	}
-	viewModel.ClientName = consentRequired.Client.ClientName
-	viewModel.ClientPolicyURI = consentRequired.Client.PolicyURI
-	viewModel.ClientTOSURI = consentRequired.Client.TOSURI
 	viewModel.IdentityDisplayName = displayID
 	viewModel.UserProfile = userProfile
 	viewmodels.Embed(data, viewModel)
 
 	h.Renderer.RenderHTML(rw, r, webapp.TemplateWebConsentHTML, data)
 	return nil
+}
+
+// consentViewModelForClient fills in the ConsentViewModel fields derived
+// purely from the resolved client, so this logic is testable without
+// standing up BaseViewModeler/Identities/Users.
+func consentViewModelForClient(client *config.OAuthClientConfig) ConsentViewModel {
+	viewModel := ConsentViewModel{}
+	// Client.Name, not Client.ClientName: the resolved display name --
+	// client_name for a static client, "client_name, or 'Client <clientID>'"
+	// for a dynamic one (oauthclient.Client.DisplayName()). ClientName is
+	// empty whenever a client omits it, which the template then rendered as
+	// the literal string "null" via `or $.ClientName "null"`. Every DCR
+	// client registered without a client_name hits this; a CIMD client hits
+	// it far more often, since client_name is optional in the document.
+	viewModel.ClientName = client.Name
+	viewModel.ClientPolicyURI = client.PolicyURI
+	viewModel.ClientTOSURI = client.TOSURI
+	return viewModel
 }
