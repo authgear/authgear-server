@@ -138,6 +138,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.AuthflowEndpoints), new(*endpoints.Endpoints)),
+	wire.Bind(new(handleroauth.ConsentClientLogoEndpoint), new(*endpoints.Endpoints)),
 
 	wire.Bind(new(handlerwebappauthflowv2.ResetPasswordHandlerDatabase), new(*appdb.Handle)),
 

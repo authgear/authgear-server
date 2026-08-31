@@ -82,6 +82,13 @@ type ConsentViewModel struct {
 	UserProfile         webapp.UserProfile
 }
 
+// ConsentClientLogoEndpoint is a narrow interface (not the whole
+// oauth.EndpointsProvider) so this handler's dependency is exactly the one
+// method it uses.
+type ConsentClientLogoEndpoint interface {
+	ClientLogoURL(clientID string) *url.URL
+}
+
 type ConsentHandler struct {
 	Database      *appdb.Handle
 	Handler       ProtocolConsentHandler
@@ -89,6 +96,7 @@ type ConsentHandler struct {
 	Renderer      Renderer
 	Identities    ProtocolIdentityService
 	Users         ConsentUserService
+	Endpoints     ConsentClientLogoEndpoint
 }
 
 func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -172,7 +180,7 @@ func (h *ConsentHandler) renderConsentPage(ctx context.Context, rw http.Response
 	displayID := webapp.IdentitiesDisplayName(identities)
 	userProfile := webapp.GetUserProfile(user)
 
-	viewModel := consentViewModelForClient(consentRequired.Client)
+	viewModel := consentViewModelForClient(consentRequired.Client, h.Endpoints)
 	viewModel.Scopes = consentRequired.Scopes
 	for _, s := range consentRequired.Scopes {
 		if displayText, ok := consentRequired.ScopeDisplayNames[s]; ok {
@@ -189,8 +197,10 @@ func (h *ConsentHandler) renderConsentPage(ctx context.Context, rw http.Response
 
 // consentViewModelForClient fills in the ConsentViewModel fields derived
 // purely from the resolved client, so this logic is testable without
-// standing up BaseViewModeler/Identities/Users.
-func consentViewModelForClient(client *config.OAuthClientConfig) ConsentViewModel {
+// standing up BaseViewModeler/Identities/Users. endpoints is nil-able so
+// existing callers/tests that don't care about the logo proxy need not
+// supply one; ClientLogoURI is then left as the client's raw logo_uri.
+func consentViewModelForClient(client *config.OAuthClientConfig, endpoints ConsentClientLogoEndpoint) ConsentViewModel {
 	viewModel := ConsentViewModel{}
 	// Client.Name, not Client.ClientName: the resolved display name --
 	// client_name for a static client, "client_name, or 'Client <clientID>'"
@@ -202,7 +212,16 @@ func consentViewModelForClient(client *config.OAuthClientConfig) ConsentViewMode
 	viewModel.ClientName = client.Name
 	viewModel.ClientPolicyURI = client.PolicyURI
 	viewModel.ClientTOSURI = client.TOSURI
-	viewModel.ClientLogoURI = client.LogoURI
+	// Point the <img> at Authgear's own proxy instead of the client's
+	// server, so the end user's browser never contacts the client (spec §
+	// Privacy Considerations §9.2). Only for a dynamic client -- a static
+	// client's logo continues to render directly, exactly as it did before
+	// this endpoint existed.
+	if client.LogoURI != "" && client.IsDynamicClient() && endpoints != nil {
+		viewModel.ClientLogoURI = endpoints.ClientLogoURL(client.ClientID).String()
+	} else {
+		viewModel.ClientLogoURI = client.LogoURI
+	}
 	// IsCIMDClient(), not a client_id prefix check: a STATIC client whose
 	// client_id happens to be an https:// URL (spec § Client ID Format's
 	// pre-registration pattern) must not pick up a CIMD-specific hostname
