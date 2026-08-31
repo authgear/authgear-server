@@ -386,6 +386,12 @@ oauth:
         enabled: true
         period: 1h
         burst: 1000
+  client_id_metadata_document:
+    client_config:
+      access_token_lifetime_seconds: 1800
+      refresh_token_lifetime_seconds: 31449600
+      refresh_token_idle_timeout_enabled: true
+      refresh_token_idle_timeout_seconds: 2592000
 saml:
   signing:
     signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
