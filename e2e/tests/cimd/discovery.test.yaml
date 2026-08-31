@@ -1,0 +1,39 @@
+name: Discovery metadata includes client_id_metadata_document_supported when CIMD is enabled
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+steps:
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/openid-configuration
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "client_id_metadata_document_supported": true
+        }
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/oauth-authorization-server
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "client_id_metadata_document_supported": true
+        }
+
+---
+
+name: Discovery metadata omits client_id_metadata_document_supported when CIMD is disabled
+steps:
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/openid-configuration
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "client_id_metadata_document_supported": "[[never]]"
+        }
