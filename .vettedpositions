@@ -28,11 +28,11 @@
 /pkg/auth/handler/oauth/authorize.go:60:46: requestcontext
 /pkg/auth/handler/oauth/authorize.go:61:31: requestcontext
 /pkg/auth/handler/oauth/challenge.go:88:9: requestcontext
-/pkg/auth/handler/oauth/consent.go:94:27: requestcontext
-/pkg/auth/handler/oauth/consent.go:114:28: requestcontext
-/pkg/auth/handler/oauth/consent.go:123:28: requestcontext
-/pkg/auth/handler/oauth/consent.go:139:44: requestcontext
-/pkg/auth/handler/oauth/consent.go:140:31: requestcontext
+/pkg/auth/handler/oauth/consent.go:101:27: requestcontext
+/pkg/auth/handler/oauth/consent.go:121:28: requestcontext
+/pkg/auth/handler/oauth/consent.go:130:28: requestcontext
+/pkg/auth/handler/oauth/consent.go:146:44: requestcontext
+/pkg/auth/handler/oauth/consent.go:147:31: requestcontext
 /pkg/auth/handler/oauth/end_session.go:43:26: requestcontext
 /pkg/auth/handler/oauth/end_session.go:49:47: requestcontext
 /pkg/auth/handler/oauth/end_session.go:50:31: requestcontext

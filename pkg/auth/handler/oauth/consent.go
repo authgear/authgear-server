@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -60,9 +61,15 @@ type ConsentScope struct {
 }
 
 type ConsentViewModel struct {
-	ClientName          string
-	ClientPolicyURI     string
-	ClientTOSURI        string
+	ClientName      string
+	ClientPolicyURI string
+	ClientTOSURI    string
+	// ClientIDHostname is the hostname of a CIMD client's client_id URL, and
+	// EMPTY for every other client source. It is the only client-identifying
+	// value on this screen that the client did not assert about itself: it
+	// is the host Authgear actually fetched the metadata document from,
+	// over verified TLS. See docs/specs/cimd.md § Phishing Mitigation.
+	ClientIDHostname    string
 	Scopes              []string
 	CustomScopes        []ConsentScope
 	IdentityDisplayName string
@@ -189,5 +196,17 @@ func consentViewModelForClient(client *config.OAuthClientConfig) ConsentViewMode
 	viewModel.ClientName = client.Name
 	viewModel.ClientPolicyURI = client.PolicyURI
 	viewModel.ClientTOSURI = client.TOSURI
+	// IsCIMDClient(), not a client_id prefix check: a STATIC client whose
+	// client_id happens to be an https:// URL (spec § Client ID Format's
+	// pre-registration pattern) must not pick up a CIMD-specific hostname
+	// banner it has not earned. That client's DynamicSource is "".
+	if client.IsCIMDClient() {
+		// The impossible error path (ParseCIMDClientID already validated
+		// this exact string) simply omits the hostname -- fail-safe, since
+		// the screen then shows less, never something wrong.
+		if u, err := url.Parse(client.ClientID); err == nil {
+			viewModel.ClientIDHostname = u.Hostname()
+		}
+	}
 	return viewModel
 }
