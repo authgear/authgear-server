@@ -22,9 +22,9 @@ steps:
     http_request_url: http://localhost:2727/_control/set
     http_request_body: |
       {
-        "path": "ratelimit-per-ip-1.json",
+        "path": "ratelimit-per-ip-1-{{ .AppID }}.json",
         "document": {
-          "client_id": "http://localhost:2727/ratelimit-per-ip-1.json",
+          "client_id": "http://localhost:2727/ratelimit-per-ip-1-{{ .AppID }}.json",
           "redirect_uris": ["http://127.0.0.1:3000/callback"]
         }
       }
@@ -37,9 +37,9 @@ steps:
     http_request_url: http://localhost:2727/_control/set
     http_request_body: |
       {
-        "path": "ratelimit-per-ip-2.json",
+        "path": "ratelimit-per-ip-2-{{ .AppID }}.json",
         "document": {
-          "client_id": "http://localhost:2727/ratelimit-per-ip-2.json",
+          "client_id": "http://localhost:2727/ratelimit-per-ip-2-{{ .AppID }}.json",
           "redirect_uris": ["http://127.0.0.1:3000/callback"]
         }
       }
@@ -52,9 +52,9 @@ steps:
     http_request_url: http://localhost:2727/_control/set
     http_request_body: |
       {
-        "path": "ratelimit-per-ip-3.json",
+        "path": "ratelimit-per-ip-3-{{ .AppID }}.json",
         "document": {
-          "client_id": "http://localhost:2727/ratelimit-per-ip-3.json",
+          "client_id": "http://localhost:2727/ratelimit-per-ip-3-{{ .AppID }}.json",
           "redirect_uris": ["http://127.0.0.1:3000/callback"]
         }
       }
@@ -68,7 +68,7 @@ steps:
     http_request_method: GET
     http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
     http_request_query:
-      client_id: http://localhost:2727/ratelimit-per-ip-1.json
+      client_id: http://localhost:2727/ratelimit-per-ip-1-{{ .AppID }}.json
       response_type: code
       redirect_uri: http://127.0.0.1:3000/callback
       scope: openid
@@ -83,7 +83,7 @@ steps:
     http_request_method: GET
     http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
     http_request_query:
-      client_id: http://localhost:2727/ratelimit-per-ip-2.json
+      client_id: http://localhost:2727/ratelimit-per-ip-2-{{ .AppID }}.json
       response_type: code
       redirect_uri: http://127.0.0.1:3000/callback
       scope: openid
@@ -100,7 +100,7 @@ steps:
     http_request_method: GET
     http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
     http_request_query:
-      client_id: http://localhost:2727/ratelimit-per-ip-3.json
+      client_id: http://localhost:2727/ratelimit-per-ip-3-{{ .AppID }}.json
       response_type: code
       redirect_uri: http://127.0.0.1:3000/callback
       scope: openid
@@ -113,7 +113,7 @@ steps:
   - name: verify_hits_1
     action: http_request
     http_request_method: GET
-    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-1.json
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-1-{{ .AppID }}.json
     http_output:
       http_status: 200
       json_body: |
@@ -124,7 +124,7 @@ steps:
   - name: verify_hits_2
     action: http_request
     http_request_method: GET
-    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-2.json
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-2-{{ .AppID }}.json
     http_output:
       http_status: 200
       json_body: |
@@ -135,7 +135,7 @@ steps:
   - name: verify_no_fetch_3
     action: http_request
     http_request_method: GET
-    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-3.json
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-3-{{ .AppID }}.json
     http_output:
       http_status: 200
       json_body: |
@@ -153,7 +153,7 @@ steps:
     http_request_method: GET
     http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
     http_request_query:
-      client_id: http://localhost:2727/ratelimit-per-ip-1.json
+      client_id: http://localhost:2727/ratelimit-per-ip-1-{{ .AppID }}.json
       response_type: code
       redirect_uri: http://127.0.0.1:3000/callback
       scope: openid
@@ -166,7 +166,7 @@ steps:
   - name: verify_no_extra_fetch_1
     action: http_request
     http_request_method: GET
-    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-1.json
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-ip-1-{{ .AppID }}.json
     http_output:
       http_status: 200
       json_body: |

@@ -20,7 +20,7 @@ steps:
     http_request_url: http://localhost:2727/_control/set
     http_request_body: |
       {
-        "path": "logo-cimd-image.png",
+        "path": "logo-cimd-image-{{ .AppID }}.png",
         "content_type": "image/png",
         "body_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAACAAEA////AwAABgAFV7+r1AAAAABJRU5ErkJggg=="
       }
@@ -33,11 +33,11 @@ steps:
     http_request_url: http://localhost:2727/_control/set
     http_request_body: |
       {
-        "path": "logo-cimd.json",
+        "path": "logo-cimd-{{ .AppID }}.json",
         "document": {
-          "client_id": "http://localhost:2727/logo-cimd.json",
+          "client_id": "http://localhost:2727/logo-cimd-{{ .AppID }}.json",
           "client_name": "E2E CIMD Client With Logo",
-          "logo_uri": "http://localhost:2727/logo-cimd-image.png",
+          "logo_uri": "http://localhost:2727/logo-cimd-image-{{ .AppID }}.png",
           "redirect_uris": ["http://localhost:4000"],
           "grant_types": ["authorization_code", "refresh_token"],
           "response_types": ["code"],
@@ -49,7 +49,7 @@ steps:
 
   - name: oauth_setup
     action: oauth_setup
-    oauth_setup_client_id: http://localhost:2727/logo-cimd.json
+    oauth_setup_client_id: http://localhost:2727/logo-cimd-{{ .AppID }}.json
     oauth_setup_scope:
       - openid
 
@@ -113,12 +113,12 @@ steps:
     http_output:
       http_status: 200
       html_text_contains:
-        - "authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd.json"
+        - "authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd-{{ .AppID }}.json"
 
   - name: fetch_logo_1
     action: http_request
     http_request_method: GET
-    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd.json"
+    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd-{{ .AppID }}.json"
     http_output:
       http_status: 200
       headers:
@@ -127,7 +127,7 @@ steps:
   - name: fetch_logo_2
     action: http_request
     http_request_method: GET
-    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd.json"
+    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd-{{ .AppID }}.json"
     http_output:
       http_status: 200
       headers:
@@ -137,7 +137,7 @@ steps:
   - name: verify_one_fetch
     action: http_request
     http_request_method: GET
-    http_request_url: http://localhost:2727/_control/hits?path=logo-cimd-image.png
+    http_request_url: http://localhost:2727/_control/hits?path=logo-cimd-image-{{ .AppID }}.png
     http_output:
       http_status: 200
       json_body: |
@@ -169,7 +169,7 @@ steps:
     http_request_url: http://localhost:2727/_control/set
     http_request_body: |
       {
-        "path": "logo-broken-image.png",
+        "path": "logo-broken-image-{{ .AppID }}.png",
         "content_type": "text/html",
         "body": "<html><body>not an image</body></html>"
       }
@@ -182,11 +182,11 @@ steps:
     http_request_url: http://localhost:2727/_control/set
     http_request_body: |
       {
-        "path": "logo-broken.json",
+        "path": "logo-broken-{{ .AppID }}.json",
         "document": {
-          "client_id": "http://localhost:2727/logo-broken.json",
+          "client_id": "http://localhost:2727/logo-broken-{{ .AppID }}.json",
           "client_name": "E2E CIMD Client With A Broken Logo",
-          "logo_uri": "http://localhost:2727/logo-broken-image.png",
+          "logo_uri": "http://localhost:2727/logo-broken-image-{{ .AppID }}.png",
           "redirect_uris": ["http://localhost:4000"],
           "grant_types": ["authorization_code", "refresh_token"],
           "response_types": ["code"],
@@ -198,7 +198,7 @@ steps:
 
   - name: oauth_setup
     action: oauth_setup
-    oauth_setup_client_id: http://localhost:2727/logo-broken.json
+    oauth_setup_client_id: http://localhost:2727/logo-broken-{{ .AppID }}.json
     oauth_setup_scope:
       - openid
 
@@ -263,6 +263,6 @@ steps:
   - name: fetch_broken_logo
     action: http_request
     http_request_method: GET
-    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-broken.json"
+    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-broken-{{ .AppID }}.json"
     http_output:
       http_status: 404
