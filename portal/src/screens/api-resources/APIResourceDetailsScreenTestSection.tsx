@@ -49,10 +49,17 @@ export function APIResourceDetailsScreenTestSection({
     useStartReauthentication<LocationState>();
 
   const selectedClient = useMemo(() => {
+    // The client must still be authorized for this resource: unauthorizing
+    // the selected application (in the section above) must clear the whole
+    // test section, not just its entry in the dropdown, even though the
+    // client itself still exists in the app config.
+    if (!resource.clientIDs.includes(selectedClientId)) {
+      return undefined;
+    }
     return effectiveAppConfig.oauth?.clients?.find(
       (client) => client.client_id === selectedClientId
     );
-  }, [effectiveAppConfig, selectedClientId]);
+  }, [effectiveAppConfig, selectedClientId, resource.clientIDs]);
 
   const [prevSelectedClient, setPrevSelectedClient] = useState(selectedClient);
   if (prevSelectedClient !== selectedClient) {
