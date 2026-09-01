@@ -178,10 +178,6 @@
   grid-area: tdesc;
 }
 
-.totpRemoveButton {
-  grid-area: tremove;
-}
-
 .passkeyCell {
   grid-template:
     "icon label remove"

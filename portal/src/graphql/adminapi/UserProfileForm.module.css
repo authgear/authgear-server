@@ -126,22 +126,6 @@
   width: 100%;
 }
 
-.gridAreaCity {
-  flex: 1;
-}
-
-.gridAreaPostalCode {
-  flex: 1;
-}
-
-.gridAreaState {
-  flex: 1;
-}
-
-.gridAreaCountry {
-  flex: 1;
-}
-
 .customAttributesForm {
   display: grid;
   row-gap: 16px;

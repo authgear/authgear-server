@@ -163,10 +163,6 @@
   margin-bottom: 1.5rem !important;
 }
 
-.upgradeNowButton {
-  @apply px-1;
-}
-
 .pageHeader {
   @apply flex items-center justify-between;
 }

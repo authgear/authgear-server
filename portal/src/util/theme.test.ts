@@ -337,7 +337,6 @@ describe("addDarkTheme", () => {
 // shades.ts. The port must reproduce them exactly so that the AuthUI brand
 // shades generated for existing projects do not change. Never regenerate
 // these fixtures from the port itself.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 import golden from "./__fixtures__/fluent-shades-golden.json";
 
 describe("shades port stays identical to FluentUI ThemeGenerator", () => {
