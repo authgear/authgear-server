@@ -836,7 +836,7 @@
   "ApplicationsConfigurationScreen.tab.applications": "Applications",
   "ApplicationsConfigurationScreen.tab.dynamic-clients": "Dynamic clients (DCR)",
   "DynamicClientsTab.enable.toggle.label": "Enable dynamic client registration",
-  "DynamicClientsTab.enable.description": "Clients such as MCP clients can register themselves via the registration endpoint (RFC 7591).",
+  "DynamicClientsTab.enable.description": "Clients such as <mcpLink>MCP clients</mcpLink> can register themselves via the registration endpoint (RFC 7591). <dcrLink>Learn more about DCR.</dcrLink>",
   "DynamicClientsTab.section.registration.title": "Dynamic client registration",
   "DynamicClientsTab.clients.title": "Registered clients",
   "DynamicClientsTab.clients.count": "{count, plural, one{1 dynamic client} other{# dynamic clients}} registered",

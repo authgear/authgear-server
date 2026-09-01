@@ -4,6 +4,7 @@ import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import PortalLink from "../../Link";
+import ExternalLink from "../../ExternalLink";
 import type { FormState as ApplicationsFormState } from "../../graphql/portal/ApplicationsConfigurationScreen";
 import { AppConfigFormModel } from "../../hook/useAppConfigForm";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -180,7 +181,23 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
           }
         >
           <Text as="p" size="2" color="gray">
-            <FormattedMessage id="DynamicClientsTab.enable.description" />
+            <FormattedMessage
+              id="DynamicClientsTab.enable.description"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                mcpLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/get-started/auth-for-mcp">
+                    {chunks}
+                  </ExternalLink>
+                ),
+                // eslint-disable-next-line react/no-unstable-nested-components
+                dcrLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/integration/dynamic-client-registration">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </Text>
           <Toggle
             checked={registrationEnabled}
