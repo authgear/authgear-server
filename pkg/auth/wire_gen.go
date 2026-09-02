@@ -1288,7 +1288,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:           remoteIP,
 		OAuthFeatureConfig: oAuthFeatureConfig,
 	}
-	serviceUsageLimiter := cimd.ProvideNoopServiceUsageLimiter()
 	cimdService := &cimd.Service{
 		OAuthConfig:        oAuthConfig,
 		OAuthFeatureConfig: oAuthFeatureConfig,
@@ -1299,7 +1298,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Database:           handle,
 		SingleFlight:       fetchSingleFlight,
 		RateLimiter:        rateLimiter,
-		UsageLimiter:       serviceUsageLimiter,
+		UsageLimiter:       usageLimiter,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
@@ -2348,7 +2347,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:           remoteIP,
 		OAuthFeatureConfig: oAuthFeatureConfig,
 	}
-	serviceUsageLimiter := cimd.ProvideNoopServiceUsageLimiter()
 	cimdService := &cimd.Service{
 		OAuthConfig:        oAuthConfig,
 		OAuthFeatureConfig: oAuthFeatureConfig,
@@ -2359,7 +2357,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Database:           handle,
 		SingleFlight:       fetchSingleFlight,
 		RateLimiter:        rateLimiter,
-		UsageLimiter:       serviceUsageLimiter,
+		UsageLimiter:       usageLimiter,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,

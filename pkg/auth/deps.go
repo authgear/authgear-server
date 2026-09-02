@@ -52,6 +52,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -87,6 +88,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(cimd.ServiceDatabase), new(*appdb.Handle)),
 	wire.Bind(new(cimd.ServiceRateLimiter), new(*cimd.RateLimiter)),
 	wire.Bind(new(cimd.Limiter), new(*ratelimit.Limiter)),
+	wire.Bind(new(cimd.ServiceUsageLimiter), new(*usage.Limiter)),
 
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 

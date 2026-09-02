@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -39,8 +40,12 @@ var testDocument = []byte(`{
 // counting and canned return values, not strict call-order assertions.
 
 type stubCommands struct {
-	upsertFn    func(*oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error)
-	upsertCalls atomic.Int64
+	upsertFn         func(*oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error)
+	upsertCalls      atomic.Int64
+	count            uint64
+	lockErr          error
+	lockCalls        atomic.Int64
+	countBySourceErr error
 }
 
 func (s *stubCommands) UpsertCIMDClient(ctx context.Context, options *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
@@ -52,11 +57,15 @@ func (s *stubCommands) UpsertCIMDClient(ctx context.Context, options *oauthclien
 }
 
 func (s *stubCommands) LockForClientCount(ctx context.Context, source oauthclient.Source) error {
-	return nil
+	s.lockCalls.Add(1)
+	return s.lockErr
 }
 
 func (s *stubCommands) CountClientsBySource(ctx context.Context, source model.OAuthClientSource) (uint64, error) {
-	return 0, nil
+	if s.countBySourceErr != nil {
+		return 0, s.countBySourceErr
+	}
+	return s.count, nil
 }
 
 type stubQueries struct {
@@ -84,6 +93,27 @@ type stubRateLimiter struct {
 func (s *stubRateLimiter) CheckFetchAllowed(ctx context.Context) error {
 	s.calls.Add(1)
 	return s.err
+}
+
+// stubUsageLimiter is a hand-rolled ServiceUsageLimiter: CheckStanding
+// returns a canned error (nil by default, i.e. under quota), and
+// ReportStandingCreated records every call so a test can assert it fired
+// exactly when a creation actually happened.
+type stubUsageLimiter struct {
+	checkStandingErr    error
+	reportedCreatedName model.UsageName
+	reportedCountBefore atomic.Int64
+	reportCalls         atomic.Int64
+}
+
+func (s *stubUsageLimiter) CheckStanding(ctx context.Context, name model.UsageName, currentCount int) error {
+	return s.checkStandingErr
+}
+
+func (s *stubUsageLimiter) ReportStandingCreated(ctx context.Context, name model.UsageName, countBeforeCreate int) {
+	s.reportCalls.Add(1)
+	s.reportedCreatedName = name
+	s.reportedCountBefore.Store(int64(countBeforeCreate))
 }
 
 type stubDatabase struct {
@@ -171,7 +201,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -191,7 +221,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 					Queries:      &stubQueries{},
 					Database:     &stubDatabase{},
 					RateLimiter:  &stubRateLimiter{},
-					UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+					UsageLimiter: &stubUsageLimiter{},
 					SingleFlight: newWorkingSingleFlight(t),
 				}
 				err := svc.EnsureClientResolved(ctx, id)
@@ -211,7 +241,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      &stubQueries{},
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -230,7 +260,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      &stubQueries{},
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -243,18 +273,19 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			defer ds.Close()
 			oauthConfig := enabledOAuthConfig()
 			oauthConfig.ClientIDMetadataDocument.AllowedDomains = []string{"only-this.example.com"}
-			fetchedAt := time.Now().Add(-30 * time.Minute)
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-30 * time.Minute)
 			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
 				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
 			}}
 			svc := &cimd.Service{
 				OAuthConfig:  oauthConfig,
-				Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+				Clock:        mockClock,
 				Fetcher:      fetcherFor(ds),
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -267,20 +298,21 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			defer ds.Close()
 			oauthConfig := enabledOAuthConfig()
 			oauthConfig.ClientIDMetadataDocument.AllowedDomains = []string{"only-this.example.com"}
-			fetchedAt := time.Now().Add(-2 * time.Hour)
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour)
 			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
 				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
 			}}
 			commands := &stubCommands{}
 			svc := &cimd.Service{
 				OAuthConfig:  oauthConfig,
-				Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+				Clock:        mockClock,
 				Fetcher:      fetcherFor(ds),
 				Commands:     commands,
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -311,7 +343,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      &stubQueries{},
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 
@@ -324,6 +356,164 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(gotOptions.RedirectURIs, ShouldResemble, []string{"http://127.0.0.1:3000/callback"})
 			So(gotOptions.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
 			So(gotOptions.ResponseTypes, ShouldResemble, []string{"code"})
+		})
+
+		Convey("usage limit: no limit configured, new client_id: succeeds, ReportStandingCreated called with countBefore", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
+			defer ds.Close()
+			commands := &stubCommands{count: 19}
+			usageLimiter := &stubUsageLimiter{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      &stubQueries{},
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: usageLimiter,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(err, ShouldBeNil)
+			So(commands.upsertCalls.Load(), ShouldEqual, int64(1))
+			So(usageLimiter.reportCalls.Load(), ShouldEqual, int64(1))
+			So(usageLimiter.reportedCreatedName, ShouldEqual, model.UsageNameOAuthClientCIMD)
+			So(usageLimiter.reportedCountBefore.Load(), ShouldEqual, int64(19))
+		})
+
+		Convey("usage limit: quota reached (count 20 of 20), new client_id: ErrClientLimitExceeded, transaction rolled back, ReportStandingCreated never called", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
+			defer ds.Close()
+			commands := &stubCommands{count: 20}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD)}
+			database := &stubDatabase{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      &stubQueries{},
+				Database:     database,
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: usageLimiter,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err, cimd.CIMDClientLimitExceeded), ShouldBeTrue)
+			So(database.withTxCalls.Load(), ShouldEqual, int64(1))
+			So(usageLimiter.reportCalls.Load(), ShouldEqual, int64(0))
+		})
+
+		Convey("usage limit: quota reached (count 20 of 20), EXISTING client_id (refetch): succeeds -- the limit never applies to a refetch", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","redirect_uris":["http://127.0.0.1:3000/callback"]}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour)
+			clientID := ds.URL + "/x"
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{ClientID: clientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
+			}}
+			commands := &stubCommands{count: 20, upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{ClientID: o.ClientID, Source: model.OAuthClientSourceCIMD}, false, nil
+			}}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD)}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        mockClock,
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: usageLimiter,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+			So(commands.upsertCalls.Load(), ShouldEqual, int64(1))
+			So(usageLimiter.reportCalls.Load(), ShouldEqual, int64(0))
+		})
+
+		Convey("usage limit: over quota (25 of 20, e.g. after a tier downgrade), EXISTING client_id (refetch): still succeeds", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","redirect_uris":["http://127.0.0.1:3000/callback"]}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour)
+			clientID := ds.URL + "/x"
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{ClientID: clientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
+			}}
+			commands := &stubCommands{count: 25, upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{ClientID: o.ClientID, Source: model.OAuthClientSourceCIMD}, false, nil
+			}}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD)}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Clock:        mockClock,
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: usageLimiter,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("usage limit: a second attempt on an over-quota new client_id yields ErrClientLimitExceeded again, not a stale success", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
+			defer ds.Close()
+			commands := &stubCommands{count: 20}
+			usageLimiter := &stubUsageLimiter{checkStandingErr: usage.ErrStandingUsageLimitExceeded(model.UsageNameOAuthClientCIMD)}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      &stubQueries{},
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: usageLimiter,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err1 := svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err1, cimd.CIMDClientLimitExceeded), ShouldBeTrue)
+
+			// A fresh single-flight lock, standing in for the first attempt's
+			// lock having since expired (Part 3's 10s TTL) -- this test is
+			// about the negative-cache/quota interaction (§3.1), not
+			// single-flight collapsing.
+			svc.SingleFlight = newWorkingSingleFlight(t)
+			err2 := svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err2, cimd.CIMDClientLimitExceeded), ShouldBeTrue)
+		})
+
+		Convey("usage limit: LockForClientCount returns an error: propagated, no upsert attempted", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
+			defer ds.Close()
+			lockErr := errors.New("advisory lock failed")
+			commands := &stubCommands{lockErr: lockErr}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      &stubQueries{},
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(err, ShouldEqual, lockErr)
+			So(commands.upsertCalls.Load(), ShouldEqual, int64(0))
 		})
 
 		Convey("record exists, LastFetchedAt 30 minutes ago: nil, fetcher never called", func() {
@@ -341,7 +531,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -372,7 +562,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, ds.URL+"/x")
@@ -397,7 +587,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			// A NULL-LastFetchedAt record with a failing refetch serves stale (nil).
@@ -422,20 +612,21 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Convey(name, func() {
 					ds := newDocumentServer(handler)
 					defer ds.Close()
-					fetchedAt := time.Now().Add(-2 * time.Hour)
+					mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+					fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour)
 					queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
 						return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
 					}}
 					commands := &stubCommands{}
 					svc := &cimd.Service{
 						OAuthConfig:  enabledOAuthConfig(),
-						Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+						Clock:        mockClock,
 						Fetcher:      fetcherFor(ds),
 						Commands:     commands,
 						Queries:      queries,
 						Database:     &stubDatabase{},
 						RateLimiter:  &stubRateLimiter{},
-						UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+						UsageLimiter: &stubUsageLimiter{},
 						SingleFlight: newWorkingSingleFlight(t),
 					}
 					err := svc.EnsureClientResolved(ctx, testClientID)
@@ -467,7 +658,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 					Queries:      &stubQueries{},
 					Database:     &stubDatabase{},
 					RateLimiter:  &stubRateLimiter{},
-					UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+					UsageLimiter: &stubUsageLimiter{},
 					SingleFlight: newWorkingSingleFlight(t),
 				}
 				err := svc.EnsureClientResolved(ctx, testClientID)
@@ -491,18 +682,19 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
 			defer ds.Close()
-			fetchedAt := time.Now().Add(-2 * time.Hour)
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour)
 			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
 				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
 			}}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
-				Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+				Clock:        mockClock,
 				Fetcher:      fetcherFor(ds),
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: sf,
 			}
 			err = svc.EnsureClientResolved(ctx, testClientID)
@@ -523,7 +715,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      &stubQueries{},
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: sf,
 			}
 			err = svc.EnsureClientResolved(ctx, testClientID)
@@ -545,7 +737,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      &stubQueries{},
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: sf,
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -564,7 +756,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -595,7 +787,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -619,7 +811,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -635,19 +827,20 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
 			defer ds.Close()
-			fetchedAt := time.Now().Add(-2 * time.Hour)
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour)
 			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
 				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
 			}}
 			rateLimiter := &stubRateLimiter{}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
-				Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+				Clock:        mockClock,
 				Fetcher:      fetcherFor(ds),
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: sf,
 			}
 			err = svc.EnsureClientResolved(ctx, testClientID)
@@ -667,7 +860,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      &stubQueries{},
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -686,7 +879,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				Queries:      &stubQueries{},
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
@@ -699,7 +892,8 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 		Convey("CheckFetchAllowed returns a rate-limit error while a STALE record exists: the error is still returned -- rate limiting never falls back to stale", func() {
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
 			defer ds.Close()
-			fetchedAt := time.Now().Add(-2 * time.Hour)
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour)
 			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
 				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
 			}}
@@ -707,13 +901,13 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			rateLimiter := &stubRateLimiter{err: rateLimitErr}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
-				Clock:        clock.NewMockClockAt("2026-08-31T12:00:00Z"),
+				Clock:        mockClock,
 				Fetcher:      fetcherFor(ds),
 				Commands:     &stubCommands{},
 				Queries:      queries,
 				Database:     &stubDatabase{},
 				RateLimiter:  rateLimiter,
-				UsageLimiter: cimd.ProvideNoopServiceUsageLimiter(),
+				UsageLimiter: &stubUsageLimiter{},
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)

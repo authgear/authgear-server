@@ -62,8 +62,8 @@ type ServiceRateLimiter interface {
 	CheckFetchAllowed(ctx context.Context) error
 }
 
-// ServiceUsageLimiter is a seam for the CIMD usage/client-limit feature,
-// bound to a no-op today for the same reason.
+// ServiceUsageLimiter is the seam for the CIMD client-limit feature, bound
+// to *usage.Limiter.
 type ServiceUsageLimiter interface {
 	CheckStanding(ctx context.Context, name model.UsageName, currentCount int) error
 	ReportStandingCreated(ctx context.Context, name model.UsageName, countBeforeCreate int)
@@ -228,10 +228,21 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document) er
 		return err
 	}
 
-	countBefore, err := s.Commands.CountClientsBySource(ctx, model.OAuthClientSourceCIMD)
+	clientCount, err := s.Commands.CountClientsBySource(ctx, model.OAuthClientSourceCIMD)
 	if err != nil {
 		return err
 	}
+	//nolint:gosec // G115 -- a client count cannot exceed MaxInt
+	countBefore := int(clientCount)
+
+	// Speculative, and re-decided below against `created`: whether this
+	// resolution consumes a slot isn't knowable until the upsert runs. A
+	// refetch of an existing client_id must succeed even at or over quota
+	// (spec § Client Limit), while a brand-new one must be refused. Doing
+	// the upsert first and rolling back on refusal makes both true with one
+	// round trip -- a separate existence check first would itself be a
+	// TOCTOU hazard even under the advisory lock above.
+	limitErr := s.UsageLimiter.CheckStanding(ctx, model.UsageNameOAuthClientCIMD, countBefore)
 
 	_, created, err := s.Commands.UpsertCIMDClient(ctx, &oauthclient.UpsertCIMDClientOptions{
 		ClientID:        clientID,
@@ -245,10 +256,25 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document) er
 		GrantTypes:      doc.GrantTypes,
 		ResponseTypes:   doc.ResponseTypes,
 	})
-	// The usage/client-limit part inserts the CheckStanding/
-	// ReportStandingCreated calls around this upsert; countBefore/created
-	// are threaded through in preparation for that.
-	_ = created
-	_ = countBefore
-	return err
+	if err != nil {
+		return err
+	}
+
+	if created && limitErr != nil {
+		// Rolls back the INSERT above (a non-nil error from inside
+		// Database.WithTx rolls the transaction back). A distinct error
+		// from the uniform CIMDUnresolvable one: spec § Error Handling
+		// carves it out because it "doesn't vary by target host or reveal
+		// anything about network reachability".
+		return ErrClientLimitExceeded()
+	}
+
+	if created {
+		// Fires alert/hook/event triggers for any quota threshold this
+		// creation crossed. Only for a creation -- a refetch crosses none --
+		// and only after the write is known to have happened.
+		s.UsageLimiter.ReportStandingCreated(ctx, model.UsageNameOAuthClientCIMD, countBefore)
+	}
+
+	return nil
 }
