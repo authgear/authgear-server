@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -348,7 +347,7 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, ex
 	// TOCTOU hazard even under the advisory lock above.
 	limitErr := s.UsageLimiter.CheckStanding(ctx, model.UsageNameOAuthClientCIMD, countBefore)
 
-	client, created, err := s.Commands.UpsertCIMDClient(ctx, &oauthclient.UpsertCIMDClientOptions{
+	options := &oauthclient.UpsertCIMDClientOptions{
 		ClientID:        clientID,
 		ApplicationType: doc.ApplicationType,
 		ClientName:      doc.ClientName,
@@ -359,7 +358,8 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, ex
 		RedirectURIs:    doc.RedirectURIs,
 		GrantTypes:      doc.GrantTypes,
 		ResponseTypes:   doc.ResponseTypes,
-	})
+	}
+	client, created, err := s.Commands.UpsertCIMDClient(ctx, options)
 	if err != nil {
 		return err
 	}
@@ -397,15 +397,15 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, ex
 	// actually changed something. Never for a refetch that changed
 	// nothing -- the routine hourly case, which carries no information and
 	// would otherwise bury the records that matter.
-	var changes []nonblocking.OAuthClientResolvedEventPayloadChange
-	if !created {
-		changes = diffClientMetadata(existing, doc)
-	}
-	if created || len(changes) > 0 {
+	changed := !created && existing.MetadataChangedFrom(options)
+	if created || changed {
 		payload := &nonblocking.OAuthClientResolvedEventPayload{
 			Client:  oauthClientResolvedEventPayloadClient(client),
 			Created: created,
-			Changes: changes,
+		}
+		if changed {
+			old := oauthClientResolvedEventPayloadClient(existing)
+			payload.OldClient = &old
 		}
 		if err := s.Events.DispatchEventOnCommit(ctx, payload); err != nil {
 			return err
@@ -421,6 +421,10 @@ func oauthClientResolvedEventPayloadClient(c *oauthclient.Client) nonblocking.OA
 		Source:          c.Source,
 		Kind:            c.Kind,
 		ClientName:      derefStringOr(c.ClientName, ""),
+		ClientURI:       derefStringOr(c.ClientURI, ""),
+		LogoURI:         derefStringOr(c.LogoURI, ""),
+		TOSURI:          derefStringOr(c.TOSURI, ""),
+		PolicyURI:       derefStringOr(c.PolicyURI, ""),
 		ApplicationType: c.ApplicationType,
 		RedirectURIs:    c.RedirectURIs,
 		GrantTypes:      c.GrantTypes,
@@ -433,93 +437,4 @@ func derefStringOr(s *string, fallback string) string {
 		return fallback
 	}
 	return *s
-}
-
-// diffClientMetadata compares existing (already in hand from the freshness
-// check) against doc (the freshly fetched document) and reports every
-// document-derived field that changed. Never last_fetched_at/updated_at,
-// which change on every refetch by construction -- including them would
-// make the event fire hourly for every client and render it useless.
-//
-// existing may be up to 5 minutes stale (the freshness read is cache-first).
-// The only writer to this row is this same path under a single-flight
-// guard, so a false "changed" is very unlikely -- and if it happens the
-// record is a duplicate, not a wrong one, which is the acceptable
-// direction. This does not re-read the row to close that gap; that would
-// put a Postgres round trip on the hot path to improve an audit record.
-func diffClientMetadata(existing *oauthclient.Client, doc *Document) []nonblocking.OAuthClientResolvedEventPayloadChange {
-	var changes []nonblocking.OAuthClientResolvedEventPayloadChange
-
-	addString := func(field string, old *string, new *string) {
-		// Normalize the same way Store.NewClient does: an explicit "" is
-		// stored as nil, so a document that switches between omitting a
-		// field and sending "" must not register as a change.
-		if old != nil && *old == "" {
-			old = nil
-		}
-		if new != nil && *new == "" {
-			new = nil
-		}
-		oldVal, newVal := derefStringOr(old, ""), derefStringOr(new, "")
-		if oldVal == newVal {
-			return
-		}
-		changes = append(changes, nonblocking.OAuthClientResolvedEventPayloadChange{
-			Field: field,
-			Old:   stringOrNil(old),
-			New:   stringOrNil(new),
-		})
-	}
-
-	addSet := func(field string, old []string, new []string) {
-		// Order carries no meaning in these fields, so a document that
-		// merely reorders entries is not a change worth a record. The
-		// reported New value is the value as stored, not a sorted set.
-		if setsEqual(old, new) {
-			return
-		}
-		changes = append(changes, nonblocking.OAuthClientResolvedEventPayloadChange{
-			Field: field,
-			Old:   old,
-			New:   new,
-		})
-	}
-
-	addString("client_name", existing.ClientName, doc.ClientName)
-	addString("client_uri", existing.ClientURI, doc.ClientURI)
-	addString("logo_uri", existing.LogoURI, doc.LogoURI)
-	addString("tos_uri", existing.TOSURI, doc.TOSURI)
-	addString("policy_uri", existing.PolicyURI, doc.PolicyURI)
-	if existing.ApplicationType != doc.ApplicationType {
-		changes = append(changes, nonblocking.OAuthClientResolvedEventPayloadChange{
-			Field: "application_type",
-			Old:   existing.ApplicationType,
-			New:   doc.ApplicationType,
-		})
-	}
-	addSet("redirect_uris", existing.RedirectURIs, doc.RedirectURIs)
-	addSet("grant_types", existing.GrantTypes, doc.GrantTypes)
-	addSet("response_types", existing.ResponseTypes, doc.ResponseTypes)
-
-	return changes
-}
-
-func stringOrNil(s *string) any {
-	if s == nil {
-		return nil
-	}
-	return *s
-}
-
-func setsEqual(a []string, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	setA := setutil.NewSetFromSlice(a, setutil.Identity)
-	for _, v := range b {
-		if !setA.Has(v) {
-			return false
-		}
-	}
-	return true
 }

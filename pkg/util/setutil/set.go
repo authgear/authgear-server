@@ -20,6 +20,21 @@ func NewSetFromSlice[A any, B cmp.Ordered](slice []A, f func(a A) B) Set[B] {
 	return out
 }
 
+// SetsEqual reports whether a and b contain the same elements, ignoring
+// order and duplicates.
+func SetsEqual[T cmp.Ordered](a []T, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	setA := NewSetFromSlice(a, Identity)
+	for _, v := range b {
+		if !setA.Has(v) {
+			return false
+		}
+	}
+	return true
+}
+
 func (s Set[T]) Subtract(that Set[T]) Set[T] {
 	out := make(Set[T])
 	for inThis := range s {
