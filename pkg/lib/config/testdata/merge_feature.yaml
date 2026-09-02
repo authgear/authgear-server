@@ -24,24 +24,27 @@ configs:
   - oauth:
       client_id_metadata_document:
         rate_limits:
-          per_project:
-            enabled: true
-            period: 30s
-            burst: 7
+          fetch:
+            per_project:
+              enabled: true
+              period: 30s
+              burst: 7
   - oauth:
       client_id_metadata_document:
         rate_limits:
-          per_ip:
-            enabled: true
-            period: 2m
-            burst: 3
+          fetch:
+            per_ip:
+              enabled: true
+              period: 2m
+              burst: 3
   - oauth:
       client_id_metadata_document:
         rate_limits:
-          per_ip:
-            enabled: false
-            period: 5m
-            burst: 99
+          fetch:
+            per_ip:
+              enabled: false
+              period: 5m
+              burst: 99
   - collaborator:
       maximum: 3
       soft_maximum: 30
@@ -223,14 +226,15 @@ result:
       insecure_fetch_address_allowed: true
       insecure_http_allowed: true
       rate_limits:
-        per_project:
-          enabled: true
-          period: 30s
-          burst: 7
-        per_ip:
-          enabled: false
-          period: 5m
-          burst: 99
+        fetch:
+          per_project:
+            enabled: true
+            period: 30s
+            burst: 7
+          per_ip:
+            enabled: false
+            period: 5m
+            burst: 99
   collaborator:
     maximum: 3
     soft_maximum: 40

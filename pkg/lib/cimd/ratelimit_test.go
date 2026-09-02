@@ -32,8 +32,8 @@ func (s *stubLimiter) Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ra
 	return nil, nil
 }
 
-func testRateLimitsConfig(perProjectEnabled bool, perProjectPeriod string, perProjectBurst int, perIPEnabled bool, perIPPeriod string, perIPBurst int) *config.OAuthClientIDMetadataDocumentRateLimitsFeatureConfig {
-	return &config.OAuthClientIDMetadataDocumentRateLimitsFeatureConfig{
+func testFetchRateLimitsConfig(perProjectEnabled bool, perProjectPeriod string, perProjectBurst int, perIPEnabled bool, perIPPeriod string, perIPBurst int) *config.OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig {
+	return &config.OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig{
 		PerProject: &config.RateLimitConfig{
 			Enabled: &perProjectEnabled,
 			Period:  config.DurationString(perProjectPeriod),
@@ -44,6 +44,12 @@ func testRateLimitsConfig(perProjectEnabled bool, perProjectPeriod string, perPr
 			Period:  config.DurationString(perIPPeriod),
 			Burst:   perIPBurst,
 		},
+	}
+}
+
+func testRateLimitsConfig(perProjectEnabled bool, perProjectPeriod string, perProjectBurst int, perIPEnabled bool, perIPPeriod string, perIPBurst int) *config.OAuthClientIDMetadataDocumentRateLimitsFeatureConfig {
+	return &config.OAuthClientIDMetadataDocumentRateLimitsFeatureConfig{
+		Fetch: testFetchRateLimitsConfig(perProjectEnabled, perProjectPeriod, perProjectBurst, perIPEnabled, perIPPeriod, perIPBurst),
 	}
 }
 
@@ -67,18 +73,18 @@ func TestRateLimiterCheckFetchAllowed(t *testing.T) {
 			So(len(limiter.specs), ShouldEqual, 2)
 
 			perIP := limiter.specs[0]
-			So(perIP.Name, ShouldEqual, ratelimit.OAuthCIMDFetchPerIP)
-			So(perIP.RateLimitName, ShouldEqual, ratelimit.RateLimitOAuthCIMDFetchPerIP)
-			So(perIP.RateLimitGroup, ShouldEqual, ratelimit.RateLimitGroupOAuthCIMDFetch)
+			So(perIP.Name, ShouldEqual, ratelimit.OAuthClientIDMetadataDocumentFetchPerIP)
+			So(perIP.RateLimitName, ShouldEqual, ratelimit.RateLimitOAuthClientIDMetadataDocumentFetchPerIP)
+			So(perIP.RateLimitGroup, ShouldEqual, ratelimit.RateLimitGroupOAuthClientIDMetadataDocumentFetch)
 			So(perIP.Enabled, ShouldBeTrue)
 			So(perIP.Period, ShouldEqual, 30*time.Second)
 			So(perIP.Burst, ShouldEqual, 5)
 			So(perIP.Arguments, ShouldResemble, []string{"203.0.113.9"})
 
 			perProject := limiter.specs[1]
-			So(perProject.Name, ShouldEqual, ratelimit.OAuthCIMDFetchPerProject)
-			So(perProject.RateLimitName, ShouldEqual, ratelimit.RateLimitOAuthCIMDFetchPerProject)
-			So(perProject.RateLimitGroup, ShouldEqual, ratelimit.RateLimitGroupOAuthCIMDFetch)
+			So(perProject.Name, ShouldEqual, ratelimit.OAuthClientIDMetadataDocumentFetchPerProject)
+			So(perProject.RateLimitName, ShouldEqual, ratelimit.RateLimitOAuthClientIDMetadataDocumentFetchPerProject)
+			So(perProject.RateLimitGroup, ShouldEqual, ratelimit.RateLimitGroupOAuthClientIDMetadataDocumentFetch)
 			So(perProject.Enabled, ShouldBeTrue)
 			So(perProject.Period, ShouldEqual, time.Minute)
 			So(perProject.Burst, ShouldEqual, 10)
@@ -86,11 +92,12 @@ func TestRateLimiterCheckFetchAllowed(t *testing.T) {
 		})
 
 		Convey("a failed per-IP reservation short-circuits before the per-project bucket is ever checked", func() {
-			rateLimits := testRateLimitsConfig(true, "1m", 10, true, "1m", 5)
-			spec := NewBucketSpecCIMDFetchPerIP(rateLimits, "203.0.113.9")
+			fetch := testFetchRateLimitsConfig(true, "1m", 10, true, "1m", 5)
+			rateLimits := &config.OAuthClientIDMetadataDocumentRateLimitsFeatureConfig{Fetch: fetch}
+			spec := NewBucketSpecCIMDFetchPerIP(fetch, "203.0.113.9")
 			limiter := &stubLimiter{
 				failFor: map[ratelimit.BucketName]*ratelimit.FailedReservation{
-					ratelimit.OAuthCIMDFetchPerIP: ratelimit.NewFailedReservation(spec),
+					ratelimit.OAuthClientIDMetadataDocumentFetchPerIP: ratelimit.NewFailedReservation(spec),
 				},
 			}
 			r := &RateLimiter{
@@ -107,7 +114,7 @@ func TestRateLimiterCheckFetchAllowed(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(apierrors.IsKind(err, ratelimit.RateLimited), ShouldBeTrue)
 			So(len(limiter.specs), ShouldEqual, 1)
-			So(limiter.specs[0].Name, ShouldEqual, ratelimit.OAuthCIMDFetchPerIP)
+			So(limiter.specs[0].Name, ShouldEqual, ratelimit.OAuthClientIDMetadataDocumentFetchPerIP)
 		})
 
 		Convey("a disabled per-IP bucket is still passed to Allow, with Enabled: false, and the limiter itself is trusted to short-circuit", func() {
@@ -135,7 +142,7 @@ func TestRateLimiterCheckFetchAllowed(t *testing.T) {
 			wantErr := errors.New("redis: connection refused")
 			limiter := &stubLimiter{
 				errFor: map[ratelimit.BucketName]error{
-					ratelimit.OAuthCIMDFetchPerIP: wantErr,
+					ratelimit.OAuthClientIDMetadataDocumentFetchPerIP: wantErr,
 				},
 			}
 			r := &RateLimiter{

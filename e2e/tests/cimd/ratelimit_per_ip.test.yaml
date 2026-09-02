@@ -11,10 +11,11 @@ authgear.features.yaml:
         insecure_http_allowed: true
         insecure_fetch_address_allowed: true
         rate_limits:
-          per_ip:
-            enabled: true
-            period: 1m
-            burst: 2
+          fetch:
+            per_ip:
+              enabled: true
+              period: 1m
+              burst: 2
 steps:
   - name: configure_document_1
     action: http_request
