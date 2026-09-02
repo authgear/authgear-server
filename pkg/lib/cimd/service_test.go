@@ -1234,28 +1234,6 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(ds.hits.Load(), ShouldEqual, int64(0))
 		})
 
-		Convey("single-flight not acquired, no record: CIMDUnresolvable, fetcher never called", func() {
-			sf, _ := newTestSingleFlight(t)
-			_, err := sf.Acquire(ctx, "cimd-fetch", testClientID)
-			So(err, ShouldBeNil)
-
-			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
-			defer ds.Close()
-			svc := &cimd.Service{
-				OAuthConfig:  enabledOAuthConfig(),
-				Fetcher:      fetcherFor(ds),
-				Queries:      &stubQueries{},
-				Database:     &stubDatabase{},
-				RateLimiter:  &stubRateLimiter{},
-				UsageLimiter: &stubUsageLimiter{},
-				Events:       &stubEventService{},
-				SingleFlight: sf,
-			}
-			err = svc.EnsureClientResolved(ctx, testClientID)
-			So(apierrors.IsKind(err, cimd.CIMDUnresolvable), ShouldBeTrue)
-			So(ds.hits.Load(), ShouldEqual, int64(0))
-		})
-
 		Convey("single-flight Acquire errors (Redis down): fetch proceeds", func() {
 			sf, mr := newTestSingleFlight(t)
 			mr.Close()
@@ -1454,6 +1432,114 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			err := svc.EnsureClientResolved(ctx, testClientID)
 			So(err, ShouldEqual, rateLimitErr)
 			So(apierrors.IsKind(err, ratelimit.RateLimited), ShouldBeTrue)
+			So(ds.hits.Load(), ShouldEqual, int64(0))
+		})
+	})
+}
+
+// TestServiceEnsureClientResolvedSingleFlightWait is a separate top-level
+// test function (not more Convey blocks inside
+// TestServiceEnsureClientResolved) purely to keep that function's cognitive
+// complexity under gocognit's threshold -- no relationship to the other
+// tests beyond both exercising EnsureClientResolved.
+func TestServiceEnsureClientResolvedSingleFlightWait(t *testing.T) {
+	ctx := context.Background()
+
+	Convey("Service.EnsureClientResolved: single-flight loser waiting for a brand-new client_id", t, func() {
+		Convey("winner never finishes: CIMDUnresolvable after waiting out the deadline, fetcher never called", func() {
+			defer cimd.ShrinkDocumentWaitForTest()()
+
+			sf, _ := newTestSingleFlight(t)
+			_, err := sf.Acquire(ctx, "cimd-fetch", testClientID)
+			So(err, ShouldBeNil)
+
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
+			defer ds.Close()
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Queries:      &stubQueries{},
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
+				SingleFlight: sf,
+			}
+			err = svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err, cimd.CIMDUnresolvable), ShouldBeTrue)
+			So(ds.hits.Load(), ShouldEqual, int64(0))
+		})
+
+		Convey("winner's fetch lands before the deadline: nil, fetcher never called by the loser", func() {
+			defer cimd.ShrinkDocumentWaitForTest()()
+
+			sf, _ := newTestSingleFlight(t)
+			_, err := sf.Acquire(ctx, "cimd-fetch", testClientID)
+			So(err, ShouldBeNil)
+
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
+			defer ds.Close()
+
+			// The first call is step (3)'s freshness check (must see "no
+			// record" so this reaches the single-flight/wait logic as a
+			// brand-new client_id); the wait loop's first poll still sees
+			// nothing -- the winner is still mid-fetch -- and its second
+			// poll observes the row the winner just persisted.
+			var calls atomic.Int64
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				if calls.Add(1) <= 2 {
+					return nil, oauthclient.ErrDynamicClientNotFound
+				}
+				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD}, nil
+			}}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
+				SingleFlight: sf,
+			}
+			err = svc.EnsureClientResolved(ctx, testClientID)
+			So(err, ShouldBeNil)
+			So(ds.hits.Load(), ShouldEqual, int64(0))
+		})
+
+		Convey("a row appears but is not a CIMD client: CIMDUnresolvable, fetcher never called", func() {
+			defer cimd.ShrinkDocumentWaitForTest()()
+
+			sf, _ := newTestSingleFlight(t)
+			_, err := sf.Acquire(ctx, "cimd-fetch", testClientID)
+			So(err, ShouldBeNil)
+
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
+			defer ds.Close()
+
+			// The first call is step (3)'s freshness check, which must see
+			// "no record" so this reaches the single-flight/wait logic as a
+			// brand-new client_id; only the wait loop's later polls should
+			// observe the DCR row.
+			var calls atomic.Int64
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				if calls.Add(1) == 1 {
+					return nil, oauthclient.ErrDynamicClientNotFound
+				}
+				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceDCR}, nil
+			}}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
+				SingleFlight: sf,
+			}
+			err = svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err, cimd.CIMDUnresolvable), ShouldBeTrue)
 			So(ds.hits.Load(), ShouldEqual, int64(0))
 		})
 	})
