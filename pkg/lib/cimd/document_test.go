@@ -131,7 +131,6 @@ func TestParseAndValidate(t *testing.T) {
 				"https://example.com/cb",
 			}
 			for _, ru := range acceptedURIs {
-				ru := ru
 				Convey("accepted: "+ru, func() {
 					doc := validDoc()
 					doc["redirect_uris"] = []string{ru}
@@ -242,7 +241,6 @@ func TestParseAndValidate(t *testing.T) {
 				"empty body":     []byte(``),
 			}
 			for name, body := range cases {
-				name, body := name, body
 				Convey(name, func() {
 					_, err := cimd.ParseAndValidate(mcpExampleClientID, body, false)
 					So(err, ShouldBeError)

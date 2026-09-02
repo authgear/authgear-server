@@ -40,7 +40,6 @@ func TestIsPubliclyRoutable(t *testing.T) {
 			"2001::1",
 		}
 		for _, s := range mustRejectV4OrV6 {
-			s := s
 			Convey("rejects "+s, func() {
 				addr := netip.MustParseAddr(s)
 				So(httputil.IsPubliclyRoutable(addr), ShouldBeFalse)
@@ -63,7 +62,6 @@ func TestIsPubliclyRoutable(t *testing.T) {
 			"2606:4700::1111",
 		}
 		for _, s := range mustAccept {
-			s := s
 			Convey("accepts "+s, func() {
 				addr := netip.MustParseAddr(s)
 				So(httputil.IsPubliclyRoutable(addr), ShouldBeTrue)

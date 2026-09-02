@@ -82,7 +82,6 @@ func TestKeepThirdPartyAuthorizationFilter(t *testing.T) {
 		}
 
 		for _, tc := range cases {
-			tc := tc
 			Convey(tc.clientID, func() {
 				authz := &oauth.Authorization{ClientID: tc.clientID}
 				So(filter.Keep(ctx, authz), ShouldEqual, tc.keep)

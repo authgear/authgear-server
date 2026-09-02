@@ -9,8 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 )
 
-func ptr(s string) *string { return &s }
-
 func baseClient() *oauthclient.Client {
 	return &oauthclient.Client{
 		ID:              "client-row-id",
@@ -20,11 +18,11 @@ func baseClient() *oauthclient.Client {
 		UpdatedAt:       time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
 		Kind:            oauthclient.Kind("THIRD_PARTY"),
 		ApplicationType: "web",
-		ClientName:      ptr("Example Client"),
-		ClientURI:       ptr("https://mcp-client.example.com"),
-		LogoURI:         ptr("https://mcp-client.example.com/logo.png"),
-		TOSURI:          ptr("https://mcp-client.example.com/tos"),
-		PolicyURI:       ptr("https://mcp-client.example.com/policy"),
+		ClientName:      new("Example Client"),
+		ClientURI:       new("https://mcp-client.example.com"),
+		LogoURI:         new("https://mcp-client.example.com/logo.png"),
+		TOSURI:          new("https://mcp-client.example.com/tos"),
+		PolicyURI:       new("https://mcp-client.example.com/policy"),
 		RedirectURIs:    []string{"http://127.0.0.1:3000/callback"},
 		GrantTypes:      []string{"authorization_code", "refresh_token"},
 		ResponseTypes:   []string{"code"},
@@ -57,35 +55,35 @@ func TestClientMetadataChangedFrom(t *testing.T) {
 		Convey("client_name changed: true", func() {
 			c := baseClient()
 			options := baseOptions()
-			options.ClientName = ptr("New Name")
+			options.ClientName = new("New Name")
 			So(c.MetadataChangedFrom(options), ShouldBeTrue)
 		})
 
 		Convey("client_uri changed: true", func() {
 			c := baseClient()
 			options := baseOptions()
-			options.ClientURI = ptr("https://new.example.com")
+			options.ClientURI = new("https://new.example.com")
 			So(c.MetadataChangedFrom(options), ShouldBeTrue)
 		})
 
 		Convey("logo_uri changed: true", func() {
 			c := baseClient()
 			options := baseOptions()
-			options.LogoURI = ptr("https://new.example.com/logo.png")
+			options.LogoURI = new("https://new.example.com/logo.png")
 			So(c.MetadataChangedFrom(options), ShouldBeTrue)
 		})
 
 		Convey("tos_uri changed: true", func() {
 			c := baseClient()
 			options := baseOptions()
-			options.TOSURI = ptr("https://new.example.com/tos")
+			options.TOSURI = new("https://new.example.com/tos")
 			So(c.MetadataChangedFrom(options), ShouldBeTrue)
 		})
 
 		Convey("policy_uri changed: true", func() {
 			c := baseClient()
 			options := baseOptions()
-			options.PolicyURI = ptr("https://new.example.com/policy")
+			options.PolicyURI = new("https://new.example.com/policy")
 			So(c.MetadataChangedFrom(options), ShouldBeTrue)
 		})
 
@@ -129,13 +127,13 @@ func TestClientMetadataChangedFrom(t *testing.T) {
 			c := baseClient()
 			c.ClientName = nil
 			options := baseOptions()
-			options.ClientName = ptr("")
+			options.ClientName = new("")
 			So(c.MetadataChangedFrom(options), ShouldBeFalse)
 		})
 
 		Convey("client_name \"\" -> nil: false -- normalization, symmetric", func() {
 			c := baseClient()
-			c.ClientName = ptr("")
+			c.ClientName = new("")
 			options := baseOptions()
 			options.ClientName = nil
 			So(c.MetadataChangedFrom(options), ShouldBeFalse)
@@ -144,8 +142,8 @@ func TestClientMetadataChangedFrom(t *testing.T) {
 		Convey("multiple fields changed: true", func() {
 			c := baseClient()
 			options := baseOptions()
-			options.ClientName = ptr("New Name")
-			options.LogoURI = ptr("https://new.example.com/logo.png")
+			options.ClientName = new("New Name")
+			options.LogoURI = new("https://new.example.com/logo.png")
 			options.RedirectURIs = []string{"http://127.0.0.1:3000/new-callback"}
 			So(c.MetadataChangedFrom(options), ShouldBeTrue)
 		})

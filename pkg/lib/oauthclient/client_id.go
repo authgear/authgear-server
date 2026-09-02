@@ -82,7 +82,7 @@ func ParseCIMDClientID(clientID string, allowInsecureHTTP bool) (*url.URL, error
 		return nil, ErrCIMDClientIDNoPath
 	}
 	// u.Path is the DECODED path, so this also catches "%2e%2e".
-	for _, seg := range strings.Split(u.Path, "/") {
+	for seg := range strings.SplitSeq(u.Path, "/") {
 		if seg == "." || seg == ".." {
 			return nil, ErrCIMDClientIDHasDotSegment
 		}

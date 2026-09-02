@@ -327,7 +327,6 @@ func TestFetcherFetch(t *testing.T) {
 		})
 
 		for _, status := range []int{http.StatusNotFound, http.StatusInternalServerError} {
-			status := status
 			Convey("a non-2xx status is refused: "+strconv.Itoa(status), func() {
 				srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(status)
@@ -419,7 +418,7 @@ func TestFetcherClientFor(t *testing.T) {
 				HTTPClients: clients,
 				OAuthFeatureConfig: &config.OAuthFeatureConfig{
 					ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentFeatureConfig{
-						InsecureFetchAddressAllowed: boolPtr(false),
+						InsecureFetchAddressAllowed: new(false),
 					},
 				},
 				AppID: "test-app",
@@ -437,7 +436,7 @@ func TestFetcherClientFor(t *testing.T) {
 				HTTPClients: clients,
 				OAuthFeatureConfig: &config.OAuthFeatureConfig{
 					ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentFeatureConfig{
-						InsecureFetchAddressAllowed: boolPtr(true),
+						InsecureFetchAddressAllowed: new(true),
 					},
 				},
 				AppID: "test-app",
@@ -452,5 +451,3 @@ func TestFetcherClientFor(t *testing.T) {
 		})
 	})
 }
-
-func boolPtr(b bool) *bool { return &b }
