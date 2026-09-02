@@ -1,4 +1,4 @@
-name: a CIMD resolution refused by the oauth_client_cimd usage limit writes oauth.client.resolution.failed with outcome limit_exceeded
+name: a CIMD resolution refused by the oauth_client_cimd usage limit writes oauth.client.resolution.failed with reason limit_exceeded
 authgear.yaml:
   override: |
     oauth:
@@ -83,7 +83,7 @@ steps:
     audit_query: |
       SELECT activity_type,
              client_id,
-             data->'payload'->>'outcome' AS outcome,
+             data->'payload'->>'reason' AS reason,
              data->'payload'->>'usage_name' AS usage_name,
              data->'payload'->>'quota' AS quota,
              data->'payload'->>'served_stale_record' AS served_stale_record
@@ -98,7 +98,7 @@ steps:
           {
             "activity_type": "oauth.client.resolution.failed",
             "client_id": "http://localhost:2727/audit-log-usage-limit-b.json",
-            "outcome": "limit_exceeded",
+            "reason": "limit_exceeded",
             "usage_name": "oauth_client_cimd",
             "quota": "1",
             "served_stale_record": "false"

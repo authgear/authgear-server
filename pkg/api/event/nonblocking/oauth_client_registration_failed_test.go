@@ -12,8 +12,8 @@ import (
 func TestOAuthClientRegistrationFailedEventPayload(t *testing.T) {
 	Convey("OAuthClientRegistrationFailedEventPayload", t, func() {
 		payload := &nonblocking.OAuthClientRegistrationFailedEventPayload{
-			Outcome: nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken,
-			Reason:  "unknown",
+			Reason:  nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken,
+			Message: "unknown",
 		}
 
 		So(payload.NonBlockingEventType(), ShouldEqual, nonblocking.OAuthClientRegistrationFailed)

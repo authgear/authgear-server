@@ -1024,7 +1024,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			}
 		})
 
-		Convey("audit: fetch fails (unavailable outcome), no record: resolution.failed with outcome unavailable, empty reason, served_stale_record false -- and every case is byte-identical", func() {
+		Convey("audit: fetch fails (unavailable reason), no record: resolution.failed with reason unavailable, empty message, served_stale_record false -- and every case is byte-identical", func() {
 			cases := map[string]http.HandlerFunc{
 				"404":      func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNotFound) },
 				"oversize": func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(make([]byte, cimd.MaxDocumentBytes+1)) },
@@ -1052,8 +1052,8 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				So(events.dispatched[0].Style, ShouldEqual, "Immediately")
 				payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolutionFailedEventPayload)
 				So(ok, ShouldBeTrue)
-				So(payload.Outcome, ShouldEqual, nonblocking.OAuthClientResolutionOutcomeUnavailable)
-				So(payload.Reason, ShouldBeEmpty)
+				So(payload.Reason, ShouldEqual, nonblocking.OAuthClientResolutionReasonUnavailable)
+				So(payload.Message, ShouldBeEmpty)
 				So(payload.ServedStaleRecord, ShouldBeFalse)
 				if firstPayload == nil {
 					firstPayload = payload
@@ -1063,20 +1063,20 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			}
 		})
 
-		Convey("audit: fetch fails (invalid outcome), no record: resolution.failed with outcome invalid, reason names the failing rule", func() {
+		Convey("audit: fetch fails (invalid reason), no record: resolution.failed with reason invalid, message names the failing rule", func() {
 			cases := map[string]struct {
-				handler        http.HandlerFunc
-				expectedReason string
+				handler         http.HandlerFunc
+				expectedMessage string
 			}{
 				"invalid json": {
-					handler:        func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("not json")) },
-					expectedReason: "not_json_object",
+					handler:         func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("not json")) },
+					expectedMessage: "not_json_object",
 				},
 				"client_id mismatch": {
 					handler: func(w http.ResponseWriter, r *http.Request) {
 						_, _ = w.Write([]byte(`{"client_id":"https://wrong.example.com/x","redirect_uris":["https://x/cb"]}`))
 					},
-					expectedReason: "client_id_mismatch",
+					expectedMessage: "client_id_mismatch",
 				},
 			}
 			for name, tc := range cases {
@@ -1102,8 +1102,8 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 					So(events.dispatched, ShouldHaveLength, 1)
 					payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolutionFailedEventPayload)
 					So(ok, ShouldBeTrue)
-					So(payload.Outcome, ShouldEqual, nonblocking.OAuthClientResolutionOutcomeInvalid)
-					So(payload.Reason, ShouldEqual, tc.expectedReason)
+					So(payload.Reason, ShouldEqual, nonblocking.OAuthClientResolutionReasonInvalid)
+					So(payload.Message, ShouldEqual, tc.expectedMessage)
 				})
 			}
 		})
@@ -1161,7 +1161,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(events.dispatched[0].Style, ShouldEqual, "Immediately")
 			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolutionFailedEventPayload)
 			So(ok, ShouldBeTrue)
-			So(payload.Outcome, ShouldEqual, nonblocking.OAuthClientResolutionOutcomeLimitExceeded)
+			So(payload.Reason, ShouldEqual, nonblocking.OAuthClientResolutionReasonLimitExceeded)
 			So(payload.UsageName, ShouldEqual, model.UsageNameOAuthClientCIMD)
 			So(payload.Quota, ShouldEqual, 20)
 			So(payload.ServedStaleRecord, ShouldBeFalse)
