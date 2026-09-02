@@ -1,4 +1,4 @@
-package cimd
+package httputil
 
 import "net/netip"
 
@@ -30,8 +30,10 @@ var additionalBlockedPrefixes = []netip.Prefix{
 	netip.MustParsePrefix("2001::/32"),          // RFC 4380 Teredo
 }
 
-// IsPubliclyRoutable reports whether addr is safe to connect to under
-// docs/specs/cimd.md § SSRF Protection: not loopback, not private, not
+// IsPubliclyRoutable reports whether addr is safe to connect to when
+// fetching a URL supplied by a tenant/third party (the SSRF concern
+// docs/specs/cimd.md § SSRF Protection describes, but the check itself is
+// generic and not specific to CIMD): not loopback, not private, not
 // link-local, not multicast, not unspecified, and not one of the
 // additional special-use ranges above -- each of which either embeds an
 // arbitrary (possibly private) IPv4 address, or is otherwise not a real

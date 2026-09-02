@@ -1,4 +1,4 @@
-package cimd_test
+package httputil_test
 
 import (
 	"net/netip"
@@ -6,7 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/cimd"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestIsPubliclyRoutable(t *testing.T) {
@@ -43,17 +43,17 @@ func TestIsPubliclyRoutable(t *testing.T) {
 			s := s
 			Convey("rejects "+s, func() {
 				addr := netip.MustParseAddr(s)
-				So(cimd.IsPubliclyRoutable(addr), ShouldBeFalse)
+				So(httputil.IsPubliclyRoutable(addr), ShouldBeFalse)
 			})
 		}
 
 		Convey("rejects the zero netip.Addr{}", func() {
-			So(cimd.IsPubliclyRoutable(netip.Addr{}), ShouldBeFalse)
+			So(httputil.IsPubliclyRoutable(netip.Addr{}), ShouldBeFalse)
 		})
 
 		Convey("rejects ::ffff:127.0.0.1 (regresses if Unmap() is removed)", func() {
 			addr := netip.MustParseAddr("::ffff:127.0.0.1")
-			So(cimd.IsPubliclyRoutable(addr), ShouldBeFalse)
+			So(httputil.IsPubliclyRoutable(addr), ShouldBeFalse)
 		})
 
 		mustAccept := []string{
@@ -66,13 +66,13 @@ func TestIsPubliclyRoutable(t *testing.T) {
 			s := s
 			Convey("accepts "+s, func() {
 				addr := netip.MustParseAddr(s)
-				So(cimd.IsPubliclyRoutable(addr), ShouldBeTrue)
+				So(httputil.IsPubliclyRoutable(addr), ShouldBeTrue)
 			})
 		}
 
 		Convey("accepts ::ffff:1.1.1.1 (4-in-6 form of a public address)", func() {
 			addr := netip.MustParseAddr("::ffff:1.1.1.1")
-			So(cimd.IsPubliclyRoutable(addr), ShouldBeTrue)
+			So(httputil.IsPubliclyRoutable(addr), ShouldBeTrue)
 		})
 	})
 }
