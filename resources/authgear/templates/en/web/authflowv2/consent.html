@@ -6,8 +6,7 @@
 {{ $clientName := or $.ClientName "null" }}
 
 <div class="flex-1-0-auto screen-icon-layout">
-  {{ template "authflowv2/__header.html" . }}
-  <div class="screen-title-description">
+  <div class="screen-icon-layout__icon">
     {{ if $.ClientLogoURI }}
       <img
         class="mx-auto rounded-lg brand-logo brand-logo--default"
@@ -16,7 +15,11 @@
         referrerpolicy="no-referrer"
         loading="lazy"
       >
+    {{ else }}
+      {{ template "authflowv2/__header.html" . }}
     {{ end }}
+  </div>
+  <div class="screen-title-description">
     <h1 class="screen-title">
       {{ include "v2.page.consent.default.title" (dict "ClientName" $clientName) }}
     </h1>
