@@ -352,16 +352,21 @@ func (s *Store) countClients(ctx context.Context) (uint64, error) {
 // cimd.md define separate quotas counted over source: DCR and source: CIMD
 // respectively. A source-less count would let one source's quota consume
 // the other's.
-// LockForClientCount serializes concurrent DCR/CIMD registrations for this
-// app so a CountClientsBySource-then-CreateClient sequence is atomic with
-// respect to the configured quota -- a plain "SELECT COUNT(*) then INSERT"
-// has a TOCTOU window a Postgres COUNT(*) does not close on its own. Must be
-// called inside a transaction: pg_advisory_xact_lock releases at
-// transaction end, unlike the session-scoped pg_advisory_lock, which would
-// leak the lock across the pooled connection's next user.
+// LockForClientCount serializes concurrent registrations for this app and
+// source so a CountClientsBySource-then-CreateClient sequence is atomic
+// with respect to the configured quota -- a plain "SELECT COUNT(*) then
+// INSERT" has a TOCTOU window a Postgres COUNT(*) does not close on its
+// own. Must be called inside a transaction: pg_advisory_xact_lock releases
+// at transaction end, unlike the session-scoped pg_advisory_lock, which
+// would leak the lock across the pooled connection's next user.
 //
 // The lock key is scoped per source (not per table), so a DCR registration
-// and a CIMD resolution never serialize against each other.
+// and a CIMD resolution never serialize against each other. Only DCR's
+// POST /oauth2/register calls this today -- CIMD's oauth_client_cimd quota
+// is a soft cap, cheap to overshoot by a small, self-correcting amount
+// under concurrent brand-new client_ids, so cimd.Service.upsert accepts
+// that race rather than serializing every CIMD resolution in the app
+// behind this lock.
 func (s *Store) LockForClientCount(ctx context.Context, source Source) error {
 	key := string(source) + ":" + string(s.AppID)
 	// sq.Expr does not go through a SQLBuilder query, so it never gets the

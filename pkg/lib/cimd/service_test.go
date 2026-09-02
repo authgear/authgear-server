@@ -45,8 +45,6 @@ type stubCommands struct {
 	upsertFn         func(*oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error)
 	upsertCalls      atomic.Int64
 	count            uint64
-	lockErr          error
-	lockCalls        atomic.Int64
 	countBySourceErr error
 }
 
@@ -56,11 +54,6 @@ func (s *stubCommands) UpsertCIMDClient(ctx context.Context, options *oauthclien
 		return s.upsertFn(options)
 	}
 	return &oauthclient.Client{ClientID: options.ClientID, Source: model.OAuthClientSourceCIMD}, true, nil
-}
-
-func (s *stubCommands) LockForClientCount(ctx context.Context, source oauthclient.Source) error {
-	s.lockCalls.Add(1)
-	return s.lockErr
 }
 
 func (s *stubCommands) CountClientsBySource(ctx context.Context, source model.OAuthClientSource) (uint64, error) {
@@ -839,11 +832,11 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(apierrors.IsKind(err2, cimd.CIMDClientLimitExceeded), ShouldBeTrue)
 		})
 
-		Convey("usage limit: LockForClientCount returns an error: propagated, no upsert attempted", func() {
+		Convey("usage limit: CountClientsBySource returns an error: propagated, no upsert attempted", func() {
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
 			defer ds.Close()
-			lockErr := errors.New("advisory lock failed")
-			commands := &stubCommands{lockErr: lockErr}
+			countErr := errors.New("count query failed")
+			commands := &stubCommands{countBySourceErr: countErr}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
 				Fetcher:      fetcherFor(ds),
@@ -856,7 +849,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
-			So(err, ShouldEqual, lockErr)
+			So(err, ShouldEqual, countErr)
 			So(commands.upsertCalls.Load(), ShouldEqual, int64(0))
 		})
 
