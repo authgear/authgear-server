@@ -54,8 +54,14 @@ func (s *AuthorizationStore) GetByID(ctx context.Context, id string) (*oauth.Aut
 }
 
 func (s *AuthorizationStore) ListByUserID(ctx context.Context, userID string) ([]*oauth.Authorization, error) {
+	// OrderBy is required, not cosmetic: without it Postgres does not
+	// guarantee any particular row order, and the Admin API's
+	// user.authorizations connection returns this slice as-is (see
+	// graphqlutil.NewConnectionFromArray) -- an unordered result makes the
+	// connection's ordering flaky from one query to the next.
 	builder := s.selectQuery().
-		Where("user_id = ?", userID)
+		Where("user_id = ?", userID).
+		OrderBy("created_at ASC")
 
 	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
