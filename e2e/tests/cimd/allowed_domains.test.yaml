@@ -1,0 +1,100 @@
+name: allowed_domains refuses a host outside the allowlist, with zero fetch attempts
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+        allowed_domains: ["*.example.com"]
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "allowed-domains-disallowed.json",
+        "document": {
+          "client_id": "http://localhost:2727/allowed-domains-disallowed.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/allowed-domains-disallowed.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+  - name: verify_no_fetch
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=allowed-domains-disallowed.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }
+
+---
+
+name: allowed_domains accepts a single-label pattern -- a test project can allowlist its own document host
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+        allowed_domains: ["localhost"]
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "allowed-domains-allowed.json",
+        "document": {
+          "client_id": "http://localhost:2727/allowed-domains-allowed.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/allowed-domains-allowed.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302

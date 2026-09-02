@@ -1,0 +1,322 @@
+name: a client_id mismatch gives the same error as an unknown client_id
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "invalid-document-mismatch.json",
+        "document": {
+          "client_id": "http://localhost:2727/wrong-path.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/invalid-document-mismatch.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+---
+
+name: a non-2xx document response gives the same error as an unknown client_id
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "invalid-document-status.json",
+        "status": 500,
+        "body": "internal error"
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/invalid-document-status.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+---
+
+name: an oversize document response gives the same error as an unknown client_id
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set_bytes
+    http_request_body: |
+      {
+        "path": "invalid-document-oversize.json",
+        "bytes": 5121
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/invalid-document-oversize.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+---
+
+name: a malformed JSON document gives the same error as an unknown client_id
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "invalid-document-malformed.json",
+        "body": "not json at all"
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/invalid-document-malformed.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+---
+
+name: a 3xx redirect gives the same error as an unknown client_id, and the redirect target is never fetched
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_redirect
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set_redirect
+    http_request_body: |
+      {
+        "path": "invalid-document-redirect-{{ .AppID }}.json",
+        "to": "http://localhost:2727/invalid-document-redirect-target-{{ .AppID }}.json"
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/invalid-document-redirect-{{ .AppID }}.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+  # docs/specs/cimd.md § SSRF Protection: "Follow 0 redirects -- a redirect
+  # target hasn't been through Client ID Format validation". The mock
+  # server's hit counter proves it, the same way fetcher_test.go's unit
+  # test does for the underlying http.Client behavior.
+  - name: verify_redirect_target_never_fetched
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=invalid-document-redirect-target-{{ .AppID }}.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }
+
+  # A 3xx is classified via Fetch, so it is "unavailable" -- never
+  # "invalid" -- and carries no reason (docs/specs/cimd.md § Authgear as
+  # an SSRF/Probing Oracle; Part 8 D6/D9).
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             data->'payload'->>'outcome' AS outcome,
+             data->'payload' ? 'reason' AS has_reason
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.resolution.failed'
+        AND client_id = 'http://localhost:2727/invalid-document-redirect-{{ .AppID }}.json'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.resolution.failed",
+            "outcome": "unavailable",
+            "has_reason": false
+          }
+        ]
+
+---
+
+name: a binary (non-UTF8) response body gives the same error as an unknown client_id
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  # A real PNG's magic bytes -- not valid UTF-8, and not valid JSON --
+  # served with a 200 and the default application/json Content-Type, the
+  # same way a misconfigured static file host might serve an image at a
+  # .json path. Fetch's Content-Type is deliberately not checked
+  # (fetcher.go's Fetch doc comment), so this must fail in ParseAndValidate
+  # instead, as ErrDocumentNotJSONObject.
+  - name: configure_binary_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "invalid-document-binary-{{ .AppID }}.json",
+        "body_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAACAAEA////AwAABgAFV7+r1AAAAABJRU5ErkJggg=="
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/invalid-document-binary-{{ .AppID }}.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+  # A 2xx that failed to parse is classified via ParseAndValidate, so it is
+  # "invalid", with reason "not_json_object" -- safe to expose, since
+  # reaching this outcome proves the target answered at all (D7).
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             data->'payload'->>'outcome' AS outcome,
+             data->'payload'->>'reason' AS reason
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.resolution.failed'
+        AND client_id = 'http://localhost:2727/invalid-document-binary-{{ .AppID }}.json'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.resolution.failed",
+            "outcome": "invalid",
+            "reason": "not_json_object"
+          }
+        ]

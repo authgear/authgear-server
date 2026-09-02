@@ -1,0 +1,89 @@
+name: A stale CIMD record is replaced in place by a successful refetch
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: custom_sql
+    custom_sql:
+      path: stale_record_refetch_fixtures.sql
+steps:
+  # The document server serves metadata distinguishable from the seeded
+  # row's (a different client_name), so a subsequent read that shows the
+  # NEW name proves the refetch actually replaced the row rather than the
+  # request merely succeeding on the untouched stale data.
+  - name: configure_document_healthy
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "stale-record-refetch.json",
+        "document": {
+          "client_id": "http://localhost:2727/stale-record-refetch.json",
+          "client_name": "Refetched CIMD Client",
+          "redirect_uris": ["http://127.0.0.1:9000/cb", "http://127.0.0.1:9001/cb"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/stale-record-refetch.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: verify_replaced_in_place
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            totalCount
+            edges {
+              node {
+                clientID
+                clientName
+                redirectURIs
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 1,
+              "edges": [
+                {
+                  "node": {
+                    "clientID": "http://localhost:2727/stale-record-refetch.json",
+                    "clientName": "Refetched CIMD Client",
+                    "redirectURIs": ["http://127.0.0.1:9000/cb", "http://127.0.0.1:9001/cb"]
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
