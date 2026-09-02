@@ -131,20 +131,20 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	if authHeader := r.Header.Get("Authorization"); authHeader != "" {
 		const prefix = "Bearer "
 		if !strings.HasPrefix(authHeader, prefix) {
-			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken, "malformed_header", "", 0, nil)
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "malformed_header", "", 0, nil)
 			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid Authorization header", http.StatusUnauthorized)
 		}
 		token = strings.TrimPrefix(authHeader, prefix)
 	}
 
 	if token == "" && h.OAuthConfig.DynamicClientRegistration.IsInitialAccessTokenRequired() {
-		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken, "not_presented", "", 0, nil)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "not_presented", "", 0, nil)
 		return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "an initial access token is required", http.StatusUnauthorized)
 	}
 
 	var body registrationRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidClientMetadata, "malformed_json", "", 0, nil)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata, "malformed_json", "", 0, nil)
 		return nil, protocol.NewErrorStatusCode("invalid_client_metadata", "malformed JSON body", http.StatusBadRequest)
 	}
 
@@ -161,8 +161,8 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 		TokenEndpointAuthMethod: body.TokenEndpointAuthMethod,
 	})
 	if err != nil {
-		httpErr, reason := mapDCRValidationError(err)
-		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidClientMetadata, reason, "", 0, nil)
+		httpErr, message := mapDCRValidationError(err)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata, message, "", 0, nil)
 		return nil, httpErr
 	}
 
@@ -184,11 +184,11 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	})
 	if err != nil {
 		if errors.Is(err, dcr.ErrInitialAccessTokenNotFound) {
-			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken, "unknown", "", 0, nil)
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "unknown", "", 0, nil)
 			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid or expired initial access token", http.StatusUnauthorized)
 		}
 		if errors.Is(err, dcr.ErrInitialAccessTokenExpired) {
-			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken, "expired", "", 0, iat)
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "expired", "", 0, iat)
 			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid or expired initial access token", http.StatusUnauthorized)
 		}
 		// Any other error -- including the limit_exceeded access_denied
@@ -261,7 +261,7 @@ func (h *RegistrationHandler) registerClientInTx(
 		// this transaction, so the record survives the rollback this
 		// triggers.
 		usageName, quota, _ := usage.StandingUsageLimitDetails(limitErr)
-		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationOutcomeLimitExceeded, "", usageName, quota, nil)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonLimitExceeded, "", usageName, quota, nil)
 		return nil, iat, 0, protocol.NewErrorStatusCode("access_denied", "the project has reached its dynamic client registration limit", http.StatusForbidden)
 	}
 
@@ -278,56 +278,56 @@ func (h *RegistrationHandler) registerClientInTx(
 
 // mapDCRValidationError maps a dcr.ValidateAndNormalize sentinel error to
 // its exact (error, status) pair from docs/specs/dcr.md's Errors table, and
-// to the audit-log reason naming the rule that failed -- kept in this one
+// to the audit-log message naming the rule that failed -- kept in this one
 // function so a new validation rule cannot get an HTTP error without also
-// getting an audit reason. Only ErrDCRRedirectURIInvalid maps to
+// getting an audit message. Only ErrDCRRedirectURIInvalid maps to
 // invalid_redirect_uri; every other validation failure — including a
 // missing redirect_uris, which the spec's causes table places under
 // invalid_client_metadata rather than invalid_redirect_uri — maps to
-// invalid_client_metadata. Unlike CIMD's uniform "unavailable" outcome,
-// there is no oracle constraint on reason here: POST /oauth2/register
+// invalid_client_metadata. Unlike CIMD's uniform "unavailable" reason,
+// there is no oracle constraint on message here: POST /oauth2/register
 // fetches nothing, so there is no reachability to leak, and this function
 // already puts the same detail in the HTTP response.
-func mapDCRValidationError(err error) (httpErr error, reason string) {
+func mapDCRValidationError(err error) (httpErr error, message string) {
 	switch {
 	case errors.Is(err, dcr.ErrDCRRedirectURIsMissing):
-		reason = "redirect_uris_missing"
+		message = "redirect_uris_missing"
 	case errors.Is(err, dcr.ErrDCRRedirectURIInvalid):
 		return protocol.NewErrorStatusCode("invalid_redirect_uri", err.Error(), http.StatusBadRequest), "redirect_uri_invalid"
 	case errors.Is(err, dcr.ErrDCRGrantTypeUnsupported):
-		reason = "grant_type_unsupported"
+		message = "grant_type_unsupported"
 	case errors.Is(err, dcr.ErrDCRResponseTypeInconsistent):
-		reason = "response_type_inconsistent"
+		message = "response_type_inconsistent"
 	case errors.Is(err, dcr.ErrDCRApplicationTypeUnsupported):
-		reason = "application_type_unsupported"
+		message = "application_type_unsupported"
 	case errors.Is(err, dcr.ErrDCRTokenEndpointAuthMethodNotAccepted):
-		reason = "token_endpoint_auth_method_not_accepted"
+		message = "token_endpoint_auth_method_not_accepted"
 	case errors.Is(err, dcr.ErrDCRURIFieldNotHTTPS):
-		reason = "uri_field_not_https"
+		message = "uri_field_not_https"
 	default:
 		// Unreachable in practice -- ValidateAndNormalize returns only the
-		// sentinels above -- but never silently emit an empty reason for a
+		// sentinels above -- but never silently emit an empty message for a
 		// genuinely new rule.
-		reason = "unknown"
+		message = "unknown"
 	}
-	return protocol.NewErrorStatusCode("invalid_client_metadata", err.Error(), http.StatusBadRequest), reason
+	return protocol.NewErrorStatusCode("invalid_client_metadata", err.Error(), http.StatusBadRequest), message
 }
 
 // dispatchRegistrationFailed builds and dispatches oauth.client.registration.failed.
-// usageName/quota are set only for the limit_exceeded outcome; iat is set
-// only for the "expired" reason, mirroring
+// usageName/quota are set only when reason is limit_exceeded; iat is set
+// only for the "expired" message, mirroring
 // OAuthClientRegistrationFailedEventPayload's own field comments.
 func (h *RegistrationHandler) dispatchRegistrationFailed(
 	ctx context.Context,
-	outcome nonblocking.OAuthClientRegistrationOutcome,
-	reason string,
+	reason nonblocking.OAuthClientRegistrationReason,
+	message string,
 	usageName model.UsageName,
 	quota int,
 	iat *model.OAuthInitialAccessToken,
 ) {
 	h.dispatchImmediately(ctx, &nonblocking.OAuthClientRegistrationFailedEventPayload{
-		Outcome:            outcome,
 		Reason:             reason,
+		Message:            message,
 		UsageName:          usageName,
 		Quota:              quota,
 		InitialAccessToken: nonblocking.NewEventPayloadInitialAccessToken(iat),

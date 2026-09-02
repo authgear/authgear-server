@@ -223,12 +223,12 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 	}
 	if fetchErr != nil || validationErr != nil {
 		cause := fetchErr
-		outcome := nonblocking.OAuthClientResolutionOutcomeUnavailable
-		reason := ""
+		reason := nonblocking.OAuthClientResolutionReasonUnavailable
+		message := ""
 		if fetchErr == nil {
 			cause = validationErr
-			outcome = nonblocking.OAuthClientResolutionOutcomeInvalid
-			reason = documentErrorReason(validationErr)
+			reason = nonblocking.OAuthClientResolutionReasonInvalid
+			message = documentErrorMessage(validationErr)
 		}
 		// The cause is logged here and nowhere else; it never reaches a
 		// response.
@@ -237,8 +237,8 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 			Info(ctx, "cimd: failed to resolve client metadata document")
 		s.dispatchImmediately(ctx, &nonblocking.OAuthClientResolutionFailedEventPayload{
 			ClientID:          clientID,
-			Outcome:           outcome,
 			Reason:            reason,
+			Message:           message,
 			ServedStaleRecord: existing != nil,
 		})
 		if existing != nil {
@@ -253,12 +253,12 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 	})
 }
 
-// documentErrorReason names the validation rule that failed, one per
+// documentErrorMessage names the validation rule that failed, one per
 // ErrDocument* sentinel. Safe to expose in the audit log's "invalid"
-// outcome: reaching this function at all means a parseable JSON document
-// was retrieved, so the reason describes the client author's own published
+// reason: reaching this function at all means a parseable JSON document
+// was retrieved, so the message describes the client author's own published
 // content, not Authgear's network reachability (D7).
-func documentErrorReason(err error) string {
+func documentErrorMessage(err error) string {
 	switch {
 	case errors.Is(err, ErrDocumentNotJSONObject):
 		return "not_json_object"
@@ -280,7 +280,7 @@ func documentErrorReason(err error) string {
 		return "uri_field_not_https"
 	default:
 		// Unreachable in practice -- ParseAndValidate returns only the
-		// sentinels above -- but never silently emit an empty reason for a
+		// sentinels above -- but never silently emit an empty message for a
 		// genuinely new rule; that would look like a config problem was
 		// swallowed rather than surfaced.
 		return "unknown"
@@ -373,7 +373,7 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, ex
 		usageName, quota, _ := usage.StandingUsageLimitDetails(limitErr)
 		s.dispatchImmediately(ctx, &nonblocking.OAuthClientResolutionFailedEventPayload{
 			ClientID:          clientID,
-			Outcome:           nonblocking.OAuthClientResolutionOutcomeLimitExceeded,
+			Reason:            nonblocking.OAuthClientResolutionReasonLimitExceeded,
 			UsageName:         usageName,
 			Quota:             quota,
 			ServedStaleRecord: false,

@@ -300,7 +300,7 @@ steps:
 
 ---
 
-name: a registration with an invalid bearer token writes oauth.client.registration.failed with outcome invalid_initial_access_token
+name: a registration with an invalid bearer token writes oauth.client.registration.failed with reason invalid_initial_access_token
 authgear.yaml:
   override: |
     oauth:
@@ -329,8 +329,8 @@ steps:
     audit_query: |
       SELECT activity_type,
              client_id,
-             data->'payload'->>'outcome' AS outcome,
              data->'payload'->>'reason' AS reason,
+             data->'payload'->>'message' AS message,
              data->'payload' ? 'initial_access_token' AS has_iat
       FROM _audit_log
       WHERE app_id = '{{ .AppID }}' AND activity_type = 'oauth.client.registration.failed'
@@ -341,15 +341,15 @@ steps:
           {
             "activity_type": "oauth.client.registration.failed",
             "client_id": "",
-            "outcome": "invalid_initial_access_token",
-            "reason": "unknown",
+            "reason": "invalid_initial_access_token",
+            "message": "unknown",
             "has_iat": false
           }
         ]
 
 ---
 
-name: a malformed registration body writes oauth.client.registration.failed with outcome invalid_client_metadata
+name: a malformed registration body writes oauth.client.registration.failed with reason invalid_client_metadata
 authgear.yaml:
   override: |
     oauth:
@@ -374,8 +374,8 @@ steps:
     action: audit_query
     audit_query: |
       SELECT activity_type,
-             data->'payload'->>'outcome' AS outcome,
-             data->'payload'->>'reason' AS reason
+             data->'payload'->>'reason' AS reason,
+             data->'payload'->>'message' AS message
       FROM _audit_log
       WHERE app_id = '{{ .AppID }}' AND activity_type = 'oauth.client.registration.failed'
       ORDER BY created_at, id
@@ -384,14 +384,14 @@ steps:
         [
           {
             "activity_type": "oauth.client.registration.failed",
-            "outcome": "invalid_client_metadata",
-            "reason": "malformed_json"
+            "reason": "invalid_client_metadata",
+            "message": "malformed_json"
           }
         ]
 
 ---
 
-name: a registration refused by the oauth_client_dcr quota writes oauth.client.registration.failed with outcome limit_exceeded
+name: a registration refused by the oauth_client_dcr quota writes oauth.client.registration.failed with reason limit_exceeded
 authgear.yaml:
   override: |
     oauth:
@@ -458,7 +458,7 @@ steps:
     action: audit_query
     audit_query: |
       SELECT activity_type,
-             data->'payload'->>'outcome' AS outcome,
+             data->'payload'->>'reason' AS reason,
              data->'payload'->>'usage_name' AS usage_name,
              data->'payload'->>'quota' AS quota
       FROM _audit_log
@@ -469,7 +469,7 @@ steps:
         [
           {
             "activity_type": "oauth.client.registration.failed",
-            "outcome": "limit_exceeded",
+            "reason": "limit_exceeded",
             "usage_name": "oauth_client_dcr",
             "quota": "2"
           }

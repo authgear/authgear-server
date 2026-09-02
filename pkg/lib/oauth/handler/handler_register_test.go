@@ -142,8 +142,8 @@ func TestRegistrationHandler(t *testing.T) {
 			So(protoErr.StatusCode, ShouldEqual, http.StatusUnauthorized)
 			So(protoErr.Response["error"], ShouldEqual, "invalid_initial_access_token")
 
-			So(captured.Outcome, ShouldEqual, nonblocking.OAuthClientRegistrationOutcomeInvalidInitialAccessToken)
-			So(captured.Reason, ShouldEqual, "malformed_header")
+			So(captured.Reason, ShouldEqual, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken)
+			So(captured.Message, ShouldEqual, "malformed_header")
 			So(captured.InitialAccessToken, ShouldBeNil)
 		})
 
@@ -164,7 +164,7 @@ func TestRegistrationHandler(t *testing.T) {
 			So(protoErr.StatusCode, ShouldEqual, http.StatusUnauthorized)
 			So(protoErr.Response["error"], ShouldEqual, "invalid_initial_access_token")
 
-			So(captured.Reason, ShouldEqual, "not_presented")
+			So(captured.Message, ShouldEqual, "not_presented")
 			So(captured.InitialAccessToken, ShouldBeNil)
 		})
 
@@ -184,17 +184,17 @@ func TestRegistrationHandler(t *testing.T) {
 			So(ok, ShouldBeTrue)
 			So(protoErr.Response["error"], ShouldEqual, "invalid_client_metadata")
 
-			So(captured.Outcome, ShouldEqual, nonblocking.OAuthClientRegistrationOutcomeInvalidClientMetadata)
-			So(captured.Reason, ShouldEqual, "malformed_json")
+			So(captured.Reason, ShouldEqual, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata)
+			So(captured.Message, ShouldEqual, "malformed_json")
 		})
 
-		Convey("every dcr.ErrDCR* validation sentinel gets a non-empty reason", func() {
+		Convey("every dcr.ErrDCR* validation sentinel gets a non-empty message", func() {
 			b := false
 			oauthConfig.DynamicClientRegistration.InitialAccessTokenRequired = &b
 			cases := []struct {
-				name   string
-				body   string
-				reason string
+				name    string
+				body    string
+				message string
 			}{
 				{
 					"redirect_uris missing",
@@ -245,9 +245,9 @@ func TestRegistrationHandler(t *testing.T) {
 					resp, err := h.Handle(context.Background(), newRequest(tc.body, ""))
 					So(resp, ShouldBeNil)
 					So(err, ShouldNotBeNil)
-					So(captured.Outcome, ShouldEqual, nonblocking.OAuthClientRegistrationOutcomeInvalidClientMetadata)
-					So(captured.Reason, ShouldEqual, tc.reason)
-					So(captured.Reason, ShouldNotBeEmpty)
+					So(captured.Reason, ShouldEqual, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata)
+					So(captured.Message, ShouldEqual, tc.message)
+					So(captured.Message, ShouldNotBeEmpty)
 				})
 			}
 		})
@@ -268,7 +268,7 @@ func TestRegistrationHandler(t *testing.T) {
 			So(protoErr.StatusCode, ShouldEqual, http.StatusUnauthorized)
 			So(protoErr.Response["error"], ShouldEqual, "invalid_initial_access_token")
 
-			So(captured.Reason, ShouldEqual, "unknown")
+			So(captured.Message, ShouldEqual, "unknown")
 			So(captured.InitialAccessToken, ShouldBeNil)
 		})
 
@@ -288,7 +288,7 @@ func TestRegistrationHandler(t *testing.T) {
 			So(protoErr.StatusCode, ShouldEqual, http.StatusUnauthorized)
 			So(protoErr.Response["error"], ShouldEqual, "invalid_initial_access_token")
 
-			So(captured.Reason, ShouldEqual, "expired")
+			So(captured.Message, ShouldEqual, "expired")
 			So(captured.InitialAccessToken, ShouldNotBeNil)
 			So(captured.InitialAccessToken.ID, ShouldEqual, "iat-id")
 			So(captured.InitialAccessToken.Type, ShouldEqual, model.OAuthInitialAccessTokenTypeThirdParty)
@@ -296,7 +296,7 @@ func TestRegistrationHandler(t *testing.T) {
 			So(captured.InitialAccessToken.ExpiresAt, ShouldEqual, fixtureIAT.ExpiresAt)
 		})
 
-		Convey("unknown vs expired: identical status code and error code, only reason differs", func() {
+		Convey("unknown vs expired: identical status code and error code, only message differs", func() {
 			iatService.EXPECT().ValidateAndGetByToken(gomock.Any(), "unknowntoken").Return(nil, dcr.ErrInitialAccessTokenNotFound)
 			iatService.EXPECT().ValidateAndGetByToken(gomock.Any(), "expiredtoken").Return(fixtureIAT, dcr.ErrInitialAccessTokenExpired)
 			events.EXPECT().DispatchEventImmediately(gomock.Any(), gomock.Any()).Return(nil).Times(2)
@@ -333,10 +333,10 @@ func TestRegistrationHandler(t *testing.T) {
 			So(ok, ShouldBeTrue)
 			So(protoErr.StatusCode, ShouldEqual, http.StatusForbidden)
 
-			So(captured.Outcome, ShouldEqual, nonblocking.OAuthClientRegistrationOutcomeLimitExceeded)
+			So(captured.Reason, ShouldEqual, nonblocking.OAuthClientRegistrationReasonLimitExceeded)
 			So(captured.UsageName, ShouldEqual, model.UsageNameOAuthClientDCR)
 			So(captured.Quota, ShouldEqual, 5)
-			So(captured.Reason, ShouldBeEmpty)
+			So(captured.Message, ShouldBeEmpty)
 		})
 
 		Convey("successful registration with an IAT: registered event's initial_access_token matches the failure event's shape", func() {

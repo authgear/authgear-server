@@ -13,7 +13,7 @@ func TestOAuthClientResolutionFailedEventPayload(t *testing.T) {
 	Convey("OAuthClientResolutionFailedEventPayload", t, func() {
 		payload := &nonblocking.OAuthClientResolutionFailedEventPayload{
 			ClientID: "https://mcp-client.example.com/oauth/client-metadata.json",
-			Outcome:  nonblocking.OAuthClientResolutionOutcomeUnavailable,
+			Reason:   nonblocking.OAuthClientResolutionReasonUnavailable,
 		}
 
 		So(payload.NonBlockingEventType(), ShouldEqual, nonblocking.OAuthClientResolutionFailed)
