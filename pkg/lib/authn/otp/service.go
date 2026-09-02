@@ -3,6 +3,7 @@ package otp
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -27,6 +28,9 @@ type GenerateOptions struct {
 	AuthenticationFlowName                 string
 	AuthenticationFlowJSONPointer          jsonpointer.T
 	SkipRateLimits                         bool
+	// SkipSending indicates no message will be sent for the generated code, so a
+	// reader does not wait for a delivery that is never going to be attempted.
+	SkipSending bool
 }
 
 type VerifyOptions struct {
@@ -198,6 +202,11 @@ func (s *Service) reserveGenerateOTPRateLimits(ctx context.Context, kind Kind, t
 }
 
 func (s *Service) newCode(kind Kind, target string, form Form, opts *GenerateOptions) *Code {
+	internalDeliveryStatus := OTPDeliveryStatusInternalWaitingToSend
+	if opts.SkipSending {
+		internalDeliveryStatus = OTPDeliveryStatusInternalWontSend
+	}
+
 	return &Code{
 		Target:   target,
 		Purpose:  kind.Purpose(),
@@ -214,8 +223,9 @@ func (s *Service) newCode(kind Kind, target string, form Form, opts *GenerateOpt
 		WebSessionID:                           opts.WebSessionID,
 
 		// These are unknown until sent
-		WhatsappMessageID: "",
-		OOBChannel:        "",
+		WhatsappMessageID:      "",
+		OOBChannel:             "",
+		InternalDeliveryStatus: internalDeliveryStatus,
 	}
 }
 
@@ -474,63 +484,68 @@ func (s *Service) InspectState(ctx context.Context, kind Kind, target string, op
 	return state, nil
 }
 
+// deriveLegacyDeliveryStatus reproduces the previous derivation for a code stored
+// before Code.InternalDeliveryStatus existed, so codes written by an older version keep
+// behaving the same way during a rolling deploy. It can be deleted once the
+// longest configured OTP valid period has elapsed after the rollout.
+func deriveLegacyDeliveryStatus(code *Code) OTPDeliveryStatusInternal {
+	switch {
+	case code.OOBChannel == "":
+		return OTPDeliveryStatusInternalWaitingToSend
+	case code.SendMessageError != nil:
+		return OTPDeliveryStatusInternalFailed
+	case code.OOBChannel == model.AuthenticatorOOBChannelWhatsapp:
+		return OTPDeliveryStatusInternalWaitingForConfirmation
+	default:
+		return OTPDeliveryStatusInternalSent
+	}
+}
+
 func (s *Service) getOTPMessageDeliverStatus(ctx context.Context, code *Code) (*messageDeliveryStatus, error) {
-	if code.OOBChannel == "" {
-		// Not sent yet
-		return &messageDeliveryStatus{
-			DeliveryStatus: OTPDeliveryStatusInternalPending,
-			DeliveryError:  nil,
-		}, nil
+	internalDeliveryStatus := code.InternalDeliveryStatus
+	if internalDeliveryStatus == "" {
+		internalDeliveryStatus = deriveLegacyDeliveryStatus(code)
 	}
 
-	if code.SendMessageError != nil {
-		// Failed on send
+	switch internalDeliveryStatus {
+	case OTPDeliveryStatusInternalWaitingToSend,
+		OTPDeliveryStatusInternalWontSend,
+		OTPDeliveryStatusInternalSent:
 		return &messageDeliveryStatus{
-			DeliveryStatus: OTPDeliveryStatusInternalFailed,
+			DeliveryStatus: internalDeliveryStatus,
+			DeliveryError:  nil,
+		}, nil
+	case OTPDeliveryStatusInternalFailed:
+		return &messageDeliveryStatus{
+			DeliveryStatus: internalDeliveryStatus,
 			DeliveryError:  code.SendMessageError,
 		}, nil
-	}
-
-	switch code.OOBChannel {
-	case model.AuthenticatorOOBChannelWhatsapp:
-		{
-			if code.WhatsappMessageID == "" {
-				// Not known yet, happens when `Send` is returned but the goroutine which
-				// call whatsapp api isn't finished yet
-				return &messageDeliveryStatus{
-					DeliveryStatus: OTPDeliveryStatusInternalSending,
-					DeliveryError:  nil,
-				}, nil
-			}
-			getStatusResult, err := s.WhatsappService.GetMessageStatus(ctx, code.WhatsappMessageID)
-			if err != nil {
-				return nil, err
-			}
-			// Status is still unknown
-			if getStatusResult == nil {
-				return &messageDeliveryStatus{
-					DeliveryStatus: OTPDeliveryStatusInternalSending,
-					DeliveryError:  nil,
-				}, nil
-			} else {
-				status := whatsappMessageStatusToOTPDeliveryStatus(
-					ctx,
-					getStatusResult.Status,
-				)
-				apiError := getStatusResult.APIError
-				return &messageDeliveryStatus{
-					DeliveryStatus: status,
-					DeliveryError:  apiError,
-				}, nil
-			}
+	case OTPDeliveryStatusInternalWaitingForConfirmation:
+		// Ask the provider that owns the message. Whatsapp is the only one today.
+		if code.WhatsappMessageID == "" {
+			// Not known yet, happens when `Send` is returned but the goroutine which
+			// call whatsapp api isn't finished yet
+			return &messageDeliveryStatus{
+				DeliveryStatus: OTPDeliveryStatusInternalWaitingForConfirmation,
+				DeliveryError:  nil,
+			}, nil
 		}
-	case model.AuthenticatorOOBChannelEmail, model.AuthenticatorOOBChannelSMS:
-		fallthrough
-	default:
-		// Always sent
+		getStatusResult, err := s.WhatsappService.GetMessageStatus(ctx, code.WhatsappMessageID)
+		if err != nil {
+			return nil, err
+		}
+		// Status is still unknown
+		if getStatusResult == nil {
+			return &messageDeliveryStatus{
+				DeliveryStatus: OTPDeliveryStatusInternalWaitingForConfirmation,
+				DeliveryError:  nil,
+			}, nil
+		}
 		return &messageDeliveryStatus{
-			DeliveryStatus: OTPDeliveryStatusInternalSent,
-			DeliveryError:  nil,
+			DeliveryStatus: whatsappMessageStatusToOTPDeliveryStatus(ctx, getStatusResult.Status),
+			DeliveryError:  getStatusResult.APIError,
 		}, nil
+	default:
+		panic(fmt.Errorf("otp: unknown internal delivery status: %s", internalDeliveryStatus))
 	}
 }

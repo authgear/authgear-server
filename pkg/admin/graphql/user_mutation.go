@@ -548,7 +548,9 @@ var _ = registerMutationField(
 				kind,
 				target,
 				otp.FormCode,
-				&otp.GenerateOptions{SkipRateLimits: true},
+				// The code is returned to the caller to pass on out of band; no message
+				// is sent.
+				&otp.GenerateOptions{SkipRateLimits: true, SkipSending: true},
 			)
 			if err != nil {
 				return nil, err

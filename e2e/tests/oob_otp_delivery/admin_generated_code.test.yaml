@@ -1,0 +1,167 @@
+name: An admin generated OOB OTP code does not stall the login screen and can be used to log in
+# generateOOBOTPCode writes a code that no message will ever be sent for. It shares
+# the oob-otp redis key with the login flow, so a later flow that is inside the
+# resend cooldown reads that code instead of generating its own.
+#
+# Before the delivery status was recorded, such a code was indistinguishable from
+# one whose send was never recorded, so the enter_oob_otp screen polled the
+# delivery status for 30 seconds and then rendered an error page.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_email
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # Flow 1 - a normal login, which sends a code and spends the resend cooldown.
+  - name: oauth_setup
+    action: oauth_setup
+
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/login?{{ .steps.oauth_setup.result.query }}
+    http_output:
+      http_status: 200
+      redirect_path: /login
+
+  - name: submit_login_id
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_login_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: email
+      x_login_id: oob-otp-admin@example.com
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/enter_oob_otp
+      html_xpath_exists:
+        - /html/body//input[@name='x_code']
+
+  # Overwrite that code with an admin generated one. No message is sent for it.
+  # This must come after flow 1, otherwise flow 2 below would still be allowed to
+  # generate its own code and would simply overwrite this one.
+  - name: admin_generate_code
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation generateOOBOTPCode($target: String!) {
+          generateOOBOTPCode(input: { purpose: LOGIN, target: $target }) {
+            code
+          }
+        }
+      variables: |
+        {
+          "target": "oob-otp-admin@example.com"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "generateOOBOTPCode": {
+              "code": "[[string]]"
+            }
+          }
+        }
+
+  # Flow 2 - a fresh web session, which is what a browser that did not keep the
+  # session cookie or x_step does. It starts a brand new flow for the same email,
+  # is inside the resend cooldown, so it sends nothing and reads the admin
+  # generated code.
+  - name: clear_web_session
+    action: clear_cookies
+
+  - name: oauth_setup_2
+    action: oauth_setup
+
+  - name: get_login_page_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/login?{{ .steps.oauth_setup_2.result.query }}
+    http_output:
+      http_status: 200
+      redirect_path: /login
+
+  # This is the regression guard. Without a recorded delivery status this step
+  # blocks for 30 seconds and then renders an error page instead of the OTP screen.
+  - name: submit_login_id_2_reaches_the_otp_screen
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_login_page_2.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_login_id_input_type: email
+      x_login_id: oob-otp-admin@example.com
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/enter_oob_otp
+      html_xpath_exists:
+        - /html/body//input[@name='x_code']
+
+  # And the admin generated code is the one the flow now accepts.
+  - name: submit_admin_generated_code
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_login_id_2_reaches_the_otp_screen.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_code: "{{ .steps.admin_generate_code.result.data.generateOOBOTPCode.code }}"
+      x_action: submit
+    http_output:
+      http_status: 302
+
+  - name: finish_flow
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.submit_admin_generated_code.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup_2.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+
+  # Only flow 1 sent a message. The admin API sends none, and flow 2 was inside
+  # the cooldown, so a second row here would mean the cooldown did not apply and
+  # the test was not exercising the path it claims to.
+  - name: verify_only_the_first_flow_sent_an_email
+    action: audit_query
+    audit_query: |
+      SELECT
+        activity_type,
+        data->'payload'->>'recipient' AS recipient
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('email.sent', 'email.suppressed')
+      ORDER BY activity_type, created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "email.sent",
+            "recipient": "oob-otp-admin@example.com"
+          }
+        ]

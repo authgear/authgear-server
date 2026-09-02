@@ -41,4 +41,7 @@ type Code struct {
 	OOBChannel        model.AuthenticatorOOBChannel `json:"channel,omitzero"`
 	WhatsappMessageID string                        `json:"whatsapp_message_id,omitzero"`
 	SendMessageError  *apierrors.APIError           `json:"send_message_error"`
+	// InternalDeliveryStatus is empty on a code stored before it existed; see
+	// deriveLegacyDeliveryStatus.
+	InternalDeliveryStatus OTPDeliveryStatusInternal `json:"internal_delivery_status,omitzero"`
 }
