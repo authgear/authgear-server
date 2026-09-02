@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	. "github.com/smartystreets/goconvey/convey"
@@ -17,6 +18,21 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
+
+// shrinkLogoWait shrinks the package-level logoWaitPollInterval/
+// logoWaitMaxDuration for the duration of a single test, so a test that
+// exercises waitForCachedLogo's timeout path doesn't actually block for
+// several real seconds. Returns a func that restores the original values;
+// callers defer it.
+func shrinkLogoWait(t *testing.T) (restore func()) {
+	t.Helper()
+	origInterval, origMax := logoWaitPollInterval, logoWaitMaxDuration
+	logoWaitPollInterval = 5 * time.Millisecond
+	logoWaitMaxDuration = 50 * time.Millisecond
+	return func() {
+		logoWaitPollInterval, logoWaitMaxDuration = origInterval, origMax
+	}
+}
 
 func newTestRedisHandle(t *testing.T) (*appredis.Handle, *miniredis.Miniredis) {
 	t.Helper()
@@ -171,7 +187,29 @@ func TestLogoServiceGet(t *testing.T) {
 			So(cached.SourceURI, ShouldEqual, srv.URL)
 		})
 
-		Convey("single-flight not acquired: CIMDLogoUnavailable, fetcher not called", func() {
+		Convey("single-flight not acquired, and the holder never finishes: waits out logoWaitMaxDuration, then CIMDLogoUnavailable, fetcher never called", func() {
+			restore := shrinkLogoWait(t)
+			defer restore()
+
+			svc, srv := newTestLogoService(t, func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "image/png")
+				_, _ = w.Write(pngMagic)
+			})
+			defer srv.Close()
+
+			acquired, err := svc.SingleFlight.Acquire(ctx, singleFlightPurposeLogo, clientID)
+			So(err, ShouldBeNil)
+			So(acquired, ShouldBeTrue) // consume the lock so Get's own Acquire fails, and never write a cache entry
+
+			_, err = svc.Get(ctx, clientID, srv.URL)
+			So(apierrors.IsKind(err, CIMDLogoUnavailable), ShouldBeTrue)
+			So(srv.hits, ShouldEqual, 0)
+		})
+
+		Convey("single-flight not acquired, but the holder finishes mid-wait: served from the cache it wrote, fetcher not called by the waiter", func() {
+			restore := shrinkLogoWait(t)
+			defer restore()
+
 			svc, srv := newTestLogoService(t, func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "image/png")
 				_, _ = w.Write(pngMagic)
@@ -182,9 +220,55 @@ func TestLogoServiceGet(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(acquired, ShouldBeTrue) // consume the lock so Get's own Acquire fails
 
+			// Simulate the lock's real holder finishing shortly after: write
+			// exactly what a successful fetch would have written, without
+			// going through the fetcher this waiter is watching.
+			go func() {
+				time.Sleep(2 * logoWaitPollInterval)
+				_ = svc.setCached(context.Background(), clientID, &cachedLogo{
+					Found:       true,
+					ContentType: "image/png",
+					FetchedAt:   svc.Clock.NowUTC(),
+					Body:        pngMagic,
+					SourceURI:   srv.URL,
+				}, logoCacheTTL)
+			}()
+
+			result, err := svc.Get(ctx, clientID, srv.URL)
+			So(err, ShouldBeNil)
+			So(result.Body, ShouldResemble, pngMagic)
+			So(result.ContentType, ShouldEqual, "image/png")
+			So(srv.hits, ShouldEqual, 0) // the waiter itself never fetched
+
+		})
+
+		Convey("single-flight not acquired, but the holder finishes with a failure mid-wait: CIMDLogoUnavailable without waiting out the full deadline", func() {
+			restore := shrinkLogoWait(t)
+			defer restore()
+
+			svc, srv := newTestLogoService(t, func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "image/png")
+				_, _ = w.Write(pngMagic)
+			})
+			defer srv.Close()
+
+			acquired, err := svc.SingleFlight.Acquire(ctx, singleFlightPurposeLogo, clientID)
+			So(err, ShouldBeNil)
+			So(acquired, ShouldBeTrue)
+
+			go func() {
+				time.Sleep(2 * logoWaitPollInterval)
+				_ = svc.setCached(context.Background(), clientID, &cachedLogo{
+					Found:     false,
+					SourceURI: srv.URL,
+				}, logoNegativeCacheTTL)
+			}()
+
+			started := time.Now()
 			_, err = svc.Get(ctx, clientID, srv.URL)
 			So(apierrors.IsKind(err, CIMDLogoUnavailable), ShouldBeTrue)
 			So(srv.hits, ShouldEqual, 0)
+			So(time.Since(started), ShouldBeLessThan, logoWaitMaxDuration)
 		})
 
 		Convey("Redis GET error (connection down): fetch proceeds; a failed SET does not fail the request", func() {
