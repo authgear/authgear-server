@@ -32,6 +32,7 @@ This document assumes familiarity with the [Client Model](./client.md), which CI
   - [Domain Trust](#domain-trust)
   - [Phishing Mitigation](#phishing-mitigation)
   - [Privacy Considerations](#privacy-considerations)
+  - [Serving a Dynamic Client's Logo](#serving-a-dynamic-clients-logo)
   - [Access Token Audience Binding](#access-token-audience-binding)
 - [Reading a CIMD Client's Stored Config](#reading-a-cimd-clients-stored-config)
 
@@ -166,7 +167,9 @@ usage:
         action: block
 ```
 
-- `usage.limits.oauth_client_cimd`: Optional. Default absent (no limit). The maximum number of CIMD-resolved clients the project may have persisted at once, checked against the current count of `OAuthClient` records with `source: CIMD` — a [standing usage name](./usage.md#supported-usage-names), like [`oauth_client_dcr`](./dcr.md#client-limit). Once at `quota`, resolving a `client_id` with no existing persisted record fails the authorization request with `access_denied` (see [Error Handling](#error-handling)), via the matching entry's `action: block`. A `client_id` that already has a persisted record is unaffected regardless of the limit, since resolving it again doesn't create a new one.
+- `usage.limits.oauth_client_cimd`: Optional. Default absent (no limit). The maximum number of CIMD-resolved clients the project may have persisted at once, checked against the current count of `OAuthClient` records with `source: CIMD` — a [standing usage name](./usage.md#supported-usage-names), like [`oauth_client_dcr`](./dcr.md#client-limit). Once at `quota`, resolving a `client_id` with no existing persisted record fails the authorization request with `access_denied` (see [Error Handling](#error-handling)), via the matching entry's `action: block`. A `client_id` that already has a persisted record is unaffected regardless of the limit, since resolving it again doesn't create a new one — including when the project is *over* quota rather than merely at it, which can happen after a plan downgrade: existing clients keep resolving and refetching, only new ones are refused.
+
+A refused resolution emits [`oauth.client.resolution.failed`](./event.md#oauthclientresolutionfailed) with `reason: "limit_exceeded"`, so exhaustion is visible in the audit log rather than only reaching the admin via a support ticket. The [per-project fetch rate limit](#denial-of-service-via-attacker-chosen-fetch-targets) also bounds how fast the quota can be consumed, which gives a lower `action: alert` entry time to fire before an `action: block` entry is reached.
 
 This is a plan-tier limit, set in `authgear.features.yaml`'s feature-config hierarchy, not something a project admin edits directly.
 
@@ -187,6 +190,8 @@ Per [spec §3](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metada
 - Not contain single-dot (`.`) or double-dot (`..`) path segments.
 
 Authgear rejects a `client_id` that violates any of these **before** any network access is attempted — this is what keeps an obviously-malformed `client_id` from ever reaching the fetch path.
+
+The `https` requirement, and only that requirement, is defeatable in a test or local-development project by `oauth.client_id_metadata_document.insecure_http_allowed` (see [SSRF Protection](#ssrf-protection)). Every other rule above still applies when it is set, and the `client_id` in the document must still match the request URL byte-for-byte — a document simply carries `"client_id": "http://..."`.
 
 This validation also disambiguates CIMD candidates from the other client*id shapes already in use: static client IDs are admin-chosen opaque strings, and DCR client IDs always start with `dcrc*`. This isn't accidental: [spec §7.1](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-7.1) recommends that an authorization server supporting both CIMD and self-generated client IDs "SHOULD ensure that the `client_id`strings it generates do not start with`https://`" — exactly the property both existing Authgear client_id shapes already have. Neither shape can accidentally parse as a `https://.../path` URL, so there is no realistic collision, but resolution order ([Client Resolution](#client-resolution)) makes static and DCR clients take precedence regardless.
 
@@ -219,9 +224,13 @@ A document that fails any MUST-level check is treated as if the fetch had failed
 
 ### Error Handling
 
-If fetching or validating the document fails for any reason, Authgear treats the `client_id` as unresolvable — the authorization request fails the same way it does today for a `client_id` that matches no known client (`invalid_client`-shaped error, since redirect URI validation cannot proceed without a resolved client). Per [spec §5.2](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-5.2) (Metadata Caching), a failed or invalid fetch is never reused, so a document author who fixes their document sees the fix take effect on the very next authorization request that needs it. See [Authgear as an SSRF/Probing Oracle](#authgear-as-an-ssrfprobing-oracle) for why the error surface deliberately does not distinguish _why_ the fetch failed.
+If fetching or validating the document fails and the `client_id` has **no** persisted record, Authgear treats it as unresolvable: the authorization request fails with `unauthorized_client` — byte-for-byte the same response `/oauth2/authorize` already returns for a `client_id` that matches no known client, since redirect URI validation cannot proceed without a resolved client. Per [spec §5.2](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-5.2) (Metadata Caching), a failed or invalid fetch is never reused as a record, so a document author who fixes their document sees the fix take effect on the very next authorization request that needs it. See [Authgear as an SSRF/Probing Oracle](#authgear-as-an-ssrfprobing-oracle) for why the error surface deliberately does not distinguish _why_ the fetch failed.
 
-A brand-new `client_id` that would otherwise resolve successfully but finds the project already at its [client limit](#client-limit) is a distinct case: the authorization request fails with `access_denied`, not the generic `invalid_client`-shaped error above. This is not a fetch-outcome signal — it doesn't vary by target host or reveal anything about network reachability — so it falls outside the uniform-error rule in [Authgear as an SSRF/Probing Oracle](#authgear-as-an-ssrfprobing-oracle), which governs only errors arising from the fetch itself.
+If a persisted record **does** exist, a failed *refetch* does not make the client unresolvable — the existing record is served and the refetch is retried on the next authorization request that finds it stale. §5.2's rule is about a failed fetch never *becoming* a record, not about invalidating one an earlier successful fetch established; breaking every login for every user of a client because its host is briefly unreachable would be a far worse failure than serving metadata up to an hour old. The consequence is that a client whose document goes permanently offline keeps working on its last-known-good metadata indefinitely, with its metadata frozen there — in particular, a `redirect_uri` the developer removed from their document stays valid until a successful refetch replaces it. `deleteDynamicClient` stops such a client now; see [Domain Trust](#domain-trust) for the durable version.
+
+Every resolution failure is audited as [`oauth.client.resolution.failed`](./event.md#oauthclientresolutionfailed). That record deliberately does **not** distinguish transport failure modes from each other, for the same reason the HTTP response does not — the audit log is readable by the project admin, which in a multi-tenant deployment is a second, authenticated channel for the same probing attack. It does distinguish "we retrieved a parseable document and it failed validation" from "we could not retrieve one", and for the former it names the rule, since that describes the client author's own published content.
+
+A brand-new `client_id` that would otherwise resolve successfully but finds the project already at its [client limit](#client-limit) is a distinct case: the authorization request fails with `access_denied`, not the `unauthorized_client` error above. This is not a fetch-outcome signal — it doesn't vary by target host or reveal anything about network reachability — so it falls outside the uniform-error rule in [Authgear as an SSRF/Probing Oracle](#authgear-as-an-ssrfprobing-oracle), which governs only errors arising from the fetch itself.
 
 ## Accepted Metadata Fields
 
@@ -231,7 +240,7 @@ Must be present and must equal the request URL byte-for-byte. This is the bindin
 
 ### `redirect_uris` (required)
 
-The spec itself does not define a format for `redirect_uris` — [§4.2](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-4.2) (Redirect URL Registration) only requires (via RFC 9700) that redirect URIs be pre-registered and matched exactly, which Authgear already does for every client regardless of source (see [Redirect URI Validation](#redirect-uri-validation)). The format constraints below are an Authgear choice, not a spec requirement, and deliberately diverge from [DCR's `redirect_uris` rules](./dcr.md#redirect_uris-required) in one respect: each entry must be `https://`, a loopback address (`http://localhost` or `http://127.0.0.1`, any port), or a custom URI scheme; absolute URI; no fragment component.
+The spec itself does not define a format for `redirect_uris` — [§4.2](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-4.2) (Redirect URL Registration) only requires (via RFC 9700) that redirect URIs be pre-registered and matched exactly, which Authgear already does for every client regardless of source (see [Redirect URI Validation](#redirect-uri-validation)). The format constraints below are an Authgear choice, not a spec requirement, and deliberately diverge from [DCR's `redirect_uris` rules](./dcr.md#redirect_uris-required) in one respect: each entry must be `https://`, a loopback address (`http://localhost`, `http://127.0.0.1` or `http://[::1]`, any port), or a custom URI scheme; absolute URI; no fragment component. IPv6 loopback is accepted alongside the two forms the spec names, since [RFC 8252 §7.3](https://www.rfc-editor.org/rfc/rfc8252#section-7.3) treats both as loopback and an IPv6-only host has no `127.0.0.1` to listen on.
 
 Unlike DCR, **loopback redirect URIs are accepted regardless of `application_type`** — DCR only allows `http://localhost` when `application_type: native`. CIMD can't reuse that gate: the [MCP Authorization spec's own example CIMD document](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization#example-metadata-document) uses `http://127.0.0.1:3000/callback` and `http://localhost:3000/callback` as redirect URIs while omitting `application_type` entirely (which defaults to `web` — see below). MCP clients are typically desktop/CLI tools that open a local callback listener without declaring themselves `native`; gating loopback on `application_type` the way DCR does would reject that reference example outright.
 
@@ -249,7 +258,9 @@ Must be a subset of `["code"]`, and consistent with `grant_types` (same consiste
 
 ### `application_type` (optional)
 
-Must be `web` or `native`; controls redirect URI rules as in DCR. Default: `web`.
+Must be `web` or `native`. Default: `web`.
+
+Unlike DCR, it **controls nothing**. It is validated, persisted and reported through `OAuthClient.applicationType`, and that is all: the `redirect_uris` rules above are uniform for CIMD rather than gated on it, and every CIMD client is `THIRD_PARTY`, so the application type never reaches the client-shape decision either. It is accepted because the spec defines it and clients send it, not because it changes any behavior.
 
 ### `token_endpoint_auth_method` (optional)
 
@@ -279,9 +290,16 @@ A CIMD fetch — and therefore any outbound network call — happens **only** as
 Every other step reads that persisted record — a plain lookup, never a live fetch:
 
 - **`/oauth2/token`** (both `authorization_code` and `refresh_token` grants) reads it to validate the client and load its config.
-- **The Authorized Apps settings page** reads it to render `client_name`/`logo_uri`. There is nothing to fail: the page has no network dependency at all.
+- **The Admin API's `dynamicClients` query and `user.authorizations` field** read it. There is nothing to fail: neither has a network dependency at all.
 
-Because the record is shared rather than frozen per grant, both endpoints always see the *current* known state of the client, not what was true when any particular user originally authorized it — this is what lets Authgear implement spec §8.4/§8.4.1's "notice metadata changed compared to the last time it fetched" in the future (there is a real "last fetch" to diff against), which a per-grant snapshot could never support.
+  There is no end-user "Authorized Apps" page in the Auth UI today — `/settings/sessions` lists signed-in devices, not authorized third-party apps. When such a surface is built it reads this same record for `client_name`/`logo_uri`; until then, the end-user surface is a known gap rather than a delivered feature.
+
+Because the record is shared rather than frozen per grant, both endpoints always see the *current* known state of the client, not what was true when any particular user originally authorized it. This is also what lets Authgear implement spec §8.4/§8.4.1's "notice metadata changed compared to the last time it fetched", which a per-grant snapshot could never support: a refetch compares the fetched document against the stored record and, when they differ, emits [`oauth.client.resolved`](./event.md#oauthclientresolved) with both the new and the previous client state (`client` and `old_client`), rather than a computed list of changed fields.
+
+Two policy checks are evaluated at different points, and the difference is deliberate:
+
+- **`enabled`** is checked on every read path. Setting it to `false` stops CIMD working immediately and everywhere, which is what a feature switch should do.
+- **`allowed_domains`** is checked only on the fetch path. Removing a domain prevents any *new* client from it being resolved and prevents refetches of existing ones, but does not stop a client that already has a persisted record — see [Domain Trust](#domain-trust).
 
 ## Mapping to the Unified Client Model
 
@@ -329,9 +347,24 @@ CIMD clients in v1 are always **public**: `token_endpoint_auth_method` must be a
 - **Follow 0 redirects** — a redirect target hasn't been through [Client ID Format](#client-id-format) validation, and would otherwise let the previous two rules be bypassed. The spec doesn't address redirects; this is an Authgear decision.
 - **Enforce the 5120-byte limit ([§8.7](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.7)) progressively while reading the response**, not via `Content-Length` alone, since a server can omit or misstate it.
 
-Spec §8.6 permits a dev/test-only exception: an AS running on loopback may fetch loopback addresses. Authgear implements this gated on `DEV_MODE`, the existing process-wide environment variable (default `false`) already used elsewhere to distinguish a local development run from a deployed instance — not a per-project `authgear.yaml` setting, so no project admin can enable it. When `DEV_MODE` is `false` (always the case in production), the rules above apply unconditionally.
+Spec §8.6 permits a dev/test-only exception: an AS running on loopback may fetch loopback addresses. Authgear implements this — slightly widened, and gated differently — as two **feature config** flags:
 
-The same rules apply to fetching `logo_uri` ([§8.8](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.8)) and, should confidential CIMD clients be added later, `jwks_uri`.
+```yaml
+# authgear.features.yaml
+oauth:
+  client_id_metadata_document:
+    insecure_http_allowed: false
+    insecure_fetch_address_allowed: false
+```
+
+- `insecure_http_allowed`: permits `http://` wherever CIMD requires `https` — the `client_id`, the document's `logo_uri`/`client_uri`/`tos_uri`/`policy_uri`, and the logo fetch. It relaxes the scheme and nothing else.
+- `insecure_fetch_address_allowed`: permits connecting to a non-publicly-routable address. Note this is **every** such range, including `169.254.169.254`, not loopback only: a test or containerised local-development document host is typically reached at an RFC 1918 address rather than on loopback, so a loopback-only exception would not work for either.
+
+Both default `false`, and both live in `authgear.features.yaml` rather than `authgear.yaml` — so they are settable only through the Site Admin surface, never by a project admin, and should be set as an app-specific override rather than at the cluster or plan layer. Every fetch that uses either is logged with the project id and target host, so a flag left set on a deployed project is not invisible. **With both `false` — always the case for a project serving real traffic — the rules above apply unconditionally.**
+
+The choice of per-project feature config over a process-wide `DEV_MODE` switch is deliberate, and not only about who can set it: a global switch cannot express a permissive project and a strict project at the same time, which makes the *enforcement* path impossible to test end to end. Being able to assert that `http://` and private addresses really are refused matters more than the simpler gate.
+
+The same rules apply to fetching `logo_uri` ([§8.8](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.8)) — through the same resolve-once transport and address filter — with three additional constraints specific to images: a 256 KiB response cap, an allowlist of `image/png`, `image/jpeg`, `image/gif` and `image/webp` where the declared and sniffed types must agree, and a separate rate-limit bucket so logo traffic cannot starve document resolution. `image/svg+xml` is deliberately **not** accepted: an SVG is a scriptable document, and it would be served from Authgear's own origin. Should confidential CIMD clients be added later, `jwks_uri` is subject to the same rules again.
 
 ### Authgear as an SSRF/Probing Oracle
 
@@ -342,28 +375,66 @@ Because the target of the fetch is attacker-chosen, an attacker can use `/oauth2
 
 ### Denial of Service via Attacker-Chosen Fetch Targets
 
-A `client_id` can point at any internet host, and caching is keyed on the exact URL string, not the hostname, so an attacker can force a fresh fetch on every request while still targeting one host, just by varying the query string. Since resolution only happens at `/oauth2/authorize` (see [Where resolution happens](#where-resolution-happens)), that's the only endpoint these limits need to apply to. Fixed limits, not project-configurable:
+A `client_id` can point at any internet host, and caching is keyed on the exact URL string, not the hostname, so an attacker can force a fresh fetch on every request while still targeting one host, just by varying the query string. Since resolution only happens at `/oauth2/authorize` (see [Where resolution happens](#where-resolution-happens)), that's the only endpoint these limits need to apply to.
 
-| Limit | Value | Prevents |
+Two buckets, both consumed **per fetch attempt** rather than per authorization request:
+
+| Limit | Default | Prevents |
 | --- | --- | --- |
-| Per project (`app_id`) | 10 per minute | One project (or an attacker abusing it) exceeding a reasonable total, regardless of target |
-| Per caller IP | 20 per minute | One caller spreading abuse across many different projects |
-| Per (project, host) pair | 5 per minute | One project's traffic concentrating entirely on a single external host; scoped per-project so it never throttles an unrelated project sharing that host |
+| Per project (`app_id`) | 10 per minute | One project exceeding a reasonable total, regardless of target |
+| Per (project, caller IP) | 5 per minute | One caller consuming the project's whole allowance |
+
+Three things about that table are worth stating explicitly, because each is easy to get wrong:
+
+- **The limits count fetches, not requests.** A resolved client is refetched at most once per [refetch interval](#fetching), and concurrent attempts for one `client_id` collapse into a single fetch, so an already-resolved client consumes nothing. This is what makes 5/minute per IP workable: an MCP client installed on a thousand machines behind one NAT publishes **one** `client_id`, so all of them together cause one fetch per hour. Exceeding the limit requires presenting many *distinct, new-or-stale* `client_id`s in quick succession, which is what minting novel URLs looks like and not what any real client does.
+- **The per-IP bucket is scoped per (project, IP), not globally.** A single global bucket would let one project's traffic rate-limit an unrelated project's users behind the same NAT egress — cross-tenant availability coupling worse than the gap it closes. The cross-project case is covered, imperfectly, by every project having its own ceiling.
+- **They are defaults, not constants.** They are tunable per plan tier under `oauth.client_id_metadata_document.rate_limits.fetch` in `authgear.features.yaml` — so *not* project-configurable in the sense that matters (`authgear.yaml` cannot set them and a tenant admin cannot raise them), but adjustable by the operator, who owns the egress reputation and needs a lever during an incident. Nested one level under `rate_limits` (rather than `per_project`/`per_ip` sitting there directly) so the JSON path matches the `oauth.client_id_metadata_document.fetch.*` rate-limit name convention (see below) and leaves room for a sibling action's buckets without another rename.
+
+There is deliberately **no per-(project, host) bucket.** The per-project ceiling already caps the sustained load one project can put on any single victim, so a per-host bucket scoped per project would only halve that — while adding a round trip on every fetch and an attacker-supplied string to the rate-limit keyspace. It would also not address the case that actually matters to a victim, many projects aimed at the same host, since it is by definition per project. If victim-oriented limiting is ever wanted, the shape to reach for is a **global** per-host bucket, which is a different control with real cross-tenant trade-offs and should be decided on its own merits.
 
 ### Domain Trust
 
 Per [spec §8.9](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.9), an authorization server MAY apply its own policy on which domains it trusts as `client_id`s. Authgear exposes this as the optional `allowed_domains` allowlist (empty = no restriction beyond the protections above). This is likely to matter more for higher-trust deployments than for the MCP use case, where the whole point is accepting arbitrary client domains.
 
+**Matching.** An entry is compared against the `client_id` URL's hostname only — never host:port — case-insensitively. An entry may be an exact hostname or carry a single leading `*.` wildcard, which matches **exactly one** label: `*.example.com` matches `a.example.com` but not `a.b.example.com`, and not the apex `example.com` (list that separately if it is wanted too). One label follows the [RFC 6125 §6.4.3](https://www.rfc-editor.org/rfc/rfc6125#section-6.4.3) certificate convention and DNS wildcard records, rather than the suffix-at-any-depth behaviour of cookie `Domain` attributes; for a trust allowlist the stricter reading is both the more expected one and the safer one. A single-label hostname such as `localhost` is a valid entry, so a test project can allowlist its own document host.
+
+**`allowed_domains` is an onboarding control, not an operating one.** It is evaluated on the fetch path only (see [Where resolution happens](#where-resolution-happens)). Removing a domain therefore prevents any *new* client from it being resolved and prevents refetches of existing ones — but a client that already has a persisted record keeps working, with its metadata frozen at its last successful fetch. That is the deliberate choice: an admin editing an allowlist is making a decision about who may onboard, and breaking live sessions for an already-authorized client — including at `/oauth2/token`, which never fetches — would be a worse outcome than the domain remaining operational until the admin acts on it.
+
+To stop an existing client now, use [`deleteDynamicClient`](./dcr.md#new-mutation). Removal from `allowed_domains` **plus** a delete is a genuinely durable ban, and the only one available: the record is gone and cannot be recreated, because creating one requires a fetch and the fetch is now refused. This is the concrete form of the "closest thing to one" that [Client Limit](#client-limit) refers to.
+
+Because it short-circuits before the rate limiter, `allowed_domains` is also the effective mitigation for the residual risk in [Denial of Service](#denial-of-service-via-attacker-chosen-fetch-targets): a flood of novel `client_id`s on a non-allowlisted host is refused without consuming any of the project's fetch allowance. For any deployment that is not the open MCP use case, that turns the availability risk into a non-issue.
+
 ### Phishing Mitigation
 
-Per [spec §8.5](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.5), the consent screen displays the **hostname** of the `client_id` URL prominently, in addition to `client_name`/`logo_uri` from the fetched document — the hostname is the one piece of information that isn't self-asserted by the document itself (it's implied by the URL that was actually reachable and validated).
+[Spec §8.5](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.5) — titled "OAuth Phishing Attacks" in the draft — says the authorization server **SHOULD** "display the hostname of the `client_id` on the authorization interface, in addition to displaying the fetched client information if any". Authgear does so.
+
+The hostname is the one piece of information on that screen that isn't self-asserted by the document: `client_name` and `logo_uri` are strings the client wrote about itself, and a malicious client can set them to impersonate anyone, whereas the hostname is implied by the URL that was actually reachable and whose certificate validated. It is therefore rendered as a **distinct line** rather than folded into the title or used as a fallback for a missing `client_name`, and the copy states the domain as the only verified fact — something like "This app is published at **mcp-client.example.com**. Authgear has not verified its identity beyond this domain." A reader comparing "Continue to Google" against a domain that is nothing of the sort is the entire point of the control, so the wording is a security decision rather than UI polish.
+
+Note this is a SHOULD in the draft, not a MUST. Authgear treats it as unconditional; if it is ever made conditional, that is a deliberate weakening of a phishing control and should be argued as one.
 
 ### Privacy Considerations
 
 Two considerations from [spec §9](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-9) that this design already addresses through choices made for other reasons:
 
 - **Authorization Server Fetch Side Channel** ([§9.1](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-9.1)): fetching a CIMD document tells the document's hosting operator that _someone_ is going through an authorization flow at Authgear, at the moment of the fetch. Caching a resolved document for reuse — already required for other reasons (spec §5.2) — reduces how often this signal is generated: a document fetched once per cache lifetime leaks far less than one fetched on every authorization request.
-- **URLs Referenced in Client ID Metadata Documents** ([§9.2](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-9.2)): if Authgear rendered `logo_uri` directly in the end user's browser, that browser would fetch it straight from the client's own server, leaking the user's IP and browser fingerprint to that third party as a side effect of merely viewing a consent screen — a tracking-pixel-shaped risk. This is exactly what the prefetch-and-cache handling of `logo_uri` already described in [SSRF Protection](#ssrf-protection) (citing spec §8.8) avoids: the end user's browser only ever talks to Authgear, never directly to the client's server.
+- **URLs Referenced in Client ID Metadata Documents** ([§9.2](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-9.2)): if Authgear rendered `logo_uri` directly in the end user's browser, that browser would fetch it straight from the client's own server, leaking the user's IP and browser fingerprint to that third party as a side effect of merely viewing a consent screen — a tracking-pixel-shaped risk. Authgear avoids it by never putting the client's URL in front of the browser: the consent screen points at [Authgear's own logo endpoint](#serving-a-dynamic-clients-logo), which fetches the image server-side on first request through the SSRF-safe transport described in [SSRF Protection](#ssrf-protection) (citing spec §8.8) and caches it. The end user's browser only ever talks to Authgear, never to the client's server.
+
+### Serving a Dynamic Client's Logo
+
+A dynamic client's `logo_uri` is self-asserted and points at a host the end user has no relationship with, so Authgear never renders it directly (see [Privacy Considerations](#privacy-considerations) §9.2). Instead the consent screen points at:
+
+```
+GET /_internals/client_logo?client_id=<url-encoded client_id>
+```
+
+which resolves the client, fetches the image server-side on first request, caches it, and streams it back. Properties worth knowing:
+
+- **Keyed on `client_id`, never on the logo URL.** A `?url=` endpoint would be an open proxy: anyone could make Authgear fetch an arbitrary URL and read the bytes back. Keying on `client_id` means the only URLs reachable are `logo_uri` values from documents that already passed validation and were already persisted.
+- **Applies to both dynamic sources.** DCR clients' `logo_uri` is self-asserted in exactly the same way, so it is proxied too. A statically configured client's `logo_uri` is admin-chosen and continues to render directly.
+- **It never triggers a metadata document fetch.** A `client_id` with no persisted record is simply a 404 here; document fetching remains exclusive to `/oauth2/authorize`.
+- **Every failure is an identical 404** — unreachable host, disallowed content type, oversize image, rate-limited, or no logo declared. Like the resolution error surface, it must not report on the reachability of whatever host the document named. An Authgear-side infrastructure failure is a 500, so it is not hidden as "this client has no logo".
+- **Cached for one hour**, matching the [refetch interval](#fetching), with a shorter negative cache so a broken logo is not retried on every render. A `logo_uri` that changes on refetch invalidates the cached image.
+- **Not under `/oauth2/`**, which is reserved for endpoints an OAuth specification defines.
 
 ### Access Token Audience Binding
 
@@ -375,4 +446,4 @@ Like any third-party client, a CIMD client that requests no `resource` parameter
 
 CIMD clients are returned by [DCR's `dynamicClients` query](./dcr.md#new-query) alongside DCR-registered clients — no separate query is needed, since both are now backed by a real, deduplicated, per-`client_id` record (see [Where resolution happens](#where-resolution-happens)). A CIMD client is distinguished from a DCR client via `source: CIMD` on the unified `OAuthClient` model (see [client.md](./client.md#graphql-type)); `registeredAt` stays `null` (there is no registration event, only a resolution) and `lastFetchedAt` carries the freshness signal DCR clients don't have.
 
-The Authorized Apps settings page reads the same persisted record for display (`client_name`, `logo_uri`), so no separate end-user mechanism is needed either.
+There is no end-user "Authorized Apps" page in the Auth UI today, so there is currently no end-user surface reading this record — `/settings/sessions` lists signed-in devices rather than authorized third-party apps. This is a known gap rather than a delivered feature; when such a surface is built it reads the same persisted record for display (`client_name`, `logo_uri`) and needs no separate mechanism.
