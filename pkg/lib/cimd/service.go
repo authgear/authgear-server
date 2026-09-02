@@ -181,9 +181,15 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 	}
 
 	// (5) Single-flight. A Redis failure degrades to a possible stampede,
-	// which beats refusing every request.
+	// which beats refusing every request. Still logged: silently treating
+	// "lock acquisition failed" the same as "lock acquired" would hide a
+	// real Redis problem from anyone not specifically watching for a
+	// stampede.
 	acquired, err := s.SingleFlight.Acquire(ctx, singleFlightPurposeDocument, clientID)
 	if err != nil {
+		ServiceLogger.GetLogger(ctx).WithError(err).
+			With(slog.String("client_id", clientID)).
+			Warn(ctx, "cimd: failed to acquire document fetch single-flight lock; proceeding without it")
 		acquired = true
 	}
 	if !acquired {

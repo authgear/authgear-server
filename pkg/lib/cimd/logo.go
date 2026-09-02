@@ -41,6 +41,25 @@ const (
 	singleFlightPurposeLogo = "cimd-logo-fetch"
 )
 
+// logoWaitPollInterval and logoWaitMaxDuration bound waitForCachedLogo:
+// how long a request that lost the single-flight race waits for the
+// winner to finish and populate the cache before giving up.
+// logoWaitMaxDuration is comfortably above FetchTimeout (5s) -- long
+// enough for a legitimate in-flight fetch to complete -- and comfortably
+// below fetchLockTTL (10s), so a holder that died mid-fetch does not make
+// every waiter block for the lock's full TTL.
+//
+// var, not const, and measured with plain time.Now/time.After rather than
+// LogoService.Clock: this loop waits on real wall-clock time (an actual
+// Redis poll, an actual sleep), and mixing that with an injected clock.Clock
+// -- which a test may freeze -- is a proven flakiness trap (see the CIMD
+// service tests). Tests instead shrink these vars to keep the real sleep
+// negligible.
+var (
+	logoWaitPollInterval = 100 * time.Millisecond
+	logoWaitMaxDuration  = 6 * time.Second
+)
+
 var (
 	// ErrLogoNegativeCached and ErrLogoFetchInFlight never leave Get --
 	// every logo-specific failure collapses to ErrLogoUnavailable() before
@@ -119,20 +138,28 @@ type LogoService struct {
 }
 
 // Get returns the cached logo, fetching it on a miss. Every logo-specific
-// failure mode -- negative cache hit, fetch already in flight, rate
-// limited, or any LogoFetcher error -- collapses to CIMDLogoUnavailable
-// here, the one collapse boundary for this subsystem (mirrors
-// Service.EnsureClientResolved's uniform-error rule for the document
-// fetch). A Redis or rate-limiter infrastructure error is returned
+// failure mode -- negative cache hit, no concurrent fetch finishing in
+// time, rate limited, or any LogoFetcher error -- collapses to
+// CIMDLogoUnavailable here, the one collapse boundary for this subsystem
+// (mirrors Service.EnsureClientResolved's uniform-error rule for the
+// document fetch). A Redis or rate-limiter infrastructure error is returned
 // UNCHANGED, never collapsed, so a Redis outage surfaces as a 500 rather
-// than masquerading as "this client has no logo".
+// than masquerading as "this client has no logo". (The cache read and the
+// single-flight Acquire below are the exception: those two specifically
+// degrade rather than fail, each with its own comment explaining why.)
 func (s *LogoService) Get(ctx context.Context, clientID string, logoURI string) (*LogoResult, error) {
 	logger := LogoServiceLogger.GetLogger(ctx)
 
 	cached, found, err := s.getCached(ctx, clientID)
 	if err != nil {
 		// A cache failure must never take the endpoint down; fall through
-		// to a fetch, same posture as oauthclient.ClientCache.
+		// to a fetch, same posture as oauthclient.ClientCache. Still worth a
+		// warning: it is either a real Redis problem or a corrupt cache
+		// entry, and either is worth an operator's attention even though
+		// this request itself will succeed.
+		logger.WithError(err).
+			With(slog.String("client_id", clientID)).
+			Warn(ctx, "cimd: failed to read logo cache; fetching directly")
 		found = false
 	}
 	if found && cached.SourceURI == logoURI {
@@ -152,9 +179,26 @@ func (s *LogoService) Get(ctx context.Context, clientID string, logoURI string) 
 	if err != nil {
 		// A Redis failure degrades to a possible stampede, which beats
 		// refusing every request -- same posture as Service.EnsureClientResolved.
+		// Still logged: silently treating "lock acquisition failed" the same
+		// as "lock acquired" hides a real Redis problem from anyone who
+		// isn't specifically looking for a stampede.
+		logger.WithError(err).
+			With(slog.String("client_id", clientID)).
+			Warn(ctx, "cimd: failed to acquire logo fetch single-flight lock; proceeding without it")
 		acquired = true
 	}
 	if !acquired {
+		// Someone else -- another request on this pod, or another pod
+		// entirely -- is already fetching this exact logo. Unlike the
+		// document fetch, a cold logo has no stale record to fall back to,
+		// so failing immediately here would turn an ordinary fetch race
+		// (e.g. two concurrent consent-screen renders for a brand-new
+		// client) into a broken image for whichever request lost the race.
+		// Wait for the holder to finish and read its result from the cache
+		// instead of refusing outright.
+		if result, ok := s.waitForCachedLogo(ctx, clientID, logoURI); ok {
+			return result, nil
+		}
 		logger.WithError(ErrLogoFetchInFlight).
 			With(slog.String("client_id", clientID)).
 			Info(ctx, "cimd: refusing to serve a client logo")
@@ -235,6 +279,50 @@ func (s *LogoService) setCached(ctx context.Context, clientID string, payload *c
 		_, err := conn.Set(ctx, logoCacheKey(s.AppID, clientID), data, ttl).Result()
 		return err
 	})
+}
+
+// waitForCachedLogo polls the cache for up to logoWaitMaxDuration, waiting
+// for whichever request holds the single-flight lock to finish and write
+// its result. ok is false on timeout, on ctx cancellation, or as soon as a
+// negative cache entry shows the holder's fetch already failed -- there is
+// no point waiting out the rest of the deadline for an answer that has
+// already arrived. A transient cache-read error while waiting is treated
+// as "not yet" and retried rather than given up on immediately, since the
+// point of waiting at all is to tolerate exactly this kind of blip.
+func (s *LogoService) waitForCachedLogo(ctx context.Context, clientID string, logoURI string) (result *LogoResult, ok bool) {
+	logger := LogoServiceLogger.GetLogger(ctx)
+	loggedReadError := false
+	deadline := time.Now().Add(logoWaitMaxDuration)
+	for time.Now().Before(deadline) {
+		select {
+		case <-ctx.Done():
+			return nil, false
+		case <-time.After(logoWaitPollInterval):
+		}
+
+		cached, found, err := s.getCached(ctx, clientID)
+		if err != nil {
+			if !loggedReadError {
+				// Logged once per wait, not once per poll: at
+				// logoWaitPollInterval this loop can run dozens of times
+				// before its deadline, and a sustained Redis outage would
+				// otherwise turn one failed wait into a log flood.
+				logger.WithError(err).
+					With(slog.String("client_id", clientID)).
+					Warn(ctx, "cimd: failed to read logo cache while waiting for an in-flight fetch")
+				loggedReadError = true
+			}
+			continue
+		}
+		if !found || cached.SourceURI != logoURI {
+			continue
+		}
+		if !cached.Found {
+			return nil, false
+		}
+		return &LogoResult{ContentType: cached.ContentType, Body: cached.Body, FetchedAt: cached.FetchedAt}, true
+	}
+	return nil, false
 }
 
 // NewBucketSpecCIMDLogoPerClient is a fixed, non-configurable bucket, unlike
