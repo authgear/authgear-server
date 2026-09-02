@@ -47,7 +47,6 @@ func ErrClientLimitExceeded() error {
 
 type ServiceOAuthClientCommands interface {
 	UpsertCIMDClient(ctx context.Context, options *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error)
-	LockForClientCount(ctx context.Context, source oauthclient.Source) error
 	CountClientsBySource(ctx context.Context, source model.OAuthClientSource) (uint64, error)
 }
 
@@ -388,15 +387,15 @@ func (s *Service) isFresh(c *oauthclient.Client) bool {
 }
 
 func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, existing *oauthclient.Client) error {
-	// Serialize concurrent first-resolutions for this app so the
-	// count-then-create sequence is atomic with respect to the quota. Same
-	// reasoning and the same helper POST /oauth2/register uses; the lock key
-	// is already scoped per source, so a CIMD resolution never serializes
-	// against a DCR registration.
-	if err := s.Commands.LockForClientCount(ctx, model.OAuthClientSourceCIMD); err != nil {
-		return err
-	}
-
+	// Deliberately NOT serialized against other concurrent first-resolutions
+	// in this app (unlike POST /oauth2/register's DCR path, which still
+	// takes Commands.LockForClientCount): the oauth_client_cimd quota is a
+	// soft cap, not a hard invariant, so two concurrent brand-new client_ids
+	// can both read the same pre-race count and both proceed, overshooting
+	// the quota by a small, self-correcting amount rather than serializing
+	// every CIMD resolution in the app behind one advisory lock. The next
+	// resolution after either commits will see the true, now-over-quota
+	// count and be refused normally.
 	clientCount, err := s.Commands.CountClientsBySource(ctx, model.OAuthClientSourceCIMD)
 	if err != nil {
 		return err
@@ -409,8 +408,7 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, ex
 	// refetch of an existing client_id must succeed even at or over quota
 	// (spec § Client Limit), while a brand-new one must be refused. Doing
 	// the upsert first and rolling back on refusal makes both true with one
-	// round trip -- a separate existence check first would itself be a
-	// TOCTOU hazard even under the advisory lock above.
+	// round trip.
 	limitErr := s.UsageLimiter.CheckStanding(ctx, model.UsageNameOAuthClientCIMD, countBefore)
 
 	options := &oauthclient.UpsertCIMDClientOptions{
