@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "Bijwerken",
   "v2.page.change-password.expiry.subtitle": "Het is tijd om je wachtwoord te wijzigen.",
   "v2.page.change-password.expiry.title": "Wachtwoord verlopen",
+  "v2.page.consent.default.client-hostname-desc": "Deze app is gepubliceerd op <b>{hostname}</b>. Authgear heeft de identiteit ervan buiten dit domein niet geverifieerd.",
   "v2.page.consent.default.continue-button-label": "Toestaan en doorgaan",
   "v2.page.consent.default.policy-and-tos-link-desc": "Zie het <a class=\"link\" target=\"_blank\" href={policyURI}>privacybeleid</a> en de <a class=\"link\" target=\"_blank\" href={tosURI}>servicevoorwaarden</a> van {clientName}.",
   "v2.page.consent.default.policy-link-desc": "Zie het <a class=\"link\" target=\"_blank\" href={policyURI}>privacybeleid</a> van {clientName}.",

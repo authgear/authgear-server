@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "更新",
   "v2.page.change-password.expiry.subtitle": "是时候更改您的密码了。",
   "v2.page.change-password.expiry.title": "密码已过期",
+  "v2.page.consent.default.client-hostname-desc": "此应用发布于 <b>{hostname}</b>。Authgear 尚未验证其在此域名之外的身份。",
   "v2.page.consent.default.continue-button-label": "允许并继续",
   "v2.page.consent.default.policy-and-tos-link-desc": "查看 {clientName} 的<a class=\"link\" target=\"_blank\" href={policyURI}>隐私政策</a>和<a class=\"link\" target=\"_blank\" href={tosURI}>服务条款</a>。",
   "v2.page.consent.default.policy-link-desc": "查看 {clientName} 的<a class=\"link\" target=\"_blank\" href={policyURI}>隐私政策</a>。",

@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "Ενημέρωση",
   "v2.page.change-password.expiry.subtitle": "Ήρθε η ώρα να αλλάξετε τον κωδικό σας.",
   "v2.page.change-password.expiry.title": "Ο Κωδικός Πρόσβασης Έληξε",
+  "v2.page.consent.default.client-hostname-desc": "Αυτή η εφαρμογή είναι δημοσιευμένη στο <b>{hostname}</b>. Το Authgear δεν έχει επαληθεύσει την ταυτότητά της πέρα από αυτόν τον τομέα.",
   "v2.page.consent.default.continue-button-label": "Αποδοχή και συνέχεια",
   "v2.page.consent.default.policy-and-tos-link-desc": "Δείτε την <a class=\"link\" target=\"_blank\" href={policyURI}>πολιτική απορρήτου</a> και τους <a class=\"link\" target=\"_blank\" href={tosURI}>όρους υπηρεσίας</a> του {clientName}.",
   "v2.page.consent.default.policy-link-desc": "Δείτε την <a class=\"link\" target=\"_blank\" href={policyURI}>πολιτική απορρήτου</a> του {clientName}.",
