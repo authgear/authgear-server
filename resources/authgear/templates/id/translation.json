@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "Perbarui",
   "v2.page.change-password.expiry.subtitle": "Saatnya mengganti kata sandi Anda.",
   "v2.page.change-password.expiry.title": "Kata Sandi Kedaluwarsa",
+  "v2.page.consent.default.client-hostname-desc": "Aplikasi ini dipublikasikan di <b>{hostname}</b>. Authgear belum memverifikasi identitasnya di luar domain ini.",
   "v2.page.consent.default.continue-button-label": "Izinkan dan lanjutkan",
   "v2.page.consent.default.policy-and-tos-link-desc": "Lihat <a class=\"link\" target=\"_blank\" href={policyURI}>kebijakan privasi</a> dan <a class=\"link\" target=\"_blank\" href={tosURI}>syarat layanan</a> {clientName}.",
   "v2.page.consent.default.policy-link-desc": "Lihat <a class=\"link\" target=\"_blank\" href={policyURI}>kebijakan privasi</a> {clientName}.",

@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "Aktualisieren",
   "v2.page.change-password.expiry.subtitle": "Es ist Zeit, Ihr Passwort zu ändern.",
   "v2.page.change-password.expiry.title": "Passwort abgelaufen",
+  "v2.page.consent.default.client-hostname-desc": "Diese App ist unter <b>{hostname}</b> veröffentlicht. Authgear hat ihre Identität über diese Domain hinaus nicht verifiziert.",
   "v2.page.consent.default.continue-button-label": "Erlauben und fortfahren",
   "v2.page.consent.default.policy-and-tos-link-desc": "Siehe die <a class=\"link\" target=\"_blank\" href={policyURI}>Datenschutzrichtlinie</a> und <a class=\"link\" target=\"_blank\" href={tosURI}>Nutzungsbedingungen</a> von {clientName}.",
   "v2.page.consent.default.policy-link-desc": "Siehe die <a class=\"link\" target=\"_blank\" href={policyURI}>Datenschutzrichtlinie</a> von {clientName}.",

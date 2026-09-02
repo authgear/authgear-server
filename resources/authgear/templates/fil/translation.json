@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "I-update",
   "v2.page.change-password.expiry.subtitle": "Panahon na para baguhin ang iyong password.",
   "v2.page.change-password.expiry.title": "Nag-expire ang Password",
+  "v2.page.consent.default.client-hostname-desc": "Ang app na ito ay nai-publish sa <b>{hostname}</b>. Hindi pa na-verify ng Authgear ang pagkakakilanlan nito lampas sa domain na ito.",
   "v2.page.consent.default.continue-button-label": "Payagan at magpatuloy",
   "v2.page.consent.default.policy-and-tos-link-desc": "Tingnan ang <a class=\"link\" target=\"_blank\" href={policyURI}>privacy policy</a> at <a class=\"link\" target=\"_blank\" href={tosURI}>terms of service</a> ng {clientName}.",
   "v2.page.consent.default.policy-link-desc": "Tingnan ang <a class=\"link\" target=\"_blank\" href={policyURI}>privacy policy</a> ng {clientName}.",

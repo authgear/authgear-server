@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "อัปเดต",
   "v2.page.change-password.expiry.subtitle": "ถึงเวลาเปลี่ยนรหัสผ่านของคุณแล้ว",
   "v2.page.change-password.expiry.title": "รหัสผ่านหมดอายุ",
+  "v2.page.consent.default.client-hostname-desc": "แอปนี้เผยแพร่ที่ <b>{hostname}</b> Authgear ยังไม่ได้ตรวจสอบตัวตนนอกเหนือจากโดเมนนี้",
   "v2.page.consent.default.continue-button-label": "อนุญาตและดำเนินการต่อ",
   "v2.page.consent.default.policy-and-tos-link-desc": "ดูนโยบายความเป็นส่วนตัว <a class=\"link\" target=\"_blank\" href={policyURI}>privacy policy</a> และ <a class=\"link\" target=\"_blank\" href={tosURI}>terms of service</a> ของ {clientName}",
   "v2.page.consent.default.policy-link-desc": "ดูนโยบายความเป็นส่วนตัว <a class=\"link\" target=\"_blank\" href={policyURI}>privacy policy</a> ของ {clientName}",
