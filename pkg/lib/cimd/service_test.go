@@ -400,7 +400,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(gotOptions.ResponseTypes, ShouldResemble, []string{"code"})
 		})
 
-		Convey("audit: new client, fetch ok: one resolved event, created: true, no changes, dispatched via OnCommit", func() {
+		Convey("audit: new client, fetch ok: one resolved event, created: true, no old_client, dispatched via OnCommit", func() {
 			var ds *documentServer
 			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
 				doc := `{"client_id":"` + ds.URL + `/x","client_name":"New Client","redirect_uris":["http://127.0.0.1:3000/callback"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
@@ -440,7 +440,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolvedEventPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.Created, ShouldBeTrue)
-			So(payload.Changes, ShouldBeEmpty)
+			So(payload.OldClient, ShouldBeNil)
 			So(payload.Client.ClientID, ShouldEqual, clientID)
 			So(payload.Client.ClientName, ShouldEqual, "New Client")
 		})
@@ -489,7 +489,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(events.dispatched, ShouldBeEmpty)
 		})
 
-		Convey("audit: refetch, redirect_uris changed: one resolved event, created: false, changes naming exactly redirect_uris with old and new, via OnCommit", func() {
+		Convey("audit: refetch, redirect_uris changed: one resolved event, created: false, old_client and client show the two states, via OnCommit", func() {
 			var ds *documentServer
 			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
 				doc := `{"client_id":"` + ds.URL + `/x","client_name":"Same Name","redirect_uris":["http://127.0.0.1:3000/new-callback"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
@@ -542,10 +542,9 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolvedEventPayload)
 			So(ok, ShouldBeTrue)
 			So(payload.Created, ShouldBeFalse)
-			So(payload.Changes, ShouldHaveLength, 1)
-			So(payload.Changes[0].Field, ShouldEqual, "redirect_uris")
-			So(payload.Changes[0].Old, ShouldResemble, []string{"http://127.0.0.1:3000/old-callback"})
-			So(payload.Changes[0].New, ShouldResemble, []string{"http://127.0.0.1:3000/new-callback"})
+			So(payload.OldClient, ShouldNotBeNil)
+			So(payload.OldClient.RedirectURIs, ShouldResemble, []string{"http://127.0.0.1:3000/old-callback"})
+			So(payload.Client.RedirectURIs, ShouldResemble, []string{"http://127.0.0.1:3000/new-callback"})
 		})
 
 		Convey("audit: refetch, client_name nil -> \"\": no event -- normalization", func() {
@@ -635,7 +634,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(events.dispatched, ShouldBeEmpty)
 		})
 
-		Convey("audit: refetch, three fields changed: one event, three entries, no last_fetched_at/updated_at entry", func() {
+		Convey("audit: refetch, three fields changed: one event, old_client and client show all three", func() {
 			var ds *documentServer
 			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
 				doc := `{"client_id":"` + ds.URL + `/x","client_name":"New Name","logo_uri":"https://new.example.com/logo.png","redirect_uris":["http://127.0.0.1:3000/new-callback"],"grant_types":["authorization_code","refresh_token"],"response_types":["code"]}`
@@ -689,16 +688,13 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(events.dispatched, ShouldHaveLength, 1)
 			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolvedEventPayload)
 			So(ok, ShouldBeTrue)
-			So(payload.Changes, ShouldHaveLength, 3)
-			var fields []string
-			for _, c := range payload.Changes {
-				fields = append(fields, c.Field)
-			}
-			So(fields, ShouldContain, "client_name")
-			So(fields, ShouldContain, "logo_uri")
-			So(fields, ShouldContain, "redirect_uris")
-			So(fields, ShouldNotContain, "last_fetched_at")
-			So(fields, ShouldNotContain, "updated_at")
+			So(payload.OldClient, ShouldNotBeNil)
+			So(payload.OldClient.ClientName, ShouldEqual, "Old Name")
+			So(payload.Client.ClientName, ShouldEqual, "New Name")
+			So(payload.OldClient.LogoURI, ShouldEqual, "https://old.example.com/logo.png")
+			So(payload.Client.LogoURI, ShouldEqual, "https://new.example.com/logo.png")
+			So(payload.OldClient.RedirectURIs, ShouldResemble, []string{"http://127.0.0.1:3000/old-callback"})
+			So(payload.Client.RedirectURIs, ShouldResemble, []string{"http://127.0.0.1:3000/new-callback"})
 		})
 
 		Convey("usage limit: no limit configured, new client_id: succeeds, ReportStandingCreated called with countBefore", func() {

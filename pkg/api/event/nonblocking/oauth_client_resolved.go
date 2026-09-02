@@ -19,37 +19,34 @@ type OAuthClientResolvedEventPayloadClient struct {
 	Source          model.OAuthClientSource `json:"source"`
 	Kind            model.OAuthClientKind   `json:"kind"`
 	ClientName      string                  `json:"client_name,omitempty"`
+	ClientURI       string                  `json:"client_uri,omitempty"`
+	LogoURI         string                  `json:"logo_uri,omitempty"`
+	TOSURI          string                  `json:"tos_uri,omitempty"`
+	PolicyURI       string                  `json:"policy_uri,omitempty"`
 	ApplicationType string                  `json:"application_type,omitempty"`
 	RedirectURIs    []string                `json:"redirect_uris"`
 	GrantTypes      []string                `json:"grant_types"`
 	ResponseTypes   []string                `json:"response_types"`
 }
 
-// OAuthClientResolvedEventPayloadChange is one changed field. Old and New
-// are both included: they came from a document the client published
-// publicly, so there is nothing to redact, and "redirect_uris went from X
-// to Y" is the point of the record. any, not separate string/slice change
-// lists, because the fields being diffed are a mix of string and []string
-// and this is a JSON document either way.
-type OAuthClientResolvedEventPayloadChange struct {
-	Field string `json:"field"`
-	Old   any    `json:"old"`
-	New   any    `json:"new"`
-}
-
 type OAuthClientResolvedEventPayload struct {
 	// Client carries the post-resolution state in both cases, so a created
 	// record is complete on its own and a changed record shows the
-	// resulting client alongside the deltas.
+	// resulting client alongside its previous state.
 	Client OAuthClientResolvedEventPayloadClient `json:"client"`
 	// Created is true on first resolution, false on a refetch that changed
 	// something. An explicit discriminator: an auditor should not have to
-	// infer it from Changes being absent.
+	// infer it from OldClient being absent.
 	Created bool `json:"created"`
-	// Changes is absent when Created, and otherwise non-empty -- this event
-	// is never emitted for a refetch that changed nothing (the routine
-	// hourly case, which carries no information).
-	Changes []OAuthClientResolvedEventPayloadChange `json:"changes,omitempty"`
+	// OldClient is the client's state immediately before this resolution --
+	// absent when Created is true (there is no "before"), and otherwise
+	// always present: this event is never emitted for a refetch that
+	// changed nothing (the routine hourly case, which carries no
+	// information), so a present OldClient is guaranteed to differ from
+	// Client in at least one field. Showing both states in full, rather
+	// than a computed list of changed fields, is deliberate: the reader
+	// does the diffing, which is simpler and cannot itself have a bug.
+	OldClient *OAuthClientResolvedEventPayloadClient `json:"old_client,omitempty"`
 }
 
 func (e *OAuthClientResolvedEventPayload) NonBlockingEventType() event.Type {
