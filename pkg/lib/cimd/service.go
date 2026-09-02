@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -195,6 +196,18 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 		if existing != nil {
 			return nil
 		}
+		// No stale record to fall back to. Failing immediately here would
+		// turn an ordinary fetch race (e.g. two concurrent /authorize
+		// requests for a brand-new client_id -- two browser tabs, a
+		// retry-on-timeout client) into a spurious CIMDUnresolvable for
+		// whichever request lost the race, even though the winner's fetch
+		// is likely to succeed a moment later. Wait for the winner to
+		// finish and persist a row instead of refusing outright -- the same
+		// wait-instead-of-fail treatment LogoService.Get gives a losing
+		// logo fetch (see its comment).
+		if s.waitForResolvedClient(ctx, clientID) {
+			return nil
+		}
 		return ErrUnresolvable()
 	}
 
@@ -310,6 +323,59 @@ func (s *Service) dispatchImmediately(ctx context.Context, payload event.NonBloc
 		ServiceLogger.GetLogger(ctx).WithError(err).
 			Error(ctx, "cimd: failed to dispatch audit event")
 	}
+}
+
+// documentWaitPollInterval and documentWaitMaxDuration bound
+// waitForResolvedClient: how long a caller that lost the single-flight race
+// for a brand-new client_id waits for the winner to finish and persist a
+// row before giving up. Same bounds and same real-wall-clock reasoning as
+// LogoService's waitForCachedLogo (see its comment) -- comfortably above
+// FetchTimeout (5s), the winner's own fetch deadline, and comfortably below
+// fetchLockTTL (10s), so a holder that died mid-fetch does not make every
+// waiter block for the lock's full TTL.
+var (
+	documentWaitPollInterval = 100 * time.Millisecond
+	documentWaitMaxDuration  = 6 * time.Second
+)
+
+// waitForResolvedClient polls for the row the single-flight winner is
+// expected to persist, for up to documentWaitMaxDuration. Called only when
+// the caller lost the race AND has no existing record of its own to fall
+// back to (existing == nil). ok is false on timeout, on ctx cancellation,
+// or as soon as the row shows up but is not (or no longer) a CIMD client --
+// there is no point waiting out the rest of the deadline in that case.
+func (s *Service) waitForResolvedClient(ctx context.Context, clientID string) (ok bool) {
+	logger := ServiceLogger.GetLogger(ctx)
+	loggedReadError := false
+	deadline := time.Now().Add(documentWaitMaxDuration)
+	for time.Now().Before(deadline) {
+		select {
+		case <-ctx.Done():
+			return false
+		case <-time.After(documentWaitPollInterval):
+		}
+
+		client, err := s.Queries.GetClientByClientID(ctx, clientID)
+		switch {
+		case err == nil:
+			return client.Source == model.OAuthClientSourceCIMD
+		case errors.Is(err, oauthclient.ErrDynamicClientNotFound):
+			continue
+		default:
+			// A transient read error while waiting is treated as "not yet"
+			// and retried rather than given up on immediately, since the
+			// point of waiting at all is to tolerate exactly this kind of
+			// blip. Logged once per wait, not once per poll, for the same
+			// reason waitForCachedLogo logs once.
+			if !loggedReadError {
+				logger.WithError(err).
+					With(slog.String("client_id", clientID)).
+					Warn(ctx, "cimd: failed to read client while waiting for an in-flight resolution")
+				loggedReadError = true
+			}
+		}
+	}
+	return false
 }
 
 // isFresh reports false for a NULL LastFetchedAt: that row was written by
