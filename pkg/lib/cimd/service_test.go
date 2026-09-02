@@ -1417,7 +1417,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 		Convey("CheckFetchAllowed returns a rate-limit error, no existing record: returned unchanged, fetcher never called", func() {
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
 			defer ds.Close()
-			rateLimitErr := ratelimit.ErrRateLimited(ratelimit.RateLimitOAuthCIMDFetchPerIP, ratelimit.RateLimitGroupOAuthCIMDFetch, ratelimit.OAuthCIMDFetchPerIP)
+			rateLimitErr := ratelimit.ErrRateLimited(ratelimit.RateLimitOAuthClientIDMetadataDocumentFetchPerIP, ratelimit.RateLimitGroupOAuthClientIDMetadataDocumentFetch, ratelimit.OAuthClientIDMetadataDocumentFetchPerIP)
 			rateLimiter := &stubRateLimiter{err: rateLimitErr}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),
@@ -1444,7 +1444,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
 				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
 			}}
-			rateLimitErr := ratelimit.ErrRateLimited(ratelimit.RateLimitOAuthCIMDFetchPerProject, ratelimit.RateLimitGroupOAuthCIMDFetch, ratelimit.OAuthCIMDFetchPerProject)
+			rateLimitErr := ratelimit.ErrRateLimited(ratelimit.RateLimitOAuthClientIDMetadataDocumentFetchPerProject, ratelimit.RateLimitGroupOAuthClientIDMetadataDocumentFetch, ratelimit.OAuthClientIDMetadataDocumentFetchPerProject)
 			rateLimiter := &stubRateLimiter{err: rateLimitErr}
 			svc := &cimd.Service{
 				OAuthConfig:  enabledOAuthConfig(),

@@ -9,30 +9,30 @@ import (
 )
 
 // NewBucketSpecCIMDFetchPerProject and NewBucketSpecCIMDFetchPerIP take the
-// resolved rate-limits config rather than constructing a
+// resolved fetch rate-limits config rather than constructing a
 // config.RateLimitConfig literal, so the built-in rates live in
-// OAuthClientIDMetadataDocumentRateLimitsFeatureConfig.SetDefaults() and are
-// not duplicated here -- the same shape as
+// OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig.SetDefaults()
+// and are not duplicated here -- the same shape as
 // handler.NewBucketSpecOAuthRegisterPerIP. They live in pkg/lib/cimd, not
 // pkg/lib/oauth/handler, because the consumer here is cimd.Service, and
 // keeping them beside it avoids pkg/lib/cimd importing pkg/lib/oauth/handler.
 
-func NewBucketSpecCIMDFetchPerProject(rateLimits *config.OAuthClientIDMetadataDocumentRateLimitsFeatureConfig) ratelimit.BucketSpec {
+func NewBucketSpecCIMDFetchPerProject(fetch *config.OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig) ratelimit.BucketSpec {
 	// No args: BucketSpec.IsGlobal is false, so Limiter keys by app id.
 	return ratelimit.NewBucketSpec(
-		ratelimit.RateLimitOAuthCIMDFetchPerProject,
-		ratelimit.RateLimitGroupOAuthCIMDFetch,
-		rateLimits.PerProject,
-		ratelimit.OAuthCIMDFetchPerProject,
+		ratelimit.RateLimitOAuthClientIDMetadataDocumentFetchPerProject,
+		ratelimit.RateLimitGroupOAuthClientIDMetadataDocumentFetch,
+		fetch.PerProject,
+		ratelimit.OAuthClientIDMetadataDocumentFetchPerProject,
 	)
 }
 
-func NewBucketSpecCIMDFetchPerIP(rateLimits *config.OAuthClientIDMetadataDocumentRateLimitsFeatureConfig, ip string) ratelimit.BucketSpec {
+func NewBucketSpecCIMDFetchPerIP(fetch *config.OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig, ip string) ratelimit.BucketSpec {
 	return ratelimit.NewBucketSpec(
-		ratelimit.RateLimitOAuthCIMDFetchPerIP,
-		ratelimit.RateLimitGroupOAuthCIMDFetch,
-		rateLimits.PerIP,
-		ratelimit.OAuthCIMDFetchPerIP,
+		ratelimit.RateLimitOAuthClientIDMetadataDocumentFetchPerIP,
+		ratelimit.RateLimitGroupOAuthClientIDMetadataDocumentFetch,
+		fetch.PerIP,
+		ratelimit.OAuthClientIDMetadataDocumentFetchPerIP,
 		ip,
 	)
 }
@@ -61,10 +61,10 @@ type RateLimiter struct {
 // docs/plans/cimd/2026-08-28-04-rate-limits.md §1.1 for why there is no
 // per-(project, host) bucket).
 func (r *RateLimiter) CheckFetchAllowed(ctx context.Context) error {
-	rateLimits := r.OAuthFeatureConfig.GetClientIDMetadataDocument().GetRateLimits()
+	fetch := r.OAuthFeatureConfig.GetClientIDMetadataDocument().GetRateLimits().GetFetch()
 	specs := []ratelimit.BucketSpec{
-		NewBucketSpecCIMDFetchPerIP(rateLimits, string(r.RemoteIP)),
-		NewBucketSpecCIMDFetchPerProject(rateLimits),
+		NewBucketSpecCIMDFetchPerIP(fetch, string(r.RemoteIP)),
+		NewBucketSpecCIMDFetchPerProject(fetch),
 	}
 	for _, spec := range specs {
 		failed, err := r.Limiter.Allow(ctx, spec)

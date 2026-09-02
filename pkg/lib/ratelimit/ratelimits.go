@@ -50,7 +50,7 @@ const (
 	RateLimitGroupOAuthRegister RateLimitGroup = "oauth.register"
 
 	// Client ID Metadata Document rate limits
-	RateLimitGroupOAuthCIMDFetch RateLimitGroup = "oauth.cimd_fetch"
+	RateLimitGroupOAuthClientIDMetadataDocumentFetch RateLimitGroup = "oauth.client_id_metadata_document.fetch"
 
 	// Client ID Metadata Document / DCR client logo rate limits
 	RateLimitGroupOAuthCIMDLogo RateLimitGroup = "oauth.cimd_logo"
@@ -123,8 +123,8 @@ const (
 	RateLimitOAuthRegisterPerProject RateLimitName = "oauth.register.per_project"
 
 	// Client ID Metadata Document
-	RateLimitOAuthCIMDFetchPerIP      RateLimitName = "oauth.cimd_fetch.per_ip"
-	RateLimitOAuthCIMDFetchPerProject RateLimitName = "oauth.cimd_fetch.per_project"
+	RateLimitOAuthClientIDMetadataDocumentFetchPerIP      RateLimitName = "oauth.client_id_metadata_document.fetch.per_ip"
+	RateLimitOAuthClientIDMetadataDocumentFetchPerProject RateLimitName = "oauth.client_id_metadata_document.fetch.per_project"
 
 	// Client ID Metadata Document / DCR client logo
 	RateLimitOAuthCIMDLogoPerClient RateLimitName = "oauth.cimd_logo.per_client"
@@ -214,8 +214,8 @@ const (
 	OAuthRegisterPerIP      BucketName = "OAuthRegisterPerIP"
 	OAuthRegisterPerProject BucketName = "OAuthRegisterPerProject"
 
-	OAuthCIMDFetchPerIP      BucketName = "OAuthCIMDFetchPerIP"
-	OAuthCIMDFetchPerProject BucketName = "OAuthCIMDFetchPerProject"
+	OAuthClientIDMetadataDocumentFetchPerIP      BucketName = "OAuthClientIDMetadataDocumentFetchPerIP"
+	OAuthClientIDMetadataDocumentFetchPerProject BucketName = "OAuthClientIDMetadataDocumentFetchPerProject"
 
 	OAuthCIMDLogoPerClient BucketName = "OAuthCIMDLogoPerClient"
 )

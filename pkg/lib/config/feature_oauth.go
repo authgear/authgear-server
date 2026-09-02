@@ -194,18 +194,69 @@ var _ = FeatureConfigSchema.Add("OAuthClientIDMetadataDocumentRateLimitsFeatureC
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"fetch": { "$ref": "#/$defs/OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig" }
+	}
+}
+`)
+
+// OAuthClientIDMetadataDocumentRateLimitsFeatureConfig is a one-field
+// wrapper today, but Fetch is nested under its own "fetch" key -- rather
+// than PerProject/PerIP living directly here -- so the JSON path matches
+// ratelimit.RateLimitGroupOAuthClientIDMetadataDocumentFetch's dotted name
+// ("oauth.client_id_metadata_document.fetch.per_ip") key-for-key, and so a
+// sibling action under this same feature (there is none today) has
+// somewhere to go without renaming this type again.
+type OAuthClientIDMetadataDocumentRateLimitsFeatureConfig struct {
+	Fetch *OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig `json:"fetch,omitempty"`
+}
+
+// GetFetch is nil-safe for the same pre-SetFieldDefaults reason as
+// OAuthClientIDMetadataDocumentFeatureConfig.GetRateLimits above. Once
+// defaults have run, Fetch is always non-nil (its own SetDefaults()
+// below).
+func (c *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig) GetFetch() *OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig {
+	if c == nil {
+		return nil
+	}
+	return c.Fetch
+}
+
+// Merge is field-level even though there is only one field today: Fetch
+// itself has two real siblings (PerProject/PerIP), so the cascade has to
+// reach them -- the same reasoning as the Authenticator -> Password ->
+// Policy cascade in feature_authenticator.go, not a shortcut back to a
+// whole-section replace.
+func (c *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig) Merge(layer *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig) *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig {
+	if c == nil && layer == nil {
+		return nil
+	}
+	if c == nil {
+		return layer
+	}
+	if layer == nil {
+		return c
+	}
+	c.Fetch = c.Fetch.Merge(layer.Fetch)
+	return c
+}
+
+var _ = FeatureConfigSchema.Add("OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
 		"per_project": { "$ref": "#/$defs/RateLimitConfig" },
 		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
 	}
 }
 `)
 
-// OAuthClientIDMetadataDocumentRateLimitsFeatureConfig bounds
+// OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig bounds
 // docs/specs/cimd.md § Denial of Service's two buckets: per project
 // (app_id) and per (project, caller IP). There is deliberately no
 // per-(project, host) bucket -- see the spec section and Part 4's plan §1.1
 // for why.
-type OAuthClientIDMetadataDocumentRateLimitsFeatureConfig struct {
+type OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig struct {
 	PerProject *RateLimitConfig `json:"per_project,omitempty"`
 	PerIP      *RateLimitConfig `json:"per_ip,omitempty"`
 }
@@ -220,7 +271,7 @@ type OAuthClientIDMetadataDocumentRateLimitsFeatureConfig struct {
 // and per refetch interval, so legitimate per-IP volume is near zero
 // regardless of how many users sit behind one NAT (docs/specs/cimd.md §
 // Denial of Service).
-func (c *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig) SetDefaults() {
+func (c *OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig) SetDefaults() {
 	if c.PerProject.Enabled == nil {
 		c.PerProject = &RateLimitConfig{
 			Enabled: new(true),
@@ -240,7 +291,7 @@ func (c *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig) SetDefaults() {
 // Merge replaces each bucket wholesale, not field-by-field:
 // enabled/period/burst are one unit, and merging them field-wise would let
 // two layers jointly produce a bucket neither one actually wrote.
-func (c *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig) Merge(layer *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig) *OAuthClientIDMetadataDocumentRateLimitsFeatureConfig {
+func (c *OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig) Merge(layer *OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig) *OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig {
 	if c == nil && layer == nil {
 		return nil
 	}
