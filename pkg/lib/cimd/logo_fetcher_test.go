@@ -167,7 +167,7 @@ func TestLogoFetcherFetch(t *testing.T) {
 			httpURL := "http://" + srv.Listener.Addr().String() + "/logo.png"
 
 			f := logoFetcherFor(newLoopbackHTTPClient(certPool(srv), nil), &config.OAuthClientIDMetadataDocumentFeatureConfig{
-				InsecureHTTPAllowed: boolPtr(false),
+				InsecureHTTPAllowed: new(false),
 			})
 			_, _, err := f.Fetch(ctx, httpURL)
 			So(errors.Is(err, ErrLogoInvalidURI), ShouldBeTrue)
@@ -191,7 +191,7 @@ func TestLogoFetcherFetch(t *testing.T) {
 				Transport:      transport,
 			})
 			f := logoFetcherFor(client, &config.OAuthClientIDMetadataDocumentFeatureConfig{
-				InsecureFetchAddressAllowed: boolPtr(false),
+				InsecureFetchAddressAllowed: new(false),
 			})
 			_, _, err := f.Fetch(ctx, srv.URL)
 			So(errors.Is(err, errBlockedAddress), ShouldBeTrue)
@@ -205,7 +205,7 @@ func TestLogoFetcherFetch(t *testing.T) {
 			defer srv.Close()
 
 			f := logoFetcherFor(newLoopbackHTTPClient(certPool(srv), nil), &config.OAuthClientIDMetadataDocumentFeatureConfig{
-				InsecureFetchAddressAllowed: boolPtr(true),
+				InsecureFetchAddressAllowed: new(true),
 			})
 			_, _, err := f.Fetch(ctx, srv.URL)
 			So(err, ShouldBeNil)

@@ -247,7 +247,6 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 		})
 
 		for _, id := range []string{"dcrc_x", "my-client", ""} {
-			id := id
 			Convey("non-URL client_id ("+id+"): nil, fetcher never called", func() {
 				ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) {})
 				defer ds.Close()
@@ -956,7 +955,6 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				},
 			}
 			for name, handler := range cases {
-				name, handler := name, handler
 				Convey(name, func() {
 					ds := newDocumentServer(handler)
 					defer ds.Close()
@@ -1080,7 +1078,6 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				},
 			}
 			for name, tc := range cases {
-				name, tc := name, tc
 				Convey(name, func() {
 					ds := newDocumentServer(tc.handler)
 					defer ds.Close()

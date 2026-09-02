@@ -233,7 +233,6 @@ func TestRegistrationHandler(t *testing.T) {
 				},
 			}
 			for _, tc := range cases {
-				tc := tc
 				Convey(tc.name, func() {
 					var captured *nonblocking.OAuthClientRegistrationFailedEventPayload
 					events.EXPECT().DispatchEventImmediately(gomock.Any(), gomock.Any()).DoAndReturn(
