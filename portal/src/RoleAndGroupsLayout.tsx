@@ -1,6 +1,6 @@
 import React, { ReactNode, useMemo } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useParams } from "react-router-dom";
 import styles from "./RoleAndGroupsLayout.module.css";
@@ -68,14 +68,14 @@ export const RoleAndGroupsLayout: React.VFC<
                 </Link>
               ) : null}
               <div className={styles.titleRow}>
-                <Text
-                  as="p"
+                <Heading
+                  as="h1"
                   size="5"
                   weight="bold"
                   className={styles.pageTitle}
                 >
                   {title}
-                </Text>
+                </Heading>
                 {headerSubitem != null ? headerSubitem : null}
               </div>
               {headerDescription != null ? (

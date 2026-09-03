@@ -181,6 +181,8 @@
 .sectionHeading {
   font-size: 20px;
   font-weight: 600;
+  /* Pin the line-height so Radix Heading's size default cannot change it. */
+  line-height: 30px;
   text-align: center;
 }
 
@@ -214,6 +216,8 @@
 .featureTitle {
   font-weight: 600;
   font-size: 16px;
+  /* Pin the line-height so Radix Heading's size default cannot change it. */
+  line-height: 24px;
   overflow-wrap: break-word;
   min-width: 0;
 }
@@ -279,6 +283,8 @@
 .resourceHeading {
   font-size: 18px;
   font-weight: 600;
+  /* Pin the line-height so Radix Heading's size default cannot change it. */
+  line-height: 27px;
 }
 
 .resourceRows {

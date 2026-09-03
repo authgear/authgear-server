@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
 import {
   useSAMLCertificateForm,
@@ -43,9 +43,9 @@ function EditSAMLCertificateContent({
         ref={contentWidthAnchorRef}
         className={cn(styles.widget, styles.pageHeader)}
       >
-        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+        <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="SAMLCertificateScreen.title" />
-        </Text>
+        </Heading>
         <Text as="p" size="2" color="gray" className={styles.pageDescription}>
           <FormattedMessage id="SAMLCertificateScreen.desc" />
         </Text>

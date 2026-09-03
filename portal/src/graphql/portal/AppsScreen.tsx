@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import {
@@ -184,9 +184,9 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
       <ScreenHeader showHamburger={false} />
       <ScreenLayoutScrollView>
         <section className={styles.body}>
-          <Text as="p" size="6" weight="bold">
+          <Heading as="h1" size="6" weight="bold">
             <FormattedMessage id="AppsScreen.title" />
-          </Text>
+          </Heading>
           <div className={styles.toolbar}>
             <div className={styles.search}>
               <TextField

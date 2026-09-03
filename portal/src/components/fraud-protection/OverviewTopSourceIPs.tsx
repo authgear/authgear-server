@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from "react";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { DesktopIcon, MobileIcon, GlobeIcon } from "@radix-ui/react-icons";
 import { Context } from "../../intl";
 import styles from "./OverviewTopSourceIPs.module.css";
@@ -87,14 +87,14 @@ const OverviewTopList: React.VFC<OverviewTopListProps> =
           <div className={styles.topSourceIPsHeaderLeft}>
             <div className={styles.topSourceIPsIcon}>{icon}</div>
             <div className={styles.topSourceIPsTitleGroup}>
-              <Text
-                as="p"
+              <Heading
+                as="h3"
                 size="2"
                 weight="medium"
                 className={styles.topSourceIPsTitle}
               >
                 {renderToString(titleKey)}
-              </Text>
+              </Heading>
               {subtitleKey != null ? (
                 <Text as="p" size="1" className={styles.topSourceIPsSubtitle}>
                   {renderToString(subtitleKey)}

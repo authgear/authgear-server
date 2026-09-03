@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import ScreenContent from "../../ScreenContent";
 import { FormattedMessage } from "../../intl";
 import CodeEditor from "../../CodeEditor";
@@ -100,9 +100,14 @@ const EditConfigurationContent: React.VFC<EditConfigurationContentProps> =
             ref={contentWidthAnchorRef}
             className={cn(styles.widget, styles.pageHeader)}
           >
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="EditConfigurationScreen.title" />
-            </Text>
+            </Heading>
           </div>
           <div
             className={cn(

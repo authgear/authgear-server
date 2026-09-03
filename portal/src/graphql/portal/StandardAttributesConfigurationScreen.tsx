@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
-import { Dialog, Flex, Switch, Text } from "@radix-ui/themes";
+import { Dialog, Flex, Heading, Switch, Text } from "@radix-ui/themes";
 import { Cross2Icon, Pencil1Icon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import { produce } from "immer";
@@ -439,9 +439,14 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
       >
         <div ref={contentWidthAnchorRef} className={styles.widget}>
           <div className={styles.header}>
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="StandardAttributesConfigurationScreen.title" />
-            </Text>
+            </Heading>
             <SecondaryButton
               size="2"
               text={

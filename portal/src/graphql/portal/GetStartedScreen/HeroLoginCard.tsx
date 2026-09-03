@@ -1,4 +1,4 @@
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import React, { useCallback } from "react";
 import { FormattedMessage } from "../../../intl";
 import { PlayIcon } from "@radix-ui/react-icons";
@@ -42,9 +42,9 @@ export default function HeroLoginCard(
         <p className={styles.heroBadge}>
           <FormattedMessage id="GetStartedScreen.hero.login.badge" />
         </p>
-        <Text as="p" className={styles.heroTitle}>
+        <Heading as="h2" className={styles.heroTitle}>
           <FormattedMessage id="GetStartedScreen.hero.login.title" />
-        </Text>
+        </Heading>
         <p className={styles.heroSubtitle}>
           <FormattedMessage id="GetStartedScreen.hero.login.subtitle" />
         </p>

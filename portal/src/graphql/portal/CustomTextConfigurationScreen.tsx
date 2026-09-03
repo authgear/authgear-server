@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-import { Select, Text } from "@radix-ui/themes";
+import { Heading, Select, Text } from "@radix-ui/themes";
 import { Context as MFContext, FormattedMessage } from "../../intl";
 import cn from "classnames";
 import ExternalLink from "../../ExternalLink";
@@ -93,9 +93,9 @@ const CustomTextConfigurationContent: React.VFC<CustomTextConfigurationContentPr
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="CustomTextConfigurationScreen.title" />
-          </Text>
+          </Heading>
           <div className={styles.headerMeta}>
             <Text
               as="p"

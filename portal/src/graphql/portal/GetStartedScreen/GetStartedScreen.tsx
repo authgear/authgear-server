@@ -1,4 +1,4 @@
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import React, { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "../../../intl";
@@ -187,9 +187,9 @@ function GetStartedScreenContent(
         </div>
 
         <section className={styles.featureSection}>
-          <Text as="p" className={styles.sectionHeading}>
+          <Heading as="h2" className={styles.sectionHeading}>
             <FormattedMessage id="GetStartedScreen.features.heading" />
-          </Text>
+          </Heading>
           <div className={styles.featureGrid}>
             {featureCards.map((card) => (
               <FeatureCard key={card.titleMessageID} {...card} />

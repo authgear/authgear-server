@@ -7,7 +7,14 @@ import React, {
   useRef,
 } from "react";
 import cn from "classnames";
-import { Checkbox, Flex, RadioGroup, Select, Text } from "@radix-ui/themes";
+import {
+  Checkbox,
+  Flex,
+  Heading,
+  RadioGroup,
+  Select,
+  Text,
+} from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import {
   OverflowTabs,
@@ -3651,9 +3658,9 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="LoginMethodConfigurationScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="LoginMethodConfigurationScreen.description" />
           </Text>

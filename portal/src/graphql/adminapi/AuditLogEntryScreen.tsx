@@ -1,6 +1,6 @@
 import React, { useMemo, useContext } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
@@ -113,9 +113,9 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
               <FormattedMessage id="AuditLogScreen.title" />
             </span>
           </Link>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="AuditLogEntryScreen.title" />
-          </Text>
+          </Heading>
         </div>
 
         {error != null ? (

@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { produce } from "immer";
@@ -110,9 +110,9 @@ function CreateCustomAttributeContent(
             <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
           </span>
         </Link>
-        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+        <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="CreateCustomAttributeScreen.title" />
-        </Text>
+        </Heading>
       </div>
       <EditCustomAttributeForm
         className={styles.widget}

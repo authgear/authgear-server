@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import styles from "./OverviewMetricCard.module.css";
 
 export type MetricIconVariant = "default" | "success" | "warning" | "blocked";
@@ -27,14 +27,14 @@ const OverviewMetricCard: React.VFC<OverviewMetricCardProps> =
         <div className={styles.metricCardHeader}>
           <div className={iconVariantClass[iconVariant]}>{icon}</div>
           <div className={styles.metricHeadingGroup}>
-            <Text
-              as="p"
+            <Heading
+              as="h3"
               size="2"
               weight="medium"
               className={styles.metricTitle}
             >
               {title}
-            </Text>
+            </Heading>
             <Text
               as="div"
               size="6"

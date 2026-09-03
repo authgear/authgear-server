@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import cn from "classnames";
 import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { PlusIcon } from "@radix-ui/react-icons";
 import FormContainer from "../../FormContainer";
 import {
@@ -220,9 +220,14 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
       >
         <div ref={contentWidthAnchorRef} className={styles.widget}>
           <div className={styles.header}>
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
-            </Text>
+            </Heading>
             {!isEmpty ? (
               <PrimaryButton
                 size="2"

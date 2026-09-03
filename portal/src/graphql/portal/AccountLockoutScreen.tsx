@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
@@ -193,9 +193,9 @@ const AccountLockoutContent: React.VFC<AccountLockoutContentProps> =
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="AccountLockoutScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="AccountLockoutScreen.description" />
           </Text>

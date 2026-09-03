@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import ScreenContent from "../../ScreenContent";
 import Link from "../../Link";
@@ -164,9 +164,9 @@ const AddSingleSignOnConfigurationForm: React.VFC<AddSingleSignOnConfigurationFo
               <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
             </span>
           </Link>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="AddSingleSignOnConfigurationScreen.title" />
-          </Text>
+          </Heading>
         </div>
         <>
           {newAlias != null && selectedProviderKey != null ? (

@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { LockClosedIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 import { Context } from "../../intl";
 import { Tooltip } from "../v2/Tooltip/Tooltip";
@@ -24,14 +24,14 @@ const OverviewEnforcementCard: React.VFC<OverviewEnforcementCardProps> =
           </div>
           <div className={styles.metricHeadingGroup}>
             <div className={styles.metricTitleRow}>
-              <Text
-                as="p"
+              <Heading
+                as="h3"
                 size="2"
                 weight="medium"
                 className={styles.metricTitle}
               >
                 {title}
-              </Text>
+              </Heading>
               <Tooltip
                 content={renderToString(
                   "FraudProtectionConfigurationScreen.enforcement.tooltip"

@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { FormattedMessage } from "../../intl";
 import { useParams } from "react-router-dom";
 import { PlusIcon } from "@radix-ui/react-icons";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 
 import { makeReasonErrorParseRule } from "../../error/parse";
 import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
@@ -231,9 +231,14 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
         <ScreenContent layout="list">
           <div className={styles.widget}>
             <div className={styles.header}>
-              <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <Heading
+                as="h1"
+                size="5"
+                weight="bold"
+                className={styles.pageTitle}
+              >
                 <FormattedMessage id="PortalAdminSettings.title" />
-              </Text>
+              </Heading>
               <PrimaryButton
                 size="2"
                 disabled={inviteDisabled}

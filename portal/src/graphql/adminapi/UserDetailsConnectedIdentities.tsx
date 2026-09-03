@@ -6,6 +6,7 @@ import {
   Button,
   Dialog,
   DropdownMenu,
+  Heading,
   IconButton,
   Text,
 } from "@radix-ui/themes";
@@ -1553,9 +1554,9 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           onCreated={onIdentityCreated}
         />
         <section className={styles.headerSection}>
-          <Text as="p" size="3" weight="medium" className={styles.header}>
+          <Heading as="h2" size="3" weight="medium" className={styles.header}>
             <FormattedMessage id="UserDetails.connected-identities.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.description}>
             <FormattedMessage id="UserDetails.connected-identities.description" />
           </Text>
@@ -1609,14 +1610,14 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             ))}
             {identityLists.oauth.length > 0 ? (
               <div>
-                <Text
-                  as="p"
+                <Heading
+                  as="h3"
                   size="2"
                   weight="medium"
                   className={styles.subHeader}
                 >
                   <FormattedMessage id="UserDetails.connected-identities.oauth" />
-                </Text>
+                </Heading>
                 {identityLists.oauth.map((item) => (
                   <React.Fragment key={item.id}>
                     {onRenderIdentityCell(item)}
@@ -1626,14 +1627,14 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             ) : null}
             {identityLists.biometric.length > 0 ? (
               <div>
-                <Text
-                  as="p"
+                <Heading
+                  as="h3"
                   size="2"
                   weight="medium"
                   className={styles.subHeader}
                 >
                   <FormattedMessage id="UserDetails.connected-identities.biometric" />
-                </Text>
+                </Heading>
                 {identityLists.biometric.map((item) => (
                   <React.Fragment key={item.id}>
                     {onRenderIdentityCell(item)}
@@ -1643,14 +1644,14 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             ) : null}
             {identityLists.anonymous.length > 0 ? (
               <div>
-                <Text
-                  as="p"
+                <Heading
+                  as="h3"
                   size="2"
                   weight="medium"
                   className={styles.subHeader}
                 >
                   <FormattedMessage id="UserDetails.connected-identities.anonymous" />
-                </Text>
+                </Heading>
                 {identityLists.anonymous.map((item) => (
                   <React.Fragment key={item.id}>
                     {onRenderIdentityCell(item)}
@@ -1660,14 +1661,14 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             ) : null}
             {identityLists.ldap.length > 0 ? (
               <div>
-                <Text
-                  as="p"
+                <Heading
+                  as="h3"
                   size="2"
                   weight="medium"
                   className={styles.subHeader}
                 >
                   <FormattedMessage id="UserDetails.connected-identities.ldap" />
-                </Text>
+                </Heading>
                 {identityLists.ldap.map((item) => (
                   <React.Fragment key={item.id}>
                     {onRenderIdentityCell(item)}

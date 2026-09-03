@@ -1,4 +1,4 @@
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import React from "react";
 import { FormattedMessage } from "../../../intl";
 import Link from "../../../Link";
@@ -42,9 +42,9 @@ export default function FeatureCard(
           height={18}
           aria-hidden={true}
         />
-        <Text as="p" className={styles.featureTitle}>
+        <Heading as="h3" className={styles.featureTitle}>
           <FormattedMessage id={titleMessageID} />
-        </Text>
+        </Heading>
       </div>
       <p className={styles.featureDescription}>
         <FormattedMessage id={descriptionMessageID} />

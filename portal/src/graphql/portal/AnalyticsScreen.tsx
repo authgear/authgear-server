@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Spinner, Text } from "@radix-ui/themes";
+import { Heading, Spinner, Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
 import { Context, FormattedMessage } from "../../intl";
@@ -257,9 +257,14 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
       <ScreenLayoutScrollView>
         <ScreenContent layout="auto-rows" className={styles.content}>
           <div className={cn(styles.widget, styles.pageHeader)}>
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="AnalyticsScreen.title" />
-            </Text>
+            </Heading>
             <Text
               as="p"
               size="2"

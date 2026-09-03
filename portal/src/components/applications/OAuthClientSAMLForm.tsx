@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import {
   Flex,
+  Heading,
   IconButton as RadixIconButton,
   RadioGroup,
   Separator,
@@ -704,9 +705,9 @@ export function OAuthClientSAMLForm({
           <Separator size="4" className="my-12" />
           <div className="grid gap-y-12 grid-cols-1">
             <div>
-              <Text as="p" size="5" weight="bold">
+              <Heading as="h2" size="5" weight="bold">
                 <FormattedMessage id="OAuthClientSAMLForm.title" />
-              </Text>
+              </Heading>
               <div className="mt-3 grid gap-y-2 grid-cols-1 items-start justify-items-start">
                 <Text as="p" size="2">
                   <FormattedMessage id="OAuthClientSAMLForm.metadataUpload.description" />

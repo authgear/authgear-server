@@ -2,6 +2,7 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import {
   DropdownMenu,
+  Heading,
   IconButton as RadixIconButton,
   Text,
 } from "@radix-ui/themes";
@@ -390,9 +391,9 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
     return (
       <ScreenContent layout="list">
         <div className={styles.pageHeader}>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          </Text>
+          </Heading>
         </div>
         <OverflowTabs
           className={styles.widget}

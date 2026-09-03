@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { produce, createDraft } from "immer";
@@ -353,9 +353,9 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
               <FormattedMessage id="ApplicationsConfigurationScreen.title" />
             </span>
           </Link>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="CreateOAuthClientScreen.title" />
-          </Text>
+          </Heading>
         </div>
         <form
           className={cn(styles.widget, styles.wizardPanel)}

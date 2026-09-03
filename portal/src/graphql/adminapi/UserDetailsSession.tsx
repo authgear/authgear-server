@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Button, IconButton, Text, Tooltip } from "@radix-ui/themes";
+import { Button, Heading, IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 
@@ -147,9 +147,9 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
 
   return (
     <div className={styles.root}>
-      <Text as="p" size="3" weight="medium" className={styles.header}>
+      <Heading as="h2" size="3" weight="medium" className={styles.header}>
         <FormattedMessage id="UserDetails.session.section-header" />
-      </Text>
+      </Heading>
       <div className={styles.content}>
         {sessionListItems.length === 0 ? (
           <Callout

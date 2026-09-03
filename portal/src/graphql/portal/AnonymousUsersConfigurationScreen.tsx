@@ -5,6 +5,7 @@ import { produce } from "immer";
 import {
   DropdownMenu,
   Flex,
+  Heading,
   IconButton as RadixIconButton,
   RadioGroup,
   Separator,
@@ -397,9 +398,9 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
           </Text>

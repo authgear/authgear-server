@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flex, Text } from "@radix-ui/themes";
+import { Flex, Heading } from "@radix-ui/themes";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { FormattedMessage } from "../../intl";
 import { useQuery } from "@apollo/client";
@@ -219,9 +219,14 @@ const UsersScreen: React.VFC = function UsersScreen() {
       <ScreenContent className={styles.content} layout="list">
         <div className={styles.widget}>
           <div className={styles.pageTitleRow}>
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="UsersScreen.title" />
-            </Text>
+            </Heading>
             <PrimaryButton
               size="2"
               text={

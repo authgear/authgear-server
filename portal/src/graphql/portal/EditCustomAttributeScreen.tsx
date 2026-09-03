@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useMemo } from "react";
 import { Navigate, useParams, useNavigate } from "react-router-dom";
 import cn from "classnames";
 import { FormattedMessage } from "../../intl";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { produce } from "immer";
 import ScreenContent from "../../ScreenContent";
@@ -129,9 +129,9 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
             <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
           </span>
         </Link>
-        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+        <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="EditCustomAttributeScreen.title" />
-        </Text>
+        </Heading>
       </div>
       <EditCustomAttributeForm
         className={styles.widget}

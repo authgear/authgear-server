@@ -52,7 +52,7 @@ import {
 import { TextField } from "../../components/v2/TextField/TextField";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
-import { Dialog as RadixDialog, Flex, Text } from "@radix-ui/themes";
+import { Dialog as RadixDialog, Flex, Heading, Text } from "@radix-ui/themes";
 import {
   EnvelopeClosedIcon,
   EyeNoneIcon,
@@ -601,13 +601,13 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             {isAuthgearOnce ? (
               <FormattedMessage id="SMTPConfigurationScreen.title--authgearonce" />
             ) : (
               <FormattedMessage id="SMTPConfigurationScreen.title" />
             )}
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="SMTPConfigurationScreen.description" />
           </Text>

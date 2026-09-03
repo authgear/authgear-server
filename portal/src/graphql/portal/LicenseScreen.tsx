@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import ScreenContent from "../../ScreenContent";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { FormattedMessage, Context } from "../../intl";
@@ -23,9 +23,9 @@ function LicenseScreen(): React.ReactElement {
   return (
     <ScreenContent>
       <div className={cn(styles.widget, styles.pageHeader)}>
-        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+        <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="LicenseScreen.title" />
-        </Text>
+        </Heading>
         <Text as="p" size="2" color="gray" className={styles.pageDescription}>
           <FormattedMessage id="LicenseScreen.description" />
         </Text>

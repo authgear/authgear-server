@@ -3,7 +3,14 @@ import cn from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { ChevronDownIcon, ChevronLeftIcon } from "@radix-ui/react-icons";
-import { Checkbox, Flex, RadioGroup, Separator, Text } from "@radix-ui/themes";
+import {
+  Checkbox,
+  Flex,
+  Heading,
+  RadioGroup,
+  Separator,
+  Text,
+} from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useCreateUserMutation } from "./mutations/createUserMutation";
@@ -429,9 +436,9 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
             <FormattedMessage id="UsersScreen.title" />
           </span>
         </Link>
-        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+        <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="AddUserScreen.title" />
-        </Text>
+        </Heading>
       </div>
       <div className={styles.verticalForm}>
         {isPasskeyOnly ? (

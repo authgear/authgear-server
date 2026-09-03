@@ -1,6 +1,6 @@
 import React, { useContext, useMemo, useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Button, Dialog, Flex, Text } from "@radix-ui/themes";
+import { Button, Dialog, Flex, Heading, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import {
@@ -260,9 +260,14 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
       <ScreenLayoutScrollView>
         <ScreenContent layout="list">
           <div className={styles.widget}>
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="IntegrationsConfigurationScreen.title" />
-            </Text>
+            </Heading>
           </div>
           <div className={styles.widget}>
             <div className={styles.tableWrapper}>

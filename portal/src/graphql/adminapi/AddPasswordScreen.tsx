@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 
 import { useResetPasswordMutation } from "./mutations/resetPasswordMutation";
@@ -51,9 +51,9 @@ const AddPasswordContent: React.VFC<ResetPasswordContentProps> = function (
             <FormattedMessage id="UserDetailsScreen.title" />
           </span>
         </Link>
-        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+        <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="AddPasswordScreen.title" />
-        </Text>
+        </Heading>
       </div>
       <ResetPasswordForm
         className={`${styles.widget} ${styles.form}`}

@@ -8,7 +8,7 @@ import React, {
   ChangeEvent,
 } from "react";
 import { ChevronLeftIcon, TrashIcon, UploadIcon } from "@radix-ui/react-icons";
-import { Button, Flex, Text } from "@radix-ui/themes";
+import { Button, Flex, Heading } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import { useParams, useNavigate } from "react-router-dom";
 import axios, { AxiosProgressEvent, RawAxiosRequestHeaders } from "axios";
@@ -360,9 +360,14 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
                   <FormattedMessage id="UserDetailsScreen.title" />
                 </span>
               </Link>
-              <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <Heading
+                as="h1"
+                size="5"
+                weight="bold"
+                className={styles.pageTitle}
+              >
                 <FormattedMessage id="EditPictureScreen.title" />
-              </Text>
+              </Heading>
             </div>
             <ReactCropperjs
               ref={cropperjsRef}

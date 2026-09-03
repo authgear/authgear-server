@@ -1,4 +1,4 @@
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import React, { useCallback, useMemo } from "react";
 import { FormattedMessage } from "../../../intl";
 import Link from "../../../Link";
@@ -44,9 +44,9 @@ export default function HeroIntegrateCard(
         <p className={styles.heroBadge}>
           <FormattedMessage id="GetStartedScreen.hero.integrate.badge" />
         </p>
-        <Text as="p" className={styles.heroTitle}>
+        <Heading as="h2" className={styles.heroTitle}>
           <FormattedMessage id="GetStartedScreen.hero.integrate.title" />
-        </Text>
+        </Heading>
         <p className={styles.heroSubtitle}>
           <FormattedMessage id="GetStartedScreen.hero.integrate.subtitle" />
         </p>

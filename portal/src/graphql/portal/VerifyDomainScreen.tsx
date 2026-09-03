@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { Dialog, Flex, Text } from "@radix-ui/themes";
+import { Dialog, Flex, Heading, Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import ShowLoading from "../../ShowLoading";
@@ -165,9 +165,9 @@ const VerifyDomain: React.VFC<VerifyDomainProps> = function VerifyDomain(
               <FormattedMessage id="CustomDomainListScreen.title" />
             </span>
           </Link>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="VerifyDomainScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage
               id="VerifyDomainScreen.desc-main"

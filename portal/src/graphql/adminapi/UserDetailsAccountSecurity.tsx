@@ -1,7 +1,13 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cn from "classnames";
-import { Button, DropdownMenu, IconButton, Text } from "@radix-ui/themes";
+import {
+  Button,
+  DropdownMenu,
+  Heading,
+  IconButton,
+  Text,
+} from "@radix-ui/themes";
 import { DotsVerticalIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
 import { FormattedMessage, Context } from "../../intl";
 
@@ -1283,14 +1289,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 styles.authenticatorKindHeader
               )}
             >
-              <Text
-                as="p"
+              <Heading
+                as="h2"
                 size="3"
                 weight="medium"
                 className={cn(styles.header)}
               >
                 <FormattedMessage id="UserDetails.account-security.primary" />
-              </Text>
+              </Heading>
             </div>
             {primaryAuthenticatorLists.password.length > 0 ? (
               <div
@@ -1308,8 +1314,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             ) : primaryAuthenticatorLists.isPrimaryPasswordEnabled ? (
               <div className={styles.authenticatorTypeGroup}>
                 <div className={styles.authenticatorTypeSection}>
-                  <Text
-                    as="p"
+                  <Heading
+                    as="h3"
                     size="2"
                     weight="medium"
                     className={cn(
@@ -1318,7 +1324,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                     )}
                   >
                     <FormattedMessage id="AuthenticatorType.primary.password" />
-                  </Text>
+                  </Heading>
                 </div>
                 <button
                   type="button"
@@ -1332,14 +1338,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             ) : null}
             {primaryAuthenticatorLists.passkey.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="p"
+                <Heading
+                  as="h3"
                   size="2"
                   weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.primary.passkey" />
-                </Text>
+                </Heading>
                 {primaryAuthenticatorLists.passkey.map((item, index) => (
                   <React.Fragment key={item.id}>
                     {onRenderPasskeyIdentityDetailCell(item, index)}
@@ -1349,14 +1355,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             ) : null}
             {primaryAuthenticatorLists.oobOtpEmail.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="p"
+                <Heading
+                  as="h3"
                   size="2"
                   weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.primary.oob-otp-email" />
-                </Text>
+                </Heading>
                 {primaryAuthenticatorLists.oobOtpEmail.map((item, index) => (
                   <React.Fragment key={item.id}>
                     {onRenderOobOtpAuthenticatorDetailCell(item, index)}
@@ -1366,14 +1372,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             ) : null}
             {primaryAuthenticatorLists.oobOtpSMS.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
-                <Text
-                  as="p"
+                <Heading
+                  as="h3"
                   size="2"
                   weight="medium"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
                   <FormattedMessage id="AuthenticatorType.primary.oob-otp-phone" />
-                </Text>
+                </Heading>
                 {primaryAuthenticatorLists.oobOtpSMS.map((item, index) => (
                   <React.Fragment key={item.id}>
                     {onRenderOobOtpAuthenticatorDetailCell(item, index)}
@@ -1392,14 +1398,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 styles.authenticatorKindHeader
               )}
             >
-              <Text
-                as="p"
+              <Heading
+                as="h2"
                 size="3"
                 weight="medium"
                 className={cn(styles.header)}
               >
                 <FormattedMessage id="UserDetails.account-security.secondary" />
-              </Text>
+              </Heading>
             </div>
             {secondaryAuthicatorIsRequired &&
             !secondaryAuthenticatorLists.hasVisibleList ? (
@@ -1574,8 +1580,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             secondaryAuthenticatorLists.password.length > 0 ? (
               <div className={styles.authenticatorTypeGroup}>
                 <div className={styles.authenticatorTypeSection}>
-                  <Text
-                    as="p"
+                  <Heading
+                    as="h3"
                     size="2"
                     weight="medium"
                     className={cn(
@@ -1590,7 +1596,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                         <FormattedMessage id="UserDetails.account-security.disabled" />
                       </>
                     ) : null}
-                  </Text>
+                  </Heading>
                   <div
                     className={cn(
                       styles.authenticatorTypeSection,

@@ -7,7 +7,14 @@ import React, {
   useState,
 } from "react";
 import cn from "classnames";
-import { RadioGroup, Select, Separator, Text, Flex } from "@radix-ui/themes";
+import {
+  Flex,
+  Heading,
+  RadioGroup,
+  Select,
+  Separator,
+  Text,
+} from "@radix-ui/themes";
 import ScreenContent from "../../ScreenContent";
 import styles from "./BotProtectionConfigurationScreen.module.css";
 import {
@@ -1078,9 +1085,9 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="BotProtectionConfigurationScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="BotProtectionConfigurationScreen.description" />
           </Text>

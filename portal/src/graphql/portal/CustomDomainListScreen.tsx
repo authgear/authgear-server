@@ -8,6 +8,7 @@ import {
   Dialog,
   DropdownMenu,
   Flex,
+  Heading,
   IconButton as RadixIconButton,
   Text,
 } from "@radix-ui/themes";
@@ -659,9 +660,14 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       <ScreenLayoutScrollView>
         <ScreenContent layout="list">
           <div className={cn(styles.widget, styles.pageHeader)}>
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="CustomDomainListScreen.title" />
-            </Text>
+            </Heading>
             <Text
               as="p"
               size="2"

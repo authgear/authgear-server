@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-import { Select, Text } from "@radix-ui/themes";
+import { Heading, Select, Text } from "@radix-ui/themes";
 import { ChatBubbleIcon, EnvelopeClosedIcon } from "@radix-ui/react-icons";
 import cn from "classnames";
 import { Context, FormattedMessage } from "../../intl";
@@ -1222,9 +1222,9 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="LocalizationConfigurationScreen.title" />
-          </Text>
+          </Heading>
           <div className={styles.headerMeta}>
             <Text
               as="p"

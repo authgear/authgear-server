@@ -1,4 +1,4 @@
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import React from "react";
 import { FormattedMessage } from "../../../intl";
 import Link from "../../../Link";
@@ -84,9 +84,9 @@ export default function ResourceColumn(
   const { headingMessageID, rows } = props;
   return (
     <div className={styles.resourceColumn}>
-      <Text as="p" className={styles.resourceHeading}>
+      <Heading as="h3" className={styles.resourceHeading}>
         <FormattedMessage id={headingMessageID} />
-      </Text>
+      </Heading>
       <div className={styles.resourceRows}>
         {rows.map((row) => (
           <ResourceRow key={row.titleMessageID} {...row} />

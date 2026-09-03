@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useParams } from "react-router-dom";
 import Link from "../../Link";
@@ -151,9 +151,9 @@ function DynamicClientListScreenContent(): React.ReactElement {
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           </span>
         </Link>
-        <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+        <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="DynamicClientListScreen.title" />
-        </Text>
+        </Heading>
       </div>
       <div className={cn(styles.widget, styles.content)}>
         <ErrorMessageBar />

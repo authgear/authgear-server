@@ -10,11 +10,12 @@ import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { DateTime } from "luxon";
 import {
+  Button,
+  Dialog,
+  Heading as RadixHeading,
+  Spinner,
   Tabs,
   Text as RadixText,
-  Dialog,
-  Button,
-  Spinner,
 } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import ShowError from "../../ShowError";
@@ -657,9 +658,14 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 
       <ScreenContent layout="auto-rows">
         <div className={cn(styles.widget, styles.pageHeader)}>
-          <RadixText as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <RadixHeading
+            as="h1"
+            size="5"
+            weight="bold"
+            className={styles.pageTitle}
+          >
             <FormattedMessage id="SubscriptionScreen.title" />
-          </RadixText>
+          </RadixHeading>
           <RadixText
             as="p"
             size="2"
@@ -852,9 +858,14 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
 
     return (
       <div className={styles.processingPaymentRoot}>
-        <RadixText as="p" size="5" weight="bold" className={styles.pageTitle}>
+        <RadixHeading
+          as="h1"
+          size="5"
+          weight="bold"
+          className={styles.pageTitle}
+        >
           <FormattedMessage id="SubscriptionScreen.title" />
-        </RadixText>
+        </RadixHeading>
         <div className={cn(styles.processingPaymentSection)}>
           {paymentStatus === "IsProcessing" ? (
             <>

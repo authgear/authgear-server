@@ -6,7 +6,7 @@ import React, {
   useRef,
   Children,
 } from "react";
-import { Button, Select, Text } from "@radix-ui/themes";
+import { Button, Heading, Select } from "@radix-ui/themes";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
@@ -939,9 +939,9 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
         {/* Personal Information card */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
-            <Text as="p" size="3" weight="medium">
+            <Heading as="h2" size="3" weight="medium">
               <FormattedMessage id="UserProfileForm.personal-information.title" />
-            </Text>
+            </Heading>
           </div>
           <div className={styles.sectionFields}>
             <Div className={styles.twoColumnGroup}>
@@ -1136,9 +1136,9 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
         {isReadable("address") ? (
           <div className={styles.sectionCard}>
             <div className={styles.sectionHeader}>
-              <Text as="p" size="3" weight="medium">
+              <Heading as="h2" size="3" weight="medium">
                 <FormattedMessage id="UserProfileForm.contact-address.title" />
-              </Text>
+              </Heading>
             </div>
             <div className={styles.sectionFields}>
               <Div className={styles.addressGroup}>
@@ -1227,9 +1227,9 @@ const CustomAttributesForm: React.VFC<CustomAttributesFormProps> =
     return (
       <div className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
-          <Text as="p" size="3" weight="medium">
+          <Heading as="h2" size="3" weight="medium">
             <FormattedMessage id="UserProfileForm.custom-attributes.title" />
-          </Text>
+          </Heading>
         </div>
         <div className={styles.sectionFields}>
           <div className={styles.customAttributesForm}>

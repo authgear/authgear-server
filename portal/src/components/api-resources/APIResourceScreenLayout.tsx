@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useParams } from "react-router-dom";
 import { BreadcrumbItem } from "../../NavBreadcrumb";
@@ -80,14 +80,14 @@ const APIResourceScreenLayout: React.VFC<APIResourceLayoutProps> =
                     </Link>
                   ) : null}
                   <div className={styles.titleRow}>
-                    <Text
-                      as="p"
+                    <Heading
+                      as="h1"
                       size="5"
                       weight="bold"
                       className={styles.pageTitle}
                     >
                       {title}
-                    </Text>
+                    </Heading>
                     {headerSuffix}
                   </div>
                   {headerDescription}

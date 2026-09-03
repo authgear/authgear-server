@@ -8,7 +8,7 @@ import React, {
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import SingleSignOnConfigurationWidget, {
   useSingleSignOnConfigurationWidget,
@@ -126,9 +126,9 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
               <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
             </span>
           </Link>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="EditSingleSignOnConfigurationScreen.title" />
-          </Text>
+          </Heading>
         </div>
         <>
           <OAuthClientItem

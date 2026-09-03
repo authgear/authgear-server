@@ -9,6 +9,7 @@ import React, {
 import { useParams } from "react-router-dom";
 import {
   DropdownMenu,
+  Heading,
   IconButton as RadixIconButton,
   Select,
   Text,
@@ -603,9 +604,9 @@ const LanguagesConfigurationContent: React.VFC<LanguagesConfigurationContentProp
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="LanguagesConfigurationScreen.title" />
-          </Text>
+          </Heading>
         </div>
         <SelectPrimaryLanguageSection
           primaryLanguage={state.fallbackLanguage}

@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
 import { produce } from "immer";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import { PortalAPIAppConfig, IdentityFeatureConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
@@ -105,9 +105,9 @@ const BiometricConfigurationContent: React.VFC<BiometricConfigurationContentProp
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="BiometricConfigurationScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="BiometricConfigurationScreen.description" />
           </Text>

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { IconButton, Text, Tooltip } from "@radix-ui/themes";
+import { Heading, IconButton, Tooltip } from "@radix-ui/themes";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 
@@ -154,9 +154,9 @@ const UserDetailsAuthorization: React.VFC<Props> =
 
     return (
       <div className={styles.root}>
-        <Text as="p" size="3" weight="medium" className={styles.header}>
+        <Heading as="h2" size="3" weight="medium" className={styles.header}>
           <FormattedMessage id="UserDetails.authorization.header" />
-        </Text>
+        </Heading>
         <div className={styles.content}>
           {authzListItems.length === 0 ? (
             <Callout

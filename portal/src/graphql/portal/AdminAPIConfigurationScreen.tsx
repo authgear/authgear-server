@@ -444,9 +444,14 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
         <ScreenLayoutScrollView>
           <ScreenContent>
             <div className={cn(styles.widget, styles.pageHeader)}>
-              <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <Heading
+                as="h1"
+                size="5"
+                weight="bold"
+                className={styles.pageTitle}
+              >
                 <FormattedMessage id="AdminAPIConfigurationScreen.title" />
-              </Text>
+              </Heading>
               <Text
                 as="p"
                 size="2"

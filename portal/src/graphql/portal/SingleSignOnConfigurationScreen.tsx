@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Flex, Text } from "@radix-ui/themes";
+import { Flex, Heading, Text } from "@radix-ui/themes";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { Context as IntlContext, FormattedMessage } from "../../intl";
 import ExternalLink from "../../ExternalLink";
@@ -101,9 +101,14 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
       <ScreenContent layout="list">
         <div className={cn(styles.widget, styles.pageHeader)}>
           <div className={styles.pageTitleRow}>
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-            </Text>
+            </Heading>
             {form.state.providers.length > 0 ? (
               <PrimaryButton
                 size="2"

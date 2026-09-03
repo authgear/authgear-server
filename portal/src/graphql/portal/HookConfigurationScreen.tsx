@@ -24,6 +24,7 @@ import {
 import {
   Callout as RadixCallout,
   Flex,
+  Heading as RadixHeading,
   IconButton as RadixIconButton,
   RadioGroup,
   Select,
@@ -2012,14 +2013,14 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
           {codeEditorState != null ? (
             <div className={cn(styles.codeEditorContainer)}>
               <div className={cn(styles.widget, styles.pageHeader)}>
-                <RadixText
-                  as="p"
+                <RadixHeading
+                  as="h1"
                   size="5"
                   weight="bold"
                   className={styles.pageTitle}
                 >
                   <FormattedMessage id="HookConfigurationScreen.edit-hook.label" />
-                </RadixText>
+                </RadixHeading>
                 <RadixText
                   as="p"
                   size="2"
@@ -2081,14 +2082,14 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                 ref={contentWidthAnchorRef}
                 className={cn(styles.widget, styles.pageHeader)}
               >
-                <RadixText
-                  as="p"
+                <RadixHeading
+                  as="h1"
                   size="5"
                   weight="bold"
                   className={styles.pageTitle}
                 >
                   <FormattedMessage id="HookConfigurationScreen.title" />
-                </RadixText>
+                </RadixHeading>
                 <RadixText
                   as="p"
                   size="2"

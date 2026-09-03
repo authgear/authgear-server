@@ -14,7 +14,7 @@ import {
 import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
-import { Tabs, Text } from "@radix-ui/themes";
+import { Heading, Tabs } from "@radix-ui/themes";
 import AuditLogList from "./AuditLogList";
 import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
@@ -661,9 +661,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     <>
       <div className={styles.root}>
         <div className={styles.header}>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="AuditLogScreen.title" />
-          </Text>
+          </Heading>
           {logRetrievalDays !== -1 ? (
             <FeatureDisabledMessageBar
               className={styles.messageBar}

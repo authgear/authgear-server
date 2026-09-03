@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useContext, useRef } from "react";
 import cn from "classnames";
-import { Flex, RadioGroup, Text } from "@radix-ui/themes";
+import { Flex, Heading, RadioGroup, Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "../../intl";
@@ -494,9 +494,9 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="MFAConfigurationScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="MFAConfigurationScreen.description" />
           </Text>
