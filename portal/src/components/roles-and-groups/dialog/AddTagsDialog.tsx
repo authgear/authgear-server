@@ -1,6 +1,7 @@
 import React, {
   ReactElement,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useLayoutEffect,
@@ -10,7 +11,7 @@ import React, {
 } from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Dialog, Flex, Text } from "@radix-ui/themes";
-import { FormattedMessage } from "../../../intl";
+import { Context, FormattedMessage } from "../../../intl";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../v2/Button/SecondaryButton/SecondaryButton";
 import { FormField } from "../../v2/FormField/FormField";
@@ -47,6 +48,7 @@ function AddTagsDialog({
   title,
   tagPickerLabel,
 }: AddTagsDialogProps): ReactElement {
+  const { renderToString } = useContext(Context);
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -334,7 +336,7 @@ function AddTagsDialog({
                     type="button"
                     className={styles.clearButton}
                     disabled={isLoading}
-                    aria-label="Clear"
+                    aria-label={renderToString("AddTagsDialog.clear-tags")}
                     onClick={onClearTags}
                   >
                     <Cross2Icon width="0.875rem" height="0.875rem" />

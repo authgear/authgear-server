@@ -108,9 +108,17 @@ const PortalAdminList: React.VFC<PortalAdminListProps> =
                 </div>
                 <div className={styles.cellStatus}>
                   {isCollaborator ? (
-                    <Badge size="1" variant="success" text="Accepted" />
+                    <Badge
+                      size="1"
+                      variant="success"
+                      text={renderToString("PortalAdminList.status.accepted")}
+                    />
                   ) : (
-                    <Badge size="1" variant="warning" text="Pending" />
+                    <Badge
+                      size="1"
+                      variant="warning"
+                      text={renderToString("PortalAdminList.status.pending")}
+                    />
                   )}
                 </div>
                 <div className={styles.cellActions}>

@@ -214,7 +214,13 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
               })
             ) : (
               <Text as="p" size="2" color="gray" className={styles.emptyText}>
-                <FormattedMessage id="AppsScreen.no-projects" />
+                <FormattedMessage
+                  id={
+                    searchKeyword.trim() === ""
+                      ? "AppsScreen.no-projects"
+                      : "AppsScreen.no-search-results"
+                  }
+                />
               </Text>
             )}
           </section>
