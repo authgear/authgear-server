@@ -11,7 +11,7 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
-import { PROFILE_PICTURE_ACCEPT } from "./ProfilePictureDialog";
+import { PROFILE_PICTURE_ACCEPT } from "./profilePicture";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate } from "../../util/birthdate";

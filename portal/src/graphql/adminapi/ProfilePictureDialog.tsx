@@ -9,27 +9,8 @@ import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryB
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
+import { isAcceptedProfilePictureFile } from "./profilePicture";
 import styles from "./ProfilePictureDialog.module.css";
-
-const MAX_FILE_SIZE = 500 * 1024;
-const ACCEPTED_IMAGE_TYPES = new Set([
-  "image/svg+xml",
-  "image/png",
-  "image/jpeg",
-  "image/x-icon",
-  "image/vnd.microsoft.icon",
-]);
-
-function isAcceptedFile(file: File): boolean {
-  return (
-    file.size <= MAX_FILE_SIZE &&
-    (ACCEPTED_IMAGE_TYPES.has(file.type) ||
-      /\.(svg|png|jpe?g|ico)$/i.test(file.name))
-  );
-}
-
-export const PROFILE_PICTURE_ACCEPT =
-  ".svg,.png,.jpeg,.jpg,.ico,image/svg+xml,image/png,image/jpeg,image/x-icon,image/vnd.microsoft.icon";
 
 export interface ProfilePictureDialogProps {
   appID: string;
@@ -47,7 +28,7 @@ export function ProfilePictureDialog(
   const cropperRef = useRef<ReactCropperjs | null>(null);
   const [source, setSource] = useState<string>();
   const [imageError, setImageError] = useState(
-    () => file != null && !isAcceptedFile(file)
+    () => file != null && !isAcceptedProfilePictureFile(file)
   );
   const [uploadError, setUploadError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -56,12 +37,12 @@ export function ProfilePictureDialog(
   if (prevFile !== file) {
     setPrevFile(file);
     setSource(undefined);
-    setImageError(file != null && !isAcceptedFile(file));
+    setImageError(file != null && !isAcceptedProfilePictureFile(file));
     setUploadError(false);
   }
 
   useEffect(() => {
-    if (file == null || !isAcceptedFile(file)) {
+    if (file == null || !isAcceptedProfilePictureFile(file)) {
       return;
     }
 

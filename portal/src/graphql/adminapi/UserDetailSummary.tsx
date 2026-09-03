@@ -7,7 +7,7 @@ import Link from "../../Link";
 import { FormattedMessage, Context } from "../../intl";
 import { AccountStatus } from "./UserDetailsAccountStatus";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
-import { PROFILE_PICTURE_ACCEPT } from "./ProfilePictureDialog";
+import { PROFILE_PICTURE_ACCEPT } from "./profilePicture";
 
 import styles from "./UserDetailSummary.module.css";
 

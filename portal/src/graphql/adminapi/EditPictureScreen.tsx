@@ -33,6 +33,11 @@ import { AccessControlLevelString } from "../../types";
 import { APIError } from "../../error/error";
 import { ErrorParseRule, makeLocalErrorParseRule } from "../../error/parse";
 
+import {
+  PROFILE_PICTURE_ACCEPT,
+  isAcceptedProfilePictureFile,
+} from "./profilePicture";
+
 import styles from "./EditPictureScreen.module.css";
 import DefaultLayout from "../../DefaultLayout";
 
@@ -157,6 +162,13 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
 
       const file = target.files?.[0];
       if (file == null) {
+        return;
+      }
+
+      // Same size/type limits as the avatar dialog on the user detail screen,
+      // so this route cannot be used to bypass them.
+      if (!isAcceptedProfilePictureFile(file)) {
+        setReactCropperjsError(SENTINEL);
         return;
       }
 
@@ -366,7 +378,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
             ref={fileInputRef}
             className={styles.fileInput}
             type="file"
-            accept="image/png, image/jpeg"
+            accept={PROFILE_PICTURE_ACCEPT}
             onChange={onChangeFile}
           />
         </form>
