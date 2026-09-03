@@ -18,6 +18,19 @@ function startOfDay(date: Date): Date {
   return DateTime.fromJSDate(date).startOf("day").toJSDate();
 }
 
+// The from/to query params are local calendar dates (written with
+// DateTime.toISODate()), so they must be read back in the local zone too.
+// `new Date("YYYY-MM-DD")` parses as UTC midnight, which is the previous
+// calendar day in every UTC-negative zone and would shift the range by a day
+// on every reload.
+function parseLocalDateOnly(value: string | null): Date | null {
+  if (value == null || value === "") {
+    return null;
+  }
+  const parsed = DateTime.fromISO(value).startOf("day").toJSDate();
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
 function isSameDay(a: Date | null, b: Date | null): boolean {
   if (a == null || b == null) {
     return a === b;
@@ -96,9 +109,8 @@ export function getInitialAuditLogDateRange(
     queryLastUpdatedAt != null
       ? new Date(Number(queryLastUpdatedAt))
       : new Date();
-  const fromParam =
-    queryFrom != null && queryFrom !== "" ? new Date(queryFrom) : null;
-  const toParam = queryTo != null && queryTo !== "" ? new Date(queryTo) : null;
+  const fromParam = parseLocalDateOnly(queryFrom);
+  const toParam = parseLocalDateOnly(queryTo);
   const preset = detectDateRangePreset(fromParam, toParam, referenceDate);
 
   if (preset === "custom") {
