@@ -309,8 +309,16 @@ type storeListClientResult struct {
 // ListClients returns every dynamic client (all sources), ordered by
 // created_at DESC — dcr.md's dynamicClients query takes only pagination
 // args and distinguishes sources via the returned "source" field.
-func (s *Store) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) (*storeListClientResult, error) {
+// ListClients lists persisted dynamic clients, newest first. A non-nil
+// source restricts the page AND the total count to that source, so a
+// filtered listing's totalCount still describes the filtered set -- the
+// portal reads it to show a per-source count, so a source-less count would
+// make the pagination and the count disagree.
+func (s *Store) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *Source) (*storeListClientResult, error) {
 	q := s.selectClientQuery().OrderBy("created_at DESC")
+	if source != nil {
+		q = q.Where("source = ?", string(*source))
+	}
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)
 	if err != nil {
@@ -322,7 +330,7 @@ func (s *Store) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) 
 		return nil, err
 	}
 
-	totalCount, err := s.countClients(ctx)
+	totalCount, err := s.countClients(ctx, source)
 	if err != nil {
 		return nil, err
 	}
@@ -334,8 +342,11 @@ func (s *Store) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) 
 	}, nil
 }
 
-func (s *Store) countClients(ctx context.Context) (uint64, error) {
+func (s *Store) countClients(ctx context.Context, source *Source) (uint64, error) {
 	q := s.SQLBuilder.Select("COUNT(*)").From(s.SQLBuilder.TableName("_auth_oauth_client"))
+	if source != nil {
+		q = q.Where("source = ?", string(*source))
+	}
 
 	var count uint64
 	row, err := s.SQLExecutor.QueryRowWith(ctx, q)

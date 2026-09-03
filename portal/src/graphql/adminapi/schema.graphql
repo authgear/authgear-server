@@ -1914,9 +1914,26 @@ type Query {
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, emailAddresses: [String!], first: Int, last: Int, phoneNumbers: [String!], rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
 
   """
-  Clients that exist outside authgear.yaml: DCR-registered (and, once implemented, CIMD-resolved) clients.
+  Clients that exist outside authgear.yaml: DCR-registered and CIMD-resolved clients.
   """
-  dynamicClients(after: String, before: String, first: Int, last: Int): OAuthClientConnection
+  dynamicClients(
+    """"""
+    after: String
+
+    """"""
+    before: String
+
+    """"""
+    first: Int
+
+    """"""
+    last: Int
+
+    """
+    Restrict the listing, and its totalCount, to clients from this source. Omit for every dynamic client. STATIC never matches: a statically configured client does not exist outside authgear.yaml.
+    """
+    source: OAuthClientSource
+  ): OAuthClientConnection
 
   """Fraud protection decision records"""
   fraudProtectionLogs(after: String, before: String, first: Int, last: Int, maximumWarningCount: Int, minimumWarningCount: Int, rangeFrom: DateTime, rangeTo: DateTime, reasonCodes: [String!], search: String, sortDirection: SortDirection, verdicts: [FraudProtectionDecision!]): FraudProtectionDecisionRecordConnection
