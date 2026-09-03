@@ -57,6 +57,8 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
       isOpenRegistrationConfirmationVisible,
       setIsOpenRegistrationConfirmationVisible,
     ] = useState(false);
+    const [isDisableConfirmationVisible, setIsDisableConfirmationVisible] =
+      useState(false);
 
     const registrationEnabled = state.dynamicClientRegistrationEnabled;
     const registrationEndpoint = `${publicOrigin}/oauth2/register`;
@@ -72,7 +74,7 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
     const totalCount = data?.dynamicClients?.totalCount ?? null;
     const hasClients = totalCount != null && totalCount > 0;
 
-    const onEnabledChange = useCallback(
+    const setRegistrationEnabled = useCallback(
       (checked: boolean) => {
         // Deferred like every other control on this tab: nothing is written
         // until the admin presses Save. Saving from here would commit the
@@ -93,6 +95,30 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
       },
       [setState]
     );
+
+    const onEnabledChange = useCallback(
+      (checked: boolean) => {
+        // Turning registration off does not disable already-registered
+        // clients — remind the admin of that before reflecting it in the
+        // form state. The reminder is only true while clients exist, so
+        // skip it otherwise.
+        if (!checked && hasClients) {
+          setIsDisableConfirmationVisible(true);
+          return;
+        }
+        setRegistrationEnabled(checked);
+      },
+      [hasClients, setRegistrationEnabled]
+    );
+
+    const onConfirmDisable = useCallback(() => {
+      setIsDisableConfirmationVisible(false);
+      setRegistrationEnabled(false);
+    }, [setRegistrationEnabled]);
+
+    const onCancelDisable = useCallback(() => {
+      setIsDisableConfirmationVisible(false);
+    }, []);
 
     const onViewAllClick = useCallback(() => {
       navigate("./dcr");
@@ -374,6 +400,23 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             </Text>
           </SettingsSectionCard>
         ) : null}
+
+        <ConfirmationDialog
+          open={isDisableConfirmationVisible}
+          onOpenChange={setIsDisableConfirmationVisible}
+          title={
+            <FormattedMessage id="DynamicClientsTab.disable.confirm.title" />
+          }
+          description={
+            <FormattedMessage id="DynamicClientsTab.disable.confirm.description" />
+          }
+          confirmText={
+            <FormattedMessage id="DynamicClientsTab.disable.confirm.confirm" />
+          }
+          cancelText={<FormattedMessage id="cancel" />}
+          onConfirm={onConfirmDisable}
+          onCancel={onCancelDisable}
+        />
 
         <ConfirmationDialog
           open={isOpenRegistrationConfirmationVisible}
