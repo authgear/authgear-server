@@ -849,7 +849,6 @@
   "DynamicClientDetailsDialog.delete": "Delete",
   "DynamicClientDetailsDialog.close": "Close",
   "DeleteDynamicClientDialog.title": "Delete dynamic client",
-  "DeleteDynamicClientDialog.description": "Permanently deletes \"{clientName}\". New authorizations stop immediately; already-issued access and refresh tokens stay valid until they expire.",
   "DeleteDynamicClientDialog.confirm": "Delete",
   "DynamicClientsAccessRow.title": "Allow dynamic third-party clients",
   "DynamicClientsAccessRow.description": "Let dynamic third-party clients request access to this resource.",

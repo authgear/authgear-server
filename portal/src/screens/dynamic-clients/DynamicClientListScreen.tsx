@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { FormattedMessage } from "../../intl";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import { Context, FormattedMessage } from "../../intl";
 import cn from "classnames";
-import { Heading } from "@radix-ui/themes";
+import { Heading, Select, Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useParams } from "react-router-dom";
 import Link from "../../Link";
@@ -16,6 +16,7 @@ import { parseRawError } from "../../error/parse";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { PaginationProps } from "../../PaginationWidget";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
+import { OAuthClientSource } from "../../graphql/adminapi/globalTypes.generated";
 import { useDeleteDynamicClientMutationMutation } from "../../graphql/adminapi/mutations/deleteDynamicClientMutation.generated";
 import {
   DynamicClientList,
@@ -31,11 +32,19 @@ import styles from "./DynamicClientListScreen.module.css";
 
 const PAGE_SIZE = 10;
 
+// "all" is the absence of a source argument, not a value the Admin API
+// accepts, so it is kept as a separate key rather than folded into
+// OAuthClientSource. STATIC is deliberately not offered: a statically
+// configured client does not appear in this listing at all.
+type SourceFilterKey = "all" | OAuthClientSource.Cimd | OAuthClientSource.Dcr;
+
 function DynamicClientListScreenContent(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
   const { setErrors } = useErrorMessageBarContext();
+  const { renderToString } = useContext(Context);
 
   const [offset, setOffset] = useState(0);
+  const [sourceFilter, setSourceFilter] = useState<SourceFilterKey>("all");
   const [detailsClient, setDetailsClient] =
     useState<DynamicClientListItem | null>(null);
   const [deleteDialogData, setDeleteDialogData] =
@@ -46,9 +55,17 @@ function DynamicClientListScreenContent(): React.ReactElement {
     variables: {
       first: PAGE_SIZE,
       after: encodeOffsetToCursor(offset),
+      source: sourceFilter === "all" ? undefined : sourceFilter,
     },
     fetchPolicy: "network-only",
   });
+
+  const onChangeSourceFilter = useCallback((value: string) => {
+    setSourceFilter(value as SourceFilterKey);
+    // The filtered result set is a different list; an offset carried over
+    // from the previous filter can land past its end and show an empty page.
+    setOffset(0);
+  }, []);
 
   const [deleteDynamicClient] = useDeleteDynamicClientMutationMutation();
 
@@ -65,6 +82,7 @@ function DynamicClientListScreenContent(): React.ReactElement {
           kind: node.kind,
           source: node.source,
           registeredAt: node.registeredAt ?? null,
+          lastFetchedAt: node.lastFetchedAt ?? null,
           applicationType: node.applicationType ?? null,
           redirectURIs: [...node.redirectURIs],
           grantTypes: [...node.grantTypes],
@@ -102,6 +120,7 @@ function DynamicClientListScreenContent(): React.ReactElement {
     setDeleteDialogData({
       clientID: client.clientID,
       clientName: client.name,
+      source: client.source,
     });
   }, []);
 
@@ -137,7 +156,10 @@ function DynamicClientListScreenContent(): React.ReactElement {
     [deleteDynamicClient, clients.length, offset, refetch, setErrors]
   );
 
-  const isEmpty = !loading && clients.length === 0 && offset === 0;
+  const isEmpty =
+    !loading && clients.length === 0 && offset === 0 && sourceFilter === "all";
+  const isFilteredEmpty =
+    !loading && clients.length === 0 && offset === 0 && sourceFilter !== "all";
 
   return (
     <ScreenContent>
@@ -155,6 +177,33 @@ function DynamicClientListScreenContent(): React.ReactElement {
           <FormattedMessage id="DynamicClientListScreen.title" />
         </Heading>
       </div>
+      {!isEmpty ? (
+        <div className={cn(styles.widget, styles.filterBar)}>
+          <Select.Root
+            value={sourceFilter}
+            onValueChange={onChangeSourceFilter}
+            size="2"
+          >
+            <Select.Trigger
+              className={styles.sourceFilter}
+              aria-label={renderToString(
+                "DynamicClientListScreen.filter.source.label"
+              )}
+            />
+            <Select.Content position="popper">
+              <Select.Item value="all">
+                {renderToString("DynamicClientListScreen.filter.source.all")}
+              </Select.Item>
+              <Select.Item value={OAuthClientSource.Cimd}>
+                {renderToString("DynamicClientSource.cimd")}
+              </Select.Item>
+              <Select.Item value={OAuthClientSource.Dcr}>
+                {renderToString("DynamicClientSource.dcr")}
+              </Select.Item>
+            </Select.Content>
+          </Select.Root>
+        </div>
+      ) : null}
       <div className={cn(styles.widget, styles.content)}>
         <ErrorMessageBar />
         {error != null ? (
@@ -162,6 +211,10 @@ function DynamicClientListScreenContent(): React.ReactElement {
           <ShowError error={error} onRetry={refetch} />
         ) : isEmpty ? (
           <DynamicClientsEmptyView />
+        ) : isFilteredEmpty ? (
+          <Text as="p" size="2" color="gray" className={styles.filteredEmpty}>
+            <FormattedMessage id="DynamicClientListScreen.filtered-empty" />
+          </Text>
         ) : (
           <DynamicClientList
             clients={clients}

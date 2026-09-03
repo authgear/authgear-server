@@ -25,6 +25,7 @@ export interface DynamicClientListItem {
   kind: OAuthClientKind;
   source: OAuthClientSource;
   registeredAt: string | null;
+  lastFetchedAt: string | null;
   applicationType: string | null;
   redirectURIs: string[];
   grantTypes: string[];
@@ -103,6 +104,15 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow({
         </Text>
         <CopyIconButton textToCopy={client.clientID} />
       </CardTable.Cell>
+      <CardTable.Cell className={styles.colSource}>
+        <Text size="2">
+          {client.source === OAuthClientSource.Cimd ? (
+            <FormattedMessage id="DynamicClientSource.cimd" />
+          ) : (
+            <FormattedMessage id="DynamicClientSource.dcr" />
+          )}
+        </Text>
+      </CardTable.Cell>
       <CardTable.Cell className={styles.colKind}>
         <Text size="2">
           {client.kind === OAuthClientKind.FirstParty ? (
@@ -113,7 +123,18 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow({
         </Text>
       </CardTable.Cell>
       <CardTable.Cell className={styles.colRegisteredAt}>
-        <Text size="2">{formatDatetime(locale, client.registeredAt)}</Text>
+        <Text size="2">
+          {formatDatetime(locale, client.registeredAt) ?? (
+            <FormattedMessage id="DynamicClientList.not-applicable" />
+          )}
+        </Text>
+      </CardTable.Cell>
+      <CardTable.Cell className={styles.colLastFetchedAt}>
+        <Text size="2">
+          {formatDatetime(locale, client.lastFetchedAt) ?? (
+            <FormattedMessage id="DynamicClientList.not-applicable" />
+          )}
+        </Text>
       </CardTable.Cell>
       <CardTable.Cell className={styles.colActions} onClick={stopPropagation}>
         <DropdownMenu.Root>
@@ -154,11 +175,17 @@ export const DynamicClientList: React.VFC<DynamicClientListProps> =
             <CardTable.HeaderCell className={styles.colClientId}>
               <FormattedMessage id="DynamicClientList.columns.client-id" />
             </CardTable.HeaderCell>
+            <CardTable.HeaderCell className={styles.colSource}>
+              <FormattedMessage id="DynamicClientList.columns.source" />
+            </CardTable.HeaderCell>
             <CardTable.HeaderCell className={styles.colKind}>
               <FormattedMessage id="DynamicClientList.columns.kind" />
             </CardTable.HeaderCell>
             <CardTable.HeaderCell className={styles.colRegisteredAt}>
               <FormattedMessage id="DynamicClientList.columns.registered-at" />
+            </CardTable.HeaderCell>
+            <CardTable.HeaderCell className={styles.colLastFetchedAt}>
+              <FormattedMessage id="DynamicClientList.columns.last-fetched-at" />
             </CardTable.HeaderCell>
             <CardTable.HeaderCell className={styles.colActions} />
           </CardTable.Header>

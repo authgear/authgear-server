@@ -1,10 +1,12 @@
 import React, { useCallback } from "react";
 import { FormattedMessage } from "../../intl";
 import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
+import { OAuthClientSource } from "../../graphql/adminapi/globalTypes.generated";
 
 export interface DeleteDynamicClientDialogData {
   clientID: string;
   clientName: string;
+  source: OAuthClientSource;
 }
 
 export interface DeleteDynamicClientDialogProps {
@@ -48,10 +50,21 @@ export const DeleteDynamicClientDialog: React.VFC<DeleteDynamicClientDialogProps
         onOpenChange={onOpenChange}
         title={<FormattedMessage id="DeleteDynamicClientDialog.title" />}
         description={
-          <FormattedMessage
-            id="DeleteDynamicClientDialog.description"
-            values={{ clientName: data?.clientName ?? "" }}
-          />
+          // Deleting a CIMD client only evicts the record Authgear fetched:
+          // the same client_id resolves again on its next authorization
+          // request (docs/specs/cimd.md § Client Limit), so the copy must
+          // not describe it as permanent the way the DCR copy does.
+          data?.source === OAuthClientSource.Cimd ? (
+            <FormattedMessage
+              id="DeleteDynamicClientDialog.description.cimd"
+              values={{ clientName: data.clientName }}
+            />
+          ) : (
+            <FormattedMessage
+              id="DeleteDynamicClientDialog.description.dcr"
+              values={{ clientName: data?.clientName ?? "" }}
+            />
+          )
         }
         confirmText={
           <FormattedMessage id="DeleteDynamicClientDialog.confirm" />
