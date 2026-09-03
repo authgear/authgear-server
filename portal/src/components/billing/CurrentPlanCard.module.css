@@ -23,10 +23,6 @@
   }
 }
 
-.card--fullWidth {
-  grid-template-columns: 1fr;
-}
-
 .sectionHeader {
   display: flex;
   flex-direction: column;
@@ -131,12 +127,7 @@
   background-color: var(--red-9);
 }
 
-.usageText {
-  margin: 0;
-  color: var(--gray-a11);
-}
-
-.usageText--warn {
+.meteredCostCardValue--warn {
   color: var(--red-9);
 }
 

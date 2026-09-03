@@ -505,7 +505,7 @@ function MAUUsageSection({
             weight="medium"
             className={cn(
               styles.meteredCostCardValue,
-              limitReached ? styles["usageText--warn"] : null
+              limitReached ? styles["meteredCostCardValue--warn"] : null
             )}
           >
             {mauCurrent != null ? mauCurrent.toLocaleString(locale) : "-"}

@@ -132,12 +132,6 @@
   flex-shrink: 0;
 }
 
-.languagesTableCellActions {
-  width: 3.5rem;
-  flex-shrink: 0;
-  @apply justify-end;
-}
-
 /* Soft sizing / hit-area like Admin API keys; background only on hover / open. */
 .rowActionsButton:not(:hover):not([data-state="open"]) {
   background-color: transparent;
