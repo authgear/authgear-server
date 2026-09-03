@@ -13,7 +13,11 @@ import { produce } from "immer";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
+import {
+  OAuthClientConfig,
+  PortalAPIAppConfig,
+  StandingUsageLimitConfig,
+} from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import {
   AppConfigFormModel,
@@ -38,8 +42,21 @@ import { getNextPlan } from "../../util/plan";
 import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
 import { DynamicClientsTab } from "../../components/dynamic-clients/DynamicClientsTab";
 
+// Whether the CIMD allowlist restricts anything. An absent or empty
+// allowed_domains means "any domain", not "no domain" (docs/specs/cimd.md
+// § Domain Trust) -- the form makes that an explicit choice so an admin
+// never has to infer the permissive reading from an empty field.
+export type CIMDDomainMode = "any" | "list";
+
 export interface FormState {
   clients: OAuthClientConfig[];
+  cimdEnabled: boolean;
+  cimdDomainMode: CIMDDomainMode;
+  cimdAllowedDomains: string[];
+  cimdAccessTokenLifetimeSeconds: number | undefined;
+  cimdRefreshTokenLifetimeSeconds: number | undefined;
+  cimdRefreshTokenIdleTimeoutEnabled: boolean;
+  cimdRefreshTokenIdleTimeoutSeconds: number | undefined;
   dynamicClientRegistrationEnabled: boolean;
   initialAccessTokenRequired: boolean;
   accessTokenLifetimeSeconds: number | undefined;
@@ -50,8 +67,21 @@ export interface FormState {
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   const dcr = config.oauth?.dynamic_client_registration;
+  const cimd = config.oauth?.client_id_metadata_document;
+  const cimdAllowedDomains = [...(cimd?.allowed_domains ?? [])];
   return {
     clients: config.oauth?.clients ?? [],
+    cimdEnabled: cimd?.enabled ?? false,
+    cimdDomainMode: cimdAllowedDomains.length > 0 ? "list" : "any",
+    cimdAllowedDomains,
+    cimdAccessTokenLifetimeSeconds:
+      cimd?.client_config?.access_token_lifetime_seconds,
+    cimdRefreshTokenLifetimeSeconds:
+      cimd?.client_config?.refresh_token_lifetime_seconds,
+    cimdRefreshTokenIdleTimeoutEnabled:
+      cimd?.client_config?.refresh_token_idle_timeout_enabled ?? true,
+    cimdRefreshTokenIdleTimeoutSeconds:
+      cimd?.client_config?.refresh_token_idle_timeout_seconds,
     dynamicClientRegistrationEnabled: dcr?.enabled ?? false,
     // Absent means required — the spec default. The requirement only means
     // anything while registration is enabled, so normalise it back to required
@@ -81,6 +111,61 @@ function constructConfig(
     ([config, currentState]) => {
       config.oauth ??= {};
       config.oauth.clients = currentState.clients;
+
+      config.oauth.client_id_metadata_document ??= {};
+      const cimd = config.oauth.client_id_metadata_document;
+
+      if (currentState.cimdEnabled) {
+        cimd.enabled = true;
+      } else {
+        delete cimd.enabled;
+      }
+
+      if (currentState.cimdDomainMode === "list") {
+        // An empty list in "Only these domains" mode is never written as an
+        // empty array: the server reads that as "any domain", which is the
+        // opposite of what the admin picked. Writing a single empty entry
+        // instead fails the config schema's minLength, so the save is
+        // refused with the error bound to the offending field rather than
+        // silently widening access.
+        cimd.allowed_domains =
+          currentState.cimdAllowedDomains.length > 0
+            ? currentState.cimdAllowedDomains
+            : [""];
+      } else {
+        delete cimd.allowed_domains;
+      }
+
+      cimd.client_config ??= {};
+      const cimdClientConfig = cimd.client_config;
+
+      if (currentState.cimdAccessTokenLifetimeSeconds != null) {
+        cimdClientConfig.access_token_lifetime_seconds =
+          currentState.cimdAccessTokenLifetimeSeconds;
+      } else {
+        delete cimdClientConfig.access_token_lifetime_seconds;
+      }
+
+      if (currentState.cimdRefreshTokenLifetimeSeconds != null) {
+        cimdClientConfig.refresh_token_lifetime_seconds =
+          currentState.cimdRefreshTokenLifetimeSeconds;
+      } else {
+        delete cimdClientConfig.refresh_token_lifetime_seconds;
+      }
+
+      if (currentState.cimdRefreshTokenIdleTimeoutEnabled) {
+        // Absent means enabled — the server default.
+        delete cimdClientConfig.refresh_token_idle_timeout_enabled;
+      } else {
+        cimdClientConfig.refresh_token_idle_timeout_enabled = false;
+      }
+
+      if (currentState.cimdRefreshTokenIdleTimeoutSeconds != null) {
+        cimdClientConfig.refresh_token_idle_timeout_seconds =
+          currentState.cimdRefreshTokenIdleTimeoutSeconds;
+      } else {
+        delete cimdClientConfig.refresh_token_idle_timeout_seconds;
+      }
 
       config.oauth.dynamic_client_registration ??= {};
       const dcr = config.oauth.dynamic_client_registration;
@@ -133,6 +218,22 @@ function constructConfig(
     }
   );
   return newConfig;
+}
+
+// A standing usage limit can carry several entries; only an `action: block`
+// entry stops anything, and the smallest of those is the effective cap.
+// Returns null when the plan does not cap this usage at all.
+function smallestBlockQuota(
+  limits: StandingUsageLimitConfig[] | undefined
+): number | null {
+  const blockQuotas = (limits ?? [])
+    .filter((limit) => limit.action === "block")
+    .map((limit) => limit.quota)
+    .filter((quota): quota is number => quota != null);
+  if (blockQuotas.length === 0) {
+    return null;
+  }
+  return Math.min(...blockQuotas);
 }
 
 function stopPropagation(e: React.SyntheticEvent) {
@@ -271,6 +372,7 @@ interface OAuthClientConfigurationContentProps {
   onChangeKey: (key: ApplicationsTabKey) => void;
   publicOrigin: string;
   dcrClientQuota: number | null;
+  cimdClientQuota: number | null;
 }
 
 const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContentProps> =
@@ -284,6 +386,7 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       onChangeKey,
       publicOrigin,
       dcrClientQuota,
+      cimdClientQuota,
     } = props;
     const navigate = useNavigate();
     const { renderToString } = useContext(Context);
@@ -497,6 +600,7 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
               form={props.form}
               publicOrigin={publicOrigin}
               dcrClientQuota={dcrClientQuota}
+              cimdClientQuota={cimdClientQuota}
             />
           </div>
         )}
@@ -539,16 +643,15 @@ const ApplicationsConfigurationScreen: React.VFC =
     }, [form.effectiveConfig]);
 
     const dcrClientQuota = useMemo<number | null>(() => {
-      const limits =
-        featureConfig.effectiveFeatureConfig?.usage?.limits?.oauth_client_dcr;
-      const blockQuotas = (limits ?? [])
-        .filter((limit) => limit.action === "block")
-        .map((limit) => limit.quota)
-        .filter((quota): quota is number => quota != null);
-      if (blockQuotas.length === 0) {
-        return null;
-      }
-      return Math.min(...blockQuotas);
+      return smallestBlockQuota(
+        featureConfig.effectiveFeatureConfig?.usage?.limits?.oauth_client_dcr
+      );
+    }, [featureConfig.effectiveFeatureConfig]);
+
+    const cimdClientQuota = useMemo<number | null>(() => {
+      return smallestBlockQuota(
+        featureConfig.effectiveFeatureConfig?.usage?.limits?.oauth_client_cimd
+      );
     }, [featureConfig.effectiveFeatureConfig]);
 
     const oauthClientsHardMaximum = useMemo<number | undefined>(() => {
@@ -598,6 +701,7 @@ const ApplicationsConfigurationScreen: React.VFC =
           onChangeKey={onChangeKey}
           publicOrigin={publicOrigin}
           dcrClientQuota={dcrClientQuota}
+          cimdClientQuota={cimdClientQuota}
         />
       </FormContainer>
     );

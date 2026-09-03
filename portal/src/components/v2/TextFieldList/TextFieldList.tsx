@@ -4,7 +4,13 @@ import { IconButton as RadixIconButton, Text } from "@radix-ui/themes";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { FormattedMessage } from "../../../intl";
 import { useFormField } from "../../../form";
-import { joinParentChild } from "../../../util/jsonpointer";
+import { APIError } from "../../../error/error";
+import { ErrorParseRule, ErrorParseRuleResult } from "../../../error/parse";
+import { ValidationFailedErrorInfoCause } from "../../../error/validation";
+import {
+  joinParentChild,
+  parentChildToJSONPointer,
+} from "../../../util/jsonpointer";
 import ErrorRenderer from "../../../ErrorRenderer";
 import { TextField } from "../TextField/TextField";
 import { SecondaryButton } from "../Button/SecondaryButton/SecondaryButton";
@@ -23,14 +29,58 @@ export interface TextFieldListProps {
   onListItemDelete: (list: string[], index: number, item: string) => void;
   addButtonLabelMessageID?: string;
   deleteButtonAriaLabel?: string;
+  /**
+   * Message shown on an item that fails config-schema validation, in place of
+   * the raw keyword violation. Without it the field renders the schema's own
+   * wording -- for a `pattern` that means printing the regex at the admin,
+   * which no reader can act on.
+   */
+  itemErrorMessageID?: string;
   disabled?: boolean;
   minItem?: number;
   maxItem?: number;
 }
 
+// One message per failing item, not one per failing keyword: a blank entry
+// trips both `minLength` and `pattern`, and saying the same thing twice is
+// noise. Anchored on the item's own location so a bad entry marks its own
+// row -- a rule is attributed to the field that registered it, so a laxer
+// match would flag every row in the list.
+function makeItemErrorRule(
+  itemJSONPointer: string,
+  messageID: string
+): ErrorParseRule {
+  return (apiError: APIError): ErrorParseRuleResult => {
+    if (apiError.reason !== "ValidationFailed") {
+      return { parsedAPIErrors: [], fullyHandled: false };
+    }
+    const unhandledCauses: ValidationFailedErrorInfoCause[] = [];
+    let matched = false;
+    for (const cause of apiError.info.causes) {
+      if (cause.location === itemJSONPointer) {
+        matched = true;
+      } else {
+        unhandledCauses.push(cause);
+      }
+    }
+    if (!matched) {
+      return { parsedAPIErrors: [], fullyHandled: false };
+    }
+    return {
+      parsedAPIErrors: [{ messageID }],
+      modifiedAPIError: {
+        ...apiError,
+        info: { ...apiError.info, causes: unhandledCauses },
+      },
+      fullyHandled: false,
+    };
+  };
+}
+
 interface TextFieldListItemProps {
   index: number;
   itemsJSONPointer: string | RegExp;
+  errorMessageID?: string;
   placeholder?: string;
   value: string;
   disabled?: boolean;
@@ -43,6 +93,7 @@ interface TextFieldListItemProps {
 function TextFieldListItem({
   index,
   itemsJSONPointer,
+  errorMessageID,
   placeholder,
   value,
   disabled,
@@ -61,13 +112,27 @@ function TextFieldListItem({
     onItemDelete(index);
   }, [index, onItemDelete]);
 
+  const fieldName = index.toString(10);
+  const errorRules = useMemo(() => {
+    if (errorMessageID == null || typeof itemsJSONPointer !== "string") {
+      return undefined;
+    }
+    return [
+      makeItemErrorRule(
+        parentChildToJSONPointer(itemsJSONPointer, fieldName),
+        errorMessageID
+      ),
+    ];
+  }, [errorMessageID, itemsJSONPointer, fieldName]);
+
   return (
     <div className={styles.row}>
       <div className={styles.rowField}>
         <TextField
           size="2"
           parentJSONPointer={itemsJSONPointer}
-          fieldName={index.toString(10)}
+          fieldName={fieldName}
+          errorRules={errorRules}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
@@ -110,6 +175,7 @@ export function TextFieldList(props: TextFieldListProps): React.ReactElement {
     onListItemDelete,
     addButtonLabelMessageID,
     deleteButtonAriaLabel,
+    itemErrorMessageID,
     disabled,
     minItem,
     maxItem,
@@ -171,6 +237,7 @@ export function TextFieldList(props: TextFieldListProps): React.ReactElement {
             key={index}
             index={index}
             itemsJSONPointer={itemsJSONPointer}
+            errorMessageID={itemErrorMessageID}
             placeholder={placeholder}
             value={value}
             disabled={disabled}

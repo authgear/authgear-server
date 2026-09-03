@@ -1,0 +1,11 @@
+.labelWithHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hintIcon {
+  color: var(--gray-9);
+  cursor: help;
+  flex-shrink: 0;
+}

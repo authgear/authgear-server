@@ -1,5 +1,9 @@
-query dynamicClientsQuery($first: Int, $after: String) {
-  dynamicClients(first: $first, after: $after) {
+query dynamicClientsQuery(
+  $first: Int
+  $after: String
+  $source: OAuthClientSource
+) {
+  dynamicClients(first: $first, after: $after, source: $source) {
     edges {
       node {
         id
@@ -9,6 +13,7 @@ query dynamicClientsQuery($first: Int, $after: String) {
         kind
         source
         registeredAt
+        lastFetchedAt
         applicationType
         redirectURIs
         grantTypes

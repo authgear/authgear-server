@@ -5,3 +5,21 @@
 .rootWithSaveBar {
   padding-bottom: 5.5rem;
 }
+
+.stats {
+  @apply flex flex-row flex-wrap gap-x-10 gap-y-4;
+}
+
+.stat {
+  @apply flex flex-col gap-1;
+  min-width: 4rem;
+}
+
+.statLabel,
+.statValue {
+  margin: 0;
+}
+
+.statValue {
+  color: var(--gray-12);
+}
