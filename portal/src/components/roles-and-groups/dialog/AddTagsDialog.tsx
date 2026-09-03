@@ -222,16 +222,28 @@ function AddTagsDialog({
         setTags((prev) => prev.slice(0, -1));
         return;
       }
-      if (e.key === "Escape") {
-        setSuggestionsOpen(false);
-        return;
-      }
+      // Escape is handled by onEscapeKeyDown on Dialog.Content: Radix listens
+      // for it on the document in the capture phase, so it has already decided
+      // to dismiss the dialog by the time this bubble-phase handler runs.
       if (e.key === "Enter" && suggestions.length > 0) {
         e.preventDefault();
         onSelectSuggestion(suggestions[0]);
       }
     },
     [onSelectSuggestion, searchKeyword, suggestions, tags.length]
+  );
+
+  const onEscapeKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // While the suggestion dropdown is open, Escape closes only the
+      // dropdown. preventDefault stops Radix's dismissable layer from also
+      // closing the whole dialog and discarding the tags already picked.
+      if (suggestionsOpen) {
+        e.preventDefault();
+        setSuggestionsOpen(false);
+      }
+    },
+    [suggestionsOpen]
   );
 
   const canSubmit = tags.length > 0 && !isLoading;
@@ -271,7 +283,11 @@ function AddTagsDialog({
 
   return (
     <Dialog.Root open={!isHidden} onOpenChange={onOpenChange}>
-      <Dialog.Content maxWidth="420px" size="3">
+      <Dialog.Content
+        maxWidth="420px"
+        size="3"
+        onEscapeKeyDown={onEscapeKeyDown}
+      >
         <Dialog.Title>{title}</Dialog.Title>
         <Dialog.Description className={styles.srOnly}>
           {tagPickerLabel}
