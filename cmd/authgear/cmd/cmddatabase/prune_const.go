@@ -49,6 +49,11 @@ var pruneTableNames []string = []string{
 	"_auth_resource_scope",
 	"_auth_resource",
 
+	// OAuth dynamic client registration, keyed only by app_id (no FK to
+	// _auth_user).
+	"_auth_oauth_client",
+	"_auth_oauth_initial_access_token",
+
 	// _auth_user must be last: every table above references it.
 	"_auth_user",
 }
