@@ -1,21 +1,29 @@
 import React, { useCallback, useEffect, useState } from "react";
 import cn from "classnames";
 import { CSSColor } from "../../model/themeAuthFlowV2";
+import { parseCSSColor, rgbaOrHexString } from "../../util/shades";
 
 import styles from "./ColorPicker.module.css";
 
-// Only #rrggbb is accepted by the native color input, so that is the format
-// we validate against here.
-const HEX_REGEX = /^#[0-9a-fA-F]{6}$/;
+// Accept every CSS color format the previous FluentUI picker accepted
+// (#rgb, #rrggbb, rgb(a)(), hsl(a)()) and normalise it the same way, so
+// existing themes written in those formats keep working.
+function normalizeColor(value: string): string | undefined {
+  const rgba = parseCSSColor(value.trim());
+  if (rgba == null) {
+    return undefined;
+  }
+  return rgbaOrHexString(rgba.r, rgba.g, rgba.b, rgba.a);
+}
 
+// The native color input only understands #rrggbb, so anything with alpha
+// falls back to the opaque form of the same color.
 function toHexColor(color: string | undefined, fallback: string): string {
-  if (color != null && HEX_REGEX.test(color)) {
-    return color;
+  const rgba = parseCSSColor(color ?? "") ?? parseCSSColor(fallback);
+  if (rgba == null) {
+    return "#000000";
   }
-  if (HEX_REGEX.test(fallback)) {
-    return fallback;
-  }
-  return "#000000";
+  return rgbaOrHexString(rgba.r, rgba.g, rgba.b, 100);
 }
 
 interface ColorPickerProps {
@@ -43,7 +51,7 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.currentTarget.value;
       setInputValue(value);
-      onChange(HEX_REGEX.test(value) ? value : undefined);
+      onChange(normalizeColor(value));
     },
     [onChange]
   );

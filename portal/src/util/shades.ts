@@ -173,7 +173,12 @@ function rgb2hex(r: number, g: number, b: number): string {
  * A CSS color string from components: `rgba()` when alpha < 100, otherwise
  * `#rrggbb`. Matches FluentUI's `_rgbaOrHexString`.
  */
-function rgbaOrHexString(r: number, g: number, b: number, a: number): string {
+export function rgbaOrHexString(
+  r: number,
+  g: number,
+  b: number,
+  a: number
+): string {
   return a === MAX_COLOR_ALPHA
     ? `#${rgb2hex(r, g, b)}`
     : `rgba(${r}, ${g}, ${b}, ${a / MAX_COLOR_ALPHA})`;
@@ -198,11 +203,16 @@ function parseRGBA(str: string): RGBA | null {
 }
 
 function parseHSLA(str: string): RGBA | null {
-  const match = /^hsl(a?)\(([\d., ]+)\)$/.exec(str);
+  // The saturation and lightness components are percentages in every
+  // spec-legal hsl() string, so `%` has to be accepted here; hsl2hsv already
+  // expects them as 0-100 numbers.
+  const match = /^hsl(a?)\(([\d.,% ]+)\)$/.exec(str);
   if (match) {
     const hasAlpha = !!match[1];
     const expectedPartCount = hasAlpha ? 4 : 3;
-    const parts = match[2].split(/ *, */).map(Number);
+    const parts = match[2]
+      .split(/ *, */)
+      .map((part) => Number(part.replace("%", "")));
     if (parts.length === expectedPartCount) {
       const rgb = hsl2rgb(parts[0], parts[1], parts[2]);
       return {
