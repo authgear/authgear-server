@@ -15,7 +15,7 @@ import {
 } from "../../error/parse";
 import { APIError, APISMSGatewayError } from "../../error/error";
 import cn from "classnames";
-import styles from "../users/Add2FAPhoneDialog.module.css";
+import styles from "./TestSMSDialog.module.css";
 import phoneDialogStyles from "../../PhoneDialog.module.css";
 
 const topErrorRules: ErrorParseRule[] = [

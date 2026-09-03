@@ -176,6 +176,8 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
       [isSearch, offset, pageSize, totalCount, onChangeOffset]
     );
 
+    const getItemKey = useCallback((item: UserRolesListItem) => item.id, []);
+
     const listEmptyText = renderToString("UserRolesList.empty");
 
     return (
@@ -185,6 +187,7 @@ export const UserRolesList: React.VFC<UserRolesListProps> =
             emptyText={listEmptyText}
             onItemClick={onItemClick}
             onRenderItemColumn={onRenderItemColumn}
+            getItemKey={getItemKey}
             items={roles}
             columns={columns}
             pagination={paginationProps}

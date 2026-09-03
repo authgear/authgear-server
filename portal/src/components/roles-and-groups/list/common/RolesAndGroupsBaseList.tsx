@@ -35,6 +35,9 @@ interface RolesAndGroupsBaseListProps<T> {
   columns: RolesAndGroupsListColumn[];
   emptyText: string;
   onItemClick?: (item: T) => void;
+  // Stable per-item key. Falls back to the array index, which is only correct
+  // while the whole page is replaced at once.
+  getItemKey?: (item: T, index: number) => React.Key;
 }
 
 function RolesAndGroupsBaseList<T>(
@@ -49,6 +52,7 @@ function RolesAndGroupsBaseList<T>(
     columns,
     emptyText,
     onItemClick,
+    getItemKey,
   } = props;
 
   const isEmpty = items.length === 0 && !loading;
@@ -78,7 +82,7 @@ function RolesAndGroupsBaseList<T>(
             <Table.Body>
               {items.map((item, index) => (
                 <Table.Row
-                  key={index}
+                  key={getItemKey?.(item, index) ?? index}
                   className={
                     onItemClick != null ? styles.clickableRow : undefined
                   }

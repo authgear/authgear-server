@@ -188,6 +188,8 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
       [isSearch, offset, pageSize, totalCount, onChangeOffset]
     );
 
+    const getItemKey = useCallback((item: UserGroupsListItem) => item.id, []);
+
     const listEmptyText = renderToString("UserGroupsList.empty");
 
     return (
@@ -197,6 +199,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
             emptyText={listEmptyText}
             onItemClick={onItemClick}
             onRenderItemColumn={onRenderItemColumn}
+            getItemKey={getItemKey}
             items={groups}
             columns={columns}
             pagination={paginationProps}
