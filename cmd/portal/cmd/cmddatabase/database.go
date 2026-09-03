@@ -247,7 +247,7 @@ var cmdRestore = &cobra.Command{
 
 var cmdPrune = &cobra.Command{
 	Use:   "prune <app-id> ...",
-	Short: "Permanently delete the given apps' rows from the portal database.",
+	Short: "Permanently delete the given apps' rows from the portal database, and scrub their config source data.",
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := portalcmd.GetBinder()
@@ -264,6 +264,10 @@ var cmdPrune = &cobra.Command{
 			return
 		}
 
+		if err = pruneConfigSource(cmd.Context(), dbURL, dbSchema, args, !force); err != nil {
+			return
+		}
+
 		pruner := dbutil.NewPruner(
 			db.ConnectionInfo{
 				Purpose:     db.ConnectionPurposeGlobal,
@@ -271,7 +275,7 @@ var cmdPrune = &cobra.Command{
 			},
 			dbSchema,
 			args,
-			tableNames,
+			pruneTableNames,
 			!force,
 		)
 

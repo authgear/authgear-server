@@ -9,12 +9,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
-// tablesExcludedFromPrune mirrors the comment in const.go: these tables have
-// an app_id column but dumping/restoring/pruning them is deliberately not
-// supported (they mirror Stripe billing state, so bulk-deleting rows here
-// would desync it). A table only belongs in this list if that reasoning
-// still applies to it - do not add a table here just to silence this test.
-var tablesExcludedFromPrune = map[string]bool{
+// tablesExcludedFromDumpRestore mirrors the comment in const.go: these
+// tables have an app_id column but dumping/restoring them is deliberately
+// not supported. A table only belongs in this list if that reasoning still
+// applies to it - do not add a table here just to silence this test.
+//
+// _portal_pending_domain is here (dump/restore doesn't support it) but is
+// NOT excluded from prune - see tablesExcludedFromPrune in
+// prune_const_test.go.
+var tablesExcludedFromDumpRestore = map[string]bool{
 	"_portal_historical_subscription": true,
 	"_portal_pending_domain":          true,
 	"_portal_subscription":            true,
@@ -22,9 +25,7 @@ var tablesExcludedFromPrune = map[string]bool{
 }
 
 // TestTableNamesUpToDate fails when a migration adds or removes an app_id
-// column without tableNames (used by both dump/restore and
-// `authgear-portal database prune`) being updated to match, so app data
-// cannot silently be left un-pruned (or pruned from a dropped table).
+// column without tableNames (used by dump/restore) being updated to match.
 func TestTableNamesUpToDate(t *testing.T) {
 	Convey("tableNames plus the documented exclusions cover every table with an app_id column", t, func() {
 		actual, err := sqlmigrate.TablesWithColumn(portalMigrationFS, "migrations/portal", "app_id")
@@ -34,7 +35,7 @@ func TestTableNamesUpToDate(t *testing.T) {
 		for _, name := range tableNames {
 			declared[name] = true
 		}
-		for name := range tablesExcludedFromPrune {
+		for name := range tablesExcludedFromDumpRestore {
 			declared[name] = true
 		}
 
