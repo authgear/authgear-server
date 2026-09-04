@@ -72,12 +72,20 @@ var _ = FeatureConfigSchema.Add("FeatureUsageLimitsConfig", `
 `)
 
 type FeatureUsageLimitsConfig struct {
-	UserExport     []FeatureUsageLimitConfig         `json:"user_export,omitempty"`
-	UserImport     []FeatureUsageLimitConfig         `json:"user_import,omitempty"`
-	Email          []FeatureUsageLimitConfig         `json:"email,omitempty"`
-	Whatsapp       []FeatureUsageLimitConfig         `json:"whatsapp,omitempty"`
-	SMS            []FeatureUsageLimitConfig         `json:"sms,omitempty"`
-	OAuthClientDCR []StandingFeatureUsageLimitConfig `json:"oauth_client_dcr,omitempty"`
+	// omitzero, not omitempty: nil (unset, inherit from a lower layer) and
+	// an explicit empty slice (override to "no limits") are semantically
+	// distinct here — omitempty would drop both cases the same way,
+	// silently reverting an explicit override back to inherited on the
+	// merge-fold's marshal/re-parse round trip (see
+	// viewEffectiveResource in configsource/resources.go). omitzero only
+	// omits the true zero value (nil), preserving an explicit []
+	// through that round trip.
+	UserExport     []FeatureUsageLimitConfig         `json:"user_export,omitzero"`
+	UserImport     []FeatureUsageLimitConfig         `json:"user_import,omitzero"`
+	Email          []FeatureUsageLimitConfig         `json:"email,omitzero"`
+	Whatsapp       []FeatureUsageLimitConfig         `json:"whatsapp,omitzero"`
+	SMS            []FeatureUsageLimitConfig         `json:"sms,omitzero"`
+	OAuthClientDCR []StandingFeatureUsageLimitConfig `json:"oauth_client_dcr,omitzero"`
 }
 
 func (c *FeatureUsageLimitsConfig) Limits(name model.UsageName) []FeatureUsageLimitConfig {
