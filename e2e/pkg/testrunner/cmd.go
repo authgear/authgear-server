@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -256,7 +257,43 @@ func (e *End2EndCmd) QueryHookServer(path string) ([]interface{}, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		return nil, err
 	}
+	// Non-blocking webhooks are delivered in fire-and-forget goroutines, so the
+	// order the hook server records them in is not the order the events were
+	// produced in. Sort by the event seq, which is allocated in causal order,
+	// so that assertions on rows are deterministic.
+	sortHookServerRowsBySeq(payload.Requests)
 	return payload.Requests, nil
+}
+
+// sortHookServerRowsBySeq stably sorts rows by their event seq.
+// It is a no-op unless every row carries a seq, so that rows recorded by hooks
+// forwarding non-event payloads keep their arrival order.
+func sortHookServerRowsBySeq(rows []interface{}) {
+	type rowWithSeq struct {
+		Row interface{}
+		Seq int64
+	}
+
+	withSeq := make([]rowWithSeq, len(rows))
+	for i, row := range rows {
+		obj, ok := row.(map[string]interface{})
+		if !ok {
+			return
+		}
+		seq, ok := obj["seq"].(float64)
+		if !ok {
+			return
+		}
+		withSeq[i] = rowWithSeq{Row: row, Seq: int64(seq)}
+	}
+
+	sort.SliceStable(withSeq, func(i, j int) bool {
+		return withSeq[i].Seq < withSeq[j].Seq
+	})
+
+	for i, row := range withSeq {
+		rows[i] = row.Row
+	}
 }
 
 func (e *End2EndCmd) execCmd(cmd string) (string, error) {

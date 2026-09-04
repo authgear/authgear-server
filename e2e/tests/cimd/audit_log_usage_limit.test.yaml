@@ -1,0 +1,124 @@
+name: a CIMD resolution refused by the oauth_client_cimd usage limit writes oauth.client.resolution.failed with reason limit_exceeded
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    usage:
+      limits:
+        oauth_client_cimd:
+          - quota: 1
+            action: block
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document_a
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "audit-log-usage-limit-a.json",
+        "document": {
+          "client_id": "http://localhost:2727/audit-log-usage-limit-a.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: configure_document_b
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "audit-log-usage-limit-b.json",
+        "document": {
+          "client_id": "http://localhost:2727/audit-log-usage-limit-b.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  # client A resolves and fills the quota (1).
+  - name: authorize_a
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/audit-log-usage-limit-a.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # client B is a brand-new client_id, refused by the quota.
+  - name: authorize_b
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/audit-log-usage-limit-b.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - access_denied
+
+  - name: verify_resolution_failed
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             client_id,
+             data->'payload'->>'reason' AS reason,
+             data->'payload'->>'usage_name' AS usage_name,
+             data->'payload'->>'quota' AS quota,
+             data->'payload'->>'served_stale_record' AS served_stale_record
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.resolution.failed'
+        AND client_id = 'http://localhost:2727/audit-log-usage-limit-b.json'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.resolution.failed",
+            "client_id": "http://localhost:2727/audit-log-usage-limit-b.json",
+            "reason": "limit_exceeded",
+            "usage_name": "oauth_client_cimd",
+            "quota": "1",
+            "served_stale_record": "false"
+          }
+        ]
+
+  # And no oauth.client.resolved was ever written for client B -- the
+  # transaction that would have created it rolled back.
+  - name: verify_no_resolved_event_for_b
+    action: audit_query
+    audit_query: |
+      SELECT count(*) AS count
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.resolved'
+        AND client_id = 'http://localhost:2727/audit-log-usage-limit-b.json'
+    audit_query_output:
+      rows: |
+        [
+          {
+            "count": "0"
+          }
+        ]

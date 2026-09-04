@@ -545,6 +545,9 @@ Use this event to add custom fields to the ID token.
 - [usage.alert.triggered](#usagealerttriggered)
 - [rate_limit.blocked](#rate_limitblocked)
 - [oauth.client.registered](#oauthclientregistered)
+- [oauth.client.registration.failed](#oauthclientregistrationfailed)
+- [oauth.client.resolved](#oauthclientresolved)
+- [oauth.client.resolution.failed](#oauthclientresolutionfailed)
 
 #### user.created
 
@@ -1201,7 +1204,9 @@ Payload:
     },
     "initial_access_token": {
       "id": "60f4c2a1-9d3e-4a7b-8c15-2e6f0b9d4a83",
-      "type": "FIRST_PARTY"
+      "type": "FIRST_PARTY",
+      "created_at": "2026-08-20T09:14:02Z",
+      "expires_at": "2026-09-20T09:14:02Z"
     }
   }
 }
@@ -1214,8 +1219,130 @@ Payload:
 - `client.application_type`: `web` or `native`.
 - `client.redirect_uris`, `client.grant_types`, `client.response_types`: The registered values, after defaults have been applied. See [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
 - `initial_access_token`: The Initial Access Token that authorized the registration. **The field does not exist** when the project allows open registration (`initial_access_token_required: false`) and the client presented no token.
-  - `initial_access_token.id`: The ID of the token, as returned by the `initialAccessTokens` Admin API query. The token value itself is never included.
+  - `initial_access_token.id`: The ID of the token, as returned by the `initialAccessTokens` Admin API query. The token value itself is never included, nor is a hash of it.
   - `initial_access_token.type`: `FIRST_PARTY` or `THIRD_PARTY`.
+  - `initial_access_token.created_at`, `initial_access_token.expires_at`: When the token was created and when it expires.
+
+  This object has the same shape wherever it appears, so a token presents identically here and in [oauth.client.registration.failed](#oauthclientregistrationfailed) — which is what makes "which clients did this token register, and when did it stop working" answerable from the audit log.
+
+#### oauth.client.registration.failed
+
+Occurs when `POST /oauth2/register` refuses a registration. It does not occur for an attempt rejected by the [rate limits](./dcr.md#rate-limits), which `rate_limit.blocked` already covers, nor when dynamic client registration is disabled for the project.
+
+No client was created, so neither `context.client_id` nor `context.user_id` is set. The record is identified by `context.ip_address`, `context.user_agent` and the timestamp — which is what makes a caller working through guessed Initial Access Tokens recognisable.
+
+Payload:
+```json5
+{
+  "payload": {
+    "reason": "invalid_initial_access_token",
+    "message": "expired",
+    "initial_access_token": {
+      "id": "60f4c2a1-9d3e-4a7b-8c15-2e6f0b9d4a83",
+      "type": "FIRST_PARTY",
+      "created_at": "2026-07-20T09:14:02Z",
+      "expires_at": "2026-08-20T09:14:02Z"
+    }
+  }
+}
+```
+
+- `reason`: One of:
+  - `invalid_initial_access_token` — the `Authorization` header was malformed, a token was required and absent, or the token presented was unknown or expired.
+  - `invalid_client_metadata` — the body was not a JSON object, or failed a rule in [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
+  - `limit_exceeded` — the project is at its [`oauth_client_dcr` quota](./dcr.md#client-limit).
+- `message`: The specific cause within `reason`. For `invalid_initial_access_token`: `malformed_header`, `not_presented`, `unknown` or `expired`. For `invalid_client_metadata`: the rule that failed, e.g. `malformed_json`, `redirect_uris_missing`, `redirect_uri_invalid`, `grant_type_unsupported`, `response_type_inconsistent`, `application_type_unsupported`, `token_endpoint_auth_method_not_accepted`, `uri_field_not_https`. Absent for `limit_exceeded`, which has no sub-cases.
+- `usage_name`, `quota`: Present only for `limit_exceeded`. The usage name (`oauth_client_dcr`) and the quota that was reached.
+- `initial_access_token`: Present only when `message` is `expired` — the only case where a token row exists to describe. Same shape as in [oauth.client.registered](#oauthclientregistered). An unknown token has nothing to report, and none was presented in the `not_presented` case.
+
+Note that the HTTP response does **not** distinguish these messages: all four `invalid_initial_access_token` cases return the same error to the caller, so a caller guessing tokens learns nothing. The distinction exists only in the audit log, which only the project admin can read.
+
+#### oauth.client.resolved
+
+Occurs when a [CIMD](./cimd.md) client metadata document is fetched successfully and the persisted record is **created** or **changed**. It does not occur for a refetch that produced identical metadata, which is the routine hourly case and carries no information. It does not occur for statically configured or DCR clients.
+
+`context.client_id` is the `client_id` — the Client Identifier URL — of the resolved client.
+
+Payload, on first resolution:
+```json5
+{
+  "payload": {
+    "client": {
+      "client_id": "https://mcp-client.example.com/oauth/client-metadata.json",
+      "source": "CIMD",
+      "kind": "THIRD_PARTY",
+      "client_name": "Example MCP Client",
+      "application_type": "web",
+      "redirect_uris": ["http://127.0.0.1:3000/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"]
+    },
+    "created": true
+  }
+}
+```
+
+Payload, on a refetch that changed something:
+```json5
+{
+  "payload": {
+    "client": {
+      "client_id": "https://mcp-client.example.com/oauth/client-metadata.json",
+      "source": "CIMD",
+      "kind": "THIRD_PARTY",
+      "client_name": "Example MCP Client",
+      "application_type": "web",
+      "redirect_uris": ["http://127.0.0.1:3000/callback", "https://attacker.example.net/cb"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"]
+    },
+    "created": false,
+    "old_client": {
+      "client_id": "https://mcp-client.example.com/oauth/client-metadata.json",
+      "source": "CIMD",
+      "kind": "THIRD_PARTY",
+      "client_name": "Example MCP Client",
+      "application_type": "web",
+      "redirect_uris": ["http://127.0.0.1:3000/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"]
+    }
+  }
+}
+```
+
+- `client`: The client's state after the resolution — `client_id`, `source`, `kind`, `client_name`, `client_uri`, `logo_uri`, `tos_uri`, `policy_uri`, `application_type`, `redirect_uris`, `grant_types`, `response_types`, with `source` always `CIMD` and `kind` always `THIRD_PARTY`.
+- `created`: `true` on first resolution, `false` on a refetch that changed something.
+- `old_client`: The client's state immediately before this resolution, same shape as `client`. Absent when `created` is `true` (there is no "before"), and otherwise always present — this event is never emitted for a refetch that produced identical metadata, so a present `old_client` is guaranteed to differ from `client` in at least one field. Only fields derived from the document are ever compared to decide whether to emit this event at all — never `last_fetched_at`, which changes on every refetch by construction — and the three list fields are compared as sets, so reordering entries alone does not count as a change. `client` and `old_client` show full state rather than a computed list of changed fields, so the reader does the diffing.
+
+This is how Authgear implements spec §8.4's "notice metadata changed compared to the last time it fetched". A CIMD client's metadata is controlled by whoever can write to its URL, so `old_client.redirect_uris` differing from `client.redirect_uris` by an added entry — as in the example above — is the signal that matters most in this event.
+
+#### oauth.client.resolution.failed
+
+Occurs when a [CIMD](./cimd.md) `client_id` could not be resolved into a usable client. It does not occur for a `client_id` refused by `allowed_domains` or when CIMD is disabled — neither reached a fetch, and both are a static answer the admin already has from their own configuration.
+
+`context.client_id` is the `client_id` that failed to resolve.
+
+Payload:
+```json5
+{
+  "payload": {
+    "reason": "invalid",
+    "message": "client_id_mismatch",
+    "served_stale_record": false
+  }
+}
+```
+
+- `reason`: One of:
+  - `unavailable` — the document could not be retrieved. **Every** transport-level failure is this one value: DNS failure, blocked address, connection refused, TLS failure, timeout, non-2xx response, oversize body, unparseable body.
+  - `invalid` — a JSON object was retrieved and failed a rule in [Accepted Metadata Fields](./cimd.md#accepted-metadata-fields).
+  - `limit_exceeded` — the document resolved cleanly but the project is at its [`oauth_client_cimd` quota](./cimd.md#client-limit), so no record was created.
+- `message`: The rule that failed, for `invalid` only — e.g. `client_id_mismatch`, `redirect_uris_missing`, `redirect_uri_invalid`, `token_endpoint_auth_method_not_accepted`. **Never present for `unavailable`.**
+- `usage_name`, `quota`: Present only for `limit_exceeded`.
+- `served_stale_record`: `true` when a persisted record already existed and was served despite this failure, so the client still works on its last-known metadata; `false` when the client was left unresolvable. Always `false` for `limit_exceeded`, which only arises when there was no record. See [Error Handling](./cimd.md#error-handling).
+
+**`unavailable` is deliberately one indistinguishable bucket.** The fetch target is chosen by an unauthenticated caller, so distinguishing "connection refused" from "timeout" from "TLS failure" would turn the audit log into a probe of what Authgear's network can reach — at higher privilege than the HTTP response, which reveals nothing. `invalid` does carry its message, because reaching it proves a parseable document was retrieved, so the message describes the client author's own published content. See [Authgear as an SSRF/Probing Oracle](./cimd.md#authgear-as-an-ssrfprobing-oracle).
 
 ### Events that support audit log
 
@@ -1265,6 +1392,9 @@ Read [Audit Logs](./audit-log.md) for details.
 - `identity.biometric.disabled`
 - `rate_limit.blocked`
 - `oauth.client.registered`
+- `oauth.client.registration.failed`
+- `oauth.client.resolved`
+- `oauth.client.resolution.failed`
 
 ## Trigger Points Diagrams
 

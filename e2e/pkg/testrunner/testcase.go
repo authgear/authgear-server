@@ -360,7 +360,11 @@ func (tc *TestCase) executeStep(
 		}
 		body := ""
 		if step.HTTPRequestBody != "" {
-			body = step.HTTPRequestBody
+			renderedBody, templateOk := renderTemplateString(t, cmd, prevSteps, step.HTTPRequestBody)
+			if !templateOk {
+				return nil, state, false
+			}
+			body = renderedBody
 		} else if step.HTTPRequestFormURLEncodedBody != nil {
 			renderedHeaders["Content-Type"] = "application/x-www-form-urlencoded"
 			values := url.Values{}
@@ -386,7 +390,7 @@ func (tc *TestCase) executeStep(
 					httpResult = NewResultHTTPResponse(r)
 				}
 				if step.HTTPOutput != nil {
-					outputOk = validateHTTPOutput(t, step, step.HTTPOutput, r)
+					outputOk = validateHTTPOutput(t, cmd, prevSteps, step, step.HTTPOutput, r)
 				}
 				return nil
 			})
@@ -1228,7 +1232,7 @@ func validateHTTPResponseStatus(t *testing.T, stepName string, expectedStatus in
 	return true
 }
 
-func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
+func validateHTTPOutput(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, step Step, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
 	ok = true
 	if response == nil {
 		t.Errorf("expected http response but got nil")
@@ -1289,7 +1293,7 @@ func validateHTTPOutput(t *testing.T, step Step, httpOutput *HTTPOutput, respons
 		}
 	}
 	if len(httpOutput.HTMLXPathExists) > 0 || len(httpOutput.HTMLTextContains) > 0 {
-		if !validateHTTPHTML(t, step, httpOutput, response) {
+		if !validateHTTPHTML(t, cmd, prevSteps, step, httpOutput, response) {
 			ok = false
 		}
 	}

@@ -1,0 +1,90 @@
+name: Removing a domain from allowed_domains freezes a STALE already-resolved client on that host instead of refetching it
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+        allowed_domains: ["*.example.com"]
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+before:
+  - type: custom_sql
+    custom_sql:
+      path: revoked_allowed_domains_keeps_stale_existing_fixtures.sql
+steps:
+  # Unlike revoked_allowed_domains_keeps_existing.test.yaml (whose seeded row
+  # is fresh, so EnsureClientResolved never even reaches the allowed_domains
+  # check), this row is STALE -- past the 1 hour refetch interval. That is
+  # exactly the case where a refetch would normally be attempted, so this is
+  # the test that actually exercises service.go's domain-trust check at the
+  # point it matters: "an existing-but-stale row on a now-disallowed domain
+  # serves its last-known-good metadata forever, exactly like a failed
+  # refetch would" -- never touching the document server.
+  - name: authorize_seeded_stale
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/revoked-domains-stale.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: verify_no_refetch_attempted
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=revoked-domains-stale.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }
+
+  # Belt-and-braces: the persisted record must still carry the ORIGINAL
+  # seeded metadata, proving the frozen row was served as-is rather than a
+  # refetch (which would have failed to even reach the document server
+  # under this config, but would also have changed client_name if it had).
+  - name: verify_record_unchanged
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            totalCount
+            edges {
+              node {
+                clientID
+                clientName
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 1,
+              "edges": [
+                {
+                  "node": {
+                    "clientID": "http://localhost:2727/revoked-domains-stale.json",
+                    "clientName": "Seeded Stale CIMD Client"
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }

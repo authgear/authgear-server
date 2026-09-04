@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 // Source and Kind reuse the API-facing enums rather than redeclaring them:
@@ -74,4 +75,39 @@ func derefOr(s *string, fallback string) string {
 		return fallback
 	}
 	return *s
+}
+
+// MetadataChangedFrom reports whether applying options via UpsertCIMDClient
+// would change any field a fetched document controls -- ClientName,
+// ClientURI, LogoURI, TOSURI, PolicyURI, ApplicationType, RedirectURIs,
+// GrantTypes, ResponseTypes. Never ID, ClientID, Source, Kind, or any
+// timestamp: those are not document-derived, and CreatedAt/UpdatedAt/
+// LastFetchedAt change on every refetch by construction, which would make
+// this report "changed" on every call.
+//
+// A nil ClientName/ClientURI/LogoURI/TOSURI/PolicyURI is treated as equal
+// to a pointer to "": Store.NewClient stores an explicit "" as nil, so a
+// document that switches between omitting a field and sending "" must not
+// register as a change. RedirectURIs/GrantTypes/ResponseTypes compare as
+// sets: order carries no meaning in them, so a mere reorder is not a
+// change either.
+func (c *Client) MetadataChangedFrom(options *UpsertCIMDClientOptions) bool {
+	sameString := func(a, b *string) bool {
+		if a != nil && *a == "" {
+			a = nil
+		}
+		if b != nil && *b == "" {
+			b = nil
+		}
+		return derefOr(a, "") == derefOr(b, "")
+	}
+	return !sameString(c.ClientName, options.ClientName) ||
+		!sameString(c.ClientURI, options.ClientURI) ||
+		!sameString(c.LogoURI, options.LogoURI) ||
+		!sameString(c.TOSURI, options.TOSURI) ||
+		!sameString(c.PolicyURI, options.PolicyURI) ||
+		c.ApplicationType != options.ApplicationType ||
+		!setutil.SetsEqual(c.RedirectURIs, options.RedirectURIs) ||
+		!setutil.SetsEqual(c.GrantTypes, options.GrantTypes) ||
+		!setutil.SetsEqual(c.ResponseTypes, options.ResponseTypes)
 }

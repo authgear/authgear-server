@@ -1,0 +1,49 @@
+name: The first authorization request for a brand-new CIMD client_id succeeds -- the negative-cache invalidation bug, in e2e form
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "first-request-cache.json",
+        "document": {
+          "client_id": "http://localhost:2727/first-request-cache.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  # Without Commands.UpsertCIMDClient's cache invalidation, the freshness
+  # read inside EnsureClientResolved misses in Postgres, caches "not
+  # found" for 30s, then the upsert creates the row -- and this VERY FIRST
+  # authorize request would still read that stale negative cache entry a
+  # moment later inside resolveClient and reject a client that was just
+  # successfully resolved. No sleep, no second attempt: this must succeed
+  # on the first try.
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/first-request-cache.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302

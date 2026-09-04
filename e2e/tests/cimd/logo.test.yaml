@@ -1,0 +1,268 @@
+name: a CIMD client's logo is served through Authgear's own proxy, cached, and unavailable (but the consent screen still renders) when the logo host misbehaves
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: configure_logo_image
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "logo-cimd-image-{{ .AppID }}.png",
+        "content_type": "image/png",
+        "body_base64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGNgAAACAAEA////AwAABgAFV7+r1AAAAABJRU5ErkJggg=="
+      }
+    http_output:
+      http_status: 200
+
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "logo-cimd-{{ .AppID }}.json",
+        "document": {
+          "client_id": "http://localhost:2727/logo-cimd-{{ .AppID }}.json",
+          "client_name": "E2E CIMD Client With Logo",
+          "logo_uri": "http://localhost:2727/logo-cimd-image-{{ .AppID }}.png",
+          "redirect_uris": ["http://localhost:4000"],
+          "grant_types": ["authorization_code", "refresh_token"],
+          "response_types": ["code"],
+          "token_endpoint_auth_method": "none"
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: http://localhost:2727/logo-cimd-{{ .AppID }}.json
+    oauth_setup_scope:
+      - openid
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # The proxy URL is keyed on client_id (percent-encoded, since it is
+  # itself a URL containing ':' and '/'), never on logo_uri -- so the
+  # fixture host must NOT appear in the rendered <img src>, only in this
+  # test's own separately-fetched proxy URL below.
+  - name: view_consent_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_output:
+      http_status: 200
+      html_text_contains:
+        - "authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd-{{ .AppID }}.json"
+
+  - name: fetch_logo_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd-{{ .AppID }}.json"
+    http_output:
+      http_status: 200
+      headers:
+        Content-Type: image/png
+
+  - name: fetch_logo_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-cimd-{{ .AppID }}.json"
+    http_output:
+      http_status: 200
+      headers:
+        Content-Type: image/png
+
+  # The cache works: two proxy requests, one fixture fetch.
+  - name: verify_one_fetch
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=logo-cimd-image-{{ .AppID }}.png
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 1
+        }
+
+---
+
+name: a logo host that returns HTML instead of an image -- the proxy URL is unavailable, but the consent screen still renders
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: configure_broken_logo
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "logo-broken-image-{{ .AppID }}.png",
+        "content_type": "text/html",
+        "body": "<html><body>not an image</body></html>"
+      }
+    http_output:
+      http_status: 200
+
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "logo-broken-{{ .AppID }}.json",
+        "document": {
+          "client_id": "http://localhost:2727/logo-broken-{{ .AppID }}.json",
+          "client_name": "E2E CIMD Client With A Broken Logo",
+          "logo_uri": "http://localhost:2727/logo-broken-image-{{ .AppID }}.png",
+          "redirect_uris": ["http://localhost:4000"],
+          "grant_types": ["authorization_code", "refresh_token"],
+          "response_types": ["code"],
+          "token_endpoint_auth_method": "none"
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: http://localhost:2727/logo-broken-{{ .AppID }}.json
+    oauth_setup_scope:
+      - openid
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: view_consent_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_output:
+      http_status: 200
+      html_text_contains:
+        - "E2E CIMD Client With A Broken Logo"
+
+  - name: fetch_broken_logo
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://{{ .AppID }}.authgeare2e.localhost:4000/_internals/client_logo?client_id=http%3A%2F%2Flocalhost%3A2727%2Flogo-broken-{{ .AppID }}.json"
+    http_output:
+      http_status: 404

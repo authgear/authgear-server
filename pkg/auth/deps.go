@@ -24,10 +24,12 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/cimd"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
+	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
@@ -51,6 +53,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -73,6 +76,24 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(oauthhandler.TokenHandlerAppDatabase), new(*appdb.Handle)),
 	wire.Bind(new(oauthhandler.AuthorizationHandlerDatabase), new(*appdb.Handle)),
+
+	// cimd.DependencySet lives here, not in deps.CommonDependencySet: it
+	// needs *appdb.Handle (via ServiceDatabase), and *appdb.Handle is only
+	// provided in request-scoped sets like this one, not the shared common
+	// set every binary pulls in. See deps_common.go's comment at the same
+	// spot dcr.DependencySet's sibling block lives.
+	cimd.DependencySet,
+	wire.Bind(new(oauthhandler.AuthorizationHandlerCIMDService), new(*cimd.Service)),
+	wire.Bind(new(cimd.ServiceOAuthClientCommands), new(*oauthclient.Commands)),
+	wire.Bind(new(cimd.ServiceOAuthClientQueries), new(*oauthclient.Queries)),
+	wire.Bind(new(cimd.ServiceDatabase), new(*appdb.Handle)),
+	wire.Bind(new(cimd.ServiceRateLimiter), new(*cimd.RateLimiter)),
+	wire.Bind(new(cimd.Limiter), new(*ratelimit.Limiter)),
+	wire.Bind(new(cimd.ServiceUsageLimiter), new(*usage.Limiter)),
+	wire.Bind(new(cimd.LogoLimiter), new(*ratelimit.Limiter)),
+	wire.Bind(new(cimd.ServiceEventService), new(*event.Service)),
+	wire.Bind(new(handlerwebapp.ClientLogoClientResolver), new(*oauthclient.Resolver)),
+	wire.Bind(new(handlerwebapp.ClientLogoLogoService), new(*cimd.LogoService)),
 
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 
@@ -119,6 +140,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.AuthflowEndpoints), new(*endpoints.Endpoints)),
+	wire.Bind(new(handleroauth.ConsentClientLogoEndpoint), new(*endpoints.Endpoints)),
 
 	wire.Bind(new(handlerwebappauthflowv2.ResetPasswordHandlerDatabase), new(*appdb.Handle)),
 
@@ -198,6 +220,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.SettingsVerificationService), new(*verification.Service)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsSessionManager), new(*session.Manager)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsAuthorizationService), new(*oauth.AuthorizationService)),
+	wire.Bind(new(handlerwebappauthflowv2.SettingsSessionsClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsSessionListingService), new(*sessionlisting.SessionListingService)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsMFAService), new(*mfa.Service)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsIdentityService), new(*identityservice.Service)),

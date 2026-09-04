@@ -1,0 +1,138 @@
+name: /oauth2/token never fetches the CIMD document, for either grant type
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "token-endpoint-no-fetch-{{ .AppID }}.json",
+        "document": {
+          "client_id": "http://localhost:2727/token-endpoint-no-fetch-{{ .AppID }}.json",
+          "redirect_uris": ["http://localhost:4000"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: http://localhost:2727/token-endpoint-no-fetch-{{ .AppID }}.json
+    oauth_setup_scope:
+      - openid
+      - offline_access
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  # This is the ONLY fetch expected in the whole test: the initial
+  # /oauth2/authorize resolution.
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: http://localhost:2727/token-endpoint-no-fetch-{{ .AppID }}.json
+
+  - name: verify_hits_after_authorization_code_grant
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=token-endpoint-no-fetch-{{ .AppID }}.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 1
+        }
+
+  - name: refresh
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: http://localhost:2727/token-endpoint-no-fetch-{{ .AppID }}.json
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer"
+        }
+
+  # Still exactly one hit: the refresh_token grant reads the persisted
+  # record like any other dynamic client's, and never fetches.
+  - name: verify_hits_after_refresh_token_grant
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=token-endpoint-no-fetch-{{ .AppID }}.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 1
+        }

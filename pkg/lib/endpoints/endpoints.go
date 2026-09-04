@@ -69,9 +69,22 @@ func (e *Endpoints) ConsentEndpointURL() *url.URL      { return e.urlOf("oauth2/
 func (e *Endpoints) TokenEndpointURL() *url.URL        { return e.urlOf("oauth2/token") }
 func (e *Endpoints) RevokeEndpointURL() *url.URL       { return e.urlOf("oauth2/revoke") }
 func (e *Endpoints) RegistrationEndpointURL() *url.URL { return e.urlOf("oauth2/register") }
-func (e *Endpoints) JWKSEndpointURL() *url.URL         { return e.urlOf("oauth2/jwks") }
-func (e *Endpoints) UserInfoEndpointURL() *url.URL     { return e.urlOf("oauth2/userinfo") }
-func (e *Endpoints) EndSessionEndpointURL() *url.URL   { return e.urlOf("oauth2/end_session") }
+
+// ClientLogoURL is the only endpoint method that takes an argument -- every
+// other one is a bare urlOf("oauth2/..."), so it cannot reuse urlOf
+// directly. url.Values.Encode() rather than string concatenation: clientID
+// contains ':' and '/' and may itself carry a query string, all of which
+// must be percent-encoded to survive the round trip.
+func (e *Endpoints) ClientLogoURL(clientID string) *url.URL {
+	u := e.urlOf("_internals/client_logo")
+	q := url.Values{}
+	q.Set("client_id", clientID)
+	u.RawQuery = q.Encode()
+	return u
+}
+func (e *Endpoints) JWKSEndpointURL() *url.URL       { return e.urlOf("oauth2/jwks") }
+func (e *Endpoints) UserInfoEndpointURL() *url.URL   { return e.urlOf("oauth2/userinfo") }
+func (e *Endpoints) EndSessionEndpointURL() *url.URL { return e.urlOf("oauth2/end_session") }
 func (e *Endpoints) OAuthEntrypointURL() *url.URL {
 	return e.urlOf("_internals/oauth_entrypoint")
 }

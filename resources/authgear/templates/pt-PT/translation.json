@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "Atualizar",
   "v2.page.change-password.expiry.subtitle": "Hora de mudar sua senha.",
   "v2.page.change-password.expiry.title": "Senha Expirada",
+  "v2.page.consent.default.client-hostname-desc": "Esta aplicação está publicada em <b>{hostname}</b>. O Authgear não verificou a sua identidade além deste domínio.",
   "v2.page.consent.default.continue-button-label": "Permitir e continuar",
   "v2.page.consent.default.policy-and-tos-link-desc": "Consulte a <a class=\"link\" target=\"_blank\" href={policyURI}>política de privacidade</a> e os <a class=\"link\" target=\"_blank\" href={tosURI}>termos de serviço</a> de {clientName}.",
   "v2.page.consent.default.policy-link-desc": "Consulte a <a class=\"link\" target=\"_blank\" href={policyURI}>política de privacidade</a> de {clientName}.",

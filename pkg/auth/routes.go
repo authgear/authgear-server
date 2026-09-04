@@ -448,6 +448,7 @@ func NewRouter(ctx context.Context, p *deps.RootProvider, configSource *configso
 	router.Add(webapphandler.ConfigureWhatsappCloudAPIWebhookRoute(webappAPIRoute), p.Handler(newWhatsappCloudAPIWebhookHandler))
 	router.Add(webapphandler.ConfigurePasskeyCreationOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyCreationOptionsHandler))
 	router.Add(webapphandler.ConfigurePasskeyRequestOptionsRoute(webappAPIRoute), p.Handler(newWebAppPasskeyRequestOptionsHandler))
+	router.Add(webapphandler.ConfigureClientLogoRoute(webappAPIRoute), p.Handler(newWebAppClientLogoHandler))
 
 	router.Add(webapphandler.ConfigureCSRFErrorInstructionRoute(webappAPIRoute), p.Handler(newWebAppCSRFErrorInstructionHandler))
 

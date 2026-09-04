@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "변경",
   "v2.page.change-password.expiry.subtitle": "비밀번호를 변경해야 합니다.",
   "v2.page.change-password.expiry.title": "비밀번호 만료",
+  "v2.page.consent.default.client-hostname-desc": "이 앱은 <b>{hostname}</b>에 게시되어 있습니다. Authgear는 이 도메인 이외의 신원을 확인하지 않았습니다.",
   "v2.page.consent.default.continue-button-label": "허용 및 계속",
   "v2.page.consent.default.policy-and-tos-link-desc": "{clientName}의 <a class=\"link\" target=\"_blank\" href={policyURI}>개인정보 보호정책</a> 및 <a class=\"link\" target=\"_blank\" href={tosURI}>서비스 약관</a>을 확인하세요.",
   "v2.page.consent.default.policy-link-desc": "{clientName}의 <a class=\"link\" target=\"_blank\" href={policyURI}>개인정보 보호정책</a>을 확인하세요.",

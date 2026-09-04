@@ -1,0 +1,189 @@
+name: CIMD resolution and resolution-failure audit log events
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: custom_sql
+    custom_sql:
+      path: audit_log_fixtures.sql
+steps:
+  # 1. A brand-new client_id resolves for the first time -> oauth.client.resolved, created: true.
+  - name: configure_document_new
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "audit-log-new.json",
+        "document": {
+          "client_id": "http://localhost:2727/audit-log-new.json",
+          "client_name": "Audit New Client",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize_new
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/audit-log-new.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: verify_resolved_created
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             client_id,
+             data->'payload'->'client'->>'source' AS source,
+             data->'payload'->'client'->>'client_name' AS client_name,
+             data->'payload'->>'created' AS created,
+             data->'payload'->'old_client' AS old_client
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.resolved'
+        AND client_id = 'http://localhost:2727/audit-log-new.json'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.resolved",
+            "client_id": "http://localhost:2727/audit-log-new.json",
+            "source": "CIMD",
+            "client_name": "Audit New Client",
+            "created": "true",
+            "old_client": null
+          }
+        ]
+
+  # 2. A pre-existing, stale client_id (fixtures.sql, last_fetched_at 2h
+  # ago) refetches with a changed redirect_uris -> oauth.client.resolved,
+  # created: false, old_client showing the previous redirect_uris.
+  - name: configure_document_stale
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "audit-log-stale.json",
+        "document": {
+          "client_id": "http://localhost:2727/audit-log-stale.json",
+          "client_name": "Audit Stale Client",
+          "redirect_uris": ["http://127.0.0.1:9000/cb", "http://127.0.0.1:9001/cb"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize_stale
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/audit-log-stale.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: verify_resolved_changed
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             client_id,
+             data->'payload'->>'created' AS created,
+             data->'payload'->'client'->'redirect_uris' AS new_redirect_uris,
+             data->'payload'->'old_client'->'redirect_uris' AS old_redirect_uris
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.resolved'
+        AND client_id = 'http://localhost:2727/audit-log-stale.json'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.resolved",
+            "client_id": "http://localhost:2727/audit-log-stale.json",
+            "created": "false",
+            "new_redirect_uris": ["http://127.0.0.1:9000/cb", "http://127.0.0.1:9001/cb"],
+            "old_redirect_uris": ["http://127.0.0.1:9000/cb"]
+          }
+        ]
+
+  # 3. A third, unrelated client_id whose document server responds 500 ->
+  # oauth.client.resolution.failed, reason unavailable, no message.
+  - name: configure_document_failing
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "audit-log-failing.json",
+        "status": 503,
+        "body": "service unavailable"
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize_failing
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/audit-log-failing.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+  - name: verify_resolution_failed
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             client_id,
+             data->'payload'->>'reason' AS reason,
+             data->'payload' ? 'message' AS has_message,
+             data->'payload'->>'served_stale_record' AS served_stale_record
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.resolution.failed'
+        AND client_id = 'http://localhost:2727/audit-log-failing.json'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.resolution.failed",
+            "client_id": "http://localhost:2727/audit-log-failing.json",
+            "reason": "unavailable",
+            "has_message": false,
+            "served_stale_record": "false"
+          }
+        ]

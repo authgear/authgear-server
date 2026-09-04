@@ -251,6 +251,8 @@ oauth:
 
 A DCR client is created by anyone holding a valid IAT (or, under open registration, by anyone at all) — no per-client admin action is required, unlike a static client. Left uncapped, this lets the project's client population grow without bound.
 
+A registration refused because the quota is full emits [`oauth.client.registration.failed`](./event.md#oauthclientregistrationfailed) with `reason: "limit_exceeded"`, so exhaustion is visible in the audit log rather than only surfacing as failed registrations a developer has to report.
+
 The limit is configured as a [usage limit](./usage.md) under the `oauth_client_dcr` usage name:
 
 **authgear.features.yaml**
@@ -483,6 +485,8 @@ The only accepted value is `none`. Every DCR-registered client is public and use
 
 URL of the client's logo image, shown on the consent screen. Must be an `https://` URL.
 
+Because it is self-asserted and points at a host the end user has no relationship with, it is never rendered directly in the user's browser. The consent screen points at Authgear's own logo endpoint, which fetches the image server-side and caches it — see [cimd.md — Serving a Dynamic Client's Logo](./cimd.md#serving-a-dynamic-clients-logo), which applies to DCR and CIMD clients alike.
+
 ### `client_uri` (optional)
 
 URL of the client's home page. Must be an `https://` URL.
@@ -673,7 +677,15 @@ Deleting a client is recorded in the [audit log](#audit-log). Because the client
 
 Every DCR lifecycle action is recorded in the [audit log](./audit-log.md).
 
-A successful registration emits [`oauth.client.registered`](./event.md#oauthclientregistered). A rejected registration attempt emits nothing: under open registration `POST /oauth2/register` is unauthenticated, so logging failures would let any caller write audit entries at will. Attempts rejected by the [rate limits](#rate-limits) are already covered by `rate_limit.blocked`.
+A successful registration emits [`oauth.client.registered`](./event.md#oauthclientregistered).
+
+A rejected registration emits [`oauth.client.registration.failed`](./event.md#oauthclientregistrationfailed), with a `reason` of `invalid_initial_access_token`, `invalid_client_metadata` or `limit_exceeded`, and a `message` naming the specific cause. Unlike CIMD's resolution failures, the message is **not** withheld: `POST /oauth2/register` fetches nothing, so there is no third-party reachability to leak, and the endpoint already returns a detailed RFC 7591 error to the caller — withholding it from the project's own audit log would protect nothing. The one exception is inside `invalid_initial_access_token`, where the message distinguishes `expired` from `unknown` in the audit record but the HTTP response stays identical for both, so a caller guessing tokens learns nothing.
+
+Under open registration the endpoint is unauthenticated, so an audit record per rejected attempt is a write an anonymous caller can cause. The [rate limits](#rate-limits) are what bound it: both buckets are consumed by every attempt before any validation runs, so the number of audit records this endpoint can produce is capped at the configured registration rate regardless of how many of those attempts fail. That ceiling is not raised by recording failures — a caller who exceeds the limits already writes an audit record per attempt through `rate_limit.blocked` — and a project that wants it lower sets `oauth.dynamic_client_registration.rate_limits` accordingly.
+
+Recording failures is worth that bounded volume because the alternative leaves the case that matters most invisible: a project at its [`oauth_client_dcr` quota](#client-limit) has registrations refused with no audit trail and no signal to raise the quota or delete clients, since `usage.alert.triggered` fires only on a *successful* create that crosses a threshold, never on a block. `limit_exceeded` is also the least floodable of the three reasons — reaching it requires passing the IAT check and publishing a valid document, so under the default `initial_access_token_required: true` only a legitimate token holder can trigger it at all.
+
+Attempts rejected by the [rate limits](#rate-limits) themselves emit nothing here — they are already covered by `rate_limit.blocked`.
 
 Creating and revoking an IAT, and deleting a dynamic client, are recorded the same way as every other Admin API mutation.
 

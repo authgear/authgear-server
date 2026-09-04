@@ -28,6 +28,14 @@ func (c *Commands) LockForClientCount(ctx context.Context, source Source) error 
 	return c.Store.LockForClientCount(ctx, source)
 }
 
+// CountClientsBySource is re-exported from Store so cimd.Service depends on
+// one collaborator (*oauthclient.Commands, alongside LockForClientCount and
+// UpsertCIMDClient) rather than also taking *oauthclient.Queries just for
+// this one method.
+func (c *Commands) CountClientsBySource(ctx context.Context, source Source) (uint64, error) {
+	return c.Store.CountClientsBySource(ctx, source)
+}
+
 func (c *Commands) CreateClient(ctx context.Context, options *NewClientOptions) (*Client, error) {
 	client := c.Store.NewClient(options)
 	if err := c.Store.CreateClient(ctx, client); err != nil {
@@ -62,6 +70,34 @@ func (c *Commands) DeleteClient(ctx context.Context, clientID string) (*Client, 
 	}
 	c.pendingInvalidations = append(c.pendingInvalidations, clientID)
 	return client, nil
+}
+
+// UpsertCIMDClient writes the row and schedules a resolver-cache
+// invalidation from DidCommitTx, for the same reason DeleteClient does:
+// invalidating before the commit would leave a harmless extra miss if the
+// tx rolled back, while skipping invalidation after a successful commit
+// would serve stale metadata -- or worse, a cached NEGATIVE entry -- for up
+// to dynamicClientCacheTTL.
+//
+// The negative entry is the case that actually bites. getClientByClientIDCached
+// calls Cache.SetNotFound with a 30s TTL every time a client_id misses in
+// Postgres. The very first /oauth2/authorize for a new CIMD client_id does
+// exactly that -- the freshness read misses, caches "not found", then this
+// upsert creates the row. Without invalidation here, the resolveClient call
+// immediately after would read that 30s-old negative entry and reject a
+// client that was just successfully resolved.
+func (c *Commands) UpsertCIMDClient(ctx context.Context, options *UpsertCIMDClientOptions) (*Client, bool, error) {
+	client, created, err := c.Store.UpsertCIMDClient(ctx, options)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !c.hooked {
+		c.Database.UseHook(ctx, c)
+		c.hooked = true
+	}
+	c.pendingInvalidations = append(c.pendingInvalidations, options.ClientID)
+	return client, created, nil
 }
 
 func (c *Commands) WillCommitTx(ctx context.Context) error {

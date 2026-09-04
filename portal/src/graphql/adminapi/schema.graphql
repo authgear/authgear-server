@@ -481,6 +481,15 @@ enum AuditLogActivityType {
   OAUTH_CLIENT_REGISTERED
 
   """"""
+  OAUTH_CLIENT_REGISTRATION_FAILED
+
+  """"""
+  OAUTH_CLIENT_RESOLUTION_FAILED
+
+  """"""
+  OAUTH_CLIENT_RESOLVED
+
+  """"""
   PROJECT_APP_CREATED
 
   """"""

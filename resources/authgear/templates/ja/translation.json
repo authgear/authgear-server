@@ -572,6 +572,7 @@
   "v2.page.change-password.default.update-button-label": "更新",
   "v2.page.change-password.expiry.subtitle": "パスワードを変更する時期です。",
   "v2.page.change-password.expiry.title": "パスワードの有効期限",
+  "v2.page.consent.default.client-hostname-desc": "このアプリは <b>{hostname}</b> で公開されています。Authgear はこのドメインを超えた身元の確認は行っていません。",
   "v2.page.consent.default.continue-button-label": "許可して続行",
   "v2.page.consent.default.policy-and-tos-link-desc": "{clientName}の<a class=\"link\" target=\"_blank\" href={policyURI}>プライバシーポリシー</a>と<a class=\"link\" target=\"_blank\" href={tosURI}>利用規約</a>をご覧ください。",
   "v2.page.consent.default.policy-link-desc": "{clientName}の<a class=\"link\" target=\"_blank\" href={policyURI}>プライバシーポリシー</a>をご覧ください。",

@@ -20,11 +20,6 @@ type OAuthClientRegisteredEventPayloadClient struct {
 	ResponseTypes   []string                `json:"response_types"`
 }
 
-type OAuthClientRegisteredEventPayloadInitialAccessToken struct {
-	ID   string                            `json:"id"`
-	Type model.OAuthInitialAccessTokenType `json:"type"`
-}
-
 type OAuthClientRegisteredEventPayload struct {
 	Client OAuthClientRegisteredEventPayloadClient `json:"client"`
 
@@ -36,7 +31,11 @@ type OAuthClientRegisteredEventPayload struct {
 	// traced to every client it registered. A pointer, not a value struct,
 	// because "no IAT" must be distinguishable from "an IAT with empty
 	// fields". docs/specs/event.md documents the key as absent, not null.
-	InitialAccessToken *OAuthClientRegisteredEventPayloadInitialAccessToken `json:"initial_access_token,omitempty"`
+	//
+	// EventPayloadInitialAccessToken, not a type of its own: it is shared
+	// with oauth.client.registration.failed's "expired" outcome, so a token
+	// presents identically in both records.
+	InitialAccessToken *EventPayloadInitialAccessToken `json:"initial_access_token,omitempty"`
 }
 
 func (e *OAuthClientRegisteredEventPayload) NonBlockingEventType() event.Type {

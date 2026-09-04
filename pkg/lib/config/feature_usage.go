@@ -66,18 +66,20 @@ var _ = FeatureConfigSchema.Add("FeatureUsageLimitsConfig", `
 		"email": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
 		"whatsapp": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
 		"sms": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
-		"oauth_client_dcr": { "type": "array", "items": { "$ref": "#/$defs/StandingFeatureUsageLimitConfig" } }
+		"oauth_client_dcr": { "type": "array", "items": { "$ref": "#/$defs/StandingFeatureUsageLimitConfig" } },
+		"oauth_client_cimd": { "type": "array", "items": { "$ref": "#/$defs/StandingFeatureUsageLimitConfig" } }
 	}
 }
 `)
 
 type FeatureUsageLimitsConfig struct {
-	UserExport     []FeatureUsageLimitConfig         `json:"user_export,omitempty"`
-	UserImport     []FeatureUsageLimitConfig         `json:"user_import,omitempty"`
-	Email          []FeatureUsageLimitConfig         `json:"email,omitempty"`
-	Whatsapp       []FeatureUsageLimitConfig         `json:"whatsapp,omitempty"`
-	SMS            []FeatureUsageLimitConfig         `json:"sms,omitempty"`
-	OAuthClientDCR []StandingFeatureUsageLimitConfig `json:"oauth_client_dcr,omitempty"`
+	UserExport      []FeatureUsageLimitConfig         `json:"user_export,omitempty"`
+	UserImport      []FeatureUsageLimitConfig         `json:"user_import,omitempty"`
+	Email           []FeatureUsageLimitConfig         `json:"email,omitempty"`
+	Whatsapp        []FeatureUsageLimitConfig         `json:"whatsapp,omitempty"`
+	SMS             []FeatureUsageLimitConfig         `json:"sms,omitempty"`
+	OAuthClientDCR  []StandingFeatureUsageLimitConfig `json:"oauth_client_dcr,omitempty"`
+	OAuthClientCIMD []StandingFeatureUsageLimitConfig `json:"oauth_client_cimd,omitempty"`
 }
 
 func (c *FeatureUsageLimitsConfig) Limits(name model.UsageName) []FeatureUsageLimitConfig {
@@ -112,6 +114,8 @@ func (c *FeatureUsageLimitsConfig) StandingLimits(name model.UsageName) []Standi
 	switch name {
 	case model.UsageNameOAuthClientDCR:
 		return c.OAuthClientDCR
+	case model.UsageNameOAuthClientCIMD:
+		return c.OAuthClientCIMD
 	default:
 		return nil
 	}
@@ -249,6 +253,9 @@ func mergeFeatureUsageLimits(base *FeatureUsageLimitsConfig, layer *FeatureUsage
 	}
 	if layer.OAuthClientDCR != nil {
 		merged.OAuthClientDCR = layer.OAuthClientDCR
+	}
+	if layer.OAuthClientCIMD != nil {
+		merged.OAuthClientCIMD = layer.OAuthClientCIMD
 	}
 
 	return merged

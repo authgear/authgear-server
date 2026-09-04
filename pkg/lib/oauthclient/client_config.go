@@ -10,7 +10,7 @@ import (
 // docs/plans/dcr/2026-08-17-03-client-resolution.md). defaults comes from
 // whichever project config governs this row's source — see
 // ResolveTokenLifetimes.
-func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientRegistrationDefaultClientConfig) *config.OAuthClientConfig {
+func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientTokenLifetimesConfig) *config.OAuthClientConfig {
 	var appType config.OAuthClientApplicationType
 	switch {
 	case c.Kind == model.OAuthClientKindThirdParty:
@@ -35,13 +35,14 @@ func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientRegistrationD
 		PolicyURI:                      derefOr(c.PolicyURI, ""),
 		IssueJWTAccessToken:            false, // fixed per client.md's "All Authgear extension fields are fixed at their zero values for DCR clients" rule
 		IsDynamic:                      true,  // every client built by ToClientConfig is DCR/CIMD-resolved, regardless of Kind
+		DynamicSource:                  c.Source,
 	}
-	// nil here means this source has no default_client_config concept at all
-	// (see ResolveTokenLifetimes's default case, e.g. a not-yet-implemented
-	// CIMD), not "the admin configured no override" -- for DCR, defaults is
-	// always non-nil with real token-lifetime values once config defaults
-	// have run (config.OAuthDynamicClientRegistrationDefaultClientConfig's
-	// own SetDefaults()).
+	// nil here means this source has no token-lifetimes config concept at
+	// all (see ResolveTokenLifetimes's default case, e.g. model.OAuthClientSourceStatic
+	// reaching this method, which never happens in practice), not "the admin
+	// configured no override" -- for DCR and CIMD, defaults is always
+	// non-nil with real token-lifetime values once config defaults have run
+	// (config.OAuthDynamicClientTokenLifetimesConfig's own SetDefaults()).
 	if defaults != nil {
 		cfg.AccessTokenLifetime = defaults.AccessTokenLifetime
 		cfg.RefreshTokenLifetime = defaults.RefreshTokenLifetime
@@ -55,12 +56,14 @@ func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientRegistrationD
 // ResolveTokenLifetimes maps a dynamic client's source to the project
 // config key that governs its token lifetimes, so no caller has to
 // remember which key applies to which source. DCR reads
-// oauth.dynamic_client_registration.default_client_config; CIMD will add
-// its own case when cimd.md ships.
-func ResolveTokenLifetimes(oauthConfig *config.OAuthConfig, source model.OAuthClientSource) *config.OAuthDynamicClientRegistrationDefaultClientConfig {
+// oauth.dynamic_client_registration.default_client_config; CIMD reads
+// oauth.client_id_metadata_document.client_config.
+func ResolveTokenLifetimes(oauthConfig *config.OAuthConfig, source model.OAuthClientSource) *config.OAuthDynamicClientTokenLifetimesConfig {
 	switch source {
 	case model.OAuthClientSourceDCR:
 		return oauthConfig.DynamicClientRegistration.GetDefaultClientConfig()
+	case model.OAuthClientSourceCIMD:
+		return oauthConfig.ClientIDMetadataDocument.GetClientConfig()
 	default:
 		return nil
 	}

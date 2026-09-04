@@ -215,6 +215,71 @@ http:
 	})
 }
 
+func TestOAuthClientIDMetadataDocumentConfig(t *testing.T) {
+	ctx := context.Background()
+	Convey("OAuthClientIDMetadataDocumentConfig", t, func() {
+		base := `id: test
+http:
+  public_origin: http://test
+`
+
+		Convey("section absent: disabled, no domain restriction, client_config resolved to the built-in fallbacks (not the spec's illustrative example values)", func() {
+			cfg, err := config.Parse(ctx, []byte(base))
+			So(err, ShouldBeNil)
+			So(cfg.OAuth.ClientIDMetadataDocument, ShouldNotBeNil)
+			So(cfg.OAuth.ClientIDMetadataDocument.IsEnabled(), ShouldBeFalse)
+			So(cfg.OAuth.ClientIDMetadataDocument.GetAllowedDomains(), ShouldBeEmpty)
+
+			clientConfig := cfg.OAuth.ClientIDMetadataDocument.GetClientConfig()
+			So(clientConfig, ShouldNotBeNil)
+			So(clientConfig.AccessTokenLifetime, ShouldEqual, config.DefaultAccessTokenLifetime)
+			So(clientConfig.RefreshTokenLifetime, ShouldEqual, config.DefaultRefreshTokenLifetime)
+			So(*clientConfig.RefreshTokenIdleTimeoutEnabled, ShouldEqual, config.DefaultRefreshTokenIdleTimeoutEnabled)
+			So(clientConfig.RefreshTokenIdleTimeout, ShouldEqual, config.DefaultRefreshTokenIdleTimeout)
+		})
+
+		Convey("section present but empty: disabled, no domain restriction", func() {
+			data := base + "oauth:\n  client_id_metadata_document: {}\n"
+			cfg, err := config.Parse(ctx, []byte(data))
+			So(err, ShouldBeNil)
+			So(cfg.OAuth.ClientIDMetadataDocument, ShouldNotBeNil)
+			So(cfg.OAuth.ClientIDMetadataDocument.IsEnabled(), ShouldBeFalse)
+			So(cfg.OAuth.ClientIDMetadataDocument.GetAllowedDomains(), ShouldBeEmpty)
+		})
+
+		Convey("enabled, with allowed_domains and a client_config override", func() {
+			data := base + `oauth:
+  client_id_metadata_document:
+    enabled: true
+    allowed_domains: ["localhost", "*.example.com"]
+    client_config:
+      access_token_lifetime_seconds: 1800
+      refresh_token_lifetime_seconds: 2592000
+      refresh_token_idle_timeout_enabled: true
+      refresh_token_idle_timeout_seconds: 1209600
+`
+			cfg, err := config.Parse(ctx, []byte(data))
+			So(err, ShouldBeNil)
+			So(cfg.OAuth.ClientIDMetadataDocument.IsEnabled(), ShouldBeTrue)
+			So(cfg.OAuth.ClientIDMetadataDocument.GetAllowedDomains(), ShouldResemble, []string{"localhost", "*.example.com"})
+
+			clientConfig := cfg.OAuth.ClientIDMetadataDocument.GetClientConfig()
+			So(clientConfig.AccessTokenLifetime, ShouldEqual, config.DurationSeconds(1800))
+			So(clientConfig.RefreshTokenLifetime, ShouldEqual, config.DurationSeconds(2592000))
+			So(*clientConfig.RefreshTokenIdleTimeoutEnabled, ShouldBeTrue)
+			So(clientConfig.RefreshTokenIdleTimeout, ShouldEqual, config.DurationSeconds(1209600))
+		})
+
+		Convey("malformed allowed_domains entries are rejected at config load", func() {
+			for _, bad := range []string{"exa*mple.com", "*", "*.*.example.com", "-bad.example.com", ""} {
+				data := base + "oauth:\n  client_id_metadata_document:\n    allowed_domains: [\"" + bad + "\"]\n"
+				_, err := config.Parse(ctx, []byte(data))
+				So(err, ShouldBeError)
+			}
+		})
+	})
+}
+
 func TestAppConfig(t *testing.T) {
 	ctx := context.Background()
 	Convey("AppConfig", t, func() {

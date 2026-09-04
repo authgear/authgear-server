@@ -88,6 +88,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.DCRQueries), new(*dcr.Queries)),
 
 	graphql.DependencySet,
+	wire.Bind(new(graphql.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
 	wire.Bind(new(graphql.IdentityLoader), new(*loader.IdentityLoader)),
 	wire.Bind(new(graphql.AuthenticatorLoader), new(*loader.AuthenticatorLoader)),

@@ -185,8 +185,30 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	oAuthConfig := appConfig.OAuth
-	featureConfig := configConfig.FeatureConfig
-	adminAPIFeatureConfig := featureConfig.AdminAPI
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	uiConfig := appConfig.UI
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
@@ -194,14 +216,39 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(handle)
 	clockClock := _wireSystemClockValue
-	store := &user.Store{
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	appredisHandle := appProvider.Redis
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	featureConfig := configConfig.FeatureConfig
+	adminAPIFeatureConfig := featureConfig.AdminAPI
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 		AppID:       appID,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
@@ -216,7 +263,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -266,28 +312,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
-	request := p.Request
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
 	localizationConfig := appConfig.Localization
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -300,50 +339,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	oauthclientStore := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       oauthclientStore,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             oauthclientResolver,
+		OAuthClientResolver:             resolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -482,14 +482,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -501,7 +501,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     readOnlyService,
 		Verification:       verificationService,
@@ -598,7 +598,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
 		Users:           userQueries,
-		UserStore:       store,
+		UserStore:       userStore,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
@@ -610,7 +610,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
-		UserStore:       store,
+		UserStore:       userStore,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
@@ -631,7 +631,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SearchConfig:               searchConfig,
 		Clock:                      clockClock,
 		Database:                   handle,
-		UserStore:                  store,
+		UserStore:                  userStore,
 		Producer:                   userReindexProducer,
 		SourceProvider:             sourceProvider,
 		ElasticsearchReindexer:     elasticsearchService,
@@ -835,7 +835,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GlobalSearchImplementation: globalSearchImplementation,
 	}
 	rawCommands := &user.RawCommands{
-		Store: store,
+		Store: userStore,
 		Clock: clockClock,
 	}
 	userCommands := &user.Commands{
@@ -987,7 +987,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -1051,7 +1051,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  oauthclientResolver,
+		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -1191,7 +1191,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             oauthclientResolver,
+		OAuthClientResolver:             resolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -1288,7 +1288,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  oauthclientResolver,
+		ClientResolver:  resolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -1345,7 +1345,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserAgentString:     userAgentString,
 		AppID:               appID,
 		Config:              oAuthConfig,
-		ClientResolver:      oauthclientResolver,
+		ClientResolver:      resolver,
 		Authorizations:      authorizationStore,
 		OfflineGrants:       redisStore,
 		AccessGrants:        redisStore,
@@ -1365,7 +1365,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Tokens:              tokenService,
 		AccessTokenCoding:   accessTokenEncoding,
 		Clock:               clockClock,
-		OAuthClientResolver: oauthclientResolver,
+		OAuthClientResolver: resolver,
 	}
 	sessionListingService := &sessionlisting.SessionListingService{
 		OAuthConfig:   oAuthConfig,
@@ -1385,7 +1385,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Lockout:       lockoutService,
 	}
 	oauthclientCommands := &oauthclient.Commands{
-		Store:    oauthclientStore,
+		Store:    store,
 		Database: handle,
 		Cache:    clientCache,
 	}
@@ -1401,7 +1401,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	graphqlContext := &graphql.Context{
 		Config:                appConfig,
-		OAuthConfig:           oAuthConfig,
+		OAuthClientResolver:   resolver,
 		AdminAPIFeatureConfig: adminAPIFeatureConfig,
 		Users:                 userLoader,
 		Identities:            identityLoader,

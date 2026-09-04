@@ -54,10 +54,19 @@ func (q *Queries) ListInitialAccessTokens(ctx context.Context) ([]*model.OAuthIn
 	return models, nil
 }
 
-// ValidateAndGetByToken hashes the given plaintext bearer token, looks it up,
-// and returns ErrInitialAccessTokenNotFound if it does not exist OR has
-// expired (both cases must be indistinguishable to the caller — Part 2's
-// registration handler maps both to `invalid_initial_access_token`).
+// ValidateAndGetByToken hashes the given plaintext bearer token and looks
+// it up. It returns ErrInitialAccessTokenNotFound if no such token exists,
+// and ErrInitialAccessTokenExpired -- together with the token's own model,
+// non-nil -- if it exists but has expired. The two are indistinguishable
+// in the HTTP response Part 2's registration handler produces (both map to
+// `invalid_initial_access_token`), but distinguishable in the audit log
+// (Part 8) -- see ErrInitialAccessTokenExpired's own doc comment for why.
+//
+// Returning a non-nil token together with a non-nil error is unusual in
+// this codebase and is deliberate here, not a slip: the caller must still
+// reject the registration (check the error first), but the audit event
+// needs the row to describe. The token is for reporting only, never for
+// authorizing -- do not use it to proceed with registration.
 func (q *Queries) ValidateAndGetByToken(ctx context.Context, plaintext string) (*model.OAuthInitialAccessToken, error) {
 	hash := HashInitialAccessToken(plaintext)
 	t, err := q.Store.GetInitialAccessTokenByHash(ctx, hash)
@@ -65,7 +74,7 @@ func (q *Queries) ValidateAndGetByToken(ctx context.Context, plaintext string) (
 		return nil, err
 	}
 	if !t.ExpiresAt.After(q.Clock.NowUTC()) {
-		return nil, ErrInitialAccessTokenNotFound
+		return t.ToModel(), ErrInitialAccessTokenExpired
 	}
 	return t.ToModel(), nil
 }
