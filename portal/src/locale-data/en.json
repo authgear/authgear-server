@@ -1182,7 +1182,7 @@
   "CustomDomainListScreen.domain-list.add-domain.placeholder": "example.com",
   "CustomDomainListScreen.domain-list.row-actions": "Domain actions",
   "CustomDomainListScreen.domains-section.title": "Domains",
-  "CustomDomainListScreen.domains-section.description": "Manage the identifiers linked to this account.",
+  "CustomDomainListScreen.domains-section.description": "Manage the domains used to serve this project and their verification status.",
   "CustomDomainListScreen.add-domain": "Add domain",
   "CustomDomainListScreen.add-domain.dialog.title": "Add domain",
   "CustomDomainListScreen.add-domain.dialog.domain.label": "Domain",
