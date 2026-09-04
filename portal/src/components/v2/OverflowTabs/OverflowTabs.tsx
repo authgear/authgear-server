@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useContext,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -8,6 +9,7 @@ import React, {
 import { DropdownMenu, Tabs } from "@radix-ui/themes";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import cn from "classnames";
+import { Context } from "../../../intl";
 import styles from "./OverflowTabs.module.css";
 
 const TAB_GAP_PX = 8;
@@ -89,6 +91,7 @@ export function OverflowTabs({
   onValueChange,
   tabs,
 }: OverflowTabsProps): React.ReactElement {
+  const { renderToString } = useContext(Context);
   const containerRef = useRef<HTMLDivElement>(null);
   const measureListRef = useRef<HTMLDivElement>(null);
   const [visibleValues, setVisibleValues] = useState<string[]>(() =>
@@ -163,7 +166,7 @@ export function OverflowTabs({
                 <button
                   type="button"
                   className={styles.overflowTrigger}
-                  aria-label="More tabs"
+                  aria-label={renderToString("OverflowTabs.more-tabs")}
                 >
                   <DotsHorizontalIcon className={styles.overflowIcon} />
                 </button>
