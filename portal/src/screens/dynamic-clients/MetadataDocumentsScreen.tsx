@@ -30,6 +30,7 @@ import { TextField } from "../../components/v2/TextField/TextField";
 import { TextFieldList } from "../../components/v2/TextFieldList/TextFieldList";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useCalloutToast } from "../../components/v2/Callout/Callout";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import styles from "./MetadataDocumentsScreen.module.css";
 
@@ -37,6 +38,9 @@ import styles from "./MetadataDocumentsScreen.module.css";
 // validation errors -- "minimum" on a lifetime, "pattern" on a domain --
 // bind to the field that caused them instead of only reaching the generic
 // error bar. TextFieldList appends the item index itself.
+// A save the admin triggered themselves needs only a glance to confirm.
+const SAVED_TOAST_DURATION_MS = 2000;
+
 const CIMD_JSON_POINTER = "/oauth/client_id_metadata_document";
 const CIMD_CLIENT_CONFIG_JSON_POINTER =
   "/oauth/client_id_metadata_document/client_config";
@@ -155,6 +159,7 @@ interface MetadataDocumentsContentProps {
 const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> =
   function MetadataDocumentsContent({ form }) {
     const { state, setState, isUpdating, effectiveConfig } = form;
+    const { showToast } = useCalloutToast();
     const { renderToString } = useContext(Context);
     const { getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
@@ -173,16 +178,28 @@ const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> =
 
     const enabled = state.cimdEnabled;
 
+    // Saved immediately, matching the same switch on the self-registration
+    // screen. CIMD has no counterpart to that screen's initial access tokens
+    // -- nothing here acts before a save -- so this is for consistency
+    // between two otherwise identical pages rather than to close a hole.
     const onEnabledChange = useCallback(
       (checked: boolean) => {
-        // Deferred like every other control on this screen: nothing is
-        // written until the admin presses Save.
-        setState((prev) => ({
-          ...prev,
-          cimdEnabled: checked,
-        }));
+        form
+          .saveWith((prev) => ({
+            ...prev,
+            cimdEnabled: checked,
+          }))
+          .then(() => {
+            showToast({
+              type: "success",
+              text: <FormattedMessage id="changes-saved" />,
+              duration: SAVED_TOAST_DURATION_MS,
+            });
+          })
+          // performSave rethrows, and the form's error bar renders it.
+          .catch(() => {});
       },
-      [setState]
+      [form, showToast]
     );
 
     const setDomainMode = useCallback(

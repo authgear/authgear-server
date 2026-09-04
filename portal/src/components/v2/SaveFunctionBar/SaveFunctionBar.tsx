@@ -53,7 +53,13 @@ export function SaveFunctionBar({
   // Mount immediately when the form becomes dirty. Adjusting state during
   // render (rather than in an effect) is the recommended pattern and avoids
   // a cascading render.
-  if (isDirty && !rendered) {
+  //
+  // Not while a save is already in flight, though: saveWith makes the form
+  // dirty and starts the save in the same tick, so a control that saves
+  // itself would otherwise flash "You have unsaved changes" over a change
+  // that is already being written. A save started from this bar is
+  // unaffected -- the bar is mounted by then, and keeps its loading state.
+  if (isDirty && !rendered && !isUpdating) {
     setRendered(true);
   }
   useEffect(() => {

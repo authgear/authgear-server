@@ -23,6 +23,7 @@ import { TextField } from "../../components/v2/TextField/TextField";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useCalloutToast } from "../../components/v2/Callout/Callout";
 import { InitialAccessTokenSection } from "../../components/dynamic-clients/InitialAccessTokenSection";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
 import { OAuthClientSource } from "../../graphql/adminapi/globalTypes.generated";
@@ -32,6 +33,9 @@ import styles from "./SelfRegistrationScreen.module.css";
 // it (with fieldName) lets the config schema's validation errors -- e.g.
 // "minimum" when a lifetime is 0 or negative -- bind to the field that caused
 // them instead of only reaching the generic error bar.
+// A save the admin triggered themselves needs only a glance to confirm.
+const SAVED_TOAST_DURATION_MS = 2000;
+
 const DEFAULT_CLIENT_CONFIG_JSON_POINTER =
   "/oauth/dynamic_client_registration/default_client_config";
 
@@ -138,6 +142,7 @@ interface SelfRegistrationContentProps {
 const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
   function SelfRegistrationContent({ form }) {
     const { state, setState, isUpdating, effectiveConfig } = form;
+    const { showToast } = useCalloutToast();
     const { getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const anchorRef = useRef<HTMLDivElement>(null);
@@ -170,23 +175,40 @@ const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
     });
     const hasDCRClients = (dcrData?.dynamicClients?.totalCount ?? 0) > 0;
 
+    // Saved immediately, unlike every other control on this screen. The
+    // initial-access-token controls below act through the Admin API the moment
+    // they are used, while POST /oauth2/register checks the SAVED config
+    // (handler_register.go: 403 access_denied when disabled) -- so a token
+    // created while this switch was merely pending came with a curl example
+    // that could not work. This screen's form covers only
+    // oauth.dynamic_client_registration, so the save cannot carry an edit
+    // belonging to another screen; it does commit anything else pending here,
+    // which is what the toast reports.
     const setRegistrationEnabled = useCallback(
       (checked: boolean) => {
-        // Deferred like every other control on this screen: nothing is
-        // written until the admin presses Save.
-        setState((prev) => ({
-          ...prev,
-          dynamicClientRegistrationEnabled: checked,
-          // Switching registration off resets the initial access token
-          // requirement, so re-enabling always starts from the safe default
-          // rather than quietly restoring open registration. Turning the
-          // requirement off again is an explicit, separately confirmed act.
-          initialAccessTokenRequired: checked
-            ? prev.initialAccessTokenRequired
-            : true,
-        }));
+        form
+          .saveWith((prev) => ({
+            ...prev,
+            dynamicClientRegistrationEnabled: checked,
+            // Switching registration off resets the initial access token
+            // requirement, so re-enabling always starts from the safe default
+            // rather than quietly restoring open registration. Turning the
+            // requirement off again is an explicit, separately confirmed act.
+            initialAccessTokenRequired: checked
+              ? prev.initialAccessTokenRequired
+              : true,
+          }))
+          .then(() => {
+            showToast({
+              type: "success",
+              text: <FormattedMessage id="changes-saved" />,
+              duration: SAVED_TOAST_DURATION_MS,
+            });
+          })
+          // performSave rethrows, and the form's error bar renders it.
+          .catch(() => {});
       },
-      [setState]
+      [form, showToast]
     );
 
     const onEnabledChange = useCallback(
