@@ -5,3 +5,33 @@
 .actions {
   @apply mt-6 flex flex-row justify-end;
 }
+
+.exampleHeader {
+  @apply flex items-center justify-between gap-2 mb-1;
+}
+
+/* Code scrolls horizontally instead of soft-wrapping mid-flag; a wrapped
+   line ending in a lone backslash reads like a broken command. */
+.exampleCode {
+  @apply whitespace-pre overflow-x-auto;
+
+  /* Zero the intrinsic width contribution: the dialog's scroll-padding
+     wrapper is a flex item, so without this the unwrappable curl line's
+     min-content width propagates up and pushes the whole dialog past its
+     max-width on small screens. min-width restores the rendered width. */
+  width: 0;
+  min-width: 100%;
+}
+
+.tokenCommand {
+  color: var(--accent-11);
+  font-weight: 600;
+}
+
+.tokenFlag {
+  color: var(--crimson-11);
+}
+
+.tokenString {
+  color: var(--green-11);
+}

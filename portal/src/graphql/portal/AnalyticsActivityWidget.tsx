@@ -1,15 +1,12 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "../../intl";
-import { IPivotItemProps, PivotItem, Text } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import { SegmentedControl, Spinner, Text } from "@radix-ui/themes";
 import { TooltipItem } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
 import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
 import { Periodical } from "./globalTypes.generated";
 import { isoWeekLabels, monthLabel } from "../../util/date";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
-import ShowLoading from "../../ShowLoading";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import styles from "./AnalyticsActivityWidget.module.css";
 
 interface AnalyticsActivityWidgetActiveUserChartProps {
@@ -149,7 +146,7 @@ const AnalyticsActivityCharts: React.VFC<AnalyticsActivityWidgetProps> =
     if (props.loading) {
       return (
         <div className={styles.loadingWrapper}>
-          <ShowLoading />
+          <Spinner size="3" />
         </div>
       );
     }
@@ -161,10 +158,10 @@ const AnalyticsActivityCharts: React.VFC<AnalyticsActivityWidgetProps> =
           periodical={props.periodical}
         />
         <div className={styles.totalUserLabel}>
-          <Text variant="medium" block={true}>
+          <Text as="p" size="2" className={styles.metricLabel}>
             <FormattedMessage id="AnalyticsActivityWidget.total-user.label" />
           </Text>
-          <Text variant="xLarge" block={true}>
+          <Text as="p" size="6" weight="medium" className={styles.metricValue}>
             {totalNumberOfUser}
           </Text>
         </div>
@@ -190,44 +187,39 @@ const AnalyticsActivityWidget: React.VFC<AnalyticsActivityWidgetProps> =
   function AnalyticsActivityWidget(props) {
     const { renderToString } = useContext(Context);
     const { periodical, onPeriodicalChange } = props;
-    const onPeriodicalClick = useCallback(
-      (item?: { props: IPivotItemProps }) => {
-        const itemKey = item?.props.itemKey;
-        if (itemKey) {
-          if (itemKey !== periodical) {
-            if (Object.values(Periodical).includes(itemKey as Periodical)) {
-              onPeriodicalChange(itemKey as Periodical);
-            }
+    const onPeriodicalValueChange = useCallback(
+      (value: string) => {
+        if (value !== periodical) {
+          if (Object.values(Periodical).includes(value as Periodical)) {
+            onPeriodicalChange(value as Periodical);
           }
         }
       },
       [periodical, onPeriodicalChange]
     );
     return (
-      <Widget className={props.className}>
-        <WidgetTitle>
-          <FormattedMessage id="AnalyticsActivityWidget.title" />
-        </WidgetTitle>
-        <AGPivot
-          overflowBehavior="menu"
-          className={styles.pivot}
-          onLinkClick={onPeriodicalClick}
-          selectedKey={periodical}
-        >
-          <PivotItem
-            headerText={renderToString("AnalyticsActivityWidget.monthly.label")}
-            itemKey={Periodical.Monthly}
+      <SettingsSectionCard
+        className={props.className}
+        layout="stacked"
+        title={<FormattedMessage id="AnalyticsActivityWidget.title" />}
+        contentClassName={styles.content}
+      >
+        <div className={styles.periodicalControl}>
+          <SegmentedControl.Root
+            size="2"
+            value={periodical}
+            onValueChange={onPeriodicalValueChange}
           >
-            <AnalyticsActivityCharts {...props} />
-          </PivotItem>
-          <PivotItem
-            headerText={renderToString("AnalyticsActivityWidget.weekly.label")}
-            itemKey={Periodical.Weekly}
-          >
-            <AnalyticsActivityCharts {...props} />
-          </PivotItem>
-        </AGPivot>
-      </Widget>
+            <SegmentedControl.Item value={Periodical.Monthly}>
+              {renderToString("AnalyticsActivityWidget.monthly.label")}
+            </SegmentedControl.Item>
+            <SegmentedControl.Item value={Periodical.Weekly}>
+              {renderToString("AnalyticsActivityWidget.weekly.label")}
+            </SegmentedControl.Item>
+          </SegmentedControl.Root>
+        </div>
+        <AnalyticsActivityCharts {...props} />
+      </SettingsSectionCard>
     );
   };
 

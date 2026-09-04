@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router-dom";
-import Widget from "../../Widget";
 import {
   LoginMethodSelectLoginMethodsSection,
   LoginMethodFirstLevelOptionsGrid,
@@ -33,7 +32,7 @@ type Story = StoryObj<typeof meta>;
 function LoginMethodChooserWithLabelsDefaultRender() {
   const [first, setFirst] = useState<LoginMethodFirstLevelOption | null>(null);
   return (
-    <Widget className={styles.widget}>
+    <div className={styles.widget}>
       <LoginMethodFirstLevelOptionsGrid
         phoneLoginIDDisabled={false}
         firstLevelOption={first}
@@ -41,21 +40,21 @@ function LoginMethodChooserWithLabelsDefaultRender() {
         showWidgetTitle={false}
         iconOnly={false}
       />
-    </Widget>
+    </div>
   );
 }
 
 function LoginMethodChooserWithLabelsSelectedRender() {
   const [loginMethod, setLoginMethod] = useState<LoginMethod>("oauth");
   return (
-    <Widget className={styles.widget}>
+    <div className={styles.widget}>
       <LoginMethodSelectLoginMethodsSection
         phoneLoginIDDisabled={false}
         loginMethod={loginMethod}
         onChangeLoginMethod={setLoginMethod}
         showWidgetTitle={false}
       />
-    </Widget>
+    </div>
   );
 }
 

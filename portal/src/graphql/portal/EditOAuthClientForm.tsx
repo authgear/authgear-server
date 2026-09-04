@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
-import { Label, Text, useTheme } from "@fluentui/react";
+import { IconButton as RadixIconButton, Text } from "@radix-ui/themes";
+import { TrashIcon } from "@radix-ui/react-icons";
 import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "../../intl";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -9,12 +10,14 @@ import PortalLink from "../../Link";
 
 import { useEndpoints } from "../../hook/useEndpoints";
 
-import Widget from "../../Widget";
-import WidgetTitle from "../../WidgetTitle";
-import WidgetDescription from "../../WidgetDescription";
-import FormTextField from "../../FormTextField";
-import FormTextFieldList from "../../FormTextFieldList";
-import { useTextField } from "../../hook/useInput";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { TextFieldList } from "../../components/v2/TextFieldList/TextFieldList";
+import { Toggle } from "../../components/v2/Toggle/Toggle";
+import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -22,26 +25,21 @@ import {
 } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
-import Toggle from "../../Toggle";
-import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
-import TextField from "../../TextField";
 import { Accordion } from "../../components/common/Accordion";
-import DefaultButton from "../../DefaultButton";
-import ButtonWithLoading from "../../ButtonWithLoading";
 import { ClientSecretsHook } from "../../hook/useClientSecrets";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useStartReauthentication } from "../../graphql/portal/Authenticated";
 import {
   DeleteClientSecretConfirmationDialog,
   DeleteClientSecretConfirmationDialogData,
 } from "../../components/applications/DeleteClientSecretConfirmationDialog";
-import Tooltip from "../../Tooltip";
 import { LocationState } from "./EditOAuthClientScreen";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import { formatSeconds } from "../../util/formatDuration";
 import styles from "./EditOAuthClientForm.module.css";
 
 const MASKED_SECRET = "***************";
+
+const CONTENT_CLASSNAME = "flex flex-col gap-4";
 
 interface EditOAuthClientFormProps {
   publicOrigin: string;
@@ -95,6 +93,68 @@ export function updateClientConfig<K extends keyof OAuthClientConfig>(
 
 const parentJSONPointer = /\/oauth\/clients\/\d+/;
 
+interface CopyFieldProps {
+  label: string;
+  value: string;
+  suffix?: React.ReactNode;
+}
+
+// A read-only v2 TextField with a copy button (or a custom suffix),
+// replacing the FluentUI TextFieldWithCopyButton.
+function CopyField({ label, value, suffix }: CopyFieldProps) {
+  return (
+    <TextField
+      size="2"
+      label={label}
+      value={value}
+      readOnly={true}
+      suffixPlain={true}
+      suffix={suffix ?? <CopyIconButton textToCopy={value} />}
+    />
+  );
+}
+
+interface ToggleWithDescriptionProps {
+  checked?: boolean;
+  disabled?: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  text?: React.ReactNode;
+  description?: React.ReactNode;
+}
+
+function ToggleWithDescription({
+  checked,
+  disabled,
+  onCheckedChange,
+  text,
+  description,
+}: ToggleWithDescriptionProps) {
+  return (
+    <div className="flex flex-col gap-1">
+      <Toggle
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={onCheckedChange}
+        text={text}
+      />
+      {description != null ? (
+        <Text as="p" size="1" color="gray">
+          {description}
+        </Text>
+      ) : null}
+    </div>
+  );
+}
+
+function HelpText(props: { children: React.ReactNode }) {
+  const { children } = props;
+  return (
+    <Text as="p" size="2" className={styles.helpText}>
+      {children}
+    </Text>
+  );
+}
+
 const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
   function EditOAuthClientForm(props: EditOAuthClientFormProps) {
     const {
@@ -108,8 +168,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     } = props;
 
     const { renderToString, locale } = useContext(Context);
-    const { themes } = useSystemConfig();
-    const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
 
@@ -119,62 +177,77 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     const [deleteClientSecretDialogData, setDeleteClientSecretDialogData] =
       useState<DeleteClientSecretConfirmationDialogData | null>(null);
 
-    const { onChange: onNameChange } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(clientConfig, "name", ensureNonEmptyString(value))
+    const onNameChange: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          onClientConfigChange(
+            updateClientConfig(
+              clientConfig,
+              "name",
+              ensureNonEmptyString(e.currentTarget.value)
+            )
+          );
+        },
+        [clientConfig, onClientConfigChange]
       );
-    });
 
-    const { onChange: onClientNameChange } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "client_name",
-          ensureNonEmptyString(value)
-        )
+    const onClientNameChange: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          onClientConfigChange(
+            updateClientConfig(
+              clientConfig,
+              "client_name",
+              ensureNonEmptyString(e.currentTarget.value)
+            )
+          );
+        },
+        [clientConfig, onClientConfigChange]
       );
-    });
 
-    const onAccessTokenLifetimeChange = useCallback(
-      (_, value?: string) => {
-        onClientConfigChange(
-          updateClientConfig(
-            clientConfig,
-            "access_token_lifetime_seconds",
-            parseIntegerAllowLeadingZeros(value)
-          )
-        );
-      },
-      [clientConfig, onClientConfigChange]
-    );
+    const onAccessTokenLifetimeChange: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          onClientConfigChange(
+            updateClientConfig(
+              clientConfig,
+              "access_token_lifetime_seconds",
+              parseIntegerAllowLeadingZeros(e.currentTarget.value)
+            )
+          );
+        },
+        [clientConfig, onClientConfigChange]
+      );
 
-    const onRefreshTokenLifetimeChange = useCallback(
-      (_, value?: string) => {
-        onClientConfigChange(
-          updateClientConfig(
-            clientConfig,
-            "refresh_token_lifetime_seconds",
-            parseIntegerAllowLeadingZeros(value)
-          )
-        );
-      },
-      [clientConfig, onClientConfigChange]
-    );
+    const onRefreshTokenLifetimeChange: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          onClientConfigChange(
+            updateClientConfig(
+              clientConfig,
+              "refresh_token_lifetime_seconds",
+              parseIntegerAllowLeadingZeros(e.currentTarget.value)
+            )
+          );
+        },
+        [clientConfig, onClientConfigChange]
+      );
 
-    const onIdleTimeoutChange = useCallback(
-      (_, value?: string) => {
-        onClientConfigChange(
-          updateClientConfig(
-            clientConfig,
-            "refresh_token_idle_timeout_seconds",
-            parseIntegerAllowLeadingZeros(value)
-          )
-        );
-      },
-      [clientConfig, onClientConfigChange]
-    );
+    const onIdleTimeoutChange: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          onClientConfigChange(
+            updateClientConfig(
+              clientConfig,
+              "refresh_token_idle_timeout_seconds",
+              parseIntegerAllowLeadingZeros(e.currentTarget.value)
+            )
+          );
+        },
+        [clientConfig, onClientConfigChange]
+      );
 
-    const onRedirectUrisChange = useCallback(
+    const setRedirectUris = useCallback(
       (list: string[]) => {
         onClientConfigChange(
           updateClientConfig(clientConfig, "redirect_uris", list)
@@ -183,7 +256,28 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
-    const onPostLogoutRedirectUrisChange = useCallback(
+    const onRedirectUriAdd = useCallback(
+      (list: string[], item: string) => {
+        setRedirectUris([...list, item]);
+      },
+      [setRedirectUris]
+    );
+
+    const onRedirectUriChange = useCallback(
+      (list: string[], index: number, item: string) => {
+        setRedirectUris(list.map((value, i) => (i === index ? item : value)));
+      },
+      [setRedirectUris]
+    );
+
+    const onRedirectUriDelete = useCallback(
+      (list: string[], index: number) => {
+        setRedirectUris(list.filter((_, i) => i !== index));
+      },
+      [setRedirectUris]
+    );
+
+    const setPostLogoutRedirectUris = useCallback(
       (list: string[]) => {
         onClientConfigChange(
           updateClientConfig(
@@ -196,16 +290,36 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const onPostLogoutRedirectUriAdd = useCallback(
+      (list: string[], item: string) => {
+        setPostLogoutRedirectUris([...list, item]);
+      },
+      [setPostLogoutRedirectUris]
+    );
+
+    const onPostLogoutRedirectUriChange = useCallback(
+      (list: string[], index: number, item: string) => {
+        setPostLogoutRedirectUris(
+          list.map((value, i) => (i === index ? item : value))
+        );
+      },
+      [setPostLogoutRedirectUris]
+    );
+
+    const onPostLogoutRedirectUriDelete = useCallback(
+      (list: string[], index: number) => {
+        setPostLogoutRedirectUris(list.filter((_, i) => i !== index));
+      },
+      [setPostLogoutRedirectUris]
+    );
+
     const onChangeRefreshTokenIdleTimeoutEnabled = useCallback(
-      (_, value?: boolean) => {
-        if (value == null) {
-          return;
-        }
+      (checked: boolean) => {
         onClientConfigChange(
           updateClientConfig(
             clientConfig,
             "refresh_token_idle_timeout_enabled",
-            value
+            checked
           )
         );
       },
@@ -213,15 +327,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     );
 
     const onChangeExpireWhenLoginOnOtherDevice = useCallback(
-      (_, value?: boolean) => {
-        if (value == null) {
-          return;
-        }
+      (checked: boolean) => {
         onClientConfigChange(
           updateClientConfig(
             clientConfig,
             "x_max_concurrent_session",
-            value === true ? 1 : undefined
+            checked ? 1 : undefined
           )
         );
       },
@@ -229,15 +340,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     );
 
     const onChangeRefreshTokenRotationEnabled = useCallback(
-      (_, value?: boolean) => {
-        if (value == null) {
-          return;
-        }
+      (checked: boolean) => {
         onClientConfigChange(
           updateClientConfig(
             clientConfig,
             "refresh_token_rotation_enabled",
-            value
+            checked
           )
         );
       },
@@ -245,84 +353,93 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     );
 
     const onIssueJWTAccessTokenChange = useCallback(
-      (_, value?: boolean) => {
+      (checked: boolean) => {
         onClientConfigChange(
-          updateClientConfig(
-            clientConfig,
-            "issue_jwt_access_token",
-            value ?? false
-          )
+          updateClientConfig(clientConfig, "issue_jwt_access_token", checked)
         );
       },
       [onClientConfigChange, clientConfig]
     );
 
     const onChangeSenderConstraining = useCallback(
-      (_, value?: boolean) => {
-        if (value == null) {
-          return;
-        }
+      (checked: boolean) => {
         onClientConfigChange(
-          updateClientConfig(clientConfig, "x_dpop_disabled", !value)
+          updateClientConfig(clientConfig, "x_dpop_disabled", !checked)
         );
       },
       [onClientConfigChange, clientConfig]
     );
 
     const onApp2AppEnabledChange = useCallback(
-      (_, value?: boolean) => {
+      (checked: boolean) => {
         onClientConfigChange(
-          updateClientConfig(clientConfig, "x_app2app_enabled", value ?? false)
+          updateClientConfig(clientConfig, "x_app2app_enabled", checked)
         );
       },
       [onClientConfigChange, clientConfig]
     );
 
     const onApp2AppMigrationChange = useCallback(
-      (_, value?: boolean) => {
+      (checked: boolean) => {
         onClientConfigChange(
           updateClientConfig(
             clientConfig,
             "x_app2app_insecure_device_key_binding_enabled",
-            value ?? false
+            checked
           )
         );
       },
       [onClientConfigChange, clientConfig]
     );
 
-    const { onChange: onPolicyURIChange } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "policy_uri",
-          ensureNonEmptyString(value)
-        )
+    const onPolicyURIChange: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          onClientConfigChange(
+            updateClientConfig(
+              clientConfig,
+              "policy_uri",
+              ensureNonEmptyString(e.currentTarget.value)
+            )
+          );
+        },
+        [clientConfig, onClientConfigChange]
       );
-    });
 
-    const { onChange: onTOSURIChange } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(clientConfig, "tos_uri", ensureNonEmptyString(value))
+    const onTOSURIChange: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          onClientConfigChange(
+            updateClientConfig(
+              clientConfig,
+              "tos_uri",
+              ensureNonEmptyString(e.currentTarget.value)
+            )
+          );
+        },
+        [clientConfig, onClientConfigChange]
       );
-    });
 
-    const { onChange: onCustomUIURI } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "x_custom_ui_uri",
-          ensureNonEmptyString(value)
-        )
+    const onCustomUIURI: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          onClientConfigChange(
+            updateClientConfig(
+              clientConfig,
+              "x_custom_ui_uri",
+              ensureNonEmptyString(e.currentTarget.value)
+            )
+          );
+        },
+        [clientConfig, onClientConfigChange]
       );
-    });
 
-    const onGenerateClientSecretClick = useCallback(async () => {
-      await clientSecretHook.generate(clientConfig.client_id);
+    const onGenerateClientSecretClick = useCallback(() => {
+      void clientSecretHook.generate(clientConfig.client_id);
     }, [clientSecretHook, clientConfig.client_id]);
 
     const onDeleteClientSecretClick = useCallback(
-      async (keyItem: OAuthClientSecretKey) => {
+      (keyItem: OAuthClientSecretKey) => {
         setDeleteClientSecretDialogData({ clientSecret: keyItem });
       },
       []
@@ -570,13 +687,26 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       )?.keys;
     }, [clientConfig.client_id, clientSecretHook.oauthClientSecrets]);
 
+    const issueJWTAccessTokenToggle = (
+      <Toggle
+        checked={clientConfig.issue_jwt_access_token}
+        disabled={isIssueJWTAccessTokenToggleDisabled}
+        onCheckedChange={onIssueJWTAccessTokenChange}
+        text={renderToString(
+          "EditOAuthClientForm.issue-jwt-access-token.label"
+        )}
+      />
+    );
+
     return (
       <>
-        <Widget className={className}>
-          <WidgetTitle>
-            <FormattedMessage id="EditOAuthClientForm.basic-info.title" />
-          </WidgetTitle>
-          <FormTextField
+        <SettingsSectionCard
+          className={className}
+          contentClassName={CONTENT_CLASSNAME}
+          title={<FormattedMessage id="EditOAuthClientForm.basic-info.title" />}
+        >
+          <TextField
+            size="2"
             parentJSONPointer={parentJSONPointer}
             fieldName="name"
             label={renderToString("EditOAuthClientForm.name.label")}
@@ -584,87 +714,100 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             onChange={onNameChange}
             required={true}
           />
-          <TextFieldWithCopyButton
+          <CopyField
             label={renderToString("EditOAuthClientForm.client-id.label")}
             value={clientConfig.client_id}
-            readOnly={true}
           />
-          <TextFieldWithCopyButton
+          <CopyField
             label={renderToString("EditOAuthClientForm.endpoint.label")}
             value={publicOrigin}
-            readOnly={true}
           />
           <TextField
+            size="2"
             label={renderToString("EditOAuthClientForm.application-type.label")}
             value={applicationTypeLabel}
             readOnly={true}
           />
-        </Widget>
+        </SettingsSectionCard>
 
         {showClientSecret && clientSecrets && clientSecrets.length > 0 ? (
-          <>
-            <WidgetTitle className={styles.sectionTitle}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
               <FormattedMessage id="EditOAuthClientForm.client-secrets.title" />
-            </WidgetTitle>
-            {clientSecrets.map((keyItem) => (
-              <div key={keyItem.keyID}>
-                <TextFieldWithCopyButton
-                  label={renderToString(
-                    "EditOAuthClientForm.client-secret.label"
-                  )}
-                  value={keyItem.key ? keyItem.key : MASKED_SECRET}
-                  readOnly={true}
-                  hideCopyButton={!keyItem.key}
-                  additionalIconButtons={
-                    clientSecrets.length < 2
-                      ? undefined
-                      : [
-                          {
-                            iconProps: { iconName: "Delete" },
-                            disabled:
-                              clientSecretHook.isLoading ||
-                              clientSecretHook.isUpdating,
-                            onClick: () => {
-                              onDeleteClientSecretClick(keyItem);
-                            },
-                            theme: themes.destructive,
-                          },
-                        ]
-                  }
-                />
-                <Text
-                  styles={{
-                    root: {
-                      color: theme.palette.neutralTertiary,
-                    },
-                  }}
-                >
+            }
+          >
+            {clientSecrets.map((keyItem) => {
+              const showCopyButton = !!keyItem.key;
+              const showDeleteButton = clientSecrets.length >= 2;
+              return (
+                <div key={keyItem.keyID} className="flex flex-col gap-1">
+                  <TextField
+                    size="2"
+                    label={renderToString(
+                      "EditOAuthClientForm.client-secret.label"
+                    )}
+                    value={keyItem.key ? keyItem.key : MASKED_SECRET}
+                    readOnly={true}
+                    suffixPlain={true}
+                    suffix={
+                      showCopyButton || showDeleteButton ? (
+                        <div className="flex flex-row items-center gap-2">
+                          {showCopyButton ? (
+                            <CopyIconButton textToCopy={keyItem.key} />
+                          ) : null}
+                          {showDeleteButton ? (
+                            <RadixIconButton
+                              type="button"
+                              variant="ghost"
+                              color="red"
+                              size="1"
+                              aria-label={renderToString("delete")}
+                              disabled={
+                                clientSecretHook.isLoading ||
+                                clientSecretHook.isUpdating
+                              }
+                              onClick={() => {
+                                onDeleteClientSecretClick(keyItem);
+                              }}
+                            >
+                              <TrashIcon width="1rem" height="1rem" />
+                            </RadixIconButton>
+                          ) : null}
+                        </div>
+                      ) : undefined
+                    }
+                  />
                   {keyItem.createdAt != null ? (
-                    <FormattedMessage
-                      id="EditOAuthClientForm.client-secret.created-at"
-                      values={{
-                        datetime: DateTime.fromISO(
-                          keyItem.createdAt
-                        ).toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS),
-                      }}
-                    />
+                    <Text as="p" size="1" color="gray">
+                      <FormattedMessage
+                        id="EditOAuthClientForm.client-secret.created-at"
+                        values={{
+                          datetime: DateTime.fromISO(
+                            keyItem.createdAt
+                          ).toLocaleString(DateTime.DATETIME_MED_WITH_SECONDS),
+                        }}
+                      />
+                    </Text>
                   ) : null}
-                </Text>
-              </div>
-            ))}
+                </div>
+              );
+            })}
             <div className="flex flex-row space-x-4">
-              <ButtonWithLoading
-                labelId="reveal"
+              <PrimaryButton
+                size="2"
                 onClick={onRevealSecretClick}
                 disabled={clientSecrets.every((item) => !!item.key)}
                 loading={isRevealing}
+                text={<FormattedMessage id="reveal" />}
               />
               {clientSecrets.length < 2 ? (
-                <DefaultButton
+                <SecondaryButton
+                  size="2"
                   text={renderToString(
                     "EditOAuthClientForm.client-secrets.create-new-secret"
                   )}
-                  // eslint-disable-next-line @typescript-eslint/strict-void-return
                   onClick={onGenerateClientSecretClick}
                   disabled={
                     clientSecretHook.isLoading || clientSecretHook.isUpdating
@@ -672,32 +815,33 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 />
               ) : null}
             </div>
-          </>
+          </SettingsSectionCard>
         ) : null}
 
         {showURIsSection ? (
-          <Widget className={className}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
+              <span id="uris">
+                <FormattedMessage id="EditOAuthClientForm.uris.title" />
+              </span>
+            }
+          >
             {redirectURIsDescription != null ? (
-              <>
-                <WidgetTitle id="uris" className={styles.sectionTitle}>
-                  <FormattedMessage id="EditOAuthClientForm.uris.title" />
-                </WidgetTitle>
-                <FormTextFieldList
-                  parentJSONPointer={parentJSONPointer}
-                  fieldName="redirect_uris"
-                  list={clientConfig.redirect_uris ?? []}
-                  onListItemAdd={onRedirectUrisChange}
-                  onListItemChange={onRedirectUrisChange}
-                  onListItemDelete={onRedirectUrisChange}
-                  addButtonLabelMessageID="EditOAuthClientForm.add-uri"
-                  label={
-                    <Label>
-                      <FormattedMessage id="EditOAuthClientForm.redirect-uris.label" />
-                    </Label>
-                  }
-                  description={redirectURIsDescription}
-                />
-              </>
+              <TextFieldList
+                parentJSONPointer={parentJSONPointer}
+                fieldName="redirect_uris"
+                list={clientConfig.redirect_uris ?? []}
+                onListItemAdd={onRedirectUriAdd}
+                onListItemChange={onRedirectUriChange}
+                onListItemDelete={onRedirectUriDelete}
+                addButtonLabelMessageID="EditOAuthClientForm.add-uri"
+                label={
+                  <FormattedMessage id="EditOAuthClientForm.redirect-uris.label" />
+                }
+                description={redirectURIsDescription}
+              />
             ) : null}
             {showPostLogoutRedirectURIsSettings ? (
               <Accordion
@@ -705,18 +849,16 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                   <FormattedMessage id="EditOAuthClientForm.more-options" />
                 }
               >
-                <FormTextFieldList
+                <TextFieldList
                   parentJSONPointer={parentJSONPointer}
                   fieldName="post_logout_redirect_uris"
                   list={clientConfig.post_logout_redirect_uris ?? []}
-                  onListItemAdd={onPostLogoutRedirectUrisChange}
-                  onListItemChange={onPostLogoutRedirectUrisChange}
-                  onListItemDelete={onPostLogoutRedirectUrisChange}
+                  onListItemAdd={onPostLogoutRedirectUriAdd}
+                  onListItemChange={onPostLogoutRedirectUriChange}
+                  onListItemDelete={onPostLogoutRedirectUriDelete}
                   addButtonLabelMessageID="EditOAuthClientForm.add-uri"
                   label={
-                    <Label>
-                      <FormattedMessage id="EditOAuthClientForm.post-logout-redirect-uris.label" />
-                    </Label>
+                    <FormattedMessage id="EditOAuthClientForm.post-logout-redirect-uris.label" />
                   }
                   description={renderToString(
                     clientConfig.x_application_type === "spa"
@@ -726,94 +868,108 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 />
               </Accordion>
             ) : null}
-          </Widget>
+          </SettingsSectionCard>
         ) : null}
 
         {showConsentScreenSettings ? (
-          <Widget className={className}>
-            <WidgetTitle className={styles.sectionTitle}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
               <FormattedMessage id="EditOAuthClientForm.consent-screen.title" />
-            </WidgetTitle>
-            <FormTextField
+            }
+          >
+            <TextField
+              size="2"
               parentJSONPointer={parentJSONPointer}
               fieldName="client_name"
               label={renderToString("EditOAuthClientForm.client-name.label")}
-              description={renderToString(
+              hint={renderToString(
                 "EditOAuthClientForm.client-name.description"
               )}
               value={clientConfig.client_name ?? ""}
               onChange={onClientNameChange}
               required={true}
             />
-            <FormTextField
+            <TextField
+              size="2"
               parentJSONPointer={parentJSONPointer}
               fieldName="policy_uri"
               label={renderToString("EditOAuthClientForm.policy-uri.label")}
-              description={renderToString(
+              hint={renderToString(
                 "EditOAuthClientForm.policy-uri.description"
               )}
               value={clientConfig.policy_uri ?? ""}
               onChange={onPolicyURIChange}
             />
-            <FormTextField
+            <TextField
+              size="2"
               parentJSONPointer={parentJSONPointer}
               fieldName="tos_uri"
               label={renderToString("EditOAuthClientForm.tos-uri.label")}
-              description={renderToString(
-                "EditOAuthClientForm.tos-uri.description"
-              )}
+              hint={renderToString("EditOAuthClientForm.tos-uri.description")}
               value={clientConfig.tos_uri ?? ""}
               onChange={onTOSURIChange}
             />
-          </Widget>
+          </SettingsSectionCard>
         ) : null}
 
         {showCustomUISettings ? (
-          <Widget className={className}>
-            <WidgetTitle className={styles.sectionTitle}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
               <FormattedMessage id="EditOAuthClientForm.custom-ui.title" />
-            </WidgetTitle>
-            <FormTextField
+            }
+          >
+            <TextField
+              size="2"
               parentJSONPointer={parentJSONPointer}
               fieldName="x_custom_ui_uri"
               label={renderToString("EditOAuthClientForm.custom-ui-uri.label")}
-              description={renderToString(
+              hint={renderToString(
                 "EditOAuthClientForm.custom-ui-uri.description"
               )}
               value={clientConfig.x_custom_ui_uri ?? ""}
               onChange={onCustomUIURI}
             />
-          </Widget>
+          </SettingsSectionCard>
         ) : null}
 
         {showEndpointsSection ? (
-          <Widget className={className}>
-            <WidgetTitle className={styles.sectionTitle}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
               <FormattedMessage id="EditOAuthClientForm.endpoints.title" />
-            </WidgetTitle>
+            }
+          >
             {endpointsWithLabelIDs.map((e) => {
               return e.endpoint ? (
-                <TextFieldWithCopyButton
+                <CopyField
                   key={e.labelMessageID}
                   label={renderToString(e.labelMessageID)}
                   value={e.endpoint}
-                  readOnly={true}
                 />
               ) : null;
             })}
-          </Widget>
+          </SettingsSectionCard>
         ) : null}
 
         {showRefreshTokenSettings ? (
-          <Widget className={className}>
-            <WidgetTitle className={styles.sectionTitle}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
               <FormattedMessage id="EditOAuthClientForm.refresh-token.title" />
-            </WidgetTitle>
-            <FormTextField
+            }
+          >
+            <TextField
+              size="2"
               parentJSONPointer={parentJSONPointer}
               fieldName="refresh_token_lifetime_seconds"
               label={renderToString("EditOAuthClientForm.refresh-token.label")}
-              description={renderToString(
+              hint={renderToString(
                 "EditOAuthClientForm.refresh-token.description"
               )}
               value={
@@ -821,23 +977,24 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               }
               onChange={onRefreshTokenLifetimeChange}
             />
-            <Toggle
+            <ToggleWithDescription
               checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
-              onChange={onChangeRefreshTokenIdleTimeoutEnabled}
-              label={renderToString(
+              onCheckedChange={onChangeRefreshTokenIdleTimeoutEnabled}
+              text={renderToString(
                 "EditOAuthClientForm.refresh-token-idle-timeout-enabled.label"
               )}
               description={renderToString(
                 "EditOAuthClientForm.refresh-token-idle-timeout-enabled.description"
               )}
             />
-            <FormTextField
+            <TextField
+              size="2"
               parentJSONPointer={parentJSONPointer}
               fieldName="refresh_token_idle_timeout_seconds"
               label={renderToString(
                 "EditOAuthClientForm.refresh-token-idle-timeout.label"
               )}
-              description={renderToString(
+              hint={renderToString(
                 "EditOAuthClientForm.refresh-token-idle-timeout.description"
               )}
               value={
@@ -850,38 +1007,42 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               }
             />
             <HelpText>{refreshTokenHelpText}</HelpText>
-            <Toggle
+            <ToggleWithDescription
               checked={clientConfig.x_max_concurrent_session === 1}
-              onChange={onChangeExpireWhenLoginOnOtherDevice}
-              label={renderToString(
+              onCheckedChange={onChangeExpireWhenLoginOnOtherDevice}
+              text={renderToString(
                 "EditOAuthClientForm.expire-when-login-on-other-device.label"
               )}
               description={renderToString(
                 "EditOAuthClientForm.expire-when-login-on-other-device.description"
               )}
             />
-            <Toggle
+            <ToggleWithDescription
               checked={clientConfig.refresh_token_rotation_enabled ?? false}
-              onChange={onChangeRefreshTokenRotationEnabled}
-              label={renderToString(
+              onCheckedChange={onChangeRefreshTokenRotationEnabled}
+              text={renderToString(
                 "EditOAuthClientForm.refresh-token-rotation-enabled.label"
               )}
               description={renderToString(
                 "EditOAuthClientForm.refresh-token-rotation-enabled.description"
               )}
             />
-          </Widget>
+          </SettingsSectionCard>
         ) : null}
         {showAccessTokenSettings ? (
-          <Widget className={className}>
-            <WidgetTitle className={styles.sectionTitle}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
               <FormattedMessage id="EditOAuthClientForm.access-token.title" />
-            </WidgetTitle>
-            <FormTextField
+            }
+          >
+            <TextField
+              size="2"
               parentJSONPointer={parentJSONPointer}
               fieldName="access_token_lifetime_seconds"
               label={renderToString("EditOAuthClientForm.access-token.label")}
-              description={renderToString(
+              hint={renderToString(
                 clientConfig.x_application_type === "m2m"
                   ? "EditOAuthClientForm.access-token.description.m2m"
                   : "EditOAuthClientForm.access-token.description"
@@ -899,39 +1060,36 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               onChange={onAccessTokenLifetimeChange}
             />
             <div>
-              <Label
-                htmlFor="issue-jwt-access-token-toggle"
-                disabled={isIssueJWTAccessTokenToggleDisabled}
-              >
-                {renderToString(
-                  "EditOAuthClientForm.issue-jwt-access-token.label"
-                )}
-              </Label>
-              <Tooltip
-                tooltipMessageId={
-                  alwaysIssueJWTAccessTokenTooltipMessageID ?? ""
-                }
-                isHidden={alwaysIssueJWTAccessTokenTooltipMessageID == null}
-              >
-                <Toggle
-                  id="issue-jwt-access-token-toggle"
-                  checked={clientConfig.issue_jwt_access_token}
-                  disabled={isIssueJWTAccessTokenToggleDisabled}
-                  onChange={onIssueJWTAccessTokenChange}
-                />
-              </Tooltip>
+              {alwaysIssueJWTAccessTokenTooltipMessageID != null ? (
+                <Tooltip
+                  content={
+                    <FormattedMessage
+                      id={alwaysIssueJWTAccessTokenTooltipMessageID}
+                    />
+                  }
+                >
+                  <span className="inline-flex">
+                    {issueJWTAccessTokenToggle}
+                  </span>
+                </Tooltip>
+              ) : (
+                issueJWTAccessTokenToggle
+              )}
             </div>
-          </Widget>
+          </SettingsSectionCard>
         ) : null}
         {showDPoPSettings ? (
-          <Widget className={className}>
-            <WidgetTitle className={styles.sectionTitle}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
               <FormattedMessage id="EditOAuthClientForm.sender-constraining.title" />
-            </WidgetTitle>
-            <Toggle
+            }
+          >
+            <ToggleWithDescription
               checked={!(clientConfig.x_dpop_disabled ?? false)}
-              onChange={onChangeSenderConstraining}
-              label={renderToString(
+              onCheckedChange={onChangeSenderConstraining}
+              text={renderToString(
                 "EditOAuthClientForm.sender-constraining.require.label"
               )}
               description={
@@ -948,14 +1106,20 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 />
               }
             />
-          </Widget>
+          </SettingsSectionCard>
         ) : null}
         {showCookieSettings ? (
-          <Widget className={className}>
-            <WidgetTitle className={styles.sectionTitle}>
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
               <FormattedMessage id="EditOAuthClientForm.cookie-settings.title" />
-            </WidgetTitle>
-            <WidgetDescription>
+            }
+          >
+            {/* This section has no controls; the pointer to Session settings
+                is the content, keeping the two-column rhythm of its
+                siblings. */}
+            <Text as="p" size="2" className={styles.cookieSettingsText}>
               <FormattedMessage
                 id="EditOAuthClientForm.cookie-settings.description"
                 values={{
@@ -968,28 +1132,33 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                   ),
                 }}
               />
-            </WidgetDescription>
-          </Widget>
+            </Text>
+          </SettingsSectionCard>
         ) : null}
         {showApp2AppSettings ? (
-          <Widget className={className}>
-            <WidgetTitle id="app2app" className={styles.sectionTitle}>
-              <FormattedMessage id="EditOAuthClientForm.app2app.title" />
-            </WidgetTitle>
-            <Toggle
+          <SettingsSectionCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            title={
+              <span id="app2app">
+                <FormattedMessage id="EditOAuthClientForm.app2app.title" />
+              </span>
+            }
+          >
+            <ToggleWithDescription
               checked={clientConfig.x_app2app_enabled}
-              onChange={onApp2AppEnabledChange}
-              label={renderToString("EditOAuthClientForm.app2app.enable.label")}
+              onCheckedChange={onApp2AppEnabledChange}
+              text={renderToString("EditOAuthClientForm.app2app.enable.label")}
               description={renderToString(
                 "EditOAuthClientForm.app2app.enable.description"
               )}
             />
-            <Toggle
+            <ToggleWithDescription
               checked={
                 clientConfig.x_app2app_insecure_device_key_binding_enabled
               }
-              onChange={onApp2AppMigrationChange}
-              label={renderToString(
+              onCheckedChange={onApp2AppMigrationChange}
+              text={renderToString(
                 "EditOAuthClientForm.app2app.migration.label"
               )}
               description={renderToString(
@@ -1007,7 +1176,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 }}
               />
             </HelpText>
-          </Widget>
+          </SettingsSectionCard>
         ) : null}
         <DeleteClientSecretConfirmationDialog
           data={deleteClientSecretDialogData}
@@ -1021,22 +1190,3 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
   };
 
 export default EditOAuthClientForm;
-
-function HelpText(props: { children: React.ReactNode }) {
-  const { children } = props;
-  const theme = useTheme();
-  return (
-    <Text
-      block={true}
-      styles={{
-        root: {
-          background: theme.palette.neutralLighter,
-          lineHeight: "20px",
-          padding: "8px 12px",
-        },
-      }}
-    >
-      {children}
-    </Text>
-  );
-}

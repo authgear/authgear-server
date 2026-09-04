@@ -1,33 +1,26 @@
-import React from "react";
-import { Text, ITextProps } from "@fluentui/react";
-import { useMergedStylesPlain } from "./util/mergeStyles";
+import React, { useMemo } from "react";
+import { Text } from "@radix-ui/themes";
 
 export interface WidgetDescriptionProps {
   className?: string;
   children?: React.ReactNode;
-  styles?: ITextProps["styles"];
+  styles?: { root?: React.CSSProperties };
 }
 
-const DEFAULT_STYLES: ITextProps["styles"] = {
-  root: {
-    // See Widget.
-    lineHeight: "20px",
-  },
+const DEFAULT_STYLE: React.CSSProperties = {
+  // See Widget.
+  lineHeight: "20px",
 };
 
 const WidgetDescription: React.VFC<WidgetDescriptionProps> =
   function WidgetDescription(props: WidgetDescriptionProps) {
     const { className, children, styles } = props;
-    const mergedStyles = useMergedStylesPlain(DEFAULT_STYLES, styles);
+    const style = useMemo(
+      () => ({ ...DEFAULT_STYLE, ...styles?.root }),
+      [styles]
+    );
     return (
-      <Text
-        as="p"
-        variant="medium"
-        className={className}
-        block={true}
-        // @ts-expect-error
-        styles={mergedStyles}
-      >
+      <Text as="p" size="2" className={className} style={style}>
         {children}
       </Text>
     );

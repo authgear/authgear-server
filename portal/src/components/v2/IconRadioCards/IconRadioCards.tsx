@@ -37,9 +37,9 @@ export function IconRadioCards<T extends string>({
   options,
   ...rootProps
 }: IconRadioCardsProps<T>): React.ReactElement {
-  // The checked visual of RadixRadioCards.Item is derived solely from
-  // Root's value === Item's value, so the Root must be controlled; a
-  // `checked` prop on Item is ignored by the Radix primitive.
+  // RadixRadioCards.Item derives its checked visual from
+  // Root's value === Item's value, so the Root must be controlled for the
+  // form state to fully drive the selection.
   const handleValueChange = useCallback(
     (newValue: string) => {
       if (newValue === value) {

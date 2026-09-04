@@ -1,17 +1,26 @@
-.hidden {
-  width: 0;
-  height: 0;
-  visibility: hidden;
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .dateTimePicker {
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .dateTimePickerLabel {
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #323130;
+  color: var(--gray-12);
   margin-bottom: 4px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
 }

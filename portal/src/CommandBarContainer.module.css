@@ -12,10 +12,6 @@
   position: static;
 }
 
-.commandBar {
-  border-bottom: 1px solid #edebe9;
-}
-
 .hidden {
   visibility: hidden;
 }

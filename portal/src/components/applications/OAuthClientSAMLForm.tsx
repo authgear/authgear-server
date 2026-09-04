@@ -1,23 +1,21 @@
 import React, { useCallback, useContext, useMemo } from "react";
-import cn from "classnames";
-import Toggle from "../../Toggle";
+import {
+  Flex,
+  Heading,
+  IconButton as RadixIconButton,
+  RadioGroup,
+  Separator,
+  Text,
+} from "@radix-ui/themes";
+import { CheckIcon, DownloadIcon, TrashIcon } from "@radix-ui/react-icons";
+import { useParams } from "react-router-dom";
+import { Toggle } from "../v2/Toggle/Toggle";
 import {
   FormattedMessage,
   Context as MessageFormatContext,
   IntlContextValue as MessageFormatContextValue,
 } from "../../intl";
-import HorizontalDivider from "../../HorizontalDivider";
 import WidgetTitle from "../../WidgetTitle";
-import ScreenTitle from "../../ScreenTitle";
-import {
-  IChoiceGroupOption,
-  ChoiceGroup,
-  Label,
-  MessageBar,
-  MessageBarType,
-  Text,
-  FontIcon,
-} from "@fluentui/react";
 import {
   SAMLNameIDFormat,
   SAMLNameIDAttributePointer,
@@ -25,20 +23,25 @@ import {
   PortalAPIAppConfig,
   SAMLIdpSigningCertificate,
 } from "../../types";
-import FormTextFieldList from "../../FormTextFieldList";
-import FormTextField from "../../FormTextField";
-import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
+import { TextField } from "../v2/TextField/TextField";
+import { TextFieldList } from "../v2/TextFieldList/TextFieldList";
+import { TextArea } from "../v2/TextArea/TextArea";
+import { FormField } from "../v2/FormField/FormField";
+import { Callout } from "../v2/Callout/Callout";
+import { CopyIconButton } from "../v2/CopyIconButton/CopyIconButton";
+import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
-import DefaultButton from "../../DefaultButton";
+import { useFormField } from "../../form";
+import { joinParentChild } from "../../util/jsonpointer";
+import ErrorRenderer from "../../ErrorRenderer";
 import { downloadStringAsFile } from "../../util/download";
-import { useParams, Link } from "react-router-dom";
+import Link from "../../Link";
 import { AutoGenerateFirstCertificate } from "../saml/AutoGenerateFirstCertificate";
 import {
   formatCertificateFilename,
   parseServiceProviderMetadata,
 } from "../../model/saml";
-import OutlinedActionButton from "../common/OutlinedActionButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import styles from "./OAuthClientSAMLForm.module.css";
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
@@ -81,31 +84,39 @@ export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
   };
 }
 
-const nameIDFormatOptions: IChoiceGroupOption[] = [
-  { key: SAMLNameIDFormat.Unspecified, text: SAMLNameIDFormat.Unspecified },
-  { key: SAMLNameIDFormat.EmailAddress, text: SAMLNameIDFormat.EmailAddress },
+interface RadioGroupOption {
+  value: string;
+  text: string;
+}
+
+const nameIDFormatOptions: RadioGroupOption[] = [
+  { value: SAMLNameIDFormat.Unspecified, text: SAMLNameIDFormat.Unspecified },
+  {
+    value: SAMLNameIDFormat.EmailAddress,
+    text: SAMLNameIDFormat.EmailAddress,
+  },
 ];
 
 function makeNameIDAttributePointerOptions(
   renderToString: MessageFormatContextValue["renderToString"]
-): IChoiceGroupOption[] {
+): RadioGroupOption[] {
   return [
     {
-      key: SAMLNameIDAttributePointer.Sub,
+      value: SAMLNameIDAttributePointer.Sub,
       text: renderToString(
         "OAuthClientSAMLForm.nameIDAttribute.options.userID"
       ),
     },
     {
-      key: SAMLNameIDAttributePointer.Email,
+      value: SAMLNameIDAttributePointer.Email,
       text: renderToString("OAuthClientSAMLForm.nameIDAttribute.options.email"),
     },
     {
-      key: SAMLNameIDAttributePointer.PhoneNumber,
+      value: SAMLNameIDAttributePointer.PhoneNumber,
       text: renderToString("OAuthClientSAMLForm.nameIDAttribute.options.phone"),
     },
     {
-      key: SAMLNameIDAttributePointer.PreferredUsername,
+      value: SAMLNameIDAttributePointer.PreferredUsername,
       text: renderToString(
         "OAuthClientSAMLForm.nameIDAttribute.options.username"
       ),
@@ -115,21 +126,232 @@ function makeNameIDAttributePointerOptions(
 
 function makeSLOCallbackBindingOptions(
   renderToString: MessageFormatContextValue["renderToString"]
-): IChoiceGroupOption[] {
+): RadioGroupOption[] {
   return [
     {
-      key: SAMLBinding.HTTPRedirect,
+      value: SAMLBinding.HTTPRedirect,
       text: renderToString(
         "OAuthClientSAMLForm.logout.callbackBinding.options.httpRedirect"
       ),
     },
     {
-      key: SAMLBinding.HTTPPOST,
+      value: SAMLBinding.HTTPPOST,
       text: renderToString(
         "OAuthClientSAMLForm.logout.callbackBinding.options.httpPost"
       ),
     },
   ];
+}
+
+function RadioGroupField({
+  label,
+  options,
+  value,
+  disabled,
+  onValueChange,
+}: {
+  label: string;
+  options: RadioGroupOption[];
+  value: string | null;
+  disabled?: boolean;
+  onValueChange: (value: string) => void;
+}): React.ReactElement {
+  return (
+    <FormField size="2" label={label}>
+      <RadioGroup.Root value={value ?? ""} onValueChange={onValueChange}>
+        <Flex direction="column" gap="2">
+          {options.map((option) => (
+            <Text
+              as="label"
+              size="2"
+              key={option.value}
+              className={
+                disabled === true ? styles.radioOptionLabelDisabled : undefined
+              }
+            >
+              <Flex align="center" gap="2">
+                <RadioGroup.Item value={option.value} disabled={disabled} />
+                {option.text}
+              </Flex>
+            </Text>
+          ))}
+        </Flex>
+      </RadioGroup.Root>
+    </FormField>
+  );
+}
+
+interface TextAreaListItemProps {
+  index: number;
+  itemsJSONPointer: string | RegExp;
+  value: string;
+  canDelete: boolean;
+  onItemChange: (index: number, value: string) => void;
+  onItemDelete: (index: number) => void;
+}
+
+function TextAreaListItem({
+  index,
+  itemsJSONPointer,
+  value,
+  canDelete,
+  onItemChange,
+  onItemDelete,
+}: TextAreaListItemProps): React.ReactElement {
+  const onChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      onItemChange(index, e.currentTarget.value);
+    },
+    [index, onItemChange]
+  );
+  const onDeleteClick = useCallback(() => {
+    onItemDelete(index);
+  }, [index, onItemDelete]);
+
+  return (
+    <div className={styles.textAreaListRow}>
+      <div className={styles.textAreaListRowField}>
+        <TextArea
+          size="2"
+          className={styles.textAreaListTextArea}
+          parentJSONPointer={itemsJSONPointer}
+          fieldName={index.toString(10)}
+          value={value}
+          onChange={onChange}
+        />
+      </div>
+      {canDelete ? (
+        <RadixIconButton
+          className={styles.textAreaListDeleteButton}
+          variant="ghost"
+          color="gray"
+          size="2"
+          type="button"
+          onClick={onDeleteClick}
+        >
+          <TrashIcon width="1rem" height="1rem" />
+        </RadixIconButton>
+      ) : null}
+    </div>
+  );
+}
+
+// A multiline counterpart of the v2 TextFieldList: a growable list of
+// textareas with per-item form error binding (items bind to
+// <parent>/<fieldName>/<index>), a list-level error message, and add/delete
+// controls.
+function TextAreaList({
+  label,
+  description,
+  parentJSONPointer,
+  fieldName,
+  list: propList,
+  onListChange,
+  addButtonLabelMessageID,
+  minItem,
+  maxItem,
+}: {
+  label: React.ReactNode;
+  description?: React.ReactNode;
+  parentJSONPointer: string | RegExp;
+  fieldName: string;
+  list: string[];
+  onListChange: (newList: string[]) => void;
+  addButtonLabelMessageID: string;
+  minItem: number;
+  maxItem: number;
+}): React.ReactElement {
+  const field = useMemo(
+    () => ({ parentJSONPointer, fieldName }),
+    [parentJSONPointer, fieldName]
+  );
+  const { errors } = useFormField(field);
+
+  const itemsJSONPointer = useMemo(
+    () => joinParentChild(parentJSONPointer, fieldName),
+    [parentJSONPointer, fieldName]
+  );
+
+  const list = useMemo(() => {
+    // If the number of items is less than minItem, fill with empty items.
+    if (minItem === 0) {
+      return propList;
+    }
+    if (propList.length === 0) {
+      return new Array(minItem).fill("") as string[];
+    }
+    return propList;
+  }, [minItem, propList]);
+
+  const canDelete = list.length > minItem;
+  const canAdd = list.length < maxItem;
+
+  const onItemChange = useCallback(
+    (index: number, value: string) => {
+      const newList = list.slice();
+      newList[index] = value;
+      onListChange(newList);
+    },
+    [list, onListChange]
+  );
+
+  const onItemDelete = useCallback(
+    (index: number) => {
+      const newList = list.slice();
+      newList.splice(index, 1);
+      onListChange(newList);
+    },
+    [list, onListChange]
+  );
+
+  const onAddClick = useCallback(() => {
+    onListChange([...list, ""]);
+  }, [list, onListChange]);
+
+  return (
+    <div className={styles.textAreaList}>
+      <Text
+        as="p"
+        size="2"
+        weight="medium"
+        className={styles.textAreaListLabel}
+      >
+        {label}
+      </Text>
+      <div className={styles.textAreaListItems}>
+        {list.map((value, index) => (
+          <TextAreaListItem
+            key={index}
+            index={index}
+            itemsJSONPointer={itemsJSONPointer}
+            value={value}
+            canDelete={canDelete}
+            onItemChange={onItemChange}
+            onItemDelete={onItemDelete}
+          />
+        ))}
+      </div>
+      {errors.length > 0 ? (
+        <Text as="p" size="1" color="red" className={styles.textAreaListErrors}>
+          <ErrorRenderer errors={errors} />
+        </Text>
+      ) : null}
+      {canAdd ? (
+        <span className={styles.textAreaListAddButton}>
+          <SecondaryButton
+            size="2"
+            onClick={onAddClick}
+            text={<FormattedMessage id={addButtonLabelMessageID} />}
+          />
+        </span>
+      ) : null}
+      {description != null ? (
+        <Text as="p" size="1" className={styles.textAreaListDescription}>
+          {description}
+        </Text>
+      ) : null}
+    </div>
+  );
 }
 
 function IdpCertificateSection({
@@ -141,8 +363,7 @@ function IdpCertificateSection({
   configAppID: string;
   samlIdpSigningCertificate: SAMLIdpSigningCertificate;
 }) {
-  const { themes } = useSystemConfig();
-
+  const { renderToString } = useContext(MessageFormatContext);
   const onDownloadIdpCertificate = useCallback(() => {
     downloadStringAsFile({
       content: samlIdpSigningCertificate.certificatePEM,
@@ -160,39 +381,51 @@ function IdpCertificateSection({
         <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.title" />
       </WidgetTitle>
       <div className="grid gap-y-4 grid-cols-1">
-        <div>
-          <OutlinedActionButton
-            theme={themes.actionButton}
-            className="justify-self-start"
-            iconProps={{ iconName: "Download" }}
+        <TextField
+          size="2"
+          label={renderToString(
+            "OAuthClientSAMLForm.idpCertificate.fingerprint.label"
+          )}
+          value={samlIdpSigningCertificate.certificateFingerprint}
+          readOnly={true}
+          inputClassName={styles.fingerprintInput}
+          suffixPlain={true}
+          suffix={
+            <CopyIconButton
+              textToCopy={samlIdpSigningCertificate.certificateFingerprint}
+            />
+          }
+        />
+        <span className="inline-block">
+          <SecondaryButton
+            size="2"
             onClick={onDownloadIdpCertificate}
             text={
-              <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
+              <>
+                <DownloadIcon />
+                <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
+              </>
             }
           />
-          <Text block={true} className={"mt-1"}>
+        </span>
+
+        <Callout
+          type="info"
+          showCloseButton={false}
+          text={
             <FormattedMessage
-              id="OAuthClientSAMLForm.idpCertificate.fingerprint"
+              id="OAuthClientSAMLForm.idpCertificate.rotateHint"
               values={{
-                fingerprint: samlIdpSigningCertificate.certificateFingerprint,
+                // eslint-disable-next-line react/no-unstable-nested-components
+                reactRouterLink: (chunks: React.ReactNode) => (
+                  <Link to={`/project/${appID}/advanced/saml-certificate`}>
+                    {chunks}
+                  </Link>
+                ),
               }}
             />
-          </Text>
-        </div>
-
-        <MessageBar messageBarType={MessageBarType.info}>
-          <FormattedMessage
-            id="OAuthClientSAMLForm.idpCertificate.rotateHint"
-            values={{
-              // eslint-disable-next-line react/no-unstable-nested-components
-              reactRouterLink: (chunks: React.ReactNode) => (
-                <Link to={`/project/${appID}/advanced/saml-certificate`}>
-                  {chunks}
-                </Link>
-              ),
-            }}
-          />
-        </MessageBar>
+          }
+        />
       </div>
     </div>
   );
@@ -225,36 +458,29 @@ export function OAuthClientSAMLForm({
   const { getIsDirty } = useFormContainerBaseContext();
   const isFormDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   const { appID } = useParams() as { appID: string };
-  const { themes } = useSystemConfig();
 
   const onIsSAMLEnabledChange = useCallback(
-    (_, checked?: boolean) => {
-      onFormStateChange({ ...formState, isSAMLEnabled: Boolean(checked) });
+    (checked: boolean) => {
+      onFormStateChange({ ...formState, isSAMLEnabled: checked });
     },
     [formState, onFormStateChange]
   );
 
   const onNameIDFormatChange = useCallback(
-    (_, option?: IChoiceGroupOption) => {
-      if (option == null) {
-        return;
-      }
+    (value: string) => {
       onFormStateChange({
         ...formState,
-        nameIDFormat: option.key as SAMLNameIDFormat,
+        nameIDFormat: value as SAMLNameIDFormat,
       });
     },
     [formState, onFormStateChange]
   );
 
   const onNameIDAttributePointerChange = useCallback(
-    (_, option?: IChoiceGroupOption) => {
-      if (option == null) {
-        return;
-      }
+    (value: string) => {
       onFormStateChange({
         ...formState,
-        nameIDAttributePointer: option.key as SAMLNameIDAttributePointer,
+        nameIDAttributePointer: value as SAMLNameIDAttributePointer,
       });
     },
     [formState, onFormStateChange]
@@ -270,12 +496,39 @@ export function OAuthClientSAMLForm({
     [formState, onFormStateChange]
   );
 
+  const onAcsUrlItemAdd = useCallback(
+    (list: string[], item: string) => {
+      onAcsUrlsChange([...list, item]);
+    },
+    [onAcsUrlsChange]
+  );
+
+  const onAcsUrlItemChange = useCallback(
+    (list: string[], index: number, item: string) => {
+      const newList = list.slice();
+      newList[index] = item;
+      onAcsUrlsChange(newList);
+    },
+    [onAcsUrlsChange]
+  );
+
+  const onAcsUrlItemDelete = useCallback(
+    (list: string[], index: number, _item: string) => {
+      const newList = list.slice();
+      newList.splice(index, 1);
+      onAcsUrlsChange(newList);
+    },
+    [onAcsUrlsChange]
+  );
+
   const onTextfieldChange = useMemo(() => {
-    const makeOnChangeCallback = (key: keyof OAuthClientSAMLFormState) => {
-      return (_: unknown, newValue?: string) => {
+    const makeOnChangeCallback = (
+      key: keyof OAuthClientSAMLFormState
+    ): React.ChangeEventHandler<HTMLInputElement> => {
+      return (e) => {
         onFormStateChange({
           ...formState,
-          [key]: newValue,
+          [key]: e.currentTarget.value,
         });
       };
     };
@@ -288,10 +541,8 @@ export function OAuthClientSAMLForm({
   }, [formState, onFormStateChange]);
 
   const onAssertionValidDurationSecondsChange = useCallback(
-    (_: unknown, newValue?: string) => {
-      if (newValue == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = e.currentTarget.value;
       if (newValue.trim() === "") {
         onFormStateChange({
           ...formState,
@@ -313,30 +564,27 @@ export function OAuthClientSAMLForm({
   );
 
   const onIsSLOEnabledChange = useCallback(
-    (_, checked?: boolean) => {
-      onFormStateChange({ ...formState, isSLOEnabled: Boolean(checked) });
+    (checked: boolean) => {
+      onFormStateChange({ ...formState, isSLOEnabled: checked });
     },
     [formState, onFormStateChange]
   );
 
   const onSLOCallbackBindingChange = useCallback(
-    (_, option?: IChoiceGroupOption) => {
-      if (option == null) {
-        return;
-      }
+    (value: string) => {
       onFormStateChange({
         ...formState,
-        sloCallbackBinding: option.key as SAMLBinding,
+        sloCallbackBinding: value as SAMLBinding,
       });
     },
     [formState, onFormStateChange]
   );
 
   const onSignatureVerificationEnabledChange = useCallback(
-    (_, checked?: boolean) => {
+    (checked: boolean) => {
       onFormStateChange({
         ...formState,
-        signatureVerificationEnabled: Boolean(checked),
+        signatureVerificationEnabled: checked,
       });
     },
     [formState, onFormStateChange]
@@ -441,39 +689,41 @@ export function OAuthClientSAMLForm({
 
   return (
     <div>
-      <Toggle
-        label={renderToString("OAuthClientSAMLForm.enable.label")}
-        description={renderToString("OAuthClientSAMLForm.enable.description")}
-        checked={formState.isSAMLEnabled}
-        onChange={onIsSAMLEnabledChange}
-      />
+      <div className="grid gap-y-1 grid-cols-1">
+        <Toggle
+          text={renderToString("OAuthClientSAMLForm.enable.label")}
+          textWeight="medium"
+          checked={formState.isSAMLEnabled}
+          onCheckedChange={onIsSAMLEnabledChange}
+        />
+        <Text as="p" size="2" className={styles.toggleDescription}>
+          {renderToString("OAuthClientSAMLForm.enable.description")}
+        </Text>
+      </div>
       {formState.isSAMLEnabled ? (
         <>
-          <HorizontalDivider className="my-12" />
+          <Separator size="4" className="my-12" />
           <div className="grid gap-y-12 grid-cols-1">
             <div>
-              <ScreenTitle>
+              <Heading as="h2" size="5" weight="bold">
                 <FormattedMessage id="OAuthClientSAMLForm.title" />
-              </ScreenTitle>
+              </Heading>
               <div className="mt-3 grid gap-y-2 grid-cols-1 items-start justify-items-start">
-                <Text block={true}>
+                <Text as="p" size="2">
                   <FormattedMessage id="OAuthClientSAMLForm.metadataUpload.description" />
                 </Text>
                 <div className="grid grid-flow-col items-center gap-x-2">
-                  <DefaultButton
-                    className="w-fit"
+                  <SecondaryButton
+                    size="2"
                     text={renderToString(
                       "OAuthClientSAMLForm.metadataUpload.label"
                     )}
                     onClick={onUploadMetadata}
                   />
                   {formState.isMetadataUploaded ? (
-                    <div className="flex flex-row items-center">
-                      <FontIcon
-                        iconName="Accept"
-                        className="text-text-disabled mr-1"
-                      />
-                      <Text className="text-text-disabled">
+                    <div className={styles.metadataUploadedIndicator}>
+                      <CheckIcon width="1rem" height="1rem" />
+                      <Text size="2">
                         <FormattedMessage id="OAuthClientSAMLForm.metadataUpload.success" />
                       </Text>
                     </div>
@@ -486,15 +736,15 @@ export function OAuthClientSAMLForm({
                 <FormattedMessage id="OAuthClientSAMLForm.basic.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
-                <ChoiceGroup
+                <RadioGroupField
                   label={renderToString(
                     "OAuthClientSAMLForm.nameIDFormat.label"
                   )}
                   options={nameIDFormatOptions}
-                  selectedKey={formState.nameIDFormat}
-                  onChange={onNameIDFormatChange}
+                  value={formState.nameIDFormat}
+                  onValueChange={onNameIDFormatChange}
                 />
-                <ChoiceGroup
+                <RadioGroupField
                   label={renderToString(
                     "OAuthClientSAMLForm.nameIDAttribute.label"
                   )}
@@ -502,12 +752,12 @@ export function OAuthClientSAMLForm({
                     formState.nameIDFormat !== SAMLNameIDFormat.Unspecified
                   }
                   options={nameIDAttributePointerOptions}
-                  selectedKey={
+                  value={
                     formState.nameIDFormat !== SAMLNameIDFormat.Unspecified
                       ? null
                       : formState.nameIDAttributePointer
                   }
-                  onChange={onNameIDAttributePointerChange}
+                  onValueChange={onNameIDAttributePointerChange}
                 />
               </div>
             </div>
@@ -517,58 +767,60 @@ export function OAuthClientSAMLForm({
                 <FormattedMessage id="OAuthClientSAMLForm.sso.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
-                <FormTextFieldList
+                <TextFieldList
                   parentJSONPointer={parentJSONPointer}
                   fieldName="acs_urls"
                   list={formState.acsURLs}
-                  onListItemAdd={onAcsUrlsChange}
-                  onListItemChange={onAcsUrlsChange}
-                  onListItemDelete={onAcsUrlsChange}
+                  onListItemAdd={onAcsUrlItemAdd}
+                  onListItemChange={onAcsUrlItemChange}
+                  onListItemDelete={onAcsUrlItemDelete}
                   addButtonLabelMessageID="OAuthClientSAMLForm.sso.acsUrls.add"
                   label={
-                    <Label>
-                      <FormattedMessage id="OAuthClientSAMLForm.sso.acsUrls.title" />
-                    </Label>
+                    <FormattedMessage id="OAuthClientSAMLForm.sso.acsUrls.title" />
                   }
                   minItem={1}
                 />
-                <FormTextField
+                <TextField
+                  size="2"
                   parentJSONPointer={parentJSONPointer}
                   fieldName="destination"
                   label={renderToString(
                     "OAuthClientSAMLForm.sso.destination.label"
                   )}
-                  description={renderToString(
+                  hint={renderToString(
                     "OAuthClientSAMLForm.sso.destination.description"
                   )}
                   value={formState.destination}
                   onChange={onTextfieldChange.destination}
                 />
-                <FormTextField
+                <TextField
+                  size="2"
                   parentJSONPointer={parentJSONPointer}
                   fieldName="recipient"
                   label={renderToString(
                     "OAuthClientSAMLForm.sso.recipient.label"
                   )}
-                  description={renderToString(
+                  hint={renderToString(
                     "OAuthClientSAMLForm.sso.recipient.description"
                   )}
                   value={formState.recipient}
                   onChange={onTextfieldChange.recipient}
                 />
-                <FormTextField
+                <TextField
+                  size="2"
                   parentJSONPointer={parentJSONPointer}
                   fieldName="audience"
                   label={renderToString(
                     "OAuthClientSAMLForm.sso.audience.label"
                   )}
-                  description={renderToString(
+                  hint={renderToString(
                     "OAuthClientSAMLForm.sso.audience.description"
                   )}
                   value={formState.audience}
                   onChange={onTextfieldChange.audience}
                 />
-                <FormTextField
+                <TextField
+                  size="2"
                   parentJSONPointer={parentJSONPointer}
                   fieldName="assertion_valid_duration"
                   label={renderToString(
@@ -586,35 +838,37 @@ export function OAuthClientSAMLForm({
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
                 <Toggle
-                  label={renderToString(
+                  text={renderToString(
                     "OAuthClientSAMLForm.logout.enable.label"
                   )}
+                  textWeight="medium"
                   checked={formState.isSLOEnabled}
-                  onChange={onIsSLOEnabledChange}
+                  onCheckedChange={onIsSLOEnabledChange}
                 />
-                <FormTextField
+                <TextField
+                  size="2"
                   parentJSONPointer={parentJSONPointer}
                   fieldName="slo_callback_url"
                   label={renderToString(
                     "OAuthClientSAMLForm.logout.callbackURL.label"
                   )}
-                  description={renderToString(
+                  hint={renderToString(
                     "OAuthClientSAMLForm.logout.callbackURL.description"
                   )}
                   value={formState.isSLOEnabled ? formState.sloCallbackURL : ""}
                   onChange={onTextfieldChange.sloCallbackURL}
                   disabled={!formState.isSLOEnabled}
                 />
-                <ChoiceGroup
+                <RadioGroupField
                   label={renderToString(
                     "OAuthClientSAMLForm.logout.callbackBinding.label"
                   )}
                   disabled={!formState.isSLOEnabled}
                   options={sloBindingOptions}
-                  selectedKey={
+                  value={
                     formState.isSLOEnabled ? formState.sloCallbackBinding : null
                   }
-                  onChange={onSLOCallbackBindingChange}
+                  onValueChange={onSLOCallbackBindingChange}
                 />
               </div>
             </div>
@@ -624,50 +878,52 @@ export function OAuthClientSAMLForm({
                 <FormattedMessage id="OAuthClientSAMLForm.signature.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
-                <FormTextFieldList
+                <TextAreaList
                   parentJSONPointer={
                     /\/secrets\/(\d*)\/data\/(\d*)\/certificates\/(\d*)/
                   }
                   fieldName="pem"
                   list={formState.signingCertificates}
-                  onListItemAdd={onSigningCertificatesChange}
-                  onListItemChange={onSigningCertificatesChange}
-                  onListItemDelete={onSigningCertificatesChange}
+                  onListChange={onSigningCertificatesChange}
                   addButtonLabelMessageID="OAuthClientSAMLForm.signature.certificates.add"
                   label={
-                    <Label>
-                      <FormattedMessage id="OAuthClientSAMLForm.signature.certificates.label" />
-                    </Label>
+                    <FormattedMessage id="OAuthClientSAMLForm.signature.certificates.label" />
                   }
                   description={renderToString(
                     "OAuthClientSAMLForm.signature.certificates.description"
                   )}
-                  multiline={true}
                   maxItem={2}
                   minItem={formState.signatureVerificationEnabled ? 1 : 0}
                 />
                 <div className="grid gap-y-2 grid-cols-1">
                   <Toggle
-                    label={renderToString(
+                    text={renderToString(
                       "OAuthClientSAMLForm.signature.checkSignature.label"
                     )}
-                    description={renderToString(
-                      "OAuthClientSAMLForm.signature.checkSignature.description"
-                    )}
+                    textWeight="medium"
                     disabled={formState.signingCertificates.length < 1}
                     checked={formState.signatureVerificationEnabled}
-                    onChange={onSignatureVerificationEnabledChange}
+                    onCheckedChange={onSignatureVerificationEnabledChange}
                   />
+                  <Text as="p" size="2" className={styles.toggleDescription}>
+                    {renderToString(
+                      "OAuthClientSAMLForm.signature.checkSignature.description"
+                    )}
+                  </Text>
                   {formState.signingCertificates.length < 1 ? (
-                    <MessageBar messageBarType={MessageBarType.warning}>
-                      <FormattedMessage id="OAuthClientSAMLForm.signature.checkSignature.hint" />
-                    </MessageBar>
+                    <Callout
+                      type="warning"
+                      showCloseButton={false}
+                      text={
+                        <FormattedMessage id="OAuthClientSAMLForm.signature.checkSignature.hint" />
+                      }
+                    />
                   ) : null}
                 </div>
               </div>
             </div>
 
-            <HorizontalDivider />
+            <Separator size="4" />
 
             <div>
               <WidgetTitle className="mb-6" id="configuration-parameters">
@@ -676,45 +932,61 @@ export function OAuthClientSAMLForm({
 
               <div className="grid gap-y-4 grid-cols-1">
                 <div className="grid gap-y-2 grid-cols-1">
-                  <TextFieldWithCopyButton
+                  <TextField
+                    size="2"
                     label={renderToString(
                       "OAuthClientSAMLForm.configurationParameters.metadata.label"
                     )}
                     value={endpoints.metadata}
                     readOnly={true}
+                    suffixPlain={true}
+                    suffix={<CopyIconButton textToCopy={endpoints.metadata} />}
                   />
-                  <OutlinedActionButton
-                    theme={themes.actionButton}
-                    className="justify-self-start"
-                    iconProps={{ iconName: "Download" }}
-                    text={
-                      <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.metadata.download" />
-                    }
-                    onClick={onClickDownloadMetadata}
-                    disabled={isFormDirty}
-                  />
-                  <MessageBar
-                    className={cn(isFormDirty ? null : "hidden")}
-                    messageBarType={MessageBarType.warning}
-                  >
-                    <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.metadata.saveBeforeDownload.hint" />
-                  </MessageBar>
+                  <span className="justify-self-start">
+                    <SecondaryButton
+                      size="2"
+                      text={
+                        <>
+                          <DownloadIcon />
+                          <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.metadata.download" />
+                        </>
+                      }
+                      onClick={onClickDownloadMetadata}
+                      disabled={isFormDirty}
+                    />
+                  </span>
+                  {isFormDirty ? (
+                    <Callout
+                      type="warning"
+                      showCloseButton={false}
+                      text={
+                        <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.metadata.saveBeforeDownload.hint" />
+                      }
+                    />
+                  ) : null}
                 </div>
-                <TextFieldWithCopyButton
+                <TextField
+                  size="2"
                   label={renderToString(
                     "OAuthClientSAMLForm.configurationParameters.issuer.label"
                   )}
                   value={samlIdpEntityID}
                   readOnly={true}
+                  suffixPlain={true}
+                  suffix={<CopyIconButton textToCopy={samlIdpEntityID} />}
                 />
-                <TextFieldWithCopyButton
+                <TextField
+                  size="2"
                   label={renderToString(
                     "OAuthClientSAMLForm.configurationParameters.loginURL.label"
                   )}
                   value={endpoints.login}
                   readOnly={true}
+                  suffixPlain={true}
+                  suffix={<CopyIconButton textToCopy={endpoints.login} />}
                 />
-                <TextFieldWithCopyButton
+                <TextField
+                  size="2"
                   label={renderToString(
                     "OAuthClientSAMLForm.configurationParameters.logoutURL.label"
                   )}
@@ -727,6 +999,12 @@ export function OAuthClientSAMLForm({
                   }
                   disabled={!formState.isSLOEnabled}
                   readOnly={true}
+                  suffixPlain={true}
+                  suffix={
+                    formState.isSLOEnabled ? (
+                      <CopyIconButton textToCopy={endpoints.logout} />
+                    ) : undefined
+                  }
                 />
               </div>
             </div>

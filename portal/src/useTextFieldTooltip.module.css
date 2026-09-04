@@ -1,9 +1,0 @@
-.labelContainer {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.required::after {
-  content: " *";
-}

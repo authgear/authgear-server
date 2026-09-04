@@ -1,6 +1,7 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, test, expect } from "@jest/globals";
 import { parse, Root } from "postcss";
 import {
+  deriveColors,
   getShades,
   getLightTheme,
   getDarkTheme,
@@ -328,5 +329,35 @@ describe("addDarkTheme", () => {
     --color-background-shaded-8: #0b0b0b
 }`;
     expect(actual).toEqual(expected);
+  });
+});
+
+// The fixtures below were generated with the original FluentUI ThemeGenerator
+// implementation before it was replaced by the dependency-free port in
+// shades.ts. The port must reproduce them exactly so that the AuthUI brand
+// shades generated for existing projects do not change. Never regenerate
+// these fixtures from the port itself.
+import golden from "./__fixtures__/fluent-shades-golden.json";
+
+describe("shades port stays identical to FluentUI ThemeGenerator", () => {
+  const entries = Object.entries(golden) as [
+    string,
+    {
+      deriveColors: { original: string; variant: string };
+      getShades: string[];
+    }
+  ][];
+
+  test.each(entries)("deriveColors(%s)", (color, expected) => {
+    expect(deriveColors(color)).toEqual(expected.deriveColors);
+  });
+
+  test.each(entries)("getShades(%s)", (color, expected) => {
+    expect(getShades(color)).toEqual(expected.getShades);
+  });
+
+  it("returns null for unparseable colors", () => {
+    expect(deriveColors("not-a-color")).toBeNull();
+    expect(deriveColors("")).toBeNull();
   });
 });

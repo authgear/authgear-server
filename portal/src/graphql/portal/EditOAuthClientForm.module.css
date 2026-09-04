@@ -1,5 +1,11 @@
-.sectionTitle {
-  margin-top: 28px;
-  padding-top: 28px;
-  border-top: 1px solid #e1e4e8;
+.helpText {
+  background: var(--gray-a3);
+  border-radius: var(--radius-2);
+  line-height: 20px;
+  padding: 8px 12px;
+}
+
+.cookieSettingsText {
+  margin: 0;
+  color: var(--gray-a11);
 }

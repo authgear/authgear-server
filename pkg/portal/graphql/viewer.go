@@ -47,6 +47,9 @@ var nodeViewer = node(
 			"formattedName": &graphql.Field{
 				Type: graphql.String,
 			},
+			"picture": &graphql.Field{
+				Type: graphql.String,
+			},
 			"projectQuota": &graphql.Field{
 				Type: graphql.Int,
 			},

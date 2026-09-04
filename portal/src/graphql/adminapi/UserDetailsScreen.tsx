@@ -1,16 +1,16 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { PivotItem, MessageBar, MessageBarType, IStyle } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
+import cn from "classnames";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
-import NavBreadcrumb from "../../NavBreadcrumb";
-import ScreenContent from "../../ScreenContent";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormContainer from "../../FormContainer";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { Callout } from "../../components/v2/Callout/Callout";
 import UserDetailSummary from "./UserDetailSummary";
 import UserProfileForm, {
   CustomAttributesState,
@@ -35,6 +35,8 @@ import {
   AccessControlLevelString,
   CustomAttributesAttributeConfig,
   OAuthClientConfig,
+  Authorization,
+  Session,
 } from "../../types";
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { extractRawID } from "../../util/graphql";
@@ -49,10 +51,81 @@ import UserDetailsAccountStatus, {
 import UserDetailsLogs from "./UserDetailsLogs";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
+// Temporary UI preview data for Sam Lee — remove after Sessions & Apps UI work.
+const UI_PREVIEW_RAW_USER_ID = "8d442fbc-ea7c-4130-9114-432631fdb5d3";
+
+function buildUIPreviewSessions(oauthClients: OAuthClientConfig[]): Session[] {
+  const clientID = oauthClients[0]?.client_id ?? "portal";
+  const secondClientID = oauthClients[1]?.client_id ?? clientID;
+  return [
+    {
+      id: "fake-session-1",
+      type: "IDP",
+      displayName: "Chrome on macOS",
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/131.0",
+      clientID,
+      lastAccessedByIP: "203.80.12.45",
+      lastAccessedAt: "2025-02-07T07:55:00.000Z",
+    },
+    {
+      id: "fake-session-2",
+      type: "OFFLINE_GRANT",
+      displayName: "Safari on iPhone",
+      userAgent:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2 like Mac OS X) Safari/605.1.15",
+      clientID: secondClientID,
+      lastAccessedByIP: "49.130.8.221",
+      lastAccessedAt: "2025-02-06T14:12:00.000Z",
+    },
+    {
+      id: "fake-session-3",
+      type: "OFFLINE_GRANT",
+      displayName: "",
+      userAgent: null,
+      clientID: null,
+      lastAccessedByIP: "10.0.0.18",
+      lastAccessedAt: "2025-02-01T02:30:00.000Z",
+    },
+  ];
+}
+
+function buildUIPreviewAuthorizations(
+  oauthClients: OAuthClientConfig[]
+): Authorization[] {
+  const clientID = oauthClients[0]?.client_id ?? "portal";
+  const secondClientID = oauthClients[1]?.client_id ?? clientID;
+  return [
+    {
+      id: "fake-authorization-1",
+      clientID,
+      createdAt: "2024-11-12T03:20:00.000Z",
+      scopes: [
+        "openid",
+        "offline_access",
+        "https://authgear.com/scopes/full-userinfo",
+      ],
+    },
+    {
+      id: "fake-authorization-2",
+      clientID: secondClientID,
+      createdAt: "2025-01-18T09:05:00.000Z",
+      scopes: ["openid"],
+    },
+  ];
+}
+import {
+  ErrorMessageBar,
+  ErrorMessageBarContextProvider,
+} from "../../ErrorMessageBar";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
+import { ProfilePictureDialog } from "./ProfilePictureDialog";
+
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
   data: UserQueryNodeFragment;
   appConfig: PortalAPIAppConfig;
+  refreshUser?: () => unknown;
+  profileContentRef?: React.RefObject<HTMLDivElement>;
 }
 
 const USER_PROFILE_KEY = "user-profile";
@@ -64,19 +137,6 @@ const GROUPS_KEY = "groups";
 const ACCOUNT_STATUS_KEY = "account-status";
 const LOGS_KEY = "logs";
 
-const pivotItemContainerStyle: IStyle = {
-  flex: "1 0 auto",
-  display: "flex",
-  flexDirection: "column",
-};
-
-/** 8 grid columns (8×80px + 7×16px gaps = 752px) — same as the original .widget width. */
-const CONTENT_MAX_WIDTH = 752;
-
-const pivotItemContainerStyleConstrained: IStyle = {
-  ...pivotItemContainerStyle,
-  maxWidth: CONTENT_MAX_WIDTH,
-};
 interface FormState {
   userID: string;
   standardAttributes: StandardAttributesState;
@@ -228,19 +288,43 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { auditLogEnabled } = useSystemConfig();
-  const { selectedKey, onLinkClick } = usePivotNavigation([
-    USER_PROFILE_KEY,
-    ACCOUNT_SECURITY_PIVOT_KEY,
-    CONNECTED_IDENTITIES_PIVOT_KEY,
-    SESSION_PIVOT_KEY,
-    ROLES_KEY,
-    GROUPS_KEY,
-    ACCOUNT_STATUS_KEY,
-    ...(auditLogEnabled ? [LOGS_KEY] : []),
-  ]);
-  const { form, data, appConfig } = props;
+  const { appID } = useParams() as { appID: string };
+  const { form, data, appConfig, refreshUser, profileContentRef } = props;
+  const pivotItemKeys = useMemo(
+    () =>
+      data.isAnonymized
+        ? [ACCOUNT_STATUS_KEY, ...(auditLogEnabled ? [LOGS_KEY] : [])]
+        : [
+            USER_PROFILE_KEY,
+            ACCOUNT_SECURITY_PIVOT_KEY,
+            CONNECTED_IDENTITIES_PIVOT_KEY,
+            SESSION_PIVOT_KEY,
+            ROLES_KEY,
+            GROUPS_KEY,
+            ACCOUNT_STATUS_KEY,
+            ...(auditLogEnabled ? [LOGS_KEY] : []),
+          ],
+    [data.isAnonymized, auditLogEnabled]
+  );
+  const { selectedKey, onChangeKey } = usePivotNavigation(pivotItemKeys);
   const { state, setState } = form;
   const { renderToString } = React.useContext(Context);
+  const [selectedProfileImage, setSelectedProfileImage] =
+    React.useState<File | null>(null);
+
+  const onDismissProfilePictureDialog = useCallback(() => {
+    setSelectedProfileImage(null);
+  }, []);
+
+  const profilePictureDialog = (
+    <ProfilePictureDialog
+      appID={appID}
+      user={data}
+      file={selectedProfileImage}
+      onDismiss={onDismissProfilePictureDialog}
+      onSaved={refreshUser}
+    />
+  );
 
   const availableLoginIdIdentities = useMemo(() => {
     const authenticationIdentities = appConfig.authentication?.identities ?? [];
@@ -312,12 +396,31 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [data.authenticators]
   );
 
-  const sessions =
-    data.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
+  const sessions = useMemo(() => {
+    const realSessions =
+      data.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
+    if (
+      realSessions.length === 0 &&
+      extractRawID(data.id) === UI_PREVIEW_RAW_USER_ID
+    ) {
+      return buildUIPreviewSessions(oauthClientConfig);
+    }
+    return realSessions;
+  }, [data.id, data.sessions, oauthClientConfig]);
 
-  const authorizations =
-    data.authorizations?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
-    [];
+  const authorizations = useMemo(() => {
+    const realAuthorizations =
+      data.authorizations?.edges
+        ?.map((edge) => edge?.node)
+        .filter(nonNullable) ?? [];
+    if (
+      realAuthorizations.length === 0 &&
+      extractRawID(data.id) === UI_PREVIEW_RAW_USER_ID
+    ) {
+      return buildUIPreviewAuthorizations(oauthClientConfig);
+    }
+    return realAuthorizations;
+  }, [data.authorizations, data.id, oauthClientConfig]);
 
   const profileImageEditable = useMemo(() => {
     const ptr = jsonPointerToString(["picture"]);
@@ -325,15 +428,76 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     return level === "readwrite";
   }, [standardAttributeAccessControl]);
 
+  const tabs = useMemo(
+    () => [
+      {
+        value: USER_PROFILE_KEY,
+        label: renderToString("UserDetails.user-profile.header"),
+      },
+      {
+        value: CONNECTED_IDENTITIES_PIVOT_KEY,
+        label: renderToString("UserDetails.connected-identities.header"),
+      },
+      {
+        value: ACCOUNT_SECURITY_PIVOT_KEY,
+        label: renderToString("UserDetails.account-security.header"),
+      },
+      {
+        value: SESSION_PIVOT_KEY,
+        label: renderToString("UserDetails.session.header"),
+      },
+      {
+        value: ROLES_KEY,
+        label: renderToString("UserDetails.roles.header"),
+      },
+      {
+        value: GROUPS_KEY,
+        label: renderToString("UserDetails.groups.header"),
+      },
+      {
+        value: ACCOUNT_STATUS_KEY,
+        label: renderToString("UserDetails.account-status.header"),
+      },
+      ...(auditLogEnabled
+        ? [
+            {
+              value: LOGS_KEY,
+              label: renderToString("UserDetails.logs.header"),
+            },
+          ]
+        : []),
+    ],
+    [auditLogEnabled, renderToString]
+  );
+
+  const tabsForAnonymized = useMemo(
+    () => [
+      {
+        value: ACCOUNT_STATUS_KEY,
+        label: renderToString("UserDetails.account-status.header"),
+      },
+      ...(auditLogEnabled
+        ? [
+            {
+              value: LOGS_KEY,
+              label: renderToString("UserDetails.logs.header"),
+            },
+          ]
+        : []),
+    ],
+    [auditLogEnabled, renderToString]
+  );
+
   if (data.isAnonymized) {
     return (
-      <div className={styles.detailsRoot}>
-        <div className={styles.summarySection}>
+      <>
+        <div className={styles.widget}>
           <UserDetailSummary
             isAnonymous={data.isAnonymous}
             isAnonymized={data.isAnonymized}
             profileImageURL={data.standardAttributes.picture}
             profileImageEditable={profileImageEditable}
+            onSelectProfileImage={setSelectedProfileImage}
             rawUserID={extractRawID(data.id)}
             formattedName={data.formattedName ?? undefined}
             endUserAccountIdentifier={data.endUserAccountID ?? undefined}
@@ -341,46 +505,45 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             lastLoginAtISO={data.lastLoginAt ?? null}
             accountStatus={data}
           />
-          <MessageBar messageBarType={MessageBarType.info}>
-            <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
-          </MessageBar>
-        </div>
-        <AGPivot
-          styles={{ itemContainer: pivotItemContainerStyleConstrained }}
-          className={styles.pivot}
-          overflowBehavior="menu"
-          selectedKey={selectedKey}
-          onLinkClick={onLinkClick}
-        >
-          <PivotItem
-            className={"flex-1"}
-            itemKey={ACCOUNT_STATUS_KEY}
-            headerText={renderToString("UserDetails.account-status.header")}
-          >
-            <UserDetailsAccountStatus data={data} />
-          </PivotItem>
-          {auditLogEnabled ? (
-            <PivotItem
-              className={"flex-1"}
-              itemKey={LOGS_KEY}
-              headerText={renderToString("UserDetails.logs.header")}
-            >
-              <UserDetailsLogs userID={data.id} />
-            </PivotItem>
+          <Callout
+            type="warning"
+            color="yellow"
+            showCloseButton={false}
+            text={
+              <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
+            }
+          />
+          <OverflowTabs
+            className={styles.tabs}
+            value={selectedKey}
+            onValueChange={(v) => onChangeKey(v)}
+            tabs={tabsForAnonymized}
+          />
+          {selectedKey === ACCOUNT_STATUS_KEY ? (
+            <div className={styles.tabContent}>
+              <UserDetailsAccountStatus data={data} />
+            </div>
           ) : null}
-        </AGPivot>
-      </div>
+          {selectedKey === LOGS_KEY ? (
+            <div className={styles.tabContent}>
+              <UserDetailsLogs userID={data.id} />
+            </div>
+          ) : null}
+        </div>
+        {profilePictureDialog}
+      </>
     );
   }
 
   return (
-    <div className={styles.detailsRoot}>
-      <div className={styles.summarySection}>
+    <>
+      <div className={styles.widget}>
         <UserDetailSummary
           isAnonymous={data.isAnonymous}
           isAnonymized={data.isAnonymized}
           profileImageURL={data.standardAttributes.picture}
           profileImageEditable={profileImageEditable}
+          onSelectProfileImage={setSelectedProfileImage}
           rawUserID={extractRawID(data.id)}
           formattedName={data.formattedName ?? undefined}
           endUserAccountIdentifier={data.endUserAccountID ?? undefined}
@@ -388,103 +551,142 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           lastLoginAtISO={data.lastLoginAt ?? null}
           accountStatus={data}
         />
-      </div>
-      <AGPivot
-        styles={{ itemContainer: pivotItemContainerStyleConstrained }}
-        className={styles.pivot}
-        overflowBehavior="menu"
-        selectedKey={selectedKey}
-        onLinkClick={onLinkClick}
-      >
-        <PivotItem
-          itemKey={USER_PROFILE_KEY}
-          headerText={renderToString("UserDetails.user-profile.header")}
-        >
-          <UserProfileForm
-            identities={identities}
-            standardAttributes={state.standardAttributes}
-            onChangeStandardAttributes={onChangeStandardAttributes}
-            standardAttributeAccessControl={standardAttributeAccessControl}
-            customAttributesConfig={customAttributesConfig}
-            customAttributes={state.customAttributes}
-            onChangeCustomAttributes={onChangeCustomAttributes}
-          />
-        </PivotItem>
-        <PivotItem
-          itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
-          headerText={renderToString("UserDetails.account-security.header")}
-        >
-          <UserDetailsAccountSecurity
-            userID={data.id}
-            authenticationConfig={appConfig.authentication}
-            authenticatorConfig={appConfig.authenticator}
-            identities={identities}
-            authenticators={authenticators}
-          />
-        </PivotItem>
-        <PivotItem
-          itemKey={CONNECTED_IDENTITIES_PIVOT_KEY}
-          headerText={renderToString("UserDetails.connected-identities.header")}
-        >
-          <UserDetailsConnectedIdentities
-            identities={identities}
-            verifiedClaims={verifiedClaims}
-            availableLoginIdIdentities={availableLoginIdIdentities}
-          />
-        </PivotItem>
-        <PivotItem
-          itemKey={SESSION_PIVOT_KEY}
-          headerText={renderToString("UserDetails.session.header")}
-        >
-          <UserDetailsSession
-            sessions={sessions}
-            oauthClients={oauthClientConfig}
-          />
-          <UserDetailsAuthorization
-            authorizations={authorizations}
-            oauthClientConfig={oauthClientConfig}
-          />
-        </PivotItem>
-        <PivotItem
-          className={"flex-1"}
-          itemKey={ROLES_KEY}
-          headerText={renderToString("UserDetails.roles.header")}
-        >
-          <UserDetailsScreenRoleListContainer user={data} />
-        </PivotItem>
-        <PivotItem
-          className={"flex-1"}
-          itemKey={GROUPS_KEY}
-          headerText={renderToString("UserDetails.groups.header")}
-        >
-          <UserDetailsScreenGroupListContainer user={data} />
-        </PivotItem>
-        <PivotItem
-          className={"flex-1"}
-          itemKey={ACCOUNT_STATUS_KEY}
-          headerText={renderToString("UserDetails.account-status.header")}
-        >
-          <UserDetailsAccountStatus data={data} />
-        </PivotItem>
-        {auditLogEnabled ? (
-          <PivotItem
-            className={"flex-1"}
-            itemKey={LOGS_KEY}
-            headerText={renderToString("UserDetails.logs.header")}
-          >
-            <UserDetailsLogs userID={data.id} />
-          </PivotItem>
+        <AccountStatusMessageBar accountStatus={data} />
+        <OverflowTabs
+          className={styles.tabs}
+          value={selectedKey}
+          onValueChange={(v) => onChangeKey(v)}
+          tabs={tabs}
+        />
+
+        {selectedKey === USER_PROFILE_KEY ? (
+          <div className={styles.profileTabContent}>
+            <div ref={profileContentRef} className={styles.profileTabMain}>
+              <UserProfileForm
+                identities={identities}
+                standardAttributes={state.standardAttributes}
+                onChangeStandardAttributes={onChangeStandardAttributes}
+                standardAttributeAccessControl={standardAttributeAccessControl}
+                customAttributesConfig={customAttributesConfig}
+                customAttributes={state.customAttributes}
+                onChangeCustomAttributes={onChangeCustomAttributes}
+                profileImageEditable={profileImageEditable}
+                onSelectProfileImage={setSelectedProfileImage}
+              />
+            </div>
+          </div>
         ) : null}
-      </AGPivot>
-    </div>
+
+        {selectedKey === ACCOUNT_SECURITY_PIVOT_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsAccountSecurity
+              userID={data.id}
+              authenticationConfig={appConfig.authentication}
+              authenticatorConfig={appConfig.authenticator}
+              identities={identities}
+              authenticators={authenticators}
+              phoneInputAllowlist={appConfig.ui?.phone_input?.allowlist}
+              phoneInputPinnedList={appConfig.ui?.phone_input?.pinned_list}
+              onAuthenticatorCreated={refreshUser}
+            />
+          </div>
+        ) : null}
+
+        {selectedKey === CONNECTED_IDENTITIES_PIVOT_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsConnectedIdentities
+              identities={identities}
+              verifiedClaims={verifiedClaims}
+              availableLoginIdIdentities={availableLoginIdIdentities}
+              phoneInputAllowlist={appConfig.ui?.phone_input?.allowlist}
+              phoneInputPinnedList={appConfig.ui?.phone_input?.pinned_list}
+              onIdentityCreated={refreshUser}
+            />
+          </div>
+        ) : null}
+
+        {selectedKey === SESSION_PIVOT_KEY ? (
+          <div className={cn(styles.tabContent, styles.fullWidthTabContent)}>
+            <UserDetailsSession
+              sessions={sessions}
+              oauthClients={oauthClientConfig}
+            />
+            <UserDetailsAuthorization
+              authorizations={authorizations}
+              oauthClientConfig={oauthClientConfig}
+            />
+          </div>
+        ) : null}
+
+        {selectedKey === ROLES_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsScreenRoleListContainer user={data} />
+          </div>
+        ) : null}
+
+        {selectedKey === GROUPS_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsScreenGroupListContainer user={data} />
+          </div>
+        ) : null}
+
+        {selectedKey === ACCOUNT_STATUS_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsAccountStatus data={data} />
+          </div>
+        ) : null}
+
+        {selectedKey === LOGS_KEY ? (
+          <div className={styles.tabContent}>
+            <UserDetailsLogs userID={data.id} />
+          </div>
+        ) : null}
+      </div>
+      {profilePictureDialog}
+    </>
   );
 };
 
 interface UserDetailsScreenContentProps {
   user: UserQueryNodeFragment;
-  refreshUser?: () => void;
+  refreshUser?: () => unknown;
   effectiveAppConfig: PortalAPIAppConfig;
 }
+
+interface UserDetailsScreenFormProps {
+  form: SimpleFormModel<FormState>;
+  user: UserQueryNodeFragment;
+  refreshUser?: () => unknown;
+  effectiveAppConfig: PortalAPIAppConfig;
+}
+
+const UserDetailsScreenForm: React.VFC<UserDetailsScreenFormProps> =
+  function UserDetailsScreenForm(props: UserDetailsScreenFormProps) {
+    const { form, user, refreshUser, effectiveAppConfig } = props;
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+
+    return (
+      <>
+        <div
+          className={cn(
+            styles.screenContent,
+            isDirty ? styles.contentWithSaveBar : null
+          )}
+        >
+          <UserDetails
+            form={form}
+            data={user}
+            appConfig={effectiveAppConfig}
+            refreshUser={refreshUser}
+            profileContentRef={contentWidthAnchorRef}
+          />
+        </div>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+      </>
+    );
+  };
 
 const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
   function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
@@ -494,13 +696,6 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
         effectiveAppConfig.user_profile?.custom_attributes?.attributes ?? []
       );
     }, [effectiveAppConfig.user_profile?.custom_attributes?.attributes]);
-
-    const navBreadcrumbItems = React.useMemo(() => {
-      return [
-        { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
-        { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
-      ];
-    }, []);
 
     const defaultState = useMemo(() => {
       return {
@@ -544,29 +739,30 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
     });
 
     return (
-      <FormContainer
-        className={styles.formContainer}
-        errorRules={ERROR_RULES}
-        form={form}
-        hideFooterComponent={true}
-        messageBar={
-          <>
-            <AccountStatusMessageBar accountStatus={user} />
-          </>
-        }
-      >
-        <ScreenContent className={styles.screenContent}>
-          <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
-        </ScreenContent>
-      </FormContainer>
+      <ErrorMessageBarContextProvider>
+        <div className={styles.screenRoot}>
+          <div className={styles.topBar}>
+            <ErrorMessageBar />
+          </div>
+          <FormContainer
+            className={styles.formContainer}
+            errorRules={ERROR_RULES}
+            form={form}
+          >
+            <UserDetailsScreenForm
+              form={form}
+              user={user}
+              refreshUser={refreshUser}
+              effectiveAppConfig={effectiveAppConfig}
+            />
+          </FormContainer>
+        </div>
+      </ErrorMessageBarContextProvider>
     );
   };
 
 const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const { appID, userID } = useParams() as { appID: string; userID: string };
-  // The route-level RequireUser guard redirects to the user list when the
-  // user does not exist, so this screen only renders for an existing user.
   const {
     user,
     loading: loadingUser,
@@ -584,13 +780,25 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   const loading = loadingUser || loadingAppConfig;
 
   if (error != null) {
-    // eslint-disable-next-line @typescript-eslint/strict-void-return
-    return <ShowError error={error} onRetry={refetch} />;
+    return (
+      <ShowError
+        error={error}
+        onRetry={() => {
+          refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (appConfigError != null) {
-    // eslint-disable-next-line @typescript-eslint/strict-void-return
-    return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
+    return (
+      <ShowError
+        error={appConfigError}
+        onRetry={() => {
+          refetchAppConfig().finally(() => {});
+        }}
+      />
+    );
   }
 
   if (loading) {
@@ -604,7 +812,6 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
   return (
     <UserDetailsScreenContent
       user={user}
-      // eslint-disable-next-line @typescript-eslint/strict-void-return
       refreshUser={refetch}
       effectiveAppConfig={effectiveAppConfig}
     />

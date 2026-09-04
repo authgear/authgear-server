@@ -1,3 +1,31 @@
-.section {
+.card {
+  max-width: 56rem;
+}
+
+.cardContent {
   @apply flex flex-col gap-6;
+}
+
+.modeGroup {
+  @apply flex flex-col gap-3;
+}
+
+.modeOption {
+  @apply flex cursor-pointer items-start gap-2.5;
+}
+
+.modeRadio {
+  margin-top: 0.125rem;
+}
+
+.modeText {
+  @apply flex min-w-0 flex-col gap-0.5;
+}
+
+.modeTitle {
+  color: var(--gray-12);
+}
+
+.modeDescription {
+  color: var(--gray-11);
 }

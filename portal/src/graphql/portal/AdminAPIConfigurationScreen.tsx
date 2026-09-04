@@ -203,7 +203,12 @@ function AdminAPIKeysTable({
             <div className={styles.keysTableCellActions}>
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger>
-                  <RadixIconButton variant="soft" color="gray" size="2">
+                  <RadixIconButton
+                    className={styles.rowActionsButton}
+                    variant="soft"
+                    color="gray"
+                    size="2"
+                  >
                     <DotsVerticalIcon width="1rem" height="1rem" />
                   </RadixIconButton>
                 </DropdownMenu.Trigger>
@@ -439,9 +444,14 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
         <ScreenLayoutScrollView>
           <ScreenContent>
             <div className={cn(styles.widget, styles.pageHeader)}>
-              <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+              <Heading
+                as="h1"
+                size="5"
+                weight="bold"
+                className={styles.pageTitle}
+              >
                 <FormattedMessage id="AdminAPIConfigurationScreen.title" />
-              </Text>
+              </Heading>
               <Text
                 as="p"
                 size="2"

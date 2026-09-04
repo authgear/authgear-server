@@ -1,7 +1,35 @@
 .listRoot {
-  @apply flex flex-col min-h-0 overflow-hidden;
+  @apply flex flex-col;
 }
 
-.listWrapper {
-  @apply flex-1 overflow-y-auto h-0 max-h-full;
+.colApplication {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 10rem;
+}
+
+.colAuthorized {
+  width: 8rem;
+  min-width: 8rem;
+  flex-shrink: 0;
+}
+
+.colActions {
+  width: 9rem;
+  min-width: 9rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.applicationName {
+  @apply min-w-0 truncate;
+  margin: 0;
+}
+
+.manageScopesButton {
+  @apply inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-sm font-semibold;
+  color: var(--accent-9);
+}
+
+.manageScopesButton:hover {
+  color: var(--accent-10);
 }

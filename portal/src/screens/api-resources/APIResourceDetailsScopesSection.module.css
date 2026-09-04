@@ -1,0 +1,62 @@
+.root {
+  @apply flex flex-col gap-4;
+}
+
+.cardContent {
+  @apply gap-6;
+}
+
+.addSection {
+  @apply flex flex-col gap-4;
+}
+
+.addHeading {
+  margin: 0;
+}
+
+.createForm {
+  @apply w-full min-w-0;
+}
+
+.divider {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--gray-a5);
+}
+
+.listSection {
+  @apply flex flex-col gap-4;
+}
+
+.searchField {
+  width: 16.25rem;
+  max-width: 100%;
+}
+
+.searchClearButton {
+  @apply inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer;
+  color: var(--gray-a11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.list {
+  @apply w-full min-w-0;
+}
+
+.empty {
+  margin: 0;
+}
+
+@media (max-width: 1080px) {
+  .searchField {
+    width: 100%;
+  }
+}

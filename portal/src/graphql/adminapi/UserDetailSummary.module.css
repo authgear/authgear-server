@@ -1,75 +1,114 @@
 .root {
-  max-width: 600px;
-  font-size: 13px;
-  font-weight: 300;
-  margin-bottom: 20px;
-  display: grid;
-  row-gap: 4px;
-  column-gap: 26px;
-  grid-template-columns: min-content auto;
-  grid-template-rows: auto;
-}
-
-.cameraLink {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.backLink {
+  display: inline-flex;
   align-items: center;
-  border-radius: 100%;
-  background-color: rgb(0 0 0 / 0.5);
-  opacity: 0;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
 }
 
-.cameraLink:hover {
-  opacity: initial;
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
 }
 
-.cameraIcon {
-  color: white;
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
 .profilePic {
-  grid-column: 1 / span 1;
-  grid-row: 1 / span 1;
-  place-self: center;
   position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  line-height: 0;
 }
 
-.lines {
-  grid-column: 2 / span 2;
-  grid-row: 1 / span 1;
-  display: grid;
-  grid-template-columns: auto;
-  grid-auto-rows: auto;
-  row-gap: 4px;
-  column-gap: 26px;
+.avatar {
+  flex-shrink: 0;
 }
 
-.explorerURL {
-  color: inherit;
+.cameraButton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  padding: 0;
+  border: 0;
+  background-color: rgb(0 0 0 / 0.5);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 150ms ease;
 }
 
-.formattedName {
-  color: #000000;
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported */
+.cameraButton:hover,
+.cameraButton:focus-visible {
+  opacity: 1;
 }
 
-.anonymousUserLabel {
-  font-style: italic;
+.cameraIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
 }
 
-.anonymizedUserLabel {
-  font-style: italic;
+.fileInput {
+  display: none;
 }
 
-.inlineGridItem {
-  display: inline-block;
-  align-self: start;
-  justify-self: start;
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.displayName {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.userIdPill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  max-width: 100%;
+  gap: 4px;
+  background-color: var(--gray-a3);
+  border-radius: 4px;
+  padding-left: 8px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.userIdContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }

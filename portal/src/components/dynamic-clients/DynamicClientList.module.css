@@ -2,8 +2,64 @@
   @apply flex flex-col min-h-0;
 }
 
-.listWrapper {
-  @apply overflow-x-auto;
+.clientRow {
+  cursor: pointer;
+}
+
+.colName {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 9rem;
+}
+
+.clientName {
+  @apply min-w-0 truncate;
+  margin: 0;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.colClientId {
+  @apply gap-1 min-w-0 overflow-hidden;
+  flex: 1.5 1 0;
+  min-width: 12rem;
+}
+
+/* CardTable's .cell/.headerCell set display:flex with equal specificity, so a
+   plain .colClientId { mobile:hidden } wins or loses on bundle emission
+   order. The compound selector outranks them deterministically. */
+.colClientId.colClientId {
+  @apply tablet:hidden;
+}
+
+.clientIdText {
+  @apply min-w-0 truncate;
+  margin: 0;
+  font-family: var(--code-font-family);
+  color: var(--gray-a11);
+}
+
+.colKind {
+  flex: 0 0 7rem;
+  @apply overflow-hidden;
+}
+
+.colRegisteredAt {
+  flex: 0 0 11rem;
+  @apply overflow-hidden;
+}
+
+.colRegisteredAt.colRegisteredAt {
+  @apply mobile:hidden;
+}
+
+.colActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
 
 .paginator {

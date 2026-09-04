@@ -1,7 +1,11 @@
 .root {
-  @apply space-y-12;
+  @apply space-y-4;
 }
 
 .formFields {
   @apply grid grid-flow-row gap-4 grid-cols-1 content-start;
+}
+
+.requiredMark {
+  color: var(--red-11);
 }

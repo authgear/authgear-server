@@ -1,31 +1,23 @@
-import React, { useCallback, useContext, useMemo } from "react";
-import { Context, FormattedMessage } from "../../intl";
-import {
-  DetailsListLayoutMode,
-  IColumn,
-  SelectionMode,
-  ShimmeredDetailsList,
-} from "@fluentui/react";
+import React, { useContext, useMemo } from "react";
 import cn from "classnames";
+import { DotsVerticalIcon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  DropdownMenu,
+  IconButton as RadixIconButton,
+  Text,
+} from "@radix-ui/themes";
+import { Context, FormattedMessage } from "../../intl";
 
 import { Collaborator, CollaboratorInvitation } from "./globalTypes.generated";
+import { Badge } from "../../components/v2/Badge/Badge";
 import styles from "./PortalAdminList.module.css";
-import { useSystemConfig } from "../../context/SystemConfigContext";
-import ActionButton from "../../ActionButton";
 
 interface PortalAdminListProps {
   className?: string;
-  loading: boolean;
   collaborators: Collaborator[];
   collaboratorInvitations: CollaboratorInvitation[];
-  onRemoveCollaboratorClicked: (
-    event: React.MouseEvent<unknown>,
-    id: string
-  ) => void;
-  onRemoveCollaboratorInvitationClicked: (
-    event: React.MouseEvent<unknown>,
-    id: string
-  ) => void;
+  onRemoveCollaboratorClicked: (id: string) => void;
+  onRemoveCollaboratorInvitationClicked: (id: string) => void;
 }
 
 interface PortalAdminListCollaboratorItem {
@@ -54,48 +46,17 @@ function isPortalAdminListCollaboratorItem(
   return item.type === "collaborator";
 }
 
-function isPortalAdminListCollaboratorInvitationItem(
-  item: PortalAdminListItem
-): item is PortalAdminListCollaboratorInvitationItem {
-  return item.type === "collaboratorInvitation";
-}
-
 const PortalAdminList: React.VFC<PortalAdminListProps> =
   function PortalAdminList(props) {
     const {
       className,
-      loading,
       collaborators,
       collaboratorInvitations,
       onRemoveCollaboratorClicked,
       onRemoveCollaboratorInvitationClicked,
     } = props;
-    const { themes } = useSystemConfig();
 
     const { renderToString } = useContext(Context);
-
-    const columns: IColumn[] = useMemo(() => {
-      return [
-        {
-          key: "email",
-          fieldName: "email",
-          name: renderToString("PortalAdminList.column.email"),
-          minWidth: 400,
-        },
-        {
-          key: "status",
-          fieldName: "status",
-          name: renderToString("PortalAdminList.column.status"),
-          minWidth: 150,
-        },
-        {
-          key: "action",
-          fieldName: "action",
-          name: renderToString("PortalAdminList.column.action"),
-          minWidth: 150,
-        },
-      ];
-    }, [renderToString]);
 
     const items: PortalAdminListItem[] = useMemo(() => {
       return [
@@ -120,66 +81,76 @@ const PortalAdminList: React.VFC<PortalAdminListProps> =
       ];
     }, [collaboratorInvitations, collaborators]);
 
-    const onRenderItemColumn = useCallback(
-      (item: PortalAdminListItem, _index?: number, column?: IColumn) => {
-        switch (column?.key) {
-          case "email":
-            if (item.isOwner) {
-              return (
-                <span>{`${item.email} (${renderToString(
-                  "PortalAdminList.owner"
-                )})`}</span>
-              );
-            }
-            return <span>{item.email}</span>;
-          case "status":
-            if (isPortalAdminListCollaboratorItem(item)) {
-              return <span className={styles.acceptedStatus}>Accepted</span>;
-            }
-            return <span className={styles.pendingStatus}>Pending</span>;
-          case "action":
-            if (item.isOwner) {
-              return <></>;
-            }
-            return (
-              <ActionButton
-                className={styles.actionButton}
-                styles={{ flexContainer: { alignItems: "normal" } }}
-                theme={themes.destructive}
-                onClick={(event) => {
-                  if (isPortalAdminListCollaboratorItem(item)) {
-                    onRemoveCollaboratorClicked(event, item.id);
-                  } else if (
-                    isPortalAdminListCollaboratorInvitationItem(item)
-                  ) {
-                    onRemoveCollaboratorInvitationClicked(event, item.id);
-                  }
-                }}
-                text={<FormattedMessage id="PortalAdminList.remove" />}
-              />
-            );
-          default:
-            return null;
-        }
-      },
-      [
-        onRemoveCollaboratorClicked,
-        onRemoveCollaboratorInvitationClicked,
-        themes.destructive,
-        renderToString,
-      ]
-    );
-
     return (
-      <div className={cn(styles.root, className)}>
-        <ShimmeredDetailsList
-          enableShimmer={loading}
-          onRenderItemColumn={onRenderItemColumn}
-          selectionMode={SelectionMode.none}
-          layoutMode={DetailsListLayoutMode.justified}
-          columns={columns}
-          items={items}
-        />
+      <div className={cn(styles.tableWrapper, className)}>
+        <div className={styles.table}>
+          <div className={styles.tableHeader}>
+            <div className={styles.headerCellEmail}>
+              <FormattedMessage id="PortalAdminList.column.email" />
+            </div>
+            <div className={styles.headerCellStatus}>
+              <FormattedMessage id="PortalAdminList.column.status" />
+            </div>
+            <div className={styles.headerCellActions} aria-hidden={true} />
+          </div>
+          {items.map((item) => {
+            const isCollaborator = isPortalAdminListCollaboratorItem(item);
+            return (
+              <div key={item.id} className={styles.tableRow}>
+                <div className={styles.cellEmail}>
+                  <Text size="2" className={styles.cellEmailText}>
+                    {item.isOwner
+                      ? `${item.email} (${renderToString(
+                          "PortalAdminList.owner"
+                        )})`
+                      : item.email}
+                  </Text>
+                </div>
+                <div className={styles.cellStatus}>
+                  {isCollaborator ? (
+                    <Badge
+                      size="1"
+                      variant="success"
+                      text={renderToString("PortalAdminList.status.accepted")}
+                    />
+                  ) : (
+                    <Badge
+                      size="1"
+                      variant="warning"
+                      text={renderToString("PortalAdminList.status.pending")}
+                    />
+                  )}
+                </div>
+                <div className={styles.cellActions}>
+                  {item.isOwner ? null : (
+                    <DropdownMenu.Root>
+                      <DropdownMenu.Trigger>
+                        <RadixIconButton variant="ghost" color="gray" size="2">
+                          <DotsVerticalIcon width="1rem" height="1rem" />
+                        </RadixIconButton>
+                      </DropdownMenu.Trigger>
+                      <DropdownMenu.Content align="end">
+                        <DropdownMenu.Item
+                          color="red"
+                          onSelect={() => {
+                            if (isCollaborator) {
+                              onRemoveCollaboratorClicked(item.id);
+                            } else {
+                              onRemoveCollaboratorInvitationClicked(item.id);
+                            }
+                          }}
+                        >
+                          <TrashIcon />
+                          <FormattedMessage id="PortalAdminList.remove" />
+                        </DropdownMenu.Item>
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Root>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };

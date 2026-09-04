@@ -1,0 +1,43 @@
+.root {
+  @apply flex flex-col;
+}
+
+.cardContent {
+  @apply gap-5;
+}
+
+.title {
+  margin: 0;
+}
+
+.description {
+  margin: 0;
+}
+
+.selectTrigger {
+  width: 100%;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--gray-a6);
+  margin: 0;
+}
+
+.section {
+  @apply flex flex-col gap-2;
+}
+
+.codeField {
+  margin-top: 0.75rem;
+}
+
+.actions {
+  @apply mt-4 flex gap-4;
+}
+
+.codeTabsList {
+  box-shadow: none;
+  border-bottom: 1px solid var(--gray-a6);
+  margin-top: 0.5rem;
+}

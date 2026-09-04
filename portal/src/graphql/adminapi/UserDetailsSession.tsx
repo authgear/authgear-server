@@ -1,29 +1,19 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  DetailsList,
-  Dialog,
-  DialogFooter,
-  IColumn,
-  MessageBar,
-  SelectionMode,
-  Text,
-  TooltipHost,
-} from "@fluentui/react";
+import { Button, Heading, IconButton, Text, Tooltip } from "@radix-ui/themes";
+import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsSession.module.css";
-import { useSystemConfig } from "../../context/SystemConfigContext";
-import ButtonWithLoading from "../../ButtonWithLoading";
 import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";
 import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutation";
 import ErrorDialog from "../../error/ErrorDialog";
 import { OAuthClientConfig, Session } from "../../types";
-import DefaultButton from "../../DefaultButton";
-import ActionButton from "../../ActionButton";
 import Link from "../../Link";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { Callout } from "../../components/v2/Callout/Callout";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
@@ -39,8 +29,6 @@ const RevokeConfirmationDialog: React.VFC<RevokeConfirmationDialogProps> =
     const { isHidden, isLoading, titleKey, messageKey, onConfirm, onDismiss } =
       props;
 
-    const { renderToString } = useContext(Context);
-
     const onDialogConfirm = useCallback(() => {
       if (!isHidden && !isLoading) {
         onConfirm();
@@ -53,33 +41,23 @@ const RevokeConfirmationDialog: React.VFC<RevokeConfirmationDialogProps> =
       }
     }, [isHidden, isLoading, onDismiss]);
 
-    const dialogContentProps = useMemo(() => {
-      return {
-        title: <FormattedMessage id={titleKey} />,
-        subText: renderToString(messageKey),
-      };
-    }, [titleKey, messageKey, renderToString]);
-
     return (
-      <Dialog
-        hidden={isHidden}
-        dialogContentProps={dialogContentProps}
-        modalProps={{ isBlocking: isLoading }}
-        onDismiss={onDialogDismiss}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            onClick={onDialogConfirm}
-            labelId="confirm"
-            loading={isLoading}
-          />
-          <DefaultButton
-            disabled={isLoading}
-            onClick={onDialogDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+      <ConfirmationDialog
+        open={!isHidden}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDialogDismiss();
+          }
+        }}
+        title={<FormattedMessage id={titleKey} />}
+        description={<FormattedMessage id={messageKey} />}
+        confirmText={<FormattedMessage id="confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        onConfirm={onDialogConfirm}
+        onCancel={onDialogDismiss}
+        loading={isLoading}
+        confirmColor="red"
+      />
     );
   };
 
@@ -101,7 +79,6 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
   props
 ) {
   const { locale, renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
   const { appID, userID } = useParams() as { appID: string; userID: string };
   const { sessions, oauthClients } = props;
 
@@ -130,109 +107,6 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
   const onConfirmDialogDismiss = useCallback(() => {
     setIsConfirmDialogHidden(true);
   }, []);
-
-  const sessionColumns: IColumn[] = useMemo(
-    () => [
-      {
-        key: "displayName",
-        fieldName: "displayName",
-        name: renderToString("UserDetails.session.devices"),
-        className: styles.cell,
-        minWidth: 200,
-        maxWidth: 200,
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: (item: SessionItemViewModel) => {
-          if (item.displayName !== "") {
-            return item.displayName;
-          }
-
-          if (item.userAgent !== null && item.userAgent !== "") {
-            return item.userAgent;
-          }
-
-          return (
-            <Text
-              variant="small"
-              styles={(_, theme) => ({
-                root: {
-                  color: theme.palette.neutralSecondary,
-                  fontStyle: "italic",
-                },
-              })}
-            >
-              {renderToString("UserDetails.session.devices.unknown")}
-            </Text>
-          );
-        },
-      },
-      {
-        key: "clientID",
-        fieldName: "clientID",
-        name: renderToString("UserDetails.session.clientID"),
-        className: styles.cell,
-        minWidth: 120,
-        maxWidth: 120,
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: (item: SessionItemViewModel) => {
-          const client = oauthClients.find(
-            (client) => client.client_id === item.clientID
-          );
-
-          if (client !== undefined) {
-            return (
-              <TooltipHost
-                content={renderToString(
-                  "UserDetails.session.clientID.tooltip.message",
-                  { clientID: item.clientID }
-                )}
-              >
-                <Link
-                  to={`/project/${appID}/configuration/apps/${item.clientID}/edit`}
-                  className={styles.clientID}
-                >
-                  {client.name}
-                </Link>
-              </TooltipHost>
-            );
-          }
-
-          return item.clientID;
-        },
-      },
-      {
-        key: "ipAddress",
-        fieldName: "ipAddress",
-        name: renderToString("UserDetails.session.ip-address"),
-        className: styles.cell,
-        minWidth: 80,
-        maxWidth: 80,
-      },
-      {
-        key: "lastActivity",
-        fieldName: "lastActivity",
-        name: renderToString("UserDetails.session.last-activity"),
-        className: styles.cell,
-        minWidth: 220,
-        maxWidth: 220,
-      },
-      {
-        key: "action",
-        name: renderToString("UserDetails.session.action"),
-        minWidth: 60,
-        maxWidth: 60,
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: (item: SessionItemViewModel) => (
-          <ActionButton
-            className={styles.actionButton}
-            theme={themes.destructive}
-            onClick={item.revoke}
-            text={<FormattedMessage id="UserDetails.session.action.revoke" />}
-          />
-        ),
-      },
-    ],
-    [renderToString, oauthClients, appID, themes.destructive]
-  );
 
   const sessionListItems = useMemo(
     () =>
@@ -273,34 +147,119 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
 
   return (
     <div className={styles.root}>
-      <Text as="h2" className={styles.header}>
-        <FormattedMessage id="UserDetails.session.header" />
-      </Text>
-      {sessionListItems.length === 0 ? (
-        <MessageBar className={styles.emptyMessageBar}>
-          <FormattedMessage id="UserDetails.session.empty" />
-        </MessageBar>
-      ) : (
-        <>
-          <DetailsList
-            items={sessionListItems}
-            columns={sessionColumns}
-            selectionMode={SelectionMode.none}
+      <Heading as="h2" size="3" weight="medium" className={styles.header}>
+        <FormattedMessage id="UserDetails.session.section-header" />
+      </Heading>
+      <div className={styles.content}>
+        {sessionListItems.length === 0 ? (
+          <Callout
+            className={styles.emptyMessageBar}
+            type="info"
+            showCloseButton={false}
+            text={<FormattedMessage id="UserDetails.session.empty" />}
           />
-          <DefaultButton
-            className={styles.revokeAllButton}
-            theme={themes.destructive}
-            iconProps={{ iconName: "ErrorBadge" }}
-            styles={{
-              menuIcon: { paddingLeft: "3px" },
-              icon: { paddingRight: "3px" },
-            }}
-            disabled={sessions.length === 0}
-            onClick={onRevokeAllClick}
-            text={<FormattedMessage id="UserDetails.session.revoke-all" />}
-          />
-        </>
-      )}
+        ) : (
+          <>
+            <div className={styles.tableContainer}>
+              <div className={styles.table}>
+                <div className={styles.tableHeader}>
+                  <div className={styles.deviceColumn}>
+                    <FormattedMessage id="UserDetails.session.devices" />
+                  </div>
+                  <div className={styles.clientColumn}>
+                    <FormattedMessage id="UserDetails.session.clientID" />
+                  </div>
+                  <div className={styles.ipColumn}>
+                    <FormattedMessage id="UserDetails.session.ip-address" />
+                  </div>
+                  <div className={styles.activityColumn}>
+                    <FormattedMessage id="UserDetails.session.last-activity" />
+                  </div>
+                  <div className={styles.actionColumn} aria-hidden={true} />
+                </div>
+                {sessionListItems.map((item, index) => {
+                  const client = oauthClients.find(
+                    (candidate) => candidate.client_id === item.clientID
+                  );
+                  const deviceName = item.displayName || item.userAgent || null;
+                  return (
+                    <div
+                      className={styles.tableRow}
+                      key={`${item.clientID}-${index}`}
+                    >
+                      <div className={styles.deviceColumn}>
+                        {deviceName != null ? (
+                          deviceName
+                        ) : (
+                          <Text
+                            size="2"
+                            color="gray"
+                            className={styles.unknown}
+                          >
+                            <FormattedMessage id="UserDetails.session.devices.unknown" />
+                          </Text>
+                        )}
+                      </div>
+                      <div className={styles.clientColumn}>
+                        {client != null ? (
+                          <Tooltip
+                            content={renderToString(
+                              "UserDetails.session.clientID.tooltip.message",
+                              { clientID: item.clientID }
+                            )}
+                          >
+                            <Link
+                              to={`/project/${appID}/configuration/apps/${item.clientID}/edit`}
+                              className={styles.clientID}
+                            >
+                              {client.name}
+                            </Link>
+                          </Tooltip>
+                        ) : (
+                          item.clientID
+                        )}
+                      </div>
+                      <div className={styles.ipColumn}>{item.ipAddress}</div>
+                      <div className={styles.activityColumn}>
+                        {item.lastActivity}
+                      </div>
+                      <div className={styles.actionColumn}>
+                        <Tooltip
+                          content={renderToString(
+                            "UserDetails.session.action.terminate-session"
+                          )}
+                        >
+                          <IconButton
+                            variant="ghost"
+                            color="gray"
+                            size="2"
+                            aria-label={renderToString(
+                              "UserDetails.session.action.terminate-session"
+                            )}
+                            onClick={item.revoke}
+                          >
+                            <CrossCircledIcon width="1rem" height="1rem" />
+                          </IconButton>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <Button
+              className={styles.revokeAllButton}
+              size="2"
+              variant="outline"
+              color="red"
+              disabled={sessions.length === 0}
+              onClick={onRevokeAllClick}
+            >
+              <FormattedMessage id="UserDetails.session.revoke-all" />
+            </Button>
+          </>
+        )}
+      </div>
       {confirmDialogProps ? (
         <RevokeConfirmationDialog
           {...confirmDialogProps}

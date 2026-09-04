@@ -1,183 +1,20 @@
-import React, { useEffect, useMemo } from "react";
-import {
-  useParams,
-  useNavigate,
-  useLocation,
-  createPath,
-  Navigate,
-} from "react-router-dom";
-import { FormattedMessage } from "../../intl";
-import {
-  ScopeForm,
-  ScopeFormState,
-  sanitizeScopeFormState,
-} from "../../components/api-resources/ScopeForm";
-import { useSimpleForm } from "../../hook/useSimpleForm";
-import { FormContainerBase } from "../../FormContainerBase";
-import { useUpdateScopeMutationMutation } from "../../graphql/adminapi/mutations/updateScopeMutation.generated";
-import { Resource, Scope } from "../../graphql/adminapi/globalTypes.generated";
-import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
-import { useScopeQueryQuery } from "../../graphql/adminapi/query/scopeQuery.generated";
-import { useResourceQueryQuery } from "../../graphql/adminapi/query/resourceQuery.generated";
-import { useLoadableView } from "../../hook/useLoadableView";
+import React from "react";
+import { Navigate, useParams } from "react-router-dom";
 
-function EditScopeScreenContent({
-  scope,
-  resource,
-}: {
-  resource: Resource;
-  scope: Scope;
-}) {
+// Kept for backwards-compatible deep links; edit now opens as a modal on the details Scopes tab.
+const EditScopeScreen: React.VFC = function EditScopeScreen() {
   const { appID, resourceID } = useParams<{
     appID: string;
     resourceID: string;
-    scopeID: string;
   }>();
-  const navigate = useNavigate();
-  const [updateScope] = useUpdateScopeMutationMutation();
-  const location = useLocation();
-
-  const initialState: ScopeFormState = useMemo(
-    () => ({
-      scope: scope.scope,
-      description: scope.description ?? "",
-      allowDynamicThirdPartyClientAccess:
-        scope.accessPolicy.allowDynamicThirdPartyClientAccess,
-    }),
-    [scope]
-  );
-
-  const backURL = createPath({
-    pathname: `/project/${appID}/api-resources/${encodeURIComponent(
-      resourceID ?? ""
-    )}`,
-    hash: location.hash,
-    search: location.search,
-  });
-
-  const form = useSimpleForm<ScopeFormState, Scope>({
-    defaultState: initialState,
-    submit: async (s) => {
-      const state = sanitizeScopeFormState(s);
-      const result = await updateScope({
-        variables: {
-          input: {
-            resourceURI: resource.resourceURI,
-            scope: state.scope,
-            description: state.description,
-            accessPolicy: {
-              allowDynamicThirdPartyClientAccess:
-                state.allowDynamicThirdPartyClientAccess,
-            },
-          },
-        },
-      });
-      if (result.data == null) {
-        throw new Error("unexpected null data");
-      }
-      return result.data.updateScope.scope;
-    },
-  });
-
-  useEffect(() => {
-    if (form.isSubmitted) {
-      navigate(backURL);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.isSubmitted]);
-
   return (
-    <APIResourceScreenLayout
-      breadcrumbItems={[
-        {
-          to: "~/api-resources",
-          label: <FormattedMessage id="ScreenNav.api-resources" />,
-        },
-        {
-          to: backURL,
-          label: resource.name ?? resource.resourceURI,
-        },
-        {
-          to: "",
-          label: <FormattedMessage id="EditScopeScreen.title" />,
-        },
-      ]}
-    >
-      <FormContainerBase form={form}>
-        <ScopeForm
-          className="col-span-8 tablet:col-span-full py-6"
-          mode="edit"
-          state={form.state}
-          setState={form.setState}
-          resourceAllowsDynamicAccess={
-            resource.accessPolicy.allowDynamicThirdPartyClientAccess
-          }
-        />
-      </FormContainerBase>
-    </APIResourceScreenLayout>
+    <Navigate
+      to={`/project/${encodeURIComponent(
+        appID ?? ""
+      )}/api-resources/${encodeURIComponent(resourceID ?? "")}`}
+      replace={true}
+    />
   );
-}
-
-const EditScopeScreen: React.VFC = function EditScopeScreen() {
-  const { appID, resourceID, scopeID } = useParams<{
-    appID: string;
-    resourceID: string;
-    scopeID: string;
-  }>();
-  const {
-    data: scopeData,
-    loading: scopeLoading,
-    error: scopeError,
-    refetch: scopeRefetch,
-  } = useScopeQueryQuery({
-    variables: { id: scopeID ?? "" },
-  });
-  const {
-    data: resourceData,
-    loading: resourceLoading,
-    error: resourceError,
-    refetch: resourceRefetch,
-  } = useResourceQueryQuery({
-    variables: { id: resourceID ?? "" },
-  });
-
-  return useLoadableView({
-    loadables: [
-      {
-        isLoading: resourceLoading,
-        loadError: resourceError,
-        reload: resourceRefetch,
-        data: resourceData,
-      },
-      {
-        isLoading: scopeLoading,
-        loadError: scopeError,
-        reload: scopeRefetch,
-        data: scopeData,
-      },
-    ] as const,
-    render: ([resourceQuery, scopeQuery]) => {
-      const { data: resourceData } = resourceQuery;
-      const { data: scopeData } = scopeQuery;
-      const resource =
-        resourceData?.node?.__typename === "Resource"
-          ? resourceData.node
-          : null;
-      const scope =
-        scopeData?.node?.__typename === "Scope" ? scopeData.node : null;
-
-      if (resource == null || scope == null) {
-        return (
-          <Navigate
-            to={`/project/${encodeURIComponent(appID ?? "")}/api-resources`}
-            replace={true}
-          />
-        );
-      }
-
-      return <EditScopeScreenContent resource={resource} scope={scope} />;
-    },
-  });
 };
 
 export default EditScopeScreen;

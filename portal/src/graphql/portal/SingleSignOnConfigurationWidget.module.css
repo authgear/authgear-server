@@ -3,23 +3,109 @@
 }
 
 .widgetHeader {
-  @apply flex items-center gap-x-3;
+  @apply inline-flex items-center gap-x-3;
 }
 
 .widgetHeaderIcon {
-  @apply flex items-center justify-center;
+  @apply inline-flex items-center justify-center;
   @apply w-6 h-6;
 }
 
-.textField,
-.checkbox,
-.fieldList {
-  @apply mb-2;
+.contentHeader {
+  @apply flex flex-col gap-1;
+}
+
+.contentTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.contentDescription {
+  margin: 0;
+}
+
+.cardContent {
+  @apply gap-4;
+}
+
+.clientSecretTextArea {
+  min-height: 160px;
+}
+
+.checkboxGroup {
+  @apply flex flex-col gap-2;
+}
+
+.policySection {
+  @apply flex flex-col gap-3;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.checkboxRow {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+.advancedSection {
+  @apply mt-4 flex flex-col gap-3;
+}
+
+.advancedToggle {
+  @apply flex items-center gap-2;
+  @apply bg-transparent border-none cursor-pointer p-0;
+  color: var(--accent-9);
+}
+
+.advancedToggle:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+.advancedToggleIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--accent-9);
+  transition: transform 150ms ease;
+}
+
+.advancedToggleIconOpen {
+  transform: rotate(180deg);
+}
+
+.tooltipLabel {
+  @apply flex items-center gap-1;
+}
+
+.infoIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--gray-a11);
+  cursor: help;
+}
+
+.uriList {
+  @apply flex flex-col gap-2;
+}
+
+.uriListItem {
+  @apply flex items-center gap-2;
+}
+
+.uriListItemField {
+  @apply flex-1;
+}
+
+.uriListAddButton {
+  @apply mt-2;
 }
 
 .cardContainer {
-  @apply p-4;
-  @apply border border-solid border-border-primary;
+  @apply rounded-lg border border-solid bg-white p-4;
+  border-color: var(--gray-5);
 }
 
 .cardHeader {
@@ -44,7 +130,11 @@
 }
 
 .cardTitle {
-  @apply font-semibold;
+  margin: 0;
+}
+
+.cardSubtitle {
+  margin: 0;
 }
 
 .cardAddedBadge {
@@ -57,61 +147,112 @@
 }
 
 .cardDescription {
-  @apply text-tertiary;
+  margin: 0;
 }
 
-.rowContainer {
-  @apply grid items-center gap-x-4;
-  @apply px-4 py-3;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+.tableHeader {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  background-color: var(--gray-2);
+  border-top-left-radius: var(--radius-3);
+  border-top-right-radius: var(--radius-3);
 }
 
-.rowColumn {
-  @apply flex gap-3 items-center min-w-0;
+.tableHeaderCellProvider,
+.tableHeaderCellAlias,
+.tableHeaderCellConfiguration,
+.tableHeaderCellActions {
+  @apply flex items-center px-4 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.tableHeaderCellProvider {
+  @apply min-w-0 flex-[1.5];
+  min-width: 14rem;
+}
+
+.tableHeaderCellAlias {
+  @apply min-w-0 flex-1;
+  min-width: 8rem;
+}
+
+.tableHeaderCellConfiguration {
+  @apply min-w-0 flex-1;
+  min-width: 10rem;
+}
+
+.tableHeaderCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.tableRow {
+  @apply flex w-full items-center cursor-pointer;
+  min-width: 100%;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.tableRow:hover {
+  background-color: var(--gray-a2);
+}
+
+.tableCellProvider,
+.tableCellAlias,
+.tableCellConfiguration,
+.tableCellActions {
+  @apply flex items-center px-4 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.tableCellProvider {
+  @apply min-w-0 flex-[1.5] overflow-hidden gap-3;
+  min-width: 14rem;
+}
+
+.tableCellAlias {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 8rem;
+}
+
+.tableCellConfiguration {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 10rem;
+}
+
+.tableCellActions {
+  width: 3.5rem;
+  flex-shrink: 0;
+  @apply justify-end;
 }
 
 .rowIcon {
   @apply flex items-center justify-center;
   @apply w-6 h-6;
-}
-
-.rowName {
-  @apply flex items-center gap-x-1;
+  flex-shrink: 0;
 }
 
 .rowContent {
-  @apply flex flex-col;
+  @apply flex min-w-0 flex-col overflow-hidden;
 }
 
-.rowDescription {
-  @apply text-tertiary;
-}
-
-.rowActions {
-  @apply w-30;
-  @apply flex items-center justify-end gap-x-3;
-}
-
-.rowHeader {
-  @apply font-semibold;
+.rowTitle {
+  @apply min-w-0 truncate;
+  margin: 0;
 }
 
 .rowAlias {
-  @apply font-mono truncate;
+  @apply min-w-0 truncate font-mono;
+  margin: 0;
 }
 
-.aliasField {
-  @apply flex flex-col;
+.rowDescription {
+  @apply min-w-0 truncate;
+  margin: 0;
 }
 
-.aliasRow {
-  @apply flex items-start gap-x-3;
-}
-
-.aliasInput {
-  @apply flex-1;
-}
-
-.aliasDescription {
-  @apply mt-2 text-sm;
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }

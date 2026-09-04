@@ -1,98 +1,30 @@
-.keysTableWrapper {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+.colFingerprint {
+  @apply min-w-0 flex-1 overflow-hidden;
 }
 
-@media (min-width: 1081px) {
-  .keysTableWrapper {
-    /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .keysTableWrapper::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.keysTable {
-  min-width: 100%;
-}
-
-.keysTableHeader {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-}
-
-.keysTableHeaderCellFingerprint,
-.keysTableHeaderCellStatus,
-.keysTableHeaderCellActions {
-  @apply flex items-center px-3 py-3 text-sm font-semibold;
-  color: var(--gray-12);
-}
-
-.keysTableHeaderCellFingerprint {
-  @apply flex-1 min-w-0;
-}
-
-.keysTableHeaderCellStatus {
+.colStatus {
   width: 6.5rem;
   min-width: 6.5rem;
   flex-shrink: 0;
 }
 
-.keysTableHeaderCellActions {
+.colActions {
   width: 3.5rem;
   flex-shrink: 0;
   @apply justify-end;
-}
-
-.keysTableRow {
-  @apply flex w-full items-center;
-  min-width: 100%;
-  min-height: 2.75rem;
-  border-top: 1px solid var(--gray-a6);
-  background-color: var(--gray-a2);
-}
-
-.keysTableCellFingerprint,
-.keysTableCellStatus,
-.keysTableCellActions {
-  @apply flex items-center px-3 py-3 text-sm;
-  color: var(--gray-12);
-}
-
-.keysTableCellFingerprint {
-  @apply flex min-w-0 flex-1 items-center overflow-hidden;
 }
 
 .keysTableCellFingerprintText {
   @apply min-w-0 truncate;
 }
 
-.keysTableCellStatus {
-  width: 6.5rem;
-  min-width: 6.5rem;
-  flex-shrink: 0;
-}
-
-.keysTableCellActions {
-  width: 3.5rem;
-  flex-shrink: 0;
-  @apply justify-end;
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
 
 .activeStatus {
   position: relative;
   width: fit-content;
-}
-
-.activeStatusText {
-  color: var(--green-11);
 }
 
 .activeStatusSpinner {

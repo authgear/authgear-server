@@ -1,9 +1,8 @@
 /* global IntlTelInputInitOptions IntlTelInputInstance JSX */
 import React, { createRef } from "react";
 import cn from "classnames";
-import { Text, Label } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import intlTelInput from "intl-tel-input";
-import { SystemConfigContext } from "./context/SystemConfigContext";
 import {
   cleanRawInputValue,
   trimCountryCallingCode,
@@ -33,7 +32,7 @@ export interface PhoneTextFieldProps {
   className?: string;
   inputContainerClassName?: string;
   inputClassNameOverride?: string;
-  label?: string;
+  label?: React.ReactNode;
   disabled?: boolean;
   pinnedList?: string[];
   allowlist?: string[];
@@ -46,10 +45,6 @@ export interface PhoneTextFieldProps {
 export default class PhoneTextField extends React.Component<PhoneTextFieldProps> {
   inputRef: React.RefObject<HTMLInputElement>;
   instance: IntlTelInputInstance | null;
-
-  static contextType = SystemConfigContext;
-  // eslint-disable-next-line react/static-property-placement
-  declare context: React.ContextType<typeof SystemConfigContext>;
 
   constructor(props: PhoneTextFieldProps) {
     super(props);
@@ -172,39 +167,25 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
 
   render(): JSX.Element {
     const { className, label, errorMessage, disabled } = this.props;
-    const semanticColors = this.context?.themes.main.semanticColors;
-    const inputBorder = semanticColors?.inputBorder ?? "";
-    const errorText = semanticColors?.errorText ?? "";
-    const inputFocusBorderAlt = semanticColors?.inputFocusBorderAlt ?? "";
-    const disabledBackground = semanticColors?.disabledBackground ?? "";
     return (
       <div className={className}>
-        {label ? <Label disabled={disabled}>{label}</Label> : null}
+        {label != null ? (
+          <Text as="label" size="2" weight="medium" className={styles.label}>
+            {label}
+          </Text>
+        ) : null}
         <input
-          style={{
-            // @ts-expect-error
-            "--PhoneTextField-border-color":
-              errorMessage != null ? errorText : inputBorder,
-            "--PhoneTextField-border-color-focus":
-              errorMessage != null ? errorText : inputFocusBorderAlt,
-            backgroundColor: disabled ? disabledBackground : undefined,
-          }}
-          className={cn(this.props.inputClassNameOverride ?? styles.input)}
+          className={cn(
+            this.props.inputClassNameOverride ?? styles.input,
+            errorMessage != null && styles.inputError
+          )}
           type="text"
           ref={this.inputRef}
           disabled={disabled}
           pattern="^[\+0-9]*$"
         />
         {errorMessage ? (
-          <Text
-            block={true}
-            styles={{
-              root: {
-                color: errorText,
-              },
-            }}
-            className={styles.errorMessage}
-          >
+          <Text as="p" size="1" color="red" className={styles.errorMessage}>
             {errorMessage}
           </Text>
         ) : null}

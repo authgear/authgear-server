@@ -1,11 +1,15 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
+import cn from "classnames";
 import authgear, { PromptOption } from "@authgear/web";
-import { Text, DefaultEffects } from "@fluentui/react";
-import { Context, FormattedMessage, FormattedMessageProps } from "../../intl";
+import { Text } from "@radix-ui/themes";
+import {
+  EnvelopeClosedIcon,
+  ExclamationTriangleIcon,
+} from "@radix-ui/react-icons";
+import { FormattedMessage, FormattedMessageProps } from "../../intl";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAcceptCollaboratorInvitationMutation } from "./mutations/acceptCollaboratorInvitationMutation";
-import ButtonWithLoading from "../../ButtonWithLoading";
 
 import styles from "./AcceptAdminInvitationScreen.module.css";
 import ScreenHeader from "../../ScreenHeader";
@@ -17,45 +21,67 @@ import {
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useAuthenticatedForInvitationQuery } from "./query/authenticatedForInvitationQuery";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 
 function encodeOAuthState(state: Record<string, unknown>): string {
   return btoa(JSON.stringify(state));
 }
 
+type InvitationTone = "info" | "warning";
+
 interface AcceptAdminInvitationWidgetProps {
+  tone?: InvitationTone;
+  icon?: React.ReactNode;
   title: FormattedMessageProps;
   descriptions: Array<FormattedMessageProps>;
   children?: React.ReactNode;
 }
 
 const AcceptAdminInvitationContent: React.VFC<AcceptAdminInvitationWidgetProps> =
-  function AcceptAdminInvitationContent({ title, descriptions, children }) {
+  function AcceptAdminInvitationContent({
+    tone = "info",
+    icon,
+    title,
+    descriptions,
+    children,
+  }) {
     return (
       <main className={styles.root}>
         <ScreenHeader showHamburger={false} />
-        <div
-          className={styles.widget}
-          style={{
-            boxShadow: DefaultEffects.elevation4,
-          }}
-        >
-          <Text className={styles.title}>
-            <FormattedMessage {...title} />
-          </Text>
-          <Text className={styles.description}>
-            {descriptions.map((description, i) => (
-              <FormattedMessage key={i} {...description} />
-            ))}
-          </Text>
-          {children}
+        <div className={styles.body}>
+          <section className={styles.widget}>
+            {icon != null ? (
+              <div
+                className={cn(
+                  styles.icon,
+                  tone === "warning" ? styles.iconWarning : styles.iconInfo
+                )}
+              >
+                {icon}
+              </div>
+            ) : null}
+            <div className={styles.header}>
+              <Text as="p" size="5" weight="bold" className={styles.title}>
+                <FormattedMessage {...title} />
+              </Text>
+              <Text as="p" size="2" color="gray" className={styles.description}>
+                {descriptions.map((description, i) => (
+                  <FormattedMessage key={i} {...description} />
+                ))}
+              </Text>
+            </div>
+            {children != null ? (
+              <div className={styles.actions}>{children}</div>
+            ) : null}
+          </section>
         </div>
-        <div />
-        <div />
       </main>
     );
   };
+
+const InfoIcon = <EnvelopeClosedIcon width={22} height={22} />;
+const WarningIcon = <ExclamationTriangleIcon width={22} height={22} />;
 
 interface AcceptAdminInvitationIsInviteeProps {
   appID: string;
@@ -109,6 +135,8 @@ const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteePr
     if (errors.length > 0) {
       return (
         <AcceptAdminInvitationContent
+          tone="warning"
+          icon={WarningIcon}
           title={{ id: "AcceptAdminInvitationScreen.accept-error.title" }}
           descriptions={errors
             .filter((err) => !!err.messageID)
@@ -119,6 +147,7 @@ const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteePr
 
     return (
       <AcceptAdminInvitationContent
+        icon={InfoIcon}
         title={{
           id: "AcceptAdminInvitationScreen.is-invitee.title",
           values: { appID },
@@ -129,12 +158,14 @@ const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteePr
           },
         ]}
       >
-        <ButtonWithLoading
+        <PrimaryButton
+          size="3"
           type="submit"
           loading={loading}
-          labelId="AcceptAdminInvitationScreen.accept.label"
-          loadingLabelId="loading"
           onClick={onAccept}
+          text={
+            <FormattedMessage id="AcceptAdminInvitationScreen.accept.label" />
+          }
         />
       </AcceptAdminInvitationContent>
     );
@@ -142,7 +173,6 @@ const AcceptAdminInvitationIsInvitee: React.VFC<AcceptAdminInvitationIsInviteePr
 
 const AcceptAdminInvitationScreen: React.VFC =
   function AcceptAdminInvitationScreen() {
-    const { renderToString } = useContext(Context);
     const navigate = useNavigate();
     const location = useLocation();
     const invitationCode = useMemo(() => {
@@ -183,7 +213,9 @@ const AcceptAdminInvitationScreen: React.VFC =
       [redirectURI, originalPath]
     );
 
-    const goToHome = useCallback(async () => navigate("/"), [navigate]);
+    const goToHome = useCallback(() => {
+      navigate("/");
+    }, [navigate]);
 
     if (loading) {
       return <ShowLoading />;
@@ -197,18 +229,19 @@ const AcceptAdminInvitationScreen: React.VFC =
     if (!isCodeValid) {
       return (
         <AcceptAdminInvitationContent
+          tone="warning"
+          icon={WarningIcon}
           title={{ id: "AcceptAdminInvitationScreen.invalid-code.title" }}
           descriptions={[
             { id: "AcceptAdminInvitationScreen.invalid-code.description" },
           ]}
         >
           <PrimaryButton
-            className={styles.loginButton}
-            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            size="3"
             onClick={goToHome}
-            text={renderToString(
-              "AcceptAdminInvitationScreen.continue-to-authgear.label"
-            )}
+            text={
+              <FormattedMessage id="AcceptAdminInvitationScreen.continue-to-authgear.label" />
+            }
           />
         </AcceptAdminInvitationContent>
       );
@@ -217,6 +250,7 @@ const AcceptAdminInvitationScreen: React.VFC =
     if (!isAuthenticated) {
       return (
         <AcceptAdminInvitationContent
+          icon={InfoIcon}
           title={{
             id: "AcceptAdminInvitationScreen.not-authenticated.title",
             values: {
@@ -230,16 +264,18 @@ const AcceptAdminInvitationScreen: React.VFC =
           ]}
         >
           <PrimaryButton
-            className={styles.loginButton}
+            size="3"
             onClick={() => goToAuth("login")}
-            text={renderToString("AcceptAdminInvitationScreen.login.label")}
+            text={
+              <FormattedMessage id="AcceptAdminInvitationScreen.login.label" />
+            }
           />
-          <DefaultButton
-            className={styles.createAccountButton}
+          <SecondaryButton
+            size="3"
             onClick={() => goToAuth("signup")}
-            text={renderToString(
-              "AcceptAdminInvitationScreen.create-new-account.label"
-            )}
+            text={
+              <FormattedMessage id="AcceptAdminInvitationScreen.create-new-account.label" />
+            }
           />
         </AcceptAdminInvitationContent>
       );
@@ -248,17 +284,19 @@ const AcceptAdminInvitationScreen: React.VFC =
     if (!isInvitee) {
       return (
         <AcceptAdminInvitationContent
+          tone="warning"
+          icon={WarningIcon}
           title={{ id: "AcceptAdminInvitationScreen.not-invitee.title" }}
           descriptions={[
             { id: "AcceptAdminInvitationScreen.not-invitee.description" },
           ]}
         >
           <PrimaryButton
-            className={styles.loginButton}
+            size="3"
             onClick={() => goToAuth("login")}
-            text={renderToString(
-              "AcceptAdminInvitationScreen.login-with-another-user.label"
-            )}
+            text={
+              <FormattedMessage id="AcceptAdminInvitationScreen.login-with-another-user.label" />
+            }
           />
         </AcceptAdminInvitationContent>
       );

@@ -1,4 +1,3 @@
-import { ITag } from "@fluentui/react";
 import { Context as MessageContext } from "../../../intl";
 import React, { useCallback, useContext, useMemo } from "react";
 import ErrorDialog from "../../../error/ErrorDialog";
@@ -9,7 +8,7 @@ import {
 } from "../../../graphql/adminapi/query/rolesListQuery.generated";
 import { useQuery } from "@apollo/client";
 import { Role } from "../../../graphql/adminapi/globalTypes.generated";
-import AddTagsDialog from "./AddTagsDialog";
+import AddTagsDialog, { AddTagsDialogTag } from "./AddTagsDialog";
 import { useAddUserToRolesMutation } from "../../../graphql/adminapi/mutations/addUserToRolesMutation";
 import { useUserQuery } from "../../../graphql/adminapi/query/userQuery";
 import { extractRawID } from "../../../util/graphql";
@@ -27,7 +26,7 @@ interface AddUserRolesDialogProps {
   onDismissed?: () => void;
 }
 
-interface RoleTag extends ITag {
+interface RoleTag extends AddTagsDialogTag {
   role: AddUserRolesDialogRole;
 }
 
@@ -64,7 +63,10 @@ export const AddUserRolesDialog: React.VFC<AddUserRolesDialogProps> =
     >(RolesListQueryDocument);
 
     const onResolveRoleSuggestions = useCallback(
-      async (filter: string, selectedTags?: ITag[]): Promise<ITag[]> => {
+      async (
+        filter: string,
+        selectedTags?: AddTagsDialogTag[]
+      ): Promise<AddTagsDialogTag[]> => {
         const selectedRoleIDs = new Set(
           selectedTags?.map((tag) => (tag as RoleTag).role.id)
         );
@@ -98,7 +100,7 @@ export const AddUserRolesDialog: React.VFC<AddUserRolesDialogProps> =
     }, [isHidden, loading, onDismiss]);
 
     const onSubmit = useCallback(
-      (tags: ITag[]) => {
+      (tags: AddTagsDialogTag[]) => {
         const roleTags = tags as RoleTag[];
         if (loading || isHidden || roleTags.length === 0) {
           return;

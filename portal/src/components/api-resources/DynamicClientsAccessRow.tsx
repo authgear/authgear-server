@@ -1,10 +1,8 @@
-import React, { useCallback, useContext, useState } from "react";
-import { Dialog, DialogFooter, Text } from "@fluentui/react";
-import { Context, FormattedMessage } from "../../intl";
-import Toggle from "../../Toggle";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import React, { useCallback, useState } from "react";
+import { Text } from "@radix-ui/themes";
+import { FormattedMessage } from "../../intl";
+import { Toggle } from "../v2/Toggle/Toggle";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { useUpdateResourceMutationMutation } from "../../graphql/adminapi/mutations/updateResourceMutation.generated";
 import { ResourceQueryDocument } from "../../graphql/adminapi/query/resourceQuery.generated";
@@ -18,8 +16,6 @@ export interface DynamicClientsAccessRowProps {
 
 export const DynamicClientsAccessRow: React.VFC<DynamicClientsAccessRowProps> =
   function DynamicClientsAccessRow({ resource }) {
-    const { renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
     const { setErrors } = useErrorMessageBarContext();
 
     const [updateResource, { loading: isUpdating }] =
@@ -51,10 +47,7 @@ export const DynamicClientsAccessRow: React.VFC<DynamicClientsAccessRowProps> =
     );
 
     const onToggleChange = useCallback(
-      (_event: React.MouseEvent<HTMLElement>, checked?: boolean) => {
-        if (checked == null) {
-          return;
-        }
+      (checked: boolean) => {
         if (!checked) {
           setIsConfirmDialogVisible(true);
           return;
@@ -67,7 +60,16 @@ export const DynamicClientsAccessRow: React.VFC<DynamicClientsAccessRowProps> =
       [setAllowed]
     );
 
-    const onDismissConfirmDialog = useCallback(() => {
+    const onConfirmDialogOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open && !isUpdating) {
+          setIsConfirmDialogVisible(false);
+        }
+      },
+      [isUpdating]
+    );
+
+    const onCancelDisallow = useCallback(() => {
       if (!isUpdating) {
         setIsConfirmDialogVisible(false);
       }
@@ -82,47 +84,36 @@ export const DynamicClientsAccessRow: React.VFC<DynamicClientsAccessRowProps> =
     return (
       <div className={styles.row}>
         <div className={styles.rowText}>
-          <Text block={true} styles={{ root: { fontWeight: 600 } }}>
+          <Text size="2" weight="medium">
             <FormattedMessage id="DynamicClientsAccessRow.title" />
           </Text>
-          <Text
-            block={true}
-            variant="small"
-            styles={{ root: { color: themes.main.palette.neutralSecondary } }}
-          >
+          <Text size="1" color="gray">
             <FormattedMessage id="DynamicClientsAccessRow.description" />
           </Text>
         </div>
         <Toggle
           checked={allowed}
           disabled={isUpdating}
-          onChange={onToggleChange}
+          onCheckedChange={onToggleChange}
         />
-        <Dialog
-          hidden={!isConfirmDialogVisible}
-          dialogContentProps={{
-            title: renderToString("DynamicClientsAccessRow.confirm.title"),
-            subText: renderToString(
-              "DynamicClientsAccessRow.confirm.description"
-            ),
-          }}
-          modalProps={{ isBlocking: isUpdating }}
-          onDismiss={onDismissConfirmDialog}
-        >
-          <DialogFooter>
-            <PrimaryButton
-              theme={themes.destructive}
-              disabled={isUpdating}
-              onClick={onConfirmDisallow}
-              text={renderToString("DynamicClientsAccessRow.confirm.confirm")}
-            />
-            <DefaultButton
-              onClick={onDismissConfirmDialog}
-              disabled={isUpdating}
-              text={<FormattedMessage id="cancel" />}
-            />
-          </DialogFooter>
-        </Dialog>
+        <ConfirmationDialog
+          open={isConfirmDialogVisible}
+          onOpenChange={onConfirmDialogOpenChange}
+          title={
+            <FormattedMessage id="DynamicClientsAccessRow.confirm.title" />
+          }
+          description={
+            <FormattedMessage id="DynamicClientsAccessRow.confirm.description" />
+          }
+          confirmText={
+            <FormattedMessage id="DynamicClientsAccessRow.confirm.confirm" />
+          }
+          cancelText={<FormattedMessage id="cancel" />}
+          onConfirm={onConfirmDisallow}
+          onCancel={onCancelDisallow}
+          loading={isUpdating}
+          confirmColor="red"
+        />
       </div>
     );
   };

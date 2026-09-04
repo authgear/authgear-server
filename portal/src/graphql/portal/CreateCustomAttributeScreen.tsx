@@ -1,12 +1,14 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
+import { Heading } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { produce } from "immer";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import FormContainer from "../../FormContainer";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import Link from "../../Link";
 import ScreenContent from "../../ScreenContent";
 import {
   AppConfigFormModel,
@@ -19,6 +21,9 @@ import {
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
 } from "../../EditCustomAttributeForm";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 import styles from "./CreateCustomAttributeScreen.module.css";
 
 interface FormState extends CustomAttributeDraft {
@@ -76,22 +81,12 @@ function CreateCustomAttributeContent(
   props: CreateCustomAttributeContentProps
 ) {
   const { index, form } = props;
+  const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
+  const { canSave, isUpdating } = useFormContainerBaseContext();
+  const navigate = useNavigate();
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: "~/configuration/user-profile/custom-attributes",
-        label: (
-          <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
-        ),
-      },
-      {
-        to: ".",
-        label: <FormattedMessage id="CreateCustomAttributeScreen.title" />,
-      },
-    ];
-  }, []);
+  const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;
 
   const onChangeDraft = (draft: CustomAttributeDraft) => {
     setState((prev) => {
@@ -102,9 +97,23 @@ function CreateCustomAttributeContent(
     });
   };
 
+  const onCancel = useCallback(() => {
+    navigate(backURL);
+  }, [backURL, navigate]);
+
   return (
-    <ScreenContent>
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+    <ScreenContent layout="list">
+      <div className={styles.widget}>
+        <Link to={backURL} className={styles.backLink}>
+          <ChevronLeftIcon className={styles.backLinkIcon} />
+          <span>
+            <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
+          </span>
+        </Link>
+        <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
+          <FormattedMessage id="CreateCustomAttributeScreen.title" />
+        </Heading>
+      </div>
       <EditCustomAttributeForm
         className={styles.widget}
         mode="new"
@@ -112,6 +121,22 @@ function CreateCustomAttributeContent(
         draft={state}
         onChangeDraft={onChangeDraft}
       />
+      <div className={styles.actions}>
+        <PrimaryButton
+          size="2"
+          disabled={!canSave || isUpdating}
+          loading={isUpdating}
+          type="submit"
+          text={<FormattedMessage id="create" />}
+        />
+        <SecondaryButton
+          size="2"
+          disabled={isUpdating}
+          type="button"
+          onClick={onCancel}
+          text={<FormattedMessage id="cancel" />}
+        />
+      </div>
     </ScreenContent>
   );
 }
@@ -144,7 +169,7 @@ const CreateCustomAttributeScreen: React.VFC =
         ?.length ?? 0;
 
     return (
-      <FormContainer form={form} afterSave={afterSave}>
+      <FormContainer form={form} afterSave={afterSave} canSave={true}>
         <CreateCustomAttributeContent form={form} index={index} />
       </FormContainer>
     );

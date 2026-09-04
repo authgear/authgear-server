@@ -1,0 +1,11 @@
+.form {
+  @apply flex flex-col gap-4;
+}
+
+.formError {
+  margin: 0;
+}
+
+.dynamicAccessLabel {
+  @apply flex items-center gap-2;
+}

@@ -1,39 +1,50 @@
 import React, { Fragment, useCallback } from "react";
-import { Label, Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import CodeEditor from "../../CodeEditor";
 import cn from "classnames";
 import styles from "./EditTemplatesWidget.module.css";
-import TextField from "../../TextField";
+import { TextField as RadixTextField } from "../../components/v2/TextField/TextField";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { FormattedMessage } from "../../intl";
 
 export interface TextFieldWidgetIteProps {
   className?: string;
+  label?: React.ReactNode;
   value: string;
   onChange: (value: string | undefined, e: unknown) => void;
   readOnly?: boolean;
 }
 
-// TextFieldWidgetItem is a wrapper of TextField
-// The positional arguments order of onChange functions are different between
-// TextField and CodeEditor, so we need to wrap the TextField
+// TextFieldWidgetItem adapts Radix TextField's onChange signature to CodeEditor's
+// (value, event) so both editor types stay interchangeable at the call site.
 const TextFieldWidgetItem: React.VFC<TextFieldWidgetIteProps> =
   function TextFieldWidgetItem(props) {
-    const { className, value, onChange: onChangeProps, readOnly } = props;
+    const {
+      className,
+      label,
+      value,
+      onChange: onChangeProps,
+      readOnly,
+    } = props;
 
     const onChange = useCallback(
-      (
-        event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-        newValue?: string | undefined
-      ) => onChangeProps(newValue, event),
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        onChangeProps(event.currentTarget.value, event);
+      },
       [onChangeProps]
     );
 
     return (
-      <TextField
-        className={className}
-        value={value}
-        onChange={onChange}
-        readOnly={readOnly}
-      />
+      <div className={className}>
+        <RadixTextField
+          size="2"
+          labelSize="2"
+          label={label}
+          value={value}
+          onChange={onChange}
+          readOnly={readOnly}
+        />
+      </div>
     );
   };
 
@@ -59,6 +70,53 @@ export interface EditTemplatesWidgetProps {
   sections: EditTemplatesWidgetSection[];
 }
 
+function renderItem(
+  item: EditTemplatesWidgetItem,
+  codeEditorClassname: string | undefined
+): React.ReactElement {
+  if (item.editor === "code") {
+    return (
+      <div key={item.key} className={styles.editorCard}>
+        <div className={styles.editorCardHeader}>
+          <Text
+            as="p"
+            size="3"
+            weight="medium"
+            className={styles.editorCardTitle}
+          >
+            {item.title}
+          </Text>
+        </div>
+        <CodeEditor
+          className={cn(
+            styles.codeEditor,
+            item.language !== "html" && styles.codeEditorCompact,
+            codeEditorClassname
+          )}
+          language={item.language}
+          value={item.value}
+          onChange={item.onChange}
+          options={{ readOnly: item.readOnly }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <SettingsSectionCard
+      key={item.key}
+      title={<FormattedMessage id="EditTemplatesWidget.mailing-information" />}
+    >
+      <TextFieldWidgetItem
+        label={item.title}
+        value={item.value}
+        onChange={item.onChange}
+        readOnly={item.readOnly}
+      />
+    </SettingsSectionCard>
+  );
+}
+
 const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
   function EditTemplatesWidget(props: EditTemplatesWidgetProps) {
     const { className, codeEditorClassname, sections } = props;
@@ -66,41 +124,25 @@ const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
     return (
       <div className={cn(styles.form, className)}>
         {sections.map((section) => {
-          return (
-            <Fragment key={section.key}>
-              {section.title != null ? (
-                <Label className={styles.boldLabel}>{section.title}</Label>
-              ) : null}
-              {section.items.map((item) => {
-                return item.editor === "code" ? (
-                  <Fragment key={item.key}>
-                    <Text className={styles.label} block={true}>
-                      {item.title}
-                    </Text>
-                    <CodeEditor
-                      className={cn(styles.codeEditor, codeEditorClassname)}
-                      language={item.language}
-                      value={item.value}
-                      onChange={item.onChange}
-                      options={{ readOnly: item.readOnly }}
-                    />
-                  </Fragment>
-                ) : (
-                  <Fragment key={item.key}>
-                    <Text className={styles.label} block={true}>
-                      {item.title}
-                    </Text>
-                    <TextFieldWidgetItem
-                      className={styles.textField}
-                      value={item.value}
-                      onChange={item.onChange}
-                      readOnly={item.readOnly}
-                    />
-                  </Fragment>
-                );
-              })}
-            </Fragment>
+          const items = section.items.map((item) =>
+            renderItem(item, codeEditorClassname)
           );
+
+          // Sections with titles (e.g. New User / Existing User) use a
+          // left-label card; channel sections (title stripped) stay flat.
+          if (section.title != null) {
+            return (
+              <SettingsSectionCard
+                key={section.key}
+                title={section.title}
+                contentClassName={styles.sectionContent}
+              >
+                {items}
+              </SettingsSectionCard>
+            );
+          }
+
+          return <Fragment key={section.key}>{items}</Fragment>;
         })}
       </div>
     );

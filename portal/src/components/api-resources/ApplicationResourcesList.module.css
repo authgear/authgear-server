@@ -2,11 +2,102 @@
   @apply flex flex-col min-h-0 overflow-hidden;
 }
 
-.listWrapper {
-  @apply flex-1 overflow-y-auto h-0 max-h-full;
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  min-width: 100%;
+}
+
+.tableHeader {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+}
+
+.tableHeaderCellResources,
+.tableHeaderCellAuthorized,
+.tableHeaderCellActions {
+  @apply flex items-center px-3 py-3 text-sm font-semibold;
+  color: var(--gray-12);
+}
+
+.tableHeaderCellResources {
+  @apply min-w-0 flex-1;
+  min-width: 10rem;
+}
+
+.tableHeaderCellAuthorized {
+  width: 8rem;
+  min-width: 8rem;
+  flex-shrink: 0;
+}
+
+.tableHeaderCellActions {
+  width: 9rem;
+  min-width: 9rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.tableRow {
+  @apply flex w-full items-center;
+  min-width: 100%;
+  min-height: 2.75rem;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
+}
+
+.tableCellResources,
+.tableCellAuthorized,
+.tableCellActions {
+  @apply flex items-center px-3 py-3 text-sm;
+  color: var(--gray-12);
+}
+
+.tableCellResources {
+  @apply min-w-0 flex-1 overflow-hidden;
+  min-width: 10rem;
+}
+
+.tableCellAuthorized {
+  width: 8rem;
+  min-width: 8rem;
+  flex-shrink: 0;
+}
+
+.tableCellActions {
+  width: 9rem;
+  min-width: 9rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.resourceName {
+  @apply min-w-0 truncate;
+  margin: 0;
+}
+
+.manageScopesButton {
+  @apply inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-sm font-semibold;
+  color: var(--accent-9);
+}
+
+.manageScopesButton:hover {
+  color: var(--accent-10);
 }
 
 .paginator {
   @apply px-3 py-4;
   @apply self-end;
+}
+
+.empty {
+  @apply px-3 py-4;
+  margin: 0;
 }

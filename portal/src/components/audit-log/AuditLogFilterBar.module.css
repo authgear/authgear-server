@@ -1,61 +1,97 @@
 .root {
-  @apply flex items-center flex-wrap gap-x-4 tablet:gap-x-0;
-  @apply h-11;
+  @apply flex flex-col gap-y-1;
+  @apply tablet:gap-y-2;
 
-  /* Align the first item with the screen title. */
-  @apply px-3.5;
+  /* Align the left/right edges with the screen title and the table below. */
+  @apply px-6;
 
-  @apply tablet:flex tablet:flex-col;
-  @apply tablet:h-auto;
-  @apply tablet:px-4;
+  @apply tablet:px-6;
+}
 
-  /* Mimick command bar bottom border */
-  border-bottom: 1px solid #edebe9;
+.filtersRow {
+  @apply flex items-center flex-wrap gap-x-4 gap-y-2;
+  @apply min-h-11;
+
+  @apply tablet:flex tablet:flex-col tablet:items-stretch;
+  @apply tablet:gap-y-4;
+  @apply tablet:min-h-0;
 }
 
 .filterContainer {
-  @apply flex items-center gap-x-4;
-  @apply h-full;
+  @apply flex min-w-0 flex-1 items-center gap-x-4;
 
-  @apply tablet:grid tablet:grid-cols-2 tablet:gap-4;
-  @apply tablet:h-auto tablet:w-full;
+  @apply tablet:grid tablet:w-full;
+  @apply tablet:grid-cols-2 tablet:gap-4;
 }
 
 .searchBox {
-  @apply w-[300px] flex-1-0-auto;
+  @apply w-[300px] min-w-[12rem] flex-1-0-auto;
 
-  @apply tablet:w-full;
-  @apply tablet:col-span-2;
+  @apply tablet:col-span-2 tablet:w-full tablet:min-w-0;
   @apply tablet:mx-0;
 }
 
+/* Force the Radix text field height to match the dropdown triggers (2rem),
+   regardless of the theme's --scaling factor. The combined selector raises
+   specificity above Radix's own --text-field-height rule. */
+.searchBox:global(.rt-TextFieldRoot) {
+  --text-field-height: 2rem;
+}
+
+.searchIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--gray-11);
+}
+
+.searchClearButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--gray-11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
 .dateRangeFilter {
+  @apply flex shrink-0 items-center;
   @apply h-full tablet:h-11;
+  width: 10.5rem;
+  min-width: 10.5rem;
+
+  @apply tablet:w-full tablet:min-w-0;
 }
 
 .activityTypeFilter {
+  @apply flex shrink-0 items-center;
   @apply h-full tablet:h-11;
-  @apply flex items-center tablet:block;
+  width: 13rem;
+  min-width: 13rem;
+
+  @apply tablet:w-full tablet:min-w-0;
 }
 
 .filterActionContainer {
-  @apply h-full;
-  @apply flex items-center;
-  @apply flex-1-0-auto;
+  @apply flex shrink-0 items-center justify-end gap-x-4;
+  @apply h-11;
 
-  /* Keep a definite height in the stacked (tablet) layout so command bar
-     buttons using height:100% (Refresh, and consumer-provided trailing
-     actions) resolve to the full bar height instead of collapsing to text
-     height when the screen wrapper has no definite height. */
-  @apply tablet:h-11;
   @apply tablet:w-full;
 }
 
-.clearAllButtonContainer {
-  @apply h-full;
-  @apply flex-1-0-auto;
-}
-
-.clearAllButton {
-  @apply h-full tablet:h-11;
+.selectedActivityTypesSummary {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

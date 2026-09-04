@@ -3,7 +3,115 @@
   @apply tablet:col-span-full;
 }
 
-.codeBlock {
-  height: 260px;
-  overflow-y: auto;
+/* ── Back link & title ── */
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
+  margin-bottom: 24px;
+}
+
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+/* ── Event details table ── */
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @apply rounded-xl border border-solid;
+  border-color: var(--gray-a6);
+}
+
+.table {
+  width: 100%;
+  min-width: 24rem;
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  background-color: var(--gray-2);
+}
+
+.headerCellLabel,
+.headerCellValue {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--gray-12);
+}
+
+.tableRow {
+  display: flex;
+  align-items: baseline;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.cellLabel,
+.cellValue {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.cellLabel {
+  color: var(--gray-11);
+}
+
+.cellValue {
+  color: var(--gray-12);
+  word-break: break-all;
+}
+
+.deletedSuffix {
+  color: var(--gray-11);
+}
+
+/* ── Raw Event Log section ── */
+
+.editorCard {
+  @apply min-w-0 overflow-hidden rounded-xl border border-solid;
+  border-color: var(--gray-a6);
+}
+
+.editorCardHeader {
+  @apply border-b border-solid px-6 py-4;
+  border-color: var(--gray-a6);
+}
+
+.codeEditor {
+  display: block;
+  height: 50vh;
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }

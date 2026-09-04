@@ -1,0 +1,13 @@
+.textArea {
+  min-height: 6.5rem;
+}
+
+.enableToggle {
+  display: flex;
+  align-items: center;
+  min-height: var(--line-height-3);
+}
+
+.countryTagPicker {
+  width: 100%;
+}

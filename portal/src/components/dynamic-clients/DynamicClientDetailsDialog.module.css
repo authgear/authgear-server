@@ -13,3 +13,12 @@
 .uri {
   @apply break-all;
 }
+
+.copyRow {
+  @apply inline-flex items-center gap-1 min-w-0 max-w-full;
+}
+
+.copyRowText {
+  @apply min-w-0 break-all;
+  font-family: var(--code-font-family);
+}

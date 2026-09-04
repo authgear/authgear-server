@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FormattedMessage } from "../../intl";
 import { SmsProviderConfigurationInput } from "../../graphql/portal/globalTypes.generated";
-import { Dialog, DialogFooter, IDialogProps, Text } from "@fluentui/react";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { Button, Dialog } from "@radix-ui/themes";
+import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import FormPhoneTextField from "../../FormPhoneTextField";
 import { PortalAPIAppConfig } from "../../types";
 import { useSendTestSMSMutation } from "../../graphql/portal/mutations/sendTestSMS";
@@ -15,6 +14,9 @@ import {
   makeReasonErrorParseRule,
 } from "../../error/parse";
 import { APIError, APISMSGatewayError } from "../../error/error";
+import cn from "classnames";
+import styles from "./TestSMSDialog.module.css";
+import phoneDialogStyles from "../../PhoneDialog.module.css";
 
 const topErrorRules: ErrorParseRule[] = [
   makeReasonErrorParseRule(
@@ -84,6 +86,14 @@ export function TestSMSDialog({
   effectiveAppConfig,
   onDismiss,
 }: TestSMSDialogProps): React.ReactElement {
+  const onOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        onDismiss();
+      }
+    },
+    [onDismiss]
+  );
   const [toInputValue, setToInputValue] = useState("");
   const [to, setTo] = useState("");
   const onChangeValues = useCallback(
@@ -119,47 +129,73 @@ export function TestSMSDialog({
       .catch(console.warn);
   }, [input, onDismiss, sendTestSMS, showToast, to]);
 
+  const onSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!to || sendTestSMSLoading) {
+        return;
+      }
+      onSend();
+    },
+    [onSend, sendTestSMSLoading, to]
+  );
+
   return (
     <FormProvider
       loading={sendTestSMSLoading}
       error={sendTestSMSError}
       rules={topErrorRules}
     >
-      <Dialog
-        hidden={isHidden}
-        dialogContentProps={useMemo<IDialogProps["dialogContentProps"]>(() => {
-          return {
-            title: <FormattedMessage id="TestSMSDialog.title" />,
-          };
-        }, [])}
-        onDismiss={onDismiss}
-      >
-        <div>
-          <Text className="mb-3" block={true}>
+      <Dialog.Root open={!isHidden} onOpenChange={onOpenChange}>
+        <Dialog.Content
+          maxWidth="480px"
+          size="3"
+          className={phoneDialogStyles.phoneDialogContent}
+          data-phone-dialog="true"
+        >
+          <Dialog.Title>
+            <FormattedMessage id="TestSMSDialog.title" />
+          </Dialog.Title>
+          <Dialog.Description size="2">
             <FormattedMessage id="TestSMSDialog.description" />
-          </Text>
-          <FormPhoneTextField
-            parentJSONPointer=""
-            fieldName="to"
-            allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
-            pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
-            initialInputValue={toInputValue}
-            onChange={onChangeValues}
-            errorRules={phoneFieldErrorRules}
-          />
-        </div>
-        <DialogFooter>
-          <PrimaryButton
-            onClick={onSend}
-            disabled={!to || sendTestSMSLoading}
-            text={<FormattedMessage id="TestSMSDialog.send" />}
-          />
-          <DefaultButton
-            onClick={onDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+          </Dialog.Description>
+          <form
+            className={cn(styles.form, phoneDialogStyles.phoneDialogForm)}
+            onSubmit={onSubmit}
+          >
+            <FormPhoneTextField
+              parentJSONPointer=""
+              fieldName="to"
+              allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
+              pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
+              initialInputValue={toInputValue}
+              onChange={onChangeValues}
+              errorRules={phoneFieldErrorRules}
+            />
+            <div
+              className={cn(
+                styles.actions,
+                phoneDialogStyles.phoneDialogActions
+              )}
+            >
+              <SecondaryButton
+                size="2"
+                disabled={sendTestSMSLoading}
+                text={<FormattedMessage id="cancel" />}
+                onClick={onDismiss}
+              />
+              <Button
+                type="submit"
+                size="2"
+                loading={sendTestSMSLoading}
+                disabled={!to || sendTestSMSLoading}
+              >
+                <FormattedMessage id="TestSMSDialog.send" />
+              </Button>
+            </div>
+          </form>
+        </Dialog.Content>
+      </Dialog.Root>
       <ErrorToast onDismiss={onDismiss} />
     </FormProvider>
   );

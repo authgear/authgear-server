@@ -3,7 +3,8 @@ import { Context } from "../../../intl";
 import { useRemoveRoleFromGroupsMutation } from "../../../graphql/adminapi/mutations/removeRoleFromGroups";
 import { useRoleQuery } from "../../../graphql/adminapi/query/roleQuery";
 import { useSnapshotData } from "../../../hook/useSnapshotData";
-import RolesAndGroupsBaseDeleteDialog from "./common/RolesAndGroupsBaseDeleteDialog";
+import { ConfirmationDialog } from "../../v2/ConfirmationDialog/ConfirmationDialog";
+import ErrorDialog from "../../../error/ErrorDialog";
 
 export interface DeleteRoleGroupDialogData {
   roleID: string;
@@ -36,11 +37,27 @@ const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
     // During the transition, we still need the data. However, the parent may already changed the props.
     const snapshot = useSnapshotData(data);
     const title = renderToString("DeleteRoleGroupDialog.title");
-    const subText = renderToString("DeleteRoleGroupDialog.description", {
+    const description = renderToString("DeleteRoleGroupDialog.description", {
       groupName: snapshot?.groupName ?? snapshot?.groupKey ?? "Unknown",
       roleName: snapshot?.roleName ?? snapshot?.roleKey ?? "Unknown",
     });
-    const buttonText = renderToString("remove");
+    const confirmText = renderToString("remove");
+
+    const onCancel = useCallback(() => {
+      if (loading || isHidden) {
+        return;
+      }
+      onDismiss(false);
+    }, [loading, isHidden, onDismiss]);
+
+    const onOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onCancel();
+        }
+      },
+      [onCancel]
+    );
 
     const onConfirm = useCallback(() => {
       if (loading || isHidden) {
@@ -52,28 +69,41 @@ const DeleteRoleGroupDialog: React.VFC<DeleteRoleGroupDialogProps> =
           return refetchRole({ roleID: data.roleID });
         })
         .then(
-          () => onDismiss(true),
+          () => {
+            onDismiss(true);
+            onDismissed?.();
+          },
           (e: unknown) => {
             onDismiss(false);
             throw e;
           }
         );
-    }, [loading, isHidden, refetchRole, removeRoleFromGroups, data, onDismiss]);
+    }, [
+      loading,
+      isHidden,
+      refetchRole,
+      removeRoleFromGroups,
+      data,
+      onDismiss,
+      onDismissed,
+    ]);
 
     return (
-      <RolesAndGroupsBaseDeleteDialog
-        data={snapshot}
-        loading={loading}
-        error={error}
-        title={title}
-        // eslint-disable-next-line react/forbid-component-props
-        subText={subText}
-        buttonText={buttonText}
-        isHidden={isHidden}
-        onDismiss={onDismiss}
-        onDismissed={onDismissed}
-        onConfirm={onConfirm}
-      />
+      <>
+        <ConfirmationDialog
+          open={!isHidden}
+          onOpenChange={onOpenChange}
+          title={title}
+          description={description}
+          confirmText={confirmText}
+          cancelText={renderToString("cancel")}
+          onConfirm={onConfirm}
+          onCancel={onCancel}
+          loading={loading}
+          confirmColor="red"
+        />
+        <ErrorDialog error={error} />
+      </>
     );
   };
 

@@ -8,5 +8,6 @@
 }
 
 .content {
-  margin-left: 28px;
+  /* Align with the checkbox label: 16px Radix checkbox + 8px gap. */
+  margin-left: 24px;
 }

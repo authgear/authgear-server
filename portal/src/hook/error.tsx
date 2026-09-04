@@ -6,7 +6,6 @@ import React, {
   useMemo,
   createContext,
 } from "react";
-import { useId } from "@fluentui/react-hooks";
 
 interface ErrorContextValue {
   errors: Map<string, unknown>;
@@ -92,7 +91,7 @@ export function ErrorContextProvider(
 }
 
 export function useProvideError(error: unknown): void {
-  const id = useId();
+  const id = React.useId();
   // eslint-disable-next-line @typescript-eslint/unbound-method
   const { addError, removeError } = useContext(ErrorContext);
   useEffect(() => {

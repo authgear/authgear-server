@@ -5,7 +5,7 @@ import type { StarterKit } from "./CreateOAuthClientScreen/frameworks";
 const KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-react",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-react/archive/refs/heads/main.zip",
   redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: {
@@ -25,7 +25,7 @@ const KIT: StarterKit = {
 const JS_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-spa-js",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-spa-js/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-spa-js/archive/refs/heads/main.zip",
   redirectURIs: ["http://localhost:3000/"],
   homepageUrl: "http://localhost:3000",
   config: {

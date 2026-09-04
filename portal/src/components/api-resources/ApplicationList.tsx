@@ -1,16 +1,10 @@
-import React, { useContext, useCallback, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import cn from "classnames";
-import {
-  DetailsListLayoutMode,
-  IColumn,
-  ShimmeredDetailsList,
-  SelectionMode,
-} from "@fluentui/react";
-import { Context as MessageContext } from "../../intl";
+import { Text } from "@radix-ui/themes";
+import { Context as MessageContext, FormattedMessage } from "../../intl";
 import styles from "./ApplicationList.module.css";
-import Toggle from "../../Toggle";
-import ActionButton from "../../ActionButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { Toggle } from "../v2/Toggle/Toggle";
+import { CardTable } from "../v2/CardTable/CardTable";
 
 export interface ApplicationListItem {
   clientID: string;
@@ -32,126 +26,64 @@ export const ApplicationList: React.VFC<ApplicationListProps> =
     const {
       className,
       applications,
-      loading,
       onToggleAuthorized,
       onManageScopes,
       disabledToggleClientIDs,
     } = props;
     const { renderToString } = useContext(MessageContext);
-    const { themes } = useSystemConfig();
 
     const disabledToggleClientIDsSet = useMemo(() => {
       return new Set(disabledToggleClientIDs);
     }, [disabledToggleClientIDs]);
 
-    const onRenderAuthorized = useCallback(
-      (item?: ApplicationListItem) => {
-        if (item == null) {
-          return null;
-        }
-        return (
-          <AuthorizedToggle
-            item={item}
-            onToggleAuthorized={onToggleAuthorized}
-            disabled={disabledToggleClientIDsSet.has(item.clientID)}
-          />
-        );
-      },
-      [disabledToggleClientIDsSet, onToggleAuthorized]
-    );
-
-    const columns = useMemo(
-      (): IColumn[] => [
-        {
-          key: "application",
-          name: renderToString("ApplicationList.columns.application"),
-          minWidth: 200,
-          maxWidth: 400,
-          isResizable: true,
-          fieldName: "name",
-        },
-        {
-          key: "authorized",
-          name: renderToString("ApplicationList.columns.authorized"),
-          minWidth: 100,
-          maxWidth: 200,
-          isResizable: true,
-          fieldName: "authorized",
-          onRender: onRenderAuthorized,
-        },
-        {
-          key: "actions",
-          name: "",
-          minWidth: 100,
-          maxWidth: 100,
-          isResizable: false,
-          // eslint-disable-next-line react/no-unstable-nested-components
-          onRender: (item?: ApplicationListItem) => {
-            if (
-              !item?.authorized ||
-              disabledToggleClientIDsSet.has(item.clientID)
-            ) {
-              return null;
-            }
-            const handleClick = () => {
-              onManageScopes(item);
-            };
-            return (
-              <ActionButton
-                text={renderToString("ApplicationList.columns.manageScopes")}
-                styles={{
-                  label: { fontWeight: 600 },
-                  root: { height: "auto" },
-                }}
-                theme={themes.actionButton}
-                onClick={handleClick}
-              />
-            );
-          },
-        },
-      ],
-      [
-        renderToString,
-        onRenderAuthorized,
-        disabledToggleClientIDsSet,
-        themes.actionButton,
-        onManageScopes,
-      ]
-    );
-
     return (
       <div className={cn(className, styles.listRoot)}>
-        <div data-is-scrollable="true" className={styles.listWrapper}>
-          <ShimmeredDetailsList
-            items={applications}
-            enableShimmer={loading}
-            columns={columns}
-            layoutMode={DetailsListLayoutMode.justified}
-            selectionMode={SelectionMode.none}
-          />
-        </div>
+        <CardTable>
+          <CardTable.Header>
+            <CardTable.HeaderCell className={styles.colApplication}>
+              <FormattedMessage id="ApplicationList.columns.application" />
+            </CardTable.HeaderCell>
+            <CardTable.HeaderCell className={styles.colAuthorized}>
+              <FormattedMessage id="ApplicationList.columns.authorized" />
+            </CardTable.HeaderCell>
+            <CardTable.HeaderCell className={styles.colActions} />
+          </CardTable.Header>
+          {applications.map((item) => {
+            const toggleDisabled = disabledToggleClientIDsSet.has(
+              item.clientID
+            );
+            const showManageScopes = item.authorized && !toggleDisabled;
+            return (
+              <CardTable.Row key={item.clientID}>
+                <CardTable.Cell className={styles.colApplication}>
+                  <Text size="2" className={styles.applicationName}>
+                    {item.name}
+                  </Text>
+                </CardTable.Cell>
+                <CardTable.Cell className={styles.colAuthorized}>
+                  <Toggle
+                    checked={item.authorized}
+                    disabled={toggleDisabled}
+                    onCheckedChange={(checked) => {
+                      onToggleAuthorized(item, checked);
+                    }}
+                  />
+                </CardTable.Cell>
+                <CardTable.Cell className={styles.colActions}>
+                  {showManageScopes ? (
+                    <button
+                      type="button"
+                      className={styles.manageScopesButton}
+                      onClick={() => onManageScopes(item)}
+                    >
+                      {renderToString("ApplicationList.columns.manageScopes")}
+                    </button>
+                  ) : null}
+                </CardTable.Cell>
+              </CardTable.Row>
+            );
+          })}
+        </CardTable>
       </div>
     );
   };
-
-interface AuthorizedToggleProps {
-  item: ApplicationListItem;
-  onToggleAuthorized: (item: ApplicationListItem, checked: boolean) => void;
-  disabled: boolean;
-}
-
-function AuthorizedToggle(props: AuthorizedToggleProps) {
-  const { item, onToggleAuthorized, disabled } = props;
-  const onChange = useCallback(
-    (_?: React.MouseEvent<HTMLElement>, checked?: boolean) => {
-      if (checked == null) {
-        return;
-      }
-      onToggleAuthorized(item, checked);
-    },
-    [item, onToggleAuthorized]
-  );
-  return (
-    <Toggle checked={item.authorized} onChange={onChange} disabled={disabled} />
-  );
-}

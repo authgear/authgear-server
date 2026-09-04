@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from "react";
-import { IDropdownOption, ITag } from "@fluentui/react";
+import React, { useCallback } from "react";
+import { Tag } from "../CustomTagPicker";
 import { deduplicate } from "../util/array";
 
 export function useTextField(onChange: (value: string) => void): {
@@ -36,13 +36,13 @@ export const useTagPickerWithNewTags = (
   list: string[],
   onListChange: (list: string[]) => void
 ): {
-  selectedItems: ITag[];
-  onChange: (items?: ITag[]) => void;
-  onResolveSuggestions: (filterText: string, _tagList?: ITag[]) => ITag[];
+  selectedItems: Tag[];
+  onChange: (items?: Tag[]) => void;
+  onResolveSuggestions: (filterText: string, _tagList?: Tag[]) => Tag[];
   onAdd: (value: string) => void;
 } => {
   const onChange = React.useCallback(
-    (items?: ITag[]) => {
+    (items?: Tag[]) => {
       if (items == null) {
         return;
       }
@@ -72,7 +72,7 @@ export const useTagPickerWithNewTags = (
   );
 
   const onResolveSuggestions = React.useCallback(
-    (filterText: string, _tagList?: ITag[]): ITag[] => {
+    (filterText: string, _tagList?: Tag[]): Tag[] => {
       return [{ key: filterText, name: filterText }];
     },
     []
@@ -85,49 +85,3 @@ export const useTagPickerWithNewTags = (
     onAdd,
   };
 };
-
-export function makeDropdownOptions<K extends string>(
-  keyList: K[],
-  selectedKey?: K,
-  displayText?: (key: K) => string,
-  hiddenSelections?: Set<K>
-): IDropdownOption[] {
-  return keyList.map((key) => ({
-    key,
-    text: displayText != null ? displayText(key) : key,
-    isSelected: selectedKey === key,
-    hidden: hiddenSelections?.has(key),
-  }));
-}
-
-export function useDropdown<K extends string>(
-  keyList: K[],
-  onChange: (option: K) => void,
-  selectedKey?: K,
-  displayText?: (key: K) => string,
-  hiddenSelections?: Set<K>
-): {
-  options: IDropdownOption[];
-  onChange: (_event: any, option?: IDropdownOption) => void;
-} {
-  const options = useMemo(
-    () =>
-      makeDropdownOptions(keyList, selectedKey, displayText, hiddenSelections),
-    [selectedKey, displayText, keyList, hiddenSelections]
-  );
-
-  const onSelectionChange = useCallback(
-    (_event: any, option?: IDropdownOption) => {
-      if (option == null) {
-        return;
-      }
-      onChange(option.key.toString() as K);
-    },
-    [onChange]
-  );
-
-  return {
-    options,
-    onChange: onSelectionChange,
-  };
-}

@@ -1,15 +1,13 @@
 import React, { useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "../../intl";
-import { Text } from "@fluentui/react";
+import { Spinner, Text } from "@radix-ui/themes";
 import { Pie } from "react-chartjs-2";
 import { TooltipItem } from "chart.js";
 import ChartDataLabels, {
   Context as ChartDataLabelsContext,
 } from "chartjs-plugin-datalabels";
 import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
-import WidgetTitle from "../../WidgetTitle";
-import Widget from "../../Widget";
-import ShowLoading from "../../ShowLoading";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import styles from "./AnalyticsSignupConversionWidget.module.css";
 
 interface AnalyticsSignupConversionChartProps {
@@ -120,7 +118,7 @@ const AnalyticsSignupConversionChart: React.VFC<AnalyticsSignupConversionChartPr
         <Pie data={data} options={options} plugins={[ChartDataLabels]} />
         {noDataAvailable ? (
           <div className={styles.noDataAvailableLabel}>
-            <Text variant="medium">
+            <Text as="p" size="2" className={styles.emptyLabel}>
               <FormattedMessage
                 id={`AnalyticsSignupConversionWidget.no-data-available.label`}
               />
@@ -138,7 +136,7 @@ const AnalyticsSignupConversionWidgetContent: React.VFC<AnalyticsSignupConversio
     if (loading) {
       return (
         <div className={styles.loadingWrapper}>
-          <ShowLoading />
+          <Spinner size="3" />
         </div>
       );
     }
@@ -147,18 +145,28 @@ const AnalyticsSignupConversionWidgetContent: React.VFC<AnalyticsSignupConversio
       <>
         <div className={styles.summaryList}>
           <div className={styles.summaryItem}>
-            <Text variant="medium">
+            <Text as="p" size="2" className={styles.metricLabel}>
               <FormattedMessage id="AnalyticsSignupConversionWidget.unique-signup-view.label" />
             </Text>
-            <Text variant="xLarge">
+            <Text
+              as="p"
+              size="6"
+              weight="medium"
+              className={styles.metricValue}
+            >
               {signupConversionRate?.totalSignupUniquePageView ?? "-"}
             </Text>
           </div>
           <div className={styles.summaryItem}>
-            <Text variant="medium">
+            <Text as="p" size="2" className={styles.metricLabel}>
               <FormattedMessage id="AnalyticsSignupConversionWidget.signup.label" />
             </Text>
-            <Text variant="xLarge">
+            <Text
+              as="p"
+              size="6"
+              weight="medium"
+              className={styles.metricValue}
+            >
               {signupConversionRate?.totalSignup ?? "-"}
             </Text>
           </div>
@@ -179,12 +187,14 @@ interface AnalyticsSignupConversionWidgetProps {
 const AnalyticsSignupConversionWidget: React.VFC<AnalyticsSignupConversionWidgetProps> =
   function AnalyticsSignupConversionWidget(props) {
     return (
-      <Widget className={props.className}>
-        <WidgetTitle>
-          <FormattedMessage id="AnalyticsSignupConversionWidget.title" />
-        </WidgetTitle>
+      <SettingsSectionCard
+        className={props.className}
+        layout="stacked"
+        title={<FormattedMessage id="AnalyticsSignupConversionWidget.title" />}
+        contentClassName={styles.content}
+      >
         <AnalyticsSignupConversionWidgetContent {...props} />
-      </Widget>
+      </SettingsSectionCard>
     );
   };
 export default AnalyticsSignupConversionWidget;

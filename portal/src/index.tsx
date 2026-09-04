@@ -7,7 +7,6 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { initializeIcons, registerIcons } from "@fluentui/react";
 
 // See below for details.
 // Monaco editor initialization imports - Start
@@ -39,7 +38,6 @@ import {
 import { setAutoFreeze } from "immer";
 import { Settings } from "luxon";
 import ReactApp from "./ReactApp";
-import { Cookies16Regular } from "@fluentui/react-icons";
 
 Settings.throwOnInvalid = true;
 // Tell typescript that we expect luxon to always return something or throw, instead of returning null | something.
@@ -49,13 +47,6 @@ declare module "luxon" {
     throwOnInvalid: true;
   }
 }
-
-initializeIcons();
-registerIcons({
-  icons: {
-    Cookies: <Cookies16Regular />,
-  },
-});
 
 // We sometimes use immer in forms.
 // It seems that frozen object is problematic if we use

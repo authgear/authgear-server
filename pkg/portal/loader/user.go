@@ -127,6 +127,10 @@ func (l *UserLoader) LoadFunc(ctx context.Context, keys []any) ([]any, error) {
 			if ok {
 				userModel.FormattedName = formattedName
 			}
+			picture, ok := standardAttributes["picture"].(string)
+			if ok {
+				userModel.Picture = picture
+			}
 
 			quota := quotas[idx]
 			if quota < 0 {

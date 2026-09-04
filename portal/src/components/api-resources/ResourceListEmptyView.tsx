@@ -1,31 +1,28 @@
 import React from "react";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
-
-import { Text } from "@fluentui/react";
 import styles from "./ResourceListEmptyView.module.css";
 import { CreateResourceButton } from "./CreateResourceButton";
 
-export const ResourceListEmptyView: React.VFC =
-  function ResourceListEmptyView() {
+export interface ResourceListEmptyViewProps {
+  className?: string;
+  onCreateClick: () => void;
+}
+
+export const ResourceListEmptyView: React.VFC<ResourceListEmptyViewProps> =
+  function ResourceListEmptyView({ className, onCreateClick }) {
     return (
-      <div className={styles.container}>
-        <Text
-          variant="mediumPlus"
-          className={styles.title}
-          block={true}
-          styles={{ root: { fontWeight: 600, color: "var(--gray-12)" } }}
-        >
+      <div className={cn(styles.container, className)}>
+        <Text as="p" size="4" weight="bold" className={styles.title}>
           <FormattedMessage id="ResourceListEmptyView.title" />
         </Text>
-        <Text
-          variant="medium"
-          className={styles.description}
-          block={true}
-          styles={{ root: { color: "var(--gray-11)" } }}
-        >
+        <Text as="p" size="2" color="gray" className={styles.description}>
           <FormattedMessage id="ResourceListEmptyView.description" />
         </Text>
-        <CreateResourceButton />
+        <div className={styles.button}>
+          <CreateResourceButton onClick={onCreateClick} />
+        </div>
       </div>
     );
   };

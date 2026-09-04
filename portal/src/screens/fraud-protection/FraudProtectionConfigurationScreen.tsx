@@ -1,14 +1,13 @@
-import React, { useCallback, useContext, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import cn from "classnames";
 import { useParams } from "react-router-dom";
-import {
-  Dialog,
-  DialogFooter,
-  IChoiceGroupOption,
-  ITag,
-  PivotItem,
-} from "@fluentui/react";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { Text } from "@radix-ui/themes";
 import { Address4, Address6 } from "ip-address";
 import { produce } from "immer";
 import { default as parseLibPhoneNumber } from "libphonenumber-js";
@@ -19,11 +18,13 @@ import {
 } from "../../hook/useAppConfigForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import ScreenDescription from "../../ScreenDescription";
-import FormContainer from "../../FormContainer";
-import Toggle from "../../Toggle";
+import APIResourceScreenLayout from "../../components/api-resources/APIResourceScreenLayout";
+import { FormContainerBase } from "../../FormContainerBase";
+import { Toggle } from "../../components/v2/Toggle/Toggle";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { FeatureDisabledCallout } from "../../components/v2/FeatureDisabledCallout/FeatureDisabledCallout";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { APIError } from "../../error/error";
 import {
   LocalValidationError,
@@ -37,8 +38,7 @@ import {
 import { usePivotNavigation } from "../../hook/usePivot";
 import { clearEmptyObject } from "../../util/misc";
 import { useAppFeatureConfigQuery } from "../../graphql/portal/query/appFeatureConfigQuery";
-import FeatureDisabledMessageBar from "../../graphql/portal/FeatureDisabledMessageBar";
-import { AGPivot } from "../../components/common/AGPivot";
+import { Tag } from "../../CustomTagPicker";
 import FraudProtectionOverviewTab from "../../components/fraud-protection/FraudProtectionOverviewTab";
 import FraudProtectionLogsTab from "../../components/fraud-protection/FraudProtectionLogsTab";
 import FraudProtectionSettingsTab from "../../components/fraud-protection/FraudProtectionSettingsTab";
@@ -212,7 +212,6 @@ interface FraudProtectionConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   fraudProtectionFeatureConfig?: FraudProtectionFeatureConfig;
   selectedKey: FraudProtectionTab;
-  onLinkClick: (item?: PivotItem) => void;
   onChangeKey: (key: FraudProtectionTab) => void;
   onToggleEnabledAndSave: (enabled: boolean) => void;
 }
@@ -223,69 +222,76 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
       form,
       fraudProtectionFeatureConfig,
       selectedKey,
-      onLinkClick,
       onChangeKey,
       onToggleEnabledAndSave,
     } = props;
     const { renderToString } = useContext(Context);
-    const { state, setState } = form;
+    const { state, setState, getIsDirty } = form;
     const isModifiable = fraudProtectionFeatureConfig?.is_modifiable ?? false;
 
-    const onEnableChange = useCallback(
-      (
-        _event: React.FormEvent<HTMLElement | HTMLInputElement>,
-        checked?: boolean
-      ) => {
-        onToggleEnabledAndSave(checked ?? false);
-      },
-      [onToggleEnabledAndSave]
+    const contentRef = useRef<HTMLDivElement>(null);
+    // getIsDirty's identity changes exactly when the dirtiness does, so this
+    // memo recomputes only when the save bar's visibility would change.
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+
+    const tabs = useMemo(
+      () => [
+        {
+          value: "overview",
+          label: renderToString(
+            "FraudProtectionConfigurationScreen.tab.overview.title"
+          ),
+        },
+        {
+          value: "logs",
+          label: renderToString(
+            "FraudProtectionConfigurationScreen.tab.logs.title"
+          ),
+        },
+        {
+          value: "settings",
+          label: renderToString(
+            "FraudProtectionConfigurationScreen.tab.settings.title"
+          ),
+        },
+      ],
+      [renderToString]
     );
 
     const onEnforcementModeChange = useCallback(
-      (
-        _event: React.FormEvent<HTMLElement | HTMLInputElement> | undefined,
-        option?: IChoiceGroupOption
-      ) => {
-        const key = option?.key;
-        if (key !== "record_only" && key !== "deny_if_any_warning") {
-          return;
-        }
+      (value: FraudProtectionDecisionAction) => {
         setState((current) => ({
           ...current,
-          enforcementMode: key,
+          enforcementMode: value,
         }));
       },
       [setState]
     );
 
     const onIPAllowlistChange = useCallback(
-      (
-        _event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-        value?: string
-      ) => {
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.currentTarget.value;
         setState((current) => ({
           ...current,
-          ipAllowlist: value ?? "",
+          ipAllowlist: value,
         }));
       },
       [setState]
     );
 
     const onPhoneAllowlistChange = useCallback(
-      (
-        _event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-        value?: string
-      ) => {
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.currentTarget.value;
         setState((current) => ({
           ...current,
-          phoneAllowlist: value ?? "",
+          phoneAllowlist: value,
         }));
       },
       [setState]
     );
 
     const onIPCountryAllowlistChange = useCallback(
-      (items?: ITag[]) => {
+      (items?: Tag[]) => {
         setState((current) => ({
           ...current,
           ipCountryAllowlist: items?.map((it) => it.key as string) ?? [],
@@ -295,7 +301,7 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
     );
 
     const onPhoneCountryAllowlistChange = useCallback(
-      (items?: ITag[]) => {
+      (items?: Tag[]) => {
         setState((current) => ({
           ...current,
           phoneCountryAllowlist: items?.map((it) => it.key as string) ?? [],
@@ -305,86 +311,80 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
     );
 
     return (
-      <ScreenContent layout="list">
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="FraudProtectionConfigurationScreen.title" />
-        </ScreenTitle>
-        <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="FraudProtectionConfigurationScreen.description" />
-        </ScreenDescription>
-        <div className={styles.content}>
-          {isModifiable ? null : (
-            <FeatureDisabledMessageBar
-              className={styles.widget}
-              messageID="FraudProtectionConfigurationScreen.disabled"
-            />
+      <APIResourceScreenLayout
+        layout="list"
+        breadcrumbItems={[
+          {
+            to: "",
+            label: (
+              <FormattedMessage id="FraudProtectionConfigurationScreen.title" />
+            ),
+          },
+        ]}
+        headerDescription={
+          <Text as="p" size="2" className={styles.headerDescription}>
+            <FormattedMessage id="FraudProtectionConfigurationScreen.description" />
+          </Text>
+        }
+      >
+        <div
+          ref={contentRef}
+          className={cn(
+            styles.content,
+            selectedKey === "settings" && isDirty && styles.contentInset
           )}
-          <div
-            className={`${styles.page} ${
-              selectedKey === "overview" ? styles.pageOverview : ""
-            } ${selectedKey === "logs" ? styles.pageLogs : ""}`}
-          >
-            <Toggle
-              checked={state.enabled}
-              disabled={!isModifiable}
-              label={renderToString(
-                "FraudProtectionConfigurationScreen.enable.label"
-              )}
-              inlineLabel={false}
-              onChange={onEnableChange}
-            />
-            {state.enabled ? (
-              <div className={styles.settings}>
-                <AGPivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
-                  <PivotItem
-                    headerText={renderToString(
-                      "FraudProtectionConfigurationScreen.tab.overview.title"
-                    )}
-                    itemKey="overview"
-                  />
-                  <PivotItem
-                    headerText={renderToString(
-                      "FraudProtectionConfigurationScreen.tab.logs.title"
-                    )}
-                    itemKey="logs"
-                  />
-                  <PivotItem
-                    headerText={renderToString(
-                      "FraudProtectionConfigurationScreen.tab.settings.title"
-                    )}
-                    itemKey="settings"
-                  />
-                </AGPivot>
-                {selectedKey === "overview" ? (
-                  <FraudProtectionOverviewTab
-                    enabled={state.enabled}
-                    enforcementMode={state.enforcementMode}
-                    onChangeToSettings={() => onChangeKey("settings")}
-                  />
-                ) : null}
-                {selectedKey === "logs" ? <FraudProtectionLogsTab /> : null}
-                {selectedKey === "settings" ? (
-                  <FraudProtectionSettingsTab
-                    isModifiable={isModifiable}
-                    enforcementMode={state.enforcementMode}
-                    ipAllowlist={state.ipAllowlist}
-                    phoneAllowlist={state.phoneAllowlist}
-                    ipCountryAllowlist={state.ipCountryAllowlist}
-                    phoneCountryAllowlist={state.phoneCountryAllowlist}
-                    onEnforcementModeChange={onEnforcementModeChange}
-                    onIPAllowlistChange={onIPAllowlistChange}
-                    onPhoneAllowlistChange={onPhoneAllowlistChange}
-                    onIPCountryAllowlistChange={onIPCountryAllowlistChange}
-                    onPhoneCountryAllowlistChange={
-                      onPhoneCountryAllowlistChange
-                    }
-                  />
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+        >
+          {isModifiable ? null : (
+            <FeatureDisabledCallout messageID="FraudProtectionConfigurationScreen.disabled" />
+          )}
+          <Toggle
+            checked={state.enabled}
+            disabled={!isModifiable}
+            textWeight="medium"
+            text={renderToString(
+              "FraudProtectionConfigurationScreen.enable.label"
+            )}
+            onCheckedChange={onToggleEnabledAndSave}
+          />
+          {state.enabled ? (
+            <div className={styles.settings}>
+              <OverflowTabs
+                value={selectedKey}
+                onValueChange={(value) =>
+                  onChangeKey(value as FraudProtectionTab)
+                }
+                tabs={tabs}
+              />
+              {selectedKey === "overview" ? (
+                <FraudProtectionOverviewTab
+                  enabled={state.enabled}
+                  enforcementMode={state.enforcementMode}
+                  onChangeToSettings={() => onChangeKey("settings")}
+                />
+              ) : null}
+              {selectedKey === "logs" ? <FraudProtectionLogsTab /> : null}
+              {selectedKey === "settings" ? (
+                <FraudProtectionSettingsTab
+                  isModifiable={isModifiable}
+                  enforcementMode={state.enforcementMode}
+                  ipAllowlist={state.ipAllowlist}
+                  phoneAllowlist={state.phoneAllowlist}
+                  ipCountryAllowlist={state.ipCountryAllowlist}
+                  phoneCountryAllowlist={state.phoneCountryAllowlist}
+                  onEnforcementModeChange={onEnforcementModeChange}
+                  onIPAllowlistChange={onIPAllowlistChange}
+                  onPhoneAllowlistChange={onPhoneAllowlistChange}
+                  onIPCountryAllowlistChange={onIPCountryAllowlistChange}
+                  onPhoneCountryAllowlistChange={onPhoneCountryAllowlistChange}
+                />
+              ) : null}
+            </div>
+          ) : null}
+          {state.enabled && selectedKey === "settings" ? (
+            <SaveFunctionBar anchorRef={contentRef} />
+          ) : null}
         </div>
-      </ScreenContent>
+      </APIResourceScreenLayout>
     );
   };
 
@@ -395,7 +395,6 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
 const FraudProtectionConfigurationScreen: React.VFC =
   function FraudProtectionConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const { renderToString } = useContext(Context);
     const [showDisableConfirmation, setShowDisableConfirmation] =
       useState(false);
     const form = useAppConfigForm({
@@ -405,8 +404,12 @@ const FraudProtectionConfigurationScreen: React.VFC =
       validate: validateFormState,
     });
     const featureConfig = useAppFeatureConfigQuery(appID);
-    const { selectedKey, onLinkClick, onChangeKey } =
-      usePivotNavigation<FraudProtectionTab>(["overview", "logs", "settings"]);
+    const { selectedKey, onChangeKey } = usePivotNavigation<FraudProtectionTab>(
+      ["overview", "logs", "settings"],
+      undefined,
+      undefined,
+      true // push history so the back button returns to the previous tab
+    );
 
     const handleToggleEnabledAndSave = useCallback(
       (enabled: boolean) => {
@@ -453,51 +456,40 @@ const FraudProtectionConfigurationScreen: React.VFC =
       false;
 
     return (
-      <FormContainer
-        form={form}
-        canSave={isModifiable}
-        showDiscardButton={true}
-        stickyFooterComponent={true}
-        hideFooterComponent={selectedKey !== "settings"}
-      >
+      <FormContainerBase form={form} canSave={isModifiable}>
         <FraudProtectionConfigurationContent
           form={form}
           fraudProtectionFeatureConfig={
             featureConfig.effectiveFeatureConfig?.fraud_protection
           }
           selectedKey={selectedKey}
-          onLinkClick={onLinkClick}
           onChangeKey={onChangeKey}
           onToggleEnabledAndSave={handleToggleEnabledAndSave}
         />
-        <Dialog
-          hidden={!showDisableConfirmation}
-          onDismiss={handleCancelDisable}
-          dialogContentProps={{
-            title: renderToString(
-              "FraudProtectionConfigurationScreen.disable.confirmation.title"
-            ),
-            subText: renderToString(
-              "FraudProtectionConfigurationScreen.disable.confirmation.description"
-            ),
+        <ConfirmationDialog
+          open={showDisableConfirmation}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleCancelDisable();
+            }
           }}
-        >
-          <DialogFooter>
-            <DefaultButton
-              onClick={handleCancelDisable}
-              text={renderToString(
-                "FraudProtectionConfigurationScreen.disable.confirmation.cancel"
-              )}
-            />
-            <PrimaryButton
-              onClick={handleConfirmDisable}
-              text={renderToString(
-                "FraudProtectionConfigurationScreen.disable.confirmation.confirm"
-              )}
-            />
-          </DialogFooter>
-        </Dialog>
-      </FormContainer>
+          title={
+            <FormattedMessage id="FraudProtectionConfigurationScreen.disable.confirmation.title" />
+          }
+          description={
+            <FormattedMessage id="FraudProtectionConfigurationScreen.disable.confirmation.description" />
+          }
+          confirmText={
+            <FormattedMessage id="FraudProtectionConfigurationScreen.disable.confirmation.confirm" />
+          }
+          cancelText={
+            <FormattedMessage id="FraudProtectionConfigurationScreen.disable.confirmation.cancel" />
+          }
+          confirmColor="red"
+          onConfirm={handleConfirmDisable}
+          onCancel={handleCancelDisable}
+        />
+      </FormContainerBase>
     );
   };
 

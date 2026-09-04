@@ -1,0 +1,116 @@
+/* Shared list-table styles for the User Details tabs (Identities and
+ * Account Security): a section title, gray bordered rows with a value,
+ * a right-aligned date and an optional actions menu, and an add button. */
+
+.table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  padding: 0 0 12px;
+}
+
+.tableTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.row {
+  display: grid;
+  grid-template-areas: "value date action";
+  grid-template-columns: minmax(0, 1fr) max-content 32px;
+  gap: 16px;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 12px;
+  border-top: 1px solid var(--gray-a6);
+  border-bottom: 0;
+  background-color: var(--gray-a2);
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-template-areas:
+      "value action"
+      "date date";
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    row-gap: 8px;
+  }
+}
+
+.row:last-child {
+  border-bottom: 1px solid var(--gray-a6);
+}
+
+/* Row without the trailing actions menu. */
+.row--noActions {
+  grid-template-areas: "value date";
+  grid-template-columns: minmax(0, 1fr) max-content;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-template-areas:
+      "value"
+      "date";
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Row without the right-aligned date column. */
+.row--noDate {
+  grid-template-areas: "value action";
+  grid-template-columns: minmax(0, 1fr) 32px;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    grid-template-areas: "value action";
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: center;
+  }
+}
+
+.rowValue {
+  grid-area: value;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  @apply tablet:flex-wrap;
+}
+
+.rowValueText {
+  @apply truncate;
+  min-width: 0;
+}
+
+.rowDate {
+  grid-area: date;
+  white-space: nowrap;
+
+  /* stylelint-disable-next-line media-query-no-invalid */
+  @media screen(tablet) {
+    white-space: normal;
+  }
+}
+
+.rowAction {
+  grid-area: action;
+  justify-self: end;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
+}
+
+.addButton {
+  @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
+  align-self: flex-start;
+  margin-top: 16px;
+  color: var(--accent-9);
+}

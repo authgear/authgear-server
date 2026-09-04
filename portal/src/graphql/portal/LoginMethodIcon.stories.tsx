@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { MemoryRouter } from "react-router-dom";
-import Widget from "../../Widget";
 import {
   LoginMethodFirstLevelOptionsGrid,
   type LoginMethodFirstLevelOption,
@@ -31,7 +30,7 @@ type Story = StoryObj<typeof meta>;
 function LoginMethodIconDefaultRender() {
   const [first, setFirst] = useState<LoginMethodFirstLevelOption | null>(null);
   return (
-    <Widget className={styles.widget}>
+    <div className={styles.widget}>
       <LoginMethodFirstLevelOptionsGrid
         phoneLoginIDDisabled={false}
         firstLevelOption={first}
@@ -39,7 +38,7 @@ function LoginMethodIconDefaultRender() {
         showWidgetTitle={false}
         iconOnly={true}
       />
-    </Widget>
+    </div>
   );
 }
 
@@ -48,7 +47,7 @@ function LoginMethodIconSelectedRender() {
     "oauth"
   );
   return (
-    <Widget className={styles.widget}>
+    <div className={styles.widget}>
       <LoginMethodFirstLevelOptionsGrid
         phoneLoginIDDisabled={false}
         firstLevelOption={first}
@@ -56,7 +55,7 @@ function LoginMethodIconSelectedRender() {
         showWidgetTitle={false}
         iconOnly={true}
       />
-    </Widget>
+    </div>
   );
 }
 

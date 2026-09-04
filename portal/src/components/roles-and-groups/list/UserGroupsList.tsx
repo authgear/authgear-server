@@ -1,14 +1,8 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import {
-  ColumnActionsMode,
-  DetailsRow,
-  IColumn,
-  IDetailsRowProps,
-  Text,
-} from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import { Context as MessageContext } from "../../../intl";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import styles from "./UserGroupsList.module.css";
 import {
@@ -16,14 +10,16 @@ import {
   Role,
   User,
 } from "../../../graphql/adminapi/globalTypes.generated";
-import Link from "../../../Link";
 import ActionButtonCell from "./common/ActionButtonCell";
 import TextCell from "./common/TextCell";
-import RolesAndGroupsBaseList from "./common/RolesAndGroupsBaseList";
+import RolesAndGroupsBaseList, {
+  RolesAndGroupsListColumn,
+} from "./common/RolesAndGroupsBaseList";
 import DeleteUserGroupDialog, {
   DeleteUserGroupDialogData,
 } from "../dialog/DeleteUserGroupDialog";
 import BaseCell from "./common/BaseCell";
+import { TrashIcon } from "@radix-ui/react-icons";
 
 export interface UserGroupsListItem extends Pick<Group, "id" | "name" | "key"> {
   roles: {
@@ -65,6 +61,7 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
     onChangeOffset,
   }) {
     const { appID } = useParams() as { appID: string };
+    const navigate = useNavigate();
     const { renderToString } = useContext(MessageContext);
 
     const [deleteDialogData, setDeleteDialogData] =
@@ -89,73 +86,62 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
       [user]
     );
 
-    const columns: IColumn[] = useMemo((): IColumn[] => {
-      return [
-        {
-          key: UserGroupsListColumnKey.Name,
-          fieldName: "name",
-          name: renderToString("UserGroupsList.column.name"),
-          minWidth: 100,
-          maxWidth: 200,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserGroupsListColumnKey.Key,
-          fieldName: "key",
-          name: renderToString("UserGroupsList.column.key"),
-          minWidth: 100,
-          maxWidth: 200,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserGroupsListColumnKey.Role,
-          fieldName: "role",
-          name: renderToString("UserGroupsList.column.role"),
-          minWidth: 100,
-          maxWidth: 9999,
-          isResizable: true,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-        {
-          key: UserGroupsListColumnKey.Action,
-          fieldName: "action",
-          name: renderToString("UserGroupsList.column.action"),
-          minWidth: 67,
-          maxWidth: 67,
-          columnActionsMode: ColumnActionsMode.disabled,
-        },
-      ];
-    }, [renderToString]);
+    const columns: RolesAndGroupsListColumn[] =
+      useMemo((): RolesAndGroupsListColumn[] => {
+        return [
+          {
+            key: UserGroupsListColumnKey.Name,
+            fieldName: "name",
+            name: renderToString("UserGroupsList.column.name"),
+            minWidth: 100,
+            maxWidth: 200,
+            isResizable: true,
+          },
+          {
+            key: UserGroupsListColumnKey.Key,
+            fieldName: "key",
+            name: renderToString("UserGroupsList.column.key"),
+            minWidth: 100,
+            maxWidth: 200,
+            isResizable: true,
+          },
+          {
+            key: UserGroupsListColumnKey.Role,
+            fieldName: "role",
+            name: renderToString("UserGroupsList.column.role"),
+            minWidth: 100,
+            maxWidth: 9999,
+            isResizable: true,
+          },
+          {
+            key: UserGroupsListColumnKey.Action,
+            fieldName: "action",
+            name: "",
+            minWidth: 56,
+            maxWidth: 56,
+          },
+        ];
+      }, [renderToString]);
 
-    const onRenderRow = React.useCallback(
-      (props?: IDetailsRowProps) => {
-        if (props == null) {
-          return null;
-        }
-        return (
-          <Link
-            className="contents"
-            to={`/project/${appID}/user-management/groups/${
-              (props.item as UserGroupsListItem).id
-            }/details`}
-          >
-            <DetailsRow {...props} />
-          </Link>
-        );
+    const onItemClick = useCallback(
+      (item: UserGroupsListItem) => {
+        navigate(`/project/${appID}/user-management/groups/${item.id}/details`);
       },
-      [appID]
+      [appID, navigate]
     );
 
     const onRenderItemColumn = useCallback(
-      (item: UserGroupsListItem, _index?: number, column?: IColumn) => {
+      (
+        item: UserGroupsListItem,
+        _index?: number,
+        column?: RolesAndGroupsListColumn
+      ) => {
         switch (column?.key) {
           case UserGroupsListColumnKey.Action: {
             return (
               <ActionButtonCell
-                variant="destructive"
-                text={renderToString("UserGroupsList.actions.remove")}
+                icon={<TrashIcon width="1rem" height="1rem" />}
+                ariaLabel={renderToString("UserGroupsList.actions.remove")}
                 onClick={(e) => {
                   onClickDeleteGroup(e, item);
                 }}
@@ -202,6 +188,8 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
       [isSearch, offset, pageSize, totalCount, onChangeOffset]
     );
 
+    const getItemKey = useCallback((item: UserGroupsListItem) => item.id, []);
+
     const listEmptyText = renderToString("UserGroupsList.empty");
 
     return (
@@ -209,8 +197,9 @@ export const UserGroupsList: React.VFC<UserGroupsListProps> =
         <div className={cn(styles.root, className)}>
           <RolesAndGroupsBaseList
             emptyText={listEmptyText}
-            onRenderRow={onRenderRow}
+            onItemClick={onItemClick}
             onRenderItemColumn={onRenderItemColumn}
+            getItemKey={getItemKey}
             items={groups}
             columns={columns}
             pagination={paginationProps}

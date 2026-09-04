@@ -1,25 +1,82 @@
 .root {
-  margin-left: 10px;
-  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--gray-6);
+  border-radius: 12px;
 }
 
 .header {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.content {
+  min-width: 0;
+}
+
+.tableContainer {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 600px;
+}
+
+.tableHeader,
+.tableRow {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, 1.2fr)
+    minmax(180px, 1fr)
+    minmax(180px, 1fr)
+    56px;
+  align-items: center;
+  min-height: 44px;
+}
+
+.tableHeader {
+  color: var(--gray-12);
   font-size: 14px;
   font-weight: 600;
-  margin: 0;
 }
 
-.actionButton {
-  padding: 0;
-  font-size: 12px;
-  font-weight: 600;
-  display: contents;
+.tableRow {
+  color: var(--gray-12);
+  font-size: 14px;
+  border-top: 1px solid var(--gray-a6);
+  background-color: var(--gray-a2);
 }
 
-.cell {
-  line-height: 18px;
+.clientColumn,
+.scopeColumn,
+.createdAtColumn,
+.actionColumn {
+  min-width: 0;
+  padding: 12px;
+}
+
+.clientColumn,
+.scopeColumn,
+.createdAtColumn {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actionColumn {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.actionColumn button:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
 }
 
 .emptyMessageBar {
-  margin-top: 16px;
+  margin: 0;
 }

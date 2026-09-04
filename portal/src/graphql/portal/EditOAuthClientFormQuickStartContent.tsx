@@ -1,8 +1,13 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Dropdown, IDropdownOption, PivotItem, Text } from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Select, Tabs, Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import WidgetTitle from "../../WidgetTitle";
 import {
   OAuthClientConfig,
   OAuthClientSecret,
@@ -16,12 +21,13 @@ import {
 } from "../../components/api-resources/useExampleCode";
 import { useEndpoints } from "../../hook/useEndpoints";
 import { CodeField } from "../../components/common/CodeField";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
-import DefaultButton from "../../DefaultButton";
+import { copyToClipboard } from "../../util/clipboard";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { FormField } from "../../components/v2/FormField/FormField";
 import { useNavigate } from "react-router-dom";
 import PortalLink from "../../Link";
 import { useStartReauthentication } from "../../graphql/portal/Authenticated";
-import ButtonWithLoading from "../../ButtonWithLoading";
 import { Resource } from "../adminapi/globalTypes.generated";
 import { useSearchParamsState } from "../../hook/useSearchParamsState";
 import { LocationState } from "./EditOAuthClientScreen";
@@ -98,17 +104,8 @@ function EditOAuthClientFormQuickStartContentLoaded(
   const [selectedCodeVariant, setSelectedCodeVariant] =
     useState<ExampleCodeVariant>(ExampleCodeVariant.curl);
 
-  const handleDropdownChange = useCallback(
-    (_: unknown, option?: IDropdownOption) => {
-      setSelectedResourceURI(String(option?.key ?? ""));
-    },
-    [setSelectedResourceURI]
-  );
-
-  const handlePivotClick = useCallback((item?: PivotItem) => {
-    if (item?.props.itemKey) {
-      setSelectedCodeVariant(item.props.itemKey as ExampleCodeVariant);
-    }
+  const handleCodeVariantChange = useCallback((value: string) => {
+    setSelectedCodeVariant(value as ExampleCodeVariant);
   }, []);
 
   const { token: tokenEndpoint } = useEndpoints(
@@ -124,9 +121,25 @@ function EditOAuthClientFormQuickStartContentLoaded(
     clientID: client.client_id,
   });
 
-  const { copyButtonProps, Feedback: CopyFeedback } = useCopyFeedback({
-    textToCopy: exampleCode,
-  });
+  const [codeCopied, setCodeCopied] = useState(false);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current != null) {
+        clearTimeout(copiedTimerRef.current);
+      }
+    };
+  }, []);
+  const onCopyCode = useCallback(() => {
+    copyToClipboard(exampleCode);
+    setCodeCopied(true);
+    if (copiedTimerRef.current != null) {
+      clearTimeout(copiedTimerRef.current);
+    }
+    copiedTimerRef.current = setTimeout(() => {
+      setCodeCopied(false);
+    }, 2000);
+  }, [exampleCode]);
 
   const revealSecrets = useCallback(() => {
     startReauthentication(navigate, {
@@ -137,21 +150,21 @@ function EditOAuthClientFormQuickStartContentLoaded(
     });
   }, [navigate, startReauthentication]);
 
-  const resourceOptions = useMemo((): IDropdownOption[] => {
+  const resourceOptions = useMemo(() => {
     return resources.map((resource) => {
       return {
-        key: resource.resourceURI,
-        text: resource.name ?? resource.resourceURI,
+        value: resource.resourceURI,
+        label: resource.name ?? resource.resourceURI,
       };
     });
   }, [resources]);
 
   return (
     <div className={className}>
-      <WidgetTitle>
+      <Text as="p" size="4" weight="bold">
         <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.title" />
-      </WidgetTitle>
-      <Text as="p" variant="medium" className="mt-2" block={true}>
+      </Text>
+      <Text as="p" size="2" className="mt-2">
         <FormattedMessage
           id="EditOAuthClientForm.quick-start.m2m.description"
           values={{
@@ -171,22 +184,36 @@ function EditOAuthClientFormQuickStartContentLoaded(
           <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.step1.title" />
         }
       >
-        <Dropdown
+        <FormField
+          size="2"
           label={renderToString(
             "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource"
           )}
-          options={resourceOptions}
-          placeholder={renderToString(
-            isEmpty
-              ? "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.empty.placeholder"
-              : "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.placeholder"
-          )}
-          selectedKey={selectedResourceURI}
-          disabled={isEmpty}
-          onChange={handleDropdownChange}
-        />
+        >
+          <Select.Root
+            value={selectedResourceURI === "" ? undefined : selectedResourceURI}
+            onValueChange={setSelectedResourceURI}
+            disabled={isEmpty}
+            size="2"
+          >
+            <Select.Trigger
+              placeholder={renderToString(
+                isEmpty
+                  ? "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.empty.placeholder"
+                  : "EditOAuthClientForm.quick-start.m2m.step1.select-api-resource.placeholder"
+              )}
+            />
+            <Select.Content position="popper">
+              {resourceOptions.map((option) => (
+                <Select.Item key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </FormField>
         {isEmpty ? (
-          <Text as="p" block={true} className="mt-2">
+          <Text as="p" size="2" className="mt-2">
             <FormattedMessage
               id="EditOAuthClientForm.quick-start.m2m.step1.no-api-resource-yet"
               values={{
@@ -200,50 +227,46 @@ function EditOAuthClientFormQuickStartContentLoaded(
         ) : null}
         {selectedResourceURI ? (
           <div>
-            <AGPivot
+            <Tabs.Root
               className="mt-2"
-              selectedKey={selectedCodeVariant}
-              onLinkClick={handlePivotClick}
+              value={selectedCodeVariant}
+              onValueChange={handleCodeVariantChange}
             >
-              <PivotItem
-                headerText={renderToString(
-                  "EditOAuthClientForm.quick-start.m2m.pivot.curl.headerText"
-                )}
-                itemKey={ExampleCodeVariant.curl}
-              />
-              <PivotItem
-                headerText={renderToString(
-                  "EditOAuthClientForm.quick-start.m2m.pivot.python.headerText"
-                )}
-                itemKey={ExampleCodeVariant.Python}
-              />
-              <PivotItem
-                headerText={renderToString(
-                  "EditOAuthClientForm.quick-start.m2m.pivot.go.headerText"
-                )}
-                itemKey={ExampleCodeVariant.Go}
-              />
-              <PivotItem
-                headerText={renderToString(
-                  "EditOAuthClientForm.quick-start.m2m.pivot.nodejs.headerText"
-                )}
-                itemKey={ExampleCodeVariant.NodeJS}
-              />
-            </AGPivot>
+              <Tabs.List>
+                <Tabs.Trigger value={ExampleCodeVariant.curl}>
+                  <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.pivot.curl.headerText" />
+                </Tabs.Trigger>
+                <Tabs.Trigger value={ExampleCodeVariant.Python}>
+                  <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.pivot.python.headerText" />
+                </Tabs.Trigger>
+                <Tabs.Trigger value={ExampleCodeVariant.Go}>
+                  <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.pivot.go.headerText" />
+                </Tabs.Trigger>
+                <Tabs.Trigger value={ExampleCodeVariant.NodeJS}>
+                  <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.pivot.nodejs.headerText" />
+                </Tabs.Trigger>
+              </Tabs.List>
+            </Tabs.Root>
             <CodeField className="mt-1">{exampleCode}</CodeField>
             <div className="mt-4 flex space-x-4">
-              <ButtonWithLoading
-                labelId="reveal"
+              <PrimaryButton
+                size="2"
                 onClick={revealSecrets}
                 disabled={!!firstClientSecret?.key}
                 loading={isRevealing}
+                text={<FormattedMessage id="reveal" />}
               />
-              <DefaultButton
-                {...copyButtonProps}
-                text={<FormattedMessage id="copy" />}
-                iconProps={undefined}
+              <SecondaryButton
+                size="2"
+                onClick={onCopyCode}
+                text={
+                  codeCopied ? (
+                    <FormattedMessage id="copied-to-clipboard" />
+                  ) : (
+                    <FormattedMessage id="copy" />
+                  )
+                }
               />
-              <CopyFeedback />
             </div>
           </div>
         ) : null}
@@ -255,7 +278,7 @@ function EditOAuthClientFormQuickStartContentLoaded(
           <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.step2.title" />
         }
       >
-        <Text as="p" block={true}>
+        <Text as="p" size="2">
           <FormattedMessage id="EditOAuthClientForm.quick-start.m2m.step2.description" />
         </Text>
         <CodeField className="mt-1">{`Authorization: Bearer <token>`}</CodeField>

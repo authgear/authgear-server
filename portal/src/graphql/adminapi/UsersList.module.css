@@ -1,42 +1,135 @@
 .root {
   display: flex;
   flex-direction: column;
-}
-
-.listWrapper {
-  @apply flex-1;
   min-height: 0;
+  overflow: hidden;
+}
+
+.tableWrapper {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-x: auto;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-3);
 }
 
-.pagination {
-  align-self: flex-end;
-  margin: 12px 16px;
+.table {
+  width: max-content;
+  min-width: 100%;
 }
 
-.actionButton {
+.tableHeader,
+.tableRow,
+.shimmerRow {
+  display: flex;
+  align-items: center;
+  min-width: 100%;
+}
+
+.tableHeader {
+  min-height: 2.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--gray-2);
+  border-top-left-radius: var(--radius-3);
+  border-top-right-radius: var(--radius-3);
+}
+
+.tableRow {
+  min-height: 4rem;
+  border-top: 1px solid var(--gray-a6);
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  /* Opaque so the sticky ID column can match without showing scrolled cells. */
+  background-color: var(--gray-2);
+}
+
+.tableHeaderCellInfo,
+.tableHeaderCellStandard,
+.tableHeaderCellPhone,
+.tableHeaderCellDate,
+.tableHeaderCellAction,
+.tableCellInfo,
+.tableCellStandard,
+.tableCellPhone,
+.tableCellDate,
+.tableCellAction {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 12px 16px;
+  color: var(--gray-12);
+}
+
+.tableHeaderCellInfo,
+.tableHeaderCellStandard,
+.tableHeaderCellPhone,
+.tableHeaderCellDate,
+.tableHeaderCellAction {
+  min-height: 2.75rem;
+  font-size: 14px;
   font-weight: 600;
 }
 
-.sortIcon {
-  margin-right: 8px;
+.tableHeaderCellInfo,
+.tableCellInfo {
+  width: 18.75rem;
+  position: sticky;
+  left: 0;
 }
 
-.cell {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
+.tableHeaderCellInfo {
+  z-index: 3;
+  background-color: var(--gray-2);
 }
 
-.empty {
-  @apply hidden;
+.tableCellInfo {
+  z-index: 1;
+  /* Must be opaque: this cell is sticky and covers horizontally scrolled cells. */
+  background-color: var(--color-background);
+}
+
+.tableRow:hover .tableCellInfo {
+  background-color: var(--gray-2);
+}
+
+.tableHeaderCellStandard,
+.tableCellStandard {
+  width: 9.375rem;
+}
+
+.tableHeaderCellPhone,
+.tableCellPhone {
+  width: 7.5rem;
+}
+
+.tableHeaderCellDate,
+.tableCellDate {
+  width: 15rem;
+}
+
+.tableHeaderCellAction,
+.tableCellAction {
+  width: 3.5rem;
+  justify-content: flex-end;
+}
+
+.tableCellStandard,
+.tableCellPhone,
+.tableCellDate,
+.tableCellAction {
+  min-height: 4rem;
+  overflow: hidden;
 }
 
 .cellText {
   @apply truncate;
+  min-width: 0;
 }
 
 .userInfo {
@@ -54,9 +147,19 @@
 .userInfoDisplayName {
   grid-column: 2 / span 1;
   grid-row: 1 / span 1;
-  font-weight: 600;
-  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.userInfoDisplayNameText {
   @apply truncate;
+  min-width: 0;
+}
+
+.disabledBadge {
+  flex-shrink: 0;
 }
 
 .userInfoRawID {
@@ -74,18 +177,77 @@
   font-style: italic;
 }
 
-.list div[role="columnheader"]:first-child,
-.list div[role="gridcell"]:first-child {
-  @apply sticky z-10 mobile:static mobile:z-0;
-
-  left: 0;
-  background-color: inherit;
+.sortButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 12px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--gray-12);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.list div[role="row"] div[role="presentation"] {
-  background-color: white;
+.sortButton:hover {
+  color: var(--accent-9);
 }
 
-.list div[role="row"] div[role="presentation"]:hover {
-  background-color: #f3f2f1;
+.sortIcon {
+  flex-shrink: 0;
+}
+
+.rowActionsButton:not(:hover):not([data-state="open"]) {
+  background-color: transparent;
+}
+
+.tableHeaderCellDate {
+  padding: 0;
+}
+
+.emptyRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100%;
+  min-height: 4rem;
+  padding: 16px;
+  border-top: 1px solid var(--gray-a6);
+}
+
+.shimmerRow {
+  min-height: 4rem;
+  padding: 12px 16px;
+  border-top: 1px solid var(--gray-a6);
+  animation: shimmer-pulse 1.5s ease-in-out infinite;
+}
+
+.shimmerBlock {
+  width: 12rem;
+  height: 0.875rem;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-a5);
+}
+
+@keyframes shimmer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.pagination {
+  align-self: flex-end;
+  margin: 12px 0;
+}
+
+.empty {
+  @apply hidden;
 }

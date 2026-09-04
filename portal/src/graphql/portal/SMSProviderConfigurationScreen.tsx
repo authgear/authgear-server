@@ -73,6 +73,7 @@ import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryB
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import {
   Flex,
+  Heading,
   IconButton as RadixIconButton,
   RadioGroup,
   Text,
@@ -876,7 +877,6 @@ function SMSProviderConfigurationScreen1({
     <FormContainer
       form={form}
       beforeSave={validateForm}
-      hideFooterComponent={true}
       localError={
         checkDenoHookHandle.error ?? sendTestSMSHandle.error ?? localError
       }
@@ -1114,13 +1114,13 @@ function SMSProviderConfigurationContent(props: {
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             {isAuthgearOnce ? (
               <FormattedMessage id="SMSProviderConfigurationScreen.title--authgearonce" />
             ) : (
               <FormattedMessage id="SMSProviderConfigurationScreen.title" />
             )}
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="SMSProviderConfigurationScreen.description" />
           </Text>

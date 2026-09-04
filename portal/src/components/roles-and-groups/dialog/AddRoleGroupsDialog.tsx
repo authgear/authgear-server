@@ -1,4 +1,3 @@
-import { ITag } from "@fluentui/react";
 import { Context as MessageContext } from "../../../intl";
 import React, { useCallback, useContext, useMemo } from "react";
 import ErrorDialog from "../../../error/ErrorDialog";
@@ -11,7 +10,7 @@ import {
 } from "../../../graphql/adminapi/query/groupsListQuery.generated";
 import { useQuery } from "@apollo/client";
 import { Group } from "../../../graphql/adminapi/globalTypes.generated";
-import AddTagsDialog from "./AddTagsDialog";
+import AddTagsDialog, { AddTagsDialogTag } from "./AddTagsDialog";
 
 interface AddRoleGroupsDialogGroup extends Pick<Group, "id" | "key" | "name"> {}
 
@@ -26,7 +25,7 @@ interface AddRoleGroupsDialogProps {
   onDismissed?: () => void;
 }
 
-interface GroupTag extends ITag {
+interface GroupTag extends AddTagsDialogTag {
   group: AddRoleGroupsDialogGroup;
 }
 
@@ -63,7 +62,10 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
     >(GroupsListQueryDocument);
 
     const onResolveGroupSuggestions = useCallback(
-      async (filter: string, selectedTags?: ITag[]): Promise<ITag[]> => {
+      async (
+        filter: string,
+        selectedTags?: AddTagsDialogTag[]
+      ): Promise<AddTagsDialogTag[]> => {
         const selectedGroupIDs = new Set(
           selectedTags?.map((tag) => (tag as GroupTag).group.id)
         );
@@ -97,7 +99,7 @@ export const AddRoleGroupsDialog: React.VFC<AddRoleGroupsDialogProps> =
     }, [isHidden, loading, onDismiss]);
 
     const onSubmit = useCallback(
-      (tags: ITag[]) => {
+      (tags: AddTagsDialogTag[]) => {
         const groupTags = tags as GroupTag[];
         if (loading || isHidden || groupTags.length === 0) {
           return;

@@ -13,6 +13,22 @@
   @apply tablet:col-span-full;
 }
 
+.pageTitleRow {
+  @apply flex items-center justify-between gap-4;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.filterBar {
+  margin-top: 1.5rem;
+}
+
 .message {
-  @apply mt-5;
+  margin-top: 1rem;
 }

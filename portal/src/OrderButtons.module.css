@@ -1,7 +1,7 @@
-.orderButton {
-  background: transparent;
+.orderButtons {
+  @apply flex items-center justify-center gap-1;
 }
 
-.icon {
-  font-weight: 600;
+.orderButton:not(:hover):not(:disabled) {
+  background-color: transparent;
 }

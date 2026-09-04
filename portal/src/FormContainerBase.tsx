@@ -81,6 +81,13 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
 
     const onFormSubmit = useCallback(
       (e: React.FormEvent) => {
+        // Only react to this form's own submit. A submit from a nested
+        // form -- e.g. a portalled Radix dialog whose event still bubbles
+        // through the React tree -- must not trigger a save here, or
+        // saving that dialog would also fire an unrelated form save.
+        if (e.target !== e.currentTarget) {
+          return;
+        }
         e.preventDefault();
         callSave();
       },

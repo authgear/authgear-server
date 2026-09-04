@@ -1,98 +1,45 @@
 import React, { useContext, useCallback, useMemo, useState } from "react";
 import cn from "classnames";
-import {
-  DetailsListLayoutMode,
-  IColumn,
-  ShimmeredDetailsList,
-  SelectionMode,
-  Checkbox,
-  SearchBox,
-  Text,
-} from "@fluentui/react";
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { Checkbox, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import styles from "./EditApplicationScopesList.module.css";
-import ActionButton from "../../ActionButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { TextField, TextFieldIcon } from "../v2/TextField/TextField";
 
 export interface EditApplicationScopesListItem {
   scope: string;
+  description?: string | null;
   isAssigned: boolean;
 }
 
 interface EditApplicationScopesListProps {
   className?: string;
   scopes: EditApplicationScopesListItem[];
+  /** Reserve space at the bottom of the scroll area so the floating
+   * SaveFunctionBar does not cover the last rows. */
+  bottomInset?: boolean;
   onToggleAssignedScopes: (
     items: EditApplicationScopesListItem[],
     isAssigned: boolean
   ) => void;
 }
 
-const TextActionButton: React.VFC<{
-  text: React.ReactNode;
-  onClick?: () => void;
-}> = ({ text, onClick }) => {
-  const { themes } = useSystemConfig();
-
-  return (
-    <ActionButton
-      text={text}
-      styles={{
-        root: { padding: "none" },
-        label: { margin: "0", padding: "0" },
-      }}
-      theme={themes.actionButton}
-      onClick={onClick}
-    />
-  );
-};
-
 export const EditApplicationScopesList: React.VFC<EditApplicationScopesListProps> =
   function EditApplicationScopesList(props: EditApplicationScopesListProps) {
-    const { className, scopes, onToggleAssignedScopes } = props;
+    const { className, scopes, bottomInset, onToggleAssignedScopes } = props;
     const { renderToString } = useContext(Context);
     const [searchKeyword, setSearchKeyword] = useState("");
-    const { themes } = useSystemConfig();
 
-    const handleSearchChange = useCallback((_: unknown, newValue?: string) => {
-      setSearchKeyword(newValue ?? "");
-    }, []);
-
-    const onRenderScope = useCallback(
-      (item?: EditApplicationScopesListItem) => {
-        if (item == null) {
-          return null;
-        }
-        return (
-          <Checkbox
-            label={item.scope}
-            checked={item.isAssigned}
-            onChange={(_, checked?: boolean) => {
-              if (checked == null) {
-                return;
-              }
-              onToggleAssignedScopes([item], checked);
-            }}
-          />
-        );
+    const handleSearchChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchKeyword(e.target.value);
       },
-      [onToggleAssignedScopes]
+      []
     );
 
-    const columns = useMemo(
-      (): IColumn[] => [
-        {
-          key: "scope",
-          name: renderToString("EditApplicationScopesList.columns.scope"),
-          minWidth: 200,
-          maxWidth: 400,
-          isResizable: true,
-          fieldName: "scope",
-          onRender: onRenderScope,
-        },
-      ],
-      [onRenderScope, renderToString]
-    );
+    const onClearSearchKeyword = useCallback(() => {
+      setSearchKeyword("");
+    }, []);
 
     const filteredScopes = useMemo(() => {
       if (!searchKeyword) {
@@ -114,46 +61,92 @@ export const EditApplicationScopesList: React.VFC<EditApplicationScopesListProps
 
     return (
       <div className={cn(className, styles.listRoot)}>
-        <div className="flex items-center space-x-8">
-          <SearchBox
-            placeholder={renderToString("search")}
-            styles={{
-              root: {
-                width: 300,
-              },
-            }}
-            onChange={handleSearchChange}
-          />
-          <div className="flex items-center space-x-2">
-            <Text>
-              <FormattedMessage id="EditApplicationScopesList.select" />
-            </Text>
-            <TextActionButton
-              text={
-                <FormattedMessage id="EditApplicationScopesList.buttons.all" />
+        <div className={styles.toolbar}>
+          <div className={styles.searchField}>
+            <TextField
+              size="2"
+              type="search"
+              placeholder={renderToString("search")}
+              value={searchKeyword}
+              iconStart={TextFieldIcon.MagnifyingGlass}
+              onChange={handleSearchChange}
+              suffixPlain={true}
+              suffix={
+                searchKeyword !== "" ? (
+                  <button
+                    type="button"
+                    className={styles.searchClearButton}
+                    aria-label={renderToString(
+                      "APIResourcesScreen.clear-search"
+                    )}
+                    onClick={onClearSearchKeyword}
+                  >
+                    <Cross2Icon className={styles.searchClearIcon} />
+                  </button>
+                ) : undefined
               }
-              onClick={handleToggleAllScopes}
-            />
-            <hr className="w-px bg-[#C8C6C4] h-4" />
-            <TextActionButton
-              text={
-                <FormattedMessage id="EditApplicationScopesList.buttons.none" />
-              }
-              onClick={handleToggleNoneScopes}
             />
           </div>
-        </div>
-        <div data-is-scrollable="true" className={styles.listWrapper}>
-          <ShimmeredDetailsList
-            items={filteredScopes}
-            columns={columns}
-            layoutMode={DetailsListLayoutMode.justified}
-            selectionMode={SelectionMode.none}
-          />
-          {filteredScopes.length === 0 ? (
-            <Text
-              styles={{ root: { color: themes.main.palette.neutralTertiary } }}
+          <div className={styles.selectActions}>
+            <Text size="2">
+              <FormattedMessage id="EditApplicationScopesList.select" />
+            </Text>
+            <button
+              type="button"
+              className={styles.textAction}
+              onClick={handleToggleAllScopes}
             >
+              <FormattedMessage id="EditApplicationScopesList.buttons.all" />
+            </button>
+            <span className={styles.selectDivider} />
+            <button
+              type="button"
+              className={styles.textAction}
+              onClick={handleToggleNoneScopes}
+            >
+              <FormattedMessage id="EditApplicationScopesList.buttons.none" />
+            </button>
+          </div>
+        </div>
+        <div
+          className={cn(
+            styles.listWrapper,
+            bottomInset ? styles.listWrapperInset : null
+          )}
+        >
+          <div className={styles.table}>
+            <div className={styles.tableHeader}>
+              <div className={styles.tableHeaderCellScope}>
+                <FormattedMessage id="EditApplicationScopesList.columns.scope" />
+              </div>
+              <div className={styles.tableHeaderCellDescription}>
+                <FormattedMessage id="EditApplicationScopesList.columns.description" />
+              </div>
+            </div>
+            {filteredScopes.map((item) => (
+              <label key={item.scope} className={styles.tableRow}>
+                <div className={styles.tableCellScope}>
+                  <Checkbox
+                    checked={item.isAssigned}
+                    onCheckedChange={(checked) => {
+                      if (checked === "indeterminate") {
+                        return;
+                      }
+                      onToggleAssignedScopes([item], checked);
+                    }}
+                  />
+                  <Text size="2">{item.scope}</Text>
+                </div>
+                <div className={styles.tableCellDescription}>
+                  <Text size="2" color="gray" className={styles.description}>
+                    {item.description}
+                  </Text>
+                </div>
+              </label>
+            ))}
+          </div>
+          {filteredScopes.length === 0 ? (
+            <Text as="p" size="2" color="gray" className={styles.empty}>
               <FormattedMessage id="EditApplicationScopesList.empty" />
             </Text>
           ) : null}

@@ -1,13 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
+import cn from "classnames";
+import { Heading } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import SingleSignOnConfigurationWidget, {
   useSingleSignOnConfigurationWidget,
 } from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
-import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
+import Link from "../../Link";
 import FormContainer from "../../FormContainer";
 import {
   createOAuthSSOProviderItemKey,
@@ -17,21 +26,20 @@ import {
   oauthSSOProviderItemKeys,
   parseOAuthSSOProviderItemKey,
 } from "../../types";
-import styles from "./SingleSignOnConfigurationScreen.module.css";
+import styles from "./EditSingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { AppSecretKey, EffectiveSecretConfig } from "./globalTypes.generated";
 import { startReauthentication } from "./Authenticated";
-import cn from "classnames";
-import NavBreadcrumb from "../../NavBreadcrumb";
-import ScreenContentHeader from "../../ScreenContentHeader";
 import {
   OAuthProviderFormModel,
   useOAuthProviderForm,
 } from "../../hook/useOAuthProviderForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useLoadableView } from "../../hook/useLoadableView";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 interface LocationState {
   isRevealSecrets: boolean;
@@ -98,38 +106,31 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
       effectiveSecretConfig,
       publicOrigin,
     } = props;
-
-    const navBreadcrumbItems = useMemo(() => {
-      return [
-        {
-          to: "..",
-          label: (
-            <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: (
-            <FormattedMessage id="EditSingleSignOnConfigurationScreen.title" />
-          ),
-        },
-      ];
-    }, []);
+    const { getIsDirty } = useFormContainerBaseContext();
+    const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
+    const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
+    const { appID } = useParams() as { appID: string };
 
     return (
-      <ScreenContent
-        header={
-          <ScreenContentHeader
-            title={
-              <NavBreadcrumb
-                className={cn(styles.widget, styles.breadcrumb)}
-                items={navBreadcrumbItems}
-              />
-            }
-          />
-        }
-      >
-        <ShowOnlyIfSIWEIsDisabled>
+      <ScreenContent className={cn(isDirty ? styles.contentWithSaveBar : null)}>
+        <div
+          ref={contentWidthAnchorRef}
+          className={cn(styles.widget, styles.pageHeader)}
+        >
+          <Link
+            to={`/project/${appID}/configuration/authentication/external-oauth`}
+            className={styles.backLink}
+          >
+            <ChevronLeftIcon className={styles.backLinkIcon} />
+            <span>
+              <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+            </span>
+          </Link>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="EditSingleSignOnConfigurationScreen.title" />
+          </Heading>
+        </div>
+        <>
           <OAuthClientItem
             initialAlias={alias}
             providerItemKey={providerItemKey}
@@ -138,7 +139,8 @@ const EditSingleSignOnConfigurationContent: React.VFC<EditSingleSignOnConfigurat
             effectiveSecretConfig={effectiveSecretConfig}
             publicOrigin={publicOrigin}
           />
-        </ShowOnlyIfSIWEIsDisabled>
+        </>
+        <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
       </ScreenContent>
     );
   };

@@ -7,12 +7,14 @@ import React, {
   useState,
 } from "react";
 import cn from "classnames";
+import { Heading } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "../../intl";
 
 import ScreenContent from "../../ScreenContent";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import Link from "../../Link";
 import {
   OAuthClientConfig,
   PortalAPIAppConfig,
@@ -25,11 +27,9 @@ import { genRandomHexadecimalString } from "../../util/random";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import styles from "./CreateOAuthClientScreen.module.css";
 import { FormProvider } from "../../form";
-import FormTextField from "../../FormTextField";
-import { useTextField } from "../../hook/useInput";
-import Widget from "../../Widget";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import DefaultButton from "../../DefaultButton";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import {
   AppSecretConfigFormModel,
@@ -190,21 +190,6 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       });
     }, [capture]);
 
-    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-      return [
-        {
-          to: "~/configuration/apps",
-          label: (
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: <FormattedMessage id="CreateOAuthClientScreen.title" />,
-        },
-      ];
-    }, []);
-
     const [clientId] = useState(state.newClient.client_id);
     const client = state.newClient;
 
@@ -215,11 +200,18 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       [setState]
     );
 
-    const { onChange: onClientNameChange } = useTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(client, "name", ensureNonEmptyString(value))
-      );
-    });
+    const onClientNameChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        onClientConfigChange(
+          updateClientConfig(
+            client,
+            "name",
+            ensureNonEmptyString(e.currentTarget.value)
+          )
+        );
+      },
+      [onClientConfigChange, client]
+    );
 
     const framework = state.frameworkId
       ? findFramework(state.frameworkId)
@@ -334,21 +326,50 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
       capture,
     ]);
 
+    const onFormSubmit = useCallback(
+      (e: React.FormEvent) => {
+        e.preventDefault();
+        if (state.m2mSelected) {
+          if (nameValid) {
+            onClickNext();
+          }
+        } else {
+          // onClickSave no-ops unless canSubmit.
+          onClickSave();
+        }
+      },
+      [state.m2mSelected, nameValid, onClickNext, onClickSave]
+    );
+
     return (
       <ScreenContent className="flex-1-0-auto" layout={"list"}>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <Widget className={cn(styles.widget, styles.wizardWidget)}>
-          <FormTextField
+        <div className={cn(styles.widget, styles.pageHeader)}>
+          <Link
+            to={`/project/${appID}/configuration/apps`}
+            className={styles.backLink}
+          >
+            <ChevronLeftIcon className={styles.backLinkIcon} />
+            <span>
+              <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+            </span>
+          </Link>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="CreateOAuthClientScreen.title" />
+          </Heading>
+        </div>
+        <form
+          className={cn(styles.widget, styles.wizardPanel)}
+          onSubmit={onFormSubmit}
+        >
+          <TextField
+            size="2"
             parentJSONPointer={/\/oauth\/clients\/\d+/}
             fieldName="name"
             label={renderToString("CreateOAuthClientScreen.name.label")}
-            description={renderToString(
-              "CreateOAuthClientScreen.name.description"
-            )}
+            hint={renderToString("CreateOAuthClientScreen.name.description")}
             value={client.name ?? ""}
             onChange={onClientNameChange}
             required={true}
-            autoFocus={true}
           />
           <FrameworkGrid
             selectedId={state.frameworkId}
@@ -364,22 +385,28 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
             />
           ) : null}
           <div className={styles.footer}>
-            <ButtonWithLoading
-              onClick={state.m2mSelected ? onClickNext : onClickSave}
-              loading={isUpdating}
-              disabled={state.m2mSelected ? !nameValid : !canSubmit}
-              labelId={
-                state.m2mSelected
-                  ? "CreateOAuthClientScreen.next"
-                  : "CreateOAuthClientScreen.submit"
-              }
-            />
-            <DefaultButton
+            <SecondaryButton
+              size="2"
               text={renderToString("CreateOAuthClientScreen.cancel")}
               onClick={onClickCancel}
             />
+            <PrimaryButton
+              size="2"
+              type="submit"
+              loading={isUpdating}
+              disabled={state.m2mSelected ? !nameValid : !canSubmit}
+              text={
+                <FormattedMessage
+                  id={
+                    state.m2mSelected
+                      ? "CreateOAuthClientScreen.next"
+                      : "CreateOAuthClientScreen.submit"
+                  }
+                />
+              }
+            />
           </div>
-        </Widget>
+        </form>
       </ScreenContent>
     );
   };
@@ -419,7 +446,7 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
         rules={errorRules}
       >
         <FormErrorMessageBar />
-        <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className={styles.scrollArea}>
           <CreateOAuthClientContent form={form} />
         </div>
       </FormProvider>

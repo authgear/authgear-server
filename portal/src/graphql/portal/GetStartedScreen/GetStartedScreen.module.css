@@ -74,9 +74,10 @@
   gap: 16px;
 }
 
-/* Shared shape of the three hero button variants. The .heroCard:host …
-   doubled selectors below bump specificity past FluentUI's .ms-Link rules
-   so we don't need !important. */
+/* Shared shape of the three hero button variants. These classes are applied to
+   Link / ExternalLink, so the doubled selectors below (.heroButtonWhite
+   .heroButtonWhite etc.) bump specificity past the link component's own colour
+   and text-decoration rules without needing !important. */
 .heroButtonWhite,
 .heroButtonOutline,
 .heroButtonBlue {
@@ -181,6 +182,8 @@
 .sectionHeading {
   font-size: 20px;
   font-weight: 600;
+  /* Pin the line-height so Radix Heading's size default cannot change it. */
+  line-height: 30px;
   text-align: center;
 }
 
@@ -208,11 +211,14 @@
 
 .featureIcon {
   flex: 0 0 auto;
+  color: var(--accent-9);
 }
 
 .featureTitle {
   font-weight: 600;
   font-size: 16px;
+  /* Pin the line-height so Radix Heading's size default cannot change it. */
+  line-height: 24px;
   overflow-wrap: break-word;
   min-width: 0;
 }
@@ -278,6 +284,8 @@
 .resourceHeading {
   font-size: 18px;
   font-weight: 600;
+  /* Pin the line-height so Radix Heading's size default cannot change it. */
+  line-height: 27px;
 }
 
 .resourceRows {
@@ -334,6 +342,7 @@
 
 .resourceIcon {
   flex: 0 0 auto;
+  color: var(--accent-9);
 }
 
 .resourceTextBlock {
@@ -348,6 +357,10 @@
   font-weight: 600;
   font-size: 14px;
   overflow-wrap: break-word;
+
+  /* The row is wrapped in a link; keep the title in body text color
+     instead of inheriting the link color. */
+  color: var(--gray-12);
 }
 
 .resourceDescription {

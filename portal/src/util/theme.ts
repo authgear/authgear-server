@@ -1,9 +1,4 @@
-import {
-  getColorFromString,
-  themeRulesStandardCreator,
-  ThemeGenerator,
-  BaseSlots,
-} from "@fluentui/react";
+import { parseCSSColor, getShadeString, Shade } from "./shades";
 import { Root, Node, Rule, Declaration } from "postcss";
 
 export interface LightTheme {
@@ -43,23 +38,14 @@ export const DEFAULT_BANNER_CONFIGURATION: BannerConfiguration = {
 export function deriveColors(
   color: string
 ): { original: string; variant: string } | null {
-  const themeRules = themeRulesStandardCreator();
-  const colorObject = getColorFromString(color);
+  const colorObject = parseCSSColor(color);
   if (colorObject == null) {
     return null;
   }
-  ThemeGenerator.insureSlots(themeRules, false);
-  ThemeGenerator.setSlot(
-    themeRules[BaseSlots[BaseSlots.primaryColor]],
-    colorObject,
-    false,
-    true,
-    true
-  );
-  const json = ThemeGenerator.getThemeAsJson(themeRules);
+  // The variant is FluentUI's themeDark slot: Shade7 of the primary color.
   return {
     original: color,
-    variant: json.themeDark,
+    variant: getShadeString(colorObject, Shade.Shade7),
   };
 }
 
@@ -68,45 +54,21 @@ export function deriveColors(
 // The return value is 9-element array, with the first element being the originally given color.
 // The remaining 8 elements are the shades, ordered from Shade.Shade1 to Shade.Shade8
 export function getShades(colorStr: string): string[] {
-  const themeRules = themeRulesStandardCreator();
-  const color = getColorFromString(colorStr);
+  const color = parseCSSColor(colorStr);
   if (color == null) {
     throw new Error("invalid color: " + colorStr);
   }
-  ThemeGenerator.insureSlots(themeRules, false);
-  // It is extremely important to pass trailing (true, true) to setSlot,
-  // otherwise setSlot does not take effect at all.
-  ThemeGenerator.setSlot(
-    themeRules[BaseSlots[BaseSlots.primaryColor]],
-    color,
-    false,
-    true,
-    true
-  );
-
-  const json = ThemeGenerator.getThemeAsJson(themeRules);
-  const {
-    primaryColor,
-    primaryColorShade1,
-    primaryColorShade2,
-    primaryColorShade3,
-    primaryColorShade4,
-    primaryColorShade5,
-    primaryColorShade6,
-    primaryColorShade7,
-    primaryColorShade8,
-  } = json;
-
+  // Slot 0 is the original color string verbatim, then Shade1..Shade8.
   return [
-    primaryColor,
-    primaryColorShade1,
-    primaryColorShade2,
-    primaryColorShade3,
-    primaryColorShade4,
-    primaryColorShade5,
-    primaryColorShade6,
-    primaryColorShade7,
-    primaryColorShade8,
+    colorStr,
+    getShadeString(color, Shade.Shade1),
+    getShadeString(color, Shade.Shade2),
+    getShadeString(color, Shade.Shade3),
+    getShadeString(color, Shade.Shade4),
+    getShadeString(color, Shade.Shade5),
+    getShadeString(color, Shade.Shade6),
+    getShadeString(color, Shade.Shade7),
+    getShadeString(color, Shade.Shade8),
   ];
 }
 

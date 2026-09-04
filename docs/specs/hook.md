@@ -450,6 +450,8 @@ hook:
       url: 'https://myapp.com/all_events'
     - events: ["*"]
       url: "authgeardeno:///deno/randomstring.ts"
-    - events: ["user.created"]
+    # name is optional. It is a display name shown in the portal.
+    - name: "Sync user creation"
+      events: ["user.created"]
       url: 'https://myapp.com/sync_user_creation'
 ```

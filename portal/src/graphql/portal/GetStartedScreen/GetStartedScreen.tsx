@@ -1,7 +1,7 @@
+import { Heading } from "@radix-ui/themes";
 import React, { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "../../../intl";
-import { Text } from "@fluentui/react";
 import ShowLoading from "../../../ShowLoading";
 import ShowError from "../../../ShowError";
 import ScreenLayoutScrollView from "../../../ScreenLayoutScrollView";
@@ -187,9 +187,9 @@ function GetStartedScreenContent(
         </div>
 
         <section className={styles.featureSection}>
-          <Text as="h2" block={true} className={styles.sectionHeading}>
+          <Heading as="h2" className={styles.sectionHeading}>
             <FormattedMessage id="GetStartedScreen.features.heading" />
-          </Text>
+          </Heading>
           <div className={styles.featureGrid}>
             {featureCards.map((card) => (
               <FeatureCard key={card.titleMessageID} {...card} />

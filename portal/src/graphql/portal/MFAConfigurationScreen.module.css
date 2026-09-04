@@ -1,11 +1,78 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
 
-.separator {
-  grid-column: 1 / span 8;
-  @apply tablet:col-span-full;
-  @apply my-2;
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.settingsCardSaveBarClearance {
+  margin-bottom: 5.5rem;
+}
+
+.modeRadioGroup {
+  width: 100%;
+}
+
+.modeRadioBlock {
+  @apply flex flex-col gap-2;
+}
+
+.modeRadioOption {
+  cursor: pointer;
+}
+
+.modeRadioItem {
+  @apply shrink-0;
+  margin-top: 0.125rem;
+}
+
+.modeRadioItemSpacer {
+  @apply shrink-0;
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.modeRadioContent {
+  @apply flex min-w-0 flex-col gap-1;
+}
+
+.modeRadioContent p,
+.gracePeriodContent p {
+  margin: 0;
+}
+
+.gracePeriodRow {
+  width: 100%;
+}
+
+.gracePeriodContent {
+  @apply flex min-w-0 flex-col gap-1;
+}
+
+.warningList {
+  @apply flex flex-col gap-2;
+}
+
+.sectionDescription {
+  margin: 0;
+  color: var(--gray-a11);
 }

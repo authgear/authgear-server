@@ -1,12 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
-import {
-  Label,
-  Dropdown,
-  IDropdownOption,
-  Text,
-  IRenderFunction,
-} from "@fluentui/react";
+import { Select, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 
 import { LanguageTag } from "../../util/resource";
@@ -27,6 +21,13 @@ interface ManageLanguageWidgetProps {
 
   // The fallback language.
   fallbackLanguage: LanguageTag;
+}
+
+interface LanguageOption {
+  value: LanguageTag;
+  text: string;
+  isFallbackLanguage: boolean;
+  disabled: boolean;
 }
 
 function getLanguageLocaleKey(locale: LanguageTag) {
@@ -54,8 +55,8 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
       [renderToString]
     );
 
-    const templateLocaleOptions: IDropdownOption[] = useMemo(() => {
-      const options: IDropdownOption[] = [];
+    const templateLocaleOptions: LanguageOption[] = useMemo(() => {
+      const options: LanguageOption[] = [];
 
       const combinedLocales = new Set([
         ...existingLanguages,
@@ -77,11 +78,9 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
         }
 
         options.push({
-          key: locale,
+          value: locale,
           text: localeDisplay,
-          data: {
-            isFallbackLanguage: fallbackLanguage === locale,
-          },
+          isFallbackLanguage: fallbackLanguage === locale,
           disabled: isRemoved || isNew,
         });
       }
@@ -95,82 +94,54 @@ const ManageLanguageWidget: React.VFC<ManageLanguageWidgetProps> =
       renderToString,
     ]);
 
-    const onChangeTemplateLocale = useCallback(
-      (_e: unknown, option?: IDropdownOption) => {
-        if (option != null) {
-          onChangeSelectedLanguage(option.key.toString());
-        }
-      },
-      [onChangeSelectedLanguage]
-    );
-
-    const onRenderOption: IRenderFunction<IDropdownOption> = useCallback(
-      (option?: IDropdownOption) => {
-        return (
-          <Text
-            styles={(_, theme) => ({
-              root: option?.disabled
-                ? {
-                    fontStyle: "italic",
-                    color: theme.semanticColors.disabledText,
-                  }
-                : undefined,
-            })}
-          >
-            <FormattedMessage
-              id="ManageLanguageWidget.language-label"
-              values={{
-                LANG: option?.text ?? "",
-                IS_FALLBACK: String(option?.data.isFallbackLanguage ?? false),
-              }}
-            />
-          </Text>
-        );
-      },
-      []
-    );
-
-    const onRenderTitle: IRenderFunction<IDropdownOption[]> = useCallback(
-      (options?: IDropdownOption[]) => {
-        const option = options?.[0];
-        return (
-          <Text>
-            <FormattedMessage
-              id="ManageLanguageWidget.language-label"
-              values={{
-                LANG: option?.text ?? "",
-                IS_FALLBACK: String(option?.data.isFallbackLanguage ?? false),
-              }}
-            />
-          </Text>
-        );
-      },
-      []
-    );
-
     return (
-      <>
-        <div className={cn(className, styles.root)}>
-          <div className={styles.container}>
-            {showLabel ? (
-              <Label className={styles.titleLabel}>
-                <FormattedMessage id="ManageLanguageWidget.title" />
-              </Label>
-            ) : null}
-            <div className={styles.control}>
-              <Dropdown
+      <div className={cn(className, styles.root)}>
+        <div className={styles.container}>
+          {showLabel ? (
+            <Text
+              as="label"
+              size="2"
+              weight="medium"
+              className={styles.titleLabel}
+              htmlFor="language-widget"
+            >
+              <FormattedMessage id="ManageLanguageWidget.title" />
+            </Text>
+          ) : null}
+          <div className={styles.control}>
+            <Select.Root
+              value={selectedLanguage}
+              onValueChange={onChangeSelectedLanguage}
+              size="2"
+            >
+              <Select.Trigger
                 id="language-widget"
                 className={styles.dropdown}
-                options={templateLocaleOptions}
-                onChange={onChangeTemplateLocale}
-                selectedKey={selectedLanguage}
-                onRenderTitle={onRenderTitle}
-                onRenderOption={onRenderOption}
               />
-            </div>
+              <Select.Content position="popper">
+                {templateLocaleOptions.map((option) => (
+                  <Select.Item
+                    key={option.value}
+                    value={option.value}
+                    disabled={option.disabled}
+                    className={cn(
+                      option.disabled ? styles.optionDisabled : null
+                    )}
+                  >
+                    <FormattedMessage
+                      id="ManageLanguageWidget.language-label"
+                      values={{
+                        LANG: option.text,
+                        IS_FALLBACK: String(option.isFallbackLanguage),
+                      }}
+                    />
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
           </div>
         </div>
-      </>
+      </div>
     );
   };
 

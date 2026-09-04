@@ -1,6 +1,6 @@
+import { Heading } from "@radix-ui/themes";
 import React from "react";
 import { FormattedMessage } from "../../../intl";
-import { Text, useTheme } from "@fluentui/react";
 import Link from "../../../Link";
 import ExternalLink from "../../../ExternalLink";
 import styles from "./GetStartedScreen.module.css";
@@ -33,8 +33,6 @@ export default function FeatureCard(
     externalHref,
     onClick,
   } = props;
-  const theme = useTheme();
-
   return (
     <div className={styles.featureCard}>
       <div className={styles.featureHeader}>
@@ -42,16 +40,15 @@ export default function FeatureCard(
           className={styles.featureIcon}
           width={18}
           height={18}
-          color={theme.palette.themePrimary}
           aria-hidden={true}
         />
-        <Text as="h3" block={true} className={styles.featureTitle}>
+        <Heading as="h3" className={styles.featureTitle}>
           <FormattedMessage id={titleMessageID} />
-        </Text>
+        </Heading>
       </div>
-      <Text block={true} className={styles.featureDescription}>
+      <p className={styles.featureDescription}>
         <FormattedMessage id={descriptionMessageID} />
-      </Text>
+      </p>
       {internalHref != null ? (
         <Link
           to={internalHref}

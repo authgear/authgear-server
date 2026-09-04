@@ -3,6 +3,7 @@ import {
   Cross2Icon,
   CheckCircledIcon,
   ExclamationTriangleIcon,
+  InfoCircledIcon,
 } from "@radix-ui/react-icons";
 import { Callout as RadixCallout } from "@radix-ui/themes";
 import React, { useCallback } from "react";
@@ -10,23 +11,30 @@ import styles from "./Callout.module.css";
 import { useMaybeToastContext, useToastProviderContext } from "../Toast/Toast";
 import { semanticToRadixColor } from "../../../util/radix";
 
-export type CalloutType = "error" | "success" | "warning";
+export type CalloutType = "error" | "success" | "warning" | "info";
 
 export interface CalloutProps {
   className?: string;
   type: CalloutType;
+  color?: React.ComponentProps<typeof RadixCallout.Root>["color"];
+  size?: "1" | "2" | "3";
   text?: React.ReactNode;
   showCloseButton?: boolean;
+  /** Called when the close button is clicked. Defaults to dismissing the
+   * surrounding toast; provide this for inline (non-toast) callouts. */
+  onClose?: () => void;
 }
 
-function typeToSemantic(type: CalloutType) {
+function typeToColor(type: CalloutType) {
   switch (type) {
     case "error":
-      return "error";
+      return semanticToRadixColor("error");
     case "success":
-      return "success";
+      return semanticToRadixColor("success");
     case "warning":
-      return "warning";
+      return semanticToRadixColor("warning");
+    case "info":
+      return "blue" as const;
   }
 }
 
@@ -38,26 +46,35 @@ function CalloutIcon({ color }: { color: CalloutType }) {
       return <CheckCircledIcon width="1rem" height="1rem" />;
     case "warning":
       return <ExclamationTriangleIcon width="1rem" height="1rem" />;
+    case "info":
+      return <InfoCircledIcon width="1rem" height="1rem" />;
   }
 }
 
 export function Callout({
   className,
   type,
+  color,
+  size = "2",
   text,
   showCloseButton = true,
+  onClose: onCloseProp,
 }: CalloutProps): React.ReactElement {
   const toastContext = useMaybeToastContext();
 
   const onClose = useCallback(() => {
+    if (onCloseProp != null) {
+      onCloseProp();
+      return;
+    }
     toastContext?.setOpen(false);
-  }, [toastContext]);
+  }, [onCloseProp, toastContext]);
 
   return (
     <RadixCallout.Root
       className={cn(styles.calloutRoot, className)}
-      color={semanticToRadixColor(typeToSemantic(type))}
-      size="2"
+      color={color ?? typeToColor(type)}
+      size={size}
       variant="surface"
     >
       <RadixCallout.Icon className={styles.calloutIcon}>

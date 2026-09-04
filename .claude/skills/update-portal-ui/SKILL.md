@@ -13,6 +13,51 @@ Every string a user can see or hear must go through `renderToString`/`FormattedM
 - **Locale-aware formatting of derived values**: any `Intl.DisplayNames`, `Intl.NumberFormat`, `Intl.DateTimeFormat`, or `luxon` `DateTime#toFormat`/`toLocaleString` call that produces user-visible output (country names, chart axis date labels, etc.) must be constructed with the active portal locale, not a hardcoded locale (e.g. `new Intl.DisplayNames(["en"], ...)`) and not left to the library's default. Grep for `.toFormat(`/`.toLocaleString(`/`new Intl.` in your diff and confirm each one is passed (or chained with) the active `locale`, not silently defaulting.
 - A string can be "translated" everywhere else in a file and still miss one of these — check every literal individually, don't assume a file is compliant because most of it uses `FormattedMessage`.
 
+### Always prefer a static message id over a computed one
+
+Write the id as a literal that appears verbatim in the source:
+
+```tsx
+// Good — greppable
+<FormattedMessage id="UserDetails.connected-identities.email" />
+
+// Avoid — invisible to a search for the key
+<FormattedMessage id={"UserDetails.connected-identities." + kind} />
+{renderToString(`standard-attribute.${fieldName}`)}
+```
+
+A computed id makes the key unfindable in both directions: you cannot grep from
+`en.json` to the code that renders it, and you cannot grep from the code to see which
+strings a screen can actually produce. That costs real correctness, not just
+convenience — a computed id silently survives every dead-key sweep, so orphans
+accumulate forever, and renaming or deleting the wrong one ships a raw key id to
+users because nothing fails at build time.
+
+Prefer an explicit lookup table over string concatenation when a key genuinely varies —
+each id stays a literal, so both greps work and TypeScript catches a missing case. This
+is the established pattern here; copy it rather than concatenating. See
+`AddUserScreen.tsx:65` (`loginIdTypeNameIds`) and `MFAConfigurationScreen.tsx:61`
+(`secondaryAuthenticatorNameIds`):
+
+```tsx
+const loginIdTypeNameIds: Record<LoginIDKeyType, string> = {
+  username: "login-id-key.username",
+  email: "login-id-key.email",
+  phone: "login-id-key.phone",
+};
+<FormattedMessage id={loginIdTypeNameIds[loginIdType]} />
+```
+
+Typing the table as `Record<SomeUnion, string>` is what buys the exhaustiveness check —
+a bare object literal will not fail when a union member is added later.
+
+Passing an id through a variable or prop (`id={labelKey}`, `id={messageID}`) is fine —
+the call site still holds a literal. What to avoid is *synthesising* the id from
+fragments. Concatenation is justified only for a genuinely open-ended set enumerated
+elsewhere (country codes, locale tags); when you do it, note the prefix in the
+dynamic-key list under "Clean up what your change orphans" below so the next dead-key
+sweep does not delete live strings.
+
 ## Link components
 
 The portal has three link components. Use the right one — using the wrong one causes links to render as unstyled plain text inside certain wrappers.
@@ -148,12 +193,68 @@ lets in dynamic first-party clients, the other static third-party ones.
 - Copy shown for a state that is not yet in effect must say so, or be hidden until
   it is. A warning that is false when displayed teaches admins to dismiss it.
 
+## Clean up what your change orphans
+
+A change that stops using a message id, a CSS class, or a component must delete it in
+the same commit. Nothing in CI catches this — `typecheck`, `eslint`, `stylelint` and
+`build` all pass with a locale file full of unreachable keys and `.module.css` files
+full of unreachable rules. A migration that replaces a screen leaves both behind by
+default, and "we'll clean it up later" means the next reader cannot tell which keys
+are live.
+
+**Find orphaned i18n keys by diffing the orphan set, not by grepping once.** A plain
+"key not found in `src`" sweep over `en.json` reports hundreds of false positives,
+because many ids are built at runtime. Instead compute the orphan set at your merge
+base and at `HEAD`, and report only keys that *became* orphans — dynamic keys are
+orphans in both and cancel out:
+
+```bash
+git archive "$(git merge-base HEAD main)" portal/src | tar -x -C /tmp/base
+# for each key in portal/src/locale-data/en.json: is it referenced in
+# /tmp/base/portal/src but no longer in portal/src? that set is what you orphaned.
+```
+
+**Before deleting a key, confirm it is not built dynamically.** Grep for the key's
+prefix used in concatenation or a template literal. Known dynamic families include
+`standard-attribute.` + field, `AuditLogActivityType.` + type, `Territory.` + alpha2,
+`Locales.` + tag, `custom-attribute-type.` + key, `MFAConfigurationScreen.policy.mode.`
++ option. Ids passed through a variable (`id={labelKey}`, `id={messageID}`) are safe —
+the call site still holds a literal — but a key reached only via `"prefix." + name` is
+live even though nothing greps for it. Check whether the *specific* value is reachable
+(e.g. `standard-attribute.updated_at` is dead because `updated_at` appears in no
+section pointer list), not merely whether the family is dynamic.
+
+This list is the running cost of every computed id, which is why new code should use a
+static one — see "Always prefer a static message id over a computed one" above. Do not
+grow the list without cause; if your change makes a family static again, delete its
+entry here.
+
+**Dead CSS: compare declared classes against the paired `.tsx`.** For every
+`.module.css` your change touches, list its declared classes and confirm each is still
+referenced as `styles.foo` (or `styles["foo"]`) somewhere in the tree. Two important
+exclusions — these are *not* dead:
+
+- `:global(...)` selectors targeting third-party DOM: Radix internals (`rt-*`),
+  intl-tel-input (`iti`, `iti__*`), cropperjs (`cropper-*`). They are styled by class
+  name emitted by the library, never via `styles.foo`.
+- A custom property (`--foo`) read by a nested library component rather than by a rule
+  in the same file.
+
+Conversely, when you delete the `:global(...)` rules for a library you just removed,
+check whether a custom property declared alongside them (e.g. `--text-field-height`)
+had no other consumer — if so it dies with them.
+
+**Dead code.** Removing the last usage of a component, hook, or util means deleting the
+file, its `.module.css`, and its stories. `npm run build` succeeding proves nothing —
+an unimported module is simply dropped from the bundle, silently.
+
 ## Verification checklist
 
 Before submitting a portal UI change:
 
 - [ ] No hardcoded user-facing string literals anywhere in the diff, including non-JSX config objects (chart library `label`/legend/tooltip config, form option lists, etc.) — all go through `renderToString`/`FormattedMessage`.
 - [ ] Every `Intl.DisplayNames`/`Intl.NumberFormat`/`Intl.DateTimeFormat`/luxon `toFormat`/`toLocaleString` call that produces user-visible text uses the active portal locale, not a hardcoded or default locale.
+- [ ] Every message id is a static literal, greppable from `en.json` to its render site — no id synthesised by concatenation or template literal. Where a varying key was unavoidable, it uses a lookup table of literals, or the new prefix is recorded in the dynamic-key list.
 - [ ] Links inside `WidgetDescription` or FluentUI `Text` use `Link` or `ExternalLink` from `portal/src` — not `react-router-dom`'s `Link` and not `portal/src/ReactRouterLink`, both of which render a bare `<a>`.
 - [ ] Inline links in `FormattedMessage` `values` use `Link` or `ExternalLink` from `portal/src`.
 - [ ] Callbacks that may receive rich content (links, JSX) are typed `React.ReactNode`, not `string`.
@@ -162,4 +263,7 @@ Before submitting a portal UI change:
 - [ ] No individual control calls `saveWith`; nothing is written until Save.
 - [ ] Copy naming who a permission covers was checked against the enforcing code, and sibling strings making the same claim were grepped and fixed together.
 - [ ] A setting with create and edit surfaces shares one message id rather than near-duplicate keys.
+- [ ] Every i18n key whose last reference this change removed is deleted from `locale-data/en.json` — found by diffing the orphan set at the merge base against `HEAD`, and each one checked against the dynamic-key families before deleting.
+- [ ] Every CSS class this change stopped using is deleted from its `.module.css`, excluding `:global(...)` selectors for third-party DOM (`rt-*`, `iti*`, `cropper-*`), and any custom property left with no consumer went with them.
+- [ ] Every component/hook/util this change stopped importing is deleted along with its `.module.css` and stories — a green `build` does not prove otherwise.
 - [ ] Run `cd portal && npm run typecheck` — must pass clean.

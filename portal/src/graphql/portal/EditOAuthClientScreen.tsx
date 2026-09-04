@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -12,20 +13,14 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import {
-  Icon,
-  IconButton,
-  Text,
-  useTheme,
-  Image,
-  ImageFit,
-  PivotItem,
-} from "@fluentui/react";
-import { AGPivot } from "../../components/common/AGPivot";
+import { Text } from "@radix-ui/themes";
+import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
+import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { Context, FormattedMessage } from "../../intl";
 
 import ScreenContent from "../../ScreenContent";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import Link from "../../Link";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm, {
@@ -38,7 +33,6 @@ import {
   findFramework,
   getDisplayIconName,
 } from "./CreateOAuthClientScreen/frameworks";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import {
   ApplicationType,
   OAuthClientConfig,
@@ -49,11 +43,11 @@ import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import FormContainer from "../../FormContainer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import styles from "./EditOAuthClientScreen.module.css";
-import Widget from "../../Widget";
 import ExternalLink from "../../ExternalLink";
 import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
-import PrimaryButton from "../../PrimaryButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
@@ -137,17 +131,14 @@ const QuickStartFrameworkItem: React.VFC<QuickStartFrameworkItemProps> =
           style={{ pointerEvents: "none" }}
         >
           <span className={styles.quickStartItemIcon}>{icon}</span>
-          <Text variant="small" className={styles.quickStartItemText}>
+          <Text size="1" className={styles.quickStartItemText}>
             {name}
           </Text>
           {shouldShowArrowIcon ? (
-            <Icon
-              className={styles.quickStartItemArrowIcon}
-              iconName="ChevronRightSmall"
-            />
+            <ChevronRightIcon className={styles.quickStartItemArrowIcon} />
           ) : null}
           {!shouldShowArrowIcon ? (
-            <Text className={styles.quickStartItemOpenTutorial}>
+            <Text size="1" className={styles.quickStartItemOpenTutorial}>
               <FormattedMessage id="EditOAuthClientScreen.quick-start.open-tutorial.label" />
             </Text>
           ) : null}
@@ -224,7 +215,7 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
         case "traditional_webapp":
           return [
             {
-              icon: <Icon iconName="Globe" />,
+              icon: <i className={cn("ti", "ti-world")} aria-hidden={true} />,
               name: renderToString(
                 "EditOAuthClientScreen.quick-start.framework.traditional-webapp"
               ),
@@ -260,10 +251,10 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
             },
             {
               icon: (
-                <Image
+                <img
                   src={flutterIconURL}
-                  imageFit={ImageFit.contain}
                   className={styles.frameworkImage}
+                  alt=""
                 />
               ),
               name: renderToString(
@@ -274,10 +265,10 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
             },
             {
               icon: (
-                <Image
+                <img
                   src={xamarinIconURL}
-                  imageFit={ImageFit.contain}
                   className={styles.frameworkImage}
+                  alt=""
                 />
               ),
               name: renderToString(
@@ -339,29 +330,20 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
     );
   };
 
-const EditOAuthClientNavBreadcrumb: React.VFC =
-  function EditOAuthClientNavBreadcrumb() {
-    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-      return [
-        {
-          to: "~/configuration/apps",
-          label: (
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: (
-            <FormattedMessage id="EditOAuthClientScreen.breadcrumb.details" />
-          ),
-        },
-      ];
-    }, []);
-
-    return (
-      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-    );
-  };
+const EditOAuthClientBackLink: React.VFC = function EditOAuthClientBackLink() {
+  const { appID } = useParams() as { appID: string };
+  return (
+    <Link
+      to={`/project/${appID}/configuration/apps`}
+      className={styles.backLink}
+    >
+      <ChevronLeftIcon className={styles.backLinkIcon} />
+      <span>
+        <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+      </span>
+    </Link>
+  );
+};
 
 interface OAuthClientHeaderProps {
   client: OAuthClientConfig;
@@ -370,9 +352,6 @@ interface OAuthClientHeaderProps {
 const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
   function OAuthClientHeader({ client }) {
     const iconName = getDisplayIconName(client);
-    const { copyButtonProps, Feedback } = useCopyFeedback({
-      textToCopy: client.client_id,
-    });
     return (
       <div className={styles.clientHeader}>
         <div className={styles.clientHeaderIconWrap}>
@@ -383,8 +362,9 @@ const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
         </div>
         <div className={styles.clientHeaderText}>
           <Text
-            variant="xLarge"
-            block={true}
+            as="p"
+            size="5"
+            weight="bold"
             className={styles.clientHeaderName}
           >
             {client.name ?? ""}
@@ -400,11 +380,9 @@ const OAuthClientHeader: React.VFC<OAuthClientHeaderProps> =
             <code className={styles.clientHeaderClientId}>
               {client.client_id}
             </code>
-            <IconButton
-              {...copyButtonProps}
-              className={styles.clientHeaderCopy}
-            />
-            <Feedback />
+            <span className={styles.clientHeaderCopy}>
+              <CopyIconButton textToCopy={client.client_id} />
+            </span>
           </div>
         </div>
       </div>
@@ -478,6 +456,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     const navigate = useNavigate();
 
     const { formTab, setFormTab } = useContext(FormTabContext);
+    const headerRef = useRef<HTMLElement>(null);
 
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
@@ -496,15 +475,44 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     }, [client, state.clientSecretMap]);
 
     const onFormTabChange = useCallback(
-      (item?: PivotItem) => {
-        if (item == null) {
-          return;
-        }
-        const { itemKey } = item.props;
-        setFormTab(itemKey as FormTab);
+      (value: string) => {
+        setFormTab(value as FormTab);
       },
       [setFormTab]
     );
+
+    const tabOptions = useMemo(() => {
+      const tabs: { value: string; label: React.ReactNode }[] = [];
+      if (
+        client?.x_application_type === "m2m" ||
+        client?.x_application_type === "spa" ||
+        client?.x_application_type === "traditional_webapp" ||
+        client?.x_application_type === "native" ||
+        client?.x_application_type === "confidential"
+      ) {
+        tabs.push({
+          value: FormTab.QUICK_START,
+          label: renderToString("EditOAuthClientScreen.tabs.quick-start"),
+        });
+      }
+      tabs.push({
+        value: FormTab.SETTINGS,
+        label: renderToString("EditOAuthClientScreen.tabs.settings"),
+      });
+      if (client != null && shouldShowSamlTab(client)) {
+        tabs.push({
+          value: FormTab.SAML2,
+          label: renderToString("EditOAuthClientScreen.tabs.saml2"),
+        });
+      }
+      if (client?.x_application_type === "m2m") {
+        tabs.push({
+          value: FormTab.API_RESOURCES,
+          label: renderToString("EditOAuthClientScreen.tabs.api-resources"),
+        });
+      }
+      return tabs;
+    }, [client, renderToString]);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -517,52 +525,31 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       return null;
     }
 
+    const showSaveBar =
+      formTab === FormTab.SETTINGS || formTab === FormTab.SAML2;
+
     return (
       <ScreenContent
-        className="flex-1-0-auto"
+        className={cn(
+          "flex-1-0-auto",
+          // Constant clearance for the floating save bar on the tabs that can
+          // show it, so the layout doesn't jump when the bar appears.
+          showSaveBar ? styles.contentWithSaveBar : null
+        )}
         layout={formTab === FormTab.API_RESOURCES ? "list" : "auto-rows"}
       >
         <header
+          ref={headerRef}
           className={cn(styles.widget, styles["widget--wide"], "space-y-5")}
         >
-          <EditOAuthClientNavBreadcrumb />
+          <EditOAuthClientBackLink />
           <OAuthClientHeader client={client} />
-          <AGPivot
+          <OverflowTabs
             className={styles.widget}
-            selectedKey={formTab}
-            onLinkClick={onFormTabChange}
-          >
-            {client.x_application_type === "m2m" ||
-            client.x_application_type === "spa" ||
-            client.x_application_type === "traditional_webapp" ||
-            client.x_application_type === "native" ||
-            client.x_application_type === "confidential" ? (
-              <PivotItem
-                itemKey={FormTab.QUICK_START}
-                headerText={renderToString(
-                  "EditOAuthClientScreen.tabs.quick-start"
-                )}
-              />
-            ) : null}
-            <PivotItem
-              itemKey={FormTab.SETTINGS}
-              headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
-            />
-            {shouldShowSamlTab(client) ? (
-              <PivotItem
-                itemKey={FormTab.SAML2}
-                headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
-              />
-            ) : null}
-            {client.x_application_type === "m2m" ? (
-              <PivotItem
-                itemKey={FormTab.API_RESOURCES}
-                headerText={renderToString(
-                  "EditOAuthClientScreen.tabs.api-resources"
-                )}
-              />
-            ) : null}
-          </AGPivot>
+            value={formTab}
+            onValueChange={onFormTabChange}
+            tabs={tabOptions}
+          />
         </header>
         {formTab === FormTab.QUICK_START &&
         (client.x_application_type === "spa" ||
@@ -619,6 +606,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             client={client}
           />
         ) : null}
+        {showSaveBar ? <SaveFunctionBar anchorRef={headerRef} /> : null}
       </ScreenContent>
     );
   };
@@ -786,7 +774,6 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
       form: { state },
     } = props;
     const navigate = useNavigate();
-    const theme = useTheme();
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
 
@@ -802,17 +789,24 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
     return (
       <ScreenLayoutScrollView>
         <ScreenContent>
-          <EditOAuthClientNavBreadcrumb />
-          <Widget className={styles.widget}>
-            <Text variant="xLarge" block={true}>
-              <Icon
-                className={styles.quickStartScreenTitleIcon}
-                styles={{ root: { color: theme.palette.themePrimary } }}
-                iconName="Lightbulb"
+          <EditOAuthClientBackLink />
+          <div className={cn(styles.widget, styles.quickStartScreenPanel)}>
+            <Text as="p" size="4" weight="bold">
+              <i
+                className={cn(
+                  "ti",
+                  "ti-bulb",
+                  styles.quickStartScreenTitleIcon
+                )}
+                aria-hidden={true}
               />
               <FormattedMessage id="EditOAuthClientScreen.quick-start-screen.title" />
             </Text>
-            <Text className={styles.quickStartScreenDescription} block={true}>
+            <Text
+              as="p"
+              size="2"
+              className={styles.quickStartScreenDescription}
+            >
               <FormattedMessage
                 id="EditOAuthClientScreen.quick-start-screen.question"
                 values={{
@@ -827,11 +821,12 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
             />
             <div className={styles.quickStartScreenButtons}>
               <PrimaryButton
+                size="2"
                 onClick={onNextButtonClick}
                 text={<FormattedMessage id="next" />}
               />
             </div>
-          </Widget>
+          </div>
         </ScreenContent>
       </ScreenLayoutScrollView>
     );
@@ -975,25 +970,11 @@ function FormContainerContent({
     [formTab, setFormTab]
   );
 
-  const hideFooter = (() => {
-    switch (formTab) {
-      case FormTab.API_RESOURCES:
-        return true;
-      case FormTab.QUICK_START:
-        return true;
-      default:
-        return false;
-    }
-  })();
-
   return (
     <FormTabContext.Provider value={contextValue}>
       <FormContainer
         className="flex-1-0-auto flex flex-col"
         form={form}
-        stickyFooterComponent={true}
-        showDiscardButton={true}
-        hideFooterComponent={hideFooter}
         localError={clientSecretHook.saveError}
       >
         <EditOAuthClientContent

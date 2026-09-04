@@ -1,95 +1,157 @@
 .root {
   display: flex;
   flex-direction: column;
-  max-width: calc(80px * 8 + 20px * 8);
-  row-gap: 12px;
-  margin-left: 10px;
-  padding-top: 16px;
+  gap: 24px;
 }
 
-.section {
+.sectionCard {
+  border: 1px solid #e8e8ec;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+  min-width: 0;
+  @apply tablet:flex-col tablet:items-stretch tablet:gap-4 tablet:p-4;
+}
+
+.sectionHeader {
+  flex: 0 0 200px;
+  min-width: 200px;
+  @apply tablet:flex-none tablet:min-w-0 tablet:w-auto;
+}
+
+.sectionFields {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  row-gap: 12px;
+  gap: 16px;
 }
 
-.sectionDivider {
-  padding-top: 16px;
-  padding-bottom: 16px;
+.selectTrigger {
+  width: 100%;
 }
 
-.sectionTitle {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
+.birthdateTextField {
+  position: relative;
+}
+
+.birthdatePickerWrap {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+}
+
+.birthdatePickerIcon {
+  color: var(--gray-a11);
+  pointer-events: none;
+}
+
+.birthdateNativePicker {
+  position: absolute;
+  inset: 0;
   margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.birthdateNativePicker::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.birthdateNativePicker:disabled {
+  cursor: not-allowed;
+}
+
+.hiddenSelectItem {
+  display: none;
 }
 
 .nameGroup {
   display: grid;
   row-gap: 8px;
   column-gap: 16px;
-
-  grid-template-columns: repeat(2, auto);
+  grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: auto;
+  @apply tablet:grid-cols-1;
 }
 
 .twoColumnGroup {
   display: grid;
   row-gap: 4px;
   column-gap: 16px;
-
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: min-content;
+  @apply tablet:grid-cols-1;
+}
+
+.twoColumnGroupInline {
+  display: grid;
+  column-gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: min-content;
+  @apply tablet:grid-cols-1;
 }
 
 .singleColumnGroup {
   display: grid;
   row-gap: 8px;
-
   grid-template-columns: repeat(1, 1fr);
   grid-auto-rows: min-content;
 }
 
 .addressGroup {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-
-  grid-template:
-    "street      street  street" auto
-    "city        city    city" auto
-    "postalCode  state   country" auto
-    / 1fr 1fr 1fr;
 }
 
 .gridAreaStreet {
-  grid-area: street;
-}
-
-.gridAreaCity {
-  grid-area: city;
-}
-
-.gridAreaPostalCode {
-  grid-area: postalCode;
-}
-
-.gridAreaState {
-  grid-area: state;
-}
-
-.gridAreaCountry {
-  grid-area: country;
+  width: 100%;
 }
 
 .customAttributesForm {
   display: grid;
-  row-gap: 12px;
+  row-gap: 16px;
   column-gap: 16px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: auto;
+  @apply tablet:grid-cols-1;
 }
 
 .customAttributeControl {
   grid-column: 1 / span 1;
+}
+
+.pictureBody {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pictureActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pictureFileInput {
+  display: none;
 }

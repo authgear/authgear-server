@@ -1,13 +1,17 @@
-import React, { useCallback, useMemo, useEffect } from "react";
+import React, { useCallback, useMemo, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { FormattedMessage } from "../../intl";
-import { DefaultEffects, Text } from "@fluentui/react";
-import PrimaryButton from "../../PrimaryButton";
+import { Heading, Text } from "@radix-ui/themes";
+import { FormattedMessage, Context } from "../../intl";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
+import { Callout } from "../../components/v2/Callout/Callout";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
-import BlueMessageBar from "../../BlueMessageBar";
 import ExternalLink from "../../ExternalLink";
 import { useAppListQuery } from "./query/appListQuery";
 import { useViewerQuery } from "./query/viewerQuery";
@@ -41,14 +45,13 @@ const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
   }, [appID, capture]);
 
   return (
-    <Link
-      to={url}
-      style={{ boxShadow: DefaultEffects.elevation4 }}
-      className={styles.card}
-      onClick={onClick}
-    >
-      <Text className={styles.cardAppID}>{appID}</Text>
-      <Text className={styles.cardAppName}>{appName}</Text>
+    <Link to={url} className={styles.card} onClick={onClick}>
+      <Text as="p" size="3" weight="bold" className={styles.cardAppID}>
+        {appID}
+      </Text>
+      <Text as="p" size="2" className={styles.cardAppName}>
+        {appName}
+      </Text>
     </Link>
   );
 };
@@ -66,19 +69,23 @@ function ProjectQuotaMessageBar(
     return null;
   }
   return (
-    <BlueMessageBar>
-      <FormattedMessage
-        id="AppsScreen.project-quota-reached"
-        values={{
-          // eslint-disable-next-line react/no-unstable-nested-components
-          externalLink: (chunks: React.ReactNode) => (
-            <ExternalLink href="https://go.authgear.com/portal-support">
-              {chunks}
-            </ExternalLink>
-          ),
-        }}
-      />
-    </BlueMessageBar>
+    <Callout
+      type="info"
+      showCloseButton={false}
+      text={
+        <FormattedMessage
+          id="AppsScreen.project-quota-reached"
+          values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
+            externalLink: (chunks: React.ReactNode) => (
+              <ExternalLink href="https://go.authgear.com/portal-support">
+                {chunks}
+              </ExternalLink>
+            ),
+          }}
+        />
+      }
+    />
   );
 }
 
@@ -89,17 +96,20 @@ interface AppListProps {
 
 const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   const { apps: unfilteredApps, viewer } = props;
+  const { renderToString } = React.useContext(Context);
   const projectQuotaReached = isProjectQuotaReached(viewer);
   const navigate = useNavigate();
   const systemConfig = useSystemConfig();
   const { authgearAppID, isAuthgearOnce } = systemConfig;
 
+  const [searchKeyword, setSearchKeyword] = useState("");
+
   const createButtonDisabled = projectQuotaReached || isAuthgearOnce;
 
   const onCreateClick = useCallback(
-    (e) => {
-      e?.preventDefault();
-      e?.stopPropagation();
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
       navigate("/projects/create");
     },
     [navigate]
@@ -141,6 +151,25 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
     });
   }, [apps]);
 
+  const filteredAppCardsData = useMemo(() => {
+    const keyword = searchKeyword.trim().toLowerCase();
+    if (keyword === "") {
+      return appCardsData;
+    }
+    return appCardsData.filter(
+      (a) =>
+        a.appID.toLowerCase().includes(keyword) ||
+        a.appName.toLowerCase().includes(keyword)
+    );
+  }, [appCardsData, searchKeyword]);
+
+  const onChangeSearchKeyword = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchKeyword(e.currentTarget.value);
+    },
+    []
+  );
+
   if (isAuthgearOnce && apps.length === 1) {
     return (
       <Navigate
@@ -155,25 +184,46 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
       <ScreenHeader showHamburger={false} />
       <ScreenLayoutScrollView>
         <section className={styles.body}>
-          <Text as="h1" variant="xLarge" block={true}>
+          <Heading as="h1" size="6" weight="bold">
             <FormattedMessage id="AppsScreen.title" />
-          </Text>
-          <section className={styles.cardsContainer}>
-            {appCardsData.map((appCardData) => {
-              return <AppCard key={appCardData.appID} {...appCardData} />;
-            })}
-          </section>
-          {!isAuthgearOnce ? (
-            <div className="space-y-4">
+          </Heading>
+          <div className={styles.toolbar}>
+            <div className={styles.search}>
+              <TextField
+                size="3"
+                iconStart={TextFieldIcon.MagnifyingGlass}
+                placeholder={renderToString("AppsScreen.search.placeholder")}
+                value={searchKeyword}
+                onChange={onChangeSearchKeyword}
+              />
+            </div>
+            {!isAuthgearOnce ? (
               <PrimaryButton
-                className={styles.createButton}
+                size="3"
                 onClick={onCreateClick}
                 text={<FormattedMessage id="AppsScreen.create-app" />}
                 disabled={createButtonDisabled}
               />
-              <ProjectQuotaMessageBar viewer={viewer} />
-            </div>
-          ) : null}
+            ) : null}
+          </div>
+          {!isAuthgearOnce ? <ProjectQuotaMessageBar viewer={viewer} /> : null}
+          <section className={styles.list}>
+            {filteredAppCardsData.length > 0 ? (
+              filteredAppCardsData.map((appCardData) => {
+                return <AppCard key={appCardData.appID} {...appCardData} />;
+              })
+            ) : (
+              <Text as="p" size="2" color="gray" className={styles.emptyText}>
+                <FormattedMessage
+                  id={
+                    searchKeyword.trim() === ""
+                      ? "AppsScreen.no-projects"
+                      : "AppsScreen.no-search-results"
+                  }
+                />
+              </Text>
+            )}
+          </section>
         </section>
       </ScreenLayoutScrollView>
     </main>

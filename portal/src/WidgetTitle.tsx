@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import cn from "classnames";
-import { Text } from "@fluentui/react";
+import { Heading } from "@radix-ui/themes";
 import { useLocation } from "react-router-dom";
 
 export interface WidgetTitleProps {
@@ -8,6 +8,13 @@ export interface WidgetTitleProps {
   children?: React.ReactNode;
   id?: string;
 }
+
+const TITLE_STYLE: React.CSSProperties = {
+  // See Widget.
+  lineHeight: "28px",
+  // Match the previous Fluent UI xLarge variant (semibold).
+  fontWeight: 600,
+};
 
 const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
   props: WidgetTitleProps
@@ -31,19 +38,9 @@ const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
   }, []);
 
   const element = (
-    <Text
-      as="h2"
-      variant="xLarge"
-      block={true}
-      styles={{
-        root: {
-          // See Widget.
-          lineHeight: "28px",
-        },
-      }}
-    >
+    <Heading as="h2" size="5" style={TITLE_STYLE}>
       {children}
-    </Text>
+    </Heading>
   );
 
   if (id != null) {

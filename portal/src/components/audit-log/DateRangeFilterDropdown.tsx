@@ -1,13 +1,9 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import cn from "classnames";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
+import { Popover, RadioGroup } from "@radix-ui/themes";
 import { Context as MessageContext } from "../../intl";
-import {
-  Dropdown,
-  IContextualMenuProps,
-  IDropdownOption,
-  IRenderFunction,
-} from "@fluentui/react";
-import CommandBarButton from "../../CommandBarButton";
-import { useScreenBreakpoint } from "../../hook/useScreenBreakpoint";
+import styles from "./AuditLogDateRangeFilterDropdown.module.css";
 
 export type DateRangeFilterDropdownOptionKey =
   | "allDateRange"
@@ -25,8 +21,8 @@ interface DateRangeFilterDropdownProps {
   ) => void;
 }
 
-const DesktopDateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
-  function DesktopDateRangeFilterDropdown({
+export const DateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
+  function DateRangeFilterDropdown({
     className,
     value,
     customRangeLabel,
@@ -34,128 +30,104 @@ const DesktopDateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
     onClickCustomDateRange,
   }: DateRangeFilterDropdownProps) {
     const { renderToString } = useContext(MessageContext);
-    const allDateRangeLabel = renderToString("AuditLogScreen.date-range.all");
-    const customDateRangeLabel = renderToString(
-      "AuditLogScreen.date-range.custom"
-    );
+    const [open, setOpen] = useState(false);
 
-    const placeholder = useMemo(() => {
-      if (value === "customDateRange") {
-        return customRangeLabel ?? customDateRangeLabel;
-      }
-
-      return allDateRangeLabel;
-    }, [allDateRangeLabel, customDateRangeLabel, customRangeLabel, value]);
-
-    const menuProps = useMemo<IContextualMenuProps>(() => {
+    const optionLabels = useMemo(() => {
       return {
-        items: [
-          {
-            key: "allDateRange",
-            text: allDateRangeLabel,
-            onClick: onClickAllDateRange,
-          },
-          {
-            key: "customDateRange",
-            text: customDateRangeLabel,
-            onClick: onClickCustomDateRange,
-          },
-        ],
+        allDateRange: renderToString("AuditLogScreen.date-range.all"),
+        customDateRange: renderToString("AuditLogScreen.date-range.custom"),
       };
-    }, [
-      allDateRangeLabel,
-      customDateRangeLabel,
-      onClickAllDateRange,
-      onClickCustomDateRange,
-    ]);
+    }, [renderToString]);
 
-    return (
-      <CommandBarButton
-        className={className}
-        key="dateRange"
-        iconProps={{ iconName: "Calendar" }}
-        menuProps={menuProps}
-        text={placeholder}
-      />
-    );
-  };
+    const showCustomRangeLabel =
+      value === "customDateRange" && customRangeLabel != null;
+    const selectedLabel = showCustomRangeLabel
+      ? customRangeLabel
+      : optionLabels[value];
 
-const MobileDateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
-  function MobileDateRangeFilterDropdown({
-    className,
-    value,
-    customRangeLabel,
-    onClickAllDateRange,
-    onClickCustomDateRange,
-  }: DateRangeFilterDropdownProps) {
-    const { renderToString } = useContext(MessageContext);
-    const allDateRangeLabel = renderToString("AuditLogScreen.date-range.all");
-    const customDateRangeLabel = renderToString(
-      "AuditLogScreen.date-range.custom"
-    );
-    const options = useMemo<IDropdownOption[]>(() => {
-      return [
-        {
-          key: "allDateRange",
-          text: allDateRangeLabel,
-        },
-        {
-          key: "customDateRange",
-          text: customDateRangeLabel,
-        },
-      ];
-    }, [allDateRangeLabel, customDateRangeLabel]);
-
-    const onRenderTitle: IRenderFunction<IDropdownOption[]> = useCallback(
-      (selectedOptions?: IDropdownOption[]) => {
-        if (value === "customDateRange" && customRangeLabel != null) {
-          return <span>{customRangeLabel}</span>;
-        }
-        return <span>{selectedOptions?.[0]?.text ?? ""}</span>;
-      },
-      [customRangeLabel, value]
-    );
-
-    const onChangeOption = useCallback(
-      (_e: unknown, option?: IDropdownOption) => {
-        if (option == null) {
-          return;
-        }
-        switch (option.key) {
-          case "allDateRange":
-            onClickAllDateRange();
-            break;
-          case "customDateRange":
-            onClickCustomDateRange();
-            break;
-          default:
-            console.error("Unexpected option key: ", option.key);
-            break;
+    const onSelectOption = useCallback(
+      (nextValue: DateRangeFilterDropdownOptionKey) => {
+        setOpen(false);
+        if (nextValue === "allDateRange") {
+          onClickAllDateRange();
+        } else {
+          onClickCustomDateRange();
         }
       },
       [onClickAllDateRange, onClickCustomDateRange]
     );
 
-    return (
-      <Dropdown
-        className={className}
-        selectedKey={value}
-        options={options}
-        onChange={onChangeOption}
-        onRenderTitle={onRenderTitle}
-      />
+    const onOptionClick = useCallback(
+      (optionKey: DateRangeFilterDropdownOptionKey, e: React.MouseEvent) => {
+        // Reopen the custom range dialog when the already selected custom
+        // option is clicked again.
+        if (optionKey === "customDateRange" && value === "customDateRange") {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(false);
+          onClickCustomDateRange();
+        }
+      },
+      [onClickCustomDateRange, value]
     );
-  };
 
-export const DateRangeFilterDropdown: React.VFC<DateRangeFilterDropdownProps> =
-  function DateRangeFilterDropdown(props: DateRangeFilterDropdownProps) {
-    const screenBreakpoint = useScreenBreakpoint();
-    switch (screenBreakpoint) {
-      case "desktop": {
-        return <DesktopDateRangeFilterDropdown {...props} />;
-      }
-      case "tablet":
-      case "mobile":
-        return <MobileDateRangeFilterDropdown {...props} />;
-    }
+    const onOpenChange = useCallback((nextOpen: boolean) => {
+      setOpen(nextOpen);
+    }, []);
+
+    return (
+      <div
+        className={cn(
+          styles.root,
+          showCustomRangeLabel && styles.rootCustom,
+          className
+        )}
+      >
+        <Popover.Root open={open} onOpenChange={onOpenChange}>
+          <Popover.Trigger>
+            <button
+              type="button"
+              className={styles.trigger}
+              aria-label={selectedLabel}
+            >
+              <span className={styles.triggerLabel}>{selectedLabel}</span>
+              <ChevronDownIcon className={styles.triggerIcon} />
+            </button>
+          </Popover.Trigger>
+          <Popover.Content
+            className={styles.content}
+            sideOffset={4}
+            align="start"
+          >
+            <RadioGroup.Root
+              value={value}
+              onValueChange={(nextValue) => {
+                onSelectOption(nextValue as DateRangeFilterDropdownOptionKey);
+              }}
+            >
+              {(
+                [
+                  "allDateRange",
+                  "customDateRange",
+                ] as DateRangeFilterDropdownOptionKey[]
+              ).map((optionKey) => (
+                <div key={optionKey} className={styles.optionGroup}>
+                  <label
+                    className={styles.option}
+                    onClick={(e) => {
+                      onOptionClick(optionKey, e);
+                    }}
+                  >
+                    <RadioGroup.Item value={optionKey} />
+                    <span className={styles.optionLabel}>
+                      {optionLabels[optionKey]}
+                    </span>
+                  </label>
+                </div>
+              ))}
+            </RadioGroup.Root>
+          </Popover.Content>
+        </Popover.Root>
+      </div>
+    );
   };

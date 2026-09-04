@@ -254,7 +254,7 @@ const VITE_DOTENV_VARS: StarterKitConfig = {
 const REACT_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-react",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-react/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-react/archive/refs/heads/main.zip",
   redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: VITE_DOTENV_VARS,
@@ -266,7 +266,7 @@ const REACT_STARTER_KIT: StarterKit = {
 const VUE_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-vue",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-vue/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-vue/archive/refs/heads/main.zip",
   redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: VITE_DOTENV_VARS,
@@ -278,7 +278,7 @@ const VUE_STARTER_KIT: StarterKit = {
 const NEXTJS_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-nextjs",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-nextjs/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-nextjs/archive/refs/heads/main.zip",
   redirectURIs: ["http://localhost:3000/api/auth/callback"],
   homepageUrl: "http://localhost:3000",
   config: {
@@ -303,7 +303,7 @@ const NEXTJS_STARTER_KIT: StarterKit = {
 const ANGULAR_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-angular",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-angular/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-angular/archive/refs/heads/main.zip",
   redirectURIs: ["http://localhost:4000/auth-redirect"],
   homepageUrl: "http://localhost:4000",
   config: {
@@ -322,7 +322,7 @@ const ANGULAR_STARTER_KIT: StarterKit = {
 const OTHER_SPA_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-spa-js",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-spa-js/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-spa-js/archive/refs/heads/main.zip",
   redirectURIs: ["http://localhost:3000/"],
   homepageUrl: "http://localhost:3000",
   config: {
@@ -338,10 +338,30 @@ const OTHER_SPA_STARTER_KIT: StarterKit = {
   guideUrl: "https://docs.authgear.com/get-started/single-page-app/website",
 };
 
+const REACT_NATIVE_STARTER_KIT: StarterKit = {
+  repoUrl: "https://github.com/authgear/authgear-example-react-native",
+  downloadUrl:
+    "https://github.com/authgear/authgear-example-react-native/archive/refs/heads/main.zip",
+  redirectURIs: ["com.authgear.example.rn://host/path"],
+  config: {
+    format: "dotenv",
+    fileName: ".env",
+    vars: [
+      { key: "AUTHGEAR_CLIENT_ID", token: "clientID" },
+      { key: "AUTHGEAR_ENDPOINT", token: "endpoint" },
+      { key: "AUTHGEAR_REDIRECT_URI", token: "redirectURI" },
+    ],
+  },
+  installCmd: "npm install && (cd ios && pod install)",
+  startCmd: "npm run ios / npm run android",
+  guideUrl:
+    "https://docs.authgear.com/get-started/native-mobile-app/react-native",
+};
+
 const ANDROID_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-android",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-android/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-android/archive/refs/heads/main.zip",
   redirectURIs: ["com.example.authgeardemo://host/path"],
   config: {
     format: "kotlin",
@@ -359,7 +379,7 @@ const ANDROID_STARTER_KIT: StarterKit = {
 const IOS_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-ios",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-ios/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-ios/archive/refs/heads/main.zip",
   redirectURIs: ["com.example.authgeardemo://host/path"],
   config: {
     format: "swift",
@@ -375,9 +395,9 @@ const IOS_STARTER_KIT: StarterKit = {
 };
 
 const FLUTTER_STARTER_KIT: StarterKit = {
-  repoUrl: "https://github.com/authgear/authgear-example-flutter",
+  repoUrl: "https://github.com/authgear/authgear_example_flutter",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-flutter/archive/HEAD.zip",
+    "https://github.com/authgear/authgear_example_flutter/archive/refs/heads/main.zip",
   redirectURIs: ["com.example.authgeardemo.flutter://host/path"],
   config: {
     format: "js",
@@ -396,7 +416,7 @@ const FLUTTER_STARTER_KIT: StarterKit = {
 const IONIC_STARTER_KIT: StarterKit = {
   repoUrl: "https://github.com/authgear/authgear-example-ionic",
   downloadUrl:
-    "https://github.com/authgear/authgear-example-ionic/archive/HEAD.zip",
+    "https://github.com/authgear/authgear-example-ionic/archive/refs/heads/main.zip",
   redirectURIs: [
     "com.authgear.example.capacitor://host/path",
     "capacitor://localhost",
@@ -521,7 +541,8 @@ export const frameworks: FrameworkEntry[] = [
     "CreateOAuthClientScreen.framework.react-native.title",
     "CreateOAuthClientScreen.framework.react-native.description",
     "brand-react-native",
-    `${DOCS}/native-mobile-app/react-native`
+    `${DOCS}/native-mobile-app/react-native`,
+    REACT_NATIVE_STARTER_KIT
   ),
   mobileNative(
     "ios",

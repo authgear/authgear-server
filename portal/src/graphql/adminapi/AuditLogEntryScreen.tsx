@@ -1,16 +1,16 @@
-import React, { useMemo, useContext, useEffect } from "react";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Text, Label } from "@fluentui/react";
+import React, { useMemo, useContext } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import { Heading, Text } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { FormattedMessage, Context } from "../../intl";
 import { useQuery } from "@apollo/client";
-import NavBreadcrumb from "../../NavBreadcrumb";
-import CommandBarContainer from "../../CommandBarContainer";
+import Link from "../../Link";
 import ShowError from "../../ShowError";
+import ShowLoading from "../../ShowLoading";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ScreenContent from "../../ScreenContent";
-import Widget from "../../Widget";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractRawID } from "../../util/graphql";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   AuditLogEntryQueryQuery,
   AuditLogEntryQueryQueryVariables,
@@ -19,55 +19,50 @@ import {
 } from "./query/auditLogEntryQuery.generated";
 
 import styles from "./AuditLogEntryScreen.module.css";
-import CodeBlock from "../../CodeBlock";
+import CodeEditor from "../../CodeEditor";
+
+const CODE_EDITOR_OPTIONS = {
+  readOnly: true,
+  minimap: { enabled: false },
+  wordWrap: "on" as const,
+  wrappingIndent: "deepIndent" as const,
+  renderLineHighlight: "none" as const,
+  scrollBeyondLastLine: false,
+};
 
 function getRawUserIDFromAuditLog(
   node: AuditLogEntryFragment
 ): string | undefined {
-  // The simple case is just use the user.id.
   const userID = node.user?.id ?? null;
   if (userID != null) {
     return extractRawID(userID);
   }
-  // Otherwise use the user ID in the payload.
   const rawUserID = node.data?.payload?.user?.id;
   return rawUserID ?? undefined;
 }
 
-function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
-  const { themes } = useSystemConfig();
-  const lightColor = themes.main.palette.neutralTertiary;
-  const { children, light } = props;
+interface TableRowProps {
+  label: React.ReactNode;
+  value: React.ReactNode;
+}
+
+function TableRow({ label, value }: TableRowProps) {
   return (
-    <Text
-      as="p"
-      block={true}
-      style={{
-        color: light === true ? lightColor : undefined,
-      }}
-    >
-      {children}
-    </Text>
+    <div className={styles.tableRow}>
+      <div className={styles.cellLabel}>{label}</div>
+      <div className={styles.cellValue}>{value}</div>
+    </div>
   );
 }
 
 const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
   const { logID, appID } = useParams() as { logID: string; appID: string };
   const location = useLocation();
-  const navigate = useNavigate();
   const state = location.state as { searchParams?: string } | undefined;
 
   const { renderToString, locale } = useContext(Context);
 
-  const navBreadcrumbItems = useMemo(() => {
-    return [
-      {
-        to: `/project/${appID}/audit-log?${state?.searchParams ?? ""}`,
-        label: <FormattedMessage id="AuditLogScreen.title" />,
-      },
-      { to: ".", label: <FormattedMessage id="AuditLogEntryScreen.title" /> },
-    ];
-  }, [appID, state?.searchParams]);
+  const backURL = `/project/${appID}/audit-log?${state?.searchParams ?? ""}`;
 
   const { data, loading, error, refetch } = useQuery<
     AuditLogEntryQueryQuery,
@@ -78,143 +73,176 @@ const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
     },
   });
 
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
-    if (error != null) {
-      return;
-    }
+  const auditLog = useMemo(() => {
     if (data?.node?.__typename === "AuditLog") {
-      return;
-    }
-    navigate(`/project/${appID}/audit-log?${state?.searchParams ?? ""}`, {
-      replace: true,
-    });
-  }, [
-    appID,
-    data?.node?.__typename,
-    error,
-    loading,
-    navigate,
-    state?.searchParams,
-  ]);
-
-  const messageBar = useMemo(() => {
-    if (error != null) {
-      // eslint-disable-next-line @typescript-eslint/strict-void-return
-      return <ShowError error={error} onRetry={refetch} />;
+      return data.node;
     }
     return null;
-  }, [error, refetch]);
+  }, [data]);
 
-  let activityType: string | undefined;
-  let loggedAt: string | undefined;
-  let rawUserID: string | undefined;
-  let ipAddress: string | undefined;
-  let userAgent: string | undefined;
-  let clientID: string | undefined;
-  let code: string | undefined;
-  let deleted = false;
-  if (data?.node?.__typename === "AuditLog") {
-    activityType = data.node.activityType;
-    loggedAt = formatDatetime(locale, data.node.createdAt) ?? undefined;
-    rawUserID = getRawUserIDFromAuditLog(data.node);
-    deleted = data.node.user?.id == null && rawUserID != null;
-    ipAddress = data.node.ipAddress ?? undefined;
-    userAgent = data.node.userAgent ?? undefined;
-    clientID = data.node.clientID ?? undefined;
-    code =
-      data.node.data != null
-        ? JSON.stringify(data.node.data, null, 2)
-        : undefined;
+  const activityType = auditLog?.activityType;
+  const loggedAt =
+    auditLog != null
+      ? formatDatetime(locale, auditLog.createdAt) ?? undefined
+      : undefined;
+  const rawUserID =
+    auditLog != null ? getRawUserIDFromAuditLog(auditLog) : undefined;
+  const userID = auditLog?.user?.id ?? undefined;
+  const deleted =
+    auditLog != null && auditLog.user?.id == null && rawUserID != null;
+  const ipAddress = auditLog?.ipAddress ?? undefined;
+  const geoLocationCode: string | undefined =
+    auditLog?.data?.context?.geo_location_code ?? undefined;
+  const userAgent = auditLog?.userAgent ?? undefined;
+  const clientID = auditLog?.clientID ?? undefined;
+  const code =
+    auditLog?.data != null ? JSON.stringify(auditLog.data, null, 2) : undefined;
+
+  if (loading) {
+    return <ShowLoading />;
   }
 
   return (
-    <CommandBarContainer
-      isLoading={loading}
-      messageBar={messageBar}
-      hideCommandBar={true}
-    >
-      <ScreenContent>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-        <Widget className={styles.widget}>
-          {activityType ? (
-            <SummaryText>
-              <FormattedMessage
-                id="AuditLogEntryScreen.activity-type"
-                values={{
-                  type: renderToString("AuditLogActivityType." + activityType),
-                }}
-              />
-            </SummaryText>
-          ) : null}
-          {loggedAt ? (
-            <SummaryText light={true}>
-              <FormattedMessage
-                id="AuditLogEntryScreen.logged-at"
-                values={{
-                  datetime: loggedAt,
-                }}
-              />
-            </SummaryText>
-          ) : null}
-          {rawUserID ? (
-            <SummaryText light={true}>
-              <FormattedMessage
-                id="AuditLogEntryScreen.user-id"
-                values={{
-                  id: rawUserID,
-                  deleted: String(deleted),
-                }}
-              />
-            </SummaryText>
-          ) : null}
-          {ipAddress ? (
-            <SummaryText light={true}>
-              <FormattedMessage
-                id="AuditLogEntryScreen.ip-address"
-                values={{
-                  ip: ipAddress,
-                }}
-              />
-            </SummaryText>
-          ) : null}
-          {userAgent ? (
-            <SummaryText light={true}>
-              <FormattedMessage
-                id="AuditLogEntryScreen.user-agent"
-                values={{
-                  userAgent,
-                }}
-              />
-            </SummaryText>
-          ) : null}
-          {clientID ? (
-            <SummaryText light={true}>
-              <FormattedMessage
-                id="AuditLogEntryScreen.client-id"
-                values={{
-                  clientID,
-                }}
-              />
-            </SummaryText>
-          ) : null}
-        </Widget>
-        <Widget className={styles.widget}>
-          <Label>
-            <FormattedMessage id="AuditLogEntryScreen.raw-event-log" />
-          </Label>
-          {code != null ? (
-            <CodeBlock
-              className={styles.codeBlock}
-              value={code}
-              language="json"
+    <ScreenLayoutScrollView>
+      <ScreenContent layout="list">
+        {/* Header: back link + title */}
+        <div className={styles.widget}>
+          <Link to={backURL} className={styles.backLink}>
+            <ChevronLeftIcon className={styles.backLinkIcon} />
+            <span>
+              <FormattedMessage id="AuditLogScreen.title" />
+            </span>
+          </Link>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="AuditLogEntryScreen.title" />
+          </Heading>
+        </div>
+
+        {error != null ? (
+          <div className={styles.widget}>
+            <ShowError
+              error={error}
+              onRetry={() => {
+                refetch().finally(() => {});
+              }}
             />
-          ) : null}
-        </Widget>
+          </div>
+        ) : null}
+
+        {/* Event details table */}
+        {auditLog != null ? (
+          <div className={styles.widget}>
+            <div className={styles.tableWrapper}>
+              <div className={styles.table}>
+                <div className={styles.tableHeader}>
+                  <div className={styles.headerCellLabel}>
+                    <FormattedMessage id="AuditLogEntryScreen.table.event-description" />
+                  </div>
+                  <div className={styles.headerCellValue}>
+                    <FormattedMessage id="AuditLogEntryScreen.table.events-details" />
+                  </div>
+                </div>
+
+                {activityType != null ? (
+                  <TableRow
+                    label={
+                      <FormattedMessage id="AuditLogEntryScreen.field.activity-type" />
+                    }
+                    value={renderToString(
+                      "AuditLogActivityType." + activityType
+                    )}
+                  />
+                ) : null}
+
+                {loggedAt != null ? (
+                  <TableRow
+                    label={
+                      <FormattedMessage id="AuditLogEntryScreen.field.logged-at" />
+                    }
+                    value={loggedAt}
+                  />
+                ) : null}
+
+                {rawUserID != null ? (
+                  <TableRow
+                    label={
+                      <FormattedMessage id="AuditLogEntryScreen.field.user-id" />
+                    }
+                    value={
+                      deleted ? (
+                        <>
+                          {rawUserID}
+                          <span className={styles.deletedSuffix}>
+                            {" "}
+                            <FormattedMessage id="AuditLogEntryScreen.field.user-id.deleted" />
+                          </span>
+                        </>
+                      ) : userID != null ? (
+                        <Link
+                          to={`/project/${appID}/user-management/users/${userID}/details`}
+                        >
+                          {rawUserID}
+                        </Link>
+                      ) : (
+                        rawUserID
+                      )
+                    }
+                  />
+                ) : null}
+
+                {ipAddress != null ? (
+                  <TableRow
+                    label={
+                      <FormattedMessage id="AuditLogEntryScreen.field.ip-address" />
+                    }
+                    value={
+                      geoLocationCode != null
+                        ? `${ipAddress} (${geoLocationCode})`
+                        : ipAddress
+                    }
+                  />
+                ) : null}
+
+                {userAgent != null ? (
+                  <TableRow
+                    label={
+                      <FormattedMessage id="AuditLogEntryScreen.field.user-agent" />
+                    }
+                    value={userAgent}
+                  />
+                ) : null}
+
+                <TableRow
+                  label={
+                    <FormattedMessage id="AuditLogEntryScreen.field.client-id" />
+                  }
+                  value={clientID != null && clientID !== "" ? clientID : "-"}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Raw Event Log */}
+        {code != null ? (
+          <div className={styles.widget}>
+            <div className={styles.editorCard}>
+              <div className={styles.editorCardHeader}>
+                <Text as="p" size="3" weight="medium">
+                  <FormattedMessage id="AuditLogEntryScreen.raw-event-log" />
+                </Text>
+              </div>
+              <CodeEditor
+                className={styles.codeEditor}
+                language="json"
+                value={code}
+                options={CODE_EDITOR_OPTIONS}
+              />
+            </div>
+          </div>
+        ) : null}
       </ScreenContent>
-    </CommandBarContainer>
+    </ScreenLayoutScrollView>
   );
 };
 

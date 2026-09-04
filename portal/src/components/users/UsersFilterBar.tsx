@@ -1,7 +1,8 @@
 import React, { useCallback, useContext } from "react";
 import cn from "classnames";
 import styles from "./UsersFilterBar.module.css";
-import { SearchBox } from "@fluentui/react";
+import { TextField as RadixTextField } from "@radix-ui/themes";
+import { Cross2Icon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { Context as MessageContext } from "../../intl";
 import {
   GroupsFilterDropdown,
@@ -41,8 +42,12 @@ export const UsersFilterBar: React.VFC<UsersFilterBarProps> =
     const { renderToString } = useContext(MessageContext);
 
     const onChangeSearchKeyword = useCallback(
-      (_: unknown, newValue?: string) => {
-        onFilterChange((prev) => ({ ...prev, searchKeyword: newValue ?? "" }));
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.currentTarget.value;
+        onFilterChange((prev) => ({
+          ...prev,
+          searchKeyword: value,
+        }));
       },
       [onFilterChange]
     );
@@ -75,14 +80,31 @@ export const UsersFilterBar: React.VFC<UsersFilterBarProps> =
     return (
       <div className={cn(styles.root, className)}>
         {showSearchBar ? (
-          <SearchBox
+          <RadixTextField.Root
             className={styles.searchBox}
+            size="2"
+            type="search"
             placeholder={renderToString("search")}
             disabled={isSearchDisabled}
             value={filters.searchKeyword}
             onChange={onChangeSearchKeyword}
-            onClear={onClearSearchKeyword}
-          />
+          >
+            <RadixTextField.Slot side="left">
+              <MagnifyingGlassIcon className={styles.searchIcon} />
+            </RadixTextField.Slot>
+            {filters.searchKeyword !== "" ? (
+              <RadixTextField.Slot side="right">
+                <button
+                  type="button"
+                  className={styles.searchClearButton}
+                  aria-label={renderToString("APIResourcesScreen.clear-search")}
+                  onClick={onClearSearchKeyword}
+                >
+                  <Cross2Icon className={styles.searchClearIcon} />
+                </button>
+              </RadixTextField.Slot>
+            ) : null}
+          </RadixTextField.Root>
         ) : null}
         <div className={styles.filterContainer}>
           {showRoleFilter ? (

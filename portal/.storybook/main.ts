@@ -1,6 +1,11 @@
 import type { StorybookConfig } from "@storybook/react-vite";
 
 import { join, dirname } from "path";
+import { createRequire } from "module";
+
+// This package is ESM ("type": "module"), so `require` is not defined here.
+// Recreate it from the module URL for getAbsolutePath's require.resolve below.
+const require = createRequire(import.meta.url);
 
 /**
  * This function is used to resolve the absolute path of a package.

@@ -1,18 +1,10 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import {
-  Dialog,
-  DialogFooter,
-  IDialogContentProps,
-  Label,
-  Text,
-} from "@fluentui/react";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { Heading, Text } from "@radix-ui/themes";
+import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "../../intl";
-import { SearchBox } from "@fluentui/react/lib/SearchBox";
 import { useResourcesQueryQuery } from "../adminapi/query/resourcesQuery.generated";
 import {
   ApplicationResourcesList,
@@ -26,7 +18,7 @@ import { useAddResourceToClientIdMutation } from "../adminapi/mutations/addResou
 
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import Link from "../../Link";
 import {
   OAuthClientConfig,
   PortalAPIAppConfig,
@@ -38,8 +30,13 @@ import { genRandomHexadecimalString } from "../../util/random";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import styles from "./CreateOAuthClientScreen.module.css";
 import { FormProvider } from "../../form";
-import Widget from "../../Widget";
-import ButtonWithLoading from "../../ButtonWithLoading";
+import {
+  TextField,
+  TextFieldIcon,
+} from "../../components/v2/TextField/TextField";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import {
   AppSecretConfigFormModel,
@@ -124,6 +121,14 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
 
     const PAGE_SIZE = 10;
 
+    const onSearchChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchKeyword(e.currentTarget.value);
+        setOffset(0);
+      },
+      []
+    );
+
     const { data, loading, error, refetch } = useResourcesQueryQuery({
       variables: {
         first: PAGE_SIZE,
@@ -184,43 +189,53 @@ const StepAuthorizeResource: React.VFC<StepAuthorizeResourceProps> =
     }
 
     return (
-      <Widget className={cn(styles.widget, styles.wizardWidget)}>
-        <div>
-          <Label>{renderToString("CreateOAuthClientScreen.name.label")}</Label>
-          <Text block={true}>{client.name}</Text>
+      <div className={cn(styles.widget, styles.wizardPanel)}>
+        <div className={styles.m2mNameBlock}>
+          <Text as="p" size="2" weight="medium" className={styles.m2mNameLabel}>
+            {renderToString("CreateOAuthClientScreen.name.label")}
+          </Text>
+          <Text as="p" size="2" className={styles.m2mNameValue}>
+            {client.name}
+          </Text>
         </div>
-        <Text block={true}>
+        <Text as="p" size="2" className={styles.m2mDescription}>
           <FormattedMessage id="CreateOAuthClientScreen.authorize-resource.description" />
         </Text>
-        <SearchBox
-          placeholder={renderToString("search")}
-          styles={{ root: { width: 300 } }}
-          onChange={(_e, newValue) => {
-            setSearchKeyword(newValue ?? "");
-            setOffset(0);
-          }}
-        />
-        <div
-          style={{ minHeight: 500, display: "flex", flexDirection: "column" }}
-        >
+        <div className={styles.searchField}>
+          <TextField
+            size="2"
+            type="search"
+            placeholder={renderToString("search")}
+            value={searchKeyword}
+            iconStart={TextFieldIcon.MagnifyingGlass}
+            onChange={onSearchChange}
+          />
+        </div>
+        <div className={styles.resourceListContainer}>
           <ApplicationResourcesList
             className="flex-1"
             resources={resourceListData}
             loading={loading}
             pagination={pagination}
             onToggleAuthorization={handleToggleAuthorization}
+            isSearchActive={debouncedSearchKeyword !== ""}
           />
         </div>
         <div className={styles.footer}>
-          <ButtonWithLoading
+          <SecondaryButton
+            size="2"
+            text={renderToString("back")}
+            onClick={onClickBack}
+          />
+          <PrimaryButton
+            size="2"
             onClick={onClickSave}
             loading={isUpdating}
             disabled={!isDirty}
-            labelId="CreateOAuthClientScreen.submit"
+            text={<FormattedMessage id="CreateOAuthClientScreen.submit" />}
           />
-          <DefaultButton text={renderToString("back")} onClick={onClickBack} />
         </div>
-      </Widget>
+      </div>
     );
   };
 
@@ -235,21 +250,6 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
     const { appID } = useParams() as { appID: string };
     const navigate = useNavigate();
     const capture = useCapture();
-
-    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-      return [
-        {
-          to: "~/configuration/apps",
-          label: (
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
-          ),
-        },
-        {
-          to: ".",
-          label: <FormattedMessage id="CreateOAuthClientScreen.title" />,
-        },
-      ];
-    }, []);
 
     const [clientId] = useState(state.newClient.client_id);
     const client =
@@ -287,7 +287,20 @@ const CreateM2MClientContent: React.VFC<CreateM2MClientContentProps> =
 
     return (
       <ScreenContent className="flex-1-0-auto" layout={"list"}>
-        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+        <div className={cn(styles.widget, styles.pageHeader)}>
+          <Link
+            to={`/project/${appID}/configuration/apps`}
+            className={styles.backLink}
+          >
+            <ChevronLeftIcon className={styles.backLinkIcon} />
+            <span>
+              <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+            </span>
+          </Link>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="CreateOAuthClientScreen.title" />
+          </Heading>
+        </div>
         <StepAuthorizeResource
           client={client}
           form={form}
@@ -302,7 +315,6 @@ const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
   const location = useLocation();
-  const { renderToString } = useContext(Context);
   const [addResource] = useAddResourceToClientIdMutation();
 
   // The application name is entered on the New Application screen (/add) and
@@ -333,12 +345,13 @@ const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
     navigate(`/project/${appID}/configuration/apps`);
   }, [appID, navigate]);
 
-  const noResourcesDialogContent: IDialogContentProps = useMemo(
-    () => ({
-      title: renderToString("CreateM2MClientScreen.no-resources-dialog.title"),
-      subText: renderToString("CreateM2MClientScreen.no-resources-dialog.body"),
-    }),
-    [renderToString]
+  const onNoResourcesDialogOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        goToAppsList();
+      }
+    },
+    [goToAppsList]
   );
 
   const form = useAppSecretConfigForm({
@@ -388,28 +401,26 @@ const CreateM2MClientScreen: React.VFC = function CreateM2MClientScreen() {
         rules={errorRules}
       >
         <FormErrorMessageBar />
-        <div className="flex-1 overflow-y-auto flex flex-col">
+        <div className={styles.scrollArea}>
           <CreateM2MClientContent form={form} />
         </div>
-        <Dialog
-          hidden={!noAPIResources}
-          dialogContentProps={noResourcesDialogContent}
-          modalProps={{ isBlocking: true }}
-          onDismiss={goToAppsList}
-        >
-          <DialogFooter>
-            <PrimaryButton
-              onClick={goToAPIResources}
-              text={
-                <FormattedMessage id="CreateM2MClientScreen.no-resources-dialog.cta" />
-              }
-            />
-            <DefaultButton
-              onClick={goToAppsList}
-              text={<FormattedMessage id="cancel" />}
-            />
-          </DialogFooter>
-        </Dialog>
+        <ConfirmationDialog
+          open={noAPIResources}
+          onOpenChange={onNoResourcesDialogOpenChange}
+          title={
+            <FormattedMessage id="CreateM2MClientScreen.no-resources-dialog.title" />
+          }
+          description={
+            <FormattedMessage id="CreateM2MClientScreen.no-resources-dialog.body" />
+          }
+          confirmText={
+            <FormattedMessage id="CreateM2MClientScreen.no-resources-dialog.cta" />
+          }
+          cancelText={<FormattedMessage id="cancel" />}
+          onConfirm={goToAPIResources}
+          onCancel={goToAppsList}
+          confirmColor="indigo"
+        />
       </FormProvider>
     ),
   });

@@ -1,14 +1,13 @@
 import React, { useMemo } from "react";
 import cn from "classnames";
-import { IconButton, Text } from "@fluentui/react";
+import { Button, Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
+import { TextField } from "../../components/v2/TextField/TextField";
 import ExternalLink from "../../ExternalLink";
 import PortalLink from "../../Link";
-import LinkButton from "../../LinkButton";
-import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
-import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import type { StarterKit } from "./CreateOAuthClientScreen/frameworks";
 import { buildConfigContent } from "./CreateOAuthClientScreen/starterKit";
 import styles from "./EditOAuthClientFormFrameworkQuickStart.module.css";
@@ -60,10 +59,6 @@ export function StarterKitSection(
     [starterKit, clientID, publicOrigin]
   );
 
-  const { copyButtonProps, Feedback } = useCopyFeedback({
-    textToCopy: configContent,
-  });
-
   const { mobileRun } = starterKit;
   // Step 3 shares copy between source-file kits (js, swift) under one "code" key.
   const configCategory =
@@ -79,7 +74,7 @@ export function StarterKitSection(
 
   return (
     <>
-      <Text variant="xLarge" block={true} className={styles.starterKitTitle}>
+      <Text as="p" size="4" weight="bold" className={styles.starterKitTitle}>
         <FormattedMessage id="StarterKit.section-title" />
       </Text>
 
@@ -88,27 +83,35 @@ export function StarterKitSection(
         stepNumber="1"
         title={<FormattedMessage id="StarterKit.step1.title" />}
       >
-        <Text block={true} className={styles.stepBody}>
+        <Text as="p" size="2" className={styles.stepBody}>
           <FormattedMessage
             id="StarterKit.step1.body"
             values={{ displayName: frameworkDisplayName }}
           />
         </Text>
         <div className={styles.stepButtonRow}>
-          <PrimaryButton
-            iconProps={{ iconName: "Download" }}
-            href={starterKit.downloadUrl}
-            target="_blank"
-            rel="noreferrer"
-            text={<FormattedMessage id="StarterKit.step1.download" />}
-          />
-          <DefaultButton
-            onRenderIcon={renderGitHubIcon}
-            href={starterKit.repoUrl}
-            target="_blank"
-            rel="noreferrer"
-            text={<FormattedMessage id="StarterKit.step1.view-github" />}
-          />
+          <Button size="2" variant="solid" color="indigo" asChild={true}>
+            <a
+              href={starterKit.downloadUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={styles.buttonLink}
+            >
+              <i className="ti ti-download" aria-hidden={true} />
+              <FormattedMessage id="StarterKit.step1.download" />
+            </a>
+          </Button>
+          <Button size="2" variant="surface" color="gray" asChild={true}>
+            <a
+              href={starterKit.repoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={styles.buttonLink}
+            >
+              {renderGitHubIcon()}
+              <FormattedMessage id="StarterKit.step1.view-github" />
+            </a>
+          </Button>
         </div>
       </QuickStartStep>
 
@@ -117,7 +120,7 @@ export function StarterKitSection(
         stepNumber="2"
         title={<FormattedMessage id="StarterKit.step2.title" />}
       >
-        <Text block={true} className={styles.stepBody}>
+        <Text as="p" size="2" className={styles.stepBody}>
           <FormattedMessage
             id="StarterKit.step2.body"
             values={{ count: starterKit.redirectURIs.length }}
@@ -125,7 +128,14 @@ export function StarterKitSection(
         </Text>
         <div className={styles.redirectURIList}>
           {starterKit.redirectURIs.map((uri) => (
-            <TextFieldWithCopyButton key={uri} value={uri} readOnly={true} />
+            <TextField
+              key={uri}
+              size="2"
+              value={uri}
+              readOnly={true}
+              suffixPlain={true}
+              suffix={<CopyIconButton textToCopy={uri} />}
+            />
           ))}
         </div>
         <div className={styles.redirectStatusRow}>
@@ -137,12 +147,14 @@ export function StarterKitSection(
                 <i className="ti ti-circle-check" aria-hidden={true} />
                 <FormattedMessage id="StarterKit.step2.status.authorized" />
               </span>
-              <LinkButton
+              <Button
+                variant="ghost"
+                size="2"
                 className={styles.redirectManageLink}
                 onClick={onGoToSettings}
               >
                 <FormattedMessage id="StarterKit.step2.manage" />
-              </LinkButton>
+              </Button>
             </>
           ) : (
             <>
@@ -153,8 +165,10 @@ export function StarterKitSection(
                 <FormattedMessage id="StarterKit.step2.status.unauthorized" />
               </span>
               <PrimaryButton
+                size="2"
                 onClick={onAuthorize}
                 disabled={saving}
+                loading={saving}
                 text={<FormattedMessage id="StarterKit.step2.authorize" />}
               />
             </>
@@ -169,7 +183,7 @@ export function StarterKitSection(
           <FormattedMessage id={`StarterKit.step3.title.${configCategory}`} />
         }
       >
-        <Text block={true} className={styles.stepBody}>
+        <Text as="p" size="2" className={styles.stepBody}>
           <FormattedMessage
             id={`StarterKit.step3.body.${configCategory}`}
             values={{ code: inlineCode, fileName: starterKit.config.fileName }}
@@ -177,8 +191,7 @@ export function StarterKitSection(
         </Text>
         <div className={styles.envCard}>
           <div className={styles.envCopyWrap}>
-            <IconButton {...copyButtonProps} />
-            <Feedback />
+            <CopyIconButton textToCopy={configContent} />
           </div>
           <pre className={styles.snippetCode}>
             <code>{configContent}</code>
@@ -192,7 +205,7 @@ export function StarterKitSection(
           stepNumber="4"
           title={<FormattedMessage id="StarterKit.step4.title" />}
         >
-          <Text block={true} className={styles.stepBody}>
+          <Text as="p" size="2" className={styles.stepBody}>
             <FormattedMessage
               id="StarterKit.step4.body"
               values={{ installCmd: starterKit.installCmd, code: inlineCode }}
@@ -206,7 +219,7 @@ export function StarterKitSection(
         stepNumber={String(startNo)}
         title={<FormattedMessage id="StarterKit.step5.title" />}
       >
-        <Text block={true} className={styles.stepBody}>
+        <Text as="p" size="2" className={styles.stepBody}>
           {starterKit.startCmd != null && starterKit.homepageUrl != null ? (
             <FormattedMessage
               id="StarterKit.step5.body"
@@ -243,7 +256,7 @@ export function StarterKitSection(
             stepNumber={String(startNo + 1)}
             title={<FormattedMessage id="StarterKit.mobile.ios.title" />}
           >
-            <Text block={true} className={styles.stepBody}>
+            <Text as="p" size="2" className={styles.stepBody}>
               <FormattedMessage
                 id="StarterKit.mobile.ios.body"
                 values={{
@@ -261,7 +274,7 @@ export function StarterKitSection(
             stepNumber={String(startNo + 2)}
             title={<FormattedMessage id="StarterKit.mobile.android.title" />}
           >
-            <Text block={true} className={styles.stepBody}>
+            <Text as="p" size="2" className={styles.stepBody}>
               <FormattedMessage
                 id="StarterKit.mobile.android.body"
                 values={{
@@ -281,7 +294,7 @@ export function StarterKitSection(
         stepNumber={String(signupNo)}
         title={<FormattedMessage id="StarterKit.step6.title" />}
       >
-        <Text block={true} className={styles.stepBody}>
+        <Text as="p" size="2" className={styles.stepBody}>
           <FormattedMessage
             id="StarterKit.step6.body"
             values={{
@@ -299,21 +312,23 @@ export function StarterKitSection(
         stepNumber={String(signupNo + 1)}
         title={<FormattedMessage id="StarterKit.step7.title" />}
       >
-        <Text block={true} className={styles.stepBody}>
+        <Text as="p" size="2" className={styles.stepBody}>
           <FormattedMessage id="StarterKit.step7.body" />
         </Text>
         <div className={styles.stepButtonRow}>
-          <DefaultButton
-            href={starterKit.guideUrl}
-            target="_blank"
-            rel="noreferrer"
-            text={
+          <Button size="2" variant="surface" color="gray" asChild={true}>
+            <a
+              href={starterKit.guideUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={styles.buttonLink}
+            >
               <FormattedMessage
                 id="StarterKit.step7.guide"
                 values={{ displayName: frameworkDisplayName }}
               />
-            }
-          />
+            </a>
+          </Button>
         </div>
       </QuickStartStep>
 
@@ -323,7 +338,8 @@ export function StarterKitSection(
         title={<FormattedMessage id="StarterKit.step8.title" />}
       >
         <div className={styles.stepButtonRow}>
-          <DefaultButton
+          <SecondaryButton
+            size="2"
             onClick={onGoToSettings}
             text={<FormattedMessage id="StarterKit.step8.settings" />}
           />

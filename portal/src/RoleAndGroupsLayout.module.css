@@ -12,9 +12,11 @@
   @apply flex-1-0-auto;
   @apply p-6;
 
-  @apply grid gap-12;
+  @apply grid gap-6;
   grid-template-columns: 100%;
   grid-template-rows: min-content minmax(min-content, 1fr);
+
+  @apply mobile:flex mobile:flex-col mobile:gap-6;
 }
 
 .topBar {
@@ -24,16 +26,60 @@
 }
 
 .header {
-  @apply flex flex-row justify-between;
+  @apply flex flex-col;
 }
 
-.breadcrumb {
-  @apply flex-1;
+.headerMain {
+  @apply flex flex-col gap-2;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--accent-9);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.backLinkIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.titleRow {
+  @apply flex items-start justify-between gap-4;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.headerDescription {
+  color: var(--gray-a11);
+}
+
+.headerDescription p {
+  margin: 0;
 }
 
 .content {
-  @apply min-h-min;
-  @apply flex flex-col;
+  @apply min-h-0;
+  @apply flex flex-col flex-1;
+  min-width: 0;
+
+  @apply mobile:min-h-min mobile:flex-none mobile:overflow-visible;
 }
 
 .verticalForm {

@@ -1,10 +1,7 @@
-import React, { useMemo, useContext, useCallback } from "react";
-import { Context, FormattedMessage } from "../../intl";
-import { Dialog, DialogFooter, IDialogContentProps } from "@fluentui/react";
+import React, { useCallback } from "react";
+import { FormattedMessage } from "../../intl";
 
-import ButtonWithLoading from "../../ButtonWithLoading";
-import DefaultButton from "../../DefaultButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 
 export interface RemovePortalAdminInvitationConfirmationDialogData {
   invitationID: string;
@@ -29,23 +26,10 @@ const RemovePortalAdminInvitationConfirmationDialog: React.VFC<RemovePortalAdmin
       onDismiss: onDismissProps,
     } = props;
 
-    const { renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
-
-    const dialogContentProps: IDialogContentProps = useMemo(() => {
-      return {
-        title: (
-          <FormattedMessage id="RemovePortalAdminInvitationConfirmationDialog.title" />
-        ),
-        subText: renderToString(
-          "RemovePortalAdminInvitationConfirmationDialog.message",
-          { email: data?.email ?? "" }
-        ),
-      };
-    }, [data?.email, renderToString]);
-
     const onConfirmClicked = useCallback(() => {
-      deleteCollaboratorInvitation(data!.invitationID);
+      if (data != null) {
+        deleteCollaboratorInvitation(data.invitationID);
+      }
     }, [data, deleteCollaboratorInvitation]);
 
     const onDismiss = useCallback(() => {
@@ -54,28 +38,35 @@ const RemovePortalAdminInvitationConfirmationDialog: React.VFC<RemovePortalAdmin
       }
     }, [onDismissProps, deletingCollaboratorInvitation]);
 
+    const onOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onDismiss();
+        }
+      },
+      [onDismiss]
+    );
+
     return (
-      <Dialog
-        hidden={!visible}
-        dialogContentProps={dialogContentProps}
-        modalProps={{ isBlocking: deletingCollaboratorInvitation }}
-        onDismiss={onDismiss}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            onClick={onConfirmClicked}
-            labelId="confirm"
-            theme={themes.destructive}
-            loading={deletingCollaboratorInvitation}
-            disabled={!visible}
+      <ConfirmationDialog
+        open={visible}
+        onOpenChange={onOpenChange}
+        title={
+          <FormattedMessage id="RemovePortalAdminInvitationConfirmationDialog.title" />
+        }
+        description={
+          <FormattedMessage
+            id="RemovePortalAdminInvitationConfirmationDialog.message"
+            values={{ email: data?.email ?? "" }}
           />
-          <DefaultButton
-            disabled={deletingCollaboratorInvitation || !visible}
-            onClick={onDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+        }
+        confirmText={<FormattedMessage id="confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        onConfirm={onConfirmClicked}
+        onCancel={onDismiss}
+        loading={deletingCollaboratorInvitation}
+        confirmColor="red"
+      />
     );
   };
 

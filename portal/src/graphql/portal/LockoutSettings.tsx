@@ -1,23 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-parameters */
 
 import React, { ReactElement, useMemo, useContext, useCallback } from "react";
+import cn from "classnames";
+import { Checkbox, Flex, RadioGroup, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context as MessageContext } from "../../intl";
-import { Checkbox, Dropdown, IDropdownOption, Text } from "@fluentui/react";
-import Widget from "../../Widget";
-import WidgetTitle from "../../WidgetTitle";
-import WidgetDescription from "../../WidgetDescription";
-import { WidgetSubsection } from "./LoginMethodConfigurationScreen";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { AuthenticationLockoutType } from "../../types";
 import { produce } from "immer";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import styles from "./LockoutSettings.module.css";
-import HorizontalDivider from "../../HorizontalDivider";
-import FormTextField from "../../FormTextField";
 import {
   ErrorParseRule,
   makeValidationErrorCustomMessageIDRule,
 } from "../../error/parse";
-import Toggle from "../../Toggle";
 
 export interface State {
   isEnabled: boolean;
@@ -38,24 +35,31 @@ export interface LockoutSettingsProps<T extends State> extends State {
   setState: (fn: (state: T) => T) => void;
 }
 
-function SubsectionTitle(
-  props: React.PropsWithChildren<Record<never, never>>
-): ReactElement {
-  const { children } = props;
+interface LabeledCheckboxProps {
+  label?: React.ReactNode;
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+}
 
-  const styles = useMemo(
-    () => ({
-      root: {
-        fontWeight: "600",
-      },
-    }),
-    []
+function LabeledCheckbox(props: LabeledCheckboxProps) {
+  const { label, checked, onCheckedChange } = props;
+  const handleCheckedChange = useCallback(
+    (checked: boolean | "indeterminate") => {
+      if (checked === "indeterminate") {
+        return;
+      }
+      onCheckedChange?.(checked);
+    },
+    [onCheckedChange]
   );
-
   return (
-    <Text as="h3" block={true} variant="mediumPlus" styles={styles}>
-      {children}
-    </Text>
+    <label className={styles.checkboxRow}>
+      <Checkbox
+        checked={checked ?? false}
+        onCheckedChange={handleCheckedChange}
+      />
+      <Text size="2">{label}</Text>
+    </label>
   );
 }
 
@@ -68,10 +72,8 @@ function useIntegerOnChange<T extends State>(
     | "maximumDurationMins"
 ) {
   return useCallback(
-    (_: unknown, value?: string | undefined) => {
-      if (value == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.currentTarget.value;
       setState((prev) =>
         produce(prev, (prev) => {
           prev[key] = parseIntegerAllowLeadingZeros(value);
@@ -87,10 +89,8 @@ function useDecimalOnChange<T extends State>(
   key: "backoffFactorRaw"
 ) {
   return useCallback(
-    (_: unknown, value?: string | undefined) => {
-      if (value == null) {
-        return;
-      }
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.currentTarget.value;
       const newNumber = Number(value);
       if (!Number.isFinite(newNumber)) {
         return;
@@ -115,10 +115,7 @@ function useBooleanOnChange<T extends State>(
     | "isEnabledForRecoveryCode"
 ) {
   return useCallback(
-    (_: unknown, value?: boolean | undefined) => {
-      if (value == null) {
-        return;
-      }
+    (value: boolean) => {
       setState((prev) =>
         produce(prev, (prev) => {
           prev[key] = value;
@@ -143,12 +140,14 @@ function formatOptionalHour(hour: number): {
 }
 
 function LockoutThresholdSection<T extends State>(props: {
+  className?: string;
   state: T;
-  onMaxAttemptsChange: (_: unknown, value?: string | undefined) => void;
-  onHistoryDurationMinsChange: (_: unknown, value?: string | undefined) => void;
+  onMaxAttemptsChange: React.ChangeEventHandler<HTMLInputElement>;
+  onHistoryDurationMinsChange: React.ChangeEventHandler<HTMLInputElement>;
 }) {
   const { renderToString } = useContext(MessageContext);
-  const { state, onHistoryDurationMinsChange, onMaxAttemptsChange } = props;
+  const { className, state, onHistoryDurationMinsChange, onMaxAttemptsChange } =
+    props;
   const overallDescValues = useMemo(() => {
     const hours = formatOptionalHour((state.historyDurationMins ?? 0) / 60);
     return {
@@ -160,52 +159,55 @@ function LockoutThresholdSection<T extends State>(props: {
   }, [state.historyDurationMins, state.maxAttempts]);
 
   return (
-    <WidgetSubsection>
-      <SubsectionTitle>
+    <SettingsSectionCard
+      className={className}
+      contentClassName="gap-4"
+      title={
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.title" />
-      </SubsectionTitle>
-      <WidgetDescription>
+      }
+      description={
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.description" />
-      </WidgetDescription>
-      <div>
-        <FormTextField
-          fieldName="max_attempts"
-          parentJSONPointer="/authentication/lockout"
-          type="text"
-          label={renderToString(
-            "LoginMethodConfigurationScreen.lockout.threshold.failedAttempts.title"
-          )}
-          value={state.maxAttempts?.toFixed(0) ?? ""}
-          onChange={onMaxAttemptsChange}
-        />
-        <WidgetDescription className="mt-2">
+      }
+    >
+      <TextField
+        size="2"
+        labelSize="2"
+        fieldName="max_attempts"
+        parentJSONPointer="/authentication/lockout"
+        type="text"
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.threshold.failedAttempts.title"
+        )}
+        value={state.maxAttempts?.toFixed(0) ?? ""}
+        onChange={onMaxAttemptsChange}
+        hint={
           <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.failedAttempts.description" />
-        </WidgetDescription>
-      </div>
-      <div>
-        <FormTextField
-          fieldName="history_duration"
-          parentJSONPointer="/authentication/lockout"
-          type="text"
-          label={renderToString(
-            "LoginMethodConfigurationScreen.lockout.threshold.resetAfter.title"
-          )}
-          value={state.historyDurationMins?.toFixed(0) ?? ""}
-          onChange={onHistoryDurationMinsChange}
-        />
-        <WidgetDescription className="mt-2">
+        }
+      />
+      <TextField
+        size="2"
+        labelSize="2"
+        fieldName="history_duration"
+        parentJSONPointer="/authentication/lockout"
+        type="text"
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.threshold.resetAfter.title"
+        )}
+        value={state.historyDurationMins?.toFixed(0) ?? ""}
+        onChange={onHistoryDurationMinsChange}
+        hint={
           <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.resetAfter.description" />
-        </WidgetDescription>
-      </div>
+        }
+      />
       <div className={styles.descriptionBox}>
-        <Text variant="medium">
+        <Text size="2">
           <FormattedMessage
             id="LoginMethodConfigurationScreen.lockout.threshold.overall.description"
             values={overallDescValues}
           />
         </Text>
       </div>
-    </WidgetSubsection>
+    </SettingsSectionCard>
   );
 }
 
@@ -218,13 +220,15 @@ const minDurationErrorParseRules: ErrorParseRule[] = [
 ];
 
 function LockoutDurationSection<T extends State>(props: {
+  className?: string;
   state: T;
-  onMinDurationChange: (_: unknown, value?: string | undefined) => void;
-  onBackoffFactorChange: (_: unknown, value?: string | undefined) => void;
-  onMaximumDurationMinsChange: (_: unknown, value?: string | undefined) => void;
+  onMinDurationChange: React.ChangeEventHandler<HTMLInputElement>;
+  onBackoffFactorChange: React.ChangeEventHandler<HTMLInputElement>;
+  onMaximumDurationMinsChange: React.ChangeEventHandler<HTMLInputElement>;
 }) {
   const { renderToString } = useContext(MessageContext);
   const {
+    className,
     state,
     onBackoffFactorChange,
     onMaximumDurationMinsChange,
@@ -257,62 +261,64 @@ function LockoutDurationSection<T extends State>(props: {
   }, [state]);
 
   return (
-    <WidgetSubsection>
-      <SubsectionTitle>
+    <SettingsSectionCard
+      className={className}
+      contentClassName="gap-4"
+      title={
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.title" />
-      </SubsectionTitle>
-      <WidgetDescription>
+      }
+      description={
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.description" />
-      </WidgetDescription>
-      <div>
-        <FormTextField
-          fieldName="minimum_duration"
-          parentJSONPointer="/authentication/lockout"
-          type="text"
-          label={renderToString(
-            "LoginMethodConfigurationScreen.lockout.duration.duration.title"
-          )}
-          value={state.minimumDurationMins?.toFixed(0) ?? ""}
-          onChange={onMinDurationChange}
-          errorRules={minDurationErrorParseRules}
-        />
-        <WidgetDescription className="mt-2">
+      }
+    >
+      <TextField
+        size="2"
+        labelSize="2"
+        fieldName="minimum_duration"
+        parentJSONPointer="/authentication/lockout"
+        type="text"
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.duration.duration.title"
+        )}
+        value={state.minimumDurationMins?.toFixed(0) ?? ""}
+        onChange={onMinDurationChange}
+        errorRules={minDurationErrorParseRules}
+        hint={
           <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.duration.description" />
-        </WidgetDescription>
-      </div>
-      <div>
-        <FormTextField
-          fieldName="backoff_factor"
-          parentJSONPointer="/authentication/lockout"
-          type="text"
-          label={renderToString(
-            "LoginMethodConfigurationScreen.lockout.duration.backoff.title"
-          )}
-          value={state.backoffFactorRaw ?? ""}
-          onChange={onBackoffFactorChange}
-        />
-        <WidgetDescription className="mt-2">
+        }
+      />
+      <TextField
+        size="2"
+        labelSize="2"
+        fieldName="backoff_factor"
+        parentJSONPointer="/authentication/lockout"
+        type="text"
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.duration.backoff.title"
+        )}
+        value={state.backoffFactorRaw ?? ""}
+        onChange={onBackoffFactorChange}
+        hint={
           <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.backoff.description" />
-        </WidgetDescription>
-      </div>
-      <div>
-        <FormTextField
-          fieldName="maximum_duration"
-          parentJSONPointer="/authentication/lockout"
-          type="text"
-          label={renderToString(
-            "LoginMethodConfigurationScreen.lockout.duration.max.title"
-          )}
-          value={state.maximumDurationMins?.toFixed(0) ?? ""}
-          onChange={onMaximumDurationMinsChange}
-        />
-        <WidgetDescription className="mt-2">
+        }
+      />
+      <TextField
+        size="2"
+        labelSize="2"
+        fieldName="maximum_duration"
+        parentJSONPointer="/authentication/lockout"
+        type="text"
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.duration.max.title"
+        )}
+        value={state.maximumDurationMins?.toFixed(0) ?? ""}
+        onChange={onMaximumDurationMinsChange}
+        hint={
           <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.max.description" />
-        </WidgetDescription>
-      </div>
-
+        }
+      />
       <div className={styles.descriptionBox}>
-        <Text variant="medium">
+        <Text size="2">
           {Number(state.backoffFactorRaw) <= 1 ? (
             <FormattedMessage
               id="LoginMethodConfigurationScreen.lockout.duration.overall.description.noBackoff"
@@ -328,66 +334,91 @@ function LockoutDurationSection<T extends State>(props: {
           )}
         </Text>
       </div>
-    </WidgetSubsection>
+    </SettingsSectionCard>
   );
 }
 
 function LockoutTypeSection<T extends State>(props: {
+  className?: string;
   state: T;
-  onChangeLockoutType: (
-    _: unknown,
-    option?: IDropdownOption<AuthenticationLockoutType>
-  ) => void;
+  onChangeLockoutType: (value: string) => void;
 }) {
-  const { state, onChangeLockoutType } = props;
+  const { className, state, onChangeLockoutType } = props;
   const { renderToString } = useContext(MessageContext);
 
-  const lockoutTypeOptions = useMemo<
-    IDropdownOption<AuthenticationLockoutType>[]
-  >(() => {
+  const lockoutTypeOptions = useMemo(() => {
     return [
       {
         key: "per_user",
-        data: "per_user",
         text: renderToString(
           "LoginMethodConfigurationScreen.lockout.type.perUser"
+        ),
+        description: renderToString(
+          "LoginMethodConfigurationScreen.lockout.type.perUser.description"
         ),
       },
       {
         key: "per_user_per_ip",
-        data: "per_user_per_ip",
         text: renderToString(
           "LoginMethodConfigurationScreen.lockout.type.perUserPerIP"
+        ),
+        description: renderToString(
+          "LoginMethodConfigurationScreen.lockout.type.perUserPerIP.description"
         ),
       },
     ];
   }, [renderToString]);
 
   return (
-    <WidgetSubsection>
-      <SubsectionTitle>
+    <SettingsSectionCard
+      className={className}
+      contentClassName="gap-4"
+      title={
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.type.title" />
-      </SubsectionTitle>
-      <WidgetDescription>
+      }
+      description={
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.type.description" />
-      </WidgetDescription>
-      <Dropdown
-        options={lockoutTypeOptions}
-        selectedKey={state.lockoutType}
-        onChange={onChangeLockoutType}
-      />
-    </WidgetSubsection>
+      }
+    >
+      <RadioGroup.Root
+        value={state.lockoutType}
+        onValueChange={onChangeLockoutType}
+      >
+        <Flex direction="column" gap="3">
+          {lockoutTypeOptions.map((option) => (
+            <Text
+              key={option.key}
+              as="label"
+              size="2"
+              className={styles.radioOption}
+            >
+              <Flex gap="2">
+                <RadioGroup.Item value={option.key} />
+                <Flex direction="column" gap="1">
+                  <span>{option.text}</span>
+                  <Text size="2" color="gray">
+                    {option.description}
+                  </Text>
+                </Flex>
+              </Flex>
+            </Text>
+          ))}
+        </Flex>
+      </RadioGroup.Root>
+    </SettingsSectionCard>
   );
 }
 
 function LockoutAuthenticatorSection<T extends State>(props: {
+  className?: string;
   state: T;
-  onChangeIsEnabledForPassword: (_: unknown, checked?: boolean) => void;
-  onChangeIsEnabledForOOBOTP: (_: unknown, checked?: boolean) => void;
-  onChangeIsEnabledForTOTP: (_: unknown, checked?: boolean) => void;
-  onChangeIsEnabledForRecoveryCode: (_: unknown, checked?: boolean) => void;
+  onChangeIsEnabledForPassword: (checked: boolean) => void;
+  onChangeIsEnabledForOOBOTP: (checked: boolean) => void;
+  onChangeIsEnabledForTOTP: (checked: boolean) => void;
+  onChangeIsEnabledForRecoveryCode: (checked: boolean) => void;
 }) {
   const {
+    className,
     state,
     onChangeIsEnabledForPassword,
     onChangeIsEnabledForOOBOTP,
@@ -397,42 +428,47 @@ function LockoutAuthenticatorSection<T extends State>(props: {
   const { renderToString } = useContext(MessageContext);
 
   return (
-    <WidgetSubsection>
-      <SubsectionTitle>
+    <SettingsSectionCard
+      className={className}
+      contentClassName="gap-4"
+      title={
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.authenticator.title" />
-      </SubsectionTitle>
-      <WidgetDescription>
+      }
+      description={
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.authenticator.description" />
-      </WidgetDescription>
-      <Checkbox
-        label={renderToString(
-          "LoginMethodConfigurationScreen.lockout.authenticator.password"
-        )}
-        checked={state.isEnabledForPassword}
-        onChange={onChangeIsEnabledForPassword}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginMethodConfigurationScreen.lockout.authenticator.passwordless"
-        )}
-        checked={state.isEnabledForOOBOTP}
-        onChange={onChangeIsEnabledForOOBOTP}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginMethodConfigurationScreen.lockout.authenticator.totp"
-        )}
-        checked={state.isEnabledForTOTP}
-        onChange={onChangeIsEnabledForTOTP}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginMethodConfigurationScreen.lockout.authenticator.recoveryCode"
-        )}
-        checked={state.isEnabledForRecoveryCode}
-        onChange={onChangeIsEnabledForRecoveryCode}
-      />
-    </WidgetSubsection>
+      }
+    >
+      <div className={styles.checkboxGroup}>
+        <LabeledCheckbox
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.authenticator.password"
+          )}
+          checked={state.isEnabledForPassword}
+          onCheckedChange={onChangeIsEnabledForPassword}
+        />
+        <LabeledCheckbox
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.authenticator.passwordless"
+          )}
+          checked={state.isEnabledForOOBOTP}
+          onCheckedChange={onChangeIsEnabledForOOBOTP}
+        />
+        <LabeledCheckbox
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.authenticator.totp"
+          )}
+          checked={state.isEnabledForTOTP}
+          onCheckedChange={onChangeIsEnabledForTOTP}
+        />
+        <LabeledCheckbox
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.authenticator.recoveryCode"
+          )}
+          checked={state.isEnabledForRecoveryCode}
+          onCheckedChange={onChangeIsEnabledForRecoveryCode}
+        />
+      </div>
+    </SettingsSectionCard>
   );
 }
 
@@ -463,17 +499,10 @@ export default function LockoutSettings<T extends State>(
     "maximumDurationMins"
   );
   const onChangeLockoutType = useCallback(
-    (_: unknown, option?: IDropdownOption<AuthenticationLockoutType>) => {
-      if (option == null) {
-        return;
-      }
-      const { data: newType } = option;
-      if (newType == null) {
-        return;
-      }
+    (value: string) => {
       setState((prev) =>
         produce(prev, (prev) => {
-          prev.lockoutType = newType;
+          prev.lockoutType = value as AuthenticationLockoutType;
         })
       );
     },
@@ -497,36 +526,41 @@ export default function LockoutSettings<T extends State>(
   );
 
   return (
-    <Widget className={className}>
-      <WidgetTitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.title" />
-      </WidgetTitle>
-      <Toggle
-        checked={state.isEnabled}
-        label={renderToString("LoginMethodConfigurationScreen.lockout.enable")}
-        onChange={onChangeIsEnabled}
-      />
+    <>
+      <SettingsSectionCard
+        className={cn(className, styles.settingsCardAlignCenter)}
+        contentClassName="gap-4"
+        title={<FormattedMessage id="AccountLockoutScreen.settings.label" />}
+      >
+        <Toggle
+          textWeight="medium"
+          checked={state.isEnabled}
+          text={renderToString("AccountLockoutScreen.enable.label")}
+          onCheckedChange={onChangeIsEnabled}
+        />
+      </SettingsSectionCard>
       {state.isEnabled ? (
         <>
           <LockoutThresholdSection
+            className={className}
             state={state}
             onHistoryDurationMinsChange={onHistoryDurationMinsChange}
             onMaxAttemptsChange={onMaxAttemptsChange}
           />
-          <HorizontalDivider />
           <LockoutDurationSection
+            className={className}
             state={state}
             onBackoffFactorChange={onBackoffFactorChange}
             onMaximumDurationMinsChange={onMaximumDurationMinsChange}
             onMinDurationChange={onMinDurationChange}
           />
-          <HorizontalDivider />
           <LockoutTypeSection
+            className={className}
             state={state}
             onChangeLockoutType={onChangeLockoutType}
           />
-          <HorizontalDivider />
           <LockoutAuthenticatorSection
+            className={className}
             state={state}
             onChangeIsEnabledForPassword={onChangeIsEnabledForPassword}
             onChangeIsEnabledForOOBOTP={onChangeIsEnabledForOOBOTP}
@@ -535,6 +569,6 @@ export default function LockoutSettings<T extends State>(
           />
         </>
       ) : null}
-    </Widget>
+    </>
   );
 }

@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Callout } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { useParams } from "react-router-dom";
 import { FormattedMessage, Values } from "../../../intl";
-import { useFeatureDisabledMessageValues } from "../../../graphql/portal/FeatureDisabledMessageBar";
+import ReactRouterLink from "../../../ReactRouterLink";
+import ExternalLink from "../../../ExternalLink";
 
 export interface FeatureDisabledCalloutProps {
   className?: string;
@@ -10,10 +12,41 @@ export interface FeatureDisabledCalloutProps {
   messageValues?: Values;
 }
 
-// The v2 counterpart of FeatureDisabledMessageBar: the same
-// FeatureConfig.*.disabled message (with plan-page / contact-us links)
-// rendered as a Radix Callout, matching the info callouts used across the
-// migrated Advanced-settings screens.
+// useFeatureDisabledMessageValues provides the standard rich-text values
+// (plan-page link, contact-us link, bold) for FeatureConfig.*.disabled
+// messages.
+export function useFeatureDisabledMessageValues(
+  messageValues?: Values
+): Values {
+  const { appID } = useParams() as { appID: string };
+
+  return useMemo(() => {
+    const planPagePath = `/project/${appID}/billing`;
+    const contactUsHref =
+      "https://www.authgear.com/schedule-demo?utm_source=portal&utm_medium=link&utm_campaign=additional_order";
+    return {
+      planPagePath,
+      contactUsHref,
+
+      b: (chunks: React.ReactNode) => <b>{chunks}</b>,
+
+      ReactRouterLink: (chunks: React.ReactNode) => (
+        <ReactRouterLink to={planPagePath} target="_blank">
+          {chunks}
+        </ReactRouterLink>
+      ),
+
+      ExternalLink: (chunks: React.ReactNode) => (
+        <ExternalLink href={contactUsHref}>{chunks}</ExternalLink>
+      ),
+      ...messageValues,
+    };
+  }, [appID, messageValues]);
+}
+
+// The standard FeatureConfig.*.disabled message (with plan-page /
+// contact-us links) rendered as a Radix Callout, matching the info
+// callouts used across the migrated screens.
 export function FeatureDisabledCallout({
   className,
   messageID,

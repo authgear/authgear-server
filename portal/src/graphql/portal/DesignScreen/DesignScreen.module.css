@@ -1,49 +1,159 @@
 .icAlignmentLeft {
-  @apply h-6 w-6;
+  @apply h-4 w-4;
   /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-alignment-left.svg");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
 }
 
 .icAlignmentCenter {
-  @apply h-6 w-6;
+  @apply h-4 w-4;
   /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-alignment-center.svg");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
 }
 
 .icAlignmentRight {
-  @apply h-6 w-6;
+  @apply h-4 w-4;
   /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
   mask: url("../../../images/ic-alignment-right.svg");
-}
-
-.icLightMode {
-  @apply h-6 w-6;
-  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-  mask: url("../../../images/ic-light-mode.svg");
-}
-
-.icDarkMode {
-  @apply h-6 w-6;
-  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
-  mask: url("../../../images/ic-dark-mode.svg");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
 }
 
 .icAlignment {
-  @apply inline-block;
-  background-color: #1c1b1f;
+  @apply block shrink-0;
+  background-color: var(--gray-12);
 }
 
-.icAlignment.selected {
-  @apply bg-theme-primary;
+.cardAlignmentToggle:global(.rt-SegmentedControlRoot) {
+  @apply inline-flex shrink-0 items-center self-start;
+  width: fit-content;
+  max-width: fit-content;
+  height: auto;
+  padding: 2px;
+  border-radius: var(--radius-2);
+  background: linear-gradient(
+      90deg,
+      rgb(0 16 64 / 0.063) 0%,
+      rgb(0 16 64 / 0.063) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.9) 0%,
+      rgb(255 255 255 / 0.9) 100%
+    );
+  box-shadow: none;
 }
 
-.icTheme {
-  @apply inline-block;
-  background-color: #1c1b1f;
+.cardAlignmentToggle:global(.rt-SegmentedControlRoot.rt-r-size-1) {
+  height: auto;
 }
 
-.icTheme.selected {
-  @apply bg-theme-primary;
+.cardAlignmentToggle :global(.rt-SegmentedControlIndicator) {
+  display: none;
+}
+
+.cardAlignmentToggle :global(.rt-SegmentedControlItem) {
+  @apply relative flex shrink-0 items-center justify-center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  padding: 0;
+  border-radius: var(--radius-2);
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.cardAlignmentToggle :global(.rt-SegmentedControlItem[data-state="on"]) {
+  background: white;
+  border-color: var(--gray-a4);
+}
+
+.cardAlignmentToggle
+  :global(.rt-SegmentedControlItem[data-state="on"])
+  .icAlignment {
+  background-color: var(--accent-9);
+}
+
+.cardAlignmentToggle
+  :global(.rt-SegmentedControlItem[data-state="off"])
+  .icAlignment {
+  background-color: var(--gray-12);
+}
+
+.cardAlignmentToggle :global(.rt-SegmentedControlItemSeparator) {
+  width: 1px;
+  height: 1.25rem;
+  background-color: var(--gray-a6);
+}
+
+.cardAlignmentToggle :global(.rt-SegmentedControlItemLabel) {
+  @apply flex size-full items-center justify-center;
+  padding: 0;
+  flex-grow: 0;
+  line-height: 0;
+}
+
+.cardAlignmentToggle :global(.rt-SegmentedControlItemLabelInactive) {
+  @apply flex size-full items-center justify-center;
+  inset: 0;
+}
+
+.previewThemeToggle:global(.rt-SegmentedControlRoot) {
+  @apply inline-flex shrink-0;
+  width: 4rem;
+  height: 2rem;
+  border-radius: 4px;
+  background: linear-gradient(
+      90deg,
+      rgb(0 16 64 / 0.063) 0%,
+      rgb(0 16 64 / 0.063) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.9) 0%,
+      rgb(255 255 255 / 0.9) 100%
+    );
+  box-shadow: none;
+}
+
+.previewThemeToggle :global(.rt-SegmentedControlIndicator) {
+  display: none;
+}
+
+.previewThemeToggle :global(.rt-SegmentedControlItem) {
+  @apply flex flex-1 items-center justify-center;
+  min-width: 0;
+  height: 100%;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--gray-a12);
+  box-shadow: none;
+}
+
+.previewThemeToggle :global(.rt-SegmentedControlItem[data-state="on"]) {
+  background: white;
+  border-color: var(--gray-a4);
+  color: var(--accent-9);
+}
+
+.previewThemeToggle :global(.rt-SegmentedControlItemSeparator) {
+  display: none;
+}
+
+.previewThemeToggle :global(.rt-SegmentedControlItemLabel) {
+  @apply flex items-center justify-center;
+}
+
+.previewThemeIcon {
+  @apply size-4 shrink-0;
 }
 
 .linkConfigurationSeparator {
@@ -53,17 +163,107 @@
   margin-bottom: 1.5rem !important;
 }
 
-.upgradeNowButton {
-  @apply px-1;
+.pageHeader {
+  @apply flex items-center justify-between;
 }
 
-.previewDropdown {
-  :global(.ms-Dropdown-title) {
-    margin-top: 4px;
-  }
+.contentRoot {
+  @apply flex min-h-0 flex-1 flex-col;
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.saveBarScope {
+  @apply px-6 pt-6;
+}
+
+.saveBarAnchor {
+  @apply flex flex-col;
+}
+
+.configColumn {
+  @apply flex flex-col gap-4;
+  @apply desktop:w-96;
+}
+
+.appearancePanel {
+  @apply border border-solid rounded-xl;
+  border-color: var(--gray-a6);
+  padding: 24px;
+}
+
+.configPanel {
+  @apply border border-solid rounded-xl overflow-hidden;
+  border-color: var(--gray-a6);
+}
+
+.appearanceSelect {
+  width: 100%;
 }
 
 .titleActions {
   @apply flex items-center;
   @apply gap-4;
+}
+
+.headerLanguageSelect {
+  min-width: 8rem;
+}
+
+.livePreviewButton {
+  @apply inline-flex items-center gap-2;
+}
+
+.livePreviewIcon {
+  @apply size-4;
+}
+
+.previewToolbar {
+  @apply flex items-center gap-2;
+  @apply border-x-0 border-t-0 border-b border-solid;
+  border-color: var(--gray-a6);
+  @apply px-6 py-4;
+}
+
+.previewPageSelect {
+  min-width: 8rem;
+}
+
+.previewToolbarSpacer {
+  @apply flex-1;
+}
+
+.upgradeBanner {
+  @apply flex items-center gap-3 p-4;
+  @apply rounded-lg border border-solid;
+  border-color: var(--gray-a6);
+}
+
+.configTabs {
+  @apply flex flex-col;
+}
+
+.configTabsList {
+  @apply w-full;
+  box-shadow: none;
+  border-bottom: 1px solid var(--gray-a6);
+}
+
+.configTabsList :global(.rt-BaseTabListTrigger) {
+  @apply min-w-0 flex-1 justify-center;
+}
+
+.configTabContent {
+  @apply overflow-auto;
+  padding: 24px;
+}
+
+.configTabContentAccordion {
+  padding: 0;
+}
+
+.livePreviewTooltipTarget {
+  display: inline-flex;
 }

@@ -3,3 +3,56 @@
 
   @apply tablet:col-span-full;
 }
+
+.pageTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.listSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tableDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.colName {
+  @apply min-w-0 flex-1 overflow-hidden;
+}
+
+.colStatus {
+  width: 10rem;
+  min-width: 10rem;
+  flex-shrink: 0;
+}
+
+.colAction {
+  width: 10rem;
+  min-width: 10rem;
+  flex-shrink: 0;
+}
+
+.clientName {
+  @apply min-w-0 truncate;
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.statusEnabled {
+  @apply text-sm font-medium;
+  color: var(--green-11);
+}
+
+.statusDisabled {
+  @apply text-sm font-medium;
+  color: var(--gray-a11);
+}

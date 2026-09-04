@@ -1,6 +1,13 @@
 .radix-themes {
   --default-font-family: inherit;
 
+  /* Keep identical to Tailwind's default `font-mono` stack, so Radix <Code>,
+     var(--code-font-family) and Tailwind's preflight <code>/font-mono all
+     render code in the same font. Radix's own default starts with Menlo,
+     which differs from ui-monospace (SF Mono) on macOS. */
+  --code-font-family: ui-monospace, "SFMono-Regular", "Menlo", "Monaco",
+    "Consolas", "Liberation Mono", "Courier New", monospace;
+
   /* See https://www.radix-ui.com/themes/docs/theme/typography#custom-font-weights */
   /* Reference https://www.figma.com/design/wAIzBnO9un4fYcq5ampR5k/Authgear---Radix-Themes--Storybook-?node-id=610-103 */
   --font-weight-light: 300;
@@ -27,4 +34,17 @@
    to stand out from the surrounding message text. */
 .rt-CalloutRoot a {
   font-weight: var(--font-weight-medium);
+}
+
+/* Tooltips portal to document.body; they must sit above dialog overlays. */
+.rt-TooltipContent {
+  z-index: 10001;
+}
+
+/* Select, menu, popover and hover card content also portal to document.body,
+   so they need the same treatment to remain usable inside a dialog. */
+.rt-PopperContent,
+.rt-SelectContent,
+.rt-BaseMenuContent {
+  z-index: 10001;
 }

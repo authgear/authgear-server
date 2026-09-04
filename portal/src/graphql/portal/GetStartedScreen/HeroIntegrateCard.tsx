@@ -1,6 +1,6 @@
+import { Heading } from "@radix-ui/themes";
 import React, { useCallback, useMemo } from "react";
 import { FormattedMessage } from "../../../intl";
-import { Text } from "@fluentui/react";
 import Link from "../../../Link";
 import { useCapture } from "../../../gtm_v2";
 import styles from "./GetStartedScreen.module.css";
@@ -41,15 +41,15 @@ export default function HeroIntegrateCard(
   return (
     <div className={`${styles.heroCard} ${styles.heroCardIntegrate}`}>
       <div className={styles.heroCardBody}>
-        <Text block={true} className={styles.heroBadge}>
+        <p className={styles.heroBadge}>
           <FormattedMessage id="GetStartedScreen.hero.integrate.badge" />
-        </Text>
-        <Text as="h2" block={true} className={styles.heroTitle}>
+        </p>
+        <Heading as="h2" className={styles.heroTitle}>
           <FormattedMessage id="GetStartedScreen.hero.integrate.title" />
-        </Text>
-        <Text block={true} className={styles.heroSubtitle}>
+        </Heading>
+        <p className={styles.heroSubtitle}>
           <FormattedMessage id="GetStartedScreen.hero.integrate.subtitle" />
-        </Text>
+        </p>
         <div className={styles.heroButtonRow}>
           <Link to={href} onClick={onClick} className={styles.heroButtonBlue}>
             <FormattedMessage id={labelMessageID} />

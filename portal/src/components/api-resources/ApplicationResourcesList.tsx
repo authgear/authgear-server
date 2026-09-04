@@ -1,19 +1,12 @@
-import React, { useMemo, useContext, useCallback } from "react";
+import React, { useContext, useMemo } from "react";
 import cn from "classnames";
-import {
-  IColumn,
-  ShimmeredDetailsList,
-  SelectionMode,
-  DetailsListLayoutMode,
-  Text,
-} from "@fluentui/react";
-import Toggle from "../../Toggle";
+import { Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
 import styles from "./ApplicationResourcesList.module.css";
-import { useSystemConfig } from "../../context/SystemConfigContext";
-import ActionButton from "../../ActionButton";
 import { useAppContext } from "../../context/AppContext";
+import { Toggle } from "../v2/Toggle/Toggle";
+import Link from "../../Link";
 
 export interface ApplicationResourceListItem {
   id: string;
@@ -33,6 +26,9 @@ interface ApplicationResourcesListProps {
   ) => void;
   disabledToggleClientIDs?: string[];
   onManageScopes?: (item: ApplicationResourceListItem) => void;
+  /** When true, an empty result means "no match" rather than "no resources
+   * exist yet", and the empty state must not suggest creating one. */
+  isSearchActive?: boolean;
 }
 
 export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
@@ -44,85 +40,15 @@ export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
       pagination,
       onToggleAuthorization,
       onManageScopes,
+      disabledToggleClientIDs,
+      isSearchActive = false,
     } = props;
     const { appNodeID } = useAppContext();
     const { renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
 
-    const renderAuthorizedToggle = useCallback(
-      (item: ApplicationResourceListItem) => {
-        return (
-          <Toggle
-            checked={item.isAuthorized}
-            onChange={(_: unknown, checked: boolean | undefined) => {
-              onToggleAuthorization(item, checked ?? false);
-            }}
-            disabled={props.disabledToggleClientIDs?.includes(item.id)}
-          />
-        );
-      },
-      [onToggleAuthorization, props.disabledToggleClientIDs]
-    );
-
-    const columns: IColumn[] = useMemo(
-      () =>
-        [
-          {
-            key: "resources",
-            name: renderToString("ApplicationResourcesList.columns.resources"),
-            minWidth: 200,
-            maxWidth: 400,
-            isResizable: true,
-            onRender: (item: ApplicationResourceListItem) => {
-              return item.name || item.resourceURI;
-            },
-          },
-          {
-            key: "authorized",
-            name: renderToString("ApplicationResourcesList.columns.authorized"),
-            minWidth: 150,
-            isResizable: true,
-            onRender: renderAuthorizedToggle,
-          },
-          onManageScopes
-            ? {
-                key: "actions",
-                name: "",
-                minWidth: 100,
-                maxWidth: 100,
-                isResizable: false,
-                // eslint-disable-next-line react/no-unstable-nested-components
-                onRender: (item: ApplicationResourceListItem) => {
-                  if (!item.isAuthorized) {
-                    return null;
-                  }
-                  const handleClick = () => {
-                    onManageScopes(item);
-                  };
-                  return (
-                    <ActionButton
-                      text={renderToString(
-                        "ApplicationResourcesList.columns.manageScopes"
-                      )}
-                      styles={{
-                        label: { fontWeight: 600 },
-                        root: { height: "auto" },
-                      }}
-                      theme={themes.actionButton}
-                      onClick={handleClick}
-                    />
-                  );
-                },
-              }
-            : null,
-        ].filter((it) => !!it),
-      [
-        renderToString,
-        renderAuthorizedToggle,
-        themes.actionButton,
-        onManageScopes,
-      ]
-    );
+    const disabledSet = useMemo(() => {
+      return new Set(disabledToggleClientIDs ?? []);
+    }, [disabledToggleClientIDs]);
 
     const isEmpty = !loading && resources.length === 0;
 
@@ -130,29 +56,78 @@ export const ApplicationResourcesList: React.FC<ApplicationResourcesListProps> =
       <div className={cn(className, styles.listRoot)}>
         {!isEmpty ? (
           <>
-            <div data-is-scrollable="true" className={styles.listWrapper}>
-              <ShimmeredDetailsList
-                items={resources}
-                enableShimmer={loading}
-                columns={columns}
-                layoutMode={DetailsListLayoutMode.justified}
-                selectionMode={SelectionMode.none}
-              />
+            <div className={styles.tableWrapper}>
+              <div className={styles.table}>
+                <div className={styles.tableHeader}>
+                  <div className={styles.tableHeaderCellResources}>
+                    <FormattedMessage id="ApplicationResourcesList.columns.resources" />
+                  </div>
+                  <div className={styles.tableHeaderCellAuthorized}>
+                    <FormattedMessage id="ApplicationResourcesList.columns.authorized" />
+                  </div>
+                  {onManageScopes ? (
+                    <div className={styles.tableHeaderCellActions} />
+                  ) : null}
+                </div>
+                {resources.map((item) => {
+                  const toggleDisabled = disabledSet.has(item.id);
+                  return (
+                    <div key={item.id} className={styles.tableRow}>
+                      <div className={styles.tableCellResources}>
+                        <Text size="2" className={styles.resourceName}>
+                          {item.name || item.resourceURI}
+                        </Text>
+                      </div>
+                      <div className={styles.tableCellAuthorized}>
+                        <Toggle
+                          checked={item.isAuthorized}
+                          disabled={toggleDisabled}
+                          onCheckedChange={(checked) => {
+                            onToggleAuthorization(item, checked);
+                          }}
+                        />
+                      </div>
+                      {onManageScopes ? (
+                        <div className={styles.tableCellActions}>
+                          {item.isAuthorized ? (
+                            <button
+                              type="button"
+                              className={styles.manageScopesButton}
+                              onClick={() => onManageScopes(item)}
+                            >
+                              {renderToString(
+                                "ApplicationResourcesList.columns.manageScopes"
+                              )}
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             <PaginationWidget className={styles.paginator} {...pagination} />
           </>
         ) : null}
 
         {isEmpty ? (
-          <Text
-            styles={{ root: { color: themes.main.palette.neutralTertiary } }}
-          >
-            <FormattedMessage
-              id="ApplicationResourcesList.empty"
-              values={{
-                to: `/project/${appNodeID}/api-resources`,
-              }}
-            />
+          <Text as="p" size="2" color="gray" className={styles.empty}>
+            {isSearchActive ? (
+              <FormattedMessage id="ApplicationResourcesList.empty-search" />
+            ) : (
+              <FormattedMessage
+                id="ApplicationResourcesList.empty"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  ReactRouterLink: (chunks: React.ReactNode) => (
+                    <Link to={`/project/${appNodeID}/api-resources`}>
+                      {chunks}
+                    </Link>
+                  ),
+                }}
+              />
+            )}
           </Text>
         ) : null}
       </div>

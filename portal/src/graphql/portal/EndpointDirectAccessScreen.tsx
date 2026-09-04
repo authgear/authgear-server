@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import cn from "classnames";
-import { Flex, RadioGroup, Text } from "@radix-ui/themes";
+import { Flex, Heading, RadioGroup, Text } from "@radix-ui/themes";
 import {
   AppConfigFormModel,
   useAppConfigForm,
@@ -375,9 +375,9 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="EndpointDirectAccessScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="EndpointDirectAccessScreen.description" />
           </Text>
@@ -481,7 +481,7 @@ function EndpointDirectAccessScreen1(props: EndpointDirectAccessScreen1Props) {
   }
 
   return (
-    <FormContainer form={redirectURLForm} hideFooterComponent={true}>
+    <FormContainer form={redirectURLForm}>
       <EndpointDirectAccessContent form={redirectURLForm} />
     </FormContainer>
   );

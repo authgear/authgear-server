@@ -7,7 +7,11 @@ const UsersRedirectScreen: React.VFC = function UsersRedirectScreen() {
 
   return (
     <Navigate
-      to={location.pathname.replace("users", "user-management/users")}
+      to={{
+        pathname: location.pathname.replace("users", "user-management/users"),
+        search: location.search,
+        hash: location.hash,
+      }}
       replace={true}
     />
   );

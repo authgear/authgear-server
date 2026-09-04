@@ -7,7 +7,6 @@ import React, {
   useState,
   useCallback,
 } from "react";
-import { IDialogProps } from "@fluentui/react";
 import { Context, Values } from "./intl";
 import { useFormField } from "./form";
 import { FormField, ParsedAPIError } from "./error/parse";
@@ -19,8 +18,8 @@ export interface FieldProps<T> {
 }
 
 export interface DialogProps {
-  hidden: IDialogProps["hidden"];
-  onDismiss: IDialogProps["onDismiss"];
+  hidden: boolean | undefined;
+  onDismiss: ((ev?: unknown) => void) | undefined;
   errors: readonly ParsedAPIError[];
 }
 

@@ -1,16 +1,10 @@
-import React, {
-  useCallback,
-  useRef,
-  useState,
-  useMemo,
-  useContext,
-} from "react";
+import React, { useCallback, useRef, useState, useMemo } from "react";
 import cn from "classnames";
-import { Dialog, DialogFooter } from "@fluentui/react";
-import { Context } from "../../intl";
+import { Button, Dialog } from "@radix-ui/themes";
+import { FormattedMessage } from "../../intl";
 import { dataURIToBase64EncodedData } from "../../util/uri";
-import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
+import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
+import styles from "./BaseImagePicker.module.css";
 
 export type ImageFileExtension = ".jpeg" | ".png" | ".gif";
 
@@ -47,7 +41,6 @@ type BaseImagePickerError = "size" | "load" | "media_type";
 
 const BaseImagePicker: React.VFC<BaseImagePickerProps> =
   function BaseImagePicker(props) {
-    const { renderToString } = useContext(Context);
     const { sizeLimitInBytes, className, base64EncodedData, onChange } = props;
     const [error, setError] = useState<BaseImagePickerError | null>(null);
     const [isErrorDialogHidden, setIsErrorDialogHidden] =
@@ -133,23 +126,28 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
       setIsErrorDialogHidden(true);
     }, []);
 
+    const onDialogOpenChange = useCallback(
+      (open: boolean) => {
+        if (!open) {
+          onDialogDismiss();
+        }
+      },
+      [onDialogDismiss]
+    );
+
     const onRetry = useCallback(() => {
       // Do not setError(null) to avoid flicking when the dialog is being dismissed.
       setIsErrorDialogHidden(true);
       inputRef.current?.click();
     }, []);
 
-    const dialogContentProps = useMemo(() => {
-      return {
-        title: renderToString("BaseImagePicker.error-dialog.title"),
-        subText:
-          error === "size"
-            ? renderToString("errors.image-too-large")
-            : error === "media_type"
-            ? renderToString("errors.input-file-media-type")
-            : renderToString("errors.input-file-image-load"),
-      };
-    }, [error, renderToString]);
+    const errorMessageID = useMemo(() => {
+      return error === "size"
+        ? "errors.image-too-large"
+        : error === "media_type"
+        ? "errors.input-file-media-type"
+        : "errors.input-file-image-load";
+    }, [error]);
 
     return (
       <div className={className}>
@@ -165,26 +163,31 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
           accept="image/png, image/jpeg, image/gif"
           onChange={onInputChange}
         />
-        <Dialog
-          hidden={isErrorDialogHidden}
-          onDismiss={onDialogDismiss}
-          dialogContentProps={dialogContentProps}
+        <Dialog.Root
+          open={!isErrorDialogHidden}
+          onOpenChange={onDialogOpenChange}
         >
-          <DialogFooter>
-            <PrimaryButton
-              onClick={onRetry}
-              text={renderToString(
-                "BaseImagePicker.error-dialog.button-retry-label"
-              )}
-            />
-            <DefaultButton
-              onClick={onDialogDismiss}
-              text={renderToString(
-                "BaseImagePicker.error-dialog.button-cancel-label"
-              )}
-            />
-          </DialogFooter>
-        </Dialog>
+          <Dialog.Content maxWidth="400px" size="3">
+            <Dialog.Title>
+              <FormattedMessage id="BaseImagePicker.error-dialog.title" />
+            </Dialog.Title>
+            <Dialog.Description size="2">
+              <FormattedMessage id={errorMessageID} />
+            </Dialog.Description>
+            <div className={styles.actions}>
+              <SecondaryButton
+                size="2"
+                text={
+                  <FormattedMessage id="BaseImagePicker.error-dialog.button-cancel-label" />
+                }
+                onClick={onDialogDismiss}
+              />
+              <Button type="button" size="2" onClick={onRetry}>
+                <FormattedMessage id="BaseImagePicker.error-dialog.button-retry-label" />
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Root>
       </div>
     );
   };

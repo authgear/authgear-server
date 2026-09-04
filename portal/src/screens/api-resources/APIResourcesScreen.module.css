@@ -1,0 +1,38 @@
+.content {
+  @apply col-span-full flex flex-col gap-4 min-h-0;
+  /* Fill the remaining ScreenContent 1fr row so empty state can center */
+  min-height: 0;
+  height: 100%;
+
+  @apply mobile:min-h-min mobile:h-auto mobile:flex-none mobile:overflow-visible;
+}
+
+.list {
+  @apply flex-1 min-h-0;
+
+  @apply mobile:flex-none mobile:min-h-min;
+}
+
+.searchField {
+  width: 18.75rem;
+  max-width: 100%;
+}
+
+.searchClearButton {
+  @apply inline-flex items-center justify-center border-0 bg-transparent p-0 cursor-pointer;
+  color: var(--gray-a11);
+}
+
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.headerDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}

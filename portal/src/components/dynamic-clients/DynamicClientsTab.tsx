@@ -4,6 +4,7 @@ import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import PortalLink from "../../Link";
+import ExternalLink from "../../ExternalLink";
 import type { FormState as ApplicationsFormState } from "../../graphql/portal/ApplicationsConfigurationScreen";
 import { AppConfigFormModel } from "../../hook/useAppConfigForm";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -56,18 +57,24 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
       isOpenRegistrationConfirmationVisible,
       setIsOpenRegistrationConfirmationVisible,
     ] = useState(false);
+    const [isDisableConfirmationVisible, setIsDisableConfirmationVisible] =
+      useState(false);
 
     const registrationEnabled = state.dynamicClientRegistrationEnabled;
     const registrationEndpoint = `${publicOrigin}/oauth2/register`;
 
+    // Always fetched (not skipped when registration is off): disabling
+    // registration does not delete or disable already-registered clients,
+    // so the clients card must stay visible while any exist — otherwise
+    // still-usable clients silently vanish from the UI.
     const { data } = useDynamicClientsQueryQuery({
       variables: { first: 1 },
       fetchPolicy: "cache-and-network",
-      skip: !registrationEnabled,
     });
     const totalCount = data?.dynamicClients?.totalCount ?? null;
+    const hasClients = totalCount != null && totalCount > 0;
 
-    const onEnabledChange = useCallback(
+    const setRegistrationEnabled = useCallback(
       (checked: boolean) => {
         // Deferred like every other control on this tab: nothing is written
         // until the admin presses Save. Saving from here would commit the
@@ -88,6 +95,30 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
       },
       [setState]
     );
+
+    const onEnabledChange = useCallback(
+      (checked: boolean) => {
+        // Turning registration off does not disable already-registered
+        // clients — remind the admin of that before reflecting it in the
+        // form state. The reminder is only true while clients exist, so
+        // skip it otherwise.
+        if (!checked && hasClients) {
+          setIsDisableConfirmationVisible(true);
+          return;
+        }
+        setRegistrationEnabled(checked);
+      },
+      [hasClients, setRegistrationEnabled]
+    );
+
+    const onConfirmDisable = useCallback(() => {
+      setIsDisableConfirmationVisible(false);
+      setRegistrationEnabled(false);
+    }, [setRegistrationEnabled]);
+
+    const onCancelDisable = useCallback(() => {
+      setIsDisableConfirmationVisible(false);
+    }, []);
 
     const onViewAllClick = useCallback(() => {
       navigate("./dcr");
@@ -175,19 +206,33 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             <FormattedMessage id="DynamicClientsTab.section.registration.title" />
           }
         >
-          <div className="flex flex-col gap-1">
-            <Toggle
-              checked={registrationEnabled}
-              disabled={isUpdating}
-              onCheckedChange={onEnabledChange}
-              text={
-                <FormattedMessage id="DynamicClientsTab.enable.toggle.label" />
-              }
+          <Text as="p" size="2" color="gray">
+            <FormattedMessage
+              id="DynamicClientsTab.enable.description"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                mcpLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/get-started/auth-for-mcp">
+                    {chunks}
+                  </ExternalLink>
+                ),
+                // eslint-disable-next-line react/no-unstable-nested-components
+                dcrLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/integration/dynamic-client-registration">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
             />
-            <Text as="p" size="1" color="gray">
-              <FormattedMessage id="DynamicClientsTab.enable.description" />
-            </Text>
-          </div>
+          </Text>
+          <Toggle
+            checked={registrationEnabled}
+            disabled={isUpdating}
+            onCheckedChange={onEnabledChange}
+            text={
+              <FormattedMessage id="DynamicClientsTab.enable.toggle.label" />
+            }
+          />
           {registrationEnabled ? (
             <TextField
               size="2"
@@ -203,7 +248,7 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
           ) : null}
         </SettingsSectionCard>
 
-        {registrationEnabled ? (
+        {registrationEnabled || hasClients ? (
           <SettingsSectionCard
             contentClassName="gap-4"
             title={<FormattedMessage id="DynamicClientsTab.clients.title" />}
@@ -252,7 +297,9 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
                 <FormattedMessage id="DynamicClientsTab.iat-required.toggle.description" />
               </Text>
             </div>
-            <InitialAccessTokenSection />
+            <InitialAccessTokenSection
+              registrationEndpoint={registrationEndpoint}
+            />
           </SettingsSectionCard>
         ) : null}
 
@@ -262,10 +309,10 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             title={
               <FormattedMessage id="DynamicClientsTab.default-client-config.title" />
             }
-          >
-            <Text as="p" size="2" color="gray">
+            description={
               <FormattedMessage id="DynamicClientsTab.default-client-config.description" />
-            </Text>
+            }
+          >
             <TextField
               size="2"
               labelSize="2"
@@ -301,11 +348,11 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
                 checked={state.refreshTokenIdleTimeoutEnabled}
                 onCheckedChange={onRefreshTokenIdleTimeoutEnabledChange}
                 text={
-                  <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.label" />
+                  <FormattedMessage id="EditOAuthClientForm.refresh-token-idle-timeout-enabled.label" />
                 }
               />
               <Text as="p" size="1" color="gray">
-                <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout-enabled.description" />
+                <FormattedMessage id="EditOAuthClientForm.refresh-token-idle-timeout-enabled.description" />
               </Text>
             </div>
             <TextField
@@ -333,10 +380,14 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
             title={
               <FormattedMessage id="DynamicClientsTab.allowed-resources.title" />
             }
+            description={
+              <FormattedMessage id="DynamicClientsTab.allowed-resources.description" />
+            }
           >
+            <DynamicClientAllowedResources />
             <Text as="p" size="2" color="gray">
               <FormattedMessage
-                id="DynamicClientsTab.allowed-resources.description"
+                id="DynamicClientsTab.allowed-resources.manage"
                 values={{
                   // eslint-disable-next-line react/no-unstable-nested-components
                   apiResourcesLink: (chunks: React.ReactNode) => (
@@ -347,9 +398,25 @@ export const DynamicClientsTab: React.VFC<DynamicClientsTabProps> =
                 }}
               />
             </Text>
-            <DynamicClientAllowedResources />
           </SettingsSectionCard>
         ) : null}
+
+        <ConfirmationDialog
+          open={isDisableConfirmationVisible}
+          onOpenChange={setIsDisableConfirmationVisible}
+          title={
+            <FormattedMessage id="DynamicClientsTab.disable.confirm.title" />
+          }
+          description={
+            <FormattedMessage id="DynamicClientsTab.disable.confirm.description" />
+          }
+          confirmText={
+            <FormattedMessage id="DynamicClientsTab.disable.confirm.confirm" />
+          }
+          cancelText={<FormattedMessage id="cancel" />}
+          onConfirm={onConfirmDisable}
+          onCancel={onCancelDisable}
+        />
 
         <ConfirmationDialog
           open={isOpenRegistrationConfirmationVisible}

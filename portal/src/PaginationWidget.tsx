@@ -1,10 +1,15 @@
 import React, { useMemo, useCallback, useContext } from "react";
 import cn from "classnames";
-import { IconButton, IIconProps, IButtonStyles } from "@fluentui/react";
+import { Button, IconButton } from "@radix-ui/themes";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DoubleArrowLeftIcon,
+  DoubleArrowRightIcon,
+} from "@radix-ui/react-icons";
 import { Context } from "./intl";
 import { getPaginationRenderData } from "./util/pagination";
 import styles from "./PaginationWidget.module.css";
-import DefaultButton from "./DefaultButton";
 
 export interface PaginationProps {
   offset: number;
@@ -16,44 +21,6 @@ export interface PaginationProps {
 export interface PaginationWidgetProps extends PaginationProps {
   className?: string;
 }
-
-const iconFirst: IIconProps = {
-  iconName: "DoubleChevronLeft8",
-};
-
-const iconPrev: IIconProps = {
-  iconName: "ChevronLeftSmall",
-};
-
-const iconNext: IIconProps = {
-  iconName: "ChevronRightSmall",
-};
-
-const iconLast: IIconProps = {
-  iconName: "DoubleChevronRight8",
-};
-
-const iconButtonStyles: IButtonStyles = {
-  root: {
-    width: "24px",
-    height: "24px",
-  },
-  rootDisabled: {
-    backgroundColor: "transparent",
-  },
-};
-
-const pageButtonStyles: IButtonStyles = {
-  root: {
-    border: "none",
-    minWidth: "0px",
-    padding: "6px",
-    fontWeight: "900",
-  },
-  rootDisabled: {
-    backgroundColor: "transparent",
-  },
-};
 
 const PaginationWidget: React.VFC<PaginationWidgetProps> =
   function PaginationWidget(props: PaginationWidgetProps) {
@@ -123,60 +90,88 @@ const PaginationWidget: React.VFC<PaginationWidgetProps> =
     return (
       <div className={cn(className, styles.root)}>
         <IconButton
+          type="button"
+          variant="ghost"
+          color="gray"
+          size="1"
+          className={styles.navButton}
           title={labelFirst}
-          ariaLabel={labelFirst}
-          styles={iconButtonStyles}
-          iconProps={iconFirst}
+          aria-label={labelFirst}
           disabled={!firstPageButtonEnabled}
           onClick={onClickFirst}
-        />
+        >
+          <DoubleArrowLeftIcon />
+        </IconButton>
         <IconButton
+          type="button"
+          variant="ghost"
+          color="gray"
+          size="1"
+          className={styles.navButton}
           title={labelPrev}
-          ariaLabel={labelPrev}
-          styles={iconButtonStyles}
-          iconProps={iconPrev}
+          aria-label={labelPrev}
           disabled={!prevPageButtonEnabled}
           onClick={onClickPrev}
-        />
+        >
+          <ChevronLeftIcon />
+        </IconButton>
         <div className={styles.pages}>
           {offsets.map((offset) => {
             const page = offset / pageSize + 1;
             const label = renderToString("PaginationWidget.Page", {
               PAGE: page,
             });
+            const isCurrent = currentOffset === offset;
             return (
-              <DefaultButton
+              <Button
                 key={offset}
+                type="button"
+                variant={isCurrent ? "soft" : "ghost"}
+                color={isCurrent ? undefined : "gray"}
+                size="1"
+                className={styles.pageButton}
                 title={label}
-                ariaLabel={label}
-                styles={pageButtonStyles}
-                disabled={currentOffset === offset}
+                aria-label={label}
+                aria-current={isCurrent ? "page" : undefined}
                 onClick={(e: React.MouseEvent<HTMLElement>) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onChangeOffset?.(offset);
+                  if (!isCurrent) {
+                    onChangeOffset?.(offset);
+                  }
                 }}
-                text={String(page)}
-              />
+              >
+                {String(page)}
+              </Button>
             );
           })}
         </div>
         <IconButton
+          type="button"
+          variant="ghost"
+          color="gray"
+          size="1"
+          className={styles.navButton}
           title={labelNext}
-          ariaLabel={labelNext}
-          styles={iconButtonStyles}
-          iconProps={iconNext}
+          aria-label={labelNext}
           disabled={!nextPageButtonEnabled}
           onClick={onClickNext}
-        />
+        >
+          <ChevronRightIcon />
+        </IconButton>
         <IconButton
+          type="button"
+          variant="ghost"
+          color="gray"
+          size="1"
+          className={styles.navButton}
           title={labelLast}
-          ariaLabel={labelLast}
-          styles={iconButtonStyles}
-          iconProps={iconLast}
+          aria-label={labelLast}
           disabled={!lastPageButtonEnabled}
           onClick={onClickLast}
-        />
+        >
+          <DoubleArrowRightIcon />
+        </IconButton>
       </div>
     );
   };

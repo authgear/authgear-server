@@ -1,19 +1,25 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { addDays } from "../../util/date";
 import {
-  addDays,
-  IColumn,
-  MessageBar,
-  SelectionMode,
-  ShimmeredDetailsList,
-} from "@fluentui/react";
+  Callout as RadixCallout,
+  Spinner,
+  Table,
+  Text,
+} from "@radix-ui/themes";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "../../intl";
 import Link from "../../Link";
-import CommandBarButton from "../../CommandBarButton";
 import PaginationWidget from "../../PaginationWidget";
 import ShowError from "../../ShowError";
-import DateRangeDialog from "../portal/DateRangeDialog";
 import { formatDatetime } from "../../util/formatDatetime";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { extractRawID } from "../../util/graphql";
@@ -24,13 +30,19 @@ import {
   AuditLogEdgesNodeFragment,
 } from "./query/auditLogListQuery.generated";
 import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
-import { ACTIVITY_TYPE_ALL } from "../../components/audit-log/ActivityTypeFilterDropdown";
 import {
   AuditLogFilter,
   AuditLogFilterBar,
   AuditLogFilterBarPropsDateRange,
 } from "../../components/audit-log/AuditLogFilterBar";
+import AuditLogDateRangeDialog from "../../components/audit-log/AuditLogDateRangeDialog";
+import {
+  AuditLogDateRangePresetKey,
+  getPresetDateRange,
+} from "../../components/audit-log/dateRangePresets";
+import { serializeActivityTypesToQuery } from "../../components/audit-log/ActivityTypeFilterDropdown";
 import { AuditLogKind, USER_ACTIVITY_TYPES } from "./auditLogActivityTypes";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import styles from "./UserDetailsLogs.module.css";
 
 const LOG_PAGE_SIZE = 20;
@@ -55,7 +67,7 @@ function buildAuditLogListHref(
     q: rawUserID,
     page: "1",
     order_by: SortDirection.Desc,
-    activity_type: ACTIVITY_TYPE_ALL,
+    activity_type: serializeActivityTypesToQuery([]),
     last_updated_at: Date.now().toString(),
     from: "",
     to: "",
@@ -75,10 +87,21 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
     const [offset, setOffset] = useState(0);
     const [lastUpdatedAt, setLastUpdatedAt] = useState(() => new Date());
     const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
+    const [dateRangePreset, setDateRangePreset] =
+      useState<AuditLogDateRangePresetKey>("last30Days");
+    const presetBeforeCustomDialogRef =
+      useRef<AuditLogDateRangePresetKey>("last30Days");
     const [filters, setFilters] = useState<AuditLogFilter>({
       searchKeyword: "",
-      activityType: ACTIVITY_TYPE_ALL,
+      activityTypes: [],
     });
+
+    const initialDateRange = useMemo(
+      () => getPresetDateRange("last30Days", lastUpdatedAt),
+      // Only compute the first default range.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      []
+    );
 
     const {
       committedValue: rangeFrom,
@@ -87,7 +110,7 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
       setCommittedValue: setRangeFromImmediately,
       commit: commitRangeFrom,
       rollback: rollbackRangeFrom,
-    } = useTransactionalState<Date | null>(null);
+    } = useTransactionalState<Date | null>(initialDateRange.from);
 
     const {
       committedValue: rangeTo,
@@ -96,7 +119,7 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
       setCommittedValue: setRangeToImmediately,
       commit: commitRangeTo,
       rollback: rollbackRangeTo,
-    } = useTransactionalState<Date | null>(null);
+    } = useTransactionalState<Date | null>(initialDateRange.to);
 
     const featureConfig = useAppFeatureConfigQuery(appID);
 
@@ -141,12 +164,31 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
       return lastUpdatedAt.toISOString();
     }, [rangeTo, lastUpdatedAt]);
 
+    useEffect(() => {
+      if (dateRangePreset === "custom") {
+        return;
+      }
+      const range = getPresetDateRange(
+        dateRangePreset,
+        lastUpdatedAt,
+        datePickerMinDate
+      );
+      setRangeFromImmediately(range.from);
+      setRangeToImmediately(range.to);
+    }, [
+      dateRangePreset,
+      lastUpdatedAt,
+      datePickerMinDate,
+      setRangeFromImmediately,
+      setRangeToImmediately,
+    ]);
+
     const activityTypes: AuditLogActivityType[] = useMemo(() => {
-      if (filters.activityType === ACTIVITY_TYPE_ALL) {
+      if (filters.activityTypes.length === 0) {
         return USER_ACTIVITY_TYPES;
       }
-      return [filters.activityType];
-    }, [filters.activityType]);
+      return filters.activityTypes;
+    }, [filters.activityTypes]);
 
     const cursor = useMemo(() => encodeOffsetToCursor(offset), [offset]);
 
@@ -164,63 +206,64 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
       skip: featureConfig.isLoading,
     });
 
-    const isCustomDateRange = rangeFrom != null || rangeTo != null;
+    const onOpenCustomDateRangeDialog = useCallback(() => {
+      presetBeforeCustomDialogRef.current = dateRangePreset;
+      setDateRangeDialogHidden(false);
+    }, [dateRangePreset]);
 
-    const onClickAllDateRange = useCallback(
-      (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-        e?.stopPropagation();
-        setRangeFromImmediately(null);
-        setRangeToImmediately(null);
+    const onChangeDateRangePreset = useCallback(
+      (preset: AuditLogDateRangePresetKey) => {
+        if (preset === "custom") {
+          presetBeforeCustomDialogRef.current = dateRangePreset;
+          setDateRangePreset(preset);
+          setDateRangeDialogHidden(false);
+          return;
+        }
+        setDateRangePreset(preset);
         setOffset(0);
       },
-      [setRangeFromImmediately, setRangeToImmediately]
-    );
-
-    const onClickCustomDateRange = useCallback(
-      (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-        e?.stopPropagation();
-        setDateRangeDialogHidden(false);
-      },
-      []
+      [dateRangePreset]
     );
 
     const filtersDateRange = useMemo<AuditLogFilterBarPropsDateRange>(() => {
       return {
-        value: isCustomDateRange ? "customDateRange" : "allDateRange",
-        onClickAllDateRange,
-        onClickCustomDateRange,
+        value: dateRangePreset,
+        onChange: onChangeDateRangePreset,
+        rangeFrom,
+        rangeTo,
+        onOpenCustomDateRangeDialog,
       };
-    }, [isCustomDateRange, onClickAllDateRange, onClickCustomDateRange]);
+    }, [
+      dateRangePreset,
+      onChangeDateRangePreset,
+      rangeFrom,
+      rangeTo,
+      onOpenCustomDateRangeDialog,
+    ]);
 
     const onFilterChange = useCallback(
       (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => {
-        const newFilters = fn(filters);
-        if (newFilters.activityType !== filters.activityType) {
-          setOffset(0);
-        }
-        setFilters(fn);
-      },
-      [filters]
-    );
-
-    const onRemoveAllFilters = useCallback(() => {
-      setOffset(0);
-      setRangeFromImmediately(null);
-      setRangeToImmediately(null);
-      setFilters({
-        searchKeyword: "",
-        activityType: ACTIVITY_TYPE_ALL,
-      });
-    }, [setRangeFromImmediately, setRangeToImmediately]);
-
-    const onClickRefresh = useCallback(
-      (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-        e?.stopPropagation();
-        setLastUpdatedAt(new Date());
-        setOffset(0);
+        setFilters((prev) => {
+          const next = fn(prev);
+          if (
+            next.activityTypes.length !== prev.activityTypes.length ||
+            next.activityTypes.some(
+              (activityType, index) =>
+                activityType !== prev.activityTypes[index]
+            )
+          ) {
+            setOffset(0);
+          }
+          return next;
+        });
       },
       []
     );
+
+    const onClickRefresh = useCallback(() => {
+      setLastUpdatedAt(new Date());
+      setOffset(0);
+    }, []);
 
     const onSelectRangeFrom = useCallback(
       (value: Date | null | undefined) => {
@@ -271,6 +314,7 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
         setDateRangeDialogHidden(true);
         rollbackRangeFrom();
         rollbackRangeTo();
+        setDateRangePreset(presetBeforeCustomDialogRef.current);
       },
       [rollbackRangeFrom, rollbackRangeTo]
     );
@@ -278,28 +322,6 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
     const onClickViewUserLogs = useCallback(() => {
       navigate(buildAuditLogListHref(appID, AuditLogKind.User, rawUserID));
     }, [appID, navigate, rawUserID]);
-
-    const columns: IColumn[] = useMemo(
-      () => [
-        {
-          key: "activityType",
-          fieldName: "activityType",
-          name: renderToString("UserDetails.logs.column.activity"),
-          minWidth: 300,
-          maxWidth: 400,
-          className: styles.cell,
-        },
-        {
-          key: "createdAt",
-          fieldName: "createdAt",
-          name: renderToString("UserDetails.logs.column.timestamp"),
-          minWidth: 220,
-          maxWidth: 220,
-          className: styles.cell,
-        },
-      ],
-      [renderToString]
-    );
 
     const items: LogTableItem[] = useMemo(() => {
       const edges = data?.auditLogs?.edges;
@@ -323,26 +345,11 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
       return result;
     }, [data?.auditLogs?.edges, locale, renderToString]);
 
-    const onRenderItemColumn = useCallback(
-      (item: LogTableItem, _index?: number, column?: IColumn) => {
-        const text = item[column?.key as keyof LogTableItem];
-        if (column?.key === "activityType") {
-          return (
-            <Link to={`/project/${appID}/audit-log/${item.id}/details`}>
-              {text}
-            </Link>
-          );
-        }
-        return <span>{text}</span>;
-      },
-      [appID]
-    );
-
     const totalCount = data?.auditLogs?.totalCount ?? undefined;
     const isEmpty = !loading && items.length === 0;
 
-    const onChangeOffset = useCallback((offset: number) => {
-      setOffset(offset);
+    const onChangeOffset = useCallback((nextOffset: number) => {
+      setOffset(nextOffset);
     }, []);
 
     return (
@@ -351,21 +358,17 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
           className={styles.filterBar}
           filters={filters}
           onFilterChange={onFilterChange}
-          onRemoveAllFilters={onRemoveAllFilters}
           onRefresh={onClickRefresh}
           hideSearchBox={true}
           dateRange={filtersDateRange}
           availableActivityTypes={USER_ACTIVITY_TYPES}
           lastUpdatedAt={lastUpdatedAt}
           trailingActions={
-            <div className={styles.viewAllWrap}>
-              <CommandBarButton
-                key="viewInAuditLogs"
-                iconProps={{ iconName: "ComplianceAudit" }}
-                text={renderToString("UserDetails.logs.view-user-logs")}
-                onClick={onClickViewUserLogs}
-              />
-            </div>
+            <SecondaryButton
+              size="2"
+              text={<FormattedMessage id="UserDetails.logs.view-user-logs" />}
+              onClick={onClickViewUserLogs}
+            />
           }
         />
         {error != null ? (
@@ -373,32 +376,69 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
           <ShowError error={error} onRetry={refetch} />
         ) : (
           <div className={styles.tableArea}>
-            <div className={styles.listWrapper} data-is-scrollable="true">
-              <ShimmeredDetailsList
-                enableShimmer={loading}
-                enableUpdateAnimations={false}
-                selectionMode={SelectionMode.none}
-                columns={columns}
-                items={items}
-                onRenderItemColumn={onRenderItemColumn}
-              />
-            </div>
-            {isEmpty ? (
-              <MessageBar className={styles.emptyMessageBar}>
-                <FormattedMessage id="UserDetails.logs.empty" />
-              </MessageBar>
+            {loading ? (
+              <div className={styles.loading}>
+                <Spinner />
+              </div>
+            ) : isEmpty ? (
+              <RadixCallout.Root color="gray" size="2" variant="surface">
+                <RadixCallout.Icon>
+                  <InfoCircledIcon width="1rem" height="1rem" />
+                </RadixCallout.Icon>
+                <RadixCallout.Text>
+                  <FormattedMessage id="UserDetails.logs.empty" />
+                </RadixCallout.Text>
+              </RadixCallout.Root>
             ) : (
-              <PaginationWidget
-                className={styles.pagination}
-                offset={offset}
-                pageSize={LOG_PAGE_SIZE}
-                totalCount={totalCount}
-                onChangeOffset={onChangeOffset}
-              />
+              <>
+                <div className={styles.listWrapper} data-is-scrollable="true">
+                  <Table.Root className={styles.table} variant="surface">
+                    <Table.Header>
+                      <Table.Row>
+                        <Table.ColumnHeaderCell
+                          className={styles.activityColumn}
+                        >
+                          <FormattedMessage id="UserDetails.logs.column.activity" />
+                        </Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell
+                          className={styles.timestampColumn}
+                        >
+                          <FormattedMessage id="UserDetails.logs.column.timestamp" />
+                        </Table.ColumnHeaderCell>
+                      </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                      {items.map((item) => (
+                        <Table.Row key={item.id}>
+                          <Table.Cell className={styles.activityColumn}>
+                            <Link
+                              to={`/project/${appID}/audit-log/${item.id}/details`}
+                            >
+                              {item.activityType}
+                            </Link>
+                          </Table.Cell>
+                          <Table.Cell className={styles.timestampColumn}>
+                            <Text as="span" size="2" color="gray">
+                              {item.createdAt}
+                            </Text>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Root>
+                </div>
+                <PaginationWidget
+                  className={styles.pagination}
+                  offset={offset}
+                  pageSize={LOG_PAGE_SIZE}
+                  totalCount={totalCount}
+                  onChangeOffset={onChangeOffset}
+                />
+              </>
             )}
           </div>
         )}
-        <DateRangeDialog
+        <AuditLogDateRangeDialog
           hidden={dateRangeDialogHidden}
           title={renderToString("AuditLogScreen.date-range.custom")}
           fromDatePickerLabel={renderToString(

@@ -1,10 +1,35 @@
-import { Checkbox, DirectionalHint, Label, Text, Icon } from "@fluentui/react";
+import {
+  Checkbox as RadixCheckbox,
+  DropdownMenu,
+  IconButton as RadixIconButton,
+  Text,
+} from "@radix-ui/themes";
+import {
+  ChevronDownIcon,
+  DotsVerticalIcon,
+  InfoCircledIcon,
+  ListBulletIcon,
+  Pencil1Icon,
+  PlusIcon,
+  StarFilledIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import cn from "classnames";
 import { produce } from "immer";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import FormTextField from "../../FormTextField";
-import ChoiceButton from "../../ChoiceButton";
+import { TextField } from "../../components/v2/TextField/TextField";
+import { TextArea } from "../../components/v2/TextArea/TextArea";
+import {
+  IconRadioCards,
+  IconRadioCardOption,
+} from "../../components/v2/IconRadioCards/IconRadioCards";
+import { SquareIcon } from "../../components/v2/SquareIcon/SquareIcon";
+import { FormField } from "../../components/v2/FormField/FormField";
+import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
+import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
+import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import {
   createOAuthSSOProviderItemKey,
   isOAuthSSOProvider,
@@ -17,19 +42,10 @@ import {
   parseOAuthSSOProviderItemKey,
   SSOProviderFormSecretViewModel,
 } from "../../types";
-import Widget from "../../Widget";
 import ExternalLink from "../../ExternalLink";
-import DefaultButton from "../../DefaultButton";
-import TextField from "../../TextField";
 
-import FormTextFieldList from "../../FormTextFieldList";
-import LabelWithTooltip from "../../LabelWithTooltip";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import styles from "./SingleSignOnConfigurationWidget.module.css";
-import ActionButton from "../../ActionButton";
-import { useSystemConfig } from "../../context/SystemConfigContext";
-import WidgetDescription from "../../WidgetDescription";
-import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import {
   OAuthProviderFormModel,
   SSOProviderFormState,
@@ -79,12 +95,6 @@ interface OAuthProviderInfo {
   docUrl: string;
   redirectUrlLabelId: string | null;
 }
-
-const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
-const MULTILINE_TEXT_FIELD_STYLE = {
-  errorMessage: { whiteSpace: "pre" },
-  field: { minHeight: "160px" },
-};
 
 const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
   apple: {
@@ -322,21 +332,8 @@ interface OAuthClientIconProps {
 const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
   function OAuthClientIcon(props) {
     const { providerItemKey } = props;
-    const providerInfo = oauthProviders[providerItemKey] as
-      | OAuthProviderInfo
-      | undefined;
-    if (providerInfo == null) {
-      return <i className={cn("fas", "fa-link", styles.widgetLabelIcon)} />;
-    }
-    return (
-      <i
-        className={cn(
-          "fab",
-          providerInfo.iconClassName,
-          styles.widgetLabelIcon
-        )}
-      />
-    );
+    const { iconClassName } = oauthProviders[providerItemKey];
+    return <i className={cn("fab", iconClassName, styles.widgetLabelIcon)} />;
   };
 
 function ProviderStatus({
@@ -513,6 +510,42 @@ function emptyStringToUndefined(value: string | undefined): string | undefined {
   return value;
 }
 
+function FieldLabelWithTooltip(props: {
+  labelId: string;
+  tooltipId: string;
+}): React.ReactElement {
+  const { labelId, tooltipId } = props;
+  return (
+    <span className={styles.tooltipLabel}>
+      <FormattedMessage id={labelId} />
+      <Tooltip content={<FormattedMessage id={tooltipId} />}>
+        <InfoCircledIcon className={styles.infoIcon} />
+      </Tooltip>
+    </span>
+  );
+}
+
+function WidgetCheckbox(props: {
+  label: React.ReactNode;
+  checked: boolean;
+  onCheckedChange: (checked: boolean | "indeterminate") => void;
+  disabled?: boolean;
+}): React.ReactElement {
+  const { label, checked, onCheckedChange, disabled } = props;
+  return (
+    <label className={styles.checkboxRow}>
+      <RadixCheckbox
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        disabled={disabled}
+      />
+      <Text size="2">{label}</Text>
+    </label>
+  );
+}
+
+type DemoCredentialOptionValue = "custom" | "demo";
+
 const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidgetProps> =
   function SingleSignOnConfigurationWidget(
     props: SingleSignOnConfigurationWidgetProps
@@ -545,6 +578,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       docUrl,
       redirectUrlLabelId,
     } = oauthProviders[providerItemKey];
+    const [advancedFolded, setAdvancedFolded] = useState(true);
     const redirectURL = useMemo(() => {
       if (!publicOrigin || !config.alias) {
         return "";
@@ -557,97 +591,90 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
 
     const messageID = "OAuthBranding." + providerItemKey;
 
-    const [isEditingAlias, setIsEditingAlias] = useState(false);
-    const [aliasBeforeEdit, setAliasBeforeEdit] = useState<string | null>(null);
-
     const onAliasChange = useCallback(
-      (_, value?: string) =>
-        onChange(
-          { ...config, alias: value ?? "" },
-          { ...secret, newAlias: value ?? "" }
-        ),
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        onChange({ ...config, alias: value }, { ...secret, newAlias: value });
+      },
       [onChange, config, secret]
     );
 
-    const onStartEditingAlias = useCallback(() => {
-      setAliasBeforeEdit(config.alias);
-      setIsEditingAlias(true);
-    }, [config.alias]);
-
-    const onCancelEditingAlias = useCallback(() => {
-      if (aliasBeforeEdit != null) {
-        onChange(
-          { ...config, alias: aliasBeforeEdit },
-          { ...secret, newAlias: aliasBeforeEdit }
-        );
-      }
-      setIsEditingAlias(false);
-    }, [aliasBeforeEdit, onChange, config, secret]);
-
     const onClientIDChange = useCallback(
-      (_, value?: string) =>
+      (e: React.ChangeEvent<HTMLInputElement>) =>
         onChange(
-          { ...config, client_id: emptyStringToUndefined(value) },
+          { ...config, client_id: emptyStringToUndefined(e.target.value) },
           secret
         ),
       [onChange, config, secret]
     );
     const onTenantChange = useCallback(
-      (_, value?: string) =>
-        onChange({ ...config, tenant: emptyStringToUndefined(value) }, secret),
+      (e: React.ChangeEvent<HTMLInputElement>) =>
+        onChange(
+          { ...config, tenant: emptyStringToUndefined(e.target.value) },
+          secret
+        ),
       [onChange, config, secret]
     );
     const onPolicyChange = useCallback(
-      (_, value?: string) =>
-        onChange({ ...config, policy: emptyStringToUndefined(value) }, secret),
+      (e: React.ChangeEvent<HTMLInputElement>) =>
+        onChange(
+          { ...config, policy: emptyStringToUndefined(e.target.value) },
+          secret
+        ),
       [onChange, config, secret]
     );
     const onDomainHintChange = useCallback(
-      (_, value?: string) =>
+      (e: React.ChangeEvent<HTMLInputElement>) =>
         onChange(
-          { ...config, domain_hint: emptyStringToUndefined(value) },
+          { ...config, domain_hint: emptyStringToUndefined(e.target.value) },
           secret
         ),
       [onChange, config, secret]
     );
     const onDiscoveryDocumentEndpointChange = useCallback(
-      (_, value?: string) =>
+      (e: React.ChangeEvent<HTMLInputElement>) =>
         onChange(
           {
             ...config,
-            discovery_document_endpoint: emptyStringToUndefined(value),
+            discovery_document_endpoint: emptyStringToUndefined(e.target.value),
           },
           secret
         ),
       [onChange, config, secret]
     );
     const onKeyIDChange = useCallback(
-      (_, value?: string) =>
-        onChange({ ...config, key_id: emptyStringToUndefined(value) }, secret),
+      (e: React.ChangeEvent<HTMLInputElement>) =>
+        onChange(
+          { ...config, key_id: emptyStringToUndefined(e.target.value) },
+          secret
+        ),
       [onChange, config, secret]
     );
     const onTeamIDChange = useCallback(
-      (_, value?: string) =>
-        onChange({ ...config, team_id: emptyStringToUndefined(value) }, secret),
+      (e: React.ChangeEvent<HTMLInputElement>) =>
+        onChange(
+          { ...config, team_id: emptyStringToUndefined(e.target.value) },
+          secret
+        ),
       [onChange, config, secret]
     );
 
     const onClientSecretChange = useCallback(
-      (_, value?: string) =>
-        onChange(config, { ...secret, newClientSecret: value ?? "" }),
+      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        onChange(config, { ...secret, newClientSecret: e.target.value }),
       [onChange, config, secret]
     );
     const onAccountIDChange = useCallback(
-      (_, value?: string) =>
+      (e: React.ChangeEvent<HTMLInputElement>) =>
         onChange(
-          { ...config, account_id: emptyStringToUndefined(value) },
+          { ...config, account_id: emptyStringToUndefined(e.target.value) },
           secret
         ),
       [onChange, config, secret]
     );
     const onIsSandBoxAccountChange = useCallback(
-      (_, value?: boolean) =>
-        onChange({ ...config, is_sandbox_account: value ?? false }, secret),
+      (checked: boolean | "indeterminate") =>
+        onChange({ ...config, is_sandbox_account: checked === true }, secret),
       [onChange, config, secret]
     );
     const onWeChatRedirectUrisChange = useCallback(
@@ -659,31 +686,56 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       [onChange, config, secret]
     );
     const onCreateDisabledChange = useCallback(
-      (_, value?: boolean) =>
-        onChange({ ...config, create_disabled: value ?? false }, secret),
+      (checked: boolean | "indeterminate") =>
+        onChange({ ...config, create_disabled: checked === true }, secret),
       [onChange, config, secret]
     );
     const onDeleteDisabledChange = useCallback(
-      (_, value?: boolean) =>
-        onChange({ ...config, delete_disabled: value ?? false }, secret),
+      (checked: boolean | "indeterminate") =>
+        onChange({ ...config, delete_disabled: checked === true }, secret),
       [onChange, config, secret]
     );
     const onEmailRequiredChange = useCallback(
-      (_, value?: boolean) => {
+      (checked: boolean | "indeterminate") => {
+        const value = checked === true;
         const newConfig = produce(config, (config) => {
-          if (value != null) {
-            config.claims ??= {};
-            config.claims.email ??= {};
-            if (!value) {
-              config.claims.email.required = false;
-            } else {
-              delete config.claims.email.required;
-            }
+          config.claims ??= {};
+          config.claims.email ??= {};
+          if (!value) {
+            config.claims.email.required = false;
+          } else {
+            delete config.claims.email.required;
           }
         });
         onChange(newConfig, secret);
       },
       [onChange, config, secret]
+    );
+
+    const wechatRedirectUris = useMemo(
+      () => config.wechat_redirect_uris ?? [],
+      [config.wechat_redirect_uris]
+    );
+    const onWechatUriItemChange = useCallback(
+      (index: number, value: string) => {
+        const newList = wechatRedirectUris.slice();
+        newList[index] = value;
+        onWeChatRedirectUrisChange(newList);
+      },
+      [wechatRedirectUris, onWeChatRedirectUrisChange]
+    );
+    const onWechatUriItemAdd = useCallback(() => {
+      const newList = wechatRedirectUris.slice();
+      newList.push("");
+      onWeChatRedirectUrisChange(newList);
+    }, [wechatRedirectUris, onWeChatRedirectUrisChange]);
+    const onWechatUriItemDelete = useCallback(
+      (index: number) => {
+        const newList = wechatRedirectUris.slice();
+        newList.splice(index, 1);
+        onWeChatRedirectUrisChange(newList);
+      },
+      [wechatRedirectUris, onWeChatRedirectUrisChange]
     );
 
     const noneditable = featureDisabled;
@@ -712,41 +764,117 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       [config, onChange, secret]
     );
 
+    const onDemoCredentialValueChange = useCallback(
+      (value: DemoCredentialOptionValue) => {
+        handleDemoCredentialSelectedChange(value === "demo");
+      },
+      [handleDemoCredentialSelectedChange]
+    );
+
+    const demoCredentialOptions = useMemo<
+      IconRadioCardOption<DemoCredentialOptionValue>[]
+    >(
+      () => [
+        {
+          value: "custom",
+          icon: (
+            <SquareIcon
+              className="text-[var(--accent-9)]"
+              Icon={ListBulletIcon}
+              size="7"
+              radius="4"
+              iconSize="1.375rem"
+            />
+          ),
+          title: renderToString(
+            "SingleSignOnConfigurationWidget.credentialStatusButton.custom.text"
+          ),
+          subtitle: renderToString(
+            "SingleSignOnConfigurationWidget.credentialStatusButton.custom.secondaryText"
+          ),
+        },
+        {
+          value: "demo",
+          icon: (
+            <SquareIcon
+              className="text-[var(--accent-9)]"
+              Icon={StarFilledIcon}
+              size="7"
+              radius="4"
+              iconSize="1.375rem"
+            />
+          ),
+          title: renderToString(
+            "SingleSignOnConfigurationWidget.credentialStatusButton.demo.text"
+          ),
+          subtitle: renderToString(
+            "SingleSignOnConfigurationWidget.credentialStatusButton.demo.secondaryText"
+          ),
+        },
+      ],
+      [renderToString]
+    );
+
+    const onToggleAdvancedFolded = useCallback(() => {
+      setAdvancedFolded((folded) => !folded);
+    }, []);
+
     return (
-      <Widget className={className}>
-        <div className={styles.widgetHeader}>
-          <div className={styles.widgetHeaderIcon}>
-            <OAuthClientIcon providerItemKey={providerItemKey} />
+      <SettingsSectionCard
+        className={className}
+        contentClassName={styles.cardContent}
+        title={
+          <FormattedMessage id="SingleSignOnConfigurationWidget.settings.label" />
+        }
+      >
+        <div className={styles.contentHeader}>
+          <div className={styles.widgetHeader}>
+            <span className={styles.widgetHeaderIcon}>
+              <OAuthClientIcon providerItemKey={providerItemKey} />
+            </span>
+            <Text
+              as="p"
+              size="3"
+              weight="medium"
+              className={styles.contentTitle}
+            >
+              {renderToString(messageID)}
+            </Text>
           </div>
-          <Label>{renderToString(messageID)}</Label>
+          <Text
+            as="p"
+            size="2"
+            color="gray"
+            className={styles.contentDescription}
+          >
+            <FormattedMessage
+              id="SingleSignOnConfigurationWidget.setupGuide"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                docLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href={docUrl}>{chunks}</ExternalLink>
+                ),
+              }}
+            />
+          </Text>
         </div>
-        <WidgetDescription>
-          <FormattedMessage
-            id="SingleSignOnConfigurationWidget.setupGuide"
-            values={{
-              // eslint-disable-next-line react/no-unstable-nested-components
-              docLink: (chunks: React.ReactNode) => (
-                <ExternalLink href={docUrl}>{chunks}</ExternalLink>
-              ),
-            }}
-          />
-        </WidgetDescription>
+        <Text as="p" size="2" weight="medium" className={styles.sectionTitle}>
+          <FormattedMessage id="SingleSignOnConfigurationWidget.credentials.label" />
+        </Text>
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
         {isDemoCredentialAvailable ? (
-          <div className="grid grid-cols-2 gap-4 grid-flow-col p-px">
-            <DemoCredentialStatusButton
-              targetValue={false}
-              value={isDemoCredentialSelected}
-              onClick={handleDemoCredentialSelectedChange}
-            />
-            <DemoCredentialStatusButton
-              targetValue={true}
-              value={isDemoCredentialSelected}
-              onClick={handleDemoCredentialSelectedChange}
-            />
-          </div>
+          <IconRadioCards
+            size="2"
+            value={
+              isDemoCredentialSelected ? ("demo" as const) : ("custom" as const)
+            }
+            onValueChange={onDemoCredentialValueChange}
+            options={demoCredentialOptions}
+            numberOfColumns={2}
+            itemFillSpaces={true}
+          />
         ) : null}
         {credentialStatus === "missing_credential" ? (
           <Callout
@@ -768,74 +896,91 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
         {credentialStatus !== "demo" ? (
           <>
             {redirectURL && redirectUrlLabelId ? (
-              <div className={styles.textField}>
-                <TextFieldWithCopyButton
-                  label={renderToString(redirectUrlLabelId)}
-                  value={redirectURL}
-                  readOnly={true}
-                />
-              </div>
+              <TextField
+                size="2"
+                labelSize="2"
+                label={renderToString(redirectUrlLabelId)}
+                value={redirectURL}
+                readOnly={true}
+                suffix={<CopyIconButton textToCopy={redirectURL} />}
+                suffixPlain={true}
+              />
             ) : null}
             {visibleFields.has("client_id") ? (
-              <FormTextField
+              <TextField
+                size="2"
+                labelSize="2"
                 parentJSONPointer={jsonPointer}
                 fieldName="client_id"
                 label={renderToString(
                   "SingleSignOnConfigurationScreen.widget.client-id"
                 )}
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
                 value={config.client_id ?? ""}
                 onChange={onClientIDChange}
                 disabled={noneditable}
               />
             ) : null}
             {visibleFields.has("client_secret") ? (
-              <FormTextField
-                parentJSONPointer={clientSecretParentJsonPointer}
-                fieldName="client_secret"
-                label={renderToString(
-                  "SingleSignOnConfigurationScreen.widget.client-secret"
-                )}
-                className={styles.textField}
-                styles={
-                  isSecretFieldTextArea
-                    ? MULTILINE_TEXT_FIELD_STYLE
-                    : TEXT_FIELD_STYLE
-                }
-                multiline={isSecretFieldTextArea}
-                value={
-                  noneditable || secret.newClientSecret == null
-                    ? MASKED_SECRET
-                    : secret.newClientSecret
-                }
-                onChange={onClientSecretChange}
-                disabled={noneditable || secret.newClientSecret == null}
-              />
+              isSecretFieldTextArea ? (
+                <TextArea
+                  size="2"
+                  labelSize="2"
+                  className={styles.clientSecretTextArea}
+                  parentJSONPointer={clientSecretParentJsonPointer}
+                  fieldName="client_secret"
+                  label={renderToString(
+                    "SingleSignOnConfigurationScreen.widget.client-secret"
+                  )}
+                  value={
+                    noneditable || secret.newClientSecret == null
+                      ? MASKED_SECRET
+                      : secret.newClientSecret
+                  }
+                  onChange={onClientSecretChange}
+                  disabled={noneditable || secret.newClientSecret == null}
+                />
+              ) : (
+                <TextField
+                  size="2"
+                  labelSize="2"
+                  parentJSONPointer={clientSecretParentJsonPointer}
+                  fieldName="client_secret"
+                  label={renderToString(
+                    "SingleSignOnConfigurationScreen.widget.client-secret"
+                  )}
+                  value={
+                    noneditable || secret.newClientSecret == null
+                      ? MASKED_SECRET
+                      : secret.newClientSecret
+                  }
+                  onChange={onClientSecretChange}
+                  disabled={noneditable || secret.newClientSecret == null}
+                />
+              )
             ) : null}
             {visibleFields.has("tenant") ? (
-              <FormTextField
+              <TextField
+                size="2"
+                labelSize="2"
                 parentJSONPointer={jsonPointer}
                 fieldName="tenant"
                 label={renderToString(
                   "SingleSignOnConfigurationScreen.widget.tenant"
                 )}
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
                 value={config.tenant ?? ""}
                 onChange={onTenantChange}
                 disabled={noneditable}
               />
             ) : null}
             {visibleFields.has("policy") ? (
-              <FormTextField
+              <TextField
+                size="2"
+                labelSize="2"
                 parentJSONPointer={jsonPointer}
                 fieldName="policy"
                 label={renderToString(
                   "SingleSignOnConfigurationScreen.widget.policy"
                 )}
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
                 value={config.policy ?? ""}
                 placeholder={renderToString(
                   "SingleSignOnConfigurationScreen.widget.policy.placeholder"
@@ -845,7 +990,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
               />
             ) : null}
             {visibleFields.has("domain_hint") ? (
-              <FormTextField
+              <TextField
+                size="2"
+                labelSize="2"
                 parentJSONPointer={jsonPointer}
                 fieldName="domain_hint"
                 label={renderToString(
@@ -854,8 +1001,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 placeholder={renderToString(
                   "SingleSignOnConfigurationScreen.widget.domain-hint.placeholder"
                 )}
-                // @ts-expect-error
-                description={
+                hint={
                   <FormattedMessage
                     id="SingleSignOnConfigurationScreen.widget.domain-hint.description"
                     values={{
@@ -872,22 +1018,20 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                     }}
                   />
                 }
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
                 value={config.domain_hint ?? ""}
                 onChange={onDomainHintChange}
                 disabled={noneditable}
               />
             ) : null}
             {visibleFields.has("discovery_document_endpoint") ? (
-              <FormTextField
+              <TextField
+                size="2"
+                labelSize="2"
                 parentJSONPointer={jsonPointer}
                 fieldName="discovery_document_endpoint"
                 label={renderToString(
                   "SingleSignOnConfigurationScreen.widget.discovery-document-endpoint"
                 )}
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
                 value={config.discovery_document_endpoint ?? ""}
                 onChange={onDiscoveryDocumentEndpointChange}
                 placeholder="http://example.com/.well-known/openid-configuration"
@@ -895,159 +1039,196 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
               />
             ) : null}
             {visibleFields.has("key_id") ? (
-              <FormTextField
+              <TextField
+                size="2"
+                labelSize="2"
                 parentJSONPointer={jsonPointer}
                 fieldName="key_id"
                 label={renderToString(
                   "SingleSignOnConfigurationScreen.widget.key-id"
                 )}
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
                 value={config.key_id ?? ""}
                 onChange={onKeyIDChange}
                 disabled={noneditable}
               />
             ) : null}
             {visibleFields.has("team_id") ? (
-              <FormTextField
+              <TextField
+                size="2"
+                labelSize="2"
                 parentJSONPointer={jsonPointer}
                 fieldName="team_id"
                 label={renderToString(
                   "SingleSignOnConfigurationScreen.widget.team-id"
                 )}
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
                 value={config.team_id ?? ""}
                 onChange={onTeamIDChange}
                 disabled={noneditable}
               />
             ) : null}
             {visibleFields.has("account_id") ? (
-              <FormTextField
+              <TextField
+                size="2"
+                labelSize="2"
                 parentJSONPointer={jsonPointer}
                 fieldName="account_id"
                 label={renderToString(
                   "SingleSignOnConfigurationScreen.widget.account-id"
                 )}
-                className={styles.textField}
-                styles={TEXT_FIELD_STYLE}
                 value={config.account_id ?? ""}
                 onChange={onAccountIDChange}
                 disabled={noneditable}
               />
             ) : null}
             {visibleFields.has("is_sandbox_account") ? (
-              <Checkbox
-                label={renderToString(
-                  "SingleSignOnConfigurationScreen.widget.is-sandbox-account"
-                )}
-                className={styles.checkbox}
+              <WidgetCheckbox
+                label={
+                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.is-sandbox-account" />
+                }
                 checked={config.is_sandbox_account ?? false}
-                onChange={onIsSandBoxAccountChange}
+                onCheckedChange={onIsSandBoxAccountChange}
                 disabled={noneditable}
               />
             ) : null}
             {visibleFields.has("wechat_redirect_uris") ? (
-              <FormTextFieldList
-                parentJSONPointer={jsonPointer}
-                fieldName="wechat_redirect_uris"
-                list={config.wechat_redirect_uris ?? []}
-                onListItemChange={onWeChatRedirectUrisChange}
-                onListItemAdd={onWeChatRedirectUrisChange}
-                onListItemDelete={onWeChatRedirectUrisChange}
-                addButtonLabelMessageID="SingleSignOnConfigurationScreen.widget.add-uri"
-                className={styles.fieldList}
+              <FormField
+                size="2"
+                labelSize="2"
+                labelSpace="1"
                 label={
-                  <LabelWithTooltip
+                  <FieldLabelWithTooltip
                     labelId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
-                    tooltipHeaderId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
-                    tooltipMessageId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message"
-                    directionalHint={DirectionalHint.bottomLeftEdge}
+                    tooltipId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message"
                   />
                 }
-                disabled={noneditable}
-              />
+              >
+                <div className={styles.uriList}>
+                  {wechatRedirectUris.map((uri, index) => (
+                    <div key={index} className={styles.uriListItem}>
+                      <div className={styles.uriListItemField}>
+                        <TextField
+                          size="2"
+                          value={uri}
+                          onChange={(e) => {
+                            onWechatUriItemChange(index, e.target.value);
+                          }}
+                          disabled={noneditable}
+                        />
+                      </div>
+                      <RadixIconButton
+                        type="button"
+                        variant="ghost"
+                        color="red"
+                        size="2"
+                        aria-label={renderToString("delete")}
+                        onClick={() => {
+                          onWechatUriItemDelete(index);
+                        }}
+                        disabled={noneditable}
+                      >
+                        <TrashIcon width="1rem" height="1rem" />
+                      </RadixIconButton>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.uriListAddButton}>
+                  <SecondaryButton
+                    size="2"
+                    onClick={onWechatUriItemAdd}
+                    disabled={noneditable}
+                    text={
+                      <FormattedMessage id="SingleSignOnConfigurationScreen.widget.add-uri" />
+                    }
+                  />
+                </div>
+              </FormField>
             ) : null}
-            {visibleFields.has("email_required") ? (
-              <Checkbox
-                label={renderToString(
-                  "SingleSignOnConfigurationScreen.widget.email-required"
-                )}
-                className={styles.checkbox}
-                checked={config.claims?.email?.required ?? true}
-                onChange={onEmailRequiredChange}
-                disabled={noneditable}
-              />
-            ) : null}
-            {visibleFields.has("create_disabled") ? (
-              <Checkbox
-                label={renderToString(
-                  "SingleSignOnConfigurationScreen.widget.create-disabled"
-                )}
-                className={styles.checkbox}
-                checked={config.create_disabled ?? false}
-                onChange={onCreateDisabledChange}
-                disabled={noneditable}
-              />
-            ) : null}
-            {visibleFields.has("delete_disabled") ? (
-              <Checkbox
-                label={renderToString(
-                  "SingleSignOnConfigurationScreen.widget.delete-disabled"
-                )}
-                className={styles.checkbox}
-                checked={config.delete_disabled ?? false}
-                onChange={onDeleteDisabledChange}
-                disabled={noneditable}
-              />
-            ) : null}
-            {visibleFields.has("alias") ? (
-              <div className={styles.aliasField}>
-                <Label>
-                  {renderToString(
-                    "SingleSignOnConfigurationScreen.widget.alias"
-                  )}
-                </Label>
-                <div className={styles.aliasRow}>
-                  {isEditingAlias ? (
-                    <FormTextField
-                      parentJSONPointer={jsonPointer}
-                      fieldName="alias"
-                      className={styles.aliasInput}
-                      styles={TEXT_FIELD_STYLE}
-                      value={config.alias}
-                      onChange={onAliasChange}
+            {visibleFields.has("email_required") ||
+            visibleFields.has("create_disabled") ||
+            visibleFields.has("delete_disabled") ? (
+              <div className={styles.policySection}>
+                <Text
+                  as="p"
+                  size="2"
+                  weight="medium"
+                  className={styles.sectionTitle}
+                >
+                  <FormattedMessage id="SingleSignOnConfigurationWidget.signInPolicy.label" />
+                </Text>
+                <div className={styles.checkboxGroup}>
+                  {visibleFields.has("email_required") ? (
+                    <WidgetCheckbox
+                      label={
+                        <FormattedMessage id="SingleSignOnConfigurationScreen.widget.email-required" />
+                      }
+                      checked={config.claims?.email?.required ?? true}
+                      onCheckedChange={onEmailRequiredChange}
                       disabled={noneditable}
                     />
-                  ) : (
-                    <TextField
-                      className={styles.aliasInput}
-                      value={config.alias}
-                      readOnly={true}
+                  ) : null}
+                  {visibleFields.has("create_disabled") ? (
+                    <WidgetCheckbox
+                      label={
+                        <FormattedMessage id="SingleSignOnConfigurationScreen.widget.create-disabled" />
+                      }
+                      checked={config.create_disabled ?? false}
+                      onCheckedChange={onCreateDisabledChange}
+                      disabled={noneditable}
                     />
-                  )}
-                  {isEditingAlias ? (
-                    <DefaultButton
-                      text={renderToString("cancel")}
-                      onClick={onCancelEditingAlias}
-                    />
-                  ) : !noneditable ? (
-                    <DefaultButton
-                      text={renderToString(
-                        "SingleSignOnConfigurationScreen.edit"
-                      )}
-                      onClick={onStartEditingAlias}
+                  ) : null}
+                  {visibleFields.has("delete_disabled") ? (
+                    <WidgetCheckbox
+                      label={
+                        <FormattedMessage id="SingleSignOnConfigurationScreen.widget.delete-disabled" />
+                      }
+                      checked={config.delete_disabled ?? false}
+                      onCheckedChange={onDeleteDisabledChange}
+                      disabled={noneditable}
                     />
                   ) : null}
                 </div>
-                <Text variant="small" className={styles.aliasDescription}>
-                  <FormattedMessage id="SingleSignOnConfigurationScreen.widget.alias.description" />
-                </Text>
+              </div>
+            ) : null}
+            {visibleFields.has("alias") ? (
+              <div className={styles.advancedSection}>
+                <button
+                  type="button"
+                  className={styles.advancedToggle}
+                  onClick={onToggleAdvancedFolded}
+                >
+                  <Text size="2" weight="medium">
+                    <FormattedMessage id="SingleSignOnConfigurationWidget.advancedOptions" />
+                  </Text>
+                  <ChevronDownIcon
+                    className={cn(
+                      styles.advancedToggleIcon,
+                      !advancedFolded ? styles.advancedToggleIconOpen : null
+                    )}
+                    aria-hidden={true}
+                  />
+                </button>
+                {advancedFolded ? null : (
+                  <TextField
+                    size="2"
+                    labelSize="2"
+                    parentJSONPointer={jsonPointer}
+                    fieldName="alias"
+                    label={renderToString(
+                      "SingleSignOnConfigurationScreen.widget.alias"
+                    )}
+                    hint={renderToString(
+                      "SingleSignOnConfigurationScreen.widget.alias.description"
+                    )}
+                    value={config.alias}
+                    onChange={onAliasChange}
+                    disabled={noneditable}
+                  />
+                )}
               </div>
             ) : null}
           </>
         ) : null}
-      </Widget>
+      </SettingsSectionCard>
     );
   };
 
@@ -1072,6 +1253,7 @@ function canAddMultiple(provider: OAuthSSOProviderItemKey): boolean {
 export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
   function OAuthClientCard(props) {
     const { className, providerItemKey, isAdded, onAddClick } = props;
+    const { renderToString } = useContext(Context);
 
     const {
       titleId: cardTitleId,
@@ -1091,11 +1273,21 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
               <OAuthClientIcon providerItemKey={providerItemKey} />
             </div>
             <div className={styles.cardName}>
-              <Text variant="medium" className={styles.cardTitle}>
+              <Text
+                as="p"
+                size="2"
+                weight="medium"
+                className={styles.cardTitle}
+              >
                 <FormattedMessage id={cardTitleId} />
               </Text>
               {cardSubtitleId != null ? (
-                <Text variant="small" className={styles.cardSubtitle}>
+                <Text
+                  as="p"
+                  size="1"
+                  color="gray"
+                  className={styles.cardSubtitle}
+                >
                   <FormattedMessage id={cardSubtitleId} />
                 </Text>
               ) : null}
@@ -1103,19 +1295,24 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
           </div>
           {isAdded && !canAddMultiple(providerItemKey) ? (
             <div className={styles.cardAddedBadge}>
-              <Text variant="small" styles={{ root: { color: "#898989" } }}>
+              <Text as="p" size="1" color="gray">
                 <FormattedMessage id="AddSingleSignOnConfigurationScreen.card.button.added" />
               </Text>
             </div>
           ) : (
-            <ActionButton
-              iconProps={{ iconName: "Add" }}
+            <RadixIconButton
+              type="button"
+              variant="soft"
+              size="2"
+              aria-label={renderToString("add")}
               onClick={handleAddClick}
-            />
+            >
+              <PlusIcon width="1rem" height="1rem" />
+            </RadixIconButton>
           )}
         </div>
         <div className={styles.cardBody}>
-          <Text variant="small" className={styles.cardDescription}>
+          <Text as="p" size="1" color="gray" className={styles.cardDescription}>
             <FormattedMessage id={cardDescriptionId} />
           </Text>
         </div>
@@ -1126,7 +1323,6 @@ export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
 interface OAuthClientRowProps {
   className?: string;
   providerConfig: OAuthSSOProviderConfig;
-  showAlias: boolean;
   providersWithDemoCredentials: Set<string>;
   onEditClick?: (provider: OAuthSSOProviderConfig) => void;
   onDeleteClick?: (provider: OAuthSSOProviderConfig) => void;
@@ -1137,13 +1333,11 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
     const {
       className,
       providerConfig,
-      showAlias,
       providersWithDemoCredentials,
       onEditClick,
       onDeleteClick,
     } = props;
     const { renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
 
     const providerItemKey = useMemo(
       () =>
@@ -1154,9 +1348,8 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
       [providerConfig]
     );
 
-    const knownProviderInfo = oauthProviders[providerItemKey] as
-      | OAuthProviderInfo
-      | undefined;
+    const { titleId, subtitleId, descriptionId } =
+      oauthProviders[providerItemKey];
 
     const handleEditClick = useCallback(() => {
       onEditClick?.(providerConfig);
@@ -1166,64 +1359,85 @@ export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
       onDeleteClick?.(providerConfig);
     }, [onDeleteClick, providerConfig]);
 
+    const onRowKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleEditClick();
+        }
+      },
+      [handleEditClick]
+    );
+
     return (
-      <div className={cn(styles.rowContainer, className)}>
-        <div className={styles.rowColumn}>
+      <div
+        className={cn(styles.tableRow, className)}
+        role="button"
+        tabIndex={0}
+        onClick={handleEditClick}
+        onKeyDown={onRowKeyDown}
+      >
+        <div className={styles.tableCellProvider}>
           <div className={styles.rowIcon}>
             <OAuthClientIcon providerItemKey={providerItemKey} />
           </div>
           <div className={styles.rowContent}>
-            <div className={styles.rowName}>
-              <Text variant="medium" className={styles.rowTitle} block={true}>
-                {knownProviderInfo != null
-                  ? `${renderToString(knownProviderInfo.titleId)}${
-                      knownProviderInfo.subtitleId != null
-                        ? ` (${renderToString(knownProviderInfo.subtitleId)})`
-                        : ""
-                    }`
-                  : providerConfig.type}
-                {showAlias ? ` - ${providerConfig.alias}` : null}
-              </Text>
-            </div>
-            <div className={styles.rowDescription}>
-              <Text
-                variant="small"
-                className={styles.rowDescription}
-                block={true}
-              >
-                {knownProviderInfo != null ? (
-                  <FormattedMessage id={knownProviderInfo.descriptionId} />
-                ) : null}
-              </Text>
-            </div>
+            <Text as="p" size="2" className={styles.rowTitle}>
+              {`${renderToString(titleId)}${
+                subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
+              }`}
+            </Text>
+            <Text
+              as="p"
+              size="1"
+              color="gray"
+              className={styles.rowDescription}
+            >
+              <FormattedMessage id={descriptionId} />
+            </Text>
           </div>
         </div>
-        <div className={styles.rowColumn}>
-          <Text variant="medium" className={styles.rowAlias} block={true}>
+        <div className={styles.tableCellAlias}>
+          <Text as="p" size="2" className={styles.rowAlias}>
             {providerConfig.alias}
           </Text>
         </div>
-        <div className={styles.rowColumn}>
+        <div className={styles.tableCellConfiguration}>
           <ProviderStatus
             providerConfig={providerConfig}
             providersWithDemoCredentials={providersWithDemoCredentials}
           />
         </div>
-        <div className={styles.rowActions}>
-          {knownProviderInfo != null ? (
-            <ActionButton
-              text={renderToString("SingleSignOnConfigurationScreen.edit")}
-              styles={{ label: { fontWeight: 600 } }}
-              theme={themes.actionButton}
-              onClick={handleEditClick}
-            />
-          ) : null}
-          <ActionButton
-            text={renderToString("SingleSignOnConfigurationScreen.delete")}
-            styles={{ label: { fontWeight: 600 } }}
-            theme={themes.destructive}
-            onClick={handleDeleteClick}
-          />
+        <div
+          className={styles.tableCellActions}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              <RadixIconButton
+                className={styles.rowActionsButton}
+                variant="soft"
+                color="gray"
+                size="2"
+                aria-label={renderToString(
+                  "SingleSignOnConfigurationScreen.row-actions"
+                )}
+              >
+                <DotsVerticalIcon width="1rem" height="1rem" />
+              </RadixIconButton>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+              <DropdownMenu.Item onSelect={handleEditClick}>
+                <Pencil1Icon />
+                <FormattedMessage id="SingleSignOnConfigurationScreen.edit" />
+              </DropdownMenu.Item>
+              <DropdownMenu.Item color="red" onSelect={handleDeleteClick}>
+                <TrashIcon />
+                <FormattedMessage id="SingleSignOnConfigurationScreen.delete" />
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
         </div>
       </div>
     );
@@ -1233,106 +1447,19 @@ export const OAuthClientRowHeader: React.VFC<{ className?: string }> = ({
   className,
 }) => {
   return (
-    <div className={cn(styles.rowContainer, className)}>
-      <div className={styles.rowColumn}>
-        <Text variant="medium" className={styles.rowHeader} block={true}>
-          <FormattedMessage id="SingleSignOnConfigurationScreen.header.provider" />
-        </Text>
+    <div className={cn(styles.tableHeader, className)}>
+      <div className={styles.tableHeaderCellProvider}>
+        <FormattedMessage id="SingleSignOnConfigurationScreen.header.provider" />
       </div>
-      <div className={styles.rowColumn}>
-        <Text variant="medium" className={styles.rowHeader} block={true}>
-          <FormattedMessage id="SingleSignOnConfigurationScreen.header.alias" />
-        </Text>
+      <div className={styles.tableHeaderCellAlias}>
+        <FormattedMessage id="SingleSignOnConfigurationScreen.header.alias" />
       </div>
-      <div className={styles.rowColumn}>
-        <Text variant="medium" className={styles.rowHeader} block={true}>
-          <FormattedMessage id="SingleSignOnConfigurationScreen.header.configuration" />
-        </Text>
+      <div className={styles.tableHeaderCellConfiguration}>
+        <FormattedMessage id="SingleSignOnConfigurationScreen.header.configuration" />
       </div>
-      <div className={styles.rowActions}></div>
+      <div className={styles.tableHeaderCellActions} />
     </div>
   );
 };
 
 export default SingleSignOnConfigurationWidget;
-
-interface DemoCredentialStatusButtonProps {
-  value: boolean;
-  targetValue: boolean;
-  disabled?: boolean;
-  onClick?: (value: boolean) => void;
-}
-
-function DemoCredentialStatusButton(props: DemoCredentialStatusButtonProps) {
-  const { targetValue, value, disabled, onClick: onClickProp } = props;
-  const checked = targetValue === value;
-
-  const { renderToString } = useContext(Context);
-
-  const onClick = useCallback(
-    (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onClickProp?.(targetValue);
-    },
-    [onClickProp, targetValue]
-  );
-
-  const textID = useMemo(() => {
-    switch (targetValue) {
-      case false:
-        return "SingleSignOnConfigurationWidget.credentialStatusButton.custom.text";
-      case true:
-        return "SingleSignOnConfigurationWidget.credentialStatusButton.demo.text";
-    }
-  }, [targetValue]);
-
-  const secondaryTextID = useMemo(() => {
-    switch (targetValue) {
-      case false:
-        return "SingleSignOnConfigurationWidget.credentialStatusButton.custom.secondaryText";
-      case true:
-        return "SingleSignOnConfigurationWidget.credentialStatusButton.demo.secondaryText";
-    }
-  }, [targetValue]);
-
-  const IconComponent = useMemo(() => {
-    return function IconComponent() {
-      const { themes } = useSystemConfig();
-      let iconName: string;
-      switch (targetValue) {
-        case false:
-          iconName = "BulletedList";
-          break;
-        case true:
-          iconName = "FavoriteList";
-          break;
-      }
-      return (
-        <Icon
-          className="mr-4"
-          iconName={iconName}
-          styles={{
-            root: {
-              color: themes.main.palette.themePrimary,
-              fontSize: "24px",
-              lineHeight: "1",
-            },
-          }}
-        />
-      );
-    };
-  }, [targetValue]);
-
-  return (
-    <ChoiceButton
-      disabled={disabled}
-      checked={checked}
-      styles={{ root: { paddingLeft: 26 } }}
-      text={renderToString(textID)}
-      secondaryText={renderToString(secondaryTextID)}
-      IconComponent={IconComponent}
-      onClick={onClick}
-    />
-  );
-}

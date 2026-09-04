@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import styles from "./QuickStartStep.module.css";
 
 export function QuickStartStep({
@@ -16,33 +16,10 @@ export function QuickStartStep({
   return (
     <section className={className}>
       <header className={styles.quickStartStep__header}>
-        <Text
-          variant="mediumPlus"
-          styles={{
-            root: {
-              fontWeight: 600,
-              color: "var(--gray-12)",
-              backgroundColor: "var(--gray-a3)",
-              width: 22,
-              height: 22,
-              borderRadius: 999,
-              textAlign: "center",
-              lineHeight: 20,
-            },
-          }}
-          block={true}
-        >
+        <Text size="3" weight="bold" className={styles.quickStartStep__number}>
           {stepNumber}
         </Text>
-        <Text
-          variant="mediumPlus"
-          styles={{
-            root: {
-              fontWeight: 600,
-              color: "var(--gray-12)",
-            },
-          }}
-        >
+        <Text size="3" weight="bold" className={styles.quickStartStep__title}>
           {title}
         </Text>
       </header>

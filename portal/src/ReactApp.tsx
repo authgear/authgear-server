@@ -33,7 +33,6 @@ import {
   instantiateSystemConfig,
   mergeSystemConfig,
 } from "./system-config";
-import { loadTheme } from "@fluentui/react";
 import Authenticated, {
   configureAuthgear,
   AuthenticatedContextProvider,
@@ -113,8 +112,6 @@ async function initApp(systemConfig: SystemConfig) {
       beforeSend: sentryBeforeSend,
     });
   }
-
-  loadTheme(systemConfig.themes.main);
 }
 
 const router = createBrowserRouter([
@@ -355,7 +352,7 @@ const ReactApp: React.VFC = function ReactApp() {
       </AppLocaleProvider>
     );
   } else if (!systemConfig) {
-    // Avoid rendering components from @fluentui/react, since themes are not loaded yet.
+    // The remote system config has not loaded yet.
     return null;
   }
 

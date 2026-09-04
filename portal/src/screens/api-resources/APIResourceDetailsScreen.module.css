@@ -1,0 +1,7 @@
+.content {
+  @apply pt-6 flex flex-col gap-4;
+  grid-column: 1 / span 9;
+  @apply tablet:col-span-full;
+  /* Clearance for the Details section's SaveFunctionBar. */
+  padding-bottom: 5.5rem;
+}

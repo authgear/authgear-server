@@ -1,6 +1,5 @@
 import React, { ReactElement } from "react";
-// eslint-disable-next-line no-restricted-imports
-import { Link as FluentLink, ILinkProps } from "@fluentui/react";
+import { Link as RadixLink } from "@radix-ui/themes";
 import {
   ReactRouterLinkComponent,
   ReactRouterLinkPropsBase,
@@ -8,7 +7,7 @@ import {
 
 export interface LinkProps
   extends Omit<ReactRouterLinkPropsBase, "component">,
-    ILinkProps {}
+    Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "color"> {}
 
 // We finally generalize 3 use cases of Link.
 // They are Link, ExternalLink and LinkButton.
@@ -16,5 +15,10 @@ export interface LinkProps
 // Use ExternalLink when you want to render an external link.
 // Use LinkButton when you want to show a button that looks like a link.
 export default function Link(props: LinkProps): ReactElement {
-  return <ReactRouterLinkComponent {...props} component={FluentLink} />;
+  // color="indigo" pins the link accent so it stays link-colored even inside a
+  // gray <Text>, which would otherwise remap the accent scale to gray. Matches
+  // ExternalLink and LinkButton.
+  return (
+    <ReactRouterLinkComponent color="indigo" {...props} component={RadixLink} />
+  );
 }

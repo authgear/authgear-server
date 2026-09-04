@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "@fluentui/react";
+import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import styles from "./DynamicClientsEmptyView.module.css";
 
@@ -7,20 +7,10 @@ export const DynamicClientsEmptyView: React.VFC =
   function DynamicClientsEmptyView() {
     return (
       <div className={styles.container}>
-        <Text
-          variant="mediumPlus"
-          className={styles.title}
-          block={true}
-          styles={{ root: { fontWeight: 600, color: "var(--gray-12)" } }}
-        >
+        <Text as="p" size="3" weight="medium" className={styles.title}>
           <FormattedMessage id="DynamicClientsEmptyView.empty.title" />
         </Text>
-        <Text
-          variant="medium"
-          className={styles.description}
-          block={true}
-          styles={{ root: { color: "var(--gray-11)" } }}
-        >
+        <Text as="p" size="2" color="gray" className={styles.description}>
           <FormattedMessage id="DynamicClientsEmptyView.empty.description" />
         </Text>
       </div>

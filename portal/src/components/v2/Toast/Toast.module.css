@@ -21,6 +21,10 @@
   box-shadow: hsl(206deg 22% 7% / 0.35) 0px 10px 38px -10px,
     hsl(206deg 22% 7% / 0.2) 0px 10px 20px -15px;
   display: block;
+
+  /* Match the size-2 Callout radius so the drop shadow follows the rounded
+     corners instead of casting a square corner past them. */
+  border-radius: var(--radius-4);
 }
 .ToastRoot[data-state="open"] {
   animation: slideIn 150ms cubic-bezier(0.16, 1, 0.3, 1);

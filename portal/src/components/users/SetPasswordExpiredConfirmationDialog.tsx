@@ -1,9 +1,7 @@
-import { Dialog, DialogFooter } from "@fluentui/react";
 import { Context, FormattedMessage } from "../../intl";
 import React, { useContext, useCallback, useMemo } from "react";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import DefaultButton from "../../DefaultButton";
 import { ConfirmationDialogStore } from "../../hook/useConfirmationDialog";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 
 interface SetPasswordExpiredConfirmationDialogProps {
   store: ConfirmationDialogStore;
@@ -29,40 +27,34 @@ export const SetPasswordExpiredConfirmationDialog: React.VFC<SetPasswordExpiredC
       }
     }, [store]);
 
-    const removeConfirmDialogContentProps = useMemo(() => {
-      return {
-        title: (
-          <FormattedMessage id="UserDetails.account-security.mark-as-expired-confirm-dialog.title" />
-        ),
-        subText: isExpired
-          ? renderToString(
-              "UserDetails.account-security.mark-as-expired-confirm-dialog.message.revoke"
-            )
-          : renderToString(
-              "UserDetails.account-security.mark-as-expired-confirm-dialog.message"
-            ),
-      };
+    const description = useMemo(() => {
+      return isExpired
+        ? renderToString(
+            "UserDetails.account-security.mark-as-expired-confirm-dialog.message.revoke"
+          )
+        : renderToString(
+            "UserDetails.account-security.mark-as-expired-confirm-dialog.message"
+          );
     }, [isExpired, renderToString]);
 
     return (
-      <Dialog
-        hidden={!store.visible}
-        dialogContentProps={removeConfirmDialogContentProps}
-        modalProps={{ isBlocking: store.loading }}
-        onDismiss={onDismiss}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            onClick={onConfirmClicked}
-            labelId="confirm"
-            loading={store.loading ?? false}
-          />
-          <DefaultButton
-            disabled={store.loading}
-            onClick={onDismiss}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
+      <ConfirmationDialog
+        open={store.visible}
+        onOpenChange={(open) => {
+          if (!open) {
+            onDismiss();
+          }
+        }}
+        title={
+          <FormattedMessage id="UserDetails.account-security.mark-as-expired-confirm-dialog.title" />
+        }
+        description={description}
+        confirmText={<FormattedMessage id="confirm" />}
+        cancelText={<FormattedMessage id="cancel" />}
+        onConfirm={onConfirmClicked}
+        onCancel={onDismiss}
+        loading={store.loading}
+        confirmColor="red"
+      />
     );
   };

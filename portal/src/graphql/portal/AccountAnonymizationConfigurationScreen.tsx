@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import { produce } from "immer";
 import {
@@ -81,9 +81,9 @@ const AccountAnonymizationConfigurationContent: React.VFC<AccountAnonymizationCo
           ref={contentWidthAnchorRef}
           className={cn(styles.widget, styles.pageHeader)}
         >
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+          <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
             <FormattedMessage id="AccountAnonymizationConfigurationScreen.title" />
-          </Text>
+          </Heading>
           <Text as="p" size="2" color="gray" className={styles.pageDescription}>
             <FormattedMessage id="AccountAnonymizationConfigurationScreen.description" />
           </Text>
@@ -139,7 +139,7 @@ const AccountAnonymizationConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} hideFooterComponent={true}>
+      <FormContainer form={form}>
         <AccountAnonymizationConfigurationContent form={form} />
       </FormContainer>
     );

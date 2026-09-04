@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon, Text } from "@fluentui/react";
+import { Heading, Text } from "@radix-ui/themes";
 import styles from "./OverviewMetricCard.module.css";
 
 export type MetricIconVariant = "default" | "success" | "warning" | "blocked";
@@ -12,7 +12,7 @@ const iconVariantClass: Record<MetricIconVariant, string> = {
 };
 
 export interface OverviewMetricCardProps {
-  iconName: string;
+  icon: React.ReactNode;
   iconVariant: MetricIconVariant;
   title: string;
   value: string;
@@ -20,27 +20,25 @@ export interface OverviewMetricCardProps {
 
 const OverviewMetricCard: React.VFC<OverviewMetricCardProps> =
   function OverviewMetricCard(props) {
-    const { iconName, iconVariant, title, value } = props;
+    const { icon, iconVariant, title, value } = props;
 
     return (
       <div className={styles.metricCard}>
         <div className={styles.metricCardHeader}>
-          <div className={iconVariantClass[iconVariant]}>
-            <Icon iconName={iconName} />
-          </div>
+          <div className={iconVariantClass[iconVariant]}>{icon}</div>
           <div className={styles.metricHeadingGroup}>
-            <Text
+            <Heading
               as="h3"
-              variant="medium"
-              block={true}
+              size="2"
+              weight="medium"
               className={styles.metricTitle}
             >
               {title}
-            </Text>
+            </Heading>
             <Text
               as="div"
-              variant="xLargePlus"
-              block={true}
+              size="6"
+              weight="bold"
               className={styles.metricValue}
             >
               {value}

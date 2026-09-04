@@ -2,17 +2,22 @@
   @apply flex flex-col gap-6;
 }
 
-/* Filter bar */
+.title {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+/* ── Filter bar ── */
 
 .filterRow {
   @apply flex flex-wrap items-center gap-x-3 gap-y-2 pb-4;
-  border-bottom: 1px solid #edebe9;
+  border-bottom: 1px solid var(--gray-a5);
 
   @apply tablet:flex-col tablet:items-stretch tablet:gap-2;
 }
 
 .filterGroup {
-  @apply flex flex-wrap items-center gap-2 min-h-8 min-w-0;
+  @apply flex flex-wrap items-center gap-2 min-w-0;
 
   @apply tablet:grid tablet:grid-cols-2 tablet:gap-2 tablet:w-full;
 }
@@ -22,7 +27,7 @@
   flex: 1 1 auto;
   min-width: 320px;
 
-  @apply tablet:w-full tablet:flex-wrap;
+  @apply tablet:w-full tablet:flex-wrap tablet:min-w-0;
 }
 
 .filterActions {
@@ -30,96 +35,212 @@
 }
 
 .dateRangeFilter {
-  @apply h-8 tablet:h-11 tablet:col-span-2;
+  @apply tablet:col-span-2;
 }
 
 .dateRangeFilterCustom {
-  @apply h-auto min-h-8 self-center;
   max-width: min(100%, 520px);
 
   @apply tablet:col-span-2 tablet:max-w-none;
 }
 
-.dateRangeFilterCustom :global(.ms-Button-label) {
-  white-space: normal;
-  text-align: left;
-  line-height: 1.25;
-}
-
-.actionDropdown,
-.resultDropdown {
-  @apply tablet:w-full tablet:min-w-0 tablet:h-11;
-}
-
-.actionDropdown {
+.filterSelect {
   min-width: 140px;
+
+  @apply tablet:w-full;
 }
 
-.resultDropdown {
-  min-width: 140px;
+/* Reason-codes multi-select trigger (styled like a Select) */
+
+.filterSelectTrigger {
+  @apply inline-flex h-8 cursor-pointer items-center justify-between gap-2 px-3;
+  border: 1px solid var(--gray-a7);
+  border-radius: var(--radius-3);
+  background-color: var(--color-surface);
+  font-size: var(--font-size-2);
+  color: var(--gray-12);
 }
 
-.reasonCodeComboBox {
-  width: 180px;
-  flex: 0 0 180px;
-
-  @apply tablet:w-full tablet:basis-full tablet:max-w-none tablet:h-11;
+.filterSelectTrigger:hover {
+  border-color: var(--gray-a8);
 }
+
+.reasonCodesTrigger {
+  width: 200px;
+  flex: 0 0 200px;
+
+  @apply tablet:w-full tablet:flex-1 tablet:basis-full;
+}
+
+.filterSelectValue {
+  @apply truncate;
+  color: var(--gray-12);
+}
+
+.filterSelectPlaceholder {
+  color: var(--gray-a11);
+}
+
+.filterSelectIcon {
+  @apply flex-none;
+  width: 16px;
+  height: 16px;
+  color: var(--gray-a11);
+}
+
+.filterClearButton {
+  @apply inline-flex flex-none cursor-pointer items-center justify-center;
+  color: var(--gray-a11);
+}
+
+.filterClearButton:hover {
+  color: var(--gray-12);
+}
+
+/* Columns button */
+
+.filterButton {
+  @apply inline-flex h-8 flex-shrink-0 cursor-pointer items-center gap-1.5 px-3 whitespace-nowrap;
+  font-size: var(--font-size-2);
+  color: var(--gray-12);
+  background-color: transparent;
+  border: 1px solid var(--gray-a7);
+  border-radius: var(--radius-3);
+}
+
+.filterButton:hover {
+  background-color: var(--gray-a3);
+}
+
+.filterButtonIcon {
+  @apply flex-none;
+  width: 14px;
+  height: 14px;
+  color: var(--gray-a11);
+}
+
+/* Popover content (columns + reason codes) */
+
+.columnsContent,
+.reasonCodesContent {
+  @apply flex flex-col;
+  min-width: 220px;
+}
+
+.columnsLabel {
+  @apply px-2 py-1;
+  color: var(--gray-a11);
+}
+
+.columnsLabelOptional {
+  @apply mt-1 pt-2;
+  border-top: 1px solid var(--gray-a5);
+}
+
+.columnsItem {
+  @apply flex cursor-pointer items-center gap-2 rounded px-2 py-1.5;
+  color: var(--gray-12);
+}
+
+.columnsItem:hover {
+  background-color: var(--gray-a3);
+}
+
+.columnsFooter {
+  @apply mt-1 flex justify-end px-2 pt-2;
+  border-top: 1px solid var(--gray-a5);
+}
+
+/* Search */
 
 .searchBoxFilter {
-  width: 180px;
-  flex: 0 0 180px;
-  height: 32px;
+  width: 200px;
+  flex: 0 0 200px;
 
-  @apply tablet:flex-1 tablet:w-auto tablet:min-w-0 tablet:max-w-none;
+  @apply tablet:flex-1 tablet:w-auto tablet:min-w-0 tablet:basis-auto;
 }
 
-.searchBoxFilter :global(.ms-SearchBox) {
-  height: 100%;
-  min-height: unset;
+.searchClearButton {
+  @apply inline-flex cursor-pointer items-center justify-center border-0 bg-transparent p-0;
+  color: var(--gray-a11);
 }
 
-.searchBoxFilter :global(.ms-SearchBox-field) {
-  height: 100%;
-  line-height: normal;
+.searchClearButton:hover {
+  color: var(--gray-12);
+}
+
+.searchClearIcon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .refreshButton {
-  @apply h-8 flex-shrink-0;
+  @apply flex-shrink-0;
 }
 
-/* Table */
+/* ── Table ── */
 
 .tableWrapper {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-3);
+  background-color: var(--color-panel-solid);
 }
 
-.list {
-  @apply w-full border-0;
+.table {
+  width: max-content;
+  min-width: 100%;
 }
 
-.logRow {
-  cursor: pointer;
+.tableHeader {
+  @apply flex items-stretch;
+  width: max-content;
+  min-width: 100%;
+  min-height: 2.75rem;
+  background-color: var(--gray-2);
 }
 
-.expandButton {
-  @apply h-6 w-6;
-  color: #605e5c;
+.headerCell {
+  @apply flex items-center;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-12);
+  white-space: nowrap;
 }
 
-.expandButton :global(.ms-Button-icon) {
-  color: #605e5c;
-  font-size: 12px;
-  font-weight: 400;
+.tableRow {
+  @apply flex items-center cursor-pointer;
+  width: max-content;
+  min-width: 100%;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+  transition: background-color 0.12s ease;
 }
 
-.expandedRow {
-  background-color: #f9f8f6;
+.tableRow:hover {
+  background-color: var(--gray-a2);
+}
+
+.cell {
+  @apply flex items-center min-w-0 overflow-hidden;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--gray-12);
+}
+
+.cellText {
+  @apply block truncate;
+  min-width: 0;
 }
 
 .actionCell {
-  color: #176df3;
-  font-size: 14px;
+  color: var(--accent-11);
 }
 
 /* Result badges */
@@ -129,154 +250,64 @@
 }
 
 .resultAllowed {
-  @apply bg-[#eef6ef] text-[#16a34a];
+  background-color: var(--green-3);
+  color: var(--green-11);
 }
 
 .resultFlagged {
-  @apply bg-[#fff7ed] text-[#c2410c];
+  background-color: var(--amber-3);
+  color: var(--amber-11);
 }
 
 .resultBlocked {
-  @apply bg-[#fef2f2] text-[#dc2626];
+  background-color: var(--red-3);
+  color: var(--red-11);
 }
 
-/* Expanded row details */
+/* Shimmer skeleton */
 
-.rowDetails {
-  @apply border-t border-[#edebe9] px-7 py-4;
-  background-color: #f9f8f6;
-  width: 100%;
+.shimmerRow {
+  @apply flex items-center;
+  width: max-content;
+  min-width: 100%;
+  min-height: 3.25rem;
+  border-top: 1px solid var(--gray-a6);
+  animation: shimmer-pulse 1.5s ease-in-out infinite;
 }
 
-.detailsGrid {
-  @apply grid gap-8;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.detailsSection {
-  @apply flex flex-col gap-0;
-  min-width: 0;
-}
-
-.detailsSectionTitle {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
-  line-height: normal;
-  color: #323130;
-  margin-bottom: 4px;
-}
-
-.detailsField {
-  @apply flex flex-wrap items-baseline;
-  gap: 8px;
-}
-
-.detailsLabel {
-  font-size: 12px;
-  line-height: 20px;
-  color: #8a8886;
-}
-
-.detailsValue {
-  font-size: 12px;
-  line-height: 20px;
-  color: #201f1e;
-}
-
-.reasonCodeTags {
-  @apply inline-flex flex-wrap;
-  gap: 4px;
-}
-
-.reasonCodeTag {
-  @apply inline-flex items-center;
-  font-size: 11px;
-  line-height: 16px;
-  font-weight: 400;
-  color: #c2410c;
-  background-color: #fff7ed;
-  border-radius: 3px;
-  padding: 2px 6px;
-}
-
-@media (max-width: 1024px) {
-  .detailsGrid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
+@keyframes shimmer-pulse {
+  0%,
+  100% {
+    opacity: 1;
   }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.shimmerCell {
+  height: 0.875rem;
+  width: 70%;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-a5);
+}
+
+/* Empty state */
+
+.emptyRow {
+  @apply flex items-center justify-center;
+  width: 100%;
+  min-height: 8rem;
+  padding: 16px;
+}
+
+.emptyText {
+  color: var(--gray-11);
+  text-align: center;
 }
 
 /* Pagination */
 
 .pagination {
   @apply mt-2 flex justify-end;
-}
-
-/* Columns dropdown */
-
-.columnsDropdownWrapper {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.columnsButton {
-  @apply inline-flex items-center gap-1.5 h-8 px-3 flex-shrink-0;
-  font-family: "Segoe UI", system-ui, sans-serif;
-  font-size: 14px;
-  color: #323130;
-  background: transparent;
-  border: 1px solid #8a8886;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.columnsButton:hover {
-  background: #f3f2f1;
-}
-
-.columnsButtonIcon {
-  @apply flex items-center;
-  color: #605e5c;
-}
-
-/* Columns callout */
-
-.columnsCallout {
-  @apply flex flex-col;
-  min-width: 200px;
-  padding: 8px 0;
-}
-
-.columnsSectionLabel {
-  padding: 4px 12px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: #8a8886;
-}
-
-.columnsSectionLabelOptional {
-  margin-top: 4px;
-  border-top: 1px solid #edebe9;
-  padding-top: 8px;
-}
-
-.columnsCheckboxAlways {
-  padding: 4px 12px;
-}
-
-.columnsCheckbox {
-  padding: 4px 12px;
-}
-
-.columnsCalloutFooter {
-  @apply flex justify-end;
-  padding: 8px 12px 4px;
-  margin-top: 4px;
-  border-top: 1px solid #edebe9;
-}
-
-.columnsCheckbox :global(.ms-Checkbox-text) {
-  font-size: 14px;
 }

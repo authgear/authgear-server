@@ -1,6 +1,6 @@
+import { Heading } from "@radix-ui/themes";
 import React, { useCallback } from "react";
 import { FormattedMessage } from "../../../intl";
-import { Text } from "@fluentui/react";
 import { PlayIcon } from "@radix-ui/react-icons";
 import Link from "../../../Link";
 import { useTester } from "../../../hook/tester";
@@ -39,15 +39,15 @@ export default function HeroLoginCard(
   return (
     <div className={`${styles.heroCard} ${styles.heroCardLogin}`}>
       <div className={styles.heroCardBody}>
-        <Text block={true} className={styles.heroBadge}>
+        <p className={styles.heroBadge}>
           <FormattedMessage id="GetStartedScreen.hero.login.badge" />
-        </Text>
-        <Text as="h2" block={true} className={styles.heroTitle}>
+        </p>
+        <Heading as="h2" className={styles.heroTitle}>
           <FormattedMessage id="GetStartedScreen.hero.login.title" />
-        </Text>
-        <Text block={true} className={styles.heroSubtitle}>
+        </Heading>
+        <p className={styles.heroSubtitle}>
           <FormattedMessage id="GetStartedScreen.hero.login.subtitle" />
-        </Text>
+        </p>
         <div className={styles.heroButtonRow}>
           <button
             type="button"

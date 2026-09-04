@@ -1,3 +1,24 @@
 .descriptionBox {
-  @apply px-3 py-2 bg-grey-white7;
+  @apply px-3 py-2;
+  border-radius: var(--radius-2);
+  background-color: var(--gray-a3);
+}
+
+.checkboxGroup {
+  @apply flex flex-col gap-2;
+}
+
+.checkboxRow {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+.radioOption {
+  cursor: pointer;
+}
+
+.settingsCardAlignCenter {
+  /* Vertically centre the title against the single toggle in the wide
+     (columns) layout, but revert to the card's stretch alignment once it
+     stacks, so the title stays top-left instead of centring horizontally. */
+  @apply items-center tablet:items-stretch;
 }

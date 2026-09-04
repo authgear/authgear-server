@@ -1,15 +1,15 @@
-import React, { useContext, useMemo } from "react";
+import React, { useMemo } from "react";
+import cn from "classnames";
+import { Text } from "@radix-ui/themes";
 import styles from "./App2AppConfigurationScreen.module.css";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
-import { Context as IntlContext, FormattedMessage } from "../../intl";
-import ScreenDescription from "../../ScreenDescription";
+import { FormattedMessage } from "../../intl";
 import { useParams } from "react-router-dom";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { PortalAPIAppConfig } from "../../types";
-import { DetailsList, IColumn, SelectionMode, Text } from "@fluentui/react";
+import { CardTable } from "../../components/v2/CardTable/CardTable";
 import Link from "../../Link";
 
 interface App2AppRowViewModel {
@@ -23,54 +23,6 @@ function App2AppConfigurationScreenLoaded(props: {
   effectiveAppConfig: PortalAPIAppConfig;
 }) {
   const { appID, effectiveAppConfig } = props;
-  const { renderToString } = useContext(IntlContext);
-
-  const columns = useMemo((): IColumn[] => {
-    return [
-      {
-        key: "name",
-        fieldName: "name",
-        name: renderToString("App2AppConfigurationScreen.columns.name"),
-        minWidth: 100,
-      },
-      {
-        key: "status",
-        fieldName: "isEnabled",
-        name: renderToString("App2AppConfigurationScreen.columns.status"),
-        minWidth: 100,
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: (item: App2AppRowViewModel) => {
-          if (item.isEnabled) {
-            return (
-              <span className="text-status-green">
-                <FormattedMessage id="App2AppConfigurationScreen.status.enabled"></FormattedMessage>
-              </span>
-            );
-          }
-          return (
-            <span className="text-status-grey">
-              <FormattedMessage id="App2AppConfigurationScreen.status.disabled"></FormattedMessage>
-            </span>
-          );
-        },
-      },
-      {
-        key: "action",
-        name: renderToString("App2AppConfigurationScreen.columns.action"),
-        minWidth: 150,
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: (item: App2AppRowViewModel) => {
-          return (
-            <Link
-              to={`/project/${appID}/configuration/apps/${item.cliendID}/edit#app2app`}
-            >
-              <FormattedMessage id="App2AppConfigurationScreen.action.setup"></FormattedMessage>
-            </Link>
-          );
-        },
-      },
-    ];
-  }, [appID, renderToString]);
 
   const rows = useMemo((): App2AppRowViewModel[] => {
     return (
@@ -86,22 +38,65 @@ function App2AppConfigurationScreenLoaded(props: {
 
   return (
     <ScreenContent>
-      <ScreenTitle className={styles.widget}>
+      <Text
+        as="p"
+        size="5"
+        weight="bold"
+        className={cn(styles.widget, styles.pageTitle)}
+      >
         <FormattedMessage id="App2AppConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
+      </Text>
+      <Text
+        as="p"
+        size="2"
+        className={cn(styles.widget, styles.pageDescription)}
+      >
         <FormattedMessage id="App2AppConfigurationScreen.description" />
-      </ScreenDescription>
-      <div className={styles.widget}>
-        <Text block={true}>
+      </Text>
+      <div className={cn(styles.widget, styles.listSection)}>
+        <Text as="p" size="2" className={styles.tableDescription}>
           <FormattedMessage id="App2AppConfigurationScreen.table.description" />
         </Text>
-        <DetailsList
-          className={styles.clientList}
-          columns={columns}
-          items={rows}
-          selectionMode={SelectionMode.none}
-        />
+        <CardTable>
+          <CardTable.Header>
+            <CardTable.HeaderCell className={styles.colName}>
+              <FormattedMessage id="App2AppConfigurationScreen.columns.name" />
+            </CardTable.HeaderCell>
+            <CardTable.HeaderCell className={styles.colStatus}>
+              <FormattedMessage id="App2AppConfigurationScreen.columns.status" />
+            </CardTable.HeaderCell>
+            <CardTable.HeaderCell className={styles.colAction}>
+              <FormattedMessage id="App2AppConfigurationScreen.columns.action" />
+            </CardTable.HeaderCell>
+          </CardTable.Header>
+          {rows.map((row) => (
+            <CardTable.Row key={row.cliendID}>
+              <CardTable.Cell className={styles.colName}>
+                <Text size="2" className={styles.clientName}>
+                  {row.name}
+                </Text>
+              </CardTable.Cell>
+              <CardTable.Cell className={styles.colStatus}>
+                {row.isEnabled ? (
+                  <span className={styles.statusEnabled}>
+                    <FormattedMessage id="App2AppConfigurationScreen.status.enabled" />
+                  </span>
+                ) : (
+                  <span className={styles.statusDisabled}>
+                    <FormattedMessage id="App2AppConfigurationScreen.status.disabled" />
+                  </span>
+                )}
+              </CardTable.Cell>
+              <CardTable.Cell className={styles.colAction}>
+                <Link
+                  to={`/project/${appID}/configuration/apps/${row.cliendID}/edit#app2app`}
+                >
+                  <FormattedMessage id="App2AppConfigurationScreen.action.setup" />
+                </Link>
+              </CardTable.Cell>
+            </CardTable.Row>
+          ))}
+        </CardTable>
       </div>
     </ScreenContent>
   );

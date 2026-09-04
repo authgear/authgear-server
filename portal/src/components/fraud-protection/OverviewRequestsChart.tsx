@@ -114,6 +114,46 @@ function buildSlots(
   return buildHourlySlots(timeBuckets, rangeFrom, rangeTo);
 }
 
+function readCSSVar(name: string, fallback: string): string {
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value !== "" ? value : fallback;
+}
+
+interface ChartTokens {
+  blocked: string;
+  flagged: string;
+  allowed: string;
+  grid: string;
+  border: string;
+  labelText: string;
+  axisText: string;
+  titleText: string;
+  bodyText: string;
+  surface: string;
+  fontFamily: string;
+}
+
+function cssTokens(): ChartTokens {
+  return {
+    blocked: readCSSVar("--red-a6", "#fca5a5"),
+    flagged: readCSSVar("--amber-a6", "#fde68a"),
+    allowed: readCSSVar("--gray-a5", "#e5e5e5"),
+    grid: readCSSVar("--gray-a4", "#f3f2f1"),
+    border: readCSSVar("--gray-a5", "#edebe9"),
+    labelText: readCSSVar("--gray-11", "#605e5c"),
+    axisText: readCSSVar("--gray-a10", "#8a8886"),
+    titleText: readCSSVar("--gray-12", "#323130"),
+    bodyText: readCSSVar("--gray-11", "#605e5c"),
+    surface: readCSSVar("--color-panel-solid", "#ffffff"),
+    fontFamily: readCSSVar("--default-font-family", "system-ui, sans-serif"),
+  };
+}
+
 const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
   function OverviewRequestsChart({
     timeBuckets,
@@ -122,6 +162,11 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
     rangeTo,
   }) {
     const { renderToString } = useContext(Context);
+
+    // Read Radix design tokens so the chart matches the current theme
+    // (light/dark) instead of hardcoding Fluent hex values. The overview
+    // tab unmounts when switching tabs, so this recomputes on each visit.
+    const chartColors = useMemo(() => cssTokens(), []);
 
     const chartLabels = useMemo(
       () => ({
@@ -153,14 +198,14 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
           {
             label: chartLabels.blocked,
             data: slots.map((s) => s.blocked),
-            backgroundColor: "#fca5a5",
+            backgroundColor: chartColors.blocked,
             borderWidth: 0,
             stack: "stack",
           },
           {
             label: chartLabels.flagged,
             data: slots.map((s) => s.flagged),
-            backgroundColor: "#fde68a",
+            backgroundColor: chartColors.flagged,
             borderWidth: 0,
             stack: "stack",
           },
@@ -169,7 +214,7 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             data: slots.map((s) =>
               Math.max(0, s.total - s.blocked - s.flagged)
             ),
-            backgroundColor: "#e5e5e5",
+            backgroundColor: chartColors.allowed,
             borderWidth: 0,
             stack: "stack",
           },
@@ -179,6 +224,9 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
         chartLabels.blocked,
         chartLabels.flagged,
         chartLabels.totalRequests,
+        chartColors.blocked,
+        chartColors.flagged,
+        chartColors.allowed,
         slots,
       ]
     );
@@ -196,10 +244,10 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
               boxWidth: 12,
               boxHeight: 12,
               padding: 24,
-              color: "#605e5c",
+              color: chartColors.labelText,
               font: {
                 size: 12,
-                family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+                family: chartColors.fontFamily,
               },
               generateLabels: (chart) => {
                 const datasets = chart.data.datasets;
@@ -210,26 +258,26 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
                   lineWidth: 0,
                   datasetIndex: i,
                   hidden: false,
-                  fontColor: "#605e5c",
+                  fontColor: chartColors.labelText,
                 }));
               },
             },
           },
           tooltip: {
             mode: "index" as const,
-            backgroundColor: "#ffffff",
-            borderColor: "#edebe9",
+            backgroundColor: chartColors.surface,
+            borderColor: chartColors.border,
             borderWidth: 1,
-            titleColor: "#323130",
-            bodyColor: "#605e5c",
+            titleColor: chartColors.titleText,
+            bodyColor: chartColors.bodyText,
             titleFont: {
               size: 12,
               weight: 600,
-              family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+              family: chartColors.fontFamily,
             },
             bodyFont: {
               size: 12,
-              family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+              family: chartColors.fontFamily,
             },
             padding: 10,
             cornerRadius: 2,
@@ -266,31 +314,35 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
             grid: { display: false },
             ticks: {
               maxRotation: 0,
-              autoSkip: false,
+              // Let Chart.js drop labels that don't fit so the axis stays
+              // readable on narrow screens (all 24 hourly labels overlap
+              // otherwise); it still shows every label when there is room.
+              autoSkip: true,
+              autoSkipPadding: 8,
               font: {
                 size: 11,
-                family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+                family: chartColors.fontFamily,
               },
-              color: "#8a8886",
+              color: chartColors.axisText,
             },
           },
           y: {
             stacked: true,
             min: 0,
-            grid: { color: "#f3f2f1" },
+            grid: { color: chartColors.grid },
             ticks: {
               precision: 0,
               font: {
                 size: 11,
-                family: "'Segoe UI', system-ui, -apple-system, sans-serif",
+                family: chartColors.fontFamily,
               },
-              color: "#8a8886",
+              color: chartColors.axisText,
             },
             border: { display: false },
           },
         },
       }),
-      [renderToString]
+      [renderToString, chartColors]
     );
 
     return (

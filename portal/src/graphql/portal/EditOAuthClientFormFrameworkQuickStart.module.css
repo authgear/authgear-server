@@ -117,19 +117,10 @@
   margin-top: 12px;
 }
 
+/* IconRadioCards manages its own responsive grid; this wrapper only spaces
+   it within the dialog. */
 .dialogGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
   margin: 12px 0;
-  /* Give the ChoiceButton outline room. */
-  padding: 2px;
-}
-
-@media (max-width: 600px) {
-  .dialogGrid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .changeFrameworkNote {
@@ -180,7 +171,7 @@
 .snippetCode {
   margin: 0;
   padding: 16px;
-  font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
+  font-family: var(--code-font-family);
   font-size: 12.5px;
   line-height: 1.6;
   color: #24292f;
@@ -218,7 +209,7 @@
 }
 
 .inlineCode {
-  font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
+  font-family: var(--code-font-family);
   font-size: 12.5px;
   background: #eff1f3;
   border-radius: 4px;
@@ -286,4 +277,29 @@
   right: 6px;
   display: flex;
   align-items: center;
+}
+
+.frameworkName {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.dialogCardIcon {
+  font-size: 24px;
+  line-height: 1;
+  color: #0969da;
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.buttonLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }

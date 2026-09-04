@@ -1,13 +1,77 @@
 .widget {
-  grid-column: 1 / span 8;
+  grid-column: 1 / span 9;
 
   @apply tablet:col-span-full;
 }
 
-.separator {
-  grid-column: 1 / span 8;
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  color: var(--gray-a11);
+}
+
+.tabsRoot {
+  grid-column: 1 / span 9;
   @apply tablet:col-span-full;
-  @apply my-2;
+  @apply flex min-w-0 flex-col;
+}
+
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.tabsList {
+  width: 100%;
+  box-shadow: none;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--gray-a6);
+  margin-bottom: 20px;
+}
+
+.tabContent {
+  @apply flex min-w-0 flex-col;
+  gap: 16px;
+}
+
+.section {
+  @apply min-w-0 rounded-xl border border-solid bg-white p-6;
+  border-color: var(--gray-a6);
+  overflow: hidden;
+}
+
+.sectionInner {
+  @apply flex min-w-0 flex-row items-start gap-8;
+
+  @apply tablet:flex-col tablet:items-stretch tablet:gap-4;
+}
+
+.sectionHeading {
+  flex-shrink: 0;
+  width: 8.75rem;
+  color: var(--gray-12);
+
+  @apply tablet:w-auto;
+}
+
+.sectionContent {
+  @apply flex w-full min-w-0 flex-1 flex-col gap-4;
+}
+
+.sectionDescription {
+  color: var(--gray-a11);
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .codeEditorContainer {
@@ -18,98 +82,191 @@
   @apply gap-y-5;
 }
 
-.columnFull {
-  grid-column: 1 / span 8;
-
-  @apply tablet:col-span-full;
+.copyIconButton {
+  @apply shrink-0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--gray-11);
 }
 
-.secretInput {
-  grid-column: 1 / span 7;
+.editorCard {
+  @apply min-w-0 overflow-hidden rounded-xl border border-solid;
+  border-color: var(--gray-a6);
 }
 
-.secretButton {
-  grid-column: span 1 / span 1;
-  justify-self: center;
-  align-self: end;
-}
-
-.hookContainer {
-  display: flex;
-  flex-direction: row;
-  column-gap: 12px;
-  flex: 1 0 0;
-}
-
-.hookHeader {
-  display: flex;
-  flex-direction: row;
-  column-gap: 12px;
-  padding: 8px 32px 8px 0;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-}
-
-.blockingHookKind {
-  flex: 0.15 0 0;
-  min-width: 120px;
-}
-
-.blockingHookEvent {
-  flex: 0.35 0 0;
-  min-width: 270px;
-}
-
-.blockingHookConfig {
-  flex: 0.5 0 0;
-  min-width: 200px;
-}
-
-.hookConfig {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  column-gap: 4px;
-}
-
-.hookConfigConfig {
-  flex: 1 0 0;
-}
-
-.nonblockingHookEvent {
-  flex: 0.4 0 0;
-  min-width: 100px;
-}
-
-.nonblockingHookConfig {
-  flex: 0.6 0 0;
-  min-width: 200px;
+.editorCardHeader {
+  @apply border-b border-solid px-6 py-4;
+  border-color: var(--gray-a6);
 }
 
 .codeEditor {
-  height: 50vh;
+  display: block;
+  height: 70vh;
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
-.codeEditorFooter {
+.hookCellTruncate {
+  @apply truncate;
+  min-width: 0;
+}
+
+.hookEventInfoIcon {
+  flex-shrink: 0;
+  cursor: default;
+  color: var(--gray-a9);
+}
+
+.hookTypeRow {
   display: flex;
   flex-direction: row;
-  column-gap: 8px;
+  align-items: center;
+  gap: 8px;
 }
 
-.dot {
-  margin: 0 4px;
+.hookTypeSelect {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
-.hookList {
-  /* stylelint-disable-next-line */
-  row-gap: 0 !important;
+.hookTypeSelectTrigger {
+  width: 100%;
 }
 
-.hookListItem {
-  column-gap: 4px;
-  border-bottom-width: 1px;
-  border-bottom-style: solid;
-  overflow-y: hidden;
-  overflow-x: auto;
-  padding: 10px 0;
+.hookEditScriptButton {
+  flex-shrink: 0;
+}
+
+.hookAddButton {
+  @apply inline-flex cursor-pointer items-center gap-1;
+  border: none;
+  background: none;
+  padding: 4px 0;
+  margin-top: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent-9);
+}
+
+.hookAddButton:hover {
+  color: var(--accent-10);
+}
+
+/* Hooks accordion */
+
+.hookAccordionList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hookAccordionItem {
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hookAccordionHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background-color: var(--gray-a2);
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+.hookAccordionHeader:has(.hookAccordionToggle:hover),
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+.hookAccordionHeader:has(.hookAccordionChevronButton:hover) {
+  background-color: var(--gray-a3);
+}
+
+.hookAccordionToggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 10px 8px 10px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+.hookAccordionToggle:focus-visible {
+  outline: 2px solid var(--accent-8);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+.hookAccordionChevronButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 8px;
+  padding: 10px 12px 10px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+.hookAccordionChevronButton:focus-visible {
+  outline: 2px solid var(--accent-8);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+.hookAccordionChevron {
+  flex-shrink: 0;
+  color: var(--gray-a9);
+  transition: transform 0.15s ease;
+}
+
+.hookAccordionChevronOpen {
+  transform: rotate(180deg);
+}
+
+.hookDirtyDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-9);
+  flex-shrink: 0;
+}
+
+.hookAccordionBody {
+  padding: 16px;
+  border-top: 1px solid var(--gray-a6);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hookAccordionField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hookEventRadioContainer {
+  height: 14rem;
+  overflow-y: auto;
+  border: 1px solid var(--gray-a6);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.hookEventCategoryLabel {
+  color: var(--gray-a11);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }

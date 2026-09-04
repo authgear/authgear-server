@@ -1,27 +1,129 @@
 .card {
-  @apply grid grid-cols-1 gap-8 justify-items-center content-start;
-  @apply py-8 px-4;
-  @apply border border-solid border-border-primary rounded-xl;
-  @apply min-w-[262px];
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  justify-items: center;
+  align-content: start;
+  padding: 32px 16px;
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-4);
+  min-width: 262px;
 }
 
 .header {
-  @apply grid grid-cols-1 gap-2 justify-items-center;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  justify-items: center;
+}
+
+.planTitle {
+  font-weight: 600;
+}
+
+.priceLarge {
+  line-height: var(--line-height-8);
+  font-weight: 600;
+}
+
+.priceCustom {
+  line-height: 36px;
+  font-weight: 600;
+}
+
+.priceMonthlyRow {
+  display: flex;
+  align-items: flex-end;
+}
+
+.priceMonthlyUnit {
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+.smsPriceSection {
+  position: relative;
+  justify-self: stretch;
+  padding-top: 72px;
+}
+
+.smsPriceAbsolute {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+.smsPriceMetered {
+  text-align: center;
+}
+
+.smsPriceTitle {
+  margin: 0;
+}
+
+.smsPriceSecondary {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.actionButton {
+  width: 100%;
+}
+
+.actionButton :global(.rt-Button) {
+  width: 100%;
 }
 
 .featureList {
-  @apply w-full;
-  @apply grid grid-cols-1 gap-4;
-  @apply list-none;
-  @apply justify-self-start;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-self: start;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.featureIcon {
+  flex-shrink: 0;
+  color: var(--accent-9);
+}
+
+.separator {
+  height: 1px;
+  width: 100%;
+  background-color: var(--gray-a6);
 }
 
 .addonList {
-  @apply w-full;
-  @apply grid grid-cols-1 gap-4;
-  @apply list-none;
-  @apply justify-self-start;
-  @apply p-4;
-  @apply rounded-xl;
-  @apply bg-brand-50;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 16px;
+  justify-self: start;
+  border-radius: var(--radius-4);
+  background-color: var(--accent-a2);
+}
+
+.addonTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.addonHintIcon {
+  flex-shrink: 0;
+  color: var(--gray-a11);
 }
