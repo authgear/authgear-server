@@ -1,0 +1,40 @@
+.widget {
+  grid-column: 1 / span 12;
+
+  @apply tablet:col-span-full;
+}
+
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.content {
+  @apply flex flex-col gap-4;
+}
+
+/* Clearance for the floating save bar, which would otherwise cover the last
+   card once the form is dirty. */
+.contentWithSaveBar {
+  padding-bottom: 5.5rem;
+}
+
+.labelWithHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hintIcon {
+  color: var(--gray-9);
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.fieldInOption {
+  @apply ml-6;
+}

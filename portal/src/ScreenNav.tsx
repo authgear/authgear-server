@@ -248,10 +248,27 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         ],
       },
       {
-        type: "link" as const,
+        type: "group" as const,
         textKey: "ScreenNav.client-applications",
-        url: `/project/${appID}/configuration/apps`,
+        urlPrefix: `/project/${appID}/configuration/apps`,
         icon: DashboardIcon,
+        children: [
+          {
+            type: "link" as const,
+            textKey: "ApplicationsConfigurationScreen.title",
+            url: `/project/${appID}/configuration/apps`,
+          },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.cimd",
+            url: `/project/${appID}/configuration/apps/metadata-documents`,
+          },
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.dcr",
+            url: `/project/${appID}/configuration/apps/self-registration`,
+          },
+        ],
       },
       {
         type: "link" as const,

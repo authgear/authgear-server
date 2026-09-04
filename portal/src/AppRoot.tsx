@@ -227,6 +227,12 @@ const EditOAuthClientResourceScopeScreen = lazy(
 const DynamicClientListScreen = lazy(
   async () => import("./screens/dynamic-clients/DynamicClientListScreen")
 );
+const MetadataDocumentsScreen = lazy(
+  async () => import("./screens/dynamic-clients/MetadataDocumentsScreen")
+);
+const SelfRegistrationScreen = lazy(
+  async () => import("./screens/dynamic-clients/SelfRegistrationScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -677,10 +683,26 @@ const AppRoot: React.VFC = function AppRoot() {
                 }
               />
               <Route
-                path="dcr"
+                path="dynamic-clients"
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <DynamicClientListScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="metadata-documents"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <MetadataDocumentsScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="self-registration"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <SelfRegistrationScreen />
                   </Suspense>
                 }
               />

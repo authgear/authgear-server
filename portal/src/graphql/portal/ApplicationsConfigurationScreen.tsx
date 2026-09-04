@@ -42,62 +42,16 @@ import { getNextPlan } from "../../util/plan";
 import { RolesAndGroupsEmptyView } from "../../components/roles-and-groups/empty-view/RolesAndGroupsEmptyView";
 import { DynamicClientsTab } from "../../components/dynamic-clients/DynamicClientsTab";
 
-// Whether the CIMD allowlist restricts anything. An absent or empty
-// allowed_domains means "any domain", not "no domain" (docs/specs/cimd.md
-// § Domain Trust) -- the form makes that an explicit choice so an admin
-// never has to infer the permissive reading from an empty field.
-export type CIMDDomainMode = "any" | "list";
-
+// Only the static client list. CIMD and DCR each own their own nav-level
+// screen and their own form, so neither mechanism's fields belong here: a
+// save from this screen must never carry an edit made on one of them.
 export interface FormState {
   clients: OAuthClientConfig[];
-  cimdEnabled: boolean;
-  cimdDomainMode: CIMDDomainMode;
-  cimdAllowedDomains: string[];
-  cimdAccessTokenLifetimeSeconds: number | undefined;
-  cimdRefreshTokenLifetimeSeconds: number | undefined;
-  cimdRefreshTokenIdleTimeoutEnabled: boolean;
-  cimdRefreshTokenIdleTimeoutSeconds: number | undefined;
-  dynamicClientRegistrationEnabled: boolean;
-  initialAccessTokenRequired: boolean;
-  accessTokenLifetimeSeconds: number | undefined;
-  refreshTokenLifetimeSeconds: number | undefined;
-  refreshTokenIdleTimeoutEnabled: boolean;
-  refreshTokenIdleTimeoutSeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
-  const dcr = config.oauth?.dynamic_client_registration;
-  const cimd = config.oauth?.client_id_metadata_document;
-  const cimdAllowedDomains = [...(cimd?.allowed_domains ?? [])];
   return {
     clients: config.oauth?.clients ?? [],
-    cimdEnabled: cimd?.enabled ?? false,
-    cimdDomainMode: cimdAllowedDomains.length > 0 ? "list" : "any",
-    cimdAllowedDomains,
-    cimdAccessTokenLifetimeSeconds:
-      cimd?.client_config?.access_token_lifetime_seconds,
-    cimdRefreshTokenLifetimeSeconds:
-      cimd?.client_config?.refresh_token_lifetime_seconds,
-    cimdRefreshTokenIdleTimeoutEnabled:
-      cimd?.client_config?.refresh_token_idle_timeout_enabled ?? true,
-    cimdRefreshTokenIdleTimeoutSeconds:
-      cimd?.client_config?.refresh_token_idle_timeout_seconds,
-    dynamicClientRegistrationEnabled: dcr?.enabled ?? false,
-    // Absent means required — the spec default. The requirement only means
-    // anything while registration is enabled, so normalise it back to required
-    // whenever registration is off: that way enabling registration can never
-    // silently open it, including for a config that arrived with the
-    // requirement already turned off. constructConfig then drops the key.
-    initialAccessTokenRequired:
-      dcr?.enabled ?? false ? dcr?.initial_access_token_required ?? true : true,
-    accessTokenLifetimeSeconds:
-      dcr?.default_client_config?.access_token_lifetime_seconds,
-    refreshTokenLifetimeSeconds:
-      dcr?.default_client_config?.refresh_token_lifetime_seconds,
-    refreshTokenIdleTimeoutEnabled:
-      dcr?.default_client_config?.refresh_token_idle_timeout_enabled ?? true,
-    refreshTokenIdleTimeoutSeconds:
-      dcr?.default_client_config?.refresh_token_idle_timeout_seconds,
   };
 }
 
@@ -111,108 +65,6 @@ function constructConfig(
     ([config, currentState]) => {
       config.oauth ??= {};
       config.oauth.clients = currentState.clients;
-
-      config.oauth.client_id_metadata_document ??= {};
-      const cimd = config.oauth.client_id_metadata_document;
-
-      if (currentState.cimdEnabled) {
-        cimd.enabled = true;
-      } else {
-        delete cimd.enabled;
-      }
-
-      if (currentState.cimdDomainMode === "list") {
-        // An empty list in "Only these domains" mode is never written as an
-        // empty array: the server reads that as "any domain", which is the
-        // opposite of what the admin picked. Writing a single empty entry
-        // instead fails the config schema's minLength, so the save is
-        // refused with the error bound to the offending field rather than
-        // silently widening access.
-        cimd.allowed_domains =
-          currentState.cimdAllowedDomains.length > 0
-            ? currentState.cimdAllowedDomains
-            : [""];
-      } else {
-        delete cimd.allowed_domains;
-      }
-
-      cimd.client_config ??= {};
-      const cimdClientConfig = cimd.client_config;
-
-      if (currentState.cimdAccessTokenLifetimeSeconds != null) {
-        cimdClientConfig.access_token_lifetime_seconds =
-          currentState.cimdAccessTokenLifetimeSeconds;
-      } else {
-        delete cimdClientConfig.access_token_lifetime_seconds;
-      }
-
-      if (currentState.cimdRefreshTokenLifetimeSeconds != null) {
-        cimdClientConfig.refresh_token_lifetime_seconds =
-          currentState.cimdRefreshTokenLifetimeSeconds;
-      } else {
-        delete cimdClientConfig.refresh_token_lifetime_seconds;
-      }
-
-      if (currentState.cimdRefreshTokenIdleTimeoutEnabled) {
-        // Absent means enabled — the server default.
-        delete cimdClientConfig.refresh_token_idle_timeout_enabled;
-      } else {
-        cimdClientConfig.refresh_token_idle_timeout_enabled = false;
-      }
-
-      if (currentState.cimdRefreshTokenIdleTimeoutSeconds != null) {
-        cimdClientConfig.refresh_token_idle_timeout_seconds =
-          currentState.cimdRefreshTokenIdleTimeoutSeconds;
-      } else {
-        delete cimdClientConfig.refresh_token_idle_timeout_seconds;
-      }
-
-      config.oauth.dynamic_client_registration ??= {};
-      const dcr = config.oauth.dynamic_client_registration;
-
-      if (currentState.dynamicClientRegistrationEnabled) {
-        dcr.enabled = true;
-      } else {
-        delete dcr.enabled;
-      }
-
-      if (currentState.initialAccessTokenRequired) {
-        // Absent means required — keep the config minimal.
-        delete dcr.initial_access_token_required;
-      } else {
-        dcr.initial_access_token_required = false;
-      }
-
-      dcr.default_client_config ??= {};
-      const defaultClientConfig = dcr.default_client_config;
-
-      if (currentState.accessTokenLifetimeSeconds != null) {
-        defaultClientConfig.access_token_lifetime_seconds =
-          currentState.accessTokenLifetimeSeconds;
-      } else {
-        delete defaultClientConfig.access_token_lifetime_seconds;
-      }
-
-      if (currentState.refreshTokenLifetimeSeconds != null) {
-        defaultClientConfig.refresh_token_lifetime_seconds =
-          currentState.refreshTokenLifetimeSeconds;
-      } else {
-        delete defaultClientConfig.refresh_token_lifetime_seconds;
-      }
-
-      if (currentState.refreshTokenIdleTimeoutEnabled) {
-        // Absent means enabled — the server default.
-        delete defaultClientConfig.refresh_token_idle_timeout_enabled;
-      } else {
-        defaultClientConfig.refresh_token_idle_timeout_enabled = false;
-      }
-
-      if (currentState.refreshTokenIdleTimeoutSeconds != null) {
-        defaultClientConfig.refresh_token_idle_timeout_seconds =
-          currentState.refreshTokenIdleTimeoutSeconds;
-      } else {
-        delete defaultClientConfig.refresh_token_idle_timeout_seconds;
-      }
 
       clearEmptyObject(config);
     }
@@ -361,7 +213,16 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow(props) {
   );
 };
 
+// The dynamic-clients tab holds only what CIMD and DCR share; configuring
+// either mechanism happens on its own nav-level screen.
 type ApplicationsTabKey = "applications" | "dynamic-clients";
+
+// Module-level so its identity is stable across renders: usePivotNavigation
+// keeps it in an effect's dependency list.
+const APPLICATIONS_TAB_KEYS: ApplicationsTabKey[] = [
+  "applications",
+  "dynamic-clients",
+];
 
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
@@ -370,7 +231,6 @@ interface OAuthClientConfigurationContentProps {
   oauthClientsHardMaximum: number | undefined;
   selectedKey: ApplicationsTabKey;
   onChangeKey: (key: ApplicationsTabKey) => void;
-  publicOrigin: string;
   dcrClientQuota: number | null;
   cimdClientQuota: number | null;
 }
@@ -384,7 +244,6 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       oauthClientsSoftMaximum,
       selectedKey,
       onChangeKey,
-      publicOrigin,
       dcrClientQuota,
       cimdClientQuota,
     } = props;
@@ -489,6 +348,13 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
       [renderToString]
     );
 
+    const cimdEnabled =
+      props.form.effectiveConfig.oauth?.client_id_metadata_document?.enabled ??
+      false;
+    const dcrEnabled =
+      props.form.effectiveConfig.oauth?.dynamic_client_registration?.enabled ??
+      false;
+
     const isEmpty = state.clients.length === 0;
 
     return (
@@ -504,105 +370,103 @@ const OAuthClientConfigurationContent: React.VFC<OAuthClientConfigurationContent
           onValueChange={onTabChange}
           tabs={tabOptions}
         />
-        {selectedKey === "applications" ? (
-          isEmpty ? (
-            <div className={cn(styles.widget, styles.emptyState)}>
-              <RolesAndGroupsEmptyView
-                icon={
-                  <span className={styles.emptyStateIconWrap}>
-                    <i
-                      className={cn("ti", "ti-apps", styles.emptyStateIcon)}
-                      aria-hidden={true}
-                    />
-                  </span>
+        {selectedKey === "dynamic-clients" ? (
+          <div className={styles.widget}>
+            <DynamicClientsTab
+              cimdClientQuota={cimdClientQuota}
+              dcrClientQuota={dcrClientQuota}
+              cimdEnabled={cimdEnabled}
+              dcrEnabled={dcrEnabled}
+            />
+          </div>
+        ) : isEmpty ? (
+          <div className={cn(styles.widget, styles.emptyState)}>
+            <RolesAndGroupsEmptyView
+              icon={
+                <span className={styles.emptyStateIconWrap}>
+                  <i
+                    className={cn("ti", "ti-apps", styles.emptyStateIcon)}
+                    aria-hidden={true}
+                  />
+                </span>
+              }
+              title={
+                <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.title" />
+              }
+              description={
+                <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.description" />
+              }
+              button={
+                <RolesAndGroupsEmptyView.CreateButton
+                  onClick={goToCreateApp}
+                  text={
+                    <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
+                  }
+                />
+              }
+            />
+          </div>
+        ) : (
+          <>
+            <div className={cn(styles.widget, styles.listHeader)}>
+              <Text as="p" size="2" className={styles.pageDescription}>
+                <FormattedMessage id="ApplicationsConfigurationScreen.description" />
+              </Text>
+              <Tooltip
+                content={
+                  <FormattedMessage
+                    id="ApplicationsConfigurationScreen.add-client-button.hard-limit-tooltip"
+                    values={{ maximum: oauthClientsHardMaximum ?? 0 }}
+                  />
                 }
-                title={
-                  <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.title" />
-                }
-                description={
-                  <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.description" />
-                }
-                button={
-                  <RolesAndGroupsEmptyView.CreateButton
-                    onClick={goToCreateApp}
+                disabled={!hardLimitReached}
+              >
+                {/* The tooltip must still fire when the button is disabled,
+                    so it anchors on a wrapper span instead of the button
+                    itself. */}
+                <span>
+                  <PrimaryButton
+                    size="2"
                     text={
                       <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
                     }
+                    onClick={goToCreateApp}
+                    disabled={hardLimitReached}
                   />
-                }
-              />
+                </span>
+              </Tooltip>
             </div>
-          ) : (
-            <>
-              <div className={cn(styles.widget, styles.listHeader)}>
-                <Text as="p" size="2" className={styles.pageDescription}>
-                  <FormattedMessage id="ApplicationsConfigurationScreen.description" />
-                </Text>
-                <Tooltip
-                  content={
-                    <FormattedMessage
-                      id="ApplicationsConfigurationScreen.add-client-button.hard-limit-tooltip"
-                      values={{ maximum: oauthClientsHardMaximum ?? 0 }}
-                    />
+            <div className={cn(styles.widget, styles.listSection)}>
+              {displayMaximumWarning ? (
+                <FeatureDisabledCallout
+                  messageID={
+                    canUpgradePlan
+                      ? "FeatureConfig.oauth-clients.maximum.upgrade"
+                      : "FeatureConfig.oauth-clients.maximum.contact-us"
                   }
-                  disabled={!hardLimitReached}
-                >
-                  {/* The tooltip must still fire when the button is disabled,
-                    so it anchors on a wrapper span instead of the button
-                    itself. */}
-                  <span>
-                    <PrimaryButton
-                      size="2"
-                      text={
-                        <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
-                      }
-                      onClick={goToCreateApp}
-                      disabled={hardLimitReached}
-                    />
-                  </span>
-                </Tooltip>
-              </div>
-              <div className={cn(styles.widget, styles.listSection)}>
-                {displayMaximumWarning ? (
-                  <FeatureDisabledCallout
-                    messageID={
-                      canUpgradePlan
-                        ? "FeatureConfig.oauth-clients.maximum.upgrade"
-                        : "FeatureConfig.oauth-clients.maximum.contact-us"
-                    }
-                    messageValues={{ maximum: displayedClientMaximum! }}
+                  messageValues={{ maximum: displayedClientMaximum! }}
+                />
+              ) : null}
+              <CardTable>
+                <CardTable.Header>
+                  <CardTable.HeaderCell className={styles.colName}>
+                    <FormattedMessage id="ApplicationsConfigurationScreen.client-list.name" />
+                  </CardTable.HeaderCell>
+                  <CardTable.HeaderCell className={styles.colClientId}>
+                    <FormattedMessage id="ApplicationsConfigurationScreen.client-list.client-id" />
+                  </CardTable.HeaderCell>
+                  <CardTable.HeaderCell className={styles.colActions} />
+                </CardTable.Header>
+                {state.clients.map((client) => (
+                  <ClientRow
+                    key={client.client_id}
+                    client={client}
+                    onDeleteClick={showDialogAndSetRemoveClientByID}
                   />
-                ) : null}
-                <CardTable>
-                  <CardTable.Header>
-                    <CardTable.HeaderCell className={styles.colName}>
-                      <FormattedMessage id="ApplicationsConfigurationScreen.client-list.name" />
-                    </CardTable.HeaderCell>
-                    <CardTable.HeaderCell className={styles.colClientId}>
-                      <FormattedMessage id="ApplicationsConfigurationScreen.client-list.client-id" />
-                    </CardTable.HeaderCell>
-                    <CardTable.HeaderCell className={styles.colActions} />
-                  </CardTable.Header>
-                  {state.clients.map((client) => (
-                    <ClientRow
-                      key={client.client_id}
-                      client={client}
-                      onDeleteClick={showDialogAndSetRemoveClientByID}
-                    />
-                  ))}
-                </CardTable>
-              </div>
-            </>
-          )
-        ) : (
-          <div className={styles.widget}>
-            <DynamicClientsTab
-              form={props.form}
-              publicOrigin={publicOrigin}
-              dcrClientQuota={dcrClientQuota}
-              cimdClientQuota={cimdClientQuota}
-            />
-          </div>
+                ))}
+              </CardTable>
+            </div>
+          </>
         )}
         <ConfirmationDialog
           open={isRemoveDialogVisible}
@@ -635,12 +499,8 @@ const ApplicationsConfigurationScreen: React.VFC =
     });
     const featureConfig = useAppFeatureConfigQuery(appID);
     const { selectedKey, onChangeKey } = usePivotNavigation<ApplicationsTabKey>(
-      ["applications", "dynamic-clients"]
+      APPLICATIONS_TAB_KEYS
     );
-
-    const publicOrigin = useMemo(() => {
-      return form.effectiveConfig.http?.public_origin ?? "";
-    }, [form.effectiveConfig]);
 
     const dcrClientQuota = useMemo<number | null>(() => {
       return smallestBlockQuota(
@@ -699,7 +559,6 @@ const ApplicationsConfigurationScreen: React.VFC =
           oauthClientsSoftMaximum={oauthClientsSoftMaximum}
           selectedKey={selectedKey}
           onChangeKey={onChangeKey}
-          publicOrigin={publicOrigin}
           dcrClientQuota={dcrClientQuota}
           cimdClientQuota={cimdClientQuota}
         />

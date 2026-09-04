@@ -3,7 +3,7 @@ import { Context, FormattedMessage } from "../../intl";
 import cn from "classnames";
 import { Heading, Select, Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import Link from "../../Link";
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
@@ -38,13 +38,35 @@ const PAGE_SIZE = 10;
 // configured client does not appear in this listing at all.
 type SourceFilterKey = "all" | OAuthClientSource.Cimd | OAuthClientSource.Dcr;
 
+// The query string parameter carrying the filter, so a filtered view is
+// shareable and survives a reload. Anything else -- including STATIC, which
+// this listing never shows -- falls back to "all" rather than filtering by a
+// value the Admin API would reject.
+const SOURCE_SEARCH_PARAM = "source";
+
+function parseSourceFilter(value: string | null): SourceFilterKey {
+  switch (value) {
+    case OAuthClientSource.Cimd:
+      return OAuthClientSource.Cimd;
+    case OAuthClientSource.Dcr:
+      return OAuthClientSource.Dcr;
+    default:
+      return "all";
+  }
+}
+
 function DynamicClientListScreenContent(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
   const { setErrors } = useErrorMessageBarContext();
   const { renderToString } = useContext(Context);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [offset, setOffset] = useState(0);
-  const [sourceFilter, setSourceFilter] = useState<SourceFilterKey>("all");
+  // The URL is the source of truth for the filter: the Applications screen
+  // links here with ?source set, and writing it back keeps the filtered view
+  // shareable and reload-proof.
+  const sourceFilter = parseSourceFilter(searchParams.get(SOURCE_SEARCH_PARAM));
   const [detailsClient, setDetailsClient] =
     useState<DynamicClientListItem | null>(null);
   const [deleteDialogData, setDeleteDialogData] =
@@ -60,12 +82,30 @@ function DynamicClientListScreenContent(): React.ReactElement {
     fetchPolicy: "network-only",
   });
 
-  const onChangeSourceFilter = useCallback((value: string) => {
-    setSourceFilter(value as SourceFilterKey);
-    // The filtered result set is a different list; an offset carried over
-    // from the previous filter can land past its end and show an empty page.
-    setOffset(0);
-  }, []);
+  const onChangeSourceFilter = useCallback(
+    (value: string) => {
+      const next = parseSourceFilter(value);
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          if (next === "all") {
+            params.delete(SOURCE_SEARCH_PARAM);
+          } else {
+            params.set(SOURCE_SEARCH_PARAM, next);
+          }
+          return params;
+        },
+        // Replace rather than push: switching the filter refines the current
+        // view, so Back should leave the screen instead of stepping through
+        // every filter the admin tried.
+        { replace: true }
+      );
+      // The filtered result set is a different list; an offset carried over
+      // from the previous filter can land past its end and show an empty page.
+      setOffset(0);
+    },
+    [setSearchParams]
+  );
 
   const [deleteDynamicClient] = useDeleteDynamicClientMutationMutation();
 
@@ -164,6 +204,10 @@ function DynamicClientListScreenContent(): React.ReactElement {
   return (
     <ScreenContent>
       <div className={cn(styles.widget, styles.pageHeader)}>
+        {/* The Dynamic clients tab is where every entry point into this
+            listing lives, whatever the filter: each mechanism's own settings
+            now sit on its own nav-level screen, not in a tab of the
+            Applications screen. */}
         <Link
           to={`/project/${appID}/configuration/apps#dynamic-clients`}
           className={styles.backLink}
