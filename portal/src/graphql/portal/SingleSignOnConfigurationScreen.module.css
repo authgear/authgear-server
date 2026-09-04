@@ -56,12 +56,6 @@
   color: var(--gray-12);
 }
 
-.emptyDescription {
-  margin: 0;
-  max-width: 30rem;
-  color: var(--gray-11);
-}
-
 .emptyButton {
   @apply mt-4;
 }

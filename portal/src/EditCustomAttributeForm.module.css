@@ -60,15 +60,6 @@
   background-color: var(--gray-2);
 }
 
-.cellLabelText {
-  font-weight: 600;
-  color: var(--gray-12);
-}
-
-.cellDescription {
-  color: var(--gray-11);
-}
-
 .cellValue {
   flex: 1 1 0;
   min-width: 0;

@@ -74,9 +74,10 @@
   gap: 16px;
 }
 
-/* Shared shape of the three hero button variants. The .heroCard:host …
-   doubled selectors below bump specificity past FluentUI's .ms-Link rules
-   so we don't need !important. */
+/* Shared shape of the three hero button variants. These classes are applied to
+   Link / ExternalLink, so the doubled selectors below (.heroButtonWhite
+   .heroButtonWhite etc.) bump specificity past the link component's own colour
+   and text-decoration rules without needing !important. */
 .heroButtonWhite,
 .heroButtonOutline,
 .heroButtonBlue {
