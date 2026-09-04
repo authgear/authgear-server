@@ -1,8 +1,7 @@
-// Shared validation for the two entry points that write
-// user.standardAttributes.picture: the avatar dialog on the user detail screen
-// (ProfilePictureDialog) and the full-page editor still routed at
-// users/:userID/edit-picture (EditPictureScreen). Keep them in one place so the
-// two cannot drift apart on accepted type or size.
+// Shared validation for the entry points that write
+// user.standardAttributes.picture (ProfilePictureDialog and the file input on
+// UserDetailSummary). Keep them in one place so they cannot drift apart on
+// accepted type or size.
 
 const MAX_FILE_SIZE = 500 * 1024;
 
