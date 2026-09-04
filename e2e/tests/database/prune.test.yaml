@@ -1,0 +1,61 @@
+name: run_cli step runs `authgear database prune` and deletes the app's rows
+before:
+  - type: custom_sql
+    custom_sql:
+      path: fixtures.sql
+steps:
+  - name: verify_user_exists_before_prune
+    action: query
+    query: |
+      SELECT id FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+
+  - name: prune_app
+    action: run_cli
+    run_cli_binary: authgear
+    run_cli_args:
+      - database
+      - prune
+      - "{{ .AppID }}"
+      - --force
+    run_cli_output:
+      exit_code: "0"
+
+  - name: verify_user_gone_after_prune
+    action: query
+    query: |
+      SELECT id FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        []
+
+  - name: verify_identity_gone_after_prune
+    action: query
+    query: |
+      SELECT id FROM _auth_identity
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        []
+
+---
+
+name: run_cli step surfaces a non-zero exit code instead of failing the test
+steps:
+  - name: prune_without_app_id
+    action: run_cli
+    run_cli_binary: authgear
+    run_cli_args:
+      - database
+      - prune
+    run_cli_output:
+      exit_code: "1"
+      stdout: "\"\""
