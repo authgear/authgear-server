@@ -85,6 +85,11 @@ interface UserDetailsConnectedIdentitiesProps {
 
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
 type LoginIDIdentityType = (typeof loginIdIdentityTypes)[number];
+const loginIdentityTypeHeaderIds: Record<LoginIDIdentityType, string> = {
+  email: "login-id-key.email",
+  phone: "login-id-key.phone",
+  username: "login-id-key.username",
+};
 type IdentityType =
   | "login_id"
   | "oauth"
@@ -1573,9 +1578,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                       weight="medium"
                       className={listStyles.tableTitle}
                     >
-                      <FormattedMessage
-                        id={`UserDetails.connected-identities.${type}`}
-                      />
+                      <FormattedMessage id={loginIdentityTypeHeaderIds[type]} />
                     </Text>
                   </div>
                   {identityLists[type].map((item) => (
