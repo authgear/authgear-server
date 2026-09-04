@@ -108,10 +108,15 @@ type Service struct {
 // Where resolution happens). Any additional call site is a spec change.
 //
 // It returns nil for every client_id that is NOT a CIMD candidate -- a
-// static client, a dcrc_ client, an unknown opaque string, or any URL when
-// CIMD is disabled. "Not a candidate" is not an error: the caller proceeds
-// to ordinary resolution. Only a client_id that IS a candidate and could
-// not be resolved returns CIMDUnresolvable.
+// static client, a dcrc_ client, or an unknown opaque string -- and also
+// for a CIMD candidate that already has a persisted, still-fresh, or
+// frozen (CIMD disabled / domain delisted) record: "nil" here means "no
+// fetch was needed or attempted", not "not a candidate". The caller
+// proceeds to ordinary resolution either way, which reads the persisted
+// record if one exists. Only a brand-new client_id that could not be
+// resolved -- disabled, domain not allowed, fetch/validation failure with
+// no existing record to fall back to, or limit exceeded -- returns an
+// error (CIMDUnresolvable or CIMDClientLimitExceeded).
 func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) error {
 	if s.Database.IsInTx(ctx) {
 		// A 5-second outbound HTTP call inside a Postgres transaction would
@@ -123,9 +128,6 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 	}
 
 	cfg := s.OAuthConfig.ClientIDMetadataDocument
-	if !cfg.IsEnabled() {
-		return nil
-	}
 
 	// (1) Shape. No network access. Must use the same allowInsecureHTTP as
 	// the read path's candidate check, or a client_id could be fetched here
@@ -144,10 +146,11 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 	}
 
 	// (3) Freshness. One Redis GET in the common case. Deliberately BEFORE
-	// the domain-trust check: allowed_domains must never affect a row that
-	// already exists, fresh or stale (Part 1 §4.1 / D5a) -- only reordering
-	// it this way lets a fresh row bypass the check entirely instead of
-	// being incorrectly refused the moment its domain is delisted.
+	// the enabled and domain-trust checks: neither must ever affect a row
+	// that already exists, fresh or stale (Part 1 §4.1 / D5a) -- only
+	// reordering it this way lets a fresh row bypass both checks entirely
+	// instead of being incorrectly refused the moment CIMD is turned off or
+	// its domain is delisted.
 	existing, err := s.Queries.GetClientByClientID(ctx, clientID)
 	switch {
 	case err == nil:
@@ -164,7 +167,21 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 		return err
 	}
 
-	// (4) Domain trust, before anything that could touch the network. Only
+	// (4) Feature switch, before anything that could touch the network.
+	// Only here -- not on the read path, and not for a row that already
+	// exists (handled above) -- so turning CIMD off stops brand-new clients
+	// from onboarding and stops refetches of existing ones, without ever
+	// touching a row that is still fresh. Symmetric with the domain-trust
+	// check right below: `enabled` is a "no new/updated clients" switch,
+	// not a kill switch for what has already been resolved.
+	if !cfg.IsEnabled() {
+		if existing != nil {
+			return nil // serve the frozen record; never refetch it
+		}
+		return ErrUnresolvable()
+	}
+
+	// (5) Domain trust, before anything that could touch the network. Only
 	// here -- not on the read path, and not for a row that already exists
 	// (handled above) -- so removing a domain stops brand-new clients from
 	// onboarding, and stops refetches (an existing-but-stale row on a now-
@@ -179,7 +196,7 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 		return ErrUnresolvable()
 	}
 
-	// (5) Single-flight. A Redis failure degrades to a possible stampede,
+	// (6) Single-flight. A Redis failure degrades to a possible stampede,
 	// which beats refusing every request. Still logged: silently treating
 	// "lock acquisition failed" the same as "lock acquired" would hide a
 	// real Redis problem from anyone not specifically watching for a
@@ -210,13 +227,13 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 		return ErrUnresolvable()
 	}
 
-	// (6) Rate limits. Consumed only when a fetch is actually about to
+	// (7) Rate limits. Consumed only when a fetch is actually about to
 	// happen, so a popular fresh client never burns tokens.
 	if err := s.RateLimiter.CheckFetchAllowed(ctx); err != nil {
 		return err
 	}
 
-	// (7) The only network access in the feature.
+	// (8) The only network access in the feature.
 	if allowInsecureHTTP && !strings.EqualFold(u.Scheme, "https") {
 		ServiceLogger.GetLogger(ctx).Warn(ctx, "cimd: fetching a metadata document over plaintext http",
 			slog.String("client_id", clientID),
@@ -259,7 +276,7 @@ func (s *Service) EnsureClientResolved(ctx context.Context, clientID string) err
 		return ErrUnresolvable()
 	}
 
-	// (8) Persist. Short write transaction, opened only now.
+	// (9) Persist. Short write transaction, opened only now.
 	return s.Database.WithTx(ctx, func(ctx context.Context) error {
 		return s.upsert(ctx, clientID, doc, existing)
 	})
