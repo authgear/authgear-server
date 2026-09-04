@@ -79,5 +79,10 @@
 
 .mechanismRowAction {
   grid-area: action;
-  @apply self-center;
+  @apply place-self-center;
+
+  /* Once the row stacks, left-align the button under the text: in a flex
+     column, centring the item centres it horizontally. Same treatment the
+     Danger zone card's action gets (UserDetailsAccountStatus.module.css). */
+  @apply tablet:place-self-start;
 }
