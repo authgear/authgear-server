@@ -78,7 +78,7 @@ Then self-review the proposed design against the full checklist before presentin
 
 ### B. Config Conventions (`authgear.yaml`)
 
-5. Uses list over map when ordering doesn't matter and the key is an attribute of the item (e.g., `[{type: "phone"}]` not `{phone: {}}`)
+5. Uses list over map when ordering doesn't matter and the key is a plain identifier with no semantic meaning beyond naming the item (e.g., `[{type: "phone"}]` not `{phone: {}}`). A map (object keys) is appropriate when: (a) each key represents a distinct named entity whose config shape may differ from other keys (e.g., per-API config where `admin_api` and a future `bearer_api` could have different fields), or (b) uniqueness of each key must be enforced by schema. Do not flag map-style config as a violation when the keys are a bounded, well-known set and different keys legitimately need different shapes.
 6. Flags are minimal — avoid boolean flags that will always be true in practice; prefer a feature being enabled by its presence
 7. New config structs follow the Go struct + JSON Schema pattern (see `pkg/lib/config/bot_protection.go` or `pkg/lib/config/fraud_protection.go`)
 8. Backward compatible: new fields have `omitempty` and sensible zero-value defaults; no existing fields removed or renamed
