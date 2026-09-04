@@ -636,7 +636,8 @@ Stub `Fetcher`'s HTTP client with an `httptest` server, stub `Commands`/`Queries
 
 | Case | Expect |
 |---|---|
-| CIMD disabled, URL `client_id` | `nil`; fetcher never called; `Queries` never called |
+| CIMD disabled, URL `client_id`, no existing record | `CIMDUnresolvable`; fetcher never called; `Queries` **is** called (enabled gates fetching, not reading — see §4.1's post-launch correction) |
+| CIMD disabled, URL `client_id`, existing record (fresh or stale) | `nil`; fetcher never called; the existing record is served frozen |
 | non-URL `client_id` (`dcrc_x`, `my-client`, `""`) | `nil`; fetcher never called |
 | `client_id` matches a static client in `oauth.clients` | `nil`; **fetcher never called** — the pre-registration pattern |
 | host fails `allowed_domains` | `CIMDUnresolvable`; fetcher never called |
@@ -754,7 +755,7 @@ make -C e2e run
 1. **§ Error Handling**: state that a *refetch* failure for a `client_id` that already has a persisted record does **not** make the client unresolvable — the existing record is served and the refetch is retried on the next request that finds it stale. Only a `client_id` with no record at all fails. Note the consequence: a client whose document goes offline keeps working on its last-known metadata indefinitely, and `deleteDynamicClient` / `allowed_domains` are the levers.
 2. **§ Error Handling**: name the actual error code — `unauthorized_client`, which is what `/oauth2/authorize` already returns for an unknown `client_id` — rather than "`invalid_client`-shaped".
 3. **§ Denial of Service**: clarify that the limits are consumed per **fetch attempt**, not per `/oauth2/authorize` request, so a project with many popular, fresh CIMD clients is not throttled by its own legitimate traffic.
-4. **§ Where resolution happens**: add that `allowed_domains` is evaluated only on the fetch path, so removing a domain stops new clients and refetches but leaves existing clients working (Part 1 §4.1); `enabled` *is* evaluated on every read path, being a feature switch.
+4. **§ Where resolution happens**: add that `allowed_domains` and `enabled` are both evaluated only on the fetch path, so removing a domain or turning CIMD off stops new clients and refetches but leaves already-resolved clients working (Part 1 §4.1).
 
 ## 9. Fixed Behavioral Decisions
 

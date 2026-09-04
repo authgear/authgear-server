@@ -296,9 +296,9 @@ Every other step reads that persisted record — a plain lookup, never a live fe
 
 Because the record is shared rather than frozen per grant, both endpoints always see the *current* known state of the client, not what was true when any particular user originally authorized it. This is also what lets Authgear implement spec §8.4/§8.4.1's "notice metadata changed compared to the last time it fetched", which a per-grant snapshot could never support: a refetch compares the fetched document against the stored record and, when they differ, emits [`oauth.client.resolved`](./event.md#oauthclientresolved) with both the new and the previous client state (`client` and `old_client`), rather than a computed list of changed fields.
 
-Two policy checks are evaluated at different points, and the difference is deliberate:
+Two policy checks are evaluated on the fetch path only, never on the read path, and both follow the same rule:
 
-- **`enabled`** is checked on every read path. Setting it to `false` stops CIMD working immediately and everywhere, which is what a feature switch should do.
+- **`enabled`** gates onboarding new clients and refetching existing ones. Setting it to `false` stops any *new* client from being resolved and stops refetches of existing ones, but does not stop a client that already has a persisted record — the same "keeps working, frozen at its last-known-good metadata" outcome as a failed refetch.
 - **`allowed_domains`** is checked only on the fetch path. Removing a domain prevents any *new* client from it being resolved and prevents refetches of existing ones, but does not stop a client that already has a persisted record — see [Domain Trust](#domain-trust).
 
 ## Mapping to the Unified Client Model

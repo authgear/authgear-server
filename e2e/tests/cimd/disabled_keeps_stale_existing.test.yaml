@@ -1,0 +1,116 @@
+name: Turning CIMD off refuses new/never-seen clients but keeps a STALE already-resolved client working, frozen, with no refetch
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: false
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+before:
+  - type: custom_sql
+    custom_sql:
+      path: disabled_keeps_stale_existing_fixtures.sql
+steps:
+  # `enabled` gates onboarding new clients and refetching existing ones --
+  # not reading an already-resolved client's persisted record. This is the
+  # STALE case (past the 1 hour refetch interval), which is exactly when a
+  # refetch would normally be attempted, so it actually exercises the
+  # ordering in service.go: freshness is checked before `enabled`, and
+  # `enabled` is checked before any network access, symmetric with
+  # allowed_domains (see revoked_allowed_domains_keeps_stale_existing.test.yaml).
+  - name: authorize_seeded_stale
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/disabled-keeps-stale.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: verify_no_refetch_attempted
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=disabled-keeps-stale.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }
+
+  # A different, never-seeded client_id gets the ordinary unknown-client
+  # error and never reaches the document server -- disabling CIMD still
+  # refuses onboarding brand-new clients, exactly like disabled.test.yaml,
+  # just alongside a seeded client this time to show both rules hold at once.
+  - name: authorize_unseeded
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/disabled-keeps-stale-unseeded.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+  - name: verify_no_fetch_for_unseeded
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=disabled-keeps-stale-unseeded.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }
+
+  # Belt-and-braces: the persisted record must still carry the ORIGINAL
+  # seeded metadata, proving the frozen row was served as-is.
+  - name: verify_record_unchanged
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            totalCount
+            edges {
+              node {
+                clientID
+                clientName
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 1,
+              "edges": [
+                {
+                  "node": {
+                    "clientID": "http://localhost:2727/disabled-keeps-stale.json",
+                    "clientName": "Seeded Stale CIMD Client"
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }

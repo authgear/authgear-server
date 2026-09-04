@@ -219,7 +219,7 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 	ctx := context.Background()
 
 	Convey("Service.EnsureClientResolved", t, func() {
-		Convey("CIMD disabled: nil, fetcher and Queries never called", func() {
+		Convey("CIMD disabled, no existing record: CIMDUnresolvable, fetcher never called", func() {
 			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
 			defer ds.Close()
 			queries := &stubQueries{}
@@ -234,9 +234,36 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 				SingleFlight: newWorkingSingleFlight(t),
 			}
 			err := svc.EnsureClientResolved(ctx, testClientID)
+			So(apierrors.IsKind(err, cimd.CIMDUnresolvable), ShouldBeTrue)
+			So(ds.hits.Load(), ShouldEqual, int64(0))
+			So(queries.calls.Load(), ShouldEqual, int64(1))
+		})
+
+		Convey("CIMD disabled, existing CIMD record: nil, fetcher never called -- enabled gates fetching, not an already-resolved client", func() {
+			ds := newDocumentServer(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write(testDocument) })
+			defer ds.Close()
+			mockClock := clock.NewMockClockAt("2026-08-31T12:00:00Z")
+			fetchedAt := mockClock.NowUTC().Add(-2 * time.Hour) // stale: a refetch would normally be attempted
+			queries := &stubQueries{getFn: func() (*oauthclient.Client, error) {
+				return &oauthclient.Client{ClientID: testClientID, Source: model.OAuthClientSourceCIMD, LastFetchedAt: &fetchedAt}, nil
+			}}
+			commands := &stubCommands{}
+			svc := &cimd.Service{
+				OAuthConfig:  &config.OAuthConfig{ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentConfig{Enabled: false}},
+				Clock:        mockClock,
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      queries,
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       &stubEventService{},
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+			err := svc.EnsureClientResolved(ctx, testClientID)
 			So(err, ShouldBeNil)
 			So(ds.hits.Load(), ShouldEqual, int64(0))
-			So(queries.calls.Load(), ShouldEqual, int64(0))
+			So(commands.upsertCalls.Load(), ShouldEqual, int64(0))
 		})
 
 		for _, id := range []string{"dcrc_x", "my-client", ""} {

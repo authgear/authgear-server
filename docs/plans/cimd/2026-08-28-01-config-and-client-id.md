@@ -463,17 +463,15 @@ Consequence: an all-depths match is not expressible in one entry. That is accept
 
 ```go
 // isDynamicClientIDCandidate answers only "is a persisted-row lookup
-// warranted for this string?". It applies no trust policy: allowed_domains
-// and insecure_http_allowed gate FETCHING, not reading (see below), so http
-// is accepted here unconditionally.
+// warranted for this string?". It applies no policy at all: neither trust
+// policy (allowed_domains, insecure_http_allowed) nor the `enabled` feature
+// switch gates reading, only FETCHING does (see below) -- so both http and
+// a URL-shaped id with CIMD off are accepted here unconditionally.
 func (r *Resolver) isDynamicClientIDCandidate(clientID string) bool {
 	if IsDCRClientID(clientID) {
 		return true
 	}
-	if r.OAuthConfig.ClientIDMetadataDocument.IsEnabled() {
-		return IsCIMDClientID(clientID, true)
-	}
-	return false
+	return IsCIMDClientID(clientID, true)
 }
 ```
 
@@ -481,28 +479,30 @@ func (r *Resolver) isDynamicClientIDCandidate(clientID string) bool {
 
 ### 4.1 Trust policy gates fetching, not reading
 
+**Update (post-launch correction):** the first shipped version of this plan made `enabled` the one asymmetry below — checked on the read path as a full kill switch, unlike `allowed_domains`. That turned out to be the wrong call: it broke every already-resolved CIMD client the moment an operator turned CIMD off, exactly the outcome this section argues *against* for `allowed_domains`. There is no principled reason `enabled` should behave differently from `allowed_domains` here — both are onboarding/refresh controls, not "stop what's already running" controls, and an admin who wants that has `deleteDynamicClient`. `enabled` has been moved to the fetch path, matching `allowed_domains` exactly (`pkg/lib/cimd/service.go`'s step 4, right before the domain-trust check at step 5). The rest of this section, and the table below, describe the corrected, current behavior.
+
 An earlier draft of this plan enforced `allowed_domains` (and the `insecure_http_allowed` scheme rule) here, on every read path, so that tightening either took effect immediately everywhere. **That was wrong**, and the reason is worth stating because it is a product rule, not an implementation detail:
 
-> Removing a domain from `allowed_domains` must not break clients that are already working.
+> Removing a domain from `allowed_domains` (or turning `enabled` off) must not break clients that are already working.
 
-An admin editing an allowlist is making an onboarding decision. Breaking every existing user's active session with an already-authorized client — potentially mid-flow, and at `/oauth2/token` where nothing can be re-fetched — is a far worse outcome than the domain remaining operational until the admin explicitly removes it. This also matches how spec § Domain Trust words the control: "which domains it **trusts as `client_id`s**", i.e. which client IDs it will *accept*, not which persisted clients may continue to operate.
+An admin editing an allowlist, or a feature switch, is making an onboarding decision. Breaking every existing user's active session with an already-authorized client — potentially mid-flow, and at `/oauth2/token` where nothing can be re-fetched — is a far worse outcome than the client remaining operational until the admin explicitly removes it via `deleteDynamicClient`. This also matches how spec § Domain Trust words the control: "which domains it **trusts as `client_id`s**", i.e. which client IDs it will *accept*, not which persisted clients may continue to operate — and the same reading applies to `enabled` as "will Authgear onboard/refresh CIMD clients", not "may an already-resolved one keep operating".
 
 So the division is:
 
 | Check | Read path (`ResolveClient`, every endpoint) | Fetch path (`EnsureClientResolved`, `/oauth2/authorize` only) |
 |---|---|---|
-| `enabled` | **yes** — a feature switch; disabling CIMD stops CIMD | yes |
+| `enabled` | no | **yes** |
 | `client_id` shape (§3, five rules) | yes, with `http` accepted | yes |
 | `allowed_domains` | no | **yes** |
 | `insecure_http_allowed` | no | **yes** |
 
-`enabled` stays on the read path deliberately, and this is the one asymmetry: it is a feature kill switch, not a trust policy, and an operator who sets `enabled: false` expects CIMD to stop working, not to keep serving existing clients. If that is not wanted, move it to the fetch path too — but then disabling CIMD leaves it partly on, which is worse.
+Nothing in this table is checked on the read path — it exists only to show that `enabled` and `allowed_domains` are symmetric, both fetch-path-only.
 
 What this buys, and what it costs:
 
-- An existing client keeps working after its domain is removed from the allowlist — including across refetches, since a refused fetch serves the stale record ([Part 3](2026-08-28-03-authorize-time-resolution.md) §5). Its metadata therefore **freezes** at whatever was last fetched: the domain's operator can no longer change its `redirect_uris` through Authgear. That is the right failure direction for a revoked-trust scenario.
-- No new client from that domain can ever be created, because creation requires a fetch.
-- `deleteDynamicClient` + removal from `allowed_domains` is therefore a genuinely **durable** ban: the row is gone and cannot be recreated. Removal alone is not — it is "no new clients", which is what an allowlist should mean.
+- An existing client keeps working after its domain is removed from the allowlist, or after CIMD is turned off entirely — including across refetches, since a refused fetch serves the stale record ([Part 3](2026-08-28-03-authorize-time-resolution.md) §5). Its metadata therefore **freezes** at whatever was last fetched: the domain's operator can no longer change its `redirect_uris` through Authgear. That is the right failure direction for a revoked-trust scenario, and equally for a project turning the feature off.
+- No new client from that domain can ever be created while the domain is delisted, and no client at all (new or existing-stale) can be created/refreshed while `enabled` is false, because both require a fetch.
+- `deleteDynamicClient` + removal from `allowed_domains` (or + `enabled: false`) is therefore a genuinely **durable** ban: the row is gone and cannot be recreated. Removal/disabling alone is not — it is "no new clients", which is what a feature switch or an allowlist should mean.
 - An admin who does want an existing client stopped now uses `deleteDynamicClient`. Recommend saying so in the spec (§9).
 
 ## 5. `ResolveTokenLifetimes` — the CIMD case
@@ -588,7 +588,7 @@ Do **not** add anything to `token_endpoint_auth_methods_supported` — it alread
 - **D2. `https://host/` (bare-root path) is accepted; only an empty path is rejected.** Spec §3 requires the URL to "contain a path component (i.e. not just `https://host`)", and `/` *is* a path component. An earlier draft rejected it on the grounds that RFC 3986 normalization makes `https://host` and `https://host/` the same resource — but the rule is about the `client_id` **string**, which is matched byte-for-byte against the document's own `client_id`, so the two are distinct client IDs regardless. Hosting a metadata document at the site root is unusual but perfectly valid, there is no security consequence to allowing it (nothing in the byte-for-byte match or the exact redirect-URI match depends on path depth), and rejecting it would break such a client behind CIMD's deliberately uninformative error. Where the spec is ambiguous, be permissive.
 - **D3. A query string is allowed and is part of the client's identity.** Spec §3 does not forbid it, and spec § Denial of Service depends on it being significant ("caching is keyed on the exact URL string, not the hostname").
 - **D4. `urlutil.ValidateHTTPSStrict` is not reused for `client_id` validation.** Its `strictBlocked` list (`example.com`, `test`, `localhost`, …) and its IP-host and single-label rules go well beyond spec §3 and would reject the spec's own examples. Non-publicly-routable targets are blocked at the resolved-address level in Part 2, which is strictly stronger anyway (it also catches a normal-looking hostname pointing at `169.254.169.254`).
-- **D5. `allowed_domains` and `insecure_http_allowed` gate fetching, not reading.** Removing a domain from the allowlist must not break clients that already work: an allowlist is an onboarding control (spec § Domain Trust: "which domains it trusts **as `client_id`s**"), and breaking live sessions — including at `/oauth2/token`, which never fetches — is a worse outcome than the domain staying operational until an admin deletes the client. See §4.1 for the full table. `enabled` is the one exception and stays on the read path: it is a feature kill switch, and an operator disabling CIMD expects CIMD to stop.
+- **D5. `enabled`, `allowed_domains`, and `insecure_http_allowed` all gate fetching, not reading.** Removing a domain from the allowlist, or turning CIMD off, must not break clients that already work: both are onboarding controls (spec § Domain Trust: "which domains it trusts **as `client_id`s**"), and breaking live sessions — including at `/oauth2/token`, which never fetches — is a worse outcome than the client staying operational until an admin deletes it. See §4.1 for the full table and the post-launch correction that moved `enabled` here from the read path.
 - **D5a. `deleteDynamicClient` plus removal from `allowed_domains` is a durable ban**; removal alone is "no new clients from this domain", and an existing client's metadata freezes at its last successful fetch (since a refused refetch serves the stale record, Part 3 §5).
 - **D6. `allowed_domains` matches `Hostname()` only, case-insensitively; a leading `*.` matches exactly ONE label; the apex is not matched by its own wildcard.** Single-label matching follows the RFC 6125 / TLS-certificate and DNS-wildcard convention, which is what intuition is calibrated on — not the suffix-at-any-depth behavior of cookie `Domain` or CSP host-sources. For a trust allowlist the single-label reading is both more expected and safer: `*.example.com` admitting `evil.dev.example.com` would surprise an organisation that has delegated `dev.example.com`. An all-depths match is therefore not expressible in one entry; that is accepted (§3.1). Malformed patterns fail JSON Schema validation at config load rather than silently never matching.
 - **D7. `client_id_metadata_document_supported` is emitted only when enabled, never as `false`.** Absence is what makes a compliant MCP client fall back to DCR (spec § UC1); an explicit `false` conveys nothing extra.
@@ -668,7 +668,8 @@ The `a.b.example.com` row is the one that changed from the earlier draft; give i
 
 The existing file already stubs `Queries`. Add:
 
-- CIMD disabled + URL-shaped `client_id` → `nil`, **and `Queries` is never called** (assert on the stub's call count — this is the "costs nothing with CIMD off" property).
+- CIMD disabled + URL-shaped `client_id`, unknown to `Queries` → `nil`, and `Queries` **is** called (post-launch correction: `enabled` gates fetching, not reading, same as `allowed_domains` — see §4.1).
+- CIMD disabled + URL-shaped `client_id` already persisted as a CIMD client → still resolves to the persisted record. This is the regression guard for the correction above: an already-resolved client must keep working after `enabled` is turned off.
 - CIMD enabled + URL-shaped `client_id` → `Queries.GetClientConfigByClientID` called with the exact string.
 - CIMD enabled + URL-shaped `client_id` whose host is **not** in `allowed_domains` → `Queries` **is** called. The resolver applies no trust policy (§4.1, D5); `allowed_domains` is the fetch path's job. This test is the guard against someone reinstating the earlier draft's behavior.
 - CIMD enabled + `http://x.example.com/y` → `Queries` **is** called, regardless of `insecure_http_allowed`. Same reason: an existing `http://` row must keep resolving after the flag is revoked.

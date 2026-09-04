@@ -115,14 +115,50 @@ func TestResolverResolveClient(t *testing.T) {
 		}
 		const cimdClientID = "https://mcp-client.example.com/oauth/client-metadata.json"
 
-		Convey("CIMD disabled: a URL-shaped client_id returns nil without touching Queries", func() {
+		Convey("CIMD disabled: an unknown URL-shaped client_id reaches Queries and returns nil", func() {
+			cache, _ := newTestClientCache(t)
 			r := &oauthclient.Resolver{
 				OAuthConfig:     oauthConfig, // CIMD not configured -> disabled
 				TesterEndpoints: testTesterEndpoints{},
-				Queries:         nil, // must not be touched: CIMD off costs nothing
+				Queries: &oauthclient.Queries{
+					Cache:       cache,
+					OAuthConfig: oauthConfig,
+				},
 			}
+			So(cache.SetNotFound(ctx, cimdClientID), ShouldBeNil)
+
 			client := r.ResolveClient(ctx, cimdClientID)
 			So(client, ShouldBeNil)
+		})
+
+		Convey("CIMD disabled: an already-persisted CIMD client_id still resolves (enabled gates fetching, not reading)", func() {
+			cache, _ := newTestClientCache(t)
+			r := &oauthclient.Resolver{
+				OAuthConfig:     oauthConfig, // CIMD not configured -> disabled
+				TesterEndpoints: testTesterEndpoints{},
+				Queries: &oauthclient.Queries{
+					Cache:       cache,
+					OAuthConfig: oauthConfig,
+				},
+			}
+			cachedClient := &oauthclient.Client{
+				ID:              "row-id",
+				ClientID:        cimdClientID,
+				Source:          model.OAuthClientSourceCIMD,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+				Kind:            model.OAuthClientKindThirdParty,
+				ApplicationType: "web",
+				RedirectURIs:    []string{"http://127.0.0.1:3000/callback"},
+				GrantTypes:      []string{"authorization_code", "refresh_token"},
+				ResponseTypes:   []string{"code"},
+			}
+			So(cache.Set(ctx, cachedClient), ShouldBeNil)
+
+			client := r.ResolveClient(ctx, cimdClientID)
+			So(client, ShouldNotBeNil)
+			So(client.ClientID, ShouldEqual, cimdClientID)
+			So(client.IsCIMDClient(), ShouldBeTrue)
 		})
 
 		Convey("CIMD enabled: a URL-shaped client_id reaches Queries.GetClientConfigByClientID with the exact string", func() {
