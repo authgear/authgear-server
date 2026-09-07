@@ -1,0 +1,110 @@
+name: Authorization code survives a failed exchange but is single use
+# The code is read, validated and deleted inside one critical section. Two
+# properties have to hold together, and it is easy to fix one by breaking the
+# other:
+#
+#   - a caller who fails validation must NOT consume the code, otherwise anyone
+#     who obtains a code in transit can deny the user's login by spending it
+#   - a code that has been successfully redeemed must not be redeemable again
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+    http_output:
+      http_status: 302
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      result: |
+        { "action": { "type": "identify" } }
+  - name: identify
+    action: input
+    input: |
+      { "identification": "username", "login_id": "e2e_userinfo_user" }
+    output:
+      result: |
+        { "action": { "type": "authenticate" } }
+  - name: authenticate
+    action: input
+    input: |
+      { "authentication": "primary_password", "password": "password" }
+    output:
+      result: |
+        { "action": { "type": "finished" } }
+  - name: get_code
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+  # Someone holding the code but not the PKCE verifier. This must fail without
+  # consuming the code.
+  - name: attacker_wrong_verifier
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_verifier: WRONGWRONGWRONGWRONGWRONGWRONGWRONGWRONGWRO
+      code: "{{ (urlParse .steps.get_code.result.http_response_headers.location).query | regexFind \"code=[^&]+\" | trimPrefix \"code=\" }}"
+    http_output:
+      http_status: 400
+  # The legitimate client must still be able to redeem it.
+  - name: legit_correct_verifier
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ (urlParse .steps.get_code.result.http_response_headers.location).query | regexFind \"code=[^&]+\" | trimPrefix \"code=\" }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        { "access_token": "[[string]]" }
+  # Single use still holds: the same code cannot be redeemed twice.
+  - name: replay_after_success
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ (urlParse .steps.get_code.result.http_response_headers.location).query | regexFind \"code=[^&]+\" | trimPrefix \"code=\" }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        { "error": "invalid_grant", "access_token": "[[never]]" }

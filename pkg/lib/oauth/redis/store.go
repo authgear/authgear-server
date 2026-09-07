@@ -131,8 +131,14 @@ func (s *Store) save(ctx context.Context, conn redis.Redis_6_0_Cmdable, key stri
 }
 
 func (s *Store) del(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string) error {
-	_, err := conn.Del(ctx, key).Result()
+	_, err := s.delCount(ctx, conn, key)
 	return err
+}
+
+// delCount reports how many keys DEL removed. Redis executes DEL atomically, so
+// when several callers race to remove the same key exactly one of them sees 1.
+func (s *Store) delCount(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string) (int64, error) {
+	return conn.Del(ctx, key).Result()
 }
 
 func (s *Store) GetCodeGrant(ctx context.Context, codeHash string) (*oauth.CodeGrant, error) {
@@ -161,9 +167,21 @@ func (s *Store) CreateCodeGrant(ctx context.Context, grant *oauth.CodeGrant) err
 	})
 }
 
+// DeleteCodeGrant is the point at which an authorization code is spent, so it
+// reports ErrGrantNotFound when there was nothing to delete. DEL is atomic and
+// returns how many keys it removed, so of several concurrent requests
+// presenting the same code exactly one sees a count of 1 and the rest are
+// rejected -- no lock required.
 func (s *Store) DeleteCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
 	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		return s.del(ctx, conn, codeGrantKey(grant.AppID, grant.CodeHash))
+		count, err := s.delCount(ctx, conn, codeGrantKey(grant.AppID, grant.CodeHash))
+		if err != nil {
+			return err
+		}
+		if count == 0 {
+			return oauth.ErrGrantNotFound
+		}
+		return nil
 	})
 }
 
@@ -193,9 +211,18 @@ func (s *Store) CreateSettingsActionGrant(ctx context.Context, grant *oauth.Sett
 	})
 }
 
+// DeleteSettingsActionGrant reports ErrGrantNotFound when there was nothing to
+// delete. See DeleteCodeGrant.
 func (s *Store) DeleteSettingsActionGrant(ctx context.Context, grant *oauth.SettingsActionGrant) error {
 	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		return s.del(ctx, conn, settingsActionGrantKey(grant.AppID, grant.CodeHash))
+		count, err := s.delCount(ctx, conn, settingsActionGrantKey(grant.AppID, grant.CodeHash))
+		if err != nil {
+			return err
+		}
+		if count == 0 {
+			return oauth.ErrGrantNotFound
+		}
+		return nil
 	})
 }
 
