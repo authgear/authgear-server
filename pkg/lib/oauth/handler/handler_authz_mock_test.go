@@ -582,6 +582,43 @@ func (mr *MockAuthorizationHandlerDatabaseMockRecorder) WithTx(ctx, do interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockAuthorizationHandlerDatabase)(nil).WithTx), ctx, do)
 }
 
+// MockAuthorizationHandlerCIMDService is a mock of AuthorizationHandlerCIMDService interface.
+type MockAuthorizationHandlerCIMDService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthorizationHandlerCIMDServiceMockRecorder
+}
+
+// MockAuthorizationHandlerCIMDServiceMockRecorder is the mock recorder for MockAuthorizationHandlerCIMDService.
+type MockAuthorizationHandlerCIMDServiceMockRecorder struct {
+	mock *MockAuthorizationHandlerCIMDService
+}
+
+// NewMockAuthorizationHandlerCIMDService creates a new mock instance.
+func NewMockAuthorizationHandlerCIMDService(ctrl *gomock.Controller) *MockAuthorizationHandlerCIMDService {
+	mock := &MockAuthorizationHandlerCIMDService{ctrl: ctrl}
+	mock.recorder = &MockAuthorizationHandlerCIMDServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthorizationHandlerCIMDService) EXPECT() *MockAuthorizationHandlerCIMDServiceMockRecorder {
+	return m.recorder
+}
+
+// EnsureClientResolved mocks base method.
+func (m *MockAuthorizationHandlerCIMDService) EnsureClientResolved(ctx context.Context, clientID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EnsureClientResolved", ctx, clientID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EnsureClientResolved indicates an expected call of EnsureClientResolved.
+func (mr *MockAuthorizationHandlerCIMDServiceMockRecorder) EnsureClientResolved(ctx, clientID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureClientResolved", reflect.TypeOf((*MockAuthorizationHandlerCIMDService)(nil).EnsureClientResolved), ctx, clientID)
+}
+
 // MockAuthorizationHandlerResourceScopeService is a mock of AuthorizationHandlerResourceScopeService interface.
 type MockAuthorizationHandlerResourceScopeService struct {
 	ctrl     *gomock.Controller

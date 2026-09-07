@@ -38,7 +38,7 @@ func (s *AuthorizationService) ListByUser(ctx context.Context, userID string, fi
 	for _, a := range as {
 		keep := true
 		for _, f := range filters {
-			if !f.Keep(a) {
+			if !f.Keep(ctx, a) {
 				keep = false
 				break
 			}

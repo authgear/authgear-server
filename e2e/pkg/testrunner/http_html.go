@@ -19,7 +19,7 @@ func readResponseBodyPreserve(response *http.Response) ([]byte, error) {
 	return body, nil
 }
 
-func validateHTTPHTML(t *testing.T, step Step, httpOutput *HTTPOutput, response *http.Response) bool {
+func validateHTTPHTML(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, step Step, httpOutput *HTTPOutput, response *http.Response) bool {
 	body, err := readResponseBodyPreserve(response)
 	if err != nil {
 		t.Errorf("failed to read response body: %v", err)
@@ -30,8 +30,12 @@ func validateHTTPHTML(t *testing.T, step Step, httpOutput *HTTPOutput, response 
 	bodyString := string(body)
 
 	for _, expectedText := range httpOutput.HTMLTextContains {
-		if !bytes.Contains(body, []byte(expectedText)) {
-			t.Errorf("html text not found in '%s': %q", step.Name, expectedText)
+		renderedText, templateOk := renderTemplateString(t, cmd, prevSteps, expectedText)
+		if !templateOk {
+			return false
+		}
+		if !bytes.Contains(body, []byte(renderedText)) {
+			t.Errorf("html text not found in '%s': %q", step.Name, renderedText)
 			ok = false
 		}
 	}

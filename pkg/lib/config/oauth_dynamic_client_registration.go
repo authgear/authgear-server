@@ -7,7 +7,7 @@ var _ = Schema.Add("OAuthDynamicClientRegistrationConfig", `
 	"properties": {
 		"enabled": { "type": "boolean" },
 		"initial_access_token_required": { "type": "boolean" },
-		"default_client_config": { "$ref": "#/$defs/OAuthDynamicClientRegistrationDefaultClientConfig" },
+		"default_client_config": { "$ref": "#/$defs/OAuthDynamicClientTokenLifetimesConfig" },
 		"rate_limits": { "$ref": "#/$defs/OAuthDynamicClientRegistrationRateLimitsConfig" }
 	}
 }
@@ -21,10 +21,10 @@ var _ = Schema.Add("OAuthDynamicClientRegistrationConfig", `
 // has run (e.g. a test that yaml.Unmarshals a snippet directly); at
 // runtime the receiver is always non-nil.
 type OAuthDynamicClientRegistrationConfig struct {
-	Enabled                    bool                                               `json:"enabled,omitempty"`
-	InitialAccessTokenRequired *bool                                              `json:"initial_access_token_required,omitempty"`
-	DefaultClientConfig        *OAuthDynamicClientRegistrationDefaultClientConfig `json:"default_client_config,omitempty"`
-	RateLimits                 *OAuthDynamicClientRegistrationRateLimitsConfig    `json:"rate_limits,omitempty"`
+	Enabled                    bool                                            `json:"enabled,omitempty"`
+	InitialAccessTokenRequired *bool                                           `json:"initial_access_token_required,omitempty"`
+	DefaultClientConfig        *OAuthDynamicClientTokenLifetimesConfig         `json:"default_client_config,omitempty"`
+	RateLimits                 *OAuthDynamicClientRegistrationRateLimitsConfig `json:"rate_limits,omitempty"`
 }
 
 func (c *OAuthDynamicClientRegistrationConfig) IsEnabled() bool {
@@ -41,7 +41,7 @@ func (c *OAuthDynamicClientRegistrationConfig) IsInitialAccessTokenRequired() bo
 // reason as IsEnabled above. Once defaults have run, DefaultClientConfig is
 // always non-nil with real token-lifetime values (its own SetDefaults()
 // below) -- it is never used to detect "was an override configured."
-func (c *OAuthDynamicClientRegistrationConfig) GetDefaultClientConfig() *OAuthDynamicClientRegistrationDefaultClientConfig {
+func (c *OAuthDynamicClientRegistrationConfig) GetDefaultClientConfig() *OAuthDynamicClientTokenLifetimesConfig {
 	if c == nil {
 		return nil
 	}
@@ -58,7 +58,7 @@ func (c *OAuthDynamicClientRegistrationConfig) GetRateLimits() *OAuthDynamicClie
 	return c.RateLimits
 }
 
-var _ = Schema.Add("OAuthDynamicClientRegistrationDefaultClientConfig", `
+var _ = Schema.Add("OAuthDynamicClientTokenLifetimesConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -74,7 +74,7 @@ var _ = Schema.Add("OAuthDynamicClientRegistrationDefaultClientConfig", `
 // Field names/types/json tags match the corresponding subset of
 // OAuthClientConfig exactly, since these values are later copied onto the
 // synthetic OAuthClientConfig built for a resolved DCR client (Part 3).
-type OAuthDynamicClientRegistrationDefaultClientConfig struct {
+type OAuthDynamicClientTokenLifetimesConfig struct {
 	AccessTokenLifetime            DurationSeconds `json:"access_token_lifetime_seconds,omitempty"`
 	RefreshTokenLifetime           DurationSeconds `json:"refresh_token_lifetime_seconds,omitempty"`
 	RefreshTokenIdleTimeoutEnabled *bool           `json:"refresh_token_idle_timeout_enabled,omitempty"`
@@ -88,7 +88,7 @@ type OAuthDynamicClientRegistrationDefaultClientConfig struct {
 // get. This is deliberately not a copy of OAuthClientConfig.SetDefaults()
 // itself: that method also has an ApplicationType-driven branch
 // (IssueJWTAccessToken) that does not apply here.
-func (c *OAuthDynamicClientRegistrationDefaultClientConfig) SetDefaults() {
+func (c *OAuthDynamicClientTokenLifetimesConfig) SetDefaults() {
 	if c.AccessTokenLifetime == 0 {
 		c.AccessTokenLifetime = DefaultAccessTokenLifetime
 	}

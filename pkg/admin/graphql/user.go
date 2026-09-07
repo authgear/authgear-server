@@ -362,7 +362,7 @@ var nodeUser = node(
 					gqlCtx := GQLContext(ctx)
 
 					// return third party client authorizations only in admin api
-					filter := oauth.NewKeepThirdPartyAuthorizationFilter(gqlCtx.OAuthConfig)
+					filter := oauth.NewKeepThirdPartyAuthorizationFilter(gqlCtx.OAuthClientResolver)
 					as, err := gqlCtx.AuthorizationFacade.List(ctx, source.ID, filter)
 					if err != nil {
 						return nil, err

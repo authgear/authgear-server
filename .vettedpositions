@@ -28,11 +28,11 @@
 /pkg/auth/handler/oauth/authorize.go:60:46: requestcontext
 /pkg/auth/handler/oauth/authorize.go:61:31: requestcontext
 /pkg/auth/handler/oauth/challenge.go:88:9: requestcontext
-/pkg/auth/handler/oauth/consent.go:93:27: requestcontext
-/pkg/auth/handler/oauth/consent.go:113:28: requestcontext
-/pkg/auth/handler/oauth/consent.go:122:28: requestcontext
-/pkg/auth/handler/oauth/consent.go:138:44: requestcontext
-/pkg/auth/handler/oauth/consent.go:139:31: requestcontext
+/pkg/auth/handler/oauth/consent.go:115:27: requestcontext
+/pkg/auth/handler/oauth/consent.go:135:28: requestcontext
+/pkg/auth/handler/oauth/consent.go:144:28: requestcontext
+/pkg/auth/handler/oauth/consent.go:160:44: requestcontext
+/pkg/auth/handler/oauth/consent.go:161:31: requestcontext
 /pkg/auth/handler/oauth/end_session.go:43:26: requestcontext
 /pkg/auth/handler/oauth/end_session.go:49:47: requestcontext
 /pkg/auth/handler/oauth/end_session.go:50:31: requestcontext
@@ -151,8 +151,8 @@
 /pkg/auth/handler/webapp/authflowv2/settings_passkey.go:106:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_profile.go:40:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_profile_edit.go:171:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:127:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:129:39: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:142:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:144:39: requestcontext
 /pkg/auth/handler/webapp/authflowv2/setup_oob_otp.go:162:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/setup_totp.go:122:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/terminate_other_sessions.go:74:26: requestcontext
@@ -163,6 +163,7 @@
 /pkg/auth/handler/webapp/authflowv2/wechat.go:148:26: requestcontext
 /pkg/auth/handler/webapp/change_password.go:72:27: requestcontext
 /pkg/auth/handler/webapp/change_secondary_password.go:71:27: requestcontext
+/pkg/auth/handler/webapp/client_logo.go:46:9: requestcontext
 /pkg/auth/handler/webapp/confirm_terminate_other_sessions.go:66:27: requestcontext
 /pkg/auth/handler/webapp/confirm_web3_account.go:96:27: requestcontext
 /pkg/auth/handler/webapp/confirm_web3_account.go:104:28: requestcontext

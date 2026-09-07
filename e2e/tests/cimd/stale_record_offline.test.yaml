@@ -1,0 +1,49 @@
+name: A stale CIMD record whose refetch fails is served as-is (the document host is offline)
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: custom_sql
+    custom_sql:
+      path: stale_record_offline_fixtures.sql
+steps:
+  - name: configure_document_failing
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "stale-record-offline.json",
+        "status": 503,
+        "body": "service unavailable"
+      }
+    http_output:
+      http_status: 200
+
+  # The seeded record is stale (last_fetched_at 2 hours ago), so a refetch
+  # is attempted and fails -- but the request still succeeds on the
+  # existing record rather than becoming unresolvable (docs/specs/cimd.md §
+  # Error Handling: a refetch failure for a client_id that already has a
+  # persisted record does not make it unresolvable).
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/stale-record-offline.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302

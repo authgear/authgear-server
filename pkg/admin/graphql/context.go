@@ -248,9 +248,13 @@ type DCRFacade interface {
 	DeleteClient(ctx context.Context, clientID string) (*apimodel.OAuthClient, error)
 }
 
+type OAuthClientResolver interface {
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
+}
+
 type Context struct {
 	Config                *config.AppConfig
-	OAuthConfig           *config.OAuthConfig
+	OAuthClientResolver   OAuthClientResolver
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 
 	Users               UserLoader

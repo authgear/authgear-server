@@ -35,9 +35,14 @@ type Authorization struct {
 	ID                    string
 	ClientID              string
 	ClientName            string
+	ClientLogoURI         string
 	Scope                 []string
 	CreatedAt             time.Time
 	HasFullUserInfoAccess bool
+}
+
+type SettingsSessionsClientResolver interface {
+	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
 type SettingsSessionsViewModel struct {
@@ -47,15 +52,15 @@ type SettingsSessionsViewModel struct {
 }
 
 type AuthflowV2SettingsSessionsHandler struct {
-	Database          *appdb.Handle
-	ControllerFactory handlerwebapp.ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	SettingsViewModel *viewmodels.SettingsViewModeler
-	Renderer          handlerwebapp.Renderer
-	Sessions          SettingsSessionManager
-	Authorizations    SettingsAuthorizationService
-	OAuthConfig       *config.OAuthConfig
-	SessionListing    SettingsSessionListingService
+	Database            *appdb.Handle
+	ControllerFactory   handlerwebapp.ControllerFactory
+	BaseViewModel       *viewmodels.BaseViewModeler
+	SettingsViewModel   *viewmodels.SettingsViewModeler
+	Renderer            handlerwebapp.Renderer
+	Sessions            SettingsSessionManager
+	Authorizations      SettingsAuthorizationService
+	OAuthClientResolver SettingsSessionsClientResolver
+	SessionListing      SettingsSessionListingService
 }
 
 func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]any, error) {
@@ -88,22 +93,32 @@ func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http
 	settingsSessionsViewModel.Sessions = sessionModels
 
 	// Get third party app authorization
-	clientNameMap := map[string]string{}
-	for _, c := range h.OAuthConfig.Clients {
-		clientNameMap[c.ClientID] = c.ClientName
-	}
-	filter := oauth.NewKeepThirdPartyAuthorizationFilter(h.OAuthConfig)
+	filter := oauth.NewKeepThirdPartyAuthorizationFilter(h.OAuthClientResolver)
 	authorizations, err := h.Authorizations.ListByUser(ctx, *userID, filter)
 	if err != nil {
 		return nil, err
 	}
 	authzs := []Authorization{}
 	for _, authz := range authorizations {
-		clientName := clientNameMap[authz.ClientID]
+		// One resolve per authorization, same as the filter just did --
+		// ResolveClient is cached, and the alternative (threading the
+		// resolved config out of the filter) would couple the filter to
+		// this caller's rendering needs.
+		//
+		// Client.Name, not Client.ClientName: the display-name fallback, so
+		// a dynamic client with no client_name shows "Client <clientID>"
+		// rather than blank. Same fix as consent.go's consentViewModelForClient.
+		clientName := authz.ClientID
+		logoURI := ""
+		if c := h.OAuthClientResolver.ResolveClient(ctx, authz.ClientID); c != nil {
+			clientName = c.Name
+			logoURI = c.LogoURI
+		}
 		authzs = append(authzs, Authorization{
 			ID:                    authz.ID,
 			ClientID:              authz.ClientID,
 			ClientName:            clientName,
+			ClientLogoURI:         logoURI, // new field; nothing renders it yet
 			Scope:                 authz.Scopes,
 			CreatedAt:             authz.CreatedAt,
 			HasFullUserInfoAccess: authz.IsAuthorized([]string{oauth.FullUserInfoScope}),

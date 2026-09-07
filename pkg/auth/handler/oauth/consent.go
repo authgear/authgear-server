@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -59,13 +61,32 @@ type ConsentScope struct {
 }
 
 type ConsentViewModel struct {
-	ClientName          string
-	ClientPolicyURI     string
-	ClientTOSURI        string
+	ClientName      string
+	ClientPolicyURI string
+	ClientTOSURI    string
+	// ClientLogoURI is the client's self-asserted logo. Empty unless the
+	// client declared one. Rendered directly here as a plain cross-origin
+	// <img>; Part 7 replaces this with a server-side proxy URL to close the
+	// tracking-pixel-shaped IP/UA leak that a direct fetch causes (see
+	// docs/specs/cimd.md § Privacy Considerations §9.2).
+	ClientLogoURI string
+	// ClientIDHostname is the hostname of a CIMD client's client_id URL, and
+	// EMPTY for every other client source. It is the only client-identifying
+	// value on this screen that the client did not assert about itself: it
+	// is the host Authgear actually fetched the metadata document from,
+	// over verified TLS. See docs/specs/cimd.md § Phishing Mitigation.
+	ClientIDHostname    string
 	Scopes              []string
 	CustomScopes        []ConsentScope
 	IdentityDisplayName string
 	UserProfile         webapp.UserProfile
+}
+
+// ConsentClientLogoEndpoint is a narrow interface (not the whole
+// oauth.EndpointsProvider) so this handler's dependency is exactly the one
+// method it uses.
+type ConsentClientLogoEndpoint interface {
+	ClientLogoURL(clientID string) *url.URL
 }
 
 type ConsentHandler struct {
@@ -75,6 +96,7 @@ type ConsentHandler struct {
 	Renderer      Renderer
 	Identities    ProtocolIdentityService
 	Users         ConsentUserService
+	Endpoints     ConsentClientLogoEndpoint
 }
 
 func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -158,20 +180,59 @@ func (h *ConsentHandler) renderConsentPage(ctx context.Context, rw http.Response
 	displayID := webapp.IdentitiesDisplayName(identities)
 	userProfile := webapp.GetUserProfile(user)
 
-	viewModel := ConsentViewModel{}
+	viewModel := consentViewModelForClient(consentRequired.Client, h.Endpoints)
 	viewModel.Scopes = consentRequired.Scopes
 	for _, s := range consentRequired.Scopes {
 		if displayText, ok := consentRequired.ScopeDisplayNames[s]; ok {
 			viewModel.CustomScopes = append(viewModel.CustomScopes, ConsentScope{Scope: s, DisplayText: displayText})
 		}
 	}
-	viewModel.ClientName = consentRequired.Client.ClientName
-	viewModel.ClientPolicyURI = consentRequired.Client.PolicyURI
-	viewModel.ClientTOSURI = consentRequired.Client.TOSURI
 	viewModel.IdentityDisplayName = displayID
 	viewModel.UserProfile = userProfile
 	viewmodels.Embed(data, viewModel)
 
 	h.Renderer.RenderHTML(rw, r, webapp.TemplateWebConsentHTML, data)
 	return nil
+}
+
+// consentViewModelForClient fills in the ConsentViewModel fields derived
+// purely from the resolved client, so this logic is testable without
+// standing up BaseViewModeler/Identities/Users. endpoints is nil-able so
+// existing callers/tests that don't care about the logo proxy need not
+// supply one; ClientLogoURI is then left as the client's raw logo_uri.
+func consentViewModelForClient(client *config.OAuthClientConfig, endpoints ConsentClientLogoEndpoint) ConsentViewModel {
+	viewModel := ConsentViewModel{}
+	// Client.Name, not Client.ClientName: the resolved display name --
+	// client_name for a static client, "client_name, or 'Client <clientID>'"
+	// for a dynamic one (oauthclient.Client.DisplayName()). ClientName is
+	// empty whenever a client omits it, which the template then rendered as
+	// the literal string "null" via `or $.ClientName "null"`. Every DCR
+	// client registered without a client_name hits this; a CIMD client hits
+	// it far more often, since client_name is optional in the document.
+	viewModel.ClientName = client.Name
+	viewModel.ClientPolicyURI = client.PolicyURI
+	viewModel.ClientTOSURI = client.TOSURI
+	// Point the <img> at Authgear's own proxy instead of the client's
+	// server, so the end user's browser never contacts the client (spec §
+	// Privacy Considerations §9.2). Only for a dynamic client -- a static
+	// client's logo continues to render directly, exactly as it did before
+	// this endpoint existed.
+	if client.LogoURI != "" && client.IsDynamicClient() && endpoints != nil {
+		viewModel.ClientLogoURI = endpoints.ClientLogoURL(client.ClientID).String()
+	} else {
+		viewModel.ClientLogoURI = client.LogoURI
+	}
+	// IsCIMDClient(), not a client_id prefix check: a STATIC client whose
+	// client_id happens to be an https:// URL (spec § Client ID Format's
+	// pre-registration pattern) must not pick up a CIMD-specific hostname
+	// banner it has not earned. That client's DynamicSource is "".
+	if client.IsCIMDClient() {
+		// The impossible error path (ParseCIMDClientID already validated
+		// this exact string) simply omits the hostname -- fail-safe, since
+		// the screen then shows less, never something wrong.
+		if u, err := url.Parse(client.ClientID); err == nil {
+			viewModel.ClientIDHostname = u.Hostname()
+		}
+	}
+	return viewModel
 }

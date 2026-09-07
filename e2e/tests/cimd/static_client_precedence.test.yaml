@@ -1,0 +1,35 @@
+name: A static client whose client_id happens to be an https:// URL resolves as static and is never treated as a CIMD candidate
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+      clients:
+        - client_id: https://static.example.com/pre-registered
+          name: Pre-registered static client
+          x_application_type: spa
+          redirect_uris:
+            - http://127.0.0.1:3000/callback
+          response_types:
+            - code
+          grant_types:
+            - authorization_code
+            - refresh_token
+steps:
+  # No document is ever configured on cimdserver for this client_id, and no
+  # network access is attempted for it -- the static config wins outright
+  # (docs/specs/cimd.md § Client ID Format's pre-registration pattern).
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: https://static.example.com/pre-registered
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302

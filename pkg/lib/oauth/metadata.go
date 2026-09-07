@@ -22,6 +22,16 @@ func (p *MetadataProvider) PopulateMetadata(meta map[string]any) {
 	if p.OAuthConfig.DynamicClientRegistration.IsEnabled() {
 		meta["registration_endpoint"] = p.Endpoints.RegistrationEndpointURL().String()
 	}
+	if p.OAuthConfig.ClientIDMetadataDocument.IsEnabled() {
+		// draft-ietf-oauth-client-id-metadata-document-02 §6. The property is
+		// OPTIONAL for an AS to include; Authgear includes it whenever CIMD
+		// is enabled and omits it entirely otherwise -- an explicit false
+		// would be indistinguishable from absent to a compliant client, and
+		// per the MCP Authorization spec's fixed priority order (cimd.md §
+		// UC1) absent is exactly what makes a compliant MCP client fall back
+		// to DCR.
+		meta["client_id_metadata_document_supported"] = true
+	}
 	// See https://openid.net/specs/openid-connect-discovery-1_0.html#:~:text=passed%20by%20reference.-,token_endpoint_auth_methods_supported,-OPTIONAL.%20JSON%20array
 	// See https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication:~:text=The%20Client%20does%20not%20authenticate%20itself%20at%20the%20Token%20Endpoint
 	meta["token_endpoint_auth_methods_supported"] = []string{"none", "client_secret_post", "client_secret_basic"}

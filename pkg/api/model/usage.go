@@ -3,12 +3,13 @@ package model
 type UsageName string
 
 const (
-	UsageNameUserExport     UsageName = "user_export"
-	UsageNameUserImport     UsageName = "user_import"
-	UsageNameEmail          UsageName = "email"
-	UsageNameWhatsapp       UsageName = "whatsapp"
-	UsageNameSMS            UsageName = "sms"
-	UsageNameOAuthClientDCR UsageName = "oauth_client_dcr"
+	UsageNameUserExport      UsageName = "user_export"
+	UsageNameUserImport      UsageName = "user_import"
+	UsageNameEmail           UsageName = "email"
+	UsageNameWhatsapp        UsageName = "whatsapp"
+	UsageNameSMS             UsageName = "sms"
+	UsageNameOAuthClientDCR  UsageName = "oauth_client_dcr"
+	UsageNameOAuthClientCIMD UsageName = "oauth_client_cimd"
 )
 
 type UsageLimitPeriod string

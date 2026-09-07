@@ -1,0 +1,240 @@
+name: Admin API user.authorizations lists DCR and CIMD third-party client authorizations -- the pre-existing filter bug this fixes
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # --- CIMD authorization ---
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "authorizations-cimd.json",
+        "document": {
+          "client_id": "http://localhost:2727/authorizations-cimd.json",
+          "client_name": "E2E CIMD Client",
+          "redirect_uris": ["http://localhost:4000"],
+          "grant_types": ["authorization_code", "refresh_token"],
+          "response_types": ["code"],
+          "token_endpoint_auth_method": "none"
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: cimd_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: http://localhost:2727/authorizations-cimd.json
+    oauth_setup_scope:
+      - openid
+
+  - name: cimd_create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.cimd_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: cimd_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: cimd_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: cimd_approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.cimd_authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: cimd_exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.cimd_oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.cimd_approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: http://localhost:2727/authorizations-cimd.json
+    output:
+      result: |
+        {
+          "access_token": "[[string]]"
+        }
+
+  # --- DCR authorization ---
+  - name: dcr_register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E DCR Client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: dcr_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.dcr_register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+
+  - name: dcr_create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.dcr_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: dcr_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: dcr_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: dcr_approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.dcr_authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: dcr_exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.dcr_oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.dcr_approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.dcr_register.result.http_json_body.client_id }}"
+    output:
+      result: |
+        {
+          "access_token": "[[string]]"
+        }
+
+  # --- Both authorizations must be visible via the Admin API ---
+  - name: query_authorizations
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey: "username", loginIDValue: "e2e_login") {
+            authorizations {
+              edges {
+                node {
+                  clientID
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": {
+              "authorizations": {
+                "edges": [
+                  {
+                    "node": {
+                      "clientID": "http://localhost:2727/authorizations-cimd.json"
+                    }
+                  },
+                  {
+                    "node": {
+                      "clientID": "{{ .steps.dcr_register.result.http_json_body.client_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "errors": null
+        }

@@ -66,7 +66,8 @@ var _ = FeatureConfigSchema.Add("FeatureUsageLimitsConfig", `
 		"email": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
 		"whatsapp": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
 		"sms": { "type": "array", "items": { "$ref": "#/$defs/FeatureUsageLimitConfig" } },
-		"oauth_client_dcr": { "type": "array", "items": { "$ref": "#/$defs/StandingFeatureUsageLimitConfig" } }
+		"oauth_client_dcr": { "type": "array", "items": { "$ref": "#/$defs/StandingFeatureUsageLimitConfig" } },
+		"oauth_client_cimd": { "type": "array", "items": { "$ref": "#/$defs/StandingFeatureUsageLimitConfig" } }
 	}
 }
 `)
@@ -80,12 +81,13 @@ type FeatureUsageLimitsConfig struct {
 	// viewEffectiveResource in configsource/resources.go). omitzero only
 	// omits the true zero value (nil), preserving an explicit []
 	// through that round trip.
-	UserExport     []FeatureUsageLimitConfig         `json:"user_export,omitzero"`
-	UserImport     []FeatureUsageLimitConfig         `json:"user_import,omitzero"`
-	Email          []FeatureUsageLimitConfig         `json:"email,omitzero"`
-	Whatsapp       []FeatureUsageLimitConfig         `json:"whatsapp,omitzero"`
-	SMS            []FeatureUsageLimitConfig         `json:"sms,omitzero"`
-	OAuthClientDCR []StandingFeatureUsageLimitConfig `json:"oauth_client_dcr,omitzero"`
+	UserExport      []FeatureUsageLimitConfig         `json:"user_export,omitzero"`
+	UserImport      []FeatureUsageLimitConfig         `json:"user_import,omitzero"`
+	Email           []FeatureUsageLimitConfig         `json:"email,omitzero"`
+	Whatsapp        []FeatureUsageLimitConfig         `json:"whatsapp,omitzero"`
+	SMS             []FeatureUsageLimitConfig         `json:"sms,omitzero"`
+	OAuthClientDCR  []StandingFeatureUsageLimitConfig `json:"oauth_client_dcr,omitzero"`
+	OAuthClientCIMD []StandingFeatureUsageLimitConfig `json:"oauth_client_cimd,omitzero"`
 }
 
 func (c *FeatureUsageLimitsConfig) Limits(name model.UsageName) []FeatureUsageLimitConfig {
@@ -120,6 +122,8 @@ func (c *FeatureUsageLimitsConfig) StandingLimits(name model.UsageName) []Standi
 	switch name {
 	case model.UsageNameOAuthClientDCR:
 		return c.OAuthClientDCR
+	case model.UsageNameOAuthClientCIMD:
+		return c.OAuthClientCIMD
 	default:
 		return nil
 	}
@@ -257,6 +261,9 @@ func mergeFeatureUsageLimits(base *FeatureUsageLimitsConfig, layer *FeatureUsage
 	}
 	if layer.OAuthClientDCR != nil {
 		merged.OAuthClientDCR = layer.OAuthClientDCR
+	}
+	if layer.OAuthClientCIMD != nil {
+		merged.OAuthClientCIMD = layer.OAuthClientCIMD
 	}
 
 	return merged

@@ -18,6 +18,15 @@ import (
 
 func newTestStandingLimiter(t *testing.T, eventService *testEventService, emailService *testUsageAlertEmailService, limits []config.StandingFeatureUsageLimitConfig, alerts []config.UsageAlertConfig) *Limiter {
 	t.Helper()
+	return newTestStandingLimiterBothSources(t, eventService, emailService, limits, nil, alerts)
+}
+
+// newTestStandingLimiterBothSources lets a test configure the DCR and CIMD
+// standing limits independently, to prove the two quotas
+// (config.FeatureUsageLimitsConfig.OAuthClientDCR /
+// .OAuthClientCIMD) are read independently and never cross-apply.
+func newTestStandingLimiterBothSources(t *testing.T, eventService *testEventService, emailService *testUsageAlertEmailService, dcrLimits []config.StandingFeatureUsageLimitConfig, cimdLimits []config.StandingFeatureUsageLimitConfig, alerts []config.UsageAlertConfig) *Limiter {
+	t.Helper()
 
 	mr := miniredis.RunT(t)
 	now := time.Date(2009, 11, 10, 15, 0, 0, 0, time.UTC)
@@ -43,7 +52,8 @@ func newTestStandingLimiter(t *testing.T, eventService *testEventService, emailS
 			FeatureConfig: &config.FeatureConfig{
 				Usage: &config.FeatureUsageConfig{
 					Limits: &config.FeatureUsageLimitsConfig{
-						OAuthClientDCR: limits,
+						OAuthClientDCR:  dcrLimits,
+						OAuthClientCIMD: cimdLimits,
 					},
 				},
 			},
@@ -102,6 +112,23 @@ func TestLimiterCheckStanding(t *testing.T) {
 			}, nil)
 			So(limiter.CheckStanding(ctx, model.UsageNameOAuthClientDCR, 4), ShouldBeNil)
 			So(limiter.CheckStanding(ctx, model.UsageNameOAuthClientDCR, 5), ShouldNotBeNil)
+		})
+
+		Convey("StandingLimits routes UsageNameOAuthClientCIMD to its own config, independent of oauth_client_dcr", func() {
+			limiter := newTestStandingLimiterBothSources(t, &testEventService{}, &testUsageAlertEmailService{},
+				[]config.StandingFeatureUsageLimitConfig{{Quota: 20, Action: model.UsageLimitActionBlock}},
+				[]config.StandingFeatureUsageLimitConfig{{Quota: 5, Action: model.UsageLimitActionBlock}},
+				nil,
+			)
+
+			// CIMD's own quota (5) applies to CIMD.
+			So(limiter.CheckStanding(ctx, model.UsageNameOAuthClientCIMD, 4), ShouldBeNil)
+			So(limiter.CheckStanding(ctx, model.UsageNameOAuthClientCIMD, 5), ShouldNotBeNil)
+
+			// DCR's quota (20), not CIMD's (5), applies to DCR -- a count of
+			// 10 would have blocked under CIMD's quota but must not block
+			// under DCR's.
+			So(limiter.CheckStanding(ctx, model.UsageNameOAuthClientDCR, 10), ShouldBeNil)
 		})
 	})
 }

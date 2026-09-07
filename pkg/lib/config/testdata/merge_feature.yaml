@@ -15,6 +15,36 @@ configs:
   - oauth:
       client:
         custom_ui_enabled: true
+  - oauth:
+      client_id_metadata_document:
+        insecure_fetch_address_allowed: true
+  - oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+  - oauth:
+      client_id_metadata_document:
+        rate_limits:
+          fetch:
+            per_project:
+              enabled: true
+              period: 30s
+              burst: 7
+  - oauth:
+      client_id_metadata_document:
+        rate_limits:
+          fetch:
+            per_ip:
+              enabled: true
+              period: 2m
+              burst: 3
+  - oauth:
+      client_id_metadata_document:
+        rate_limits:
+          fetch:
+            per_ip:
+              enabled: false
+              period: 5m
+              burst: 99
   - collaborator:
       maximum: 3
       soft_maximum: 30
@@ -56,6 +86,13 @@ configs:
         oauth_client_dcr:
           - quota: 50
             action: block
+  - usage:
+      limits:
+        oauth_client_cimd:
+          - quota: 20
+            action: block
+          - quota: 15
+            action: alert
   - admin_api:
       user_import_usage:
         enabled: true
@@ -185,6 +222,19 @@ result:
       soft_maximum: 20
       custom_ui_enabled: true
       app2app_enabled: false
+    client_id_metadata_document:
+      insecure_fetch_address_allowed: true
+      insecure_http_allowed: true
+      rate_limits:
+        fetch:
+          per_project:
+            enabled: true
+            period: 30s
+            burst: 7
+          per_ip:
+            enabled: false
+            period: 5m
+            burst: 99
   collaborator:
     maximum: 3
     soft_maximum: 40
@@ -222,3 +272,8 @@ result:
       oauth_client_dcr:
         - quota: 50
           action: block
+      oauth_client_cimd:
+        - quota: 20
+          action: block
+        - quota: 15
+          action: alert

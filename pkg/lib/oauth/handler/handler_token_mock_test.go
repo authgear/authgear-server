@@ -132,6 +132,20 @@ func (m *MockEventService) EXPECT() *MockEventServiceMockRecorder {
 	return m.recorder
 }
 
+// DispatchEventImmediately mocks base method.
+func (m *MockEventService) DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DispatchEventImmediately", ctx, payload)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DispatchEventImmediately indicates an expected call of DispatchEventImmediately.
+func (mr *MockEventServiceMockRecorder) DispatchEventImmediately(ctx, payload interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventImmediately", reflect.TypeOf((*MockEventService)(nil).DispatchEventImmediately), ctx, payload)
+}
+
 // DispatchEventOnCommit mocks base method.
 func (m *MockEventService) DispatchEventOnCommit(ctx context.Context, payload event.Payload) error {
 	m.ctrl.T.Helper()

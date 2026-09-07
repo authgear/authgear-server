@@ -82,6 +82,22 @@ func (q *Queries) GetClientConfigByClientID(ctx context.Context, clientID string
 	return c.ToClientConfig(ResolveTokenLifetimes(q.OAuthConfig, c.Source)), nil
 }
 
+// GetClientByClientID returns the persisted dynamic-client row, Redis-first
+// and Postgres only on a miss, exactly like GetClientConfigByClientID --
+// they share getClientByClientIDCached. It exists for callers that need the
+// row's own fields (Source, LastFetchedAt) rather than a synthesized client
+// config; pkg/lib/cimd's freshness check is the only such caller today.
+//
+// Returning the CACHED row for the freshness decision is deliberate. The
+// cache TTL is 5 minutes and the refetch interval is 1 hour, so at worst a
+// refetch happens 5 minutes late -- and in exchange, the common case (a
+// warm, fresh CIMD client) costs exactly one Redis GET on the
+// /oauth2/authorize path: no Postgres connection, no transaction, no
+// outbound request.
+func (q *Queries) GetClientByClientID(ctx context.Context, clientID string) (*Client, error) {
+	return q.getClientByClientIDCached(ctx, clientID)
+}
+
 // getClientByClientIDCached consults Redis first and only touches Postgres
 // on a miss, opening a ReadOnly scope itself when the caller has none —
 // ResolveClient is called from middleware, view models and handlers alike,

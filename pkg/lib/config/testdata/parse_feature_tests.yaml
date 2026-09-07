@@ -237,3 +237,100 @@ error: |-
 config:
   fraud_protection:
     invalid_key: foo
+---
+name: cimd-insecure-fetch-address-allowed-true
+error: null
+config:
+  oauth:
+    client_id_metadata_document:
+      insecure_fetch_address_allowed: true
+---
+name: cimd-insecure-http-allowed-wrong-type
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/insecure_http_allowed: type
+    map[actual:[string] expected:[boolean]]
+config:
+  oauth:
+    client_id_metadata_document:
+      insecure_http_allowed: "yes"
+---
+name: cimd-unknown-key
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/unknown_key: 
+config:
+  oauth:
+    client_id_metadata_document:
+      unknown_key: foo
+---
+name: cimd-rate-limits-burst-zero
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/rate_limits/fetch/per_project/burst: minimum
+    map[actual:0 minimum:1]
+config:
+  oauth:
+    client_id_metadata_document:
+      rate_limits:
+        fetch:
+          per_project:
+            enabled: true
+            period: 1m
+            burst: 0
+---
+name: cimd-rate-limits-enabled-without-period
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/rate_limits/fetch/per_ip: required
+    map[actual:[burst enabled] expected:[period] missing:[period]]
+config:
+  oauth:
+    client_id_metadata_document:
+      rate_limits:
+        fetch:
+          per_ip:
+            enabled: true
+            burst: 5
+---
+name: cimd-rate-limits-unknown-key
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/rate_limits/fetch/unknown_key: 
+config:
+  oauth:
+    client_id_metadata_document:
+      rate_limits:
+        fetch:
+          unknown_key: foo
+---
+name: cimd-rate-limits-fetch-unknown-key
+error: |-
+  invalid feature config:
+  /oauth/client_id_metadata_document/rate_limits/unknown_key: 
+config:
+  oauth:
+    client_id_metadata_document:
+      rate_limits:
+        unknown_key: foo
+---
+name: cimd-usage-limit-with-period-fails
+error: |-
+  invalid feature config:
+  /usage/limits/oauth_client_cimd/0/period: 
+config:
+  usage:
+    limits:
+      oauth_client_cimd:
+        - quota: 20
+          period: month
+          action: block
+---
+name: cimd-usage-limit-valid
+error: null
+config:
+  usage:
+    limits:
+      oauth_client_cimd:
+        - quota: 20
+          action: block

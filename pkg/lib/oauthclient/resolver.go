@@ -41,17 +41,25 @@ func (r *Resolver) ResolveClient(ctx context.Context, clientID string) *config.O
 }
 
 // isDynamicClientIDCandidate is a predicate, not an inline strings.HasPrefix
-// check, because CIMD adds a second shape to it later: cimd.md's resolution
-// order is "Static and DCR clients are always checked first — a string is
-// only ever treated as a CIMD candidate once neither matches", so this
-// function is the one and only extension point for that.
+// check, because CIMD adds a second shape to it: cimd.md's resolution order
+// is "Static and DCR clients are always checked first — a string is only
+// ever treated as a CIMD candidate once neither matches", so this function
+// is the one and only extension point for that.
+//
+// It answers only "is a persisted-row lookup warranted for this string?". It
+// applies no policy at all -- neither trust policy (allowed_domains,
+// insecure_http_allowed) nor the `enabled` feature switch gates reading,
+// only FETCHING (EnsureClientResolved) does -- see
+// docs/plans/cimd/2026-08-28-01-config-and-client-id.md §4.1 for why:
+// removing a domain from allowed_domains, or turning CIMD off entirely,
+// must not break a client that already resolved successfully. A URL-shaped
+// client_id therefore always costs one Queries lookup (Redis, Postgres only
+// on a miss), the same as a dcrc_-prefixed one, regardless of `enabled`.
 func (r *Resolver) isDynamicClientIDCandidate(clientID string) bool {
 	// DCR: server-generated, always dcrc_-prefixed.
 	if IsDCRClientID(clientID) {
 		return true
 	}
-	// CIMD will add: IsCIMDClientIDURL(clientID) && r.OAuthConfig.ClientIDMetadataDocument.IsEnabled()
-	// gated on CIMD being enabled, so a URL-shaped client_id costs nothing
-	// with CIMD off.
-	return false
+	// CIMD: shape only, unconditionally -- see the func comment.
+	return IsCIMDClientID(clientID, true)
 }

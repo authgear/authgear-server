@@ -1,0 +1,47 @@
+name: Disabling DCR refuses new registrations but keeps an already-registered client working
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: false
+before:
+  - type: custom_sql
+    custom_sql:
+      path: disabled_keeps_existing_client_fixtures.sql
+steps:
+  # DCR's own enabled flag gates registration only, not resolution:
+  # pkg/lib/oauthclient/resolver.go's isDynamicClientIDCandidate checks
+  # IsDCRClientID unconditionally (no IsEnabled() gate, unlike CIMD's
+  # historical bug), and DCR has no fetch/refetch concept -- a resolved
+  # DCR client is nothing but a read of the persisted row.
+  - name: register_refused
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 403
+      json_body: |
+        {
+          "error": "access_denied"
+        }
+
+  - name: authorize_seeded_client
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: dcrc_disabled_keeps_existing_test
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302

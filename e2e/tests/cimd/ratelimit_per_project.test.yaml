@@ -1,0 +1,125 @@
+name: the per-project CIMD fetch bucket trips independently of per-IP, and disabling a bucket really disables it
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+        rate_limits:
+          fetch:
+            per_ip:
+              enabled: false
+              period: 1m
+              burst: 5
+            per_project:
+              enabled: true
+              period: 1m
+              burst: 2
+steps:
+  - name: configure_document_1
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "ratelimit-per-project-1-{{ .AppID }}.json",
+        "document": {
+          "client_id": "http://localhost:2727/ratelimit-per-project-1-{{ .AppID }}.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: configure_document_2
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "ratelimit-per-project-2-{{ .AppID }}.json",
+        "document": {
+          "client_id": "http://localhost:2727/ratelimit-per-project-2-{{ .AppID }}.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: configure_document_3
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "ratelimit-per-project-3-{{ .AppID }}.json",
+        "document": {
+          "client_id": "http://localhost:2727/ratelimit-per-project-3-{{ .AppID }}.json",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"]
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize_1
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/ratelimit-per-project-1-{{ .AppID }}.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: authorize_2
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/ratelimit-per-project-2-{{ .AppID }}.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # The per_project bucket (burst 2) is exhausted, even though per_ip is
+  # disabled entirely -- the two buckets trip independently.
+  - name: authorize_3
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/ratelimit-per-project-3-{{ .AppID }}.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - x_rate_limited
+
+  - name: verify_no_fetch_3
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=ratelimit-per-project-3-{{ .AppID }}.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }

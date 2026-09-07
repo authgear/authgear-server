@@ -1,0 +1,60 @@
+name: Revoking insecure_http_allowed does not break an already-resolved http:// client, but still refuses a new one
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+before:
+  - type: custom_sql
+    custom_sql:
+      path: revoked_flags_keep_existing_clients_fixtures.sql
+steps:
+  # The seeded row is fresh, so EnsureClientResolved never reaches the fetch
+  # path at all -- allowed_domains/insecure_http_allowed only gate fetching,
+  # never reading (docs/plans/cimd/2026-08-28-01-config-and-client-id.md
+  # §4.1). No document needs to be configured on cimdserver for this path;
+  # a 302 (redirect into the AuthUI) rather than the unauthorized_client
+  # error page proves the client resolved successfully.
+  - name: authorize_seeded
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/revoked-flags-seeded.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  # A different, never-seeded http:// client_id on the SAME project (no
+  # flags set) is refused -- revoking the flag stops NEW clients, it does
+  # not retroactively break existing ones.
+  - name: authorize_unseeded
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/revoked-flags-unseeded.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:9000/cb
+      scope: openid
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - unauthorized_client
+
+  - name: verify_no_fetch_for_unseeded
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:2727/_control/hits?path=revoked-flags-unseeded.json
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "hits": 0
+        }
