@@ -125000,8 +125000,18 @@ func newDPoPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:      clockClock,
 		HTTPOrigin: httpOrigin,
 	}
+	handle := appProvider.Redis
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	storeRedis := &dpop.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
 	dpopMiddleware := &dpop.Middleware{
-		DPoPProvider: provider,
+		DPoPProvider:     provider,
+		ProofReplayStore: storeRedis,
 	}
 	return dpopMiddleware
 }
