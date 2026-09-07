@@ -65,12 +65,17 @@ FROM ubuntu:noble AS authgear-portal-stage-runtime
 # /etc/mime.types (media-types)
 # /usr/share/ca-certificates/*/* (ca-certificates)
 # /usr/share/zoneinfo/ (tzdata)
+# We only need the shared libraries at runtime, not the -dev packages.
+# Installing the -dev packages here used to transitively pull in libc6-dev,
+# which pulls in linux-libc-dev (kernel headers). That package is unused at
+# runtime, but its embedded kernel version string is what OS vulnerability
+# scanners were flagging as a stale/unpatched kernel in the image.
 RUN set -eux; \
         apt-get update; \
         apt-get install -y --no-install-recommends --no-install-suggests \
-            libicu-dev \
-            libvips-dev \
-            libmagic-dev \
+            libicu74 \
+            libvips42t64 \
+            libmagic1t64 \
             libmagic-mgc \
             ca-certificates \
             media-types \
