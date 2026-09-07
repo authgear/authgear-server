@@ -461,6 +461,7 @@ func TestTokenHandler(t *testing.T) {
 				So(body, ShouldNotContainKey, "refresh_token")
 			})
 
+
 			Convey("a rate limited exchange does not consume the code", func() {
 				// The user being throttled is the legitimate client. It has to
 				// be able to retry the exchange rather than restart the whole
@@ -548,6 +549,99 @@ func TestTokenHandler(t *testing.T) {
 
 				// ConsumeCodeGrant not being called is asserted by the mock's
 				// Times(0) expectation above.
+			})
+
+			Convey("rejects a code issued to another client", func() {
+				// Client A initiates the flow and the code is issued to it.
+				// Client B is a different confidential client in the same project,
+				// authenticating with its own valid secret. Without the client
+				// binding check, B redeems A's code and receives tokens for A's
+				// user, because none of the other guards catch it:
+				// the redirect URI is compared only against the value stored on
+				// the grant, and PKCE is skipped for a confidential client when
+				// the code carries no code_challenge.
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["client-a"] = &config.OAuthClientConfig{
+					ClientID:        "client-a",
+					ApplicationType: config.OAuthClientApplicationTypeConfidential,
+					RedirectURIs: []string{
+						"https://client-a.example.com/",
+					},
+				}
+				clientResolver.ClientConfigs["client-b"] = &config.OAuthClientConfig{
+					ClientID:        "client-b",
+					ApplicationType: config.OAuthClientApplicationTypeConfidential,
+					RedirectURIs: []string{
+						"https://client-b.example.com/",
+					},
+				}
+
+				clientBSecret, err := jwk.FromRaw([]byte("client-b-secret"))
+				So(err, ShouldBeNil)
+				clientBKeySet := jwk.NewSet()
+				_ = clientBKeySet.AddKey(clientBSecret)
+				h.OAuthClientCredentials = &config.OAuthClientCredentials{
+					Items: []config.OAuthClientCredentialsItem{
+						{
+							ClientID:                     "client-b",
+							OAuthClientCredentialsKeySet: config.OAuthClientCredentialsKeySet{Set: clientBKeySet},
+						},
+					},
+				}
+
+				// No code_challenge, so PKCE is skipped for a confidential client.
+				authzRequest := protocol.AuthorizationRequest{
+					"client_id":    "client-a",
+					"redirect_uri": "https://client-a.example.com/",
+					"scope":        "some_scope",
+				}
+				codeGrant := &oauth.CodeGrant{
+					AppID:           appID,
+					AuthorizationID: "authz-id",
+					AuthenticationInfo: authenticationinfo.T{
+						UserID: "user-id",
+					},
+					RedirectURI:          "https://client-a.example.com/",
+					AuthorizationRequest: authzRequest,
+					ExpireAt:             clock.NowUTC().Add(time.Hour),
+				}
+				codeHash := oauth.HashToken("the-code")
+				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), codeHash).Return(codeGrant, nil)
+				// The code must not be consumed by the failed attempt.
+				codeGrants.EXPECT().ConsumeCodeGrant(gomock.Any(), gomock.Any()).Times(0)
+
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(&oidc.UIInfo{}, nil, nil)
+
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenGeneralPerIP,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
+				}).Return(nil, nil)
+
+				// Client B echoes the redirect URI stored on the code and
+				// authenticates with its own secret.
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"authorization_code"}
+				r["client_id"] = []string{"client-b"}
+				r["client_secret"] = []string{"client-b-secret"}
+				r["code"] = []string{"the-code"}
+				r["redirect_uri"] = []string{"https://client-a.example.com/"}
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 400)
+
+				var body map[string]any
+				err = json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_grant")
+				So(body, ShouldNotContainKey, "access_token")
+				So(body, ShouldNotContainKey, "refresh_token")
 			})
 		})
 
