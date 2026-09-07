@@ -959,6 +959,13 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return jkt
 	}
+	templateFuncMap["generateApp2AppJWT"] = func(challenge string) string {
+		jwtStr, err := GenerateApp2AppJWT(challenge)
+		if err != nil {
+			panic(err)
+		}
+		return jwtStr
+	}
 	templateFuncMap["nodeID"] = func(nodeType string, uuid string) string {
 		return relay.ToGlobalID(nodeType, uuid)
 	}

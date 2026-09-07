@@ -1,0 +1,207 @@
+name: Pre-authenticated URL token is issued by token exchange and consumed at the authorize endpoint
+# There was no e2e coverage of the pre-authenticated URL feature. It shares the
+# token endpoint and the offline grant with the authorization code flow, so it
+# is exercised here to catch regressions from changes to either.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    oauth:
+      clients:
+      - access_token_lifetime_seconds: 1800
+        client_id: e2e
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: reactweb
+        redirect_uris:
+        - http://localhost:4000
+        refresh_token_idle_timeout_enabled: true
+        refresh_token_idle_timeout_seconds: 2592000
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: spa
+        issue_jwt_access_token: true
+        x_pre_authenticated_url_enabled: true
+        x_pre_authenticated_url_allowed_origins:
+        - http://localhost:4000
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # device_sso and the pre-authenticated-url scope are what cause the token
+  # endpoint to issue a device_secret alongside the tokens.
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid offline_access device_sso https://authgear.com/scopes/pre-authenticated-url https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+    http_output:
+      http_status: 302
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_userinfo_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    output:
+      result: |
+        {
+          "access_token": "[[string]]",
+          "refresh_token": "[[string]]",
+          "raw_id_token": "[[string]]",
+          "device_secret": "[[string]]"
+        }
+
+  # Exchange the device_secret and id_token for a pre-authenticated URL token.
+  - name: token_exchange
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      client_id: e2e
+      grant_type: urn:ietf:params:oauth:grant-type:token-exchange
+      requested_token_type: urn:authgear:params:oauth:token-type:pre-authenticated-url-token
+      audience: http://{{.AppID}}.authgeare2e.localhost:4000
+      subject_token_type: urn:ietf:params:oauth:token-type:id_token
+      subject_token: "{{ .steps.exchange_code.result.raw_id_token }}"
+      actor_token_type: urn:x-oath:params:oauth:token-type:device-secret
+      actor_token: "{{ .steps.exchange_code.result.device_secret }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "issued_token_type": "urn:authgear:params:oauth:token-type:pre-authenticated-url-token",
+          "token_type": "Bearer",
+          "id_token": "[[string]]",
+          "device_secret": "[[string]]"
+        }
+
+  # Using the token: the whole point of the feature is that this URL puts a
+  # session cookie in the browser without an interactive login.
+  - name: use_pre_authenticated_url
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: "urn:authgear:params:oauth:response-type:pre-authenticated-url token"
+      response_mode: cookie
+      prompt: none
+      id_token_hint: "{{ .steps.token_exchange.result.http_json_body.id_token }}"
+      x_pre_authenticated_url_token: "{{ .steps.token_exchange.result.http_json_body.access_token }}"
+    http_output:
+      http_status: 303
+      location_contains:
+        - http://localhost:4000
+      # An error is delivered to the same redirect_uri, so success has to be
+      # asserted as the absence of one.
+      location_not_contains:
+        - error=
+
+  # The token is single use: ExchangeForAccessToken consumes it, so presenting
+  # it again must fail. This is what shows the step above really spent it,
+  # rather than the endpoint just happening to return a redirect.
+  - name: reuse_pre_authenticated_url_token
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: "urn:authgear:params:oauth:response-type:pre-authenticated-url token"
+      response_mode: cookie
+      prompt: none
+      id_token_hint: "{{ .steps.token_exchange.result.http_json_body.id_token }}"
+      x_pre_authenticated_url_token: "{{ .steps.token_exchange.result.http_json_body.access_token }}"
+    http_output:
+      http_status: 303
+      location_contains:
+        - error=invalid_request
+
+  # The device_secret is rotated by the exchange, so the old one must no longer
+  # be accepted.
+  - name: replay_old_device_secret
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      client_id: e2e
+      grant_type: urn:ietf:params:oauth:grant-type:token-exchange
+      requested_token_type: urn:authgear:params:oauth:token-type:pre-authenticated-url-token
+      audience: http://{{.AppID}}.authgeare2e.localhost:4000
+      subject_token_type: urn:ietf:params:oauth:token-type:id_token
+      subject_token: "{{ .steps.exchange_code.result.raw_id_token }}"
+      actor_token_type: urn:x-oath:params:oauth:token-type:device-secret
+      actor_token: "{{ .steps.exchange_code.result.device_secret }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "access_token": "[[never]]"
+        }
