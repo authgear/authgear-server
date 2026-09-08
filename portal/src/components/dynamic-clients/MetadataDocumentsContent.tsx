@@ -177,10 +177,17 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
     const onEnabledChange = useCallback(
       (checked: boolean) => {
         form
-          .saveWith((prev) => ({
-            ...prev,
-            cimdEnabled: checked,
-          }))
+          .saveWith((prev) =>
+            // Turning it off starts from the last saved state rather than the
+            // pending one: an unfinished edit elsewhere on the tab -- a seeded
+            // empty domain row, say -- would otherwise fail validation and
+            // take the switch down with it, leaving CIMD enabled on the
+            // server while the switch reads off. Turning it on carries
+            // pending edits, which is what the toast reports.
+            checked
+              ? { ...prev, cimdEnabled: true }
+              : { ...form.initialState, cimdEnabled: false }
+          )
           .then(() => {
             showToast({
               type: "success",

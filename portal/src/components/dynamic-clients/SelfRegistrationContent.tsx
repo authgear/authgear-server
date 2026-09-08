@@ -179,17 +179,27 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
     const setRegistrationEnabled = useCallback(
       (checked: boolean) => {
         form
-          .saveWith((prev) => ({
-            ...prev,
-            dynamicClientRegistrationEnabled: checked,
-            // Switching registration off resets the initial access token
+          .saveWith((prev) =>
+            // Turning it off starts from the last saved state rather than the
+            // pending one: an unfinished edit elsewhere on the tab -- a
+            // half-typed token lifetime, say -- would otherwise fail
+            // validation and take the switch down with it, leaving
+            // registration enabled on the server while the switch reads off.
+            // Turning it on carries pending edits, which is what the toast
+            // reports.
+            //
+            // Switching registration off also resets the initial access token
             // requirement, so re-enabling always starts from the safe default
             // rather than quietly restoring open registration. Turning the
             // requirement off again is an explicit, separately confirmed act.
-            initialAccessTokenRequired: checked
-              ? prev.initialAccessTokenRequired
-              : true,
-          }))
+            checked
+              ? { ...prev, dynamicClientRegistrationEnabled: true }
+              : {
+                  ...form.initialState,
+                  dynamicClientRegistrationEnabled: false,
+                  initialAccessTokenRequired: true,
+                }
+          )
           .then(() => {
             showToast({
               type: "success",
