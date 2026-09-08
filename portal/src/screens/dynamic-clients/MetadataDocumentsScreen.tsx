@@ -54,7 +54,7 @@ export type CIMDDomainMode = "any" | "list";
 // Only this mechanism's fields live here. The form is this screen's own, so
 // its save bar commits CIMD and nothing else -- not the sibling DCR screen's
 // settings, and not the Applications screen's client list.
-interface FormState {
+export interface FormState {
   cimdEnabled: boolean;
   cimdDomainMode: CIMDDomainMode;
   cimdAllowedDomains: string[];
@@ -64,7 +64,7 @@ interface FormState {
   cimdRefreshTokenIdleTimeoutSeconds: number | undefined;
 }
 
-function constructFormState(config: PortalAPIAppConfig): FormState {
+export function constructFormState(config: PortalAPIAppConfig): FormState {
   const cimd = config.oauth?.client_id_metadata_document;
   const cimdAllowedDomains = [...(cimd?.allowed_domains ?? [])];
   return {
@@ -82,7 +82,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   };
 }
 
-function constructConfig(
+export function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
   currentState: FormState
@@ -152,11 +152,11 @@ function constructConfig(
   return newConfig;
 }
 
-interface MetadataDocumentsContentProps {
+export interface MetadataDocumentsContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> =
+export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> =
   function MetadataDocumentsContent({ form }) {
     const { state, setState, isUpdating, effectiveConfig } = form;
     const { showToast } = useCalloutToast();
@@ -321,12 +321,7 @@ const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> =
     );
 
     return (
-      <ScreenContent layout="list">
-        <div className={cn(styles.widget, styles.pageHeader)}>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-            <FormattedMessage id="MetadataDocumentsScreen.title" />
-          </Text>
-        </div>
+      <>
         <div
           ref={anchorRef}
           className={cn(
@@ -529,7 +524,7 @@ const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> =
 
           <SaveFunctionBar anchorRef={anchorRef} />
         </div>
-      </ScreenContent>
+      </>
     );
   };
 
@@ -552,7 +547,14 @@ const MetadataDocumentsScreen: React.VFC = function MetadataDocumentsScreen() {
 
   return (
     <FormContainer form={form}>
-      <MetadataDocumentsContent form={form} />
+      <ScreenContent layout="list">
+        <div className={cn(styles.widget, styles.pageHeader)}>
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="MetadataDocumentsScreen.title" />
+          </Text>
+        </div>
+        <MetadataDocumentsContent form={form} />
+      </ScreenContent>
     </FormContainer>
   );
 };

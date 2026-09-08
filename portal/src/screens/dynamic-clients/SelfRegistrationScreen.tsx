@@ -42,7 +42,7 @@ const DEFAULT_CLIENT_CONFIG_JSON_POINTER =
 // Only this mechanism's fields live here. The form is this screen's own, so
 // its save bar commits DCR and nothing else -- not the sibling CIMD screen's
 // settings, and not the Applications screen's client list.
-interface FormState {
+export interface FormState {
   dynamicClientRegistrationEnabled: boolean;
   initialAccessTokenRequired: boolean;
   accessTokenLifetimeSeconds: number | undefined;
@@ -51,7 +51,7 @@ interface FormState {
   refreshTokenIdleTimeoutSeconds: number | undefined;
 }
 
-function constructFormState(config: PortalAPIAppConfig): FormState {
+export function constructFormState(config: PortalAPIAppConfig): FormState {
   const dcr = config.oauth?.dynamic_client_registration;
   return {
     dynamicClientRegistrationEnabled: dcr?.enabled ?? false,
@@ -73,7 +73,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   };
 }
 
-function constructConfig(
+export function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
   currentState: FormState
@@ -135,11 +135,11 @@ function constructConfig(
   return newConfig;
 }
 
-interface SelfRegistrationContentProps {
+export interface SelfRegistrationContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
+export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
   function SelfRegistrationContent({ form }) {
     const { state, setState, isUpdating, effectiveConfig } = form;
     const { showToast } = useCalloutToast();
@@ -307,12 +307,7 @@ const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
     );
 
     return (
-      <ScreenContent layout="list">
-        <div className={cn(styles.widget, styles.pageHeader)}>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-            <FormattedMessage id="SelfRegistrationScreen.title" />
-          </Text>
-        </div>
+      <>
         <div
           ref={anchorRef}
           className={cn(
@@ -509,7 +504,7 @@ const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
 
           <SaveFunctionBar anchorRef={anchorRef} />
         </div>
-      </ScreenContent>
+      </>
     );
   };
 
@@ -532,7 +527,14 @@ const SelfRegistrationScreen: React.VFC = function SelfRegistrationScreen() {
 
   return (
     <FormContainer form={form}>
-      <SelfRegistrationContent form={form} />
+      <ScreenContent layout="list">
+        <div className={cn(styles.widget, styles.pageHeader)}>
+          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <FormattedMessage id="SelfRegistrationScreen.title" />
+          </Text>
+        </div>
+        <SelfRegistrationContent form={form} />
+      </ScreenContent>
     </FormContainer>
   );
 };
