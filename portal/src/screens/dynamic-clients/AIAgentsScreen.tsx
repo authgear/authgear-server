@@ -34,11 +34,11 @@ import {
 } from "../../components/dynamic-clients/SelfRegistrationContent";
 import styles from "./Applications.module.css";
 
-type TabKey = "overview" | "dcr" | "cimd";
+type TabKey = "overview" | "cimd" | "dcr";
 
 // Module-level so its identity is stable: usePivotNavigation keeps it in an
 // effect's dependency list.
-const TAB_KEYS: TabKey[] = ["overview", "dcr", "cimd"];
+const TAB_KEYS: TabKey[] = ["overview", "cimd", "dcr"];
 
 interface TabOption {
   value: string;
@@ -271,8 +271,8 @@ const AIAgentsScreen: React.VFC = function AIAgentsScreen() {
         value: "overview",
         label: renderToString("AIAgentsScreen.tab.overview"),
       },
-      { value: "dcr", label: renderToString("AIAgentsScreen.tab.dcr") },
       { value: "cimd", label: renderToString("AIAgentsScreen.tab.cimd") },
+      { value: "dcr", label: renderToString("AIAgentsScreen.tab.dcr") },
     ],
     [renderToString]
   );
@@ -284,10 +284,10 @@ const AIAgentsScreen: React.VFC = function AIAgentsScreen() {
   };
 
   switch (selectedKey) {
-    case "dcr":
-      return <DCRTab tabBarProps={tabBarProps} />;
     case "cimd":
       return <CIMDTab tabBarProps={tabBarProps} />;
+    case "dcr":
+      return <DCRTab tabBarProps={tabBarProps} />;
     default:
       // Overview owns no form, so it needs no FormContainer and no guard.
       return (
