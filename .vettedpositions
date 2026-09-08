@@ -282,7 +282,7 @@
 /pkg/auth/webapp_request_middleware.go:40:10: requestcontext
 /pkg/images/deps/context.go:23:10: requestcontext
 /pkg/images/deps/middleware_request.go:24:10: requestcontext
-/pkg/images/handler/get.go:95:11: requestcontext
+/pkg/images/handler/get.go:122:11: requestcontext
 /pkg/images/handler/post.go:58:9: requestcontext
 /pkg/lib/accountmanagement/rate_limit_middleware.go:36:10: requestcontext
 /pkg/lib/admin/authz/middleware.go:40:10: requestcontext
