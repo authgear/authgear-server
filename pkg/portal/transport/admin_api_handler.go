@@ -30,15 +30,24 @@ type AdminAPIService interface {
 
 var AdminAPILogger = slogutil.NewLogger("admin-api-proxy")
 
-// graphiQLPaths are the Admin API paths that serve the GraphiQL IDE as an HTML
-// document when the method is GET. See pkg/admin/transport/handler_graphql.go.
-var graphiQLPaths = []string{
+// graphiQLProxiedPaths are the Admin API paths that serve the GraphiQL IDE as
+// an HTML document when the method is GET.
+// See pkg/admin/transport/handler_graphql.go, which registers both.
+//
+// These are values of the *path route parameter, not request paths: the
+// /api/apps/:appid prefix is consumed by the route pattern. So a browser
+// opening
+//
+//	https://portal.example.com/api/apps/QXBwOmFjY291bnRz/graphql
+//
+// arrives here with p == "/graphql".
+var graphiQLProxiedPaths = []string{
 	"/graphql",
 	"/_api/admin/graphql",
 }
 
-// isGraphiQLDocumentRequest reports whether the request is the one case that
-// must be served without access control checking.
+// isGraphiQLDocumentRequest reports whether p, the *path route parameter, is
+// the one case that must be served without access control checking.
 //
 // GraphiQL is opened by a top-level browser navigation, and the portal session
 // is carried in the Authorization header rather than a cookie, so such a
@@ -53,7 +62,7 @@ func isGraphiQLDocumentRequest(method string, p string) bool {
 	if method != "GET" {
 		return false
 	}
-	return slices.Contains(graphiQLPaths, p)
+	return slices.Contains(graphiQLProxiedPaths, p)
 }
 
 type AdminAPIHandler struct {

@@ -1,10 +1,46 @@
 package transport
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
+
+// The exemption is decided on the *path route parameter, not on the request
+// path, so this pins how a real request URL maps onto it. Reading the
+// graphiQLProxiedPaths entries as if they were full request paths is an easy
+// mistake to make.
+func TestAdminAPIRoutePathParam(t *testing.T) {
+	Convey("the *path route parameter", t, func() {
+		pathOf := func(requestPath string) string {
+			var got string
+			router := httproute.NewRouter()
+			router.Add(ConfigureAdminAPIRoute(httproute.Route{}), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				got = httproute.GetParam(r, "path")
+			}))
+			req, _ := http.NewRequest("GET", "http://portal.example.com"+requestPath, nil)
+			router.HTTPHandler().ServeHTTP(httptest.NewRecorder(), req)
+			return got
+		}
+
+		Convey("drops the /api/apps/:appid prefix", func() {
+			So(pathOf("/api/apps/QXBwOmFjY291bnRz/graphql"), ShouldEqual, "/graphql")
+			So(pathOf("/api/apps/QXBwOmFjY291bnRz/graphql?query=abc"), ShouldEqual, "/graphql")
+			So(pathOf("/api/apps/QXBwOmFjY291bnRz/_api/admin/graphql"), ShouldEqual, "/_api/admin/graphql")
+			So(pathOf("/api/apps/QXBwOmFjY291bnRz/_api/admin/images/upload"), ShouldEqual, "/_api/admin/images/upload")
+		})
+
+		Convey("so the GraphiQL document URLs are exempt and nothing else is", func() {
+			So(isGraphiQLDocumentRequest("GET", pathOf("/api/apps/QXBwOmFjY291bnRz/graphql")), ShouldBeTrue)
+			So(isGraphiQLDocumentRequest("GET", pathOf("/api/apps/QXBwOmFjY291bnRz/_api/admin/graphql")), ShouldBeTrue)
+			So(isGraphiQLDocumentRequest("GET", pathOf("/api/apps/QXBwOmFjY291bnRz/_api/admin/images/upload")), ShouldBeFalse)
+		})
+	})
+}
 
 func TestIsGraphiQLDocumentRequest(t *testing.T) {
 	Convey("isGraphiQLDocumentRequest", t, func() {
