@@ -139,6 +139,9 @@ const PageHeader: React.VFC = function PageHeader() {
       <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
         <FormattedMessage id="AIAgentsScreen.title" />
       </Heading>
+      <Text as="p" size="2" color="gray" className={styles.pageDescription}>
+        <FormattedMessage id="AIAgentsScreen.description" />
+      </Text>
     </div>
   );
 };

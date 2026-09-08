@@ -319,12 +319,6 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
                 id="DynamicClientsTab.enable.description"
                 values={{
                   // eslint-disable-next-line react/no-unstable-nested-components
-                  mcpLink: (chunks: React.ReactNode) => (
-                    <ExternalLink href="https://docs.authgear.com/get-started/auth-for-mcp">
-                      {chunks}
-                    </ExternalLink>
-                  ),
-                  // eslint-disable-next-line react/no-unstable-nested-components
                   dcrLink: (chunks: React.ReactNode) => (
                     <ExternalLink href="https://docs.authgear.com/integration/dynamic-client-registration">
                       {chunks}

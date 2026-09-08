@@ -16,6 +16,11 @@
   color: var(--gray-12);
 }
 
+.pageDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
 .stack {
   @apply flex flex-col gap-4;
 }
