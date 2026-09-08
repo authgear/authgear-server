@@ -1,17 +1,4 @@
-/**
- * SIDE-BY-SIDE EXPERIMENT (variant 3) — delete this file, its CSS, its route
- * and its nav entry once one layout wins.
- *
- * Variant 3 splits the surface by audience rather than by mechanism: an
- * Applications group whose children are the static client list (here) and a
- * page for the self-onboarding ones (AIAgentsV3Screen). Compare with the
- * shipped design (ApplicationsConfigurationScreen + a nav page per
- * mechanism) and variant 2 (ApplicationsVariantScreen).
- *
- * The list itself is the same component the shipped screen renders, so only
- * the arrangement differs.
- */
-import React from "react";
+import React, { useCallback } from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
@@ -27,10 +14,10 @@ import {
   constructConfig,
   constructFormState,
 } from "../../graphql/portal/ApplicationsListSection";
-import styles from "./ApplicationsV3.module.css";
+import styles from "./Applications.module.css";
 
-const ClientApplicationsV3Screen: React.VFC =
-  function ClientApplicationsV3Screen() {
+const ClientApplicationsScreen: React.VFC =
+  function ClientApplicationsScreen() {
     const { appID } = useParams() as { appID: string };
     const form = useAppConfigForm({
       appID,
@@ -39,11 +26,23 @@ const ClientApplicationsV3Screen: React.VFC =
     });
     const featureConfig = useAppFeatureConfigQuery(appID);
 
+    // The plan's client limits gate the Add button, so a failed feature-config
+    // load is a load failure for the page, not a quota of undefined.
+    const loadError = form.loadError ?? featureConfig.loadError;
+    const onRetry = useCallback(() => {
+      if (form.loadError) {
+        form.reload();
+      }
+      if (featureConfig.loadError) {
+        featureConfig.refetch().finally(() => {});
+      }
+    }, [form, featureConfig]);
+
     if (form.isLoading || featureConfig.isLoading) {
       return <ShowLoading />;
     }
-    if (form.loadError) {
-      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    if (loadError) {
+      return <ShowError error={loadError} onRetry={onRetry} />;
     }
 
     // FormContainer renders a whole page shell, so it stays outside
@@ -54,7 +53,7 @@ const ClientApplicationsV3Screen: React.VFC =
         <ScreenContent layout="list">
           <div className={cn(styles.widget, styles.pageHeader)}>
             <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-              <FormattedMessage id="ClientApplicationsV3Screen.title" />
+              <FormattedMessage id="ClientApplicationsScreen.title" />
             </Text>
           </div>
           <ApplicationsListSection
@@ -72,4 +71,4 @@ const ClientApplicationsV3Screen: React.VFC =
     );
   };
 
-export default ClientApplicationsV3Screen;
+export default ClientApplicationsScreen;

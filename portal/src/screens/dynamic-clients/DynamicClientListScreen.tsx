@@ -204,17 +204,15 @@ function DynamicClientListScreenContent(): React.ReactElement {
   return (
     <ScreenContent>
       <div className={cn(styles.widget, styles.pageHeader)}>
-        {/* The Dynamic clients tab is where every entry point into this
-            listing lives, whatever the filter: each mechanism's own settings
-            now sit on its own nav-level screen, not in a tab of the
-            Applications screen. */}
+        {/* Back to the client-applications page, the index of the group this
+            listing sits in. */}
         <Link
-          to={`/project/${appID}/configuration/apps#dynamic-clients`}
+          to={`/project/${appID}/configuration/apps`}
           className={styles.backLink}
         >
           <ChevronLeftIcon className={styles.backLinkIcon} />
           <span>
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+            <FormattedMessage id="ClientApplicationsScreen.title" />
           </span>
         </Link>
         <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>

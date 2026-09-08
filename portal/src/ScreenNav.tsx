@@ -255,46 +255,15 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         children: [
           {
             type: "link" as const,
-            textKey: "ApplicationsConfigurationScreen.title",
+            textKey: "ClientApplicationsScreen.title",
             url: `/project/${appID}/configuration/apps`,
           },
           {
             type: "link" as const,
-            textKey: "ScreenNav.cimd",
-            url: `/project/${appID}/configuration/apps/metadata-documents`,
-          },
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.dcr",
-            url: `/project/${appID}/configuration/apps/self-registration`,
+            textKey: "AIAgentsScreen.title",
+            url: `/project/${appID}/configuration/apps/agents`,
           },
         ],
-      },
-      {
-        // SIDE-BY-SIDE EXPERIMENT (variant 3) — see the V3 screens.
-        type: "group" as const,
-        textKey: "ScreenNav.apps-v3",
-        urlPrefix: `/project/${appID}/configuration/apps-v3`,
-        icon: DashboardIcon,
-        children: [
-          {
-            type: "link" as const,
-            textKey: "ClientApplicationsV3Screen.title",
-            url: `/project/${appID}/configuration/apps-v3/clients`,
-          },
-          {
-            type: "link" as const,
-            textKey: "AIAgentsV3Screen.title",
-            url: `/project/${appID}/configuration/apps-v3/agents`,
-          },
-        ],
-      },
-      {
-        // SIDE-BY-SIDE EXPERIMENT — see ApplicationsVariantScreen.
-        type: "link" as const,
-        textKey: "ApplicationsVariantScreen.title",
-        url: `/project/${appID}/configuration/apps-variant`,
-        icon: DashboardIcon,
       },
       {
         type: "link" as const,

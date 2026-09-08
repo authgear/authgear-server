@@ -8,31 +8,23 @@ import React, {
 import cn from "classnames";
 import { Flex, RadioGroup, Text } from "@radix-ui/themes";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
-import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "../../intl";
 import ExternalLink from "../../ExternalLink";
-import ShowError from "../../ShowError";
-import ShowLoading from "../../ShowLoading";
-import ScreenContent from "../../ScreenContent";
-import FormContainer from "../../FormContainer";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
-import {
-  AppConfigFormModel,
-  useAppConfigForm,
-} from "../../hook/useAppConfigForm";
-import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
-import { Toggle } from "../../components/v2/Toggle/Toggle";
-import { TextField } from "../../components/v2/TextField/TextField";
-import { TextFieldList } from "../../components/v2/TextFieldList/TextFieldList";
-import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
-import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
-import { useCalloutToast } from "../../components/v2/Callout/Callout";
-import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
-import styles from "./MetadataDocumentsScreen.module.css";
+import { AppConfigFormModel } from "../../hook/useAppConfigForm";
+import { SettingsSectionCard } from "../v2/SettingsSectionCard/SettingsSectionCard";
+import { Toggle } from "../v2/Toggle/Toggle";
+import { TextField } from "../v2/TextField/TextField";
+import { TextFieldList } from "../v2/TextFieldList/TextFieldList";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
+import { SaveFunctionBar } from "../v2/SaveFunctionBar/SaveFunctionBar";
+import { useCalloutToast } from "../v2/Callout/Callout";
+import { Tooltip } from "../v2/Tooltip/Tooltip";
+import styles from "./MetadataDocumentsContent.module.css";
 
 // JSON pointers of the objects holding the fields, so the config schema's
 // validation errors -- "minimum" on a lifetime, "pattern" on a domain --
@@ -51,9 +43,9 @@ const CIMD_CLIENT_CONFIG_JSON_POINTER =
 // never has to infer the permissive reading from an empty field.
 export type CIMDDomainMode = "any" | "list";
 
-// Only this mechanism's fields live here. The form is this screen's own, so
-// its save bar commits CIMD and nothing else -- not the sibling DCR screen's
-// settings, and not the Applications screen's client list.
+// Only this mechanism's fields live here. The tab that renders this owns the
+// form, so its save bar commits CIMD and nothing else -- not the sibling DCR
+// tab's settings, and not the client list.
 export interface FormState {
   cimdEnabled: boolean;
   cimdDomainMode: CIMDDomainMode;
@@ -178,10 +170,10 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
 
     const enabled = state.cimdEnabled;
 
-    // Saved immediately, matching the same switch on the self-registration
-    // screen. CIMD has no counterpart to that screen's initial access tokens
-    // -- nothing here acts before a save -- so this is for consistency
-    // between two otherwise identical pages rather than to close a hole.
+    // Saved immediately, matching the same switch on the DCR tab. CIMD has no
+    // counterpart to that tab's initial access tokens -- nothing here acts
+    // before a save -- so this is for consistency between two otherwise
+    // identical tabs rather than to close a hole.
     const onEnabledChange = useCallback(
       (checked: boolean) => {
         form
@@ -527,36 +519,3 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
       </>
     );
   };
-
-const MetadataDocumentsScreen: React.VFC = function MetadataDocumentsScreen() {
-  const { appID } = useParams() as { appID: string };
-
-  const form = useAppConfigForm({
-    appID,
-    constructFormState,
-    constructConfig,
-  });
-
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
-
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
-
-  return (
-    <FormContainer form={form}>
-      <ScreenContent layout="list">
-        <div className={cn(styles.widget, styles.pageHeader)}>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-            <FormattedMessage id="MetadataDocumentsScreen.title" />
-          </Text>
-        </div>
-        <MetadataDocumentsContent form={form} />
-      </ScreenContent>
-    </FormContainer>
-  );
-};
-
-export default MetadataDocumentsScreen;

@@ -1,14 +1,3 @@
-/**
- * SIDE-BY-SIDE EXPERIMENT (variant 3) — delete this file, its CSS, its route
- * and its nav entry once one layout wins.
- *
- * The self-onboarding half of variant 3: one page for the clients that let
- * themselves in, with three plain tabs — Overview, DCR, CIMD. Compare with
- * the shipped design (a nav page per mechanism) and variant 2 (a mode rail).
- *
- * Every tab body renders the same components the shipped screens do, so only
- * the arrangement differs.
- */
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
@@ -37,13 +26,13 @@ import {
   MetadataDocumentsContent,
   constructConfig as constructCIMDConfig,
   constructFormState as constructCIMDFormState,
-} from "./MetadataDocumentsScreen";
+} from "../../components/dynamic-clients/MetadataDocumentsContent";
 import {
   SelfRegistrationContent,
   constructConfig as constructDCRConfig,
   constructFormState as constructDCRFormState,
-} from "./SelfRegistrationScreen";
-import styles from "./ApplicationsV3.module.css";
+} from "../../components/dynamic-clients/SelfRegistrationContent";
+import styles from "./Applications.module.css";
 
 type TabKey = "overview" | "dcr" | "cimd";
 
@@ -148,7 +137,7 @@ const PageHeader: React.VFC = function PageHeader() {
   return (
     <div className={cn(styles.widget, styles.pageHeader)}>
       <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-        <FormattedMessage id="AIAgentsV3Screen.title" />
+        <FormattedMessage id="AIAgentsScreen.title" />
       </Text>
     </div>
   );
@@ -178,8 +167,8 @@ const OverviewTab: React.VFC = function OverviewTab() {
 
   return (
     <div className={cn(styles.widget, styles.stack)}>
-      {/* Absolute: the list lives beside the shipped Applications screen, not
-          under this variant's route. */}
+      {/* Absolute: the listing is a sibling of this page under
+          configuration/apps, not a child of it. */}
       <ClientCountCard
         sources={sources}
         listPath={`/project/${appID}/configuration/apps/dynamic-clients`}
@@ -272,7 +261,7 @@ const CIMDTab: React.VFC<MechanismTabProps> = function CIMDTab({
   );
 };
 
-const AIAgentsV3Screen: React.VFC = function AIAgentsV3Screen() {
+const AIAgentsScreen: React.VFC = function AIAgentsScreen() {
   const { renderToString } = useContext(Context);
   const { selectedKey, onChangeKey } = usePivotNavigation<TabKey>(TAB_KEYS);
 
@@ -280,10 +269,10 @@ const AIAgentsV3Screen: React.VFC = function AIAgentsV3Screen() {
     () => [
       {
         value: "overview",
-        label: renderToString("AIAgentsV3Screen.tab.overview"),
+        label: renderToString("AIAgentsScreen.tab.overview"),
       },
-      { value: "dcr", label: renderToString("AIAgentsV3Screen.tab.dcr") },
-      { value: "cimd", label: renderToString("AIAgentsV3Screen.tab.cimd") },
+      { value: "dcr", label: renderToString("AIAgentsScreen.tab.dcr") },
+      { value: "cimd", label: renderToString("AIAgentsScreen.tab.cimd") },
     ],
     [renderToString]
   );
@@ -311,4 +300,4 @@ const AIAgentsV3Screen: React.VFC = function AIAgentsV3Screen() {
   }
 };
 
-export default AIAgentsV3Screen;
+export default AIAgentsScreen;

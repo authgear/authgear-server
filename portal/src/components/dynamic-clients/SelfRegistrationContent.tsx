@@ -1,33 +1,25 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import cn from "classnames";
 import { Text } from "@radix-ui/themes";
-import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { FormattedMessage } from "../../intl";
 import ExternalLink from "../../ExternalLink";
-import ShowError from "../../ShowError";
-import ShowLoading from "../../ShowLoading";
-import ScreenContent from "../../ScreenContent";
-import FormContainer from "../../FormContainer";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
-import {
-  AppConfigFormModel,
-  useAppConfigForm,
-} from "../../hook/useAppConfigForm";
-import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
-import { Toggle } from "../../components/v2/Toggle/Toggle";
-import { TextField } from "../../components/v2/TextField/TextField";
-import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
-import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
-import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
-import { useCalloutToast } from "../../components/v2/Callout/Callout";
-import { InitialAccessTokenSection } from "../../components/dynamic-clients/InitialAccessTokenSection";
+import { AppConfigFormModel } from "../../hook/useAppConfigForm";
+import { SettingsSectionCard } from "../v2/SettingsSectionCard/SettingsSectionCard";
+import { Toggle } from "../v2/Toggle/Toggle";
+import { TextField } from "../v2/TextField/TextField";
+import { CopyIconButton } from "../v2/CopyIconButton/CopyIconButton";
+import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
+import { SaveFunctionBar } from "../v2/SaveFunctionBar/SaveFunctionBar";
+import { useCalloutToast } from "../v2/Callout/Callout";
+import { InitialAccessTokenSection } from "./InitialAccessTokenSection";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
 import { OAuthClientSource } from "../../graphql/adminapi/globalTypes.generated";
-import styles from "./SelfRegistrationScreen.module.css";
+import styles from "./SelfRegistrationContent.module.css";
 
 // JSON pointer of the object holding the default_client_config fields. Passing
 // it (with fieldName) lets the config schema's validation errors -- e.g.
@@ -39,9 +31,9 @@ const SAVED_TOAST_DURATION_MS = 2000;
 const DEFAULT_CLIENT_CONFIG_JSON_POINTER =
   "/oauth/dynamic_client_registration/default_client_config";
 
-// Only this mechanism's fields live here. The form is this screen's own, so
-// its save bar commits DCR and nothing else -- not the sibling CIMD screen's
-// settings, and not the Applications screen's client list.
+// Only this mechanism's fields live here. The tab that renders this owns the
+// form, so its save bar commits DCR and nothing else -- not the sibling CIMD
+// tab's settings, and not the client list.
 export interface FormState {
   dynamicClientRegistrationEnabled: boolean;
   initialAccessTokenRequired: boolean;
@@ -175,14 +167,14 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
     });
     const hasDCRClients = (dcrData?.dynamicClients?.totalCount ?? 0) > 0;
 
-    // Saved immediately, unlike every other control on this screen. The
+    // Saved immediately, unlike every other control on this tab. The
     // initial-access-token controls below act through the Admin API the moment
     // they are used, while POST /oauth2/register checks the SAVED config
     // (handler_register.go: 403 access_denied when disabled) -- so a token
     // created while this switch was merely pending came with a curl example
-    // that could not work. This screen's form covers only
+    // that could not work. This tab's form covers only
     // oauth.dynamic_client_registration, so the save cannot carry an edit
-    // belonging to another screen; it does commit anything else pending here,
+    // belonging to another tab; it does commit anything else pending here,
     // which is what the toast reports.
     const setRegistrationEnabled = useCallback(
       (checked: boolean) => {
@@ -507,36 +499,3 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
       </>
     );
   };
-
-const SelfRegistrationScreen: React.VFC = function SelfRegistrationScreen() {
-  const { appID } = useParams() as { appID: string };
-
-  const form = useAppConfigForm({
-    appID,
-    constructFormState,
-    constructConfig,
-  });
-
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
-
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
-
-  return (
-    <FormContainer form={form}>
-      <ScreenContent layout="list">
-        <div className={cn(styles.widget, styles.pageHeader)}>
-          <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
-            <FormattedMessage id="SelfRegistrationScreen.title" />
-          </Text>
-        </div>
-        <SelfRegistrationContent form={form} />
-      </ScreenContent>
-    </FormContainer>
-  );
-};
-
-export default SelfRegistrationScreen;

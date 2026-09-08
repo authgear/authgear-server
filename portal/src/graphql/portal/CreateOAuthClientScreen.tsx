@@ -350,7 +350,7 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           >
             <ChevronLeftIcon className={styles.backLinkIcon} />
             <span>
-              <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+              <FormattedMessage id="ClientApplicationsScreen.title" />
             </span>
           </Link>
           <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
