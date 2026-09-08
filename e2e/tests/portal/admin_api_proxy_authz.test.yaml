@@ -1,0 +1,66 @@
+name: Portal Admin API proxy requires authorization for GET
+# The portal proxies each app's Admin API at /api/apps/:appid/*path. It used to
+# skip access control for every GET, not just the GraphiQL document it meant to
+# serve, so an unauthenticated GET to any Admin API path was proxied with a
+# freshly minted admin JWT.
+#
+# What is asserted here is the portal's own gate. The Admin API behind it runs
+# with ADMIN_API_AUTH=none in this environment, so a request that gets past the
+# portal reaches a completely unprotected Admin API, which is exactly what makes
+# the difference between 401 and 200 visible.
+steps:
+  # /_api/admin/images/upload takes no parameters and returns a presigned
+  # upload URL, so before the fix a bare GET was enough to obtain one.
+  - name: unauthenticated_get_images_upload
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:4004/api/apps/{{ nodeID "App" .AppID }}/_api/admin/images/upload
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 401
+
+  - name: unauthenticated_get_user_export
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:4004/api/apps/{{ nodeID "App" .AppID }}/_api/admin/users/export/some-task-id
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 401
+
+  - name: unauthenticated_get_user_import
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:4004/api/apps/{{ nodeID "App" .AppID }}/_api/admin/users/import/some-job-id
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 401
+
+  # POST was always access controlled. Asserted so the fix cannot be mistaken
+  # for having simply moved the problem.
+  - name: unauthenticated_post_graphql
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:4004/api/apps/{{ nodeID "App" .AppID }}/graphql
+    http_request_follow_redirects: false
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "query": "{ __typename }"
+      }
+    http_output:
+      http_status: 401
+
+  # The one case that must stay reachable without a session. GraphiQL is opened
+  # by a top-level browser navigation, which cannot carry the portal's
+  # Authorization header, so the document itself is served unauthenticated. The
+  # IDE authenticates on its own and executes every query with POST.
+  - name: unauthenticated_get_graphiql_document
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://localhost:4004/api/apps/{{ nodeID "App" .AppID }}/graphql
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 200
+      html_text_contains:
+        - GraphiQL
