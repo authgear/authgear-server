@@ -151,7 +151,7 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow(props) {
               color="gray"
               size="2"
               aria-label={renderToString(
-                "ApplicationsConfigurationScreen.client-list.row-actions"
+                "ApplicationsListSection.client-list.row-actions"
               )}
             >
               <DotsVerticalIcon width="1rem" height="1rem" />
@@ -171,7 +171,7 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow(props) {
                 onDeleteClick(client.client_id);
               }}
             >
-              <FormattedMessage id="ApplicationsConfigurationScreen.delete-client.label" />
+              <FormattedMessage id="ApplicationsListSection.delete-client.label" />
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Root>
@@ -294,16 +294,16 @@ export const ApplicationsListSection: React.VFC<ApplicationsListSectionProps> =
                 </span>
               }
               title={
-                <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.title" />
+                <FormattedMessage id="ApplicationsListSection.empty-state.title" />
               }
               description={
-                <FormattedMessage id="ApplicationsConfigurationScreen.empty-state.description" />
+                <FormattedMessage id="ApplicationsListSection.empty-state.description" />
               }
               button={
                 <RolesAndGroupsEmptyView.CreateButton
                   onClick={goToCreateApp}
                   text={
-                    <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
+                    <FormattedMessage id="ApplicationsListSection.add-client-button" />
                   }
                 />
               }
@@ -313,12 +313,12 @@ export const ApplicationsListSection: React.VFC<ApplicationsListSectionProps> =
           <>
             <div className={cn(styles.widget, styles.listHeader)}>
               <Text as="p" size="2" className={styles.pageDescription}>
-                <FormattedMessage id="ApplicationsConfigurationScreen.description" />
+                <FormattedMessage id="ApplicationsListSection.description" />
               </Text>
               <Tooltip
                 content={
                   <FormattedMessage
-                    id="ApplicationsConfigurationScreen.add-client-button.hard-limit-tooltip"
+                    id="ApplicationsListSection.add-client-button.hard-limit-tooltip"
                     values={{ maximum: oauthClientsHardMaximum ?? 0 }}
                   />
                 }
@@ -331,7 +331,7 @@ export const ApplicationsListSection: React.VFC<ApplicationsListSectionProps> =
                   <PrimaryButton
                     size="2"
                     text={
-                      <FormattedMessage id="ApplicationsConfigurationScreen.add-client-button" />
+                      <FormattedMessage id="ApplicationsListSection.add-client-button" />
                     }
                     onClick={goToCreateApp}
                     disabled={hardLimitReached}
@@ -353,10 +353,10 @@ export const ApplicationsListSection: React.VFC<ApplicationsListSectionProps> =
               <CardTable>
                 <CardTable.Header>
                   <CardTable.HeaderCell className={styles.colName}>
-                    <FormattedMessage id="ApplicationsConfigurationScreen.client-list.name" />
+                    <FormattedMessage id="ApplicationsListSection.client-list.name" />
                   </CardTable.HeaderCell>
                   <CardTable.HeaderCell className={styles.colClientId}>
-                    <FormattedMessage id="ApplicationsConfigurationScreen.client-list.client-id" />
+                    <FormattedMessage id="ApplicationsListSection.client-list.client-id" />
                   </CardTable.HeaderCell>
                   <CardTable.HeaderCell className={styles.colActions} />
                 </CardTable.Header>
@@ -375,10 +375,10 @@ export const ApplicationsListSection: React.VFC<ApplicationsListSectionProps> =
           open={isRemoveDialogVisible}
           onOpenChange={onRemoveDialogOpenChange}
           title={
-            <FormattedMessage id="ApplicationsConfigurationScreen.delete-client-dialog.title" />
+            <FormattedMessage id="ApplicationsListSection.delete-client-dialog.title" />
           }
           description={
-            <FormattedMessage id="ApplicationsConfigurationScreen.delete-client-dialog.description" />
+            <FormattedMessage id="ApplicationsListSection.delete-client-dialog.description" />
           }
           confirmText={<FormattedMessage id="confirm" />}
           cancelText={<FormattedMessage id="cancel" />}

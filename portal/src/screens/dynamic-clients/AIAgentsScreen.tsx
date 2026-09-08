@@ -178,17 +178,15 @@ const OverviewTab: React.VFC = function OverviewTab() {
       />
       <SettingsSectionCard
         contentClassName="gap-4"
-        title={
-          <FormattedMessage id="DynamicClientsTab.allowed-resources.title" />
-        }
+        title={<FormattedMessage id="AIAgentsScreen.allowed-resources.title" />}
         description={
-          <FormattedMessage id="DynamicClientsTab.allowed-resources.description" />
+          <FormattedMessage id="AIAgentsScreen.allowed-resources.description" />
         }
       >
         <DynamicClientAllowedResources />
         <Text as="p" size="2" color="gray">
           <FormattedMessage
-            id="DynamicClientsTab.allowed-resources.manage"
+            id="AIAgentsScreen.allowed-resources.manage"
             values={{
               // eslint-disable-next-line react/no-unstable-nested-components
               apiResourcesLink: (chunks: React.ReactNode) => (

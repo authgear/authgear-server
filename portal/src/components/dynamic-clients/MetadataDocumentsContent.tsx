@@ -168,7 +168,11 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
     const [isAnyDomainConfirmationVisible, setIsAnyDomainConfirmationVisible] =
       useState(false);
 
-    const enabled = state.cimdEnabled;
+    // The saved value, not the pending one -- same contract as the DCR tab:
+    // the switch and the cards both show what the server will actually do,
+    // and settle when the save does.
+    const enabled =
+      effectiveConfig.oauth?.client_id_metadata_document?.enabled ?? false;
 
     // Saved immediately, matching the same switch on the DCR tab. CIMD has no
     // counterpart to that tab's initial access tokens -- nothing here acts
@@ -332,12 +336,12 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
           <SettingsSectionCard
             contentClassName="gap-4"
             title={
-              <FormattedMessage id="MetadataDocumentsScreen.enable.title" />
+              <FormattedMessage id="MetadataDocumentsContent.enable.title" />
             }
           >
             <Text as="p" size="2" color="gray">
               <FormattedMessage
-                id="CIMDSection.enable.description"
+                id="MetadataDocumentsContent.enable.description"
                 values={{
                   // eslint-disable-next-line react/no-unstable-nested-components
                   mcpLink: (chunks: React.ReactNode) => (
@@ -352,7 +356,9 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
               checked={enabled}
               disabled={isUpdating}
               onCheckedChange={onEnabledChange}
-              text={<FormattedMessage id="CIMDSection.enable.toggle.label" />}
+              text={
+                <FormattedMessage id="MetadataDocumentsContent.enable.toggle.label" />
+              }
             />
           </SettingsSectionCard>
 
@@ -360,10 +366,10 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
             <SettingsSectionCard
               contentClassName="gap-4"
               title={
-                <FormattedMessage id="CIMDSection.trusted-domains.title" />
+                <FormattedMessage id="MetadataDocumentsContent.trusted-domains.title" />
               }
               description={
-                <FormattedMessage id="CIMDSection.trusted-domains.note" />
+                <FormattedMessage id="MetadataDocumentsContent.trusted-domains.note" />
               }
             >
               <RadioGroup.Root
@@ -375,7 +381,7 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
                   <Text as="label" size="2">
                     <Flex gap="2" align="start">
                       <RadioGroup.Item value="any" />
-                      <FormattedMessage id="CIMDSection.trusted-domains.any.title" />
+                      <FormattedMessage id="MetadataDocumentsContent.trusted-domains.any.title" />
                     </Flex>
                   </Text>
 
@@ -383,7 +389,7 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
                     <Text as="label" size="2">
                       <Flex gap="2" align="start">
                         <RadioGroup.Item value="list" />
-                        <FormattedMessage id="CIMDSection.trusted-domains.list.title" />
+                        <FormattedMessage id="MetadataDocumentsContent.trusted-domains.list.title" />
                       </Flex>
                     </Text>
                     {state.cimdDomainMode === "list" ? (
@@ -395,20 +401,20 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
                           onListItemAdd={onDomainAdd}
                           onListItemChange={onDomainChange}
                           onListItemDelete={onDomainDelete}
-                          addButtonLabelMessageID="CIMDSection.trusted-domains.add"
+                          addButtonLabelMessageID="MetadataDocumentsContent.trusted-domains.add"
                           deleteButtonAriaLabel={renderToString(
-                            "CIMDSection.trusted-domains.delete"
+                            "MetadataDocumentsContent.trusted-domains.delete"
                           )}
                           placeholder={renderToString(
-                            "CIMDSection.trusted-domains.placeholder"
+                            "MetadataDocumentsContent.trusted-domains.placeholder"
                           )}
-                          itemErrorMessageID="CIMDSection.trusted-domains.invalid"
+                          itemErrorMessageID="MetadataDocumentsContent.trusted-domains.invalid"
                           label={
                             <span className={styles.labelWithHint}>
-                              <FormattedMessage id="CIMDSection.trusted-domains.label" />
+                              <FormattedMessage id="MetadataDocumentsContent.trusted-domains.label" />
                               <Tooltip
                                 content={renderToString(
-                                  "CIMDSection.trusted-domains.wildcard-hint"
+                                  "MetadataDocumentsContent.trusted-domains.wildcard-hint"
                                 )}
                               >
                                 <QuestionMarkCircledIcon
@@ -433,11 +439,9 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
           {enabled ? (
             <SettingsSectionCard
               contentClassName="gap-4"
-              title={
-                <FormattedMessage id="DynamicClientsTab.client-config.title" />
-              }
+              title={<FormattedMessage id="DynamicClientConfig.title" />}
               description={
-                <FormattedMessage id="CIMDSection.client-config.description" />
+                <FormattedMessage id="MetadataDocumentsContent.client-config.description" />
               }
             >
               <TextField
@@ -445,7 +449,7 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
                 labelSize="2"
                 type="text"
                 label={
-                  <FormattedMessage id="DynamicClientsTab.access-token-lifetime.label" />
+                  <FormattedMessage id="DynamicClientConfig.access-token-lifetime.label" />
                 }
                 parentJSONPointer={CIMD_CLIENT_CONFIG_JSON_POINTER}
                 fieldName="access_token_lifetime_seconds"
@@ -460,7 +464,7 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
                 labelSize="2"
                 type="text"
                 label={
-                  <FormattedMessage id="DynamicClientsTab.refresh-token-lifetime.label" />
+                  <FormattedMessage id="DynamicClientConfig.refresh-token-lifetime.label" />
                 }
                 parentJSONPointer={CIMD_CLIENT_CONFIG_JSON_POINTER}
                 fieldName="refresh_token_lifetime_seconds"
@@ -489,7 +493,7 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
                 type="text"
                 disabled={!state.cimdRefreshTokenIdleTimeoutEnabled}
                 label={
-                  <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout.label" />
+                  <FormattedMessage id="DynamicClientConfig.refresh-token-idle-timeout.label" />
                 }
                 parentJSONPointer={CIMD_CLIENT_CONFIG_JSON_POINTER}
                 fieldName="refresh_token_idle_timeout_seconds"
@@ -508,13 +512,13 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
             open={isAnyDomainConfirmationVisible}
             onOpenChange={setIsAnyDomainConfirmationVisible}
             title={
-              <FormattedMessage id="CIMDSection.any-domain.confirm.title" />
+              <FormattedMessage id="MetadataDocumentsContent.any-domain.confirm.title" />
             }
             description={
-              <FormattedMessage id="CIMDSection.any-domain.confirm.description" />
+              <FormattedMessage id="MetadataDocumentsContent.any-domain.confirm.description" />
             }
             confirmText={
-              <FormattedMessage id="CIMDSection.any-domain.confirm.confirm" />
+              <FormattedMessage id="MetadataDocumentsContent.any-domain.confirm.confirm" />
             }
             cancelText={<FormattedMessage id="cancel" />}
             onConfirm={onConfirmAnyDomain}

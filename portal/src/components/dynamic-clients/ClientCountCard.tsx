@@ -20,10 +20,10 @@ export interface ClientCountSource {
 
 export interface ClientCountCardProps {
   sources: ClientCountSource[];
-  // Where "View all" goes. Defaults to the list beside the Applications
-  // screen; a caller mounted under a different route has to say so, since a
-  // relative path would resolve against its own.
-  listPath?: string;
+  // Where "View all" goes. Required rather than defaulted: the listing is a
+  // sibling of the page this card sits on, not a child, so a relative
+  // default would resolve against the caller's own route and land nowhere.
+  listPath: string;
 }
 
 // One source's count. It is its own component because the count comes from a
@@ -46,8 +46,8 @@ const ClientCountStat: React.VFC<ClientCountSource> = function ClientCountStat({
   // column and filter options, where "Via CIMD" would read wrong.
   const labelID =
     source === OAuthClientSource.Cimd
-      ? "DynamicClientsTab.clients.source.cimd"
-      : "DynamicClientsTab.clients.source.dcr";
+      ? "ClientCountCard.source.cimd"
+      : "ClientCountCard.source.dcr";
 
   return (
     <div className={styles.stat}>
@@ -56,17 +56,14 @@ const ClientCountStat: React.VFC<ClientCountSource> = function ClientCountStat({
       </Text>
       <Text as="p" size="6" weight="bold" className={styles.statValue}>
         {count == null ? (
-          <FormattedMessage id="DynamicClientsTab.clients.count.unknown" />
+          <FormattedMessage id="ClientCountCard.count.unknown" />
         ) : quota != null ? (
           <FormattedMessage
-            id="DynamicClientsTab.clients.count.quota"
+            id="ClientCountCard.count.quota"
             values={{ count, quota }}
           />
         ) : (
-          <FormattedMessage
-            id="DynamicClientsTab.clients.count"
-            values={{ count }}
-          />
+          <FormattedMessage id="ClientCountCard.count" values={{ count }} />
         )}
       </Text>
     </div>
@@ -82,7 +79,7 @@ const ClientCountStat: React.VFC<ClientCountSource> = function ClientCountStat({
  * so the card has to keep reporting them either way.
  */
 export const ClientCountCard: React.VFC<ClientCountCardProps> =
-  function ClientCountCard({ sources, listPath = "./dynamic-clients" }) {
+  function ClientCountCard({ sources, listPath }) {
     const navigate = useNavigate();
 
     const onViewAllClick = useCallback(() => {
@@ -94,7 +91,7 @@ export const ClientCountCard: React.VFC<ClientCountCardProps> =
     return (
       <SettingsSectionCard
         contentClassName="gap-4"
-        title={<FormattedMessage id="DynamicClientsTab.clients.title" />}
+        title={<FormattedMessage id="ClientCountCard.title" />}
       >
         <div className={styles.stats}>
           {sources.map((entry) => (
@@ -108,7 +105,7 @@ export const ClientCountCard: React.VFC<ClientCountCardProps> =
         <div className="self-start">
           <SecondaryButton
             size="2"
-            text={<FormattedMessage id="DynamicClientsTab.clients.view-all" />}
+            text={<FormattedMessage id="ClientCountCard.view-all" />}
             onClick={onViewAllClick}
           />
         </div>

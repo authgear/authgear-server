@@ -154,7 +154,17 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
     const [isDisableConfirmationVisible, setIsDisableConfirmationVisible] =
       useState(false);
 
-    const registrationEnabled = state.dynamicClientRegistrationEnabled;
+    // The SAVED value, not the pending one. It drives both the switch and
+    // the cards, so what is on screen always matches what the server will
+    // do: the initial-access-token controls act through the Admin API the
+    // moment they are used, while POST /oauth2/register checks the saved
+    // config (handler_register.go), so a card reachable before its save
+    // landed could mint a token whose curl example is refused. A save from
+    // the switch cannot fail on a pending edit either, since nothing here is
+    // editable while disabled. The switch therefore settles when the save
+    // does, which is also what the toast confirms.
+    const registrationEnabled =
+      effectiveConfig.oauth?.dynamic_client_registration?.enabled ?? false;
     const publicOrigin = effectiveConfig.http?.public_origin ?? "";
     const registrationEndpoint = `${publicOrigin}/oauth2/register`;
 
@@ -321,12 +331,12 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
           <SettingsSectionCard
             contentClassName="gap-4"
             title={
-              <FormattedMessage id="SelfRegistrationScreen.enable.title" />
+              <FormattedMessage id="SelfRegistrationContent.enable.title" />
             }
           >
             <Text as="p" size="2" color="gray">
               <FormattedMessage
-                id="DynamicClientsTab.enable.description"
+                id="SelfRegistrationContent.enable.description"
                 values={{
                   // eslint-disable-next-line react/no-unstable-nested-components
                   dcrLink: (chunks: React.ReactNode) => (
@@ -342,7 +352,7 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
               disabled={isUpdating}
               onCheckedChange={onEnabledChange}
               text={
-                <FormattedMessage id="DynamicClientsTab.enable.toggle.label" />
+                <FormattedMessage id="SelfRegistrationContent.enable.toggle.label" />
               }
             />
           </SettingsSectionCard>
@@ -351,10 +361,10 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
             <SettingsSectionCard
               contentClassName="gap-4"
               title={
-                <FormattedMessage id="DynamicClientsTab.registration-endpoint.label" />
+                <FormattedMessage id="SelfRegistrationContent.registration-endpoint.label" />
               }
               description={
-                <FormattedMessage id="DynamicClientsTab.registration-endpoint.description" />
+                <FormattedMessage id="SelfRegistrationContent.registration-endpoint.description" />
               }
             >
               <TextField
@@ -371,18 +381,20 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
           {registrationEnabled ? (
             <SettingsSectionCard
               contentClassName="gap-4"
-              title={<FormattedMessage id="DynamicClientsTab.security.title" />}
+              title={
+                <FormattedMessage id="SelfRegistrationContent.security.title" />
+              }
             >
               <div className="flex flex-col gap-1">
                 <Toggle
                   checked={state.initialAccessTokenRequired}
                   onCheckedChange={onInitialAccessTokenRequiredChange}
                   text={
-                    <FormattedMessage id="DynamicClientsTab.iat-required.toggle.label" />
+                    <FormattedMessage id="SelfRegistrationContent.iat-required.toggle.label" />
                   }
                 />
                 <Text as="p" size="1" color="gray">
-                  <FormattedMessage id="DynamicClientsTab.iat-required.toggle.description" />
+                  <FormattedMessage id="SelfRegistrationContent.iat-required.toggle.description" />
                 </Text>
               </div>
               <InitialAccessTokenSection
@@ -394,11 +406,9 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
           {registrationEnabled ? (
             <SettingsSectionCard
               contentClassName="gap-4"
-              title={
-                <FormattedMessage id="DynamicClientsTab.client-config.title" />
-              }
+              title={<FormattedMessage id="DynamicClientConfig.title" />}
               description={
-                <FormattedMessage id="DynamicClientsTab.client-config.description" />
+                <FormattedMessage id="SelfRegistrationContent.client-config.description" />
               }
             >
               <TextField
@@ -406,7 +416,7 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
                 labelSize="2"
                 type="text"
                 label={
-                  <FormattedMessage id="DynamicClientsTab.access-token-lifetime.label" />
+                  <FormattedMessage id="DynamicClientConfig.access-token-lifetime.label" />
                 }
                 parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
                 fieldName="access_token_lifetime_seconds"
@@ -421,7 +431,7 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
                 labelSize="2"
                 type="text"
                 label={
-                  <FormattedMessage id="DynamicClientsTab.refresh-token-lifetime.label" />
+                  <FormattedMessage id="DynamicClientConfig.refresh-token-lifetime.label" />
                 }
                 parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
                 fieldName="refresh_token_lifetime_seconds"
@@ -449,7 +459,7 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
                 type="text"
                 disabled={!state.refreshTokenIdleTimeoutEnabled}
                 label={
-                  <FormattedMessage id="DynamicClientsTab.refresh-token-idle-timeout.label" />
+                  <FormattedMessage id="DynamicClientConfig.refresh-token-idle-timeout.label" />
                 }
                 parentJSONPointer={DEFAULT_CLIENT_CONFIG_JSON_POINTER}
                 fieldName="refresh_token_idle_timeout_seconds"
@@ -466,13 +476,13 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
             open={isDisableConfirmationVisible}
             onOpenChange={setIsDisableConfirmationVisible}
             title={
-              <FormattedMessage id="DynamicClientsTab.disable.confirm.title" />
+              <FormattedMessage id="SelfRegistrationContent.disable.confirm.title" />
             }
             description={
-              <FormattedMessage id="DynamicClientsTab.disable.confirm.description" />
+              <FormattedMessage id="SelfRegistrationContent.disable.confirm.description" />
             }
             confirmText={
-              <FormattedMessage id="DynamicClientsTab.disable.confirm.confirm" />
+              <FormattedMessage id="SelfRegistrationContent.disable.confirm.confirm" />
             }
             cancelText={<FormattedMessage id="cancel" />}
             onConfirm={onConfirmDisable}
@@ -483,16 +493,16 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
             open={isOpenRegistrationConfirmationVisible}
             onOpenChange={setIsOpenRegistrationConfirmationVisible}
             title={
-              <FormattedMessage id="DynamicClientsTab.open-registration.confirm.title" />
+              <FormattedMessage id="SelfRegistrationContent.open-registration.confirm.title" />
             }
             description={
-              <FormattedMessage id="DynamicClientsTab.open-registration.confirm.description" />
+              <FormattedMessage id="SelfRegistrationContent.open-registration.confirm.description" />
             }
             confirmText={
-              <FormattedMessage id="DynamicClientsTab.open-registration.confirm.confirm" />
+              <FormattedMessage id="SelfRegistrationContent.open-registration.confirm.confirm" />
             }
             cancelText={
-              <FormattedMessage id="DynamicClientsTab.open-registration.confirm.cancel" />
+              <FormattedMessage id="SelfRegistrationContent.open-registration.confirm.cancel" />
             }
             onConfirm={onConfirmOpenRegistration}
             onCancel={onCancelOpenRegistration}
