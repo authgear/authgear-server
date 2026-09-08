@@ -163,7 +163,9 @@ func (h *EventWebHookImpl) DeliverNonBlockingEvent(ctx context.Context, u *url.U
 func performRequest(
 	client *http.Client,
 	request *http.Request) (resp *http.Response, err error) {
-	// #nosec G704 -- Webhook target URL is validated during webhook configuration.
+	// #nosec G704 -- the destination is restricted by the client's dialer
+	// (httputil.NewSSRFSafeExternalClient), not by URL validation: the config
+	// schema only checks the scheme. A refusal is logged by the client itself.
 	resp, err = client.Do(request)
 	if os.IsTimeout(err) {
 		err = HookDeliveryTimeout.New("webhook delivery timeout")

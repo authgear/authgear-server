@@ -37,9 +37,12 @@ type HookHTTPClientImpl struct {
 	*http.Client
 }
 
-func NewHookHTTPClient(timeout SMSHookTimeout) HookHTTPClient {
+func NewHookHTTPClient(timeout SMSHookTimeout, f *config.HTTPFeatureConfig) HookHTTPClient {
 	return HookHTTPClientImpl{
-		utilhttputil.NewExternalClient(timeout.Timeout),
+		utilhttputil.NewSSRFSafeExternalClient(timeout.Timeout, utilhttputil.SSRFSafeExternalClientOptions{
+			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			Sink:                    "messaging.custom_sms_provider.url",
+		}),
 	}
 }
 
@@ -60,8 +63,8 @@ func NewHookDenoClient(endpoint config.DenoEndpoint, timeout SMSHookTimeout) Hoo
 	}
 }
 
-func NewSMSWebHook(hook hook.WebHook, smsCfg *config.CustomSMSProviderConfig) *SMSWebHook {
-	httpClient := NewHookHTTPClient(NewSMSHookTimeout(smsCfg))
+func NewSMSWebHook(hook hook.WebHook, smsCfg *config.CustomSMSProviderConfig, f *config.HTTPFeatureConfig) *SMSWebHook {
+	httpClient := NewHookHTTPClient(NewSMSHookTimeout(smsCfg), f)
 	return &SMSWebHook{
 		WebHook: hook,
 		Client:  httpClient,

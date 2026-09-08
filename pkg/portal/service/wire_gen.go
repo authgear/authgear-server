@@ -51,8 +51,10 @@ func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint) *hook.Sink {
 	webHookImpl := hook.WebHookImpl{
 		Secret: webhookKeyMaterials,
 	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	featureConfig := configConfig.FeatureConfig
+	httpFeatureConfig := featureConfig.HTTP
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig, httpFeatureConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient(httpFeatureConfig)
 	eventWebHookImpl := &hook.EventWebHookImpl{
 		WebHookImpl: webHookImpl,
 		SyncHTTP:    syncHTTPClient,

@@ -14,9 +14,12 @@ type SyncHTTPClient struct {
 	*http.Client
 }
 
-func NewSyncHTTPClient(c *config.HookConfig) SyncHTTPClient {
+func NewSyncHTTPClient(c *config.HookConfig, f *config.HTTPFeatureConfig) SyncHTTPClient {
 	return SyncHTTPClient{
-		httputil.NewExternalClient(c.SyncTimeout.Duration()),
+		httputil.NewSSRFSafeExternalClient(c.SyncTimeout.Duration(), httputil.SSRFSafeExternalClientOptions{
+			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			Sink:                    "hook.blocking_handlers",
+		}),
 	}
 }
 
@@ -24,8 +27,11 @@ type AsyncHTTPClient struct {
 	*http.Client
 }
 
-func NewAsyncHTTPClient() AsyncHTTPClient {
+func NewAsyncHTTPClient(f *config.HTTPFeatureConfig) AsyncHTTPClient {
 	return AsyncHTTPClient{
-		httputil.NewExternalClient(60 * time.Second),
+		httputil.NewSSRFSafeExternalClient(60*time.Second, httputil.SSRFSafeExternalClientOptions{
+			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			Sink:                    "hook.non_blocking_handlers",
+		}),
 	}
 }
