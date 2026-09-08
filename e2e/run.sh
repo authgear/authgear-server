@@ -97,6 +97,22 @@ function setup {( set -e
     authgear images database migrate up
     authgear-portal database migrate up
 
+    echo "[ ] Starting portal..."
+    authgear-portal start portal > ./logs/portal.log 2>&1 &
+    success=false
+    for i in $(seq 10); do \
+        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:4004/healthz)" = "200" ]; then
+            echo "    - started portal."
+            success=true
+            break
+        fi
+        sleep 1
+    done
+    if [ "$success" = false ]; then
+        echo "Error: Failed to start portal."
+        exit 1
+    fi
+
     echo "[ ] Starting siteadmin..."
     authgear-portal start siteadmin > ./logs/siteadmin.log 2>&1 &
     success=false
@@ -120,6 +136,7 @@ function teardown {( set -e
     kill_port 4001
     kill_port 4002
     kill_port 4003
+    kill_port 4004
     kill_port 8080
     kill_port 2525
     kill_port 2727
