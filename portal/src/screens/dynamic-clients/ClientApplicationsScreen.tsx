@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "../../intl";
 import ScreenContent from "../../ScreenContent";
@@ -52,9 +52,14 @@ const ClientApplicationsScreen: React.VFC =
       <FormContainer form={form}>
         <ScreenContent layout="list">
           <div className={cn(styles.widget, styles.pageHeader)}>
-            <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+            <Heading
+              as="h1"
+              size="5"
+              weight="bold"
+              className={styles.pageTitle}
+            >
               <FormattedMessage id="ClientApplicationsScreen.title" />
-            </Text>
+            </Heading>
           </div>
           <ApplicationsListSection
             form={form}

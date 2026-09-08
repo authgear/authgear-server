@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import { Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
 import ScreenContent from "../../ScreenContent";
@@ -136,9 +136,9 @@ const GuardedTabBar: React.VFC<TabBarProps> = function GuardedTabBar({
 const PageHeader: React.VFC = function PageHeader() {
   return (
     <div className={cn(styles.widget, styles.pageHeader)}>
-      <Text as="p" size="5" weight="bold" className={styles.pageTitle}>
+      <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
         <FormattedMessage id="AIAgentsScreen.title" />
-      </Text>
+      </Heading>
     </div>
   );
 };
