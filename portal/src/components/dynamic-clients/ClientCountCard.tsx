@@ -20,6 +20,10 @@ export interface ClientCountSource {
 
 export interface ClientCountCardProps {
   sources: ClientCountSource[];
+  // Where "View all" goes. Defaults to the list beside the Applications
+  // screen; a caller mounted under a different route has to say so, since a
+  // relative path would resolve against its own.
+  listPath?: string;
 }
 
 // One source's count. It is its own component because the count comes from a
@@ -78,14 +82,14 @@ const ClientCountStat: React.VFC<ClientCountSource> = function ClientCountStat({
  * so the card has to keep reporting them either way.
  */
 export const ClientCountCard: React.VFC<ClientCountCardProps> =
-  function ClientCountCard({ sources }) {
+  function ClientCountCard({ sources, listPath = "./dynamic-clients" }) {
     const navigate = useNavigate();
 
     const onViewAllClick = useCallback(() => {
       // No ?source: this card covers every mechanism, so the list opens
       // unfiltered rather than on one of the sources it reports.
-      navigate("./dynamic-clients");
-    }, [navigate]);
+      navigate(listPath);
+    }, [navigate, listPath]);
 
     return (
       <SettingsSectionCard

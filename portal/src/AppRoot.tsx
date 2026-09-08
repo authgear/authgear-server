@@ -230,6 +230,15 @@ const DynamicClientListScreen = lazy(
 const MetadataDocumentsScreen = lazy(
   async () => import("./screens/dynamic-clients/MetadataDocumentsScreen")
 );
+const ApplicationsVariantScreen = lazy(
+  async () => import("./screens/dynamic-clients/ApplicationsVariantScreen")
+);
+const ClientApplicationsV3Screen = lazy(
+  async () => import("./screens/dynamic-clients/ClientApplicationsV3Screen")
+);
+const AIAgentsV3Screen = lazy(
+  async () => import("./screens/dynamic-clients/AIAgentsV3Screen")
+);
 const SelfRegistrationScreen = lazy(
   async () => import("./screens/dynamic-clients/SelfRegistrationScreen")
 );
@@ -657,6 +666,35 @@ const AppRoot: React.VFC = function AppRoot() {
                 />
               </Route>
             </Route>
+            {/* SIDE-BY-SIDE EXPERIMENT (variant 3) — see
+                ClientApplicationsV3Screen / AIAgentsV3Screen. */}
+            <Route path="apps-v3">
+              <Route
+                path="clients"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <ClientApplicationsV3Screen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="agents"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AIAgentsV3Screen />
+                  </Suspense>
+                }
+              />
+            </Route>
+            {/* SIDE-BY-SIDE EXPERIMENT — see ApplicationsVariantScreen. */}
+            <Route
+              path="apps-variant"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <ApplicationsVariantScreen />
+                </Suspense>
+              }
+            />
             <Route path="apps">
               <Route
                 index={true}

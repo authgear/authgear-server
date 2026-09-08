@@ -271,6 +271,32 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         ],
       },
       {
+        // SIDE-BY-SIDE EXPERIMENT (variant 3) — see the V3 screens.
+        type: "group" as const,
+        textKey: "ScreenNav.apps-v3",
+        urlPrefix: `/project/${appID}/configuration/apps-v3`,
+        icon: DashboardIcon,
+        children: [
+          {
+            type: "link" as const,
+            textKey: "ClientApplicationsV3Screen.title",
+            url: `/project/${appID}/configuration/apps-v3/clients`,
+          },
+          {
+            type: "link" as const,
+            textKey: "AIAgentsV3Screen.title",
+            url: `/project/${appID}/configuration/apps-v3/agents`,
+          },
+        ],
+      },
+      {
+        // SIDE-BY-SIDE EXPERIMENT — see ApplicationsVariantScreen.
+        type: "link" as const,
+        textKey: "ApplicationsVariantScreen.title",
+        url: `/project/${appID}/configuration/apps-variant`,
+        icon: DashboardIcon,
+      },
+      {
         type: "link" as const,
         textKey: "ScreenNav.api-resources",
         url: `/project/${appID}/api-resources`,
