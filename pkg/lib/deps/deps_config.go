@@ -72,6 +72,7 @@ var ConfigDeps = wire.NewSet(
 		"Authenticator",
 		"UI",
 		"OAuth",
+		"HTTP",
 		"AuditLog",
 		"Collaborator",
 		"RateLimits",
