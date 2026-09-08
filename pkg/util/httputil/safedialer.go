@@ -49,9 +49,31 @@ type SafeDialer struct {
 	// DialTimeout bounds the connect itself. Zero means no dial-specific
 	// deadline, leaving whatever the context and http.Client.Timeout impose.
 	DialTimeout time.Duration
+	// Sink names the configuration that chose the destination, e.g.
+	// "hook.blocking_handlers". It appears in the log a refusal writes; see
+	// logIfBlockedAddress.
+	Sink string
 }
 
+// DialContext dials addr, and writes the refusal log if the policy rejects it.
+//
+// The log is emitted here, not at the call sites that fetch a URL, because
+// this is the only place that knows a refusal happened. A caller sees a
+// transport error indistinguishable from an unreachable host, so leaving the
+// log to callers means every future one has to remember to write it.
 func (d *SafeDialer) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
+	conn, err := d.dialContext(ctx, network, addr)
+	if err != nil {
+		host, _, splitErr := net.SplitHostPort(addr)
+		if splitErr != nil {
+			host = addr
+		}
+		logIfBlockedAddress(ctx, err, d.Sink, host)
+	}
+	return conn, err
+}
+
+func (d *SafeDialer) dialContext(ctx context.Context, network, addr string) (net.Conn, error) {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {
 		return nil, err
