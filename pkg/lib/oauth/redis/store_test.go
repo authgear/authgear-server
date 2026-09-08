@@ -55,19 +55,19 @@ func TestConsumeGrant(t *testing.T) {
 			So(store.CreateCodeGrant(ctx, grant), ShouldBeNil)
 
 			// DEL removed the key, so this call is the one that spent it.
-			So(store.DeleteCodeGrant(ctx, grant), ShouldBeNil)
+			So(store.ConsumeCodeGrant(ctx, grant), ShouldBeNil)
 
 			// A second caller -- the loser of a race, or a replay -- removed
 			// nothing, and must be told so rather than being allowed to
 			// proceed as if it had spent the code.
-			So(store.DeleteCodeGrant(ctx, grant), ShouldBeError, oauth.ErrGrantNotFound)
+			So(store.ConsumeCodeGrant(ctx, grant), ShouldBeError, oauth.ErrGrantNotFound)
 
 			_, err := store.GetCodeGrant(ctx, "code-hash")
 			So(err, ShouldBeError, oauth.ErrGrantNotFound)
 		})
 
 		Convey("deleting a code grant that was never created reports not found", func() {
-			So(store.DeleteCodeGrant(ctx, &oauth.CodeGrant{
+			So(store.ConsumeCodeGrant(ctx, &oauth.CodeGrant{
 				AppID:    appID,
 				CodeHash: "never-created",
 			}), ShouldBeError, oauth.ErrGrantNotFound)
@@ -81,8 +81,8 @@ func TestConsumeGrant(t *testing.T) {
 			}
 			So(store.CreateSettingsActionGrant(ctx, grant), ShouldBeNil)
 
-			So(store.DeleteSettingsActionGrant(ctx, grant), ShouldBeNil)
-			So(store.DeleteSettingsActionGrant(ctx, grant), ShouldBeError, oauth.ErrGrantNotFound)
+			So(store.ConsumeSettingsActionGrant(ctx, grant), ShouldBeNil)
+			So(store.ConsumeSettingsActionGrant(ctx, grant), ShouldBeError, oauth.ErrGrantNotFound)
 		})
 	})
 }

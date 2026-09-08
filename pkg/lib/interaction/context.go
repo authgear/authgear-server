@@ -86,7 +86,7 @@ type AnonymousIdentityProvider interface {
 
 type AnonymousUserPromotionCodeStore interface {
 	GetPromotionCode(ctx context.Context, codeHash string) (*anonymous.PromotionCode, error)
-	DeletePromotionCode(ctx context.Context, code *anonymous.PromotionCode) error
+	ConsumePromotionCode(ctx context.Context, code *anonymous.PromotionCode) error
 }
 
 type BiometricIdentityProvider interface {

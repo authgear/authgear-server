@@ -29,7 +29,7 @@ func (m *mockCodeGrantStore) CreateCodeGrant(ctx context.Context, grant *oauth.C
 	return nil
 }
 
-func (m *mockCodeGrantStore) DeleteCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
+func (m *mockCodeGrantStore) ConsumeCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
 	for i, g := range m.grants {
 		if g.CodeHash == grant.CodeHash {
 			m.grants = append(m.grants[:i], m.grants[i+1:]...)

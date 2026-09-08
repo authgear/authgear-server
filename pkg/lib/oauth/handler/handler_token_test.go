@@ -389,7 +389,7 @@ func TestTokenHandler(t *testing.T) {
 				}
 				codeHash := oauth.HashToken("the-code")
 				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), codeHash).Return(codeGrant, nil)
-				codeGrants.EXPECT().DeleteCodeGrant(gomock.Any(), codeGrant).Return(nil)
+				codeGrants.EXPECT().ConsumeCodeGrant(gomock.Any(), codeGrant).Return(nil)
 
 				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(&oidc.UIInfo{}, nil, nil)
@@ -493,8 +493,8 @@ func TestTokenHandler(t *testing.T) {
 
 				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), oauth.HashToken("the-code")).Return(codeGrant, nil)
 				// The code must survive: the rate limit is checked before the
-				// code is spent, so DeleteCodeGrant is never reached.
-				codeGrants.EXPECT().DeleteCodeGrant(gomock.Any(), gomock.Any()).Times(0)
+				// code is spent, so ConsumeCodeGrant is never reached.
+				codeGrants.EXPECT().ConsumeCodeGrant(gomock.Any(), gomock.Any()).Times(0)
 
 				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
 					AnyTimes().Return(&oidc.UIInfo{}, nil, nil)
@@ -546,7 +546,7 @@ func TestTokenHandler(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "x_rate_limited")
 
-				// DeleteCodeGrant not being called is asserted by the mock's
+				// ConsumeCodeGrant not being called is asserted by the mock's
 				// Times(0) expectation above.
 			})
 		})

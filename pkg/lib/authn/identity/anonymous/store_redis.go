@@ -48,12 +48,13 @@ func (s *StoreRedis) CreatePromotionCode(ctx context.Context, code *PromotionCod
 	})
 }
 
-// DeletePromotionCode is the point at which a promotion code is spent, so it
-// reports ErrPromotionCodeNotFound when there was nothing to delete. DEL is
-// atomic, so of several concurrent requests presenting the same code exactly
-// one succeeds, which is what stops one anonymous account being linked to
-// several targets.
-func (s *StoreRedis) DeletePromotionCode(ctx context.Context, code *PromotionCode) error {
+// ConsumePromotionCode spends a promotion code, and reports
+// ErrPromotionCodeNotFound when there was nothing to spend.
+//
+// DEL is atomic, so of several concurrent requests presenting the same code
+// exactly one succeeds, which is what stops one anonymous account being linked
+// to several target accounts.
+func (s *StoreRedis) ConsumePromotionCode(ctx context.Context, code *PromotionCode) error {
 	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		count, err := conn.Del(ctx, promotionCodeKey(code.AppID, code.CodeHash)).Result()
 		if err != nil {

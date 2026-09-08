@@ -102,12 +102,12 @@ var TokenHandlerLogger = slogutil.NewLogger("oauth-token")
 
 type TokenHandlerCodeGrantStore interface {
 	GetCodeGrant(ctx context.Context, codeHash string) (*oauth.CodeGrant, error)
-	DeleteCodeGrant(ctx context.Context, g *oauth.CodeGrant) error
+	ConsumeCodeGrant(ctx context.Context, g *oauth.CodeGrant) error
 }
 
 type TokenHandlerSettingsActionGrantStore interface {
 	GetSettingsActionGrant(ctx context.Context, codeHash string) (*oauth.SettingsActionGrant, error)
-	DeleteSettingsActionGrant(ctx context.Context, g *oauth.SettingsActionGrant) error
+	ConsumeSettingsActionGrant(ctx context.Context, g *oauth.SettingsActionGrant) error
 }
 
 type TokenHandlerOfflineGrantStore interface {
@@ -686,7 +686,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	// Everything that decides whether this caller is entitled to the code has
 	// already run, so a request that was never going to succeed cannot spend
 	// it. What remains can only fail on a server error.
-	err = h.CodeGrants.DeleteCodeGrant(ctx, codeGrant)
+	err = h.CodeGrants.ConsumeCodeGrant(ctx, codeGrant)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		// Another request presenting the same code got here first. Not a
 		// failure to invalidate, so it is not logged as one.
@@ -2254,7 +2254,7 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	}
 
 	// Spend the code. See IssueTokensForAuthorizationCode.
-	err = h.SettingsActionGrantStore.DeleteSettingsActionGrant(ctx, settingsActionGrant)
+	err = h.SettingsActionGrantStore.ConsumeSettingsActionGrant(ctx, settingsActionGrant)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		// Another request presenting the same code got here first.
 		return nil, errInvalidAuthzCode

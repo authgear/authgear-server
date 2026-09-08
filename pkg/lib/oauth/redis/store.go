@@ -167,12 +167,13 @@ func (s *Store) CreateCodeGrant(ctx context.Context, grant *oauth.CodeGrant) err
 	})
 }
 
-// DeleteCodeGrant is the point at which an authorization code is spent, so it
-// reports ErrGrantNotFound when there was nothing to delete. DEL is atomic and
-// returns how many keys it removed, so of several concurrent requests
-// presenting the same code exactly one sees a count of 1 and the rest are
-// rejected -- no lock required.
-func (s *Store) DeleteCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
+// ConsumeCodeGrant spends an authorization code, and reports ErrGrantNotFound
+// when there was nothing to spend.
+//
+// DEL is atomic and returns how many keys it removed, so of several concurrent
+// requests presenting the same code exactly one sees a count of 1 and the rest
+// are rejected -- no lock required.
+func (s *Store) ConsumeCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
 	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		count, err := s.delCount(ctx, conn, codeGrantKey(grant.AppID, grant.CodeHash))
 		if err != nil {
@@ -211,9 +212,9 @@ func (s *Store) CreateSettingsActionGrant(ctx context.Context, grant *oauth.Sett
 	})
 }
 
-// DeleteSettingsActionGrant reports ErrGrantNotFound when there was nothing to
-// delete. See DeleteCodeGrant.
-func (s *Store) DeleteSettingsActionGrant(ctx context.Context, grant *oauth.SettingsActionGrant) error {
+// ConsumeSettingsActionGrant spends a settings action code, and reports
+// ErrGrantNotFound when there was nothing to spend. See ConsumeCodeGrant.
+func (s *Store) ConsumeSettingsActionGrant(ctx context.Context, grant *oauth.SettingsActionGrant) error {
 	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		count, err := s.delCount(ctx, conn, settingsActionGrantKey(grant.AppID, grant.CodeHash))
 		if err != nil {

@@ -35,6 +35,20 @@ func (m *MockCodeGrantStore) EXPECT() *MockCodeGrantStoreMockRecorder {
 	return m.recorder
 }
 
+// ConsumeCodeGrant mocks base method.
+func (m *MockCodeGrantStore) ConsumeCodeGrant(ctx context.Context, g *CodeGrant) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeCodeGrant", ctx, g)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ConsumeCodeGrant indicates an expected call of ConsumeCodeGrant.
+func (mr *MockCodeGrantStoreMockRecorder) ConsumeCodeGrant(ctx, g interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeCodeGrant", reflect.TypeOf((*MockCodeGrantStore)(nil).ConsumeCodeGrant), ctx, g)
+}
+
 // CreateCodeGrant mocks base method.
 func (m *MockCodeGrantStore) CreateCodeGrant(ctx context.Context, g *CodeGrant) error {
 	m.ctrl.T.Helper()
@@ -47,20 +61,6 @@ func (m *MockCodeGrantStore) CreateCodeGrant(ctx context.Context, g *CodeGrant) 
 func (mr *MockCodeGrantStoreMockRecorder) CreateCodeGrant(ctx, g interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCodeGrant", reflect.TypeOf((*MockCodeGrantStore)(nil).CreateCodeGrant), ctx, g)
-}
-
-// DeleteCodeGrant mocks base method.
-func (m *MockCodeGrantStore) DeleteCodeGrant(ctx context.Context, g *CodeGrant) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCodeGrant", ctx, g)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteCodeGrant indicates an expected call of DeleteCodeGrant.
-func (mr *MockCodeGrantStoreMockRecorder) DeleteCodeGrant(ctx, g interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeGrant", reflect.TypeOf((*MockCodeGrantStore)(nil).DeleteCodeGrant), ctx, g)
 }
 
 // GetCodeGrant mocks base method.
@@ -101,6 +101,20 @@ func (m *MockSettingsActionGrantStore) EXPECT() *MockSettingsActionGrantStoreMoc
 	return m.recorder
 }
 
+// ConsumeSettingsActionGrant mocks base method.
+func (m *MockSettingsActionGrantStore) ConsumeSettingsActionGrant(ctx context.Context, g *SettingsActionGrant) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConsumeSettingsActionGrant", ctx, g)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ConsumeSettingsActionGrant indicates an expected call of ConsumeSettingsActionGrant.
+func (mr *MockSettingsActionGrantStoreMockRecorder) ConsumeSettingsActionGrant(ctx, g interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeSettingsActionGrant", reflect.TypeOf((*MockSettingsActionGrantStore)(nil).ConsumeSettingsActionGrant), ctx, g)
+}
+
 // CreateSettingsActionGrant mocks base method.
 func (m *MockSettingsActionGrantStore) CreateSettingsActionGrant(ctx context.Context, g *SettingsActionGrant) error {
 	m.ctrl.T.Helper()
@@ -113,20 +127,6 @@ func (m *MockSettingsActionGrantStore) CreateSettingsActionGrant(ctx context.Con
 func (mr *MockSettingsActionGrantStoreMockRecorder) CreateSettingsActionGrant(ctx, g interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSettingsActionGrant", reflect.TypeOf((*MockSettingsActionGrantStore)(nil).CreateSettingsActionGrant), ctx, g)
-}
-
-// DeleteSettingsActionGrant mocks base method.
-func (m *MockSettingsActionGrantStore) DeleteSettingsActionGrant(ctx context.Context, g *SettingsActionGrant) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSettingsActionGrant", ctx, g)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteSettingsActionGrant indicates an expected call of DeleteSettingsActionGrant.
-func (mr *MockSettingsActionGrantStoreMockRecorder) DeleteSettingsActionGrant(ctx, g interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSettingsActionGrant", reflect.TypeOf((*MockSettingsActionGrantStore)(nil).DeleteSettingsActionGrant), ctx, g)
 }
 
 // GetSettingsActionGrant mocks base method.
