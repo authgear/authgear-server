@@ -1,0 +1,217 @@
+name: app2app issues an authorization code for the requesting client
+# There was no e2e coverage of app2app. It is the one flow where a code is
+# minted by a request authenticated with a different client's refresh token,
+# so it is the case most at risk from changes to how codes are bound to
+# clients.
+#
+# Per docs/specs/app2app.md, the client_id on the app2app token request is the
+# client that will redeem the code, while the refresh token belongs to the
+# already authenticated client.
+authgear.features.yaml:
+  override: |
+    oauth:
+      client:
+        app2app_enabled: true
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    oauth:
+      clients:
+      # The already authenticated app, whose refresh token authorises the
+      # app2app request.
+      - access_token_lifetime_seconds: 1800
+        client_id: e2e
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: authenticated-app
+        redirect_uris:
+        - http://localhost:4000
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: spa
+        issue_jwt_access_token: true
+        x_app2app_enabled: true
+        x_app2app_insecure_device_key_binding_enabled: true
+      # The app requesting a session of its own.
+      - access_token_lifetime_seconds: 1800
+        client_id: app2apptarget
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: requesting-app
+        redirect_uris:
+        - http://localhost:4000/app2app-callback
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: spa
+        issue_jwt_access_token: true
+        x_app2app_enabled: true
+        x_app2app_insecure_device_key_binding_enabled: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # Sign the user in on the authenticated app and keep its refresh token.
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+    http_output:
+      http_status: 302
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_userinfo_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: get_code
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+
+  - name: exchange_code
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ (urlParse .steps.get_code.result.http_response_headers.location).query | regexFind \"code=[^&]+\" | trimPrefix \"code=\" }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "refresh_token": "[[string]]"
+        }
+
+  # The device key JWT must carry a fresh challenge, which is consumed by the
+  # app2app request.
+  - name: challenge
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "app2app_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  # The app2app request itself: authenticated by the authenticated app's
+  # refresh token, but asking for a code for the requesting app.
+  - name: app2app_request
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:app2app-request
+      client_id: app2apptarget
+      redirect_uri: http://localhost:4000/app2app-callback
+      refresh_token: "{{ .steps.exchange_code.result.http_json_body.refresh_token }}"
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      jwt: "{{ generateApp2AppJWT .steps.challenge.result.http_json_body.result.token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "code": "[[string]]"
+        }
+
+  # The requesting app redeems the code it was issued. This is the step the
+  # client binding check has to leave working: the code was minted by a request
+  # carrying another client's refresh token, but it was issued to this client,
+  # which is the one redeeming it.
+  - name: redeem_app2app_code
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: app2apptarget
+      redirect_uri: http://localhost:4000/app2app-callback
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ .steps.app2app_request.result.http_json_body.code }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer"
+        }

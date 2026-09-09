@@ -641,6 +641,15 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, errInvalidAuthzCode
 	}
 
+	// The code must be redeemed by the client it was issued to.
+	// See RFC 6749 section 4.1.3 and OIDC Core section 3.1.3.2.
+	// Note that the redirect URI check below is not a substitute: it compares
+	// the request against the URI stored on the grant, not against the redirect
+	// URIs registered for the redeeming client.
+	if client.ClientID != codeGrant.AuthorizationRequest.ClientID() {
+		return nil, errInvalidAuthzCode
+	}
+
 	if codeGrant.RedirectURI != r.RedirectURI() {
 		return nil, protocol.NewError("invalid_request", "invalid redirect URI")
 	}
@@ -2210,6 +2219,12 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	uiparam.WithUIParam(ctx, &uiParam)
 
 	if h.Clock.NowUTC().After(settingsActionGrant.ExpireAt) {
+		return nil, errInvalidAuthzCode
+	}
+
+	// The code must be redeemed by the client it was issued to.
+	// See the equivalent check in IssueTokensForAuthorizationCode.
+	if client.ClientID != settingsActionGrant.AuthorizationRequest.ClientID() {
 		return nil, errInvalidAuthzCode
 	}
 

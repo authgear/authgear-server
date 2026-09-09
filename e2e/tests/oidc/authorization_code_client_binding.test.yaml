@@ -1,0 +1,224 @@
+name: Authorization code cannot be redeemed by a different client
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # The code is issued to the public client "e2e".
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+    http_output:
+      http_status: 302
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_userinfo_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # Follow the finish redirect to obtain the authorization code itself.
+  - name: get_code
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+
+  # A different client redeems the code. Every other guard on the token
+  # endpoint is deliberately satisfied, so that only the check that the code
+  # was issued to this client can reject the request:
+  #
+  #   - redirect_uri echoes the value stored on the code
+  #   - code_verifier is the correct one for the code's challenge
+  #   - client_secret is this client's own, and it is valid
+  #
+  # Without the binding check this returns 200 with an access token, a refresh
+  # token, and an id_token whose aud is e2econfidential, for a user who only
+  # ever authenticated to e2e.
+  - name: redeem_with_another_client
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: e2econfidential
+      client_secret: e2esecret
+      redirect_uri: http://localhost:4000
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ (urlParse .steps.get_code.result.http_response_headers.location).query | regexFind \"code=[^&]+\" | trimPrefix \"code=\" }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_grant",
+          "access_token": "[[never]]",
+          "refresh_token": "[[never]]",
+          "id_token": "[[never]]"
+        }
+---
+name: Authorization code is redeemable by the client it was issued to
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # Identical to the case above, except that the client redeeming the code is
+  # the one it was issued to. This is the control: it shows the rejection above
+  # comes from the client binding and not from some other part of the request.
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+    http_output:
+      http_status: 302
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_userinfo_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: get_code
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+
+  - name: redeem_with_issuing_client
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ (urlParse .steps.get_code.result.http_response_headers.location).query | regexFind \"code=[^&]+\" | trimPrefix \"code=\" }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer"
+        }

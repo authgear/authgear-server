@@ -339,6 +339,11 @@ type OAuthExchangeCodeResult struct {
 	// refresh_token grant after logout must fail, since ParseRefreshToken
 	// looks the grant up from storage, not from any in-request state.
 	RefreshToken string `json:"refresh_token"`
+	// DeviceSecret is returned when the device_sso scope was granted. It is
+	// the actor_token of the pre-authenticated URL token exchange, so a test
+	// driving that flow needs it from here rather than from a raw token
+	// request. Omitted when the token response carries no device_secret.
+	DeviceSecret string `json:"device_secret,omitempty"`
 	// AccessTokenIsJWT and AccessTokenClaims are a best-effort decode of
 	// AccessToken: false/nil when the access token is opaque (an ordinary
 	// random string, not the "eyJ..." shape of a JWT), populated when it
@@ -439,6 +444,7 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 
 	accessToken, _ := tokenRespBody["access_token"].(string)
 	refreshToken, _ := tokenRespBody["refresh_token"].(string)
+	deviceSecret, _ := tokenRespBody["device_secret"].(string)
 
 	var accessTokenIsJWT bool
 	var accessTokenClaims map[string]any
@@ -454,6 +460,7 @@ func (c *Client) OAuthExchangeCode(opts OAuthExchangeCodeOptions) (result *OAuth
 		AccessToken:       accessToken,
 		RawIDToken:        idTokenStr,
 		RefreshToken:      refreshToken,
+		DeviceSecret:      deviceSecret,
 		AccessTokenIsJWT:  accessTokenIsJWT,
 		AccessTokenClaims: accessTokenClaims,
 	}
