@@ -7,7 +7,8 @@ var _ = FeatureConfigSchema.Add("AdminAPIFeatureConfig", `
 	"properties": {
 		"create_session_enabled": { "type": "boolean" },
 		"user_import_usage": { "$ref": "#/$defs/UsageLimitConfig" },
-		"user_export_usage": { "$ref": "#/$defs/UsageLimitConfig" }
+		"user_export_usage": { "$ref": "#/$defs/UsageLimitConfig" },
+		"rate_limits": { "$ref": "#/$defs/AdminAPIRateLimitsFeatureConfig" }
 	}
 }
 `)
@@ -18,6 +19,23 @@ type AdminAPIFeatureConfig struct {
 	UserImportUsage *Deprecated_UsageLimitConfig `json:"user_import_usage,omitempty"`
 	// UserExportUsage is the usage limit on user export API, measured by number of export requests.
 	UserExportUsage *Deprecated_UsageLimitConfig `json:"user_export_usage,omitempty"`
+	// RateLimits bounds Admin API request volume (docs/specs/rate-limit.md
+	// § Admin API mutations). It lives in feature config with no authgear.yaml
+	// counterpart on purpose: the limit bounds what a project's own
+	// administrators can do to that project's storage, so letting the same
+	// party raise it would defeat it.
+	RateLimits *AdminAPIRateLimitsFeatureConfig `json:"rate_limits,omitempty"`
+}
+
+// GetRateLimits is nil-safe for callers that read a config before
+// SetFieldDefaults has run (e.g. a test that unmarshals a YAML snippet
+// directly). At runtime the whole chain is non-nil, because SetFieldDefaults
+// force-allocates every pointer without a nullable tag.
+func (c *AdminAPIFeatureConfig) GetRateLimits() *AdminAPIRateLimitsFeatureConfig {
+	if c == nil {
+		return nil
+	}
+	return c.RateLimits
 }
 
 var _ MergeableFeatureConfig = &AdminAPIFeatureConfig{}
@@ -44,6 +62,8 @@ func (c *AdminAPIFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConf
 		merged.UserExportUsage = layer.AdminAPI.UserExportUsage
 	}
 
+	merged.RateLimits = merged.RateLimits.Merge(layer.AdminAPI.RateLimits)
+
 	return merged
 }
 
@@ -61,4 +81,158 @@ func (c *AdminAPIFeatureConfig) SetDefaults() {
 			Enabled: new(false),
 		}
 	}
+}
+
+var _ = FeatureConfigSchema.Add("AdminAPIRateLimitsFeatureConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"mutation": { "$ref": "#/$defs/AdminAPIRateLimitsMutationFeatureConfig" }
+	}
+}
+`)
+
+// AdminAPIRateLimitsFeatureConfig has one field today. Mutation is nested under
+// its own key -- rather than the buckets living directly here -- so the JSON
+// path matches ratelimit.RateLimitGroupAdminAPIMutation's dotted name
+// ("admin_api.mutation.all.per_ip") key for key, and so a sibling action under
+// this same section has somewhere to go without renaming this type again.
+type AdminAPIRateLimitsFeatureConfig struct {
+	Mutation *AdminAPIRateLimitsMutationFeatureConfig `json:"mutation,omitempty"`
+}
+
+// GetMutation is nil-safe for the same pre-SetFieldDefaults reason as
+// AdminAPIFeatureConfig.GetRateLimits.
+func (c *AdminAPIRateLimitsFeatureConfig) GetMutation() *AdminAPIRateLimitsMutationFeatureConfig {
+	if c == nil {
+		return nil
+	}
+	return c.Mutation
+}
+
+// Merge is field-level even with a single field today, because the cascade has
+// to reach All's real siblings further down -- the same reasoning as the
+// Authenticator -> Password -> Policy cascade in feature_authenticator.go.
+func (c *AdminAPIRateLimitsFeatureConfig) Merge(layer *AdminAPIRateLimitsFeatureConfig) *AdminAPIRateLimitsFeatureConfig {
+	if c == nil && layer == nil {
+		return nil
+	}
+	if c == nil {
+		return layer
+	}
+	if layer == nil {
+		return c
+	}
+	c.Mutation = c.Mutation.Merge(layer.Mutation)
+	return c
+}
+
+var _ = FeatureConfigSchema.Add("AdminAPIRateLimitsMutationFeatureConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"all": { "$ref": "#/$defs/AdminAPIRateLimitsMutationScopeFeatureConfig" }
+	}
+}
+`)
+
+// AdminAPIRateLimitsMutationFeatureConfig is keyed by scope. "all" is the
+// reserved scope covering every mutation field; scopes for individual mutations
+// may be added as siblings of it later, keyed by the mutation's field name in
+// snake_case, and would be consumed in addition to "all" rather than as a
+// fallback.
+type AdminAPIRateLimitsMutationFeatureConfig struct {
+	All *AdminAPIRateLimitsMutationScopeFeatureConfig `json:"all,omitempty"`
+}
+
+// GetAll is nil-safe for the same pre-SetFieldDefaults reason as
+// AdminAPIFeatureConfig.GetRateLimits.
+func (c *AdminAPIRateLimitsMutationFeatureConfig) GetAll() *AdminAPIRateLimitsMutationScopeFeatureConfig {
+	if c == nil {
+		return nil
+	}
+	return c.All
+}
+
+func (c *AdminAPIRateLimitsMutationFeatureConfig) Merge(layer *AdminAPIRateLimitsMutationFeatureConfig) *AdminAPIRateLimitsMutationFeatureConfig {
+	if c == nil && layer == nil {
+		return nil
+	}
+	if c == nil {
+		return layer
+	}
+	if layer == nil {
+		return c
+	}
+	c.All = c.All.Merge(layer.All)
+	return c
+}
+
+var _ = FeatureConfigSchema.Add("AdminAPIRateLimitsMutationScopeFeatureConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_project": { "$ref": "#/$defs/RateLimitConfig" },
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+// AdminAPIRateLimitsMutationScopeFeatureConfig holds the two buckets a mutation
+// scope is bounded by: per project (app_id) and per (project, caller IP).
+type AdminAPIRateLimitsMutationScopeFeatureConfig struct {
+	PerProject *RateLimitConfig `json:"per_project,omitempty"`
+	PerIP      *RateLimitConfig `json:"per_ip,omitempty"`
+}
+
+// SetDefaults mirrors OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig's
+// pattern: PerProject/PerIP are already non-nil by the time this runs
+// (SetFieldDefaults force-allocates them), so checking Enabled == nil safely
+// detects "no layer configured this bucket" and replaces the whole zero-valued
+// struct with the built-in default.
+//
+// Per-IP is half of per-project because most projects drive the Admin API from
+// one place, so the two usually bind together; the per-IP bucket earns its
+// place when they do not, by stopping a single caller from consuming the whole
+// project allowance.
+func (c *AdminAPIRateLimitsMutationScopeFeatureConfig) SetDefaults() {
+	if c.PerProject.Enabled == nil {
+		c.PerProject = &RateLimitConfig{
+			Enabled: new(true),
+			Period:  "1m",
+			Burst:   300,
+		}
+	}
+	if c.PerIP.Enabled == nil {
+		c.PerIP = &RateLimitConfig{
+			Enabled: new(true),
+			Period:  "1m",
+			Burst:   150,
+		}
+	}
+}
+
+// Merge replaces each bucket wholesale, not field-by-field: enabled/period/burst
+// are one unit, and merging them field-wise would let two layers jointly
+// produce a bucket neither one actually wrote.
+func (c *AdminAPIRateLimitsMutationScopeFeatureConfig) Merge(layer *AdminAPIRateLimitsMutationScopeFeatureConfig) *AdminAPIRateLimitsMutationScopeFeatureConfig {
+	if c == nil && layer == nil {
+		return nil
+	}
+	if c == nil {
+		return layer
+	}
+	if layer == nil {
+		return c
+	}
+	if layer.PerProject != nil {
+		c.PerProject = layer.PerProject
+	}
+	if layer.PerIP != nil {
+		c.PerIP = layer.PerIP
+	}
+	return c
 }

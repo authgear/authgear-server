@@ -169,6 +169,26 @@ configs:
   - test_mode:
       sms:
         suppressed: true
+  # admin_api.rate_limits: one layer sets only per_project, a later layer sets
+  # only per_ip. Both must survive, and neither may reset create_session_enabled
+  # or the usage limits set by the earlier admin_api layers above -- that is the
+  # AdminAPIFeatureConfig -> RateLimits -> Mutation -> All cascade working.
+  - admin_api:
+      rate_limits:
+        mutation:
+          all:
+            per_project:
+              enabled: true
+              period: 30s
+              burst: 7
+  - admin_api:
+      rate_limits:
+        mutation:
+          all:
+            per_ip:
+              enabled: true
+              period: 2m
+              burst: 3
 result:
   test_mode:
     fixed_oob_otp:
@@ -217,6 +237,17 @@ result:
       enabled: false
       period: month
       quota: 1
+    rate_limits:
+      mutation:
+        all:
+          per_project:
+            enabled: true
+            period: 30s
+            burst: 7
+          per_ip:
+            enabled: true
+            period: 2m
+            burst: 3
   ui:
     white_labeling:
       disabled: true

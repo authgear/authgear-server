@@ -327,3 +327,53 @@ config:
       oauth_client_cimd:
         - quota: 20
           action: block
+---
+name: admin-api-rate-limits-burst-zero
+error: |-
+  invalid feature config:
+  /admin_api/rate_limits/mutation/all/per_project/burst: minimum
+    map[actual:0 minimum:1]
+config:
+  admin_api:
+    rate_limits:
+      mutation:
+        all:
+          per_project:
+            enabled: true
+            period: 1m
+            burst: 0
+---
+name: admin-api-rate-limits-enabled-without-period
+error: |-
+  invalid feature config:
+  /admin_api/rate_limits/mutation/all/per_ip: required
+    map[actual:[burst enabled] expected:[period] missing:[period]]
+config:
+  admin_api:
+    rate_limits:
+      mutation:
+        all:
+          per_ip:
+            enabled: true
+            burst: 5
+---
+name: admin-api-rate-limits-scope-unknown-key
+error: |-
+  invalid feature config:
+  /admin_api/rate_limits/mutation/all/unknown_key: 
+config:
+  admin_api:
+    rate_limits:
+      mutation:
+        all:
+          unknown_key: foo
+---
+name: admin-api-rate-limits-mutation-unknown-scope
+error: |-
+  invalid feature config:
+  /admin_api/rate_limits/mutation/unknown_key: 
+config:
+  admin_api:
+    rate_limits:
+      mutation:
+        unknown_key: foo

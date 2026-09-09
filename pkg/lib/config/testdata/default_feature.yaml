@@ -132,6 +132,17 @@ admin_api:
     enabled: false
   user_export_usage:
     enabled: false
+  rate_limits:
+    mutation:
+      all:
+        per_project:
+          enabled: true
+          period: 1m
+          burst: 300
+        per_ip:
+          enabled: true
+          period: 1m
+          burst: 150
 test_mode:
   fixed_oob_otp:
     enabled: false
