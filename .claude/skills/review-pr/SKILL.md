@@ -27,6 +27,7 @@ Structure the report under these six headings. Base every claim on an actual dif
    - Go: new/changed exported struct fields, function signatures in `pkg/lib/`
    - HTTP/config: new endpoints, changed request/response shapes, `authgear.yaml` schema changes
    - Note whether each change is additive (safe) or a rename/removal (breaking)
+   - Breaking changes are not only interface renames/removals: a new default that refuses input previously accepted, a changed default, stricter validation, or a newly required config field all stop a working deployment. Any of those needs an entry in `docs/BREAKING-CHANGES.md` under `## [Unreleased]`, added in the same commit. A missing entry is a finding — report it under this heading.
 
 3. **Code quality issues** — look specifically for:
    - Formatting/lint violations: run `gofmt -l <changed .go files>` and `gofmt -d` on any that fail; for frontend, run `npm run typecheck`/`eslint`/`stylelint`/`prettier` (full CI-parity check is mandatory in Phase 3, not optional)
