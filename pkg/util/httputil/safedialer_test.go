@@ -70,6 +70,65 @@ func TestNewSSRFSafeExternalClient(t *testing.T) {
 	})
 }
 
+func TestSafeDialerAllowedHosts(t *testing.T) {
+	Convey("SafeDialer.AllowedHosts", t, func() {
+		ctx := context.Background()
+
+		ln, err := net.Listen("tcp", "127.0.0.1:0")
+		So(err, ShouldBeNil)
+		defer ln.Close()
+		addrPort, err := netip.ParseAddrPort(ln.Addr().String())
+		So(err, ShouldBeNil)
+		port := strconv.Itoa(int(addrPort.Port()))
+
+		// Every case below resolves to loopback, so only the allowlist can
+		// make the difference.
+		resolver := &stubResolver{addrs: []netip.Addr{addrPort.Addr()}}
+
+		Convey("an exact host is exempt from the address rules", func() {
+			d := &httputil.SafeDialer{Resolver: resolver, AllowedHosts: []string{"hooks.internal.example.com"}}
+			conn, err := d.DialContext(ctx, "tcp", net.JoinHostPort("hooks.internal.example.com", port))
+			So(err, ShouldBeNil)
+			defer conn.Close()
+		})
+
+		Convey("a *. pattern matches exactly one label", func() {
+			d := &httputil.SafeDialer{Resolver: resolver, AllowedHosts: []string{"*.internal.example.com"}}
+
+			conn, err := d.DialContext(ctx, "tcp", net.JoinHostPort("hooks.internal.example.com", port))
+			So(err, ShouldBeNil)
+			defer conn.Close()
+
+			// Two labels deep does not match, and so is refused.
+			_, err = d.DialContext(ctx, "tcp", net.JoinHostPort("a.b.internal.example.com", port))
+			So(errors.Is(err, httputil.ErrBlockedAddress), ShouldBeTrue)
+
+			// Neither does the apex.
+			_, err = d.DialContext(ctx, "tcp", net.JoinHostPort("internal.example.com", port))
+			So(errors.Is(err, httputil.ErrBlockedAddress), ShouldBeTrue)
+		})
+
+		Convey("matching is case-insensitive", func() {
+			d := &httputil.SafeDialer{Resolver: resolver, AllowedHosts: []string{"Hooks.Internal.Example.COM"}}
+			conn, err := d.DialContext(ctx, "tcp", net.JoinHostPort("hooks.internal.example.com", port))
+			So(err, ShouldBeNil)
+			defer conn.Close()
+		})
+
+		Convey("a host not on the list is still refused", func() {
+			d := &httputil.SafeDialer{Resolver: resolver, AllowedHosts: []string{"hooks.internal.example.com"}}
+			_, err := d.DialContext(ctx, "tcp", net.JoinHostPort("elsewhere.example.com", port))
+			So(errors.Is(err, httputil.ErrBlockedAddress), ShouldBeTrue)
+		})
+
+		Convey("an empty list exempts nothing", func() {
+			d := &httputil.SafeDialer{Resolver: resolver, AllowedHosts: nil}
+			_, err := d.DialContext(ctx, "tcp", net.JoinHostPort("hooks.internal.example.com", port))
+			So(errors.Is(err, httputil.ErrBlockedAddress), ShouldBeTrue)
+		})
+	})
+}
+
 func TestSafeDialerRebinding(t *testing.T) {
 	Convey("SafeDialer", t, func() {
 		ctx := context.Background()

@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -102,6 +103,45 @@ func firstPrivateIPv4(t *testing.T) netip.Addr {
 	}
 	t.Skip("no private IPv4 address assigned to this host")
 	return netip.Addr{}
+}
+
+func TestProvideCIMDHTTPClientsAllowedHosts(t *testing.T) {
+	Convey("the host allowlist reaches CIMD's clients", t, func() {
+		// An allowlisted host is a statement about the destination, so it holds
+		// however the URL was chosen -- including a client_id, which an
+		// unauthenticated caller chooses. Without this, an operator needing one
+		// private host reachable has only insecure_fetch_address_allowed, which
+		// opens every private address instead of the one they named.
+		clients := ProvideCIMDHTTPClients(&config.HTTPFeatureConfig{
+			InsecureFetchAddressAllowedHosts: []string{"localhost"},
+		})
+
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer srv.Close()
+
+		port := srv.Listener.Addr().(*net.TCPAddr).Port
+		get := func(host string) error {
+			req, err := http.NewRequest("GET", fmt.Sprintf("http://%s:%d/doc.json", host, port), nil)
+			So(err, ShouldBeNil)
+			resp, err := clients.Strict.Do(req)
+			if resp != nil {
+				defer resp.Body.Close()
+			}
+			return err
+		}
+
+		Convey("the allowlisted host is reachable through the strict client", func() {
+			// Resolves to loopback, which the address rules would otherwise
+			// refuse. Only the allowlist can let this through.
+			So(get("localhost"), ShouldBeNil)
+		})
+
+		Convey("the same address not named by the list is still refused", func() {
+			So(errors.Is(get("127.0.0.1"), errBlockedAddress), ShouldBeTrue)
+		})
+	})
 }
 
 func TestSafeDialerDialContext(t *testing.T) {

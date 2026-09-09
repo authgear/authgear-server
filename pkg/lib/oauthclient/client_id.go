@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
@@ -112,19 +113,5 @@ func IsCIMDClientIDAllowed(allowedDomains []string, u *url.URL) bool {
 	if len(allowedDomains) == 0 {
 		return true
 	}
-	host := strings.ToLower(strings.TrimSuffix(u.Hostname(), "."))
-	for _, pattern := range allowedDomains {
-		p := strings.ToLower(pattern)
-		if suffix, ok := strings.CutPrefix(p, "*."); ok {
-			rest, found := strings.CutSuffix(host, "."+suffix)
-			if found && rest != "" && !strings.Contains(rest, ".") {
-				return true
-			}
-			continue
-		}
-		if host == p {
-			return true
-		}
-	}
-	return false
+	return httputil.MatchHostPattern(allowedDomains, u.Hostname())
 }

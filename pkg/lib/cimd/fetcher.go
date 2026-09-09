@@ -64,26 +64,29 @@ var (
 
 var FetcherLogger = slogutil.NewLogger("cimd-fetcher")
 
-// CIMDHTTPClients holds the two process-level, connection-pooled clients
-// Fetcher chooses between. A named wrapper type rather than a bare
-// *http.Client so wire can distinguish it from the other *http.Client
-// providers already in the graph (same pattern as SiteAdminHTTPClient).
+// CIMDHTTPClients holds the two clients Fetcher chooses between. A named
+// wrapper type rather than a bare *http.Client so wire can distinguish it
+// from the other *http.Client providers already in the graph (same pattern
+// as SiteAdminHTTPClient).
 //
-// Two clients, not one: the address policy is a property of the transport,
-// and the transport is process-level (connection pooling). Selecting
-// between two named clients keeps the decision in ONE greppable place
-// (Fetcher.clientFor) instead of threading a boolean into the dial path on
-// every call, and it means the permissive transport is a distinct object a
-// reviewer can search for.
+// Two clients, not one: selecting between them keeps the decision in ONE
+// greppable place (Fetcher.clientFor), and the permissive transport is a
+// distinct object a reviewer can search for.
+//
+// These are per-project, not process-level, because
+// insecure_fetch_address_allowed_hosts is per-project. That costs the
+// connection pooling a process-level client would have, which the fetch
+// path can afford: it is capped at 10/min/project.
 type CIMDHTTPClients struct {
 	Strict   *http.Client
 	Insecure *http.Client
 }
 
-func ProvideCIMDHTTPClients() *CIMDHTTPClients {
+func ProvideCIMDHTTPClients(f *config.HTTPFeatureConfig) *CIMDHTTPClients {
+	allowedHosts := f.GetInsecureFetchAddressAllowedHosts()
 	return &CIMDHTTPClients{
-		Strict:   newCIMDHTTPClient(false),
-		Insecure: newCIMDHTTPClient(true),
+		Strict:   newCIMDHTTPClient(false, allowedHosts),
+		Insecure: newCIMDHTTPClient(true, allowedHosts),
 	}
 }
 
@@ -97,9 +100,10 @@ func ProvideCIMDHTTPClients() *CIMDHTTPClients {
 // redirect target hasn't been through Client ID Format validation". A 3xx is
 // returned as a response rather than followed, and Fetch's 2xx check rejects
 // it.
-func newCIMDHTTPClient(allowNonPublicAddresses bool) *http.Client {
+func newCIMDHTTPClient(allowNonPublicAddresses bool, allowedHosts []string) *http.Client {
 	return httputil.NewSSRFSafeExternalClient(FetchTimeout, httputil.SSRFSafeExternalClientOptions{
 		AllowNonPublicAddresses: allowNonPublicAddresses,
+		AllowedHosts:            allowedHosts,
 		Sink:                    "oauth.client_id_metadata_document",
 	})
 }
@@ -108,14 +112,8 @@ func newCIMDHTTPClient(allowNonPublicAddresses bool) *http.Client {
 // GET against an attacker-chosen client_id URL.
 type Fetcher struct {
 	HTTPClients *CIMDHTTPClients
-	// HTTPFeatureConfig supplies http.insecure_fetch_address_allowed, which is
-	// shared with every other fetch of a URL this deployment did not choose.
-	// Already fanned out by wire (pkg/lib/deps/deps_config.go).
-	//
-	// http.insecure_fetch_address_allowed_hosts is deliberately NOT consulted
-	// here: it names hosts an operator trusts, and a client_id is chosen by an
-	// unauthenticated third party, who would otherwise simply point one at an
-	// allowlisted host. CIMD's own trust control is allowed_domains.
+	// HTTPFeatureConfig supplies http.insecure_fetch_address_allowed. The
+	// host allowlist is applied by the clients themselves.
 	HTTPFeatureConfig *config.HTTPFeatureConfig
 	// AppID is read only by clientFor's warning log.
 	AppID config.AppID

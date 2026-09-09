@@ -46,6 +46,15 @@ type NetIPResolver interface {
 type SafeDialer struct {
 	Resolver                NetIPResolver // nil means net.DefaultResolver
 	AllowNonPublicAddresses bool
+	// AllowedHosts names the hosts exempt from the address rules, matched by
+	// MatchHostPattern. It is the narrow alternative to AllowNonPublicAddresses:
+	// an operator naming their own internal receiver, rather than opening every
+	// non-public address.
+	//
+	// Exempting a host also exempts it from the rebinding protection, since
+	// whatever it resolves to is accepted. That is inherent to naming a host you
+	// trust, and is why the list must never contain a host someone else chooses.
+	AllowedHosts []string
 	// DialTimeout bounds the connect itself. Zero means no dial-specific
 	// deadline, leaving whatever the context and http.Client.Timeout impose.
 	DialTimeout time.Duration
@@ -83,12 +92,17 @@ func (d *SafeDialer) dialContext(ctx context.Context, network, addr string) (net
 		return nil, err
 	}
 
+	// Matched against the host as written, before any resolution, because that
+	// is the thing an operator named. An exempt host still resolves through the
+	// same path; only the address rules are skipped for it.
+	exempt := MatchHostPattern(d.AllowedHosts, host)
+
 	// An IP-literal host never goes through DNS.
 	if literal, err := netip.ParseAddr(host); err == nil {
-		if !d.allow(literal) {
+		if !exempt && !d.allow(literal) {
 			return nil, ErrBlockedAddress
 		}
-		return d.dial(ctx, network, netip.AddrPortFrom(literal, uint16(portNum)))
+		return d.dial(ctx, network, netip.AddrPortFrom(literal, uint16(portNum)), exempt)
 	}
 
 	resolver := d.Resolver
@@ -102,9 +116,11 @@ func (d *SafeDialer) dialContext(ctx context.Context, network, addr string) (net
 	if len(addrs) == 0 {
 		return nil, ErrBlockedAddress
 	}
-	for _, a := range addrs {
-		if !d.allow(a) {
-			return nil, ErrBlockedAddress
+	if !exempt {
+		for _, a := range addrs {
+			if !d.allow(a) {
+				return nil, ErrBlockedAddress
+			}
 		}
 	}
 
@@ -113,7 +129,7 @@ func (d *SafeDialer) dialContext(ctx context.Context, network, addr string) (net
 	// working.
 	var lastErr error
 	for _, a := range addrs {
-		conn, err := d.dial(ctx, network, netip.AddrPortFrom(a, uint16(portNum)))
+		conn, err := d.dial(ctx, network, netip.AddrPortFrom(a, uint16(portNum)), exempt)
 		if err == nil {
 			return conn, nil
 		}
@@ -135,10 +151,13 @@ func (d *SafeDialer) allow(addr netip.Addr) bool {
 // hostname-based dialling cannot silently reopen the DNS-rebinding hole.
 //
 // Only network values "tcp", "tcp4" and "tcp6" occur here.
-func (d *SafeDialer) dial(ctx context.Context, network string, ap netip.AddrPort) (net.Conn, error) {
+func (d *SafeDialer) dial(ctx context.Context, network string, ap netip.AddrPort, exempt bool) (net.Conn, error) {
 	dialer := &net.Dialer{
 		Timeout: d.DialTimeout,
 		Control: func(network, address string, c syscall.RawConn) error {
+			if exempt {
+				return nil
+			}
 			parsed, err := netip.ParseAddrPort(address)
 			if err != nil {
 				return err

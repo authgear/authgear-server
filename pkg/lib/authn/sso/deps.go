@@ -62,6 +62,7 @@ func ProvideOAuthHTTPClient(env *config.EnvironmentConfig, f *config.HTTPFeature
 	return OAuthHTTPClient{
 		httputil.NewSSRFSafeExternalClient(5*time.Second, httputil.SSRFSafeExternalClientOptions{
 			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
 			Sink:                    "sso.oauth.providers.discovery_document_endpoint",
 		}),
 	}

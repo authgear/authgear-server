@@ -1269,7 +1269,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	oAuthFeatureConfig := featureConfig.OAuth
-	cimdhttpClients := cimd.ProvideCIMDHTTPClients()
+	cimdhttpClients := cimd.ProvideCIMDHTTPClients(httpFeatureConfig)
 	fetcher := &cimd.Fetcher{
 		HTTPClients:       cimdhttpClients,
 		HTTPFeatureConfig: httpFeatureConfig,
@@ -2330,7 +2330,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	oAuthFeatureConfig := featureConfig.OAuth
-	cimdhttpClients := cimd.ProvideCIMDHTTPClients()
+	cimdhttpClients := cimd.ProvideCIMDHTTPClients(httpFeatureConfig)
 	fetcher := &cimd.Fetcher{
 		HTTPClients:       cimdhttpClients,
 		HTTPFeatureConfig: httpFeatureConfig,
@@ -48192,10 +48192,10 @@ func newWebAppClientLogoHandler(p *deps.RequestProvider) http.Handler {
 		TesterEndpoints: endpointsEndpoints,
 		Queries:         queries,
 	}
-	cimdhttpClients := cimd.ProvideCIMDHTTPClients()
 	featureConfig := config.FeatureConfig
-	oAuthFeatureConfig := featureConfig.OAuth
 	httpFeatureConfig := featureConfig.HTTP
+	cimdhttpClients := cimd.ProvideCIMDHTTPClients(httpFeatureConfig)
+	oAuthFeatureConfig := featureConfig.OAuth
 	logoFetcher := &cimd.LogoFetcher{
 		HTTPClients:        cimdhttpClients,
 		OAuthFeatureConfig: oAuthFeatureConfig,

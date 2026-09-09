@@ -58,6 +58,7 @@ func NewHookHTTPClient(cfg *config.ProofOfPhoneNumberVerificationHookConfig, f *
 	return HookHTTPClient{
 		httputil.NewSSRFSafeExternalClient(cfg.Timeout.Duration(), httputil.SSRFSafeExternalClientOptions{
 			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
 			Sink:                    "proof_of_phone_number_verification.hook.url",
 		}),
 	}

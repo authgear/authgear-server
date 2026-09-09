@@ -18,6 +18,7 @@ func NewSyncHTTPClient(c *config.HookConfig, f *config.HTTPFeatureConfig) SyncHT
 	return SyncHTTPClient{
 		httputil.NewSSRFSafeExternalClient(c.SyncTimeout.Duration(), httputil.SSRFSafeExternalClientOptions{
 			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
 			Sink:                    "hook.blocking_handlers",
 		}),
 	}
@@ -31,6 +32,7 @@ func NewAsyncHTTPClient(f *config.HTTPFeatureConfig) AsyncHTTPClient {
 	return AsyncHTTPClient{
 		httputil.NewSSRFSafeExternalClient(60*time.Second, httputil.SSRFSafeExternalClientOptions{
 			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
 			Sink:                    "hook.non_blocking_handlers",
 		}),
 	}

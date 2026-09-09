@@ -41,6 +41,7 @@ func NewHookHTTPClient(timeout SMSHookTimeout, f *config.HTTPFeatureConfig) Hook
 	return HookHTTPClientImpl{
 		utilhttputil.NewSSRFSafeExternalClient(timeout.Timeout, utilhttputil.SSRFSafeExternalClientOptions{
 			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
 			Sink:                    "messaging.custom_sms_provider.url",
 		}),
 	}

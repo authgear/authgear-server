@@ -58,6 +58,7 @@ func NewHookHTTPClient(cfg *config.AccountMigrationHookConfig, f *config.HTTPFea
 	return HookHTTPClient{
 		httputil.NewSSRFSafeExternalClient(cfg.Timeout.Duration(), httputil.SSRFSafeExternalClientOptions{
 			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
 			Sink:                    "account_migration.hook.url",
 		}),
 	}

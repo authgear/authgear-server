@@ -17,6 +17,10 @@ configs:
         custom_ui_enabled: true
   - http:
       insecure_fetch_address_allowed: true
+  - http:
+      insecure_fetch_address_allowed_hosts:
+        - hooks.internal.example.com
+        - "*.svc.cluster.local"
   - oauth:
       client_id_metadata_document:
         insecure_http_allowed: true
@@ -200,6 +204,9 @@ result:
       maximum: 7
   http:
     insecure_fetch_address_allowed: true
+    insecure_fetch_address_allowed_hosts:
+      - hooks.internal.example.com
+      - "*.svc.cluster.local"
   admin_api:
     create_session_enabled: true
     user_import_usage:

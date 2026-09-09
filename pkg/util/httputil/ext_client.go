@@ -46,9 +46,12 @@ func noFollowRedirectPolicy(*http.Request, []*http.Request) error {
 // SSRFSafeExternalClientOptions configures NewSSRFSafeExternalClient.
 type SSRFSafeExternalClientOptions struct {
 	// AllowNonPublicAddresses lifts the address restriction entirely. It
-	// carries http.insecure_fetch_address_allowed, and nothing else may widen
-	// the policy.
+	// carries http.insecure_fetch_address_allowed.
 	AllowNonPublicAddresses bool
+	// AllowedHosts exempts named hosts from the restriction, carrying
+	// http.insecure_fetch_address_allowed_hosts. Nothing else may widen the
+	// policy.
+	AllowedHosts []string
 	// Sink names the configuration that chose the URL, e.g.
 	// "hook.blocking_handlers". It appears in the log a refusal writes, so
 	// that the message says which setting to go and fix.
@@ -73,6 +76,7 @@ type SSRFSafeExternalClientOptions struct {
 func NewSSRFSafeExternalClient(timeout time.Duration, opts SSRFSafeExternalClientOptions) *http.Client {
 	dialer := &SafeDialer{
 		AllowNonPublicAddresses: opts.AllowNonPublicAddresses,
+		AllowedHosts:            opts.AllowedHosts,
 		DialTimeout:             timeout,
 		Sink:                    opts.Sink,
 	}

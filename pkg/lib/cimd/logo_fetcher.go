@@ -57,8 +57,7 @@ type LogoFetcher struct {
 	HTTPClients *CIMDHTTPClients
 	// OAuthFeatureConfig supplies insecure_http_allowed.
 	OAuthFeatureConfig *config.OAuthFeatureConfig
-	// HTTPFeatureConfig supplies http.insecure_fetch_address_allowed. See
-	// Fetcher for why the host allowlist is not consulted here either.
+	// HTTPFeatureConfig supplies http.insecure_fetch_address_allowed.
 	HTTPFeatureConfig *config.HTTPFeatureConfig
 	// AppID is read only by clientFor's warning log.
 	AppID config.AppID

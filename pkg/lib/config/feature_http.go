@@ -5,7 +5,11 @@ var _ = FeatureConfigSchema.Add("HTTPFeatureConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"insecure_fetch_address_allowed": { "type": "boolean" }
+		"insecure_fetch_address_allowed": { "type": "boolean" },
+		"insecure_fetch_address_allowed_hosts": {
+			"type": "array",
+			"items": { "type": "string", "minLength": 1 }
+		}
 	}
 }
 `)
@@ -31,6 +35,17 @@ type HTTPFeatureConfig struct {
 	// exists; a deployment serving projects it does not control should leave
 	// it off.
 	InsecureFetchAddressAllowed *bool `json:"insecure_fetch_address_allowed,omitempty"`
+	// InsecureFetchAddressAllowedHosts names the hosts exempt from the
+	// restriction, so that an operator can allow their own internal receiver
+	// without allowing every non-public address.
+	//
+	// A hostname, or a leading "*." matching exactly one label. Matched against
+	// the host as configured, before resolution, so whatever the host resolves
+	// to is then accepted -- list only hosts this deployment controls.
+	//
+	// omitzero, not omitempty: nil means "not set, inherit" while an explicit
+	// [] means "clear what a lower layer set", and those must stay distinct.
+	InsecureFetchAddressAllowedHosts []string `json:"insecure_fetch_address_allowed_hosts,omitzero"`
 }
 
 func (c *HTTPFeatureConfig) SetDefaults() {
@@ -41,6 +56,13 @@ func (c *HTTPFeatureConfig) SetDefaults() {
 
 func (c *HTTPFeatureConfig) IsInsecureFetchAddressAllowed() bool {
 	return c != nil && c.InsecureFetchAddressAllowed != nil && *c.InsecureFetchAddressAllowed
+}
+
+func (c *HTTPFeatureConfig) GetInsecureFetchAddressAllowedHosts() []string {
+	if c == nil {
+		return nil
+	}
+	return c.InsecureFetchAddressAllowedHosts
 }
 
 var _ MergeableFeatureConfig = &HTTPFeatureConfig{}
@@ -61,6 +83,9 @@ func (c *HTTPFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
 
 	if layer.HTTP.InsecureFetchAddressAllowed != nil {
 		merged.InsecureFetchAddressAllowed = layer.HTTP.InsecureFetchAddressAllowed
+	}
+	if layer.HTTP.InsecureFetchAddressAllowedHosts != nil {
+		merged.InsecureFetchAddressAllowedHosts = layer.HTTP.InsecureFetchAddressAllowedHosts
 	}
 
 	return merged
