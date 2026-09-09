@@ -9,7 +9,6 @@ authgear.features.yaml:
     oauth:
       client_id_metadata_document:
         insecure_http_allowed: true
-        insecure_fetch_address_allowed: true
 steps:
   - name: configure_document
     action: http_request

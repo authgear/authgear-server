@@ -63,7 +63,6 @@ oauth:
     app2app_enabled: false
   client_id_metadata_document:
     insecure_http_allowed: false
-    insecure_fetch_address_allowed: false
     rate_limits:
       fetch:
         per_project:

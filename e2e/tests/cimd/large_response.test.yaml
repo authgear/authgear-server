@@ -9,7 +9,6 @@ authgear.features.yaml:
     oauth:
       client_id_metadata_document:
         insecure_http_allowed: true
-        insecure_fetch_address_allowed: true
 steps:
   # A ~4KB response body, well under MaxDocumentBytes (5120, unit-tested
   # precisely at the byte boundary in fetcher_test.go) but far larger than

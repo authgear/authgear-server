@@ -180,9 +180,9 @@ func newDocumentServer(handler http.HandlerFunc) *documentServer {
 // policy.
 func fetcherFor(ds *documentServer) *cimd.Fetcher {
 	return &cimd.Fetcher{
-		HTTPClients:        &cimd.CIMDHTTPClients{Strict: ds.Client(), Insecure: ds.Client()},
-		OAuthFeatureConfig: &config.OAuthFeatureConfig{},
-		AppID:              "test-app",
+		HTTPClients:       &cimd.CIMDHTTPClients{Strict: ds.Client(), Insecure: ds.Client()},
+		HTTPFeatureConfig: &config.HTTPFeatureConfig{},
+		AppID:             "test-app",
 	}
 }
 

@@ -1271,9 +1271,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	oAuthFeatureConfig := featureConfig.OAuth
 	cimdhttpClients := cimd.ProvideCIMDHTTPClients()
 	fetcher := &cimd.Fetcher{
-		HTTPClients:        cimdhttpClients,
-		OAuthFeatureConfig: oAuthFeatureConfig,
-		AppID:              appID,
+		HTTPClients:       cimdhttpClients,
+		HTTPFeatureConfig: httpFeatureConfig,
+		AppID:             appID,
 	}
 	oauthclientCommands := &oauthclient.Commands{
 		Store:    oauthclientStore,
@@ -2332,9 +2332,9 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	oAuthFeatureConfig := featureConfig.OAuth
 	cimdhttpClients := cimd.ProvideCIMDHTTPClients()
 	fetcher := &cimd.Fetcher{
-		HTTPClients:        cimdhttpClients,
-		OAuthFeatureConfig: oAuthFeatureConfig,
-		AppID:              appID,
+		HTTPClients:       cimdhttpClients,
+		HTTPFeatureConfig: httpFeatureConfig,
+		AppID:             appID,
 	}
 	oauthclientCommands := &oauthclient.Commands{
 		Store:    oauthclientStore,
@@ -48195,9 +48195,11 @@ func newWebAppClientLogoHandler(p *deps.RequestProvider) http.Handler {
 	cimdhttpClients := cimd.ProvideCIMDHTTPClients()
 	featureConfig := config.FeatureConfig
 	oAuthFeatureConfig := featureConfig.OAuth
+	httpFeatureConfig := featureConfig.HTTP
 	logoFetcher := &cimd.LogoFetcher{
 		HTTPClients:        cimdhttpClients,
 		OAuthFeatureConfig: oAuthFeatureConfig,
+		HTTPFeatureConfig:  httpFeatureConfig,
 		AppID:              appID,
 	}
 	fetchSingleFlight := &cimd.FetchSingleFlight{
@@ -48488,7 +48490,6 @@ func newWebAppClientLogoHandler(p *deps.RequestProvider) http.Handler {
 	webHookImpl := hook.WebHookImpl{
 		Secret: webhookKeyMaterials,
 	}
-	httpFeatureConfig := featureConfig.HTTP
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig, httpFeatureConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient(httpFeatureConfig)
 	eventWebHookImpl := &hook.EventWebHookImpl{

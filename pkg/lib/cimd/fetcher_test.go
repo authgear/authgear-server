@@ -404,7 +404,7 @@ func TestFetcherClientFor(t *testing.T) {
 		Convey("feature config absent -> Strict, nothing logged", func() {
 			var buf bytes.Buffer
 			ctx := slogutil.SetContextLogger(context.Background(), slog.New(slogutil.NewHandlerForTesting(slog.LevelWarn, &buf)))
-			f := &Fetcher{HTTPClients: clients, OAuthFeatureConfig: nil, AppID: "test-app"}
+			f := &Fetcher{HTTPClients: clients, HTTPFeatureConfig: nil, AppID: "test-app"}
 
 			got := f.clientFor(ctx, u)
 			So(got, ShouldEqual, strict)
@@ -416,10 +416,8 @@ func TestFetcherClientFor(t *testing.T) {
 			ctx := slogutil.SetContextLogger(context.Background(), slog.New(slogutil.NewHandlerForTesting(slog.LevelWarn, &buf)))
 			f := &Fetcher{
 				HTTPClients: clients,
-				OAuthFeatureConfig: &config.OAuthFeatureConfig{
-					ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentFeatureConfig{
-						InsecureFetchAddressAllowed: new(false),
-					},
+				HTTPFeatureConfig: &config.HTTPFeatureConfig{
+					InsecureFetchAddressAllowed: new(false),
 				},
 				AppID: "test-app",
 			}
@@ -434,10 +432,8 @@ func TestFetcherClientFor(t *testing.T) {
 			ctx := slogutil.SetContextLogger(context.Background(), slog.New(slogutil.NewHandlerForTesting(slog.LevelWarn, &buf)))
 			f := &Fetcher{
 				HTTPClients: clients,
-				OAuthFeatureConfig: &config.OAuthFeatureConfig{
-					ClientIDMetadataDocument: &config.OAuthClientIDMetadataDocumentFeatureConfig{
-						InsecureFetchAddressAllowed: new(true),
-					},
+				HTTPFeatureConfig: &config.HTTPFeatureConfig{
+					InsecureFetchAddressAllowed: new(true),
 				},
 				AppID: "test-app",
 			}
@@ -447,7 +443,7 @@ func TestFetcherClientFor(t *testing.T) {
 			logged := buf.String()
 			So(logged, ShouldContainSubstring, "test-app")
 			So(logged, ShouldContainSubstring, "mcp-client.example.com")
-			So(logged, ShouldContainSubstring, "oauth.client_id_metadata_document.insecure_fetch_address_allowed")
+			So(logged, ShouldContainSubstring, "http.insecure_fetch_address_allowed")
 		})
 	})
 }

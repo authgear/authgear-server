@@ -87,35 +87,20 @@ func ProvideCIMDHTTPClients() *CIMDHTTPClients {
 	}
 }
 
-// newCIMDHTTPClient builds one of the two http.Clients used for CIMD
-// fetches. It reuses httputil.NewExternalClientWithOptions so the fetch is
-// otel-instrumented and non-redirect-following on the same code path as
-// every other outbound call in the repo, and supplies the SSRF-safe
-// transport underneath.
+// newCIMDHTTPClient builds one of the two http.Clients used for CIMD fetches.
+// It is httputil.NewSSRFSafeExternalClient, the same client every other fetch
+// of a URL this deployment did not choose uses -- which is where the address
+// rules, the no-proxy transport, the no-redirect policy and the refusal log
+// all come from.
 //
-// FollowRedirect: false gives CheckRedirect = ErrUseLastResponse, so a 3xx
-// is returned as a response rather than followed; Fetch's 2xx check then
-// rejects it. docs/specs/cimd.md § SSRF Protection: "Follow 0 redirects --
-// a redirect target hasn't been through Client ID Format validation, and
-// would otherwise let the previous two rules be bypassed."
+// No redirects: docs/specs/cimd.md § SSRF Protection, "Follow 0 redirects -- a
+// redirect target hasn't been through Client ID Format validation". A 3xx is
+// returned as a response rather than followed, and Fetch's 2xx check rejects
+// it.
 func newCIMDHTTPClient(allowNonPublicAddresses bool) *http.Client {
-	dialer := &SafeDialer{AllowNonPublicAddresses: allowNonPublicAddresses, DialTimeout: FetchTimeout}
-	transport := &http.Transport{
-		DialContext:           dialer.DialContext,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConnsPerHost:   2,
-		IdleConnTimeout:       30 * time.Second,
-		TLSHandshakeTimeout:   FetchTimeout,
-		ResponseHeaderTimeout: FetchTimeout,
-		// No Proxy. http.ProxyFromEnvironment would route the request
-		// through a proxy chosen by the environment, and the proxy -- not
-		// this dialer -- would then do the name resolution, silently
-		// bypassing every rule above.
-		Proxy: nil,
-	}
-	return httputil.NewExternalClientWithOptions(FetchTimeout, httputil.ExternalClientOptions{
-		FollowRedirect: false,
-		Transport:      transport,
+	return httputil.NewSSRFSafeExternalClient(FetchTimeout, httputil.SSRFSafeExternalClientOptions{
+		AllowNonPublicAddresses: allowNonPublicAddresses,
+		Sink:                    "oauth.client_id_metadata_document",
 	})
 }
 
@@ -123,9 +108,15 @@ func newCIMDHTTPClient(allowNonPublicAddresses bool) *http.Client {
 // GET against an attacker-chosen client_id URL.
 type Fetcher struct {
 	HTTPClients *CIMDHTTPClients
-	// OAuthFeatureConfig supplies insecure_fetch_address_allowed. Already
-	// fanned out by wire (pkg/lib/deps/deps_config.go:74).
-	OAuthFeatureConfig *config.OAuthFeatureConfig
+	// HTTPFeatureConfig supplies http.insecure_fetch_address_allowed, which is
+	// shared with every other fetch of a URL this deployment did not choose.
+	// Already fanned out by wire (pkg/lib/deps/deps_config.go).
+	//
+	// http.insecure_fetch_address_allowed_hosts is deliberately NOT consulted
+	// here: it names hosts an operator trusts, and a client_id is chosen by an
+	// unauthenticated third party, who would otherwise simply point one at an
+	// allowlisted host. CIMD's own trust control is allowed_domains.
+	HTTPFeatureConfig *config.HTTPFeatureConfig
 	// AppID is read only by clientFor's warning log.
 	AppID config.AppID
 }
@@ -179,11 +170,11 @@ func (f *Fetcher) Fetch(ctx context.Context, u *url.URL) ([]byte, error) {
 
 // clientFor selects the strict or the permissive transport for this
 // project. This is the ONLY place in the CIMD fetch path that reads
-// insecure_fetch_address_allowed; everything else takes a client. A
+// http.insecure_fetch_address_allowed; everything else takes a client. A
 // reviewer auditing "when can Authgear reach a private address" reads this
 // function and nothing else.
 func (f *Fetcher) clientFor(ctx context.Context, u *url.URL) *http.Client {
-	if !f.OAuthFeatureConfig.GetClientIDMetadataDocument().IsInsecureFetchAddressAllowed() {
+	if !f.HTTPFeatureConfig.IsInsecureFetchAddressAllowed() {
 		return f.HTTPClients.Strict
 	}
 	// Without this log, a flag left set on a deployed project is completely
@@ -195,7 +186,7 @@ func (f *Fetcher) clientFor(ctx context.Context, u *url.URL) *http.Client {
 	logger.Warn(ctx, "cimd: fetching with SSRF address protection disabled",
 		slog.String("app_id", string(f.AppID)),
 		slog.String("host", u.Hostname()),
-		slog.String("flag", "oauth.client_id_metadata_document.insecure_fetch_address_allowed"),
+		slog.String("flag", httputil.InsecureFetchAddressAllowedFlag),
 	)
 	return f.HTTPClients.Insecure
 }

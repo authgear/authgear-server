@@ -15,9 +15,6 @@ configs:
   - oauth:
       client:
         custom_ui_enabled: true
-  - oauth:
-      client_id_metadata_document:
-        insecure_fetch_address_allowed: true
   - http:
       insecure_fetch_address_allowed: true
   - oauth:
@@ -227,7 +224,6 @@ result:
       custom_ui_enabled: true
       app2app_enabled: false
     client_id_metadata_document:
-      insecure_fetch_address_allowed: true
       insecure_http_allowed: true
       rate_limits:
         fetch:
