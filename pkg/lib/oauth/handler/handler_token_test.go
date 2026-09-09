@@ -461,7 +461,6 @@ func TestTokenHandler(t *testing.T) {
 				So(body, ShouldNotContainKey, "refresh_token")
 			})
 
-
 			Convey("a rate limited exchange does not consume the code", func() {
 				// The user being throttled is the legitimate client. It has to
 				// be able to retry the exchange rather than restart the whole
