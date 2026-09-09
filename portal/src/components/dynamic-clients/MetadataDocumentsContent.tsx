@@ -344,8 +344,8 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
                 id="MetadataDocumentsContent.enable.description"
                 values={{
                   // eslint-disable-next-line react/no-unstable-nested-components
-                  mcpLink: (chunks: React.ReactNode) => (
-                    <ExternalLink href="https://docs.authgear.com/get-started/auth-for-mcp">
+                  cimdLink: (chunks: React.ReactNode) => (
+                    <ExternalLink href="https://docs.authgear.com/integration/client-id-metadata-document">
                       {chunks}
                     </ExternalLink>
                   ),

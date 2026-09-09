@@ -7,6 +7,7 @@ import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import PortalLink from "../../Link";
+import ExternalLink from "../../ExternalLink";
 import FormContainer from "../../FormContainer";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
@@ -140,7 +141,17 @@ const PageHeader: React.VFC = function PageHeader() {
         <FormattedMessage id="AIAgentsScreen.title" />
       </Heading>
       <Text as="p" size="2" color="gray" className={styles.pageDescription}>
-        <FormattedMessage id="AIAgentsScreen.description" />
+        <FormattedMessage
+          id="AIAgentsScreen.description"
+          values={{
+            // eslint-disable-next-line react/no-unstable-nested-components
+            mcpLink: (chunks: React.ReactNode) => (
+              <ExternalLink href="https://docs.authgear.com/get-started/auth-for-mcp">
+                {chunks}
+              </ExternalLink>
+            ),
+          }}
+        />
       </Text>
     </div>
   );
