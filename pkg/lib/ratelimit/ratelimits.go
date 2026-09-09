@@ -54,6 +54,9 @@ const (
 
 	// Client ID Metadata Document / DCR client logo rate limits
 	RateLimitGroupOAuthCIMDLogo RateLimitGroup = "oauth.cimd_logo"
+
+	// Admin API rate limits
+	RateLimitGroupAdminAPIMutation RateLimitGroup = "admin_api.mutation"
 )
 
 const (
@@ -128,6 +131,12 @@ const (
 
 	// Client ID Metadata Document / DCR client logo
 	RateLimitOAuthCIMDLogoPerClient RateLimitName = "oauth.cimd_logo.per_client"
+
+	// Admin API GraphQL mutations.
+	// "all" is the scope covering every mutation field; scopes for individual
+	// mutations may be added alongside it later.
+	RateLimitAdminAPIMutationAllPerProject RateLimitName = "admin_api.mutation.all.per_project"
+	RateLimitAdminAPIMutationAllPerIP      RateLimitName = "admin_api.mutation.all.per_ip"
 )
 
 const (
@@ -218,6 +227,9 @@ const (
 	OAuthClientIDMetadataDocumentFetchPerProject BucketName = "OAuthClientIDMetadataDocumentFetchPerProject"
 
 	OAuthCIMDLogoPerClient BucketName = "OAuthCIMDLogoPerClient"
+
+	AdminAPIMutationAllPerProject BucketName = "AdminAPIMutationAllPerProject"
+	AdminAPIMutationAllPerIP      BucketName = "AdminAPIMutationAllPerIP"
 )
 
 func (n RateLimitGroup) resolvePerIP(cfg *config.AppConfig, featureCfg *config.FeatureConfig) *config.RateLimitConfig {
