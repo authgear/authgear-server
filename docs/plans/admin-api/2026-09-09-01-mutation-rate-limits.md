@@ -493,6 +493,18 @@ Cases to cover:
 2. A query (e.g. fetching the group list) still succeeds after the bucket is exhausted — proving queries are not charged.
 3. A second test file with `per_project: {enabled: false}` and a small `per_ip` burst, proving the buckets trip independently and that `enabled: false` really disables one.
 
+**Multi-field document — `e2e/tests/admin_api/mutation_ratelimit_multi_field.test.yaml` (new).** The property under test is the one that makes per-field charging worth doing at all: a single document carrying several mutation fields must cost one token per field, not one per request. Without it, batching is a 5x bypass of whatever the bucket says.
+
+With `per_project: {enabled: true, period: 1h, burst: 3}` and `per_ip: {enabled: false}`:
+
+1. One document containing three aliased `createGroup` fields succeeds and creates three groups — exhausting the bucket in a single request.
+2. A following single-field `createGroup` is rejected with `TooManyRequest` / `RateLimited`. If tokens were charged per request rather than per field, this fourth request would be the second charge against a burst of 3 and would wrongly succeed — so this assertion is what actually pins the behaviour.
+3. A following query still succeeds, confirming D1 holds on the exhausted bucket.
+
+This is deliberately e2e rather than only a handler unit test: it is the one property that spans parsing, counting, and the atomic multi-token take, and a unit test on any single layer would not catch a regression in the seam between them.
+
+The **ambiguous multi-operation** case from §7.2 (several operations, no `operationName`) stays a Go handler test rather than an e2e case — it asserts that nothing executes, which is a negative that the YAML runner expresses poorly.
+
 Run with `cd e2e && make teardown && make setup`, then `go test ./pkg/testrunner/ -count 1 -v -timeout 10m -run "TestAuthflow/admin_api/mutation_ratelimit"`.
 
 ### 7.7 Gate
