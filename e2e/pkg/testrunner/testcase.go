@@ -945,6 +945,20 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return idToken
 	}
+	templateFuncMap["generateDPoPProof"] = func(htm string, htu string, jti string) string {
+		proof, err := GenerateDPoPProof(htm, htu, jti)
+		if err != nil {
+			panic(err)
+		}
+		return proof
+	}
+	templateFuncMap["generateDPoPJKT"] = func() string {
+		jkt, err := GenerateDPoPJKT()
+		if err != nil {
+			panic(err)
+		}
+		return jkt
+	}
 	templateFuncMap["nodeID"] = func(nodeType string, uuid string) string {
 		return relay.ToGlobalID(nodeType, uuid)
 	}

@@ -1,0 +1,155 @@
+name: DPoP bound authorization code exchange, and proof replay is rejected
+# There was no e2e coverage of DPoP. The proof is signed by a key held by the
+# test, using the generateDPoPProof template function.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # dpop_jkt binds the code to the key the test holds, so the token request
+  # must carry a proof from that same key.
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+      dpop_jkt: "{{ generateDPoPJKT }}"
+    http_output:
+      http_status: 302
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_userinfo_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: get_code
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+
+  # A DPoP bound code exchange succeeds when a fresh proof accompanies it.
+  - name: exchange_code_with_dpop
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_headers:
+      DPoP: "{{ generateDPoPProof \"POST\" (printf \"http://%s.authgeare2e.localhost:4000/oauth2/token\" .AppID) \"dpop-jti-exchange\" }}"
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ (urlParse .steps.get_code.result.http_response_headers.location).query | regexFind \"code=[^&]+\" | trimPrefix \"code=\" }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "refresh_token": "[[string]]",
+          "token_type": "[[string]]"
+        }
+
+  # A proof reusing a jti that has already been seen must be rejected, even
+  # though it is a distinct, correctly signed JWT bound to this same request.
+  # RFC 9449 section 11.1 deduplicates on jti.
+  #
+  # A real DPoP bound refresh token is used, so that the request actually
+  # reaches the point where the proof is consulted. A bogus grant would fail
+  # on the grant first and never exercise the proof at all.
+  - name: replayed_jti_is_rejected
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_headers:
+      DPoP: "{{ generateDPoPProof \"POST\" (printf \"http://%s.authgeare2e.localhost:4000/oauth2/token\" .AppID) \"dpop-jti-exchange\" }}"
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code_with_dpop.result.http_json_body.refresh_token }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_dpop_proof",
+          "access_token": "[[never]]"
+        }
+
+  # The same refresh token with a jti that has not been seen still works, so
+  # the rejection above is the replay check and not DPoP being broken outright.
+  - name: fresh_jti_is_accepted
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_headers:
+      DPoP: "{{ generateDPoPProof \"POST\" (printf \"http://%s.authgeare2e.localhost:4000/oauth2/token\" .AppID) \"dpop-jti-fresh\" }}"
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code_with_dpop.result.http_json_body.refresh_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]"
+        }
