@@ -70,6 +70,10 @@ type SSRFSafeExternalClientOptions struct {
 // enforces that; see its documentation for why the check cannot live in a
 // dialer Control hook alone.
 //
+// It also caps the response body at MaxResponseBytes. A hostile destination
+// that streams without end is as effective against this server as one on an
+// internal address, and neither is the caller's to remember.
+//
 // Not for the clients whose destination this deployment configures -- the Deno
 // hook runner, object storage, an SMS vendor's API. Those legitimately address
 // internal hosts, and must keep using NewExternalClient.
@@ -81,18 +85,21 @@ func NewSSRFSafeExternalClient(timeout time.Duration, opts SSRFSafeExternalClien
 		Sink:                    opts.Sink,
 	}
 	return NewExternalClientWithOptions(timeout, ExternalClientOptions{
-		Transport: &http.Transport{
-			DialContext:           dialer.DialContext,
-			ForceAttemptHTTP2:     true,
-			MaxIdleConnsPerHost:   2,
-			IdleConnTimeout:       30 * time.Second,
-			TLSHandshakeTimeout:   timeout,
-			ResponseHeaderTimeout: timeout,
-			// No Proxy. http.ProxyFromEnvironment would route the request
-			// through a proxy chosen by the environment, and the proxy --
-			// not SafeDialer -- would then resolve the name, silently
-			// bypassing every rule it enforces.
-			Proxy: nil,
+		Transport: &limitedResponseBodyRoundTripper{
+			max: MaxResponseBytes,
+			base: &http.Transport{
+				DialContext:           dialer.DialContext,
+				ForceAttemptHTTP2:     true,
+				MaxIdleConnsPerHost:   2,
+				IdleConnTimeout:       30 * time.Second,
+				TLSHandshakeTimeout:   timeout,
+				ResponseHeaderTimeout: timeout,
+				// No Proxy. http.ProxyFromEnvironment would route the request
+				// through a proxy chosen by the environment, and the proxy --
+				// not SafeDialer -- would then resolve the name, silently
+				// bypassing every rule it enforces.
+				Proxy: nil,
+			},
 		},
 	})
 }

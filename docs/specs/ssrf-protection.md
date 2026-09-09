@@ -33,6 +33,12 @@ IPv4-mapped IPv6 is unmapped first, so `::ffff:127.0.0.1` is refused as loopback
 
 "Publicly routable" excludes loopback, private, link-local, multicast, unspecified, and the other special-use ranges of RFC 6890.
 
+## Response limit
+
+A restricted fetch reads at most **2 MiB** of response body, counted after decompression. Past that the fetch fails the way a malformed response does. Not configurable.
+
+A fetch with a tighter limit of its own keeps it: a CIMD document is capped at 5120 bytes by the OAuth spec, and a CIMD logo at 256 KiB.
+
 ## Configuration
 
 `authgear.features.yaml`, which the portal and the Admin API refuse to write. Only an operator can set either.
