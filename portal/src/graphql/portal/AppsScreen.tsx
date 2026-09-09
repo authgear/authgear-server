@@ -11,7 +11,6 @@ import { Callout } from "../../components/v2/Callout/Callout";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";
-import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ExternalLink from "../../ExternalLink";
 import { useAppListQuery } from "./query/appListQuery";
 import { useViewerQuery } from "./query/viewerQuery";
@@ -23,14 +22,14 @@ import { toTypedID } from "../../util/graphql";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { shouldShowSurvey } from "../../util/survey";
 
-interface AppCardData {
-  appName: string;
+interface AppRowData {
   appID: string;
+  publicOrigin: string;
   url: string;
 }
 
-const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
-  const { appName, appID, url } = props;
+const AppRow: React.VFC<AppRowData> = function AppRow(props: AppRowData) {
+  const { appID, publicOrigin, url } = props;
   const capture = useCapture();
   const onClick = useCallback(() => {
     capture(
@@ -45,12 +44,12 @@ const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
   }, [appID, capture]);
 
   return (
-    <Link to={url} className={styles.card} onClick={onClick}>
-      <Text as="p" size="3" weight="bold" className={styles.cardAppID}>
+    <Link to={url} className={styles.row} onClick={onClick}>
+      <Text as="p" size="2" weight="medium" className={styles.rowAppID}>
         {appID}
       </Text>
-      <Text as="p" size="2" className={styles.cardAppName}>
-        {appName}
+      <Text as="p" size="2" truncate={true} className={styles.rowOrigin}>
+        {publicOrigin}
       </Text>
     </Link>
   );
@@ -69,25 +68,131 @@ function ProjectQuotaMessageBar(
     return null;
   }
   return (
-    <Callout
-      type="info"
-      showCloseButton={false}
-      text={
-        <FormattedMessage
-          id="AppsScreen.project-quota-reached"
-          values={{
-            // eslint-disable-next-line react/no-unstable-nested-components
-            externalLink: (chunks: React.ReactNode) => (
-              <ExternalLink href="https://go.authgear.com/portal-support">
-                {chunks}
-              </ExternalLink>
-            ),
-          }}
-        />
-      }
-    />
+    <div className={styles.quota}>
+      <Callout
+        type="info"
+        showCloseButton={false}
+        text={
+          <FormattedMessage
+            id="AppsScreen.project-quota-reached"
+            values={{
+              // eslint-disable-next-line react/no-unstable-nested-components
+              externalLink: (chunks: React.ReactNode) => (
+                <ExternalLink href="https://go.authgear.com/portal-support">
+                  {chunks}
+                </ExternalLink>
+              ),
+            }}
+          />
+        }
+      />
+    </div>
   );
 }
+
+interface AppListPanelProps {
+  apps: AppListItem[];
+  viewer: Viewer;
+  isAuthgearOnce: boolean;
+  onCreateClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}
+
+// AppListPanel is the presentational part of the projects page: the bordered
+// panel holding the title, the sticky search/create toolbar and the rows. It
+// does no data fetching of its own.
+const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
+  props: AppListPanelProps
+) {
+  const { apps, viewer, isAuthgearOnce, onCreateClick } = props;
+  const { renderToString } = React.useContext(Context);
+  const projectQuotaReached = isProjectQuotaReached(viewer);
+  const createButtonDisabled = projectQuotaReached || isAuthgearOnce;
+
+  const [searchKeyword, setSearchKeyword] = useState("");
+
+  const appRowsData: AppRowData[] = useMemo(() => {
+    // The API returns projects in no particular order; sort them A-Z by ID,
+    // which is the leading column of each row.
+    return [...apps]
+      .sort((a, b) => a.appID.localeCompare(b.appID))
+      .map((app) => {
+        const appID = app.appID;
+        const typedID = toTypedID("App", appID);
+        const relPath = "/project/" + encodeURIComponent(typedID);
+        return {
+          appID,
+          publicOrigin: app.publicOrigin,
+          url: relPath,
+        };
+      });
+  }, [apps]);
+
+  const filteredAppRowsData = useMemo(() => {
+    const keyword = searchKeyword.trim().toLowerCase();
+    if (keyword === "") {
+      return appRowsData;
+    }
+    return appRowsData.filter(
+      (a) =>
+        a.appID.toLowerCase().includes(keyword) ||
+        a.publicOrigin.toLowerCase().includes(keyword)
+    );
+  }, [appRowsData, searchKeyword]);
+
+  const onChangeSearchKeyword = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchKeyword(e.currentTarget.value);
+    },
+    []
+  );
+
+  return (
+    <section className={styles.body}>
+      <div className={styles.panel}>
+        <Heading as="h1" size="6" weight="bold" className={styles.panelTitle}>
+          <FormattedMessage id="AppsScreen.title" />
+        </Heading>
+        <div className={styles.toolbar}>
+          <div className={styles.search}>
+            <TextField
+              size="3"
+              iconStart={TextFieldIcon.MagnifyingGlass}
+              placeholder={renderToString("AppsScreen.search.placeholder")}
+              value={searchKeyword}
+              onChange={onChangeSearchKeyword}
+            />
+          </div>
+          {!isAuthgearOnce ? (
+            <PrimaryButton
+              size="3"
+              onClick={onCreateClick}
+              text={<FormattedMessage id="AppsScreen.create-app" />}
+              disabled={createButtonDisabled}
+            />
+          ) : null}
+        </div>
+        {!isAuthgearOnce ? <ProjectQuotaMessageBar viewer={viewer} /> : null}
+        <section className={styles.list}>
+          {filteredAppRowsData.length > 0 ? (
+            filteredAppRowsData.map((appRowData) => {
+              return <AppRow key={appRowData.appID} {...appRowData} />;
+            })
+          ) : (
+            <Text as="p" size="2" color="gray" className={styles.emptyText}>
+              <FormattedMessage
+                id={
+                  searchKeyword.trim() === ""
+                    ? "AppsScreen.no-projects"
+                    : "AppsScreen.no-search-results"
+                }
+              />
+            </Text>
+          )}
+        </section>
+      </div>
+    </section>
+  );
+};
 
 interface AppListProps {
   apps: AppListItem[] | null;
@@ -96,15 +201,9 @@ interface AppListProps {
 
 const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   const { apps: unfilteredApps, viewer } = props;
-  const { renderToString } = React.useContext(Context);
-  const projectQuotaReached = isProjectQuotaReached(viewer);
   const navigate = useNavigate();
   const systemConfig = useSystemConfig();
   const { authgearAppID, isAuthgearOnce } = systemConfig;
-
-  const [searchKeyword, setSearchKeyword] = useState("");
-
-  const createButtonDisabled = projectQuotaReached || isAuthgearOnce;
 
   const onCreateClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -137,39 +236,6 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
     viewer,
   ]);
 
-  const appCardsData: AppCardData[] = useMemo(() => {
-    return apps.map((app) => {
-      const appID = app.appID;
-      const appOrigin = app.publicOrigin;
-      const typedID = toTypedID("App", appID);
-      const relPath = "/project/" + encodeURIComponent(typedID);
-      return {
-        appID,
-        appName: appOrigin,
-        url: relPath,
-      };
-    });
-  }, [apps]);
-
-  const filteredAppCardsData = useMemo(() => {
-    const keyword = searchKeyword.trim().toLowerCase();
-    if (keyword === "") {
-      return appCardsData;
-    }
-    return appCardsData.filter(
-      (a) =>
-        a.appID.toLowerCase().includes(keyword) ||
-        a.appName.toLowerCase().includes(keyword)
-    );
-  }, [appCardsData, searchKeyword]);
-
-  const onChangeSearchKeyword = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchKeyword(e.currentTarget.value);
-    },
-    []
-  );
-
   if (isAuthgearOnce && apps.length === 1) {
     return (
       <Navigate
@@ -182,50 +248,14 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   return (
     <main className={styles.root}>
       <ScreenHeader showHamburger={false} />
-      <ScreenLayoutScrollView>
-        <section className={styles.body}>
-          <Heading as="h1" size="6" weight="bold">
-            <FormattedMessage id="AppsScreen.title" />
-          </Heading>
-          <div className={styles.toolbar}>
-            <div className={styles.search}>
-              <TextField
-                size="3"
-                iconStart={TextFieldIcon.MagnifyingGlass}
-                placeholder={renderToString("AppsScreen.search.placeholder")}
-                value={searchKeyword}
-                onChange={onChangeSearchKeyword}
-              />
-            </div>
-            {!isAuthgearOnce ? (
-              <PrimaryButton
-                size="3"
-                onClick={onCreateClick}
-                text={<FormattedMessage id="AppsScreen.create-app" />}
-                disabled={createButtonDisabled}
-              />
-            ) : null}
-          </div>
-          {!isAuthgearOnce ? <ProjectQuotaMessageBar viewer={viewer} /> : null}
-          <section className={styles.list}>
-            {filteredAppCardsData.length > 0 ? (
-              filteredAppCardsData.map((appCardData) => {
-                return <AppCard key={appCardData.appID} {...appCardData} />;
-              })
-            ) : (
-              <Text as="p" size="2" color="gray" className={styles.emptyText}>
-                <FormattedMessage
-                  id={
-                    searchKeyword.trim() === ""
-                      ? "AppsScreen.no-projects"
-                      : "AppsScreen.no-search-results"
-                  }
-                />
-              </Text>
-            )}
-          </section>
-        </section>
-      </ScreenLayoutScrollView>
+      <div className={styles.content}>
+        <AppListPanel
+          apps={apps}
+          viewer={viewer}
+          isAuthgearOnce={isAuthgearOnce}
+          onCreateClick={onCreateClick}
+        />
+      </div>
     </main>
   );
 };
