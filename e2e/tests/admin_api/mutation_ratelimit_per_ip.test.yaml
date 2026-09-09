@@ -1,0 +1,76 @@
+name: The Admin API mutation buckets trip independently, and enabled false really disables one
+authgear.features.yaml:
+  override: |
+    admin_api:
+      rate_limits:
+        mutation:
+          all:
+            per_project:
+              enabled: false
+            per_ip:
+              enabled: true
+              period: 1h
+              burst: 1
+steps:
+  - name: create_group_1
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createGroup($key: String!) {
+          createGroup(input: { key: $key, name: "Group" }) {
+            group {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "key": "ratelimit_perip_group_1"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createGroup": {
+              "group": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null,
+          "error": null
+        }
+
+  # per_project is disabled, so the only bucket that can reject is per_ip --
+  # and the rate limit name in the rejection proves which one did.
+  - name: create_group_2_exceeds_per_ip_burst
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createGroup($key: String!) {
+          createGroup(input: { key: $key, name: "Group" }) {
+            group {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "key": "ratelimit_perip_group_2"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": null,
+          "error": {
+            "name": "TooManyRequest",
+            "reason": "RateLimited",
+            "info": {
+              "rate_limit": {
+                "name": "admin_api.mutation.all.per_ip",
+                "group": "admin_api.mutation"
+              }
+            }
+          }
+        }

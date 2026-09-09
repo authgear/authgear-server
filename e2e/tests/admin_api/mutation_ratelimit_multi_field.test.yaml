@@ -1,0 +1,123 @@
+name: A multi-field Admin API mutation document costs one token per field, not one per request
+authgear.features.yaml:
+  override: |
+    admin_api:
+      rate_limits:
+        mutation:
+          all:
+            per_project:
+              enabled: true
+              period: 1h
+              burst: 3
+            per_ip:
+              enabled: false
+steps:
+  # Three aliased mutation fields in one document. Under per-field charging
+  # this exhausts the whole burst of 3 in a single request.
+  - name: create_three_groups_in_one_document
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createGroups($key1: String!, $key2: String!, $key3: String!) {
+          a1: createGroup(input: { key: $key1, name: "Group" }) {
+            group {
+              id
+            }
+          }
+          a2: createGroup(input: { key: $key2, name: "Group" }) {
+            group {
+              id
+            }
+          }
+          a3: createGroup(input: { key: $key3, name: "Group" }) {
+            group {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "key1": "ratelimit_multi_group_1",
+          "key2": "ratelimit_multi_group_2",
+          "key3": "ratelimit_multi_group_3"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "a1": {
+              "group": {
+                "id": "[[string]]"
+              }
+            },
+            "a2": {
+              "group": {
+                "id": "[[string]]"
+              }
+            },
+            "a3": {
+              "group": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null,
+          "error": null
+        }
+
+  # This is the assertion that pins per-field charging. If tokens were charged
+  # per request, this would be the second charge against a burst of 3 and would
+  # wrongly succeed.
+  - name: next_single_mutation_is_rejected
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createGroup($key: String!) {
+          createGroup(input: { key: $key, name: "Group" }) {
+            group {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "key": "ratelimit_multi_group_4"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": null,
+          "error": {
+            "name": "TooManyRequest",
+            "reason": "RateLimited",
+            "info": {
+              "rate_limit": {
+                "name": "admin_api.mutation.all.per_project",
+                "group": "admin_api.mutation"
+              }
+            }
+          }
+        }
+
+  - name: query_still_works_on_the_exhausted_bucket
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          groups(first: 1) {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "errors": null,
+          "error": null
+        }
