@@ -975,7 +975,7 @@
   "EditOAuthClientForm.redirect-uris.label": "Authorized Redirect URIs",
   "EditOAuthClientForm.redirect-uris.description.spa": "After users login, users will be redirected to these URIs. Call the finishAuthentication() method in your code to complete the authentication.",
   "EditOAuthClientForm.redirect-uris.description.traditional-webapp": "After users login, users will be redirected to these URIs. Call the finishAuthentication() method in your code to complete the authentication.",
-  "EditOAuthClientForm.redirect-uris.description.native": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
+  "EditOAuthClientForm.redirect-uris.description.native": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application. If your application receives the response on the loopback interface, register the URI without a port, such as http://127.0.0.1/callback. Any port is then accepted at login time, so the application can listen on a port assigned by the operating system.",
   "EditOAuthClientForm.redirect-uris.description.confidential": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.third-party-app": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
   "EditOAuthClientForm.redirect-uris.description.unspecified": "After users are authenticated, users will be redirected to these URIs. This should be a page in your application.",
