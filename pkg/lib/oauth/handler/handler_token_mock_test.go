@@ -326,18 +326,18 @@ func (m *MockTokenHandlerCodeGrantStore) EXPECT() *MockTokenHandlerCodeGrantStor
 	return m.recorder
 }
 
-// DeleteCodeGrant mocks base method.
-func (m *MockTokenHandlerCodeGrantStore) DeleteCodeGrant(ctx context.Context, g *oauth.CodeGrant) error {
+// ConsumeCodeGrant mocks base method.
+func (m *MockTokenHandlerCodeGrantStore) ConsumeCodeGrant(ctx context.Context, g *oauth.CodeGrant) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCodeGrant", ctx, g)
+	ret := m.ctrl.Call(m, "ConsumeCodeGrant", ctx, g)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteCodeGrant indicates an expected call of DeleteCodeGrant.
-func (mr *MockTokenHandlerCodeGrantStoreMockRecorder) DeleteCodeGrant(ctx, g interface{}) *gomock.Call {
+// ConsumeCodeGrant indicates an expected call of ConsumeCodeGrant.
+func (mr *MockTokenHandlerCodeGrantStoreMockRecorder) ConsumeCodeGrant(ctx, g interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeGrant", reflect.TypeOf((*MockTokenHandlerCodeGrantStore)(nil).DeleteCodeGrant), ctx, g)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeCodeGrant", reflect.TypeOf((*MockTokenHandlerCodeGrantStore)(nil).ConsumeCodeGrant), ctx, g)
 }
 
 // GetCodeGrant mocks base method.
@@ -378,18 +378,18 @@ func (m *MockTokenHandlerSettingsActionGrantStore) EXPECT() *MockTokenHandlerSet
 	return m.recorder
 }
 
-// DeleteSettingsActionGrant mocks base method.
-func (m *MockTokenHandlerSettingsActionGrantStore) DeleteSettingsActionGrant(ctx context.Context, g *oauth.SettingsActionGrant) error {
+// ConsumeSettingsActionGrant mocks base method.
+func (m *MockTokenHandlerSettingsActionGrantStore) ConsumeSettingsActionGrant(ctx context.Context, g *oauth.SettingsActionGrant) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSettingsActionGrant", ctx, g)
+	ret := m.ctrl.Call(m, "ConsumeSettingsActionGrant", ctx, g)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// DeleteSettingsActionGrant indicates an expected call of DeleteSettingsActionGrant.
-func (mr *MockTokenHandlerSettingsActionGrantStoreMockRecorder) DeleteSettingsActionGrant(ctx, g interface{}) *gomock.Call {
+// ConsumeSettingsActionGrant indicates an expected call of ConsumeSettingsActionGrant.
+func (mr *MockTokenHandlerSettingsActionGrantStoreMockRecorder) ConsumeSettingsActionGrant(ctx, g interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSettingsActionGrant", reflect.TypeOf((*MockTokenHandlerSettingsActionGrantStore)(nil).DeleteSettingsActionGrant), ctx, g)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumeSettingsActionGrant", reflect.TypeOf((*MockTokenHandlerSettingsActionGrantStore)(nil).ConsumeSettingsActionGrant), ctx, g)
 }
 
 // GetSettingsActionGrant mocks base method.

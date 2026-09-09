@@ -211,7 +211,7 @@ func (n *NodeUseIdentityAnonymous) GetEffects(goCtx context.Context) ([]interact
 					return err
 				}
 
-				err = ctx.AnonymousUserPromotionCodeStore.DeletePromotionCode(goCtx, codeObj)
+				err = ctx.AnonymousUserPromotionCodeStore.ConsumePromotionCode(goCtx, codeObj)
 				if err != nil {
 					return err
 				}

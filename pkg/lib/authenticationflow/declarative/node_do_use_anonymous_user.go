@@ -148,7 +148,7 @@ func (n *NodeDoUseAnonymousUser) GetEffects(ctx context.Context, deps *authflow.
 					return err
 				}
 
-				err = deps.AnonymousUserPromotionCodeStore.DeletePromotionCode(ctx, codeObj)
+				err = deps.AnonymousUserPromotionCodeStore.ConsumePromotionCode(ctx, codeObj)
 				if err != nil {
 					return err
 				}

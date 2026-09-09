@@ -389,7 +389,7 @@ func TestTokenHandler(t *testing.T) {
 				}
 				codeHash := oauth.HashToken("the-code")
 				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), codeHash).Return(codeGrant, nil)
-				codeGrants.EXPECT().DeleteCodeGrant(gomock.Any(), codeGrant).Return(nil)
+				codeGrants.EXPECT().ConsumeCodeGrant(gomock.Any(), codeGrant).Return(nil)
 
 				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(&oidc.UIInfo{}, nil, nil)
@@ -459,6 +459,95 @@ func TestTokenHandler(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(body["access_token"], ShouldEqual, "access-token")
 				So(body, ShouldNotContainKey, "refresh_token")
+			})
+
+			Convey("a rate limited exchange does not consume the code", func() {
+				// The user being throttled is the legitimate client. It has to
+				// be able to retry the exchange rather than restart the whole
+				// login, so the rate limit is checked while the code is still
+				// intact.
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID:        "app-id",
+					ApplicationType: config.OAuthClientApplicationTypeSPA,
+					RedirectURIs:    []string{"https://example.com/"},
+				}
+
+				verifier := pkce.GenerateS256Verifier()
+				codeGrant := &oauth.CodeGrant{
+					AppID:           appID,
+					AuthorizationID: "authz-id",
+					AuthenticationInfo: authenticationinfo.T{
+						UserID: "user-id",
+					},
+					RedirectURI: "https://example.com/",
+					AuthorizationRequest: protocol.AuthorizationRequest{
+						"client_id":             "app-id",
+						"redirect_uri":          "https://example.com/",
+						"scope":                 "some_scope",
+						"code_challenge":        verifier.Challenge(),
+						"code_challenge_method": "S256",
+					},
+					ExpireAt: clock.NowUTC().Add(time.Hour),
+				}
+
+				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), oauth.HashToken("the-code")).Return(codeGrant, nil)
+				// The code must survive: the rate limit is checked before the
+				// code is spent, so ConsumeCodeGrant is never reached.
+				codeGrants.EXPECT().ConsumeCodeGrant(gomock.Any(), gomock.Any()).Times(0)
+
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
+					AnyTimes().Return(&oidc.UIInfo{}, nil, nil)
+
+				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(&oauth.Authorization{
+					ID:       "authz-id",
+					ClientID: "app-id",
+					UserID:   "user-id",
+					Scopes:   []string{"some_scope"},
+				}, nil)
+
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenGeneralPerIP,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
+				}).Return(nil, nil)
+
+				perUser := ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenPerUser,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenGeneralPerUser,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenGeneral,
+					Arguments:      []string{"user-id"},
+					Period:         time.Minute,
+					Burst:          60,
+					Enabled:        true,
+				}
+				rateLimiter.EXPECT().Allow(gomock.Any(), perUser).Return(ratelimit.NewFailedReservation(perUser), nil)
+
+				// No tokens may be issued.
+				tokenService.EXPECT().IssueOfflineGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"authorization_code"}
+				r["client_id"] = []string{"app-id"}
+				r["code"] = []string{"the-code"}
+				r["redirect_uri"] = []string{"https://example.com/"}
+				r["code_verifier"] = []string{verifier.CodeVerifier}
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 429)
+
+				var body map[string]any
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "x_rate_limited")
+
+				// ConsumeCodeGrant not being called is asserted by the mock's
+				// Times(0) expectation above.
 			})
 		})
 

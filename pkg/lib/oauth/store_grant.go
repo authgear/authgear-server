@@ -12,13 +12,13 @@ import (
 type CodeGrantStore interface {
 	GetCodeGrant(ctx context.Context, codeHash string) (*CodeGrant, error)
 	CreateCodeGrant(ctx context.Context, g *CodeGrant) error
-	DeleteCodeGrant(ctx context.Context, g *CodeGrant) error
+	ConsumeCodeGrant(ctx context.Context, g *CodeGrant) error
 }
 
 type SettingsActionGrantStore interface {
 	GetSettingsActionGrant(ctx context.Context, codeHash string) (*SettingsActionGrant, error)
 	CreateSettingsActionGrant(ctx context.Context, g *SettingsActionGrant) error
-	DeleteSettingsActionGrant(ctx context.Context, g *SettingsActionGrant) error
+	ConsumeSettingsActionGrant(ctx context.Context, g *SettingsActionGrant) error
 }
 
 type AddOfflineGrantRefreshTokenOptions struct {

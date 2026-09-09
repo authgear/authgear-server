@@ -29,16 +29,14 @@ func (m *mockCodeGrantStore) CreateCodeGrant(ctx context.Context, grant *oauth.C
 	return nil
 }
 
-func (m *mockCodeGrantStore) DeleteCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
-	n := 0
-	for _, g := range m.grants {
-		if g.CodeHash != grant.CodeHash {
-			m.grants[n] = g
-			n++
+func (m *mockCodeGrantStore) ConsumeCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
+	for i, g := range m.grants {
+		if g.CodeHash == grant.CodeHash {
+			m.grants = append(m.grants[:i], m.grants[i+1:]...)
+			return nil
 		}
 	}
-	m.grants = m.grants[:n]
-	return nil
+	return oauth.ErrGrantNotFound
 }
 
 type mockAuthenticationInfoService struct {
