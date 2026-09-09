@@ -161,8 +161,19 @@ bounded only by how fast it could issue requests.
 **What is counted.** One token per **top-level mutation field** of the executed
 operation, taken before the operation is executed. A GraphQL document may carry
 several mutation fields, and aliases allow the same field to repeat, so charging
-per HTTP request would make batching a free bypass — a 100-field document costs
-100 tokens, not 1.
+per HTTP request would let batching buy writes at a discount. That discount is
+bounded but real: `graphqlutil` already refuses a document with more than
+`maxMutationFieldsPerRequest` (5) top-level mutation fields, so per-request
+charging would understate the cost of a maximal document fivefold. Fields
+reached through a fragment spread are counted as the fields they expand to.
+
+Two consequences of that cap are worth stating. `n` is always between 1 and 5
+when it reaches the limiter, so an `n`-token take is never large. And because
+the token-bucket script only writes when the whole take conforms — and so never
+improves the bucket's state when it does not — a document with more mutation
+fields than `burst` can never succeed, on an empty bucket or otherwise. That is
+unreachable at the default (5 ≤ 300) and only becomes reachable if a tier
+configures `burst` below 5, which no tier should.
 
 **What is not counted.** Queries are excluded. A single portal screen fires many
 queries and one mutation, so a bucket sized for legitimate mutation volume would
