@@ -77,7 +77,7 @@
     "ts-jest": "^29.4.5",
     "typescript": "^5.9.3",
     "vite": "^8.0.0",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",
