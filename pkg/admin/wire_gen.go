@@ -1434,8 +1434,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DCRFacade:             dcrFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
-		GraphQLContext: graphqlContext,
-		AppDatabase:    handle,
+		GraphQLContext:        graphqlContext,
+		AppDatabase:           handle,
+		RateLimiter:           limiter,
+		RemoteIP:              remoteIP,
+		AdminAPIFeatureConfig: adminAPIFeatureConfig,
 	}
 	return graphQLHandler
 }
