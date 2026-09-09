@@ -191,6 +191,25 @@ consumed on every field; exceeding either fails the whole operation with
 `rate_limit.group` in the error details, and emits a
 [`rate_limit.blocked`](./event.md#rate_limitblocked) audit log.
 
+The rejection is **not** shaped like a GraphQL error. It happens before the
+operation reaches the executor, so the response is the standard API error
+envelope with HTTP 429 —
+
+```json
+{ "error": { "name": "TooManyRequest", "reason": "RateLimited", "code": 429, "info": { "rate_limit": { "name": "admin_api.mutation.all.per_ip", "group": "admin_api.mutation" } } } }
+```
+
+— rather than a 200 carrying an `errors` array. This matches how the Admin API
+already reports a document exceeding `maxMutationFieldsPerRequest`, but it
+differs from every error raised *during* execution, so a client that only reads
+`errors` will see a rate limit rejection as an empty response. Read the HTTP
+status.
+
+Authorization runs first. The Admin API's authz middleware sits ahead of this
+handler in the route chain, so a request without a valid Admin API key is
+refused before any token is taken — an unauthenticated caller cannot drain a
+project's buckets.
+
 | Bucket                               | Scope                    | Default    |
 | ------------------------------------ | ------------------------ | ---------- |
 | `admin_api.mutation.all.per_project` | Per project (`app_id`)   | 300/minute |
