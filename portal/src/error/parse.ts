@@ -39,6 +39,15 @@ export function parseRawError(error: unknown): APIError[] {
           reason: "RequestEntityTooLarge",
           errorName: "RequestEntityTooLarge",
         });
+      } else if ((error.networkError as ServerError).statusCode === 429) {
+        // A rate limited request is rejected before it reaches the GraphQL
+        // executor, so it comes back as HTTP 429 carrying the API error
+        // envelope rather than as an entry in the GraphQL errors array.
+        // Without this it would be reported as a network failure.
+        errors.push({
+          reason: "RateLimited",
+          errorName: "TooManyRequest",
+        });
       } else {
         errors.push({ reason: "NetworkFailed", errorName: "NetworkFailed" });
       }
@@ -220,6 +229,10 @@ function parseError(error: APIError): ParsedAPIError[] {
       break;
     case "RequestEntityTooLarge":
       errors.push({ messageID: "errors.request-entity-too-large" });
+      break;
+    case "RateLimited":
+    case "TooManyRequest":
+      errors.push({ messageID: "errors.rate-limited" });
       break;
     case "Unknown":
       errors.push({
