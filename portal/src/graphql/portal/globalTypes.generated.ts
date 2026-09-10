@@ -632,7 +632,7 @@ export type Query = {
   __typename?: 'Query';
   /** Active users chart dataset */
   activeUserChart?: Maybe<Chart>;
-  /** The list of apps accessible to the current viewer */
+  /** The list of apps accessible to the current viewer, sorted by app ID in ascending order */
   appList?: Maybe<Array<AppListItem>>;
   /** Check whether the viewer can accept the collaboration invitation */
   checkCollaboratorInvitation?: Maybe<CheckCollaboratorInvitationPayload>;

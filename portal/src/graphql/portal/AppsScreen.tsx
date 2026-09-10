@@ -111,20 +111,17 @@ const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
   const [searchKeyword, setSearchKeyword] = useState("");
 
   const appRowsData: AppRowData[] = useMemo(() => {
-    // The API returns projects in no particular order; sort them A-Z by ID,
-    // which is the leading column of each row.
-    return [...apps]
-      .sort((a, b) => a.appID.localeCompare(b.appID))
-      .map((app) => {
-        const appID = app.appID;
-        const typedID = toTypedID("App", appID);
-        const relPath = "/project/" + encodeURIComponent(typedID);
-        return {
-          appID,
-          publicOrigin: app.publicOrigin,
-          url: relPath,
-        };
-      });
+    // The API returns the list sorted A-Z by app ID.
+    return apps.map((app) => {
+      const appID = app.appID;
+      const typedID = toTypedID("App", appID);
+      const relPath = "/project/" + encodeURIComponent(typedID);
+      return {
+        appID,
+        publicOrigin: app.publicOrigin,
+        url: relPath,
+      };
+    });
   }, [apps]);
 
   const filteredAppRowsData = useMemo(() => {
