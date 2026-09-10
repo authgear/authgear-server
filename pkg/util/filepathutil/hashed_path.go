@@ -6,8 +6,10 @@ import (
 	"strings"
 )
 
+// IsSourceMapPath is case-insensitive so that it stays correct
+// when it guards a file system that is case-insensitive.
 func IsSourceMapPath(filePath string) bool {
-	return path.Ext(filePath) == ".map"
+	return strings.EqualFold(path.Ext(filePath), ".map")
 }
 
 func Ext(filePath string) string {
