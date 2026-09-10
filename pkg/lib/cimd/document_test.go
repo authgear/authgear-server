@@ -27,8 +27,25 @@ var mcpExampleDocument = []byte(`{
   "token_endpoint_auth_method": "none"
 }`)
 
+const claudeClientID = "https://claude.ai/oauth/mcp-oauth-client-metadata"
+
+// claudeDocument is what claude.ai serves for its hosted MCP connectors,
+// verbatim. Its jwt-bearer grant type (MCP Enterprise Managed Auth, which
+// Authgear does not implement) used to make the whole document invalid,
+// leaving every Claude connector unresolvable -- see Rule 5.
+var claudeDocument = []byte(`{"client_id":"https://claude.ai/oauth/mcp-oauth-client-metadata","client_name":"Claude","client_uri":"https://claude.ai","redirect_uris":["https://claude.ai/api/mcp/auth_callback"],"grant_types":["authorization_code","refresh_token","urn:ietf:params:oauth:grant-type:jwt-bearer"],"response_types":["code"],"token_endpoint_auth_method":"none"}`)
+
 func TestParseAndValidate(t *testing.T) {
 	Convey("ParseAndValidate", t, func() {
+		Convey("claude.ai's real document is valid, with jwt-bearer dropped", func() {
+			doc, err := cimd.ParseAndValidate(claudeClientID, claudeDocument, false)
+			So(err, ShouldBeNil)
+			So(doc.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
+			So(doc.ResponseTypes, ShouldResemble, []string{"code"})
+			So(doc.RedirectURIs, ShouldResemble, []string{"https://claude.ai/api/mcp/auth_callback"})
+			So(*doc.ClientName, ShouldEqual, "Claude")
+		})
+
 		Convey("the MCP spec's own example document is valid", func() {
 			doc, err := cimd.ParseAndValidate(mcpExampleClientID, mcpExampleDocument, false)
 			So(err, ShouldBeNil)
@@ -164,11 +181,71 @@ func TestParseAndValidate(t *testing.T) {
 		})
 
 		Convey("grant_types", func() {
+			Convey("absent defaults to authorization_code and refresh_token", func() {
+				doc := validDoc()
+				delete(doc, "grant_types")
+				parsed, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldBeNil)
+				So(parsed.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
+			})
+
+			Convey("an unimplemented grant type is ignored, not fatal", func() {
+				doc := validDoc()
+				doc["grant_types"] = []string{"authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"}
+				parsed, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldBeNil)
+				So(parsed.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
+			})
+
+			Convey("ignoring preserves the document's order of what remains", func() {
+				doc := validDoc()
+				doc["grant_types"] = []string{"refresh_token", "client_credentials", "authorization_code"}
+				parsed, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldBeNil)
+				So(parsed.GrantTypes, ShouldResemble, []string{"refresh_token", "authorization_code"})
+			})
+
 			Convey("client_credentials is rejected", func() {
 				doc := validDoc()
 				doc["grant_types"] = []string{"client_credentials"}
 				_, err := parse(t, mcpExampleClientID, doc)
 				So(err, ShouldEqual, cimd.ErrDocumentGrantTypeUnsupported)
+			})
+
+			Convey("jwt-bearer alone is rejected", func() {
+				doc := validDoc()
+				doc["grant_types"] = []string{"urn:ietf:params:oauth:grant-type:jwt-bearer"}
+				_, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldEqual, cimd.ErrDocumentGrantTypeUnsupported)
+			})
+
+			// An explicitly empty array declared nothing to lose, so it is
+			// not a Rule 5 failure -- Rule 7 decides it, as it always has.
+			Convey("an empty array is left to the consistency rule", func() {
+				doc := validDoc()
+				doc["grant_types"] = []string{}
+				_, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldEqual, cimd.ErrDocumentResponseTypeInconsistent)
+
+				doc["response_types"] = []string{}
+				parsed, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldBeNil)
+				So(parsed.GrantTypes, ShouldBeEmpty)
+			})
+
+			// Same shape, reached by filtering rather than by declaration:
+			// what survives must still satisfy Rule 7, and nothing that
+			// resolved before the filter existed stops resolving now.
+			Convey("filtering down to refresh_token alone is left to the consistency rule", func() {
+				doc := validDoc()
+				doc["grant_types"] = []string{"refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"}
+				_, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldEqual, cimd.ErrDocumentResponseTypeInconsistent)
+
+				doc["response_types"] = []string{}
+				parsed, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldBeNil)
+				So(parsed.GrantTypes, ShouldResemble, []string{"refresh_token"})
 			})
 		})
 
@@ -184,6 +261,13 @@ func TestParseAndValidate(t *testing.T) {
 				doc := validDoc()
 				doc["grant_types"] = []string{"refresh_token"}
 				doc["response_types"] = []string{"code"}
+				_, err := parse(t, mcpExampleClientID, doc)
+				So(err, ShouldEqual, cimd.ErrDocumentResponseTypeInconsistent)
+			})
+
+			Convey("an empty response_types is rejected as inconsistent with authorization_code", func() {
+				doc := validDoc()
+				doc["response_types"] = []string{}
 				_, err := parse(t, mcpExampleClientID, doc)
 				So(err, ShouldEqual, cimd.ErrDocumentResponseTypeInconsistent)
 			})

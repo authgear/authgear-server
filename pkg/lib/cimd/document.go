@@ -31,7 +31,7 @@ var (
 	ErrDocumentClientIDMismatch                   = CIMDDocumentInvalid.NewWithCause("cimd: client_id does not equal the request URL", apierrors.StringCause("ClientIDMismatch"))
 	ErrDocumentRedirectURIsMissing                = CIMDDocumentInvalid.NewWithCause("cimd: redirect_uris is required", apierrors.StringCause("RedirectURIsMissing"))
 	ErrDocumentRedirectURIInvalid                 = CIMDDocumentInvalid.NewWithCause("cimd: invalid redirect_uri", apierrors.StringCause("RedirectURIInvalid"))
-	ErrDocumentGrantTypeUnsupported               = CIMDDocumentInvalid.NewWithCause("cimd: unsupported grant_type", apierrors.StringCause("GrantTypeUnsupported"))
+	ErrDocumentGrantTypeUnsupported               = CIMDDocumentInvalid.NewWithCause("cimd: no supported grant_type", apierrors.StringCause("GrantTypeUnsupported"))
 	ErrDocumentResponseTypeInconsistent           = CIMDDocumentInvalid.NewWithCause("cimd: response_types is inconsistent with grant_types", apierrors.StringCause("ResponseTypeInconsistent"))
 	ErrDocumentApplicationTypeUnsupported         = CIMDDocumentInvalid.NewWithCause("cimd: unsupported application_type", apierrors.StringCause("ApplicationTypeUnsupported"))
 	ErrDocumentTokenEndpointAuthMethodNotAccepted = CIMDDocumentInvalid.NewWithCause("cimd: token_endpoint_auth_method is not accepted", apierrors.StringCause("TokenEndpointAuthMethodNotAccepted"))
@@ -66,8 +66,12 @@ type rawDocument struct {
 // of dcr.NormalizedRegistration, and for the same reason: the caller
 // (Part 3) copies it straight onto oauthclient.NewClientOptions.
 type Document struct {
-	ClientName    *string
-	RedirectURIs  []string
+	ClientName   *string
+	RedirectURIs []string
+	// GrantTypes holds only the grant types Authgear implements, in the
+	// order the document listed them -- anything else the document
+	// declared has been dropped by Rule 5, so this is what the client can
+	// actually do here, not a verbatim copy of what it published.
 	GrantTypes    []string
 	ResponseTypes []string
 	// ApplicationType is always "web" or "native" -- never nil, never
@@ -150,16 +154,45 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 		}
 	}
 
-	// Rule 5: grant_types MUST be a subset of
-	// ["authorization_code", "refresh_token"].
-	grantTypes := raw.GrantTypes
-	if grantTypes == nil {
-		grantTypes = []string{"authorization_code", "refresh_token"}
+	// Rule 5: grant_types entries Authgear does not implement are IGNORED.
+	// A document that declared grant types and had ALL of them dropped
+	// keeps the ErrDocumentGrantTypeUnsupported it has always returned;
+	// everything else is left to Rules 6 and 7, exactly as before.
+	//
+	// Ignoring rather than rejecting is the whole point: a CIMD document is
+	// ONE self-published description of a client, used against every
+	// authorization server that client talks to, so it advertises every
+	// grant the client can perform anywhere -- not the subset any single
+	// server implements, and unlike a DCR request it cannot be tailored to
+	// the server receiving it. Claude's document
+	// (https://claude.ai/oauth/mcp-oauth-client-metadata) declares
+	// urn:ietf:params:oauth:grant-type:jwt-bearer for MCP Enterprise
+	// Managed Auth's identity-assertion exchange (RFC 7523) alongside the
+	// authorization_code and refresh_token it uses everywhere else.
+	// Rejecting the whole document over that one entry made every Claude
+	// connector unresolvable, and it protected nothing: a grant Authgear
+	// omits from grant_types_supported is never requested, and if one were
+	// requested anyway the token endpoint answers unsupported_grant_type
+	// on its own (see handler_token.go's validateRequestWithoutTx) --
+	// the persisted grant_types are not what gates it.
+	//
+	// This is deliberately a pure relaxation: no document that resolved
+	// before this rule existed stops resolving because of it. In
+	// particular an explicitly empty grant_types is NOT an error here --
+	// it never was, and Rule 7 keeps deciding it -- so the emptiness check
+	// below is scoped to a list that had entries to lose.
+	rawGrantTypes := raw.GrantTypes
+	if rawGrantTypes == nil {
+		rawGrantTypes = []string{"authorization_code", "refresh_token"}
 	}
-	for _, gt := range grantTypes {
-		if !cimdSupportedGrantTypes[gt] {
-			return nil, ErrDocumentGrantTypeUnsupported
+	grantTypes := make([]string, 0, len(rawGrantTypes))
+	for _, gt := range rawGrantTypes {
+		if cimdSupportedGrantTypes[gt] {
+			grantTypes = append(grantTypes, gt)
 		}
+	}
+	if len(grantTypes) == 0 && len(rawGrantTypes) > 0 {
+		return nil, ErrDocumentGrantTypeUnsupported
 	}
 
 	// Rule 6: response_types MUST be a subset of ["code"].
@@ -175,7 +208,11 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 
 	// Rule 7: response_types MUST be consistent with grant_types. Same rule
 	// as DCR (dcr/validate.go): contains(grantTypes, "authorization_code")
-	// == contains(responseTypes, "code").
+	// == contains(responseTypes, "code"). Checked against the FILTERED
+	// grant types, so a document whose authorization_code was never
+	// declared -- or that declared only refresh_token next to grants
+	// Authgear does not implement -- is held to the same consistency it
+	// always was: it needs a response_types that omits "code" too.
 	hasAuthorizationCode := slices.Contains(grantTypes, "authorization_code")
 	hasCode := slices.Contains(responseTypes, "code")
 	if hasAuthorizationCode != hasCode {
