@@ -244,49 +244,64 @@ Three notes on that table:
   tier allows is a per-app feature config override by the operator, the same
   lever CIMD uses.
 
-**Room for gating individual mutations later.** The buckets sit under a scope
-(`all`) rather than directly under `mutation` so that a future version can gate
-one mutation without renaming anything that exists today. Every child of
-`mutation` is a scope; every child of a scope is a bucket. `all` is the
-reserved scope meaning "every mutation field"; a future scope is keyed by the
-mutation's field name in snake_case, e.g.
-
-```yaml
-admin_api:
-  rate_limits:
-    mutation:
-      all:
-        per_project: { enabled: true, period: 1m, burst: 1000 }
-      create_group: # not implemented yet
-        per_project: { enabled: true, period: 1m, burst: 10 }
-```
-
-giving the rate limit name `admin_api.mutation.create_group.per_project`
-alongside `admin_api.mutation.all.per_project`. When that happens, a gated
-mutation's bucket is consumed **in addition to** `all`'s, not instead of it
-— they are not a [fallback](#fallbacks) in the sense the authentication limits
-use that word. Otherwise a loosened per-mutation limit would punch through the
-system-wide bound, which is the one property `all` exists to provide. Each
-gated mutation is an explicit property in the feature config schema
-(`additionalProperties: false` applies here as everywhere else), so the set of
-gateable mutations stays an allowlist rather than a free-form map.
+**Room to extend this later.** Only `mutation.all` exists today. The shape is
+chosen so the rest of the vocabulary can be added without renaming it — see
+[Extending the Admin API rate limits](#extending-the-admin-api-rate-limits).
 
 **No `per_user` bucket.** The obvious third dimension is the acting user, and it
 was rejected: it is only populated for portal-proxied requests (the portal passes
 `actor_user_id` in the Admin API audit context), and is absent for every direct
 Admin API key call — precisely the caller with the most privilege and the least
 supervision. A bucket that silently does nothing for half the traffic is worse
-than not having it, and the two buckets above already cover the portal path.
+than not having it. Worse still, where it does exist the caller controls it:
+`actor_user_id` travels inside a JWT signed with the project's own Admin API
+key, which tenants hold, so a direct caller could mint a fresh user id per
+request and never fill the bucket.
 
 ## Future Works
 
 - We may want to apply request-level rate limits to remaining unbounded request
-  surfaces (Admin API queries, OIDC endpoints).
+  surfaces (Admin API queries, OIDC endpoints) — for the Admin API, see
+  [Extending the Admin API rate limits](#extending-the-admin-api-rate-limits)
+  below.
 - Roles and groups have no per-project maximum, unlike OAuth clients,
   collaborators, hooks, SSO providers and NFTs. `admin_api.mutation` bounds how
   fast they can be created but not how many can exist; a maximum is the control
   that bounds the total.
 - We may want to exclude certain users (e.g. by IP) from applying rate limit.
+
+### Extending the Admin API rate limits
+
+Only `admin_api.rate_limits.mutation.all` is implemented. The config shape
+leaves room to add queries, individual fields, and the non-GraphQL endpoints
+later without renaming it:
+
+```yaml
+admin_api:
+  rate_limits:
+    all: # every Admin API request, GraphQL and REST alike
+      per_project: { ... }
+    query:
+      all: # every GraphQL query
+        per_project: { ... }
+      users: # the `users` query
+        per_project: { ... }
+    mutation:
+      all: # every mutation field -- the only target implemented today
+        per_project: { ... }
+      create_group: # the `createGroup` mutation
+        per_project: { ... }
+```
+
+The idea is that top-level `all` bounds Admin API requests as a whole, GraphQL
+and non-GraphQL alike, while `query` and `mutation` bound GraphQL queries and
+[mutation fields](#admin-api-mutations). Under those two, every child is a
+scope and every child of a scope is a bucket: `all` is the reserved scope
+meaning "everything under this target", and an individual field is a scope
+keyed by its GraphQL field name in snake_case. Top-level `all` has no
+sub-targets, so its buckets sit directly under it. How a specific scope
+composes with the broader one — additively, or as a [fallback](#fallbacks) —
+needs further design when it is implemented.
 
 ## Configuration
 
