@@ -144,8 +144,11 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 
 func newWebAppGeneratedStaticAssetsHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
 	globalEmbeddedResourceManager := p.EmbeddedResources
+	environmentConfig := p.EnvironmentConfig
+	sourceMapConfig := deps.ProvideSourceMapConfig(environmentConfig)
 	generatedStaticAssetsHandler := &webapp.GeneratedStaticAssetsHandler{
 		EmbeddedResources: globalEmbeddedResourceManager,
+		SourceMap:         sourceMapConfig,
 	}
 	return generatedStaticAssetsHandler
 }
@@ -41301,8 +41304,12 @@ func newWebAppAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext
 	manager := appContext.Resources
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	sourceMapConfig := deps.ProvideSourceMapConfig(environmentConfig)
 	appStaticAssetsHandler := &webapp.AppStaticAssetsHandler{
 		Resources: manager,
+		SourceMap: sourceMapConfig,
 	}
 	return appStaticAssetsHandler
 }

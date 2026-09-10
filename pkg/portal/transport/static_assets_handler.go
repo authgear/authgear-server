@@ -15,6 +15,7 @@ type ResourceManager interface {
 
 type StaticAssetsHandler struct {
 	Resources ResourceManager
+	SourceMap httputil.SourceMapConfig
 }
 
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +23,7 @@ func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		FileSystem:          h,
 		AssetsDir:           "shared-assets",
 		FallbackToIndexHTML: true,
+		SourceMap:           h.SourceMap,
 	}
 	server.ServeHTTP(w, r)
 }
