@@ -271,7 +271,9 @@ Unlike DCR, it **controls nothing**. It is validated, persisted and reported thr
 
 ### `token_endpoint_auth_method` (optional)
 
-Must be `none` if present. Any other value — including `private_key_jwt` and any `client_secret_*` variant — is out of scope for this v1 proposal; see [Client Authentication](#client-authentication). Default when absent: `none`.
+**Ignored**, exactly as in [DCR](./dcr.md#token_endpoint_auth_method-optional). Every CIMD client is public — no `client_secret` is ever issued or accepted, and PKCE is required — so the declared value cannot change how the client authenticates, whatever it says. `private_key_jwt` and the `client_secret_*` variants are out of scope for this v1 proposal (see [Client Authentication](#client-authentication)) and declaring one is not an error; it simply has no effect.
+
+There is no need to reject in order to tell the client: `token_endpoint_auth_methods_supported` in this project's [discovery metadata](#oidc-discovery-metadata) already publishes which methods exist, and a client that reads it — as an MCP client selecting CIMD must, since it has to confirm `none` is offered before it can authenticate as a public client — learns Authgear's position without a per-document answer. Refusing the document taught its author nothing the metadata did not, while costing them every authorization.
 
 ### `logo_uri`, `client_uri`, `tos_uri`, `policy_uri` (all optional)
 
@@ -341,7 +343,7 @@ For the `authorization_code` grant specifically, the `redirect_uri` presented at
 
 ## Client Authentication
 
-CIMD clients in v1 are always **public**: `token_endpoint_auth_method` must be absent or `none`, PKCE is required exactly as it is for any other public client today, and no `client_secret` is ever issued or accepted. This keeps v1 scoped to the change that has no new cryptographic surface. Confidential CIMD clients via `private_key_jwt` + `jwks_uri` are out of scope for this proposal — the spec explicitly forbids shared-secret auth methods for CIMD clients regardless ([§4.1](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-4.1)), so any future addition would be key-based only, never `client_secret_post`/`client_secret_basic`.
+CIMD clients in v1 are always **public**: whatever `token_endpoint_auth_method` a document declares is [ignored](#token_endpoint_auth_method-optional), PKCE is required exactly as it is for any other public client today, and no `client_secret` is ever issued or accepted. This keeps v1 scoped to the change that has no new cryptographic surface. Confidential CIMD clients via `private_key_jwt` + `jwks_uri` are out of scope for this proposal — the spec explicitly forbids shared-secret auth methods for CIMD clients regardless ([§4.1](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-4.1)), so any future addition would be key-based only, never `client_secret_post`/`client_secret_basic`.
 
 ## Security Considerations
 

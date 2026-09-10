@@ -1242,6 +1242,14 @@ Payload:
       "type": "FIRST_PARTY",
       "created_at": "2026-07-20T09:14:02Z",
       "expires_at": "2026-08-20T09:14:02Z"
+    },
+    "request": {
+      "client_name": "Some MCP Client",
+      "redirect_uris": ["https://app.example.com/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"],
+      "token_endpoint_auth_method": "client_secret_post",
+      "client_uri": "https://app.example.com"
     }
   }
 }
@@ -1251,9 +1259,16 @@ Payload:
   - `invalid_initial_access_token` — the `Authorization` header was malformed, a token was required and absent, or the token presented was unknown or expired.
   - `invalid_client_metadata` — the body was not a JSON object, or failed a rule in [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
   - `limit_exceeded` — the project is at its [`oauth_client_dcr` quota](./dcr.md#client-limit).
-- `message`: The specific cause within `reason`. For `invalid_initial_access_token`: `malformed_header`, `not_presented`, `unknown` or `expired`. For `invalid_client_metadata`: the rule that failed, e.g. `malformed_json`, `redirect_uris_missing`, `redirect_uri_invalid`, `grant_type_unsupported`, `response_type_inconsistent`, `application_type_unsupported`, `token_endpoint_auth_method_not_accepted`, `uri_field_not_https`. Absent for `limit_exceeded`, which has no sub-cases.
+- `message`: The specific cause within `reason`. For `invalid_initial_access_token`: `malformed_header`, `not_presented`, `unknown` or `expired`. For `invalid_client_metadata`: the rule that failed, e.g. `malformed_json`, `redirect_uris_missing`, `redirect_uri_invalid`, `grant_type_unsupported`, `response_type_inconsistent`, `application_type_unsupported`, `uri_field_not_https`. `token_endpoint_auth_method_not_accepted` is no longer among them — the requested value is [ignored](./dcr.md#token_endpoint_auth_method-optional) rather than refused, so it can no longer fail a registration. Absent for `limit_exceeded`, which has no sub-cases.
 - `usage_name`, `quota`: Present only for `limit_exceeded`. The usage name (`oauth_client_dcr`) and the quota that was reached.
 - `initial_access_token`: Present only when `message` is `expired` — the only case where a token row exists to describe. Same shape as in [oauth.client.registered](#oauthclientregistered). An unknown token has nothing to report, and none was presented in the `not_presented` case.
+- `request`: The client metadata the caller asked for, **as sent** — no defaults applied, no normalization, nothing dropped. `message` names the rule that failed but never the value that failed it, so this is what turns `grant_type_unsupported` into an actionable record: the registering client is a third party whose request body the admin cannot otherwise see. Fields absent from the request are absent here.
+
+  It includes `token_endpoint_auth_method` even though that field is [ignored](./dcr.md#token_endpoint_auth_method-optional) and can no longer fail a registration — it is recorded because it is invisible everywhere else, and "what did the client ask to authenticate with?" is a routine follow-up question when a registration fails for some other reason.
+
+  The key is **absent** when the request never got as far as a decoded body — `message` of `malformed_header`, `not_presented` or `malformed_json` — and present for every other failure, including `limit_exceeded` and an unknown or expired token, which are decided after the body is read. Absent is therefore "nothing was parsed", never "an empty request was sent".
+
+  Every value is client-authored and unvalidated: reaching this record means the request was **rejected**, so read `request` as what the caller claimed, never as configuration Authgear accepted. It is bounded by the 1 MB request body limit and by the endpoint's per-IP and per-project [rate limits](./dcr.md#rate-limits), which are consumed before the body is parsed.
 
 Note that the HTTP response does **not** distinguish these messages: all four `invalid_initial_access_token` cases return the same error to the caller, so a caller guessing tokens learns nothing. The distinction exists only in the audit log, which only the project admin can read.
 
@@ -1338,7 +1353,7 @@ Payload:
   - `unavailable` — the document could not be retrieved. **Every** transport-level failure is this one value: DNS failure, blocked address, connection refused, TLS failure, timeout, non-2xx response, oversize body, unparseable body.
   - `invalid` — a JSON object was retrieved and failed a rule in [Accepted Metadata Fields](./cimd.md#accepted-metadata-fields).
   - `limit_exceeded` — the document resolved cleanly but the project is at its [`oauth_client_cimd` quota](./cimd.md#client-limit), so no record was created.
-- `message`: The rule that failed, for `invalid` only — e.g. `client_id_mismatch`, `redirect_uris_missing`, `redirect_uri_invalid`, `token_endpoint_auth_method_not_accepted`. **Never present for `unavailable`.**
+- `message`: The rule that failed, for `invalid` only — e.g. `client_id_mismatch`, `redirect_uris_missing`, `redirect_uri_invalid`, `grant_type_unsupported`. **Never present for `unavailable`.**
 - `usage_name`, `quota`: Present only for `limit_exceeded`.
 - `served_stale_record`: `true` when a persisted record already existed and was served despite this failure, so the client still works on its last-known metadata; `false` when the client was left unresolvable. Always `false` for `limit_exceeded`, which only arises when there was no record. See [Error Handling](./cimd.md#error-handling).
 
