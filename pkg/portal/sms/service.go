@@ -60,6 +60,7 @@ func (s *Service) sendByTwilio(
 
 func (s *Service) sendByWebhook(
 	ctx context.Context,
+	app *model.App,
 	secret *config.WebhookKeyMaterials,
 	to string,
 	cfg model.SMSProviderConfigurationWebhookInput,
@@ -67,10 +68,12 @@ func (s *Service) sendByWebhook(
 	webHookImpl := &hook.WebHookImpl{
 		Secret: secret,
 	}
+	// The URL comes straight from the mutation input, so this fetch is bound
+	// by the same address policy as the runtime custom SMS provider.
 	webhook := custom.NewSMSWebHook(webHookImpl, &config.CustomSMSProviderConfig{
 		URL:     cfg.URL,
 		Timeout: (*config.DurationSeconds)(cfg.Timeout),
-	})
+	}, app.Context.Config.FeatureConfig.HTTP)
 
 	url, err := url.Parse(cfg.URL)
 	if err != nil {
@@ -132,7 +135,7 @@ func (s *Service) SendTestSMS(
 		if err != nil {
 			return err
 		}
-		return s.sendByWebhook(ctx, webhookSecret, to, *input.Webhook)
+		return s.sendByWebhook(ctx, app, webhookSecret, to, *input.Webhook)
 
 	} else if input.Deno != nil {
 		return s.sendByDeno(ctx, app, to, *input.Deno)

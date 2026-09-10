@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const (
@@ -54,9 +55,10 @@ var allowedLogoContentTypes = map[string]bool{
 // application/json Accept header vs the image one).
 type LogoFetcher struct {
 	HTTPClients *CIMDHTTPClients
-	// OAuthFeatureConfig supplies insecure_http_allowed and
-	// insecure_fetch_address_allowed.
+	// OAuthFeatureConfig supplies insecure_http_allowed.
 	OAuthFeatureConfig *config.OAuthFeatureConfig
+	// HTTPFeatureConfig supplies http.insecure_fetch_address_allowed.
+	HTTPFeatureConfig *config.HTTPFeatureConfig
 	// AppID is read only by clientFor's warning log.
 	AppID config.AppID
 }
@@ -144,14 +146,14 @@ func (f *LogoFetcher) Fetch(ctx context.Context, logoURI string) (body []byte, c
 // so LogoFetcher and Fetcher remain independently readable siblings, per
 // the type's own doc comment.
 func (f *LogoFetcher) clientFor(ctx context.Context, u *url.URL) *http.Client {
-	if !f.OAuthFeatureConfig.GetClientIDMetadataDocument().IsInsecureFetchAddressAllowed() {
+	if !f.HTTPFeatureConfig.IsInsecureFetchAddressAllowed() {
 		return f.HTTPClients.Strict
 	}
 	logger := FetcherLogger.GetLogger(ctx)
 	logger.Warn(ctx, "cimd: fetching a client logo with SSRF address protection disabled",
 		slog.String("app_id", string(f.AppID)),
 		slog.String("host", u.Hostname()),
-		slog.String("flag", "oauth.client_id_metadata_document.insecure_fetch_address_allowed"),
+		slog.String("flag", httputil.InsecureFetchAddressAllowedFlag),
 	)
 	return f.HTTPClients.Insecure
 }

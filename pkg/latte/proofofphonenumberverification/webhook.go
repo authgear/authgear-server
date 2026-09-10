@@ -54,8 +54,12 @@ type HookHTTPClient struct {
 	*http.Client
 }
 
-func NewHookHTTPClient(cfg *config.ProofOfPhoneNumberVerificationHookConfig) HookHTTPClient {
+func NewHookHTTPClient(cfg *config.ProofOfPhoneNumberVerificationHookConfig, f *config.HTTPFeatureConfig) HookHTTPClient {
 	return HookHTTPClient{
-		httputil.NewExternalClient(cfg.Timeout.Duration()),
+		httputil.NewSSRFSafeExternalClient(cfg.Timeout.Duration(), httputil.SSRFSafeExternalClientOptions{
+			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
+			Sink:                    "proof_of_phone_number_verification.hook.url",
+		}),
 	}
 }

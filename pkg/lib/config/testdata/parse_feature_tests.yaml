@@ -238,13 +238,6 @@ config:
   fraud_protection:
     invalid_key: foo
 ---
-name: cimd-insecure-fetch-address-allowed-true
-error: null
-config:
-  oauth:
-    client_id_metadata_document:
-      insecure_fetch_address_allowed: true
----
 name: cimd-insecure-http-allowed-wrong-type
 error: |-
   invalid feature config:

@@ -6,6 +6,11 @@ authgear.yaml:
         enabled: true
 authgear.features.yaml:
   override: |
+    # The e2e deployment allows non-public fetch addresses at the cluster
+    # layer; this case overrides that back off, since the address filter is
+    # exactly what it is testing.
+    http:
+      insecure_fetch_address_allowed: false
     oauth:
       client_id_metadata_document:
         insecure_http_allowed: true
@@ -28,7 +33,7 @@ steps:
   # The scheme now passes shape validation (insecure_http_allowed is set),
   # and allowed_domains is empty so the host passes domain-trust too -- but
   # "localhost" resolves to a loopback address, and
-  # insecure_fetch_address_allowed is NOT set. This is the composition case:
+  # http.insecure_fetch_address_allowed is off. This is the composition case:
   # the address filter, not the scheme rule, is what actually stops SSRF.
   - name: authorize
     action: http_request

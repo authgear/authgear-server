@@ -110,7 +110,6 @@ var _ = FeatureConfigSchema.Add("OAuthClientIDMetadataDocumentFeatureConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"insecure_http_allowed": { "type": "boolean" },
-		"insecure_fetch_address_allowed": { "type": "boolean" },
 		"rate_limits": { "$ref": "#/$defs/OAuthClientIDMetadataDocumentRateLimitsFeatureConfig" }
 	}
 }
@@ -125,9 +124,6 @@ type OAuthClientIDMetadataDocumentFeatureConfig struct {
 	// InsecureHTTPAllowed permits http:// wherever CIMD requires https: the
 	// client_id, the document's uri fields, and the logo fetch. Scheme only.
 	InsecureHTTPAllowed *bool `json:"insecure_http_allowed,omitempty"`
-	// InsecureFetchAddressAllowed permits connecting to a
-	// non-publicly-routable address, including 169.254.169.254.
-	InsecureFetchAddressAllowed *bool `json:"insecure_fetch_address_allowed,omitempty"`
 	// RateLimits bounds the CIMD fetch path's DoS exposure (docs/specs/cimd.md
 	// § Denial of Service). Configurable per plan tier, since the operator --
 	// not the tenant -- owns the egress reputation an outbound fetch to an
@@ -139,17 +135,10 @@ func (c *OAuthClientIDMetadataDocumentFeatureConfig) SetDefaults() {
 	if c.InsecureHTTPAllowed == nil {
 		c.InsecureHTTPAllowed = new(false)
 	}
-	if c.InsecureFetchAddressAllowed == nil {
-		c.InsecureFetchAddressAllowed = new(false)
-	}
 }
 
 func (c *OAuthClientIDMetadataDocumentFeatureConfig) IsInsecureHTTPAllowed() bool {
 	return c != nil && c.InsecureHTTPAllowed != nil && *c.InsecureHTTPAllowed
-}
-
-func (c *OAuthClientIDMetadataDocumentFeatureConfig) IsInsecureFetchAddressAllowed() bool {
-	return c != nil && c.InsecureFetchAddressAllowed != nil && *c.InsecureFetchAddressAllowed
 }
 
 // GetRateLimits is nil-safe for the same pre-SetFieldDefaults reason as
@@ -181,9 +170,6 @@ func (c *OAuthClientIDMetadataDocumentFeatureConfig) Merge(layer *OAuthClientIDM
 	}
 	if layer.InsecureHTTPAllowed != nil {
 		c.InsecureHTTPAllowed = layer.InsecureHTTPAllowed
-	}
-	if layer.InsecureFetchAddressAllowed != nil {
-		c.InsecureFetchAddressAllowed = layer.InsecureFetchAddressAllowed
 	}
 	c.RateLimits = c.RateLimits.Merge(layer.RateLimits)
 	return c
