@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureGraphQLRoute(route httproute.Route) []httproute.Route {
@@ -34,17 +33,16 @@ type GraphQLHandler struct {
 	GraphQLContext        *graphql.Context
 	AppDatabase           *appdb.Handle
 	RateLimiter           MutationRateLimiter
-	RemoteIP              httputil.RemoteIP
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 }
 
-// checkMutationRateLimit takes mutationFieldCount tokens from each Admin API
+// checkMutationRateLimit takes mutationFieldCount tokens from the Admin API
 // mutation bucket, so a document carrying several mutation fields costs one
 // token per field rather than one per request.
 //
-// Per-IP is checked before per-project so the tighter, caller-scoped bucket
-// short-circuits first, matching the DCR register handler's ordering. A
-// rejected request therefore charges only the bucket that rejected it.
+// The bucket is per project. The Admin API authenticates as the project, so
+// app_id is the caller identity; there is no per-IP bucket because IP would be
+// a weaker proxy for a dimension already measured directly.
 func (h *GraphQLHandler) checkMutationRateLimit(ctx context.Context, mutationFieldCount int) error {
 	// Queries cost nothing, and never reach Redis.
 	if mutationFieldCount <= 0 {
@@ -56,18 +54,13 @@ func (h *GraphQLHandler) checkMutationRateLimit(ctx context.Context, mutationFie
 		return nil
 	}
 
-	specs := []ratelimit.BucketSpec{
-		NewBucketSpecAdminAPIMutationAllPerIP(rateLimits, string(h.RemoteIP)),
-		NewBucketSpecAdminAPIMutationAllPerProject(rateLimits),
+	spec := NewBucketSpecAdminAPIMutationAllPerProject(rateLimits)
+	failed, err := h.RateLimiter.AllowN(ctx, spec, mutationFieldCount)
+	if err != nil {
+		return err
 	}
-	for _, spec := range specs {
-		failed, err := h.RateLimiter.AllowN(ctx, spec, mutationFieldCount)
-		if err != nil {
-			return err
-		}
-		if failed != nil {
-			return failed.Error()
-		}
+	if failed != nil {
+		return failed.Error()
 	}
 
 	return nil

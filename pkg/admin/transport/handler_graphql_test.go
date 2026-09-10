@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type fakeMutationRateLimiter struct {
@@ -30,15 +29,13 @@ func (l *fakeMutationRateLimiter) AllowN(ctx context.Context, spec ratelimit.Buc
 func newEnabledScope() *config.AdminAPIRateLimitsMutationScopeFeatureConfig {
 	enabled := true
 	return &config.AdminAPIRateLimitsMutationScopeFeatureConfig{
-		PerProject: &config.RateLimitConfig{Enabled: &enabled, Period: "1m", Burst: 300},
-		PerIP:      &config.RateLimitConfig{Enabled: &enabled, Period: "1m", Burst: 150},
+		PerProject: &config.RateLimitConfig{Enabled: &enabled, Period: "1m", Burst: 1000},
 	}
 }
 
 func newHandler(limiter *fakeMutationRateLimiter, scope *config.AdminAPIRateLimitsMutationScopeFeatureConfig) *GraphQLHandler {
 	return &GraphQLHandler{
 		RateLimiter: limiter,
-		RemoteIP:    httputil.RemoteIP("1.2.3.4"),
 		AdminAPIFeatureConfig: &config.AdminAPIFeatureConfig{
 			RateLimits: &config.AdminAPIRateLimitsFeatureConfig{
 				Mutation: &config.AdminAPIRateLimitsMutationFeatureConfig{
@@ -61,37 +58,28 @@ func TestCheckMutationRateLimit(t *testing.T) {
 			So(limiter.calls, ShouldBeEmpty)
 		})
 
-		Convey("charges one token per mutation field to both buckets", func() {
+		Convey("charges one token per mutation field", func() {
 			limiter := &fakeMutationRateLimiter{}
 			h := newHandler(limiter, newEnabledScope())
 
 			So(h.checkMutationRateLimit(ctx, 3), ShouldBeNil)
 
-			So(limiter.ns, ShouldResemble, []int{3, 3})
-			So(limiter.calls, ShouldHaveLength, 2)
+			So(limiter.ns, ShouldResemble, []int{3})
+			So(limiter.calls, ShouldHaveLength, 1)
 		})
 
-		Convey("charges per-IP before per-project", func() {
+		Convey("charges the per-project bucket, keyed by app rather than caller", func() {
 			limiter := &fakeMutationRateLimiter{}
 			h := newHandler(limiter, newEnabledScope())
 
 			So(h.checkMutationRateLimit(ctx, 1), ShouldBeNil)
 
-			So(limiter.calls[0].RateLimitName, ShouldEqual, ratelimit.RateLimitAdminAPIMutationAllPerIP)
-			So(limiter.calls[1].RateLimitName, ShouldEqual, ratelimit.RateLimitAdminAPIMutationAllPerProject)
+			So(limiter.calls[0].RateLimitName, ShouldEqual, ratelimit.RateLimitAdminAPIMutationAllPerProject)
+			// No bucket arguments: Limiter keys on the app id alone.
+			So(limiter.calls[0].Arguments, ShouldBeEmpty)
 		})
 
-		Convey("keys the per-IP bucket on the remote IP", func() {
-			limiter := &fakeMutationRateLimiter{}
-			h := newHandler(limiter, newEnabledScope())
-
-			So(h.checkMutationRateLimit(ctx, 1), ShouldBeNil)
-
-			So(limiter.calls[0].Arguments, ShouldResemble, []string{"1.2.3.4"})
-			So(limiter.calls[1].Arguments, ShouldBeEmpty)
-		})
-
-		Convey("returns RateLimited and stops when the per-IP bucket rejects", func() {
+		Convey("returns RateLimited when the bucket rejects", func() {
 			limiter := &fakeMutationRateLimiter{rejectAt: 1}
 			h := newHandler(limiter, newEnabledScope())
 
@@ -102,19 +90,6 @@ func TestCheckMutationRateLimit(t *testing.T) {
 			So(apiErr, ShouldNotBeNil)
 			So(apiErr.Kind.Name, ShouldEqual, apierrors.TooManyRequest)
 			So(apiErr.Kind.Reason, ShouldEqual, "RateLimited")
-			// The per-project bucket is never charged for a request the
-			// per-IP bucket already rejected.
-			So(limiter.calls, ShouldHaveLength, 1)
-		})
-
-		Convey("returns RateLimited when the per-project bucket rejects", func() {
-			limiter := &fakeMutationRateLimiter{rejectAt: 2}
-			h := newHandler(limiter, newEnabledScope())
-
-			err := h.checkMutationRateLimit(ctx, 1)
-
-			So(err, ShouldNotBeNil)
-			So(limiter.calls, ShouldHaveLength, 2)
 		})
 
 		Convey("is a no-op when the scope config is absent", func() {

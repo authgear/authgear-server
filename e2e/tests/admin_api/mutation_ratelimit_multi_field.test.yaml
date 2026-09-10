@@ -9,8 +9,6 @@ authgear.features.yaml:
               enabled: true
               period: 1h
               burst: 3
-            per_ip:
-              enabled: false
 steps:
   # Three aliased mutation fields in one document. Under per-field charging
   # this exhausts the whole burst of 3 in a single request.

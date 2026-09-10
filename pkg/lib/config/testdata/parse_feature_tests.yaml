@@ -346,14 +346,14 @@ config:
 name: admin-api-rate-limits-enabled-without-period
 error: |-
   invalid feature config:
-  /admin_api/rate_limits/mutation/all/per_ip: required
+  /admin_api/rate_limits/mutation/all/per_project: required
     map[actual:[burst enabled] expected:[period] missing:[period]]
 config:
   admin_api:
     rate_limits:
       mutation:
         all:
-          per_ip:
+          per_project:
             enabled: true
             burst: 5
 ---
@@ -377,3 +377,17 @@ config:
     rate_limits:
       mutation:
         unknown_key: foo
+---
+name: admin-api-rate-limits-no-per-ip-bucket
+error: |-
+  invalid feature config:
+  /admin_api/rate_limits/mutation/all/per_ip: 
+config:
+  admin_api:
+    rate_limits:
+      mutation:
+        all:
+          per_ip:
+            enabled: true
+            period: 1m
+            burst: 5

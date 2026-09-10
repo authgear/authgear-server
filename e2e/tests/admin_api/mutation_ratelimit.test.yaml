@@ -9,8 +9,6 @@ authgear.features.yaml:
               enabled: true
               period: 1h
               burst: 2
-            per_ip:
-              enabled: false
 steps:
   - name: create_group_1
     action: admin_api_graphql

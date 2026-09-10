@@ -1437,7 +1437,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GraphQLContext:        graphqlContext,
 		AppDatabase:           handle,
 		RateLimiter:           limiter,
-		RemoteIP:              remoteIP,
 		AdminAPIFeatureConfig: adminAPIFeatureConfig,
 	}
 	return graphQLHandler

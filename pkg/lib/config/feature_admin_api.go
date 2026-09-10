@@ -175,42 +175,38 @@ var _ = FeatureConfigSchema.Add("AdminAPIRateLimitsMutationScopeFeatureConfig", 
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"per_project": { "$ref": "#/$defs/RateLimitConfig" },
-		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+		"per_project": { "$ref": "#/$defs/RateLimitConfig" }
 	}
 }
 `)
 
-// AdminAPIRateLimitsMutationScopeFeatureConfig holds the two buckets a mutation
-// scope is bounded by: per project (app_id) and per (project, caller IP).
+// AdminAPIRateLimitsMutationScopeFeatureConfig holds the bucket a mutation
+// scope is bounded by. Only per project (app_id): the Admin API authenticates
+// as the project, so app_id is the caller identity and the one dimension the
+// caller cannot choose. A per-IP bucket would be a weaker proxy for something
+// already measured directly -- unlike DCR registration or the CIMD fetch,
+// whose endpoints are unauthenticated and where IP is the only handle on the
+// caller.
 type AdminAPIRateLimitsMutationScopeFeatureConfig struct {
 	PerProject *RateLimitConfig `json:"per_project,omitempty"`
-	PerIP      *RateLimitConfig `json:"per_ip,omitempty"`
 }
 
 // SetDefaults mirrors OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig's
-// pattern: PerProject/PerIP are already non-nil by the time this runs
-// (SetFieldDefaults force-allocates them), so checking Enabled == nil safely
+// pattern: PerProject is already non-nil by the time this runs
+// (SetFieldDefaults force-allocates it), so checking Enabled == nil safely
 // detects "no layer configured this bucket" and replaces the whole zero-valued
 // struct with the built-in default.
 //
-// Per-IP is half of per-project because most projects drive the Admin API from
-// one place, so the two usually bind together; the per-IP bucket earns its
-// place when they do not, by stopping a single caller from consuming the whole
-// project allowance.
+// The default is deliberately loose. It is a backstop against runaway or
+// abusive volume, not a tuned throttle: no legitimate integration should ever
+// have to design around it. Tiers whose projects have no reason to sustain
+// scripted Admin API writes are expected to set it far lower.
 func (c *AdminAPIRateLimitsMutationScopeFeatureConfig) SetDefaults() {
 	if c.PerProject.Enabled == nil {
 		c.PerProject = &RateLimitConfig{
 			Enabled: new(true),
 			Period:  "1m",
-			Burst:   300,
-		}
-	}
-	if c.PerIP.Enabled == nil {
-		c.PerIP = &RateLimitConfig{
-			Enabled: new(true),
-			Period:  "1m",
-			Burst:   150,
+			Burst:   1000,
 		}
 	}
 }
@@ -230,9 +226,6 @@ func (c *AdminAPIRateLimitsMutationScopeFeatureConfig) Merge(layer *AdminAPIRate
 	}
 	if layer.PerProject != nil {
 		c.PerProject = layer.PerProject
-	}
-	if layer.PerIP != nil {
-		c.PerIP = layer.PerIP
 	}
 	return c
 }
