@@ -123,6 +123,17 @@ export function InitialAccessTokenRevealDialog({
             <CodeField codeClassName={styles.exampleCode}>
               {highlightedCurl}
             </CodeField>
+            <Text as="p" size="1" color="gray" className={styles.hint}>
+              <FormattedMessage
+                id="InitialAccessTokenRevealDialog.example.redirect-uri-hint"
+                values={{
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  code: (chunks: React.ReactNode) => (
+                    <code className={styles.inlineCode}>{chunks}</code>
+                  ),
+                }}
+              />
+            </Text>
           </div>
         </div>
         <div className={styles.actions}>

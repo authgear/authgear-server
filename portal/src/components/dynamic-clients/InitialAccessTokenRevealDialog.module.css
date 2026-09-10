@@ -35,3 +35,15 @@
 .tokenString {
   color: var(--green-11);
 }
+
+.hint {
+  @apply mt-2;
+}
+
+.inlineCode {
+  font-family: var(--code-font-family);
+  font-size: 12.5px;
+  background: #eff1f3;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
