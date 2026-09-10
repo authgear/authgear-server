@@ -113,6 +113,7 @@
   "errors.webhook.invalid-response": "Operation is disallowed because one of your hook returned an invalid response. See <docLink>the documentation</docLink> for details.",
   "errors.network": "There is a problem with the network",
   "errors.request-entity-too-large": "The file size is too large. Please upload a file that is within the size limit.",
+  "errors.rate-limited": "Please wait for a moment before retrying.",
   "errors.unsupported-image-file": "Image file of {type} is unsupported",
   "errors.unknown": "Unknown error: {message}",
   "error.client-quota-exceeded": "Application quota exceeded. To add more, <reactRouterLink>upgrade your project plan</reactRouterLink>.",

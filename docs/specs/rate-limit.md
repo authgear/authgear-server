@@ -76,6 +76,7 @@ Rate limits without default are hard-coded (non-configurable).
 |                                           |                                                | Presign upload image request            | fixed: 10/hour                                       | Configuration not needed for now.                                                                                     |
 | **oauth.register**                        | `oauth.register.per_ip`                        | Register an OAuth client via DCR        | 10/minute                                            | Mitigate resource exhaustion by rapid client registration; under open registration the endpoint is unauthenticated and writes a record per call. Mirrors `authentication.signup.per_ip`. Project-configurable — see [dcr.md](./dcr.md#rate-limits). |
 |                                           | `oauth.register.per_project`                   |                                         | 1000/hour                                            | Bounds how fast a project's DCR client population can grow regardless of source IP. Not a substitute for the `oauth_client_dcr` usage limit. Project-configurable — an integration where many distinct users each self-register once (e.g. MCP-style clients) may need a higher allowance than the default; see [dcr.md](./dcr.md#rate-limits). |
+| **admin_api.mutation**                    | `admin_api.mutation.all.per_project`           | Any Admin API GraphQL mutation          | 1000/minute                                          | A loose backstop against runaway or abusive object creation through the Admin API — `createGroup`, `createRole`, `createUser` and the like each write a row per call and have no cap of their own. Deliberately far above any legitimate integration; tiers are expected to set it lower. Not project-configurable; set per plan tier in `authgear.features.yaml`. See [Feature Config Rate Limits](#feature-config-rate-limits). |
 
 | Group               | Name                         | Operation                        | Rate       | Notes                                                                                                                |
 | ------------------- | ---------------------------- | -------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -126,12 +127,188 @@ Some rate limits uses another rate limit config as a fallback if it is not set. 
 
 Rate limits not mentioned in the table has no fallback.
 
+## Feature Config Rate Limits
+
+Most rate limits above are configured per project in `authgear.yaml`. A few are
+configured in `authgear.features.yaml` instead, which a tenant admin cannot
+edit — its layers (code default ← cluster ← plan ← app override) are all
+operator-owned. Feature config plays two different roles here, and they are not
+interchangeable:
+
+- **Ceiling.** `messaging.rate_limits.*` caps what a project may set for itself.
+  The effective bucket is whichever of the project value and the feature value
+  has the lower rate (`resolveConfig`, `pkg/lib/ratelimit/ratelimits.go`), so a
+  project can tighten its own messaging limits but never loosen them past the
+  plan's ceiling.
+- **Sole source.** `oauth.client_id_metadata_document.rate_limits.fetch.*` and
+  `admin_api.rate_limits.mutation.*` have no `authgear.yaml` counterpart at all.
+  There is nothing for the project to set and nothing to reconcile.
+
+In both roles the feature config path drops the `rate_limits` segment to form
+the rate limit name: `admin_api.rate_limits.mutation.all.per_project` is the
+config path, `admin_api.mutation.all.per_project` is the name that appears in
+the table above, in the error details, and in the audit log.
+
+### Admin API mutations
+
+The Admin API is the surface through which a project's own administrators (and
+anything holding an Admin API key) create records: groups, roles, users,
+identities, authenticators. None of those creations is individually capped, and
+before this limit none was rate limited either, so a caller's write rate was
+bounded only by how fast it could issue requests.
+
+**What is counted.** One token per **top-level mutation field** of the executed
+operation, taken before the operation is executed. A GraphQL document may carry
+several mutation fields, and aliases allow the same field to repeat, so charging
+per HTTP request would let batching buy writes at a discount. That discount is
+bounded but real: `graphqlutil` already refuses a document with more than
+`maxMutationFieldsPerRequest` (5) top-level mutation fields, so per-request
+charging would understate the cost of a maximal document fivefold. Fields
+reached through a fragment spread are counted as the fields they expand to.
+
+Two consequences of that cap are worth stating. `n` is always between 1 and 5
+when it reaches the limiter, so an `n`-token take is never large. And because
+the token-bucket script only writes when the whole take conforms — and so never
+improves the bucket's state when it does not — a document with more mutation
+fields than `burst` can never succeed, on an empty bucket or otherwise. That is
+unreachable at the default (5 ≤ 300) and only becomes reachable if a tier
+configures `burst` below 5, which no tier should.
+
+**What is not counted.** Queries are excluded. A single portal screen fires many
+queries and one mutation, so a bucket sized for legitimate mutation volume would
+break the console if it also had to absorb reads, and read floods are a different
+problem (cost per query, not unbounded row growth) that wants a different
+control. Also excluded are the Admin API's non-GraphQL endpoints, which already
+have their own limits: user import/export are bounded by the `user_import_usage`
+/ `user_export_usage` usage limits, and presign image upload by its fixed
+10/hour.
+
+**Buckets.** This first version gates the Admin API as a whole: one scope,
+named `all`, whose bucket every mutation field consumes from. Exceeding it
+fails the whole operation with
+`TooManyRequest` / `RateLimited`, carrying the offending `rate_limit.name` and
+`rate_limit.group` in the error details, and emits a
+[`rate_limit.blocked`](./event.md#rate_limitblocked) audit log.
+
+The rejection is **not** shaped like a GraphQL error. It happens before the
+operation reaches the executor, so the response is the standard API error
+envelope with HTTP 429 —
+
+```json
+{ "error": { "name": "TooManyRequest", "reason": "RateLimited", "code": 429, "info": { "rate_limit": { "name": "admin_api.mutation.all.per_project", "group": "admin_api.mutation" } } } }
+```
+
+— rather than a 200 carrying an `errors` array. This matches how the Admin API
+already reports a document exceeding `maxMutationFieldsPerRequest`, but it
+differs from every error raised *during* execution, so a client that only reads
+`errors` will see a rate limit rejection as an empty response. Read the HTTP
+status.
+
+Authorization runs first. The Admin API's authz middleware sits ahead of this
+handler in the route chain, so a request without a valid Admin API key is
+refused before any token is taken — an unauthenticated caller cannot drain a
+project's bucket.
+
+| Bucket                               | Scope                  | Default     |
+| ------------------------------------ | ---------------------- | ----------- |
+| `admin_api.mutation.all.per_project` | Per project (`app_id`) | 1000/minute |
+
+Three notes on that table:
+
+- **Only per project, and deliberately so.** The Admin API authenticates as the
+  project: a caller presents the project's Admin API key, and `app_id` is the
+  caller identity — the one dimension the caller cannot choose. There is no
+  per-IP bucket. IP would be a weaker proxy for something already measured
+  directly, and it is easily sidestepped by distributing the same key across
+  hosts. This is the opposite call from DCR registration and the CIMD fetch,
+  which do carry per-IP buckets — but both of those endpoints are
+  *unauthenticated*, so IP is the only handle they have on a caller. It is also
+  a different concern from the per-IP limits on the authentication flows, which
+  exist to stop credential brute-forcing; nothing here is guessable.
+- **The default is a backstop, not a throttle.** 1000 mutation fields per
+  minute is far above anything a portal console produces (the screens batch
+  list operations, so assigning a role to twenty users is one `addRoleToUsers`
+  field) and far above ordinary automation, so no legitimate integration should
+  ever have to design around it. It exists to stop a runaway or hostile caller
+  from writing without bound, not to shape normal traffic.
+- **What it bounds, and what it does not.** It bounds the *rate*. It does not
+  bound the *total*: 1000/minute sustained is a large number of rows over a
+  day, and a patient caller stays under it indefinitely. Bounding the total is
+  the job of a per-resource maximum, of the kind `oauth.client.maximum` and
+  `collaborator.maximum` already provide and roles and groups currently lack.
+  Read this limit as the burst control it is, and size tiers accordingly —
+  tiers whose projects have no legitimate reason to sustain scripted Admin API
+  writes are expected to set it far lower. What each tier is set to is a
+  commercial decision held in the plan records, not in this repository, so no
+  tier's values are recorded here. A project that genuinely needs more than its
+  tier allows is a per-app feature config override by the operator, the same
+  lever CIMD uses.
+
+**Room to extend this later.** Only `mutation.all` exists today. The shape is
+chosen so the rest of the vocabulary can be added without renaming it — see
+[Extending the Admin API rate limits](#extending-the-admin-api-rate-limits).
+
+**No `per_user` bucket.** The obvious third dimension is the acting user, and it
+was rejected: it is only populated for portal-proxied requests (the portal passes
+`actor_user_id` in the Admin API audit context), and is absent for every direct
+Admin API key call — precisely the caller with the most privilege and the least
+supervision. A bucket that silently does nothing for half the traffic is worse
+than not having it. Worse still, where it does exist the caller controls it:
+`actor_user_id` travels inside a JWT signed with the project's own Admin API
+key, which tenants hold, so a direct caller could mint a fresh user id per
+request and never fill the bucket.
+
 ## Future Works
 
-- We may want to apply request-level rate limits (e.g. admin API, OIDC endpoints)
+- We may want to apply request-level rate limits to remaining unbounded request
+  surfaces (Admin API queries, OIDC endpoints) — for the Admin API, see
+  [Extending the Admin API rate limits](#extending-the-admin-api-rate-limits)
+  below.
+- Roles and groups have no per-project maximum, unlike OAuth clients,
+  collaborators, hooks, SSO providers and NFTs. `admin_api.mutation` bounds how
+  fast they can be created but not how many can exist; a maximum is the control
+  that bounds the total.
 - We may want to exclude certain users (e.g. by IP) from applying rate limit.
 
+### Extending the Admin API rate limits
+
+Only `admin_api.rate_limits.mutation.all` is implemented. The config shape
+leaves room to add queries, individual fields, and the non-GraphQL endpoints
+later without renaming it:
+
+```yaml
+admin_api:
+  rate_limits:
+    all: # every Admin API request, GraphQL and REST alike
+      per_project: { ... }
+    query:
+      all: # every GraphQL query
+        per_project: { ... }
+      users: # the `users` query
+        per_project: { ... }
+    mutation:
+      all: # every mutation field -- the only target implemented today
+        per_project: { ... }
+      create_group: # the `createGroup` mutation
+        per_project: { ... }
+```
+
+The idea is that top-level `all` bounds Admin API requests as a whole, GraphQL
+and non-GraphQL alike, while `query` and `mutation` bound GraphQL queries and
+[mutation fields](#admin-api-mutations). Under those two, every child is a
+scope and every child of a scope is a bucket: `all` is the reserved scope
+meaning "everything under this target", and an individual field is a scope
+keyed by its GraphQL field name in snake_case. Top-level `all` has no
+sub-targets, so its buckets sit directly under it. How a specific scope
+composes with the broader one — additively, or as a [fallback](#fallbacks) —
+needs further design when it is implemented.
+
 ## Configuration
+
+Rate limits live in one of two documents. Project-configurable ones are in
+`authgear.yaml` and are covered first; the operator-owned ones are in
+`authgear.features.yaml` and are covered under
+[Feature config](#feature-config) below.
 
 In general, rate limits are configured using 3 fields:
 
@@ -297,6 +474,84 @@ messaging:
       period: 1h
       burst: 10
 ```
+
+### Feature config
+
+The rate limits described in
+[Feature Config Rate Limits](#feature-config-rate-limits) are configured in
+`authgear.features.yaml`, using the same 3 fields. The snippet below is the
+**code default** — the effective config of a project on a plan that overrides
+nothing:
+
+```yaml
+admin_api:
+  rate_limits:
+    mutation:
+      # `all` is the scope covering every mutation field. Scopes for
+      # individual mutations may be added later as siblings of it.
+      all:
+        per_project:
+          enabled: true
+          period: 1m
+          burst: 1000
+
+oauth:
+  client_id_metadata_document:
+    rate_limits:
+      fetch:
+        per_project:
+          enabled: true
+          period: 1m
+          burst: 10
+        per_ip:
+          enabled: true
+          period: 1m
+          burst: 5
+
+messaging:
+  rate_limits:
+    # Ceiling on what authgear.yaml's messaging.rate_limits may set.
+    sms_per_ip:
+      enabled: true
+      period: 1m
+      burst: 60
+    sms_per_target:
+      enabled: true
+      period: 1h
+      burst: 10
+    email_per_ip:
+      enabled: true
+      period: 1m
+      burst: 200
+    email_per_target:
+      enabled: true
+      period: 24h
+      burst: 50
+```
+
+A plan or app-level document states only what it changes. A tier that tightens
+the Admin API mutation buckets and nothing else is written as just:
+
+```yaml
+admin_api:
+  rate_limits:
+    mutation:
+      all:
+        per_project:
+          enabled: true
+          period: 1m
+          burst: 60
+```
+
+(Illustrative values. What each plan tier is actually set to lives in the plan
+records, not here — see [Admin API mutations](#admin-api-mutations).)
+
+Each bucket is replaced as a whole — `enabled`/`period`/`burst` are one unit, so
+a layer setting `burst` alone does not inherit the lower layer's `period` — but
+siblings merge independently at every level above the bucket: the document above
+overrides the Admin API mutation bucket without disturbing
+`oauth.client_id_metadata_document.rate_limits`, and once per-mutation scopes
+exist, a document setting `create_group` alone will keep the plan's `all`.
 
 ## Audit Log
 

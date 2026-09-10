@@ -57,6 +57,14 @@ export interface TooManyRequestError {
   reason: "TooManyRequest";
 }
 
+// RateLimitedError is what the server returns when a rate limit is exceeded.
+// It arrives with HTTP 429 and, for a request rejected before it reaches the
+// GraphQL executor, outside the GraphQL errors array -- see parseRawError.
+export interface RateLimitedError {
+  errorName: "TooManyRequest";
+  reason: "RateLimited";
+}
+
 export interface ServiceUnavailableError {
   errorName: "ServiceUnavailable";
   reason: "ServiceUnavailable";
@@ -132,6 +140,7 @@ export type APIError = { message?: string } & (
   | UnknownError
   | LocalError
   | TooManyRequestError
+  | RateLimitedError
   | ServiceUnavailableError
   | HookDisallowedError
   | HookDeliveryTimeoutError
