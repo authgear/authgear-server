@@ -219,6 +219,7 @@ See [SSRF Protection](#ssrf-protection) for why the size/timeout/redirect limits
 - The response MUST be `2xx` and MUST parse as a JSON object within the size limit described above.
 - Each field is checked against the rules in [Accepted Metadata Fields](#accepted-metadata-fields).
 - Unrecognized properties are ignored (the spec explicitly allows additional properties).
+- Unrecognized `grant_types` **values** are likewise ignored rather than fatal — see [`grant_types`](#grant_types-optional) for why, and for the one case that is still an error.
 
 A document that fails any MUST-level check is treated as if the fetch had failed (see [Error Handling](#error-handling)); it is never reused for a later request.
 
@@ -250,11 +251,17 @@ Human-readable name shown on the consent screen and in the portal. Default when 
 
 ### `grant_types` (optional)
 
-Must be a subset of `["authorization_code", "refresh_token"]`. Default when absent: `["authorization_code", "refresh_token"]`.
+Entries Authgear does not implement are **ignored**. A document that declared grant types and had every one of them ignored is rejected with `grant_type_unsupported`; otherwise what survives is subject only to the consistency rule below. Default when absent: `["authorization_code", "refresh_token"]`. Only the surviving entries are persisted and reported through `OAuthClient.grantTypes`, in the order the document listed them — so a document declaring a grant Authgear has no support for is valid, and that grant simply never becomes available to the client.
+
+**Ignoring rather than rejecting** is deliberate, and differs from [DCR's rule](./dcr.md#grant_types-optional). A CIMD document is a single self-published description of a client, used against every authorization server that client talks to, so it advertises every grant the client can perform *anywhere* rather than the subset any one server implements — the client cannot tailor it per server the way a DCR request is tailored to the server it is POSTed to. [Claude's document](https://claude.ai/oauth/mcp-oauth-client-metadata) declares `urn:ietf:params:oauth:grant-type:jwt-bearer`, for [MCP Enterprise Managed Authorization](https://modelcontextprotocol.io/extensions/auth/enterprise-managed-authorization)'s identity-assertion exchange ([RFC 7523](https://datatracker.ietf.org/doc/html/rfc7523)), alongside the `authorization_code` and `refresh_token` it uses everywhere else. Rejecting the whole document over that one entry left every Claude MCP connector unresolvable, and it protected nothing: a grant type absent from Authgear's `grant_types_supported` discovery metadata is never requested, and the token endpoint answers `unsupported_grant_type` to one that is requested anyway — the persisted `grant_types` are not what gates the token endpoint.
+
+This is a **pure relaxation**: every document that resolved before this rule existed still resolves, and no new rejection reason is introduced. An explicitly empty `grant_types` is not a Rule 5 failure — it declared nothing to lose, and the consistency rule decides it as it always has — which is why the "everything ignored" rejection is scoped to a list that had entries in the first place. There is deliberately no requirement that `authorization_code` survive: a client's persisted `grant_types` gate nothing at `/oauth2/authorize` or `/oauth2/token` (`authorization_code` is allowed for every client regardless), so such a requirement would reject documents that work today while protecting nothing.
 
 ### `response_types` (optional)
 
 Must be a subset of `["code"]`, and consistent with `grant_types` (same consistency rule as [DCR](./dcr.md#response_types-optional)). Default when absent: `["code"]`.
+
+Consistency is evaluated against the **surviving** grant types — the list after the rule above has ignored what Authgear does not implement, not the list as published.
 
 ### `application_type` (optional)
 
@@ -316,7 +323,7 @@ CIMD fields map onto `OAuthClient` (see [client.md](./client.md)) as follows:
 | `client_name` (default: `Client <clientID>` when omitted) | `name`, `clientName`                                                         |
 | `client_uri`, `logo_uri`, `tos_uri`, `policy_uri`         | `clientURI`, `logoURI`, `tosURI`, `policyURI`                                |
 | `redirect_uris`                                           | `redirectURIs`                                                               |
-| `grant_types`, `response_types`                           | `grantTypes`, `responseTypes`                                                |
+| `grant_types` (unimplemented entries dropped), `response_types` | `grantTypes`, `responseTypes`                                          |
 | —                                                         | `postLogoutRedirectURIs`: always `[]`                                        |
 | —                                                         | token lifetimes from `client_config`                                         |
 | —                                                         | `registeredAt`: always `null` — there is no registration event, only a fetch |
