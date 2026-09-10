@@ -76,8 +76,7 @@ Rate limits without default are hard-coded (non-configurable).
 |                                           |                                                | Presign upload image request            | fixed: 10/hour                                       | Configuration not needed for now.                                                                                     |
 | **oauth.register**                        | `oauth.register.per_ip`                        | Register an OAuth client via DCR        | 10/minute                                            | Mitigate resource exhaustion by rapid client registration; under open registration the endpoint is unauthenticated and writes a record per call. Mirrors `authentication.signup.per_ip`. Project-configurable — see [dcr.md](./dcr.md#rate-limits). |
 |                                           | `oauth.register.per_project`                   |                                         | 1000/hour                                            | Bounds how fast a project's DCR client population can grow regardless of source IP. Not a substitute for the `oauth_client_dcr` usage limit. Project-configurable — an integration where many distinct users each self-register once (e.g. MCP-style clients) may need a higher allowance than the default; see [dcr.md](./dcr.md#rate-limits). |
-| **admin_api.mutation**                    | `admin_api.mutation.all.per_project`           | Any Admin API GraphQL mutation          | 300/minute                                           | Mitigate resource exhaustion by rapid object creation through the Admin API — e.g. `createGroup`, `createRole`, `createUser`, each of which writes a row per call and has no cap of its own. Not project-configurable; set per plan tier in `authgear.features.yaml`. See [Feature Config Rate Limits](#feature-config-rate-limits). |
-|                                           | `admin_api.mutation.all.per_ip`                |                                         | 150/minute                                           | Bounds one caller — a leaked Admin API key, a runaway script, one portal collaborator — to a fraction of the project's allowance.                                                                                                                  |
+| **admin_api.mutation**                    | `admin_api.mutation.all.per_project`           | Any Admin API GraphQL mutation          | 1000/minute                                          | A loose backstop against runaway or abusive object creation through the Admin API — `createGroup`, `createRole`, `createUser` and the like each write a row per call and have no cap of their own. Deliberately far above any legitimate integration; tiers are expected to set it lower. Not project-configurable; set per plan tier in `authgear.features.yaml`. See [Feature Config Rate Limits](#feature-config-rate-limits). |
 
 | Group               | Name                         | Operation                        | Rate       | Notes                                                                                                                |
 | ------------------- | ---------------------------- | -------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
@@ -185,8 +184,8 @@ have their own limits: user import/export are bounded by the `user_import_usage`
 10/hour.
 
 **Buckets.** This first version gates the Admin API as a whole: one scope,
-named `all`, whose buckets every mutation field consumes from. Both are
-consumed on every field; exceeding either fails the whole operation with
+named `all`, whose bucket every mutation field consumes from. Exceeding it
+fails the whole operation with
 `TooManyRequest` / `RateLimited`, carrying the offending `rate_limit.name` and
 `rate_limit.group` in the error details, and emits a
 [`rate_limit.blocked`](./event.md#rate_limitblocked) audit log.
@@ -196,7 +195,7 @@ operation reaches the executor, so the response is the standard API error
 envelope with HTTP 429 —
 
 ```json
-{ "error": { "name": "TooManyRequest", "reason": "RateLimited", "code": 429, "info": { "rate_limit": { "name": "admin_api.mutation.all.per_ip", "group": "admin_api.mutation" } } } }
+{ "error": { "name": "TooManyRequest", "reason": "RateLimited", "code": 429, "info": { "rate_limit": { "name": "admin_api.mutation.all.per_project", "group": "admin_api.mutation" } } } }
 ```
 
 — rather than a 200 carrying an `errors` array. This matches how the Admin API
@@ -208,50 +207,42 @@ status.
 Authorization runs first. The Admin API's authz middleware sits ahead of this
 handler in the route chain, so a request without a valid Admin API key is
 refused before any token is taken — an unauthenticated caller cannot drain a
-project's buckets.
+project's bucket.
 
-| Bucket                               | Scope                    | Default    |
-| ------------------------------------ | ------------------------ | ---------- |
-| `admin_api.mutation.all.per_project` | Per project (`app_id`)   | 300/minute |
-| `admin_api.mutation.all.per_ip`      | Per (project, caller IP) | 150/minute |
+| Bucket                               | Scope                  | Default     |
+| ------------------------------------ | ---------------------- | ----------- |
+| `admin_api.mutation.all.per_project` | Per project (`app_id`) | 1000/minute |
 
-Four notes on that table:
+Three notes on that table:
 
-- **The default is sized so that server-to-server automation never has to
-  design around it.** The buckets count mutation *fields*, so what matters is
-  how many objects a caller touches one at a time. Console work is nowhere near
-  the limit: the screens batch list operations, so assigning a role to twenty
-  users is one `addRoleToUsers` field, not twenty, and a human produces well
-  under 30 fields/minute. The binding case is a loop of per-object mutations —
-  a nightly directory sync issuing a few thousand `updateUser` calls. At
-  300/minute per project (150 through a single caller's IP, the number a
-  one-server integration actually experiences) such a sync clears a few
-  thousand objects in the tens of minutes, which is a scheduling detail rather
-  than a redesign. Genuinely large migrations belong on the user import API,
-  which is bulk and separately limited, not on per-object mutations.
-- **What it bounds, and what it does not.** A caller driving the API from one
-  place binds on the per-IP bucket first: 150 tokens available immediately,
-  then 2.5/second sustained — roughly an order of magnitude below what an
-  unthrottled client achieves against this endpoint. That is the burst bound,
-  and it is all a rate limit can offer: sustained over a day, 2.5/second still
-  accumulates a large number of rows. Bounding the *total* is the job of a
-  per-resource maximum, of the kind `oauth.client.maximum` and
-  `collaborator.maximum` already provide, and roles and groups currently have
-  none.
-- **Plan tiers may tighten it.** Like CIMD's fetch limits, these buckets are a
-  default rather than a constant, and a tier whose projects have no legitimate
-  reason to sustain scripted Admin API writes is expected to set them lower.
-  What each tier is set to is a commercial decision held in the plan records,
-  not in this repository, so no tier's values are recorded here. A project that
-  genuinely needs more than its tier allows is a per-app feature config override
-  by the operator, the same lever CIMD uses.
-- **`per_ip` is half of `per_project`.** Most projects call the Admin API from
-  one place, so the two buckets usually bind together; the per-IP bucket earns
-  its place when they do not — one leaked key, one collaborator's script — by
-  stopping any single caller from consuming the whole project allowance. It is
-  scoped per (project, IP), not globally, for the same reason as CIMD's: a
-  global per-IP bucket would let one tenant rate-limit an unrelated tenant
-  sharing a NAT egress.
+- **Only per project, and deliberately so.** The Admin API authenticates as the
+  project: a caller presents the project's Admin API key, and `app_id` is the
+  caller identity — the one dimension the caller cannot choose. There is no
+  per-IP bucket. IP would be a weaker proxy for something already measured
+  directly, and it is easily sidestepped by distributing the same key across
+  hosts. This is the opposite call from DCR registration and the CIMD fetch,
+  which do carry per-IP buckets — but both of those endpoints are
+  *unauthenticated*, so IP is the only handle they have on a caller. It is also
+  a different concern from the per-IP limits on the authentication flows, which
+  exist to stop credential brute-forcing; nothing here is guessable.
+- **The default is a backstop, not a throttle.** 1000 mutation fields per
+  minute is far above anything a portal console produces (the screens batch
+  list operations, so assigning a role to twenty users is one `addRoleToUsers`
+  field) and far above ordinary automation, so no legitimate integration should
+  ever have to design around it. It exists to stop a runaway or hostile caller
+  from writing without bound, not to shape normal traffic.
+- **What it bounds, and what it does not.** It bounds the *rate*. It does not
+  bound the *total*: 1000/minute sustained is a large number of rows over a
+  day, and a patient caller stays under it indefinitely. Bounding the total is
+  the job of a per-resource maximum, of the kind `oauth.client.maximum` and
+  `collaborator.maximum` already provide and roles and groups currently lack.
+  Read this limit as the burst control it is, and size tiers accordingly —
+  tiers whose projects have no legitimate reason to sustain scripted Admin API
+  writes are expected to set it far lower. What each tier is set to is a
+  commercial decision held in the plan records, not in this repository, so no
+  tier's values are recorded here. A project that genuinely needs more than its
+  tier allows is a per-app feature config override by the operator, the same
+  lever CIMD uses.
 
 **Room for gating individual mutations later.** The buckets sit under a scope
 (`all`) rather than directly under `mutation` so that a future version can gate
@@ -265,14 +256,14 @@ admin_api:
   rate_limits:
     mutation:
       all:
-        per_project: { enabled: true, period: 1m, burst: 300 }
+        per_project: { enabled: true, period: 1m, burst: 1000 }
       create_group: # not implemented yet
         per_project: { enabled: true, period: 1m, burst: 10 }
 ```
 
 giving the rate limit name `admin_api.mutation.create_group.per_project`
 alongside `admin_api.mutation.all.per_project`. When that happens, a gated
-mutation's buckets are consumed **in addition to** `all`'s, not instead of them
+mutation's bucket is consumed **in addition to** `all`'s, not instead of it
 — they are not a [fallback](#fallbacks) in the sense the authentication limits
 use that word. Otherwise a loosened per-mutation limit would punch through the
 system-wide bound, which is the one property `all` exists to provide. Each
@@ -286,29 +277,6 @@ was rejected: it is only populated for portal-proxied requests (the portal passe
 Admin API key call — precisely the caller with the most privilege and the least
 supervision. A bucket that silently does nothing for half the traffic is worse
 than not having it, and the two buckets above already cover the portal path.
-
-**`per_ip` must key on the browser, not the portal.** Much of this endpoint's
-traffic is not a direct Admin API call: the portal's user-management screens
-post to `/api/apps/:appid/graphql` on the portal host, and the portal
-reverse-proxies that to the Admin API
-(`pkg/portal/transport/admin_api_handler.go`). A per-IP bucket that attributed
-every proxied request to the portal's own egress IP would be useless for a
-large share of the traffic this limit exists to bound, so this is a requirement
-on the design, not an incidental detail.
-
-It holds through the proxy. Each hop appends to `X-Forwarded-For` rather than
-replacing it — the edge records the browser, `httputil.ReverseProxy` then
-appends the address the portal saw — and `httputil.GetIP` reads the *first*
-entry, so the Admin API keys the bucket on the browser's IP with the proxy hops
-after it. This requires the Admin API server to run with `TRUST_PROXY` enabled,
-which is already required for every other per-IP limit in the system and for
-correct audit logs; without it the bucket collapses into a second, tighter
-per-project bucket. That failure is safe in the sense that it over-restricts
-rather than under-restricts, but it is not the intended behaviour, so the
-implementation should cover the proxied path in a test rather than only the
-direct one. The usual `TRUST_PROXY` caveat also applies unchanged: the edge
-must strip a client-supplied `X-Forwarded-For`, or the per-IP bucket is
-spoofable — for this limit as for all the others.
 
 ## Future Works
 
@@ -510,11 +478,7 @@ admin_api:
         per_project:
           enabled: true
           period: 1m
-          burst: 300
-        per_ip:
-          enabled: true
-          period: 1m
-          burst: 150
+          burst: 1000
 
 oauth:
   client_id_metadata_document:
@@ -561,11 +525,7 @@ admin_api:
         per_project:
           enabled: true
           period: 1m
-          burst: 30
-        per_ip:
-          enabled: true
-          period: 1m
-          burst: 15
+          burst: 60
 ```
 
 (Illustrative values. What each plan tier is actually set to lives in the plan
@@ -574,10 +534,9 @@ records, not here — see [Admin API mutations](#admin-api-mutations).)
 Each bucket is replaced as a whole — `enabled`/`period`/`burst` are one unit, so
 a layer setting `burst` alone does not inherit the lower layer's `period` — but
 siblings merge independently at every level above the bucket: the document above
-overrides `per_project` and `per_ip` without disturbing
-`oauth.client_id_metadata_document.rate_limits`, an app-level document that sets
-only `per_ip` keeps the plan's `per_project`, and once per-mutation scopes exist,
-a document setting `create_group` alone will keep the plan's `all`.
+overrides the Admin API mutation bucket without disturbing
+`oauth.client_id_metadata_document.rate_limits`, and once per-mutation scopes
+exist, a document setting `create_group` alone will keep the plan's `all`.
 
 ## Audit Log
 

@@ -4,12 +4,13 @@ Spec: [docs/specs/rate-limit.md — Admin API mutations](../../specs/rate-limit.
 
 ## 1. Goal / Scope
 
-Add two token buckets to the Admin API GraphQL endpoint, consumed once per top-level mutation field, configured in `authgear.features.yaml` only.
+Add one token bucket to the Admin API GraphQL endpoint, consumed once per top-level mutation field, configured in `authgear.features.yaml` only.
+
+There is deliberately no per-IP bucket. The Admin API authenticates as the project, so `app_id` is the caller identity and the one dimension a caller cannot choose; IP would be a weaker proxy for it, sidesteppable by spreading the same key across hosts. DCR registration and the CIMD fetch do carry per-IP buckets, but both of those endpoints are unauthenticated, where IP is the only handle available — and the per-IP limits on the authentication flows exist to stop credential brute-forcing, which has no analogue here.
 
 | Rate limit name | Scope | Default |
 | --- | --- | --- |
-| `admin_api.mutation.all.per_project` | Per project (`app_id`) | 300 / minute |
-| `admin_api.mutation.all.per_ip` | Per (project, caller IP) | 150 / minute |
+| `admin_api.mutation.all.per_project` | Per project (`app_id`) | 1000 / minute |
 
 **In scope:** GraphQL mutations on `POST /graphql` and `POST /_api/admin/graphql` of the Admin API server (`pkg/admin`), reached both directly with an Admin API key and through the portal's reverse proxy.
 
@@ -23,7 +24,7 @@ Add two token buckets to the Admin API GraphQL endpoint, consumed once per top-l
 - `n` passed to the limiter is always in `[1, 5]`, so the "a document larger than `burst` can never succeed" trap is bounded: it only bites if a tier configures `burst < 5`. §8 D5.
 - **The spec is currently wrong on this point** and must be corrected in the same PR: it says "a 100-field document costs 100 tokens, not 1", which cannot happen. §6.6.
 
-**`ratelimit.Limiter` is already in the Admin API's wire graph** (`pkg/admin/wire_gen.go:680`), as are `httputil.RemoteIP` (line 524) and `adminAPIFeatureConfig` (line 243). No new providers are needed — only new fields on `transport.GraphQLHandler` and a regenerated `wire_gen.go`.
+**`ratelimit.Limiter` is already in the Admin API's wire graph** (`pkg/admin/wire_gen.go:680`), as is `adminAPIFeatureConfig` (line 243). No new providers are needed — only new fields on `transport.GraphQLHandler` and a regenerated `wire_gen.go`.
 
 ## 2. Config model and schema
 
@@ -74,8 +75,7 @@ var _ = FeatureConfigSchema.Add("AdminAPIRateLimitsMutationScopeFeatureConfig", 
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"per_project": { "$ref": "#/$defs/RateLimitConfig" },
-		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+		"per_project": { "$ref": "#/$defs/RateLimitConfig" }
 	}
 }
 `)
@@ -90,7 +90,6 @@ type AdminAPIRateLimitsMutationFeatureConfig struct {
 
 type AdminAPIRateLimitsMutationScopeFeatureConfig struct {
 	PerProject *RateLimitConfig `json:"per_project,omitempty"`
-	PerIP      *RateLimitConfig `json:"per_ip,omitempty"`
 }
 ```
 
@@ -100,7 +99,7 @@ No plain-scalar fields are added, so the `omitempty`-on-a-real-default trap from
 
 ### 2.2 Why the `all` level exists
 
-`per_project`/`per_ip` sit under a scope object rather than directly under `mutation` so that gating an individual mutation later — `admin_api.rate_limits.mutation.create_group.*`, yielding `admin_api.mutation.create_group.per_project` — needs no rename of anything shipped here. Every child of `mutation` is a scope; every child of a scope is a bucket. `all` is the reserved scope meaning "every mutation field". Same reasoning as `OAuthClientIDMetadataDocumentRateLimitsFeatureConfig` nesting under `fetch` (`feature_oauth.go:202-208`).
+`per_project` sits under a scope object rather than directly under `mutation` so that gating an individual mutation later — `admin_api.rate_limits.mutation.create_group.*`, yielding `admin_api.mutation.create_group.per_project` — needs no rename of anything shipped here. Every child of `mutation` is a scope; every child of a scope is a bucket. `all` is the reserved scope meaning "every mutation field". Same reasoning as `OAuthClientIDMetadataDocumentRateLimitsFeatureConfig` nesting under `fetch` (`feature_oauth.go:202-208`).
 
 This plan does **not** build per-mutation scopes. When they are built they will be consumed in addition to `all`, not as a fallback — see spec, and §8 D6.
 
@@ -108,22 +107,18 @@ This plan does **not** build per-mutation scopes. When they are built they will 
 
 ```go
 // SetDefaults mirrors OAuthClientIDMetadataDocumentRateLimitsFetchFeatureConfig's
-// pattern: PerProject/PerIP are already non-nil when this runs, because
+// pattern: PerProject is already non-nil when this runs, because
 // SetFieldDefaults force-allocates every pointer without a nullable tag, so
 // checking Enabled == nil is what detects "no layer configured this bucket".
+//
+// The default is deliberately loose: a backstop against runaway or abusive
+// volume, not a tuned throttle. Tiers are expected to set it far lower.
 func (c *AdminAPIRateLimitsMutationScopeFeatureConfig) SetDefaults() {
 	if c.PerProject.Enabled == nil {
 		c.PerProject = &RateLimitConfig{
 			Enabled: new(true),
 			Period:  "1m",
-			Burst:   300,
-		}
-	}
-	if c.PerIP.Enabled == nil {
-		c.PerIP = &RateLimitConfig{
-			Enabled: new(true),
-			Period:  "1m",
-			Burst:   150,
+			Burst:   1000,
 		}
 	}
 }
@@ -168,7 +163,6 @@ func (c *AdminAPIRateLimitsMutationScopeFeatureConfig) Merge(layer *AdminAPIRate
 	if c == nil { return layer }
 	if layer == nil { return c }
 	if layer.PerProject != nil { c.PerProject = layer.PerProject }
-	if layer.PerIP != nil { c.PerIP = layer.PerIP }
 	return c
 }
 ```
@@ -281,7 +275,7 @@ Placed beside the consumer, as `pkg/lib/oauth/handler/ratelimit.go` is for DCR a
 ```go
 package transport
 
-// NewBucketSpecAdminAPIMutationAllPerProject and ...PerIP bound Admin API
+// NewBucketSpecAdminAPIMutationAllPerProject bounds Admin API
 // mutation volume (docs/specs/rate-limit.md § Admin API mutations). rateLimits
 // is the resolved feature config scope and is non-nil at request time.
 func NewBucketSpecAdminAPIMutationAllPerProject(rateLimits *config.AdminAPIRateLimitsMutationScopeFeatureConfig) ratelimit.BucketSpec {
@@ -294,15 +288,6 @@ func NewBucketSpecAdminAPIMutationAllPerProject(rateLimits *config.AdminAPIRateL
 	)
 }
 
-func NewBucketSpecAdminAPIMutationAllPerIP(rateLimits *config.AdminAPIRateLimitsMutationScopeFeatureConfig, ip string) ratelimit.BucketSpec {
-	return ratelimit.NewBucketSpec(
-		ratelimit.RateLimitAdminAPIMutationAllPerIP,
-		ratelimit.RateLimitGroupAdminAPIMutation,
-		rateLimits.PerIP,
-		ratelimit.AdminAPIMutationAllPerIP,
-		ip,
-	)
-}
 ```
 
 ### 3.5 Names and buckets — `pkg/lib/ratelimit/ratelimits.go`
@@ -312,13 +297,11 @@ func NewBucketSpecAdminAPIMutationAllPerIP(rateLimits *config.AdminAPIRateLimits
 	RateLimitGroupAdminAPIMutation RateLimitGroup = "admin_api.mutation"
 
 	RateLimitAdminAPIMutationAllPerProject RateLimitName = "admin_api.mutation.all.per_project"
-	RateLimitAdminAPIMutationAllPerIP      RateLimitName = "admin_api.mutation.all.per_ip"
 
 	AdminAPIMutationAllPerProject BucketName = "AdminAPIMutationAllPerProject"
-	AdminAPIMutationAllPerIP      BucketName = "AdminAPIMutationAllPerIP"
 ```
 
-Nothing is added to `ResolveBucketSpecs`, `resolvePerIP`, `resolvePerProject`, or the `perIPName`/`perProjectName` helpers — like DCR and CIMD, the specs are constructed directly by the consumer. `ResolveWeight`'s `default` branch already returns weight 1 for an unlisted group (`ratelimits.go:679`), so no change there either.
+Nothing is added to `ResolveBucketSpecs`, `resolvePerProject`, or the `perProjectName` helper — like DCR and CIMD, the specs are constructed directly by the consumer. `ResolveWeight`'s `default` branch already returns weight 1 for an unlisted group (`ratelimits.go:679`), so no change there either.
 
 ### 3.6 The handler — `pkg/admin/transport/handler_graphql.go`
 
@@ -331,7 +314,6 @@ type GraphQLHandler struct {
 	GraphQLContext        *graphql.Context
 	AppDatabase           *appdb.Handle
 	RateLimiter           MutationRateLimiter
-	RemoteIP              httputil.RemoteIP
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 }
 ```
@@ -349,10 +331,8 @@ Wired inside the existing `AppDatabase.WithTx` block:
 ```
 
 ```go
-// checkMutationRateLimit takes mutationFieldCount tokens from each Admin API
-// mutation bucket. Per-IP is checked before per-project so the tighter,
-// caller-scoped bucket short-circuits first, matching DCR's ordering
-// (pkg/lib/oauth/handler/handler_register.go).
+// checkMutationRateLimit takes mutationFieldCount tokens from the Admin API
+// mutation bucket, which is keyed on app_id alone.
 func (h *GraphQLHandler) checkMutationRateLimit(ctx context.Context, mutationFieldCount int) error {
 	if mutationFieldCount <= 0 {
 		return nil
@@ -361,18 +341,13 @@ func (h *GraphQLHandler) checkMutationRateLimit(ctx context.Context, mutationFie
 	if rateLimits == nil {
 		return nil
 	}
-	specs := []ratelimit.BucketSpec{
-		NewBucketSpecAdminAPIMutationAllPerIP(rateLimits, string(h.RemoteIP)),
-		NewBucketSpecAdminAPIMutationAllPerProject(rateLimits),
+	spec := NewBucketSpecAdminAPIMutationAllPerProject(rateLimits)
+	failed, err := h.RateLimiter.AllowN(ctx, spec, mutationFieldCount)
+	if err != nil {
+		return err
 	}
-	for _, spec := range specs {
-		failed, err := h.RateLimiter.AllowN(ctx, spec, mutationFieldCount)
-		if err != nil {
-			return err
-		}
-		if failed != nil {
-			return failed.Error()
-		}
+	if failed != nil {
+		return failed.Error()
 	}
 	return nil
 }
@@ -390,7 +365,7 @@ Entry: `POST /graphql` (or `/_api/admin/graphql`) → `pkg/admin/transport/handl
 6. `BeforeExecuteFn(ctx, n)` → `checkMutationRateLimit`:
    - `n == 0` → return nil, no Redis call. Queries are never limited.
    - resolve the scope config from the feature config;
-   - `AllowN(per_ip, n)`: `Limiter.reserveN` → `Storage.Update(bucketKeyApp(appID, spec), 1m, 150, n)` → one GCRA script call. Not conforming → `FailedReservation`;
+   - `AllowN(per_project, n)`: `Limiter.reserveN` → `Storage.Update(bucketKeyApp(appID, spec), 1m, 1000, n)` → one GCRA script call. Not conforming → `FailedReservation`;
    - on failure: `Limiter.doReserveN` logs, and because `RateLimitGroup` is non-empty (`limiter.go:119`) dispatches `rate_limit.blocked`; `l.Database.IsInTx(ctx)` is **true** here, so the event joins the open transaction;
    - `failed.Error()` → `ratelimit.ErrRateLimited(name, group, bucketName)` → `apierrors.TooManyRequest` / reason `RateLimited`, details carrying `rate_limit.name` and `rate_limit.group`;
    - otherwise repeat for `per_project`.
@@ -402,7 +377,6 @@ Entry: `POST /graphql` (or `/_api/admin/graphql`) → `pkg/admin/transport/handl
 **Keys.** `bucketKeyApp` (`limiter.go:171`) formats `app:<app_id>:rate-limit:<bucket_key>`, where `BucketSpec.Key()` joins the bucket name and arguments with `:` (`bucket.go:69`):
 
 - `app:<app_id>:rate-limit:AdminAPIMutationAllPerProject`
-- `app:<app_id>:rate-limit:AdminAPIMutationAllPerIP:<ip>`
 
 Both are new. No existing key is read, written, or renamed; no backfill, dual-read, or dual-write. An IP cannot contain `:` in the form `GetIP` returns (it strips brackets and ports, `ip.go:24-29`), so no key-collision handling is needed.
 
@@ -416,7 +390,7 @@ Both are new. No existing key is read, written, or renamed; no backfill, dual-re
 
 ## 5. Audit log
 
-No new event type. `rate_limit.blocked` is dispatched by the existing limiter path because `BucketSpec.RateLimitGroup` is non-empty (`limiter.go:119-137`), carrying `name: admin_api.mutation.all.per_ip` (or `...per_project`) and `group: admin_api.mutation`. `docs/specs/event.md` needs no change.
+No new event type. `rate_limit.blocked` is dispatched by the existing limiter path because `BucketSpec.RateLimitGroup` is non-empty (`limiter.go:119-137`), carrying `name: admin_api.mutation.all.per_project` and `group: admin_api.mutation`. `docs/specs/event.md` needs no change.
 
 ## 6. File-level change plan
 
@@ -445,11 +419,10 @@ Correct the "What is counted" paragraph: a document carries at most `maxMutation
 
 ### 7.1 `pkg/lib/config` — Convey (`feature_test.go:12`)
 
-- **`testdata/default_feature.yaml`** — add the resolved subtree under `admin_api`: `rate_limits.mutation.all.per_project` = `{enabled: true, period: 1m, burst: 300}`, `per_ip` = `{..., burst: 150}`. Without this `TestParseFeatureConfig`'s "default feature config" case fails.
+- **`testdata/default_feature.yaml`** — add the resolved subtree under `admin_api`: `rate_limits.mutation.all.per_project` = `{enabled: true, period: 1m, burst: 1000}`. Without this `TestParseFeatureConfig`'s "default feature config" case fails.
 - **`testdata/merge_feature.yaml`** — two cases, both with values that are **not** the code default so a whole-section regression cannot pass by accident:
   - *cross-section*: layer 1 sets only `admin_api.rate_limits.mutation.all.per_project` (`period: 1m, burst: 7`); layer 2 sets only `admin_api.create_session_enabled: true`. Assert the result has **both**. This is the case that proves the §9 app-level override is safe.
-  - *bucket siblings*: layer 1 sets only `per_project` (`burst: 7`); layer 2 sets only `per_ip` (`burst: 3`). Assert both survive.
-- **`testdata/parse_feature_tests.yaml`** — schema validation, mirroring the CIMD cases at lines 270-317: `/admin_api/rate_limits/mutation/all/per_project/burst: minimum` (burst 0), `/admin_api/rate_limits/mutation/all/per_ip: required` (`enabled: true` with no `period`), `/admin_api/rate_limits/mutation/all/unknown_key`, `/admin_api/rate_limits/mutation/unknown_key`.
+- **`testdata/parse_feature_tests.yaml`** — schema validation, mirroring the CIMD cases at lines 270-317: `/admin_api/rate_limits/mutation/all/per_project/burst: minimum` (burst 0), `/admin_api/rate_limits/mutation/all/per_project: required` (`enabled: true` with no `period`), `/admin_api/rate_limits/mutation/all/per_ip` (rejected — there is no such bucket), `/admin_api/rate_limits/mutation/all/unknown_key`, `/admin_api/rate_limits/mutation/unknown_key`.
 
 ### 7.2 `pkg/util/graphqlutil/handler_test.go` — standard table-driven `testing.T`
 
@@ -464,10 +437,6 @@ Retarget `TestValidateMutationFieldCount` at `CountTopLevelMutationFields`, keep
 ### 7.4 `pkg/admin/transport/handler_graphql_test.go` (new) — Convey, matching the sibling `pkg/portal/transport/admin_api_handler_test.go:8`
 
 `checkMutationRateLimit` against a fake `MutationRateLimiter`: count 0 makes no limiter call; count 3 charges 3 to both buckets; per-IP is charged before per-project; a per-IP rejection returns `RateLimited` and never reaches per-project; a nil scope config is a no-op.
-
-### 7.5 `pkg/util/httputil/ip_test.go` — Convey
-
-Add the portal-proxy chain as an explicit case: `X-Forwarded-For: <browser>, <edge>, <portal>` with `trustProxy` true resolves to `<browser>`; with `trustProxy` false resolves to `RemoteAddr`. This is the spec's "`per_ip` must key on the browser, not the portal" requirement, pinned as a test.
 
 ### 7.6 e2e — `e2e/tests/admin_api/mutation_ratelimit.test.yaml` (new)
 
@@ -484,18 +453,15 @@ authgear.features.yaml:
               enabled: true
               period: 1h
               burst: 2
-            per_ip:
-              enabled: false
 ```
 
 Cases to cover:
 1. Two `createGroup` mutations succeed; the third is rejected with `TooManyRequest` / `RateLimited` and `rate_limit.name == "admin_api.mutation.all.per_project"`.
 2. A query (e.g. fetching the group list) still succeeds after the bucket is exhausted — proving queries are not charged.
-3. A second test file with `per_project: {enabled: false}` and a small `per_ip` burst, proving the buckets trip independently and that `enabled: false` really disables one.
 
 **Multi-field document — `e2e/tests/admin_api/mutation_ratelimit_multi_field.test.yaml` (new).** The property under test is the one that makes per-field charging worth doing at all: a single document carrying several mutation fields must cost one token per field, not one per request. Without it, batching is a 5x bypass of whatever the bucket says.
 
-With `per_project: {enabled: true, period: 1h, burst: 3}` and `per_ip: {enabled: false}`:
+With `per_project: {enabled: true, period: 1h, burst: 3}`:
 
 1. One document containing three aliased `createGroup` fields succeeds and creates three groups — exhausting the bucket in a single request.
 2. A following single-field `createGroup` is rejected with `TooManyRequest` / `RateLimited`. If tokens were charged per request rather than per field, this fourth request would be the second charge against a burst of 3 and would wrongly succeed — so this assertion is what actually pins the behaviour.
@@ -516,20 +482,18 @@ Per `CLAUDE.md`, run the `review-pr` skill on the finished diff and resolve ever
 - **D1.** Queries are never charged. `mutationFieldCount == 0` short-circuits before any Redis call.
 - **D2.** One token per top-level mutation field, including aliased repeats and fields reached through fragment spreads — whatever `CountTopLevelMutationFields` returns.
 - **D3.** Tokens are consumed by every attempt, successful or not. A mutation that fails validation or errors during execution still cost its tokens; there is no cancel path.
-- **D4.** Per-IP is evaluated before per-project, and evaluation short-circuits on the first rejection, so a rejected request charges the per-IP bucket only.
-- **D5.** A document with more mutation fields than `burst` can never succeed, because GCRA never writes when non-conforming and so the state never improves. This is unreachable at the default (5 ≤ 300) and only becomes reachable if a tier sets `burst < 5`. Recorded in the spec rather than special-cased in code.
+- **D5.** A document with more mutation fields than `burst` can never succeed, because GCRA never writes when non-conforming and so the state never improves. This is unreachable at the default (5 ≤ 1000) and only becomes reachable if a tier sets `burst < 5`. Recorded in the spec rather than special-cased in code.
 - **D6.** Per-mutation scopes are not built here. When built they are consumed **in addition to** `all`, not as a fallback, so a loosened per-mutation limit cannot punch through the system-wide bound.
 - **D7.** No `per_user` bucket. The acting user is only known for portal-proxied requests (`actor_user_id` in the Admin API audit context) and is absent for every direct Admin API key call.
-- **D8.** The buckets are per (project, IP), never global, so one tenant cannot rate-limit another sharing a NAT egress.
+- **D8.** There is no per-IP bucket. The Admin API authenticates as the project, so `app_id` is the caller identity and IP would be a weaker, sidesteppable proxy for it. The per-IP buckets on DCR registration and the CIMD fetch are not a precedent: those endpoints are unauthenticated, where IP is the only handle on a caller.
 - **D9.** Internal Admin API traffic is **not** exempted. `usage: internal` lives in the Admin API JWT's audit context, which is signed with the project's own Admin API key — a key tenants hold — so an exemption keyed on it would be forgeable by exactly the caller being limited. The portal's own project is handled by config instead, §9.
 
 ## 9. Rollout steps outside this repository
 
-None of these can ship in the PR; all three must be tracked separately.
+Neither can ship in the PR; both must be tracked separately.
 
-1. **Plan-tier values.** Tighter buckets for lower tiers are set on the plan records with the portal plan CLI (`cmd/portal/plan/service.go:39`, `UpdatePlan`), not in this repo. Until that is done every tier runs at the 300/150 default.
-2. **An app-level override for the portal's own Authgear project.** The portal calls its own Admin API for `createAccount` when inviting a collaborator with no existing account (`pkg/portal/service/collaborator.go:877`) and `submitOnboardEntry` at onboarding (`pkg/portal/service/onboard.go:62`), both through `SelfDirector` against `AuthgearConfig.AppID`, and all from the portal's own egress IP — so they share one per-IP bucket. Give that project an `authgear.features.yaml` at the app FS level raising or disabling `admin_api.rate_limits.mutation.all`. Note `AuthgearFeatureYAMLDescriptor.UpdateResource` refuses edits (`resources.go:721`), so this is written into the project's resource rows (DB source) or placed beside `authgear.yaml` (local FS source) — not through the portal UI. §2.4's cascade is what keeps this override from clobbering the rest of the project's `admin_api` feature config.
-3. **`TRUST_PROXY` on the Admin API server.** Without it every portal-proxied request is attributed to the portal's egress IP and the per-IP bucket degenerates into a second, tighter per-project bucket. Safe (over-restricts) but not intended. §7.5 pins the resolution logic; the deployment flag itself must be confirmed.
+1. **Plan-tier values.** Tighter buckets for lower tiers are set on the plan records with the portal plan CLI (`cmd/portal/plan/service.go:39`, `UpdatePlan`), not in this repo. Until that is done every tier runs at the 1000/minute default.
+2. **An app-level override for the portal's own Authgear project.** The portal calls its own Admin API for `createAccount` when inviting a collaborator with no existing account (`pkg/portal/service/collaborator.go:877`) and `submitOnboardEntry` at onboarding (`pkg/portal/service/onboard.go:62`), both through `SelfDirector` against `AuthgearConfig.AppID`. Give that project an `authgear.features.yaml` at the app FS level raising or disabling `admin_api.rate_limits.mutation.all`. Note `AuthgearFeatureYAMLDescriptor.UpdateResource` refuses edits (`resources.go:721`), so this is written into the project's resource rows (DB source) or placed beside `authgear.yaml` (local FS source) — not through the portal UI. §2.4's cascade is what keeps this override from clobbering the rest of the project's `admin_api` feature config.
 
 ## 10. Atomic commit plan
 
@@ -553,8 +517,5 @@ Each commit builds and tests green on its own.
 **C6 — `Add e2e tests for Admin API mutation rate limits`**
 `e2e/tests/admin_api/mutation_ratelimit.test.yaml` and the per-IP variant.
 
-**C7 — `Add portal proxy IP resolution test`**
-`pkg/util/httputil/ip_test.go`. Small and independent; could fold into C5, kept separate because it pins a spec requirement rather than the limiter itself.
-
-**C8 — `doc: Correct the mutation field count in the rate limit spec`**
+**C7 — `doc: Correct the mutation field count in the rate limit spec`**
 `docs/specs/rate-limit.md`, per §6.6.
