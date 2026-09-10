@@ -303,8 +303,6 @@ func documentErrorMessage(err error) string {
 		return "response_type_inconsistent"
 	case errors.Is(err, ErrDocumentApplicationTypeUnsupported):
 		return "application_type_unsupported"
-	case errors.Is(err, ErrDocumentTokenEndpointAuthMethodNotAccepted):
-		return "token_endpoint_auth_method_not_accepted"
 	case errors.Is(err, ErrDocumentURIFieldNotHTTPS):
 		return "uri_field_not_https"
 	default:

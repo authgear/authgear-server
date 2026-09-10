@@ -186,6 +186,39 @@ func TestRegistrationHandler(t *testing.T) {
 
 			So(captured.Reason, ShouldEqual, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata)
 			So(captured.Message, ShouldEqual, "malformed_json")
+			// Nothing decoded: omit the key rather than carry an empty
+			// object, which would read as an empty request.
+			So(captured.Request, ShouldBeNil)
+		})
+
+		Convey("a validation failure records the request as sent", func() {
+			b := false
+			oauthConfig.DynamicClientRegistration.InitialAccessTokenRequired = &b
+			var captured *nonblocking.OAuthClientRegistrationFailedEventPayload
+			events.EXPECT().DispatchEventImmediately(gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, payload apievent.NonBlockingPayload) error {
+					captured = payload.(*nonblocking.OAuthClientRegistrationFailedEventPayload)
+					return nil
+				},
+			)
+			body := `{"client_name":"Some MCP Client","redirect_uris":["https://app.example.com/cb"],` +
+				`"grant_types":["client_credentials"],"token_endpoint_auth_method":"client_secret_post",` +
+				`"client_uri":"https://app.example.com"}`
+			_, err := h.Handle(context.Background(), newRequest(body, ""))
+			So(err, ShouldNotBeNil)
+
+			So(captured.Message, ShouldEqual, "grant_type_unsupported")
+			So(captured.Request, ShouldNotBeNil)
+			So(captured.Request.ClientName, ShouldEqual, "Some MCP Client")
+			So(captured.Request.RedirectURIs, ShouldResemble, []string{"https://app.example.com/cb"})
+			// As sent: the offending value, and no default for the
+			// absent response_types.
+			So(captured.Request.GrantTypes, ShouldResemble, []string{"client_credentials"})
+			So(captured.Request.ResponseTypes, ShouldBeEmpty)
+			So(captured.Request.ApplicationType, ShouldBeEmpty)
+			So(captured.Request.ClientURI, ShouldEqual, "https://app.example.com")
+			// Recorded even though it can no longer fail a registration.
+			So(captured.Request.TokenEndpointAuthMethod, ShouldEqual, "client_secret_post")
 		})
 
 		Convey("every dcr.ErrDCR* validation sentinel gets a non-empty message", func() {
@@ -205,11 +238,6 @@ func TestRegistrationHandler(t *testing.T) {
 					"redirect_uri invalid (http for web)",
 					`{"redirect_uris":["http://app.example.com/cb"]}`,
 					"redirect_uri_invalid",
-				},
-				{
-					"token_endpoint_auth_method not accepted",
-					`{"redirect_uris":["https://app.example.com/cb"],"token_endpoint_auth_method":"client_secret_post"}`,
-					"token_endpoint_auth_method_not_accepted",
 				},
 				{
 					"grant_type unsupported",
@@ -433,6 +461,50 @@ func TestRegistrationHandler(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(resp, ShouldNotBeNil)
 			So(registered.InitialAccessToken, ShouldBeNil)
+		})
+
+		// Claude's registration body, verbatim.
+		Convey("metadata Authgear does not implement is registered as what it can offer", func() {
+			body := `{"client_name":"Claude","redirect_uris":["https://claude.ai/api/mcp/auth_callback"],` +
+				`"grant_types":["authorization_code","refresh_token","urn:ietf:params:oauth:grant-type:jwt-bearer"],` +
+				`"response_types":["code"],"token_endpoint_auth_method":"client_secret_post"}`
+
+			b := false
+			oauthConfig.DynamicClientRegistration.InitialAccessTokenRequired = &b
+			dcrService.EXPECT().LockForClientCount(gomock.Any(), model.OAuthClientSourceDCR).Return(nil)
+			dcrService.EXPECT().CountClientsBySource(gomock.Any(), model.OAuthClientSourceDCR).Return(uint64(0), nil)
+			usageLimiter.EXPECT().CheckStanding(gomock.Any(), model.UsageNameOAuthClientDCR, 0).Return(nil)
+			usageLimiter.EXPECT().ReportStandingCreated(gomock.Any(), model.UsageNameOAuthClientDCR, 0)
+
+			appType := "web"
+			var registeredGrantTypes []string
+			dcrService.EXPECT().RegisterClient(gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, opts *dcr.RegisterClientOptions) (*model.OAuthClient, error) {
+					registeredGrantTypes = opts.Registration.GrantTypes
+					return &model.OAuthClient{
+						Meta:            model.Meta{ID: "client-record-id", CreatedAt: fixedTime},
+						ClientID:        "dcrc_claude",
+						Source:          model.OAuthClientSourceDCR,
+						Kind:            model.OAuthClientKindThirdParty,
+						ApplicationType: &appType,
+						RedirectURIs:    []string{"https://claude.ai/api/mcp/auth_callback"},
+						GrantTypes:      opts.Registration.GrantTypes,
+						ResponseTypes:   opts.Registration.ResponseTypes,
+					}, nil
+				},
+			)
+			events.EXPECT().DispatchEventOnCommit(gomock.Any(), gomock.Any()).Return(nil)
+			expectNoDispatch()
+
+			resp, err := h.Handle(context.Background(), newRequest(body, ""))
+			So(err, ShouldBeNil)
+			So(resp, ShouldNotBeNil)
+			// The jwt-bearer grant is dropped, not registered.
+			So(registeredGrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
+			So(resp.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
+			// The requested client_secret_post is not honored, and the
+			// response says so.
+			So(resp.TokenEndpointAuthMethod, ShouldEqual, "none")
 		})
 
 		Convey("successful registration emits only oauth.client.registered, never a failure event", func() {

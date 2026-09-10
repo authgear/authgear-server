@@ -92,25 +92,40 @@ func TestValidateAndNormalize(t *testing.T) {
 			So(err, ShouldEqual, dcr.ErrDCRRedirectURIInvalid)
 		})
 
-		Convey("token_endpoint_auth_method other than none is rejected", func() {
-			req := validReq()
-			req.TokenEndpointAuthMethod = new("client_secret_post")
-			_, err := dcr.ValidateAndNormalize(req)
-			So(err, ShouldEqual, dcr.ErrDCRTokenEndpointAuthMethodNotAccepted)
-		})
-
-		Convey("token_endpoint_auth_method=none is accepted", func() {
-			req := validReq()
-			req.TokenEndpointAuthMethod = new("none")
-			_, err := dcr.ValidateAndNormalize(req)
-			So(err, ShouldBeNil)
-		})
-
-		Convey("unsupported grant_type", func() {
+		Convey("grant_types with no supported entry is rejected", func() {
 			req := validReq()
 			req.GrantTypes = []string{"implicit"}
 			_, err := dcr.ValidateAndNormalize(req)
 			So(err, ShouldEqual, dcr.ErrDCRGrantTypeUnsupported)
+		})
+
+		Convey("an unimplemented grant_type is dropped, not fatal", func() {
+			req := validReq()
+			req.GrantTypes = []string{"authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"}
+			r, err := dcr.ValidateAndNormalize(req)
+			So(err, ShouldBeNil)
+			So(r.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
+		})
+
+		Convey("dropping preserves the order of what remains", func() {
+			req := validReq()
+			req.GrantTypes = []string{"refresh_token", "implicit", "authorization_code"}
+			r, err := dcr.ValidateAndNormalize(req)
+			So(err, ShouldBeNil)
+			So(r.GrantTypes, ShouldResemble, []string{"refresh_token", "authorization_code"})
+		})
+
+		// Nothing to drop, so the consistency rule decides it.
+		Convey("an empty grant_types is left to the consistency rule", func() {
+			req := validReq()
+			req.GrantTypes = []string{}
+			_, err := dcr.ValidateAndNormalize(req)
+			So(err, ShouldEqual, dcr.ErrDCRResponseTypeInconsistent)
+
+			req.ResponseTypes = []string{}
+			r, err := dcr.ValidateAndNormalize(req)
+			So(err, ShouldBeNil)
+			So(r.GrantTypes, ShouldBeEmpty)
 		})
 
 		Convey("unsupported response_type", func() {

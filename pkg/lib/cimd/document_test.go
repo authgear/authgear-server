@@ -30,9 +30,8 @@ var mcpExampleDocument = []byte(`{
 const claudeClientID = "https://claude.ai/oauth/mcp-oauth-client-metadata"
 
 // claudeDocument is what claude.ai serves for its hosted MCP connectors,
-// verbatim. Its jwt-bearer grant type (MCP Enterprise Managed Auth, which
-// Authgear does not implement) used to make the whole document invalid,
-// leaving every Claude connector unresolvable -- see Rule 5.
+// verbatim. Its jwt-bearer grant type used to invalidate the whole
+// document, leaving every Claude connector unresolvable.
 var claudeDocument = []byte(`{"client_id":"https://claude.ai/oauth/mcp-oauth-client-metadata","client_name":"Claude","client_uri":"https://claude.ai","redirect_uris":["https://claude.ai/api/mcp/auth_callback"],"grant_types":["authorization_code","refresh_token","urn:ietf:params:oauth:grant-type:jwt-bearer"],"response_types":["code"],"token_endpoint_auth_method":"none"}`)
 
 func TestParseAndValidate(t *testing.T) {
@@ -102,18 +101,19 @@ func TestParseAndValidate(t *testing.T) {
 				So(err, ShouldBeNil)
 			})
 
-			Convey("client_secret_post is rejected", func() {
+			// Ignored, not honored: the client is public either way.
+			Convey("client_secret_post is ignored", func() {
 				doc := validDoc()
 				doc["token_endpoint_auth_method"] = "client_secret_post"
 				_, err := parse(t, mcpExampleClientID, doc)
-				So(err, ShouldEqual, cimd.ErrDocumentTokenEndpointAuthMethodNotAccepted)
+				So(err, ShouldBeNil)
 			})
 
-			Convey("private_key_jwt is rejected", func() {
+			Convey("private_key_jwt is ignored", func() {
 				doc := validDoc()
 				doc["token_endpoint_auth_method"] = "private_key_jwt"
 				_, err := parse(t, mcpExampleClientID, doc)
-				So(err, ShouldEqual, cimd.ErrDocumentTokenEndpointAuthMethodNotAccepted)
+				So(err, ShouldBeNil)
 			})
 		})
 
@@ -219,8 +219,7 @@ func TestParseAndValidate(t *testing.T) {
 				So(err, ShouldEqual, cimd.ErrDocumentGrantTypeUnsupported)
 			})
 
-			// An explicitly empty array declared nothing to lose, so it is
-			// not a Rule 5 failure -- Rule 7 decides it, as it always has.
+			// Nothing to lose, so Rule 7 decides it, as it always has.
 			Convey("an empty array is left to the consistency rule", func() {
 				doc := validDoc()
 				doc["grant_types"] = []string{}
@@ -233,9 +232,7 @@ func TestParseAndValidate(t *testing.T) {
 				So(parsed.GrantTypes, ShouldBeEmpty)
 			})
 
-			// Same shape, reached by filtering rather than by declaration:
-			// what survives must still satisfy Rule 7, and nothing that
-			// resolved before the filter existed stops resolving now.
+			// Same shape, reached by filtering rather than by declaration.
 			Convey("filtering down to refresh_token alone is left to the consistency rule", func() {
 				doc := validDoc()
 				doc["grant_types"] = []string{"refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"}

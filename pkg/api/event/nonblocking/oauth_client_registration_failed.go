@@ -30,6 +30,31 @@ const (
 	OAuthClientRegistrationReasonLimitExceeded OAuthClientRegistrationReason = "limit_exceeded"
 )
 
+// OAuthClientRegistrationFailedEventPayloadRequest is the client metadata
+// the caller asked for, recorded as sent: no defaults, no normalization.
+// Message names the rule that failed but never the value that failed it,
+// and the client is a third party whose request body the admin cannot
+// otherwise see.
+//
+// Every field is client-authored and was rejected, so read it as what the
+// caller claimed, never as configuration. Bounded by the 1MB root body
+// limit (middleware.MaxBodySize) and the endpoint's rate limits.
+type OAuthClientRegistrationFailedEventPayloadRequest struct {
+	ClientName      string   `json:"client_name,omitempty"`
+	RedirectURIs    []string `json:"redirect_uris,omitempty"`
+	GrantTypes      []string `json:"grant_types,omitempty"`
+	ResponseTypes   []string `json:"response_types,omitempty"`
+	ApplicationType string   `json:"application_type,omitempty"`
+	// TokenEndpointAuthMethod is recorded even though DCR ignores it, and
+	// so can never cause a failure: being ignored is what makes it
+	// invisible everywhere else.
+	TokenEndpointAuthMethod string `json:"token_endpoint_auth_method,omitempty"`
+	ClientURI               string `json:"client_uri,omitempty"`
+	LogoURI                 string `json:"logo_uri,omitempty"`
+	TOSURI                  string `json:"tos_uri,omitempty"`
+	PolicyURI               string `json:"policy_uri,omitempty"`
+}
+
 // OAuthClientRegistrationFailedEventPayload has no oracle constraint, unlike
 // its CIMD counterpart: POST /oauth2/register fetches nothing, so there is
 // no third party and no network reachability to leak, and it already
@@ -46,6 +71,11 @@ type OAuthClientRegistrationFailedEventPayload struct {
 	// UsageName and Quota are set only when Reason is "limit_exceeded".
 	UsageName model.UsageName `json:"usage_name,omitempty"`
 	Quota     int             `json:"quota,omitempty"`
+	// Request is what the caller asked for. Nil, and the key absent, only
+	// where no body was decoded: Message "malformed_header",
+	// "not_presented" or "malformed_json". A pointer so that case stays
+	// distinguishable from a body of `{}`, which records an empty object.
+	Request *OAuthClientRegistrationFailedEventPayloadRequest `json:"request,omitempty"`
 	// InitialAccessToken identifies the token that was rejected. Present
 	// only when Message is "expired" -- an unknown token has no row to
 	// describe, and none was presented in the "not_presented" case. Shared
