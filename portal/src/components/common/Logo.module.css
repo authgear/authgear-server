@@ -15,3 +15,10 @@
   padding-left: 16px;
   padding-right: 0.5rem;
 }
+
+/* Mobile header without a hamburger: the header already pads 16px on the
+   left (the hamburger's slot), so the logo must not add its own or it lands
+   at 32px, misaligned with the 16px content edge below it. */
+.logo__container.logo__containerHeaderMobile {
+  padding-left: 0;
+}
