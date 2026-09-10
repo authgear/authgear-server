@@ -3,20 +3,20 @@
     --consent-scopes__text-color: var(--color-neutral-400);
     --consent-scopes__group-gap: 1.25rem;
 
-    --consent-scope-group-label__font-family: var(
+    --consent-scope-section-label__font-family: var(
       --typography-label-medium__font-family
     );
-    --consent-scope-group-label__font-size: var(
+    --consent-scope-section-label__font-size: var(
       --typography-label-medium__font-size
     );
-    --consent-scope-group-label__line-height: var(
+    --consent-scope-section-label__line-height: var(
       --typography-label-medium__line-height
     );
-    --consent-scope-group-label__letter-spacing: var(
+    --consent-scope-section-label__letter-spacing: var(
       --typography-label-medium__letter-spacing
     );
-    --consent-scope-group-label__font-weight: 600;
-    --consent-scope-group-label__text-color: var(--color-neutral-700);
+    --consent-scope-section-label__font-weight: 600;
+    --consent-scope-section-label__text-color: var(--color-neutral-700);
 
     --consent-scope-list__font-family: var(
       --typography-body-medium__font-family
@@ -35,12 +35,12 @@
 
   :root.dark {
     --consent-scopes__text-color: var(--color-neutral-200);
-    --consent-scope-group-label__text-color: var(--color-neutral-100);
+    --consent-scope-section-label__text-color: var(--color-neutral-100);
     --consent-scope-list__marker-color: var(--color-neutral-400);
     --consent-scopes__ring-color: var(--color-neutral-500);
   }
 
-  /* The requested permissions, in groups: what signing in grants, then what
+  /* The requested permissions, in sections: what signing in grants, then what
      this particular client asked for on top. Always start-aligned, even on a
      centre-aligned project: a bulleted list reads as a column of items, and
      centring turns it into ragged text with the bullets adrift. */
@@ -85,9 +85,9 @@
     color: var(--color-neutral-700);
   }
 
-  /* No margin overrides on the panel or the fine print: the border gives the
+  /* No margin overrides on the panel or the legal line: the border gives the
      permissions their own edge, so both sit on .consent-body's base gap and
-     the space above and below the box is even. The fine print follows the
+     the space above and below the box is even. The legal line follows the
      project's alignment-content setting -- :root[alignment-content=center]
      .body-text--sm outranks a bare class here, so do not try to start-align
      it from this file. */
@@ -98,17 +98,17 @@
     margin-block-start: 0.5rem;
   }
 
-  .consent-scope-group {
+  .consent-scope-section {
     @apply flex flex-col gap-1.5;
   }
 
-  .consent-scope-group__label {
-    font-family: var(--consent-scope-group-label__font-family);
-    font-size: var(--consent-scope-group-label__font-size);
-    line-height: var(--consent-scope-group-label__line-height);
-    letter-spacing: var(--consent-scope-group-label__letter-spacing);
-    font-weight: var(--consent-scope-group-label__font-weight);
-    color: var(--consent-scope-group-label__text-color);
+  .consent-scope-section__label {
+    font-family: var(--consent-scope-section-label__font-family);
+    font-size: var(--consent-scope-section-label__font-size);
+    line-height: var(--consent-scope-section-label__line-height);
+    letter-spacing: var(--consent-scope-section-label__letter-spacing);
+    font-weight: var(--consent-scope-section-label__font-weight);
+    color: var(--consent-scope-section-label__text-color);
   }
 
   /* list-outside, not list-inside: the marker sits in the padding, so the

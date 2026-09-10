@@ -11,7 +11,7 @@
      is a sign-in confirmation, and says so instead of listing a permission
      that restates the act the user is already performing. "openid" itself is
      mandatory (ValidateScopesByClientConfig rejects a request without it),
-     so this is the floor, not an empty request. */}}
+     so this is the minimum, not an empty request. */}}
 {{ $hasFullUserInfoScope := has "https://authgear.com/scopes/full-userinfo" $.Scopes }}
 {{ $hasNamedScopes := or
   $hasFullUserInfoScope
@@ -49,7 +49,7 @@
       <p class="consent-identity">
         {{ include "v2.page.consent.default.identity" $.UserProfile }}
       </p>
-      {{/* Two groups: what any sign-in to this project grants, and what this
+      {{/* Two sections: what any sign-in to this project grants, and what this
            client asked for on top of it. Both are always labelled -- with no
            subtitle above them, the labels are what tells the reader which is
            which. */}}
@@ -58,8 +58,8 @@
       {{ if not $isSignInOnly }}
       <div class="consent-scopes">
         {{ if $hasAccountScopes }}
-          <div class="consent-scope-group">
-            <p class="consent-scope-group__label">
+          <div class="consent-scope-section">
+            <p class="consent-scope-section__label">
               {{ include "v2.page.consent.default.scopes-account-label" nil }}
             </p>
             {{/* full-userinfo allows every claim (ScopeAllowsClaim returns
@@ -92,12 +92,12 @@
         {{ end }}
 
         {{ if $hasAppScopes }}
-          <div class="consent-scope-group">
-            {{/* "also" refers back to the account group, so it is only
-                 correct when that group is there. A client asking for
+          <div class="consent-scope-section">
+            {{/* "also" refers back to the account section, so it is only
+                 correct when that section is there. A client asking for
                  resource scopes and no identity scopes is the common MCP
                  shape, not an edge case. */}}
-            <p class="consent-scope-group__label">
+            <p class="consent-scope-section__label">
               {{ if $hasAccountScopes }}
                 {{ include "v2.page.consent.default.scopes-app-label" nil }}
               {{ else }}
@@ -114,7 +114,31 @@
       </div>
       {{ end }}
 
-      {{ template "consent-legal-links" . }}
+      {{/* The variant a client's declared URIs add up to. All three are
+           optional and independent, so each combination is its own whole
+           sentence inside one select message: the connectors and the
+           possessive belong to the sentence, not to the template. */}}
+      {{ $w := $.ClientURI }}
+      {{ $p := $.ClientPolicyURI }}
+      {{ $t := $.ClientTOSURI }}
+      {{ $variant := "" }}
+      {{ if and $w $p $t }}{{ $variant = "websitePolicyTOS" }}{{ end }}
+      {{ if and $w $p (not $t) }}{{ $variant = "websitePolicy" }}{{ end }}
+      {{ if and $w $t (not $p) }}{{ $variant = "websiteTOS" }}{{ end }}
+      {{ if and $p $t (not $w) }}{{ $variant = "policyTOS" }}{{ end }}
+      {{ if and $w (not $p) (not $t) }}{{ $variant = "websiteOnly" }}{{ end }}
+      {{ if and $p (not $w) (not $t) }}{{ $variant = "policyOnly" }}{{ end }}
+      {{ if and $t (not $w) (not $p) }}{{ $variant = "tosOnly" }}{{ end }}
+      {{ if $variant }}
+        <div class="body-text--sm">
+          {{ include "v2.page.consent.default.client-links-desc" (dict
+            "variant" $variant
+            "clientName" $.ClientName
+            "websiteURI" $w
+            "policyURI" $p
+            "tosURI" $t) }}
+        </div>
+      {{ end }}
     </div>
   </div>
   <div class="consent-actions">
@@ -141,28 +165,4 @@
     </form>
   </div>
 </div>
-{{ end }}
-
-{{ define "consent-legal-links" }}
-  {{ $w := $.ClientURI }}
-  {{ $p := $.ClientPolicyURI }}
-  {{ $t := $.ClientTOSURI }}
-  {{ $variant := "" }}
-  {{ if and $w $p $t }}{{ $variant = "websitePolicyTOS" }}{{ end }}
-  {{ if and $w $p (not $t) }}{{ $variant = "websitePolicy" }}{{ end }}
-  {{ if and $w $t (not $p) }}{{ $variant = "websiteTOS" }}{{ end }}
-  {{ if and $p $t (not $w) }}{{ $variant = "policyTOS" }}{{ end }}
-  {{ if and $w (not $p) (not $t) }}{{ $variant = "websiteOnly" }}{{ end }}
-  {{ if and $p (not $w) (not $t) }}{{ $variant = "policyOnly" }}{{ end }}
-  {{ if and $t (not $w) (not $p) }}{{ $variant = "tosOnly" }}{{ end }}
-  {{ if $variant }}
-    <div class="body-text--sm">
-      {{ include "v2.page.consent.default.client-links-desc" (dict
-        "variant" $variant
-        "clientName" $.ClientName
-        "websiteURI" $w
-        "policyURI" $p
-        "tosURI" $t) }}
-    </div>
-  {{ end }}
 {{ end }}
