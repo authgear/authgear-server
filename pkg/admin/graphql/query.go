@@ -495,15 +495,25 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			},
 		},
 		"dynamicClients": &graphql.Field{
-			Description: "Clients that exist outside authgear.yaml: DCR-registered (and, once implemented, CIMD-resolved) clients.",
+			Description: "Clients that exist outside authgear.yaml: DCR-registered and CIMD-resolved clients.",
 			Type:        connDynamicClient.ConnectionType,
-			Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"source": &graphql.ArgumentConfig{
+					Type:        oauthClientSourceType,
+					Description: "Restrict the listing, and its totalCount, to clients from this source. Omit for every dynamic client. STATIC never matches: a statically configured client does not exist outside authgear.yaml.",
+				},
+			}),
 			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
-				refs, result, err := gqlCtx.DCRFacade.ListClients(ctx, pageArgs)
+				var source *apimodel.OAuthClientSource
+				if s, ok := p.Args["source"].(string); ok {
+					source = (*apimodel.OAuthClientSource)(&s)
+				}
+
+				refs, result, err := gqlCtx.DCRFacade.ListClients(ctx, pageArgs, source)
 				if err != nil {
 					return nil, err
 				}

@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { FormattedMessage } from "../../intl";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import { Context, FormattedMessage } from "../../intl";
 import cn from "classnames";
-import { Heading } from "@radix-ui/themes";
+import { Heading, Select, Text } from "@radix-ui/themes";
 import { ChevronLeftIcon } from "@radix-ui/react-icons";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import Link from "../../Link";
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
@@ -16,6 +16,7 @@ import { parseRawError } from "../../error/parse";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { PaginationProps } from "../../PaginationWidget";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
+import { OAuthClientSource } from "../../graphql/adminapi/globalTypes.generated";
 import { useDeleteDynamicClientMutationMutation } from "../../graphql/adminapi/mutations/deleteDynamicClientMutation.generated";
 import {
   DynamicClientList,
@@ -31,11 +32,41 @@ import styles from "./DynamicClientListScreen.module.css";
 
 const PAGE_SIZE = 10;
 
+// "all" is the absence of a source argument, not a value the Admin API
+// accepts, so it is kept as a separate key rather than folded into
+// OAuthClientSource. STATIC is deliberately not offered: a statically
+// configured client does not appear in this listing at all.
+type SourceFilterKey = "all" | OAuthClientSource.Cimd | OAuthClientSource.Dcr;
+
+// The query string parameter carrying the filter, so a filtered view is
+// shareable and survives a reload. Anything else -- including STATIC, which
+// this listing never shows -- falls back to "all" rather than filtering by a
+// value the Admin API would reject.
+const SOURCE_SEARCH_PARAM = "source";
+
+function parseSourceFilter(value: string | null): SourceFilterKey {
+  switch (value) {
+    case OAuthClientSource.Cimd:
+      return OAuthClientSource.Cimd;
+    case OAuthClientSource.Dcr:
+      return OAuthClientSource.Dcr;
+    default:
+      return "all";
+  }
+}
+
 function DynamicClientListScreenContent(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
   const { setErrors } = useErrorMessageBarContext();
+  const { renderToString } = useContext(Context);
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [offset, setOffset] = useState(0);
+  // The URL is the source of truth for the filter: the Applications screen
+  // links here with ?source set, and writing it back keeps the filtered view
+  // shareable and reload-proof.
+  const sourceFilter = parseSourceFilter(searchParams.get(SOURCE_SEARCH_PARAM));
   const [detailsClient, setDetailsClient] =
     useState<DynamicClientListItem | null>(null);
   const [deleteDialogData, setDeleteDialogData] =
@@ -46,9 +77,35 @@ function DynamicClientListScreenContent(): React.ReactElement {
     variables: {
       first: PAGE_SIZE,
       after: encodeOffsetToCursor(offset),
+      source: sourceFilter === "all" ? undefined : sourceFilter,
     },
     fetchPolicy: "network-only",
   });
+
+  const onChangeSourceFilter = useCallback(
+    (value: string) => {
+      const next = parseSourceFilter(value);
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          if (next === "all") {
+            params.delete(SOURCE_SEARCH_PARAM);
+          } else {
+            params.set(SOURCE_SEARCH_PARAM, next);
+          }
+          return params;
+        },
+        // Replace rather than push: switching the filter refines the current
+        // view, so Back should leave the screen instead of stepping through
+        // every filter the admin tried.
+        { replace: true }
+      );
+      // The filtered result set is a different list; an offset carried over
+      // from the previous filter can land past its end and show an empty page.
+      setOffset(0);
+    },
+    [setSearchParams]
+  );
 
   const [deleteDynamicClient] = useDeleteDynamicClientMutationMutation();
 
@@ -65,6 +122,7 @@ function DynamicClientListScreenContent(): React.ReactElement {
           kind: node.kind,
           source: node.source,
           registeredAt: node.registeredAt ?? null,
+          lastFetchedAt: node.lastFetchedAt ?? null,
           applicationType: node.applicationType ?? null,
           redirectURIs: [...node.redirectURIs],
           grantTypes: [...node.grantTypes],
@@ -102,6 +160,7 @@ function DynamicClientListScreenContent(): React.ReactElement {
     setDeleteDialogData({
       clientID: client.clientID,
       clientName: client.name,
+      source: client.source,
     });
   }, []);
 
@@ -137,24 +196,56 @@ function DynamicClientListScreenContent(): React.ReactElement {
     [deleteDynamicClient, clients.length, offset, refetch, setErrors]
   );
 
-  const isEmpty = !loading && clients.length === 0 && offset === 0;
+  const isEmpty =
+    !loading && clients.length === 0 && offset === 0 && sourceFilter === "all";
+  const isFilteredEmpty =
+    !loading && clients.length === 0 && offset === 0 && sourceFilter !== "all";
 
   return (
     <ScreenContent>
       <div className={cn(styles.widget, styles.pageHeader)}>
+        {/* Back to the client-applications page, the index of the group this
+            listing sits in. */}
         <Link
-          to={`/project/${appID}/configuration/apps#dynamic-clients`}
+          to={`/project/${appID}/configuration/apps`}
           className={styles.backLink}
         >
           <ChevronLeftIcon className={styles.backLinkIcon} />
           <span>
-            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+            <FormattedMessage id="ClientApplicationsScreen.title" />
           </span>
         </Link>
         <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
           <FormattedMessage id="DynamicClientListScreen.title" />
         </Heading>
       </div>
+      {!isEmpty ? (
+        <div className={cn(styles.widget, styles.filterBar)}>
+          <Select.Root
+            value={sourceFilter}
+            onValueChange={onChangeSourceFilter}
+            size="2"
+          >
+            <Select.Trigger
+              className={styles.sourceFilter}
+              aria-label={renderToString(
+                "DynamicClientListScreen.filter.source.label"
+              )}
+            />
+            <Select.Content position="popper">
+              <Select.Item value="all">
+                {renderToString("DynamicClientListScreen.filter.source.all")}
+              </Select.Item>
+              <Select.Item value={OAuthClientSource.Cimd}>
+                {renderToString("DynamicClientSource.cimd")}
+              </Select.Item>
+              <Select.Item value={OAuthClientSource.Dcr}>
+                {renderToString("DynamicClientSource.dcr")}
+              </Select.Item>
+            </Select.Content>
+          </Select.Root>
+        </div>
+      ) : null}
       <div className={cn(styles.widget, styles.content)}>
         <ErrorMessageBar />
         {error != null ? (
@@ -162,6 +253,10 @@ function DynamicClientListScreenContent(): React.ReactElement {
           <ShowError error={error} onRetry={refetch} />
         ) : isEmpty ? (
           <DynamicClientsEmptyView />
+        ) : isFilteredEmpty ? (
+          <Text as="p" size="2" color="gray" className={styles.filteredEmpty}>
+            <FormattedMessage id="DynamicClientListScreen.filtered-empty" />
+          </Text>
         ) : (
           <DynamicClientList
             clients={clients}

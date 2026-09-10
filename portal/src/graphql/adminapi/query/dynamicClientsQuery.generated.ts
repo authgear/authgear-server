@@ -6,15 +6,16 @@ const defaultOptions = {} as const;
 export type DynamicClientsQueryQueryVariables = Types.Exact<{
   first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   after?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  source?: Types.InputMaybe<Types.OAuthClientSource>;
 }>;
 
 
-export type DynamicClientsQueryQuery = { __typename?: 'Query', dynamicClients?: { __typename?: 'OAuthClientConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'OAuthClientEdge', node?: { __typename?: 'OAuthClient', id: string, clientID: string, clientName?: string | null, name: string, kind: Types.OAuthClientKind, source: Types.OAuthClientSource, registeredAt?: any | null, applicationType?: string | null, redirectURIs: Array<string>, grantTypes: Array<string>, responseTypes: Array<string>, logoURI?: string | null, clientURI?: string | null, tosURI?: string | null, policyURI?: string | null } | null } | null> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean } } | null };
+export type DynamicClientsQueryQuery = { __typename?: 'Query', dynamicClients?: { __typename?: 'OAuthClientConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'OAuthClientEdge', node?: { __typename?: 'OAuthClient', id: string, clientID: string, clientName?: string | null, name: string, kind: Types.OAuthClientKind, source: Types.OAuthClientSource, registeredAt?: any | null, lastFetchedAt?: any | null, applicationType?: string | null, redirectURIs: Array<string>, grantTypes: Array<string>, responseTypes: Array<string>, logoURI?: string | null, clientURI?: string | null, tosURI?: string | null, policyURI?: string | null } | null } | null> | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean } } | null };
 
 
 export const DynamicClientsQueryDocument = gql`
-    query dynamicClientsQuery($first: Int, $after: String) {
-  dynamicClients(first: $first, after: $after) {
+    query dynamicClientsQuery($first: Int, $after: String, $source: OAuthClientSource) {
+  dynamicClients(first: $first, after: $after, source: $source) {
     edges {
       node {
         id
@@ -24,6 +25,7 @@ export const DynamicClientsQueryDocument = gql`
         kind
         source
         registeredAt
+        lastFetchedAt
         applicationType
         redirectURIs
         grantTypes
@@ -57,6 +59,7 @@ export const DynamicClientsQueryDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      source: // value for 'source'
  *   },
  * });
  */

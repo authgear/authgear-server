@@ -614,19 +614,33 @@ export interface OAuthClientConfig {
 export interface OAuthConfig {
   clients?: OAuthClientConfig[];
   dynamic_client_registration?: OAuthDynamicClientRegistrationConfig;
+  client_id_metadata_document?: OAuthClientIDMetadataDocumentConfig;
 }
 
-export interface OAuthDynamicClientRegistrationDefaultClientConfig {
+export interface OAuthDynamicClientTokenLifetimesConfig {
   access_token_lifetime_seconds?: DurationSeconds;
   refresh_token_lifetime_seconds?: DurationSeconds;
   refresh_token_idle_timeout_enabled?: boolean;
   refresh_token_idle_timeout_seconds?: DurationSeconds;
 }
 
+export interface OAuthClientIDMetadataDocumentConfig {
+  enabled?: boolean;
+  // An absent or empty allowlist means every domain is accepted, not none —
+  // see docs/specs/cimd.md § Domain Trust. The form models that as an
+  // explicit mode so the permissive reading is never inferred from
+  // emptiness.
+  allowed_domains?: string[];
+  // Not "default_client_config" like DCR's: a CIMD record is a
+  // system-maintained mirror of an externally hosted document, so there is
+  // no per-client override for this to be the default of.
+  client_config?: OAuthDynamicClientTokenLifetimesConfig;
+}
+
 export interface OAuthDynamicClientRegistrationConfig {
   enabled?: boolean;
   initial_access_token_required?: boolean;
-  default_client_config?: OAuthDynamicClientRegistrationDefaultClientConfig;
+  default_client_config?: OAuthDynamicClientTokenLifetimesConfig;
   // rate_limits is intentionally not modeled: it has no portal UI, and the
   // config form round-trips unknown keys through the full config document.
 }
@@ -1008,6 +1022,7 @@ export interface UsageFeatureConfig {
 
 export interface UsageLimitsFeatureConfig {
   oauth_client_dcr?: StandingUsageLimitConfig[];
+  oauth_client_cimd?: StandingUsageLimitConfig[];
 }
 
 export interface StandingUsageLimitConfig {

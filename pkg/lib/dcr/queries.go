@@ -18,8 +18,8 @@ type Queries struct {
 // ListClients is re-exported from oauthclient.Queries so that
 // pkg/admin/facade.DCRQueries depends on one collaborator rather than
 // reaching into pkg/lib/oauthclient directly.
-func (q *Queries) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) (*oauthclient.ListClientResult, error) {
-	return q.OAuthClientQueries.ListClients(ctx, pageArgs)
+func (q *Queries) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *model.OAuthClientSource) (*oauthclient.ListClientResult, error) {
+	return q.OAuthClientQueries.ListClients(ctx, pageArgs, source)
 }
 
 func (q *Queries) GetInitialAccessTokenByID(ctx context.Context, id string) (*model.OAuthInitialAccessToken, error) {

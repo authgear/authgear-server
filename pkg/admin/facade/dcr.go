@@ -18,7 +18,7 @@ type DCRCommands interface {
 
 type DCRQueries interface {
 	ListInitialAccessTokens(ctx context.Context) ([]*model.OAuthInitialAccessToken, error)
-	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) (*oauthclient.ListClientResult, error)
+	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *model.OAuthClientSource) (*oauthclient.ListClientResult, error)
 }
 
 type DCRFacade struct {
@@ -42,8 +42,8 @@ func (f *DCRFacade) DeleteClient(ctx context.Context, clientID string) (*model.O
 	return f.DCRCommands.DeleteClient(ctx, clientID)
 }
 
-func (f *DCRFacade) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
-	result, err := f.DCRQueries.ListClients(ctx, pageArgs)
+func (f *DCRFacade) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *model.OAuthClientSource) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	result, err := f.DCRQueries.ListClients(ctx, pageArgs, source)
 	if err != nil {
 		return nil, nil, err
 	}

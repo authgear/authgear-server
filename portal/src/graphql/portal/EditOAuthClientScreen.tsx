@@ -339,7 +339,7 @@ const EditOAuthClientBackLink: React.VFC = function EditOAuthClientBackLink() {
     >
       <ChevronLeftIcon className={styles.backLinkIcon} />
       <span>
-        <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+        <FormattedMessage id="ClientApplicationsScreen.title" />
       </span>
     </Link>
   );

@@ -17,7 +17,11 @@
 
 .row {
   display: flex;
-  align-items: center;
+  /* Top-aligned, not centred: a row whose field shows a validation message is
+     taller than its input, and centring on the row drops the delete button
+     below the input it belongs to. Input and button are both 32px, so
+     top-aligning them reads as centred whenever there is no message. */
+  align-items: flex-start;
   gap: 8px;
 }
 
