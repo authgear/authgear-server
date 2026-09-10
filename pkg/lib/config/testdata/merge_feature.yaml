@@ -15,9 +15,12 @@ configs:
   - oauth:
       client:
         custom_ui_enabled: true
-  - oauth:
-      client_id_metadata_document:
-        insecure_fetch_address_allowed: true
+  - http:
+      insecure_fetch_address_allowed: true
+  - http:
+      insecure_fetch_address_allowed_hosts:
+        - hooks.internal.example.com
+        - "*.svc.cluster.local"
   - oauth:
       client_id_metadata_document:
         insecure_http_allowed: true
@@ -199,6 +202,11 @@ result:
       maximum: 5
     non_blocking_handler:
       maximum: 7
+  http:
+    insecure_fetch_address_allowed: true
+    insecure_fetch_address_allowed_hosts:
+      - hooks.internal.example.com
+      - "*.svc.cluster.local"
   admin_api:
     create_session_enabled: true
     user_import_usage:
@@ -223,7 +231,6 @@ result:
       custom_ui_enabled: true
       app2app_enabled: false
     client_id_metadata_document:
-      insecure_fetch_address_allowed: true
       insecure_http_allowed: true
       rate_limits:
         fetch:

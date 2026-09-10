@@ -347,22 +347,26 @@ CIMD clients in v1 are always **public**: `token_endpoint_auth_method` must be a
 - **Follow 0 redirects** — a redirect target hasn't been through [Client ID Format](#client-id-format) validation, and would otherwise let the previous two rules be bypassed. The spec doesn't address redirects; this is an Authgear decision.
 - **Enforce the 5120-byte limit ([§8.7](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.7)) progressively while reading the response**, not via `Content-Length` alone, since a server can omit or misstate it.
 
-Spec §8.6 permits a dev/test-only exception: an AS running on loopback may fetch loopback addresses. Authgear implements this — slightly widened, and gated differently — as two **feature config** flags:
+The address rules above are not CIMD's own. They are the deployment-wide policy in [SSRF Protection](./ssrf-protection.md), shared with webhooks, the custom SMS provider and OIDC discovery. CIMD reads both settings from it — `http.insecure_fetch_address_allowed` and `http.insecure_fetch_address_allowed_hosts` — and carries no address flag of its own.
+
+An allowlisted host is a statement about the destination, so it applies to a `client_id` too. That is deliberate: without it, an operator needing one private host reachable would have to set `insecure_fetch_address_allowed`, which opens every private address rather than the one they named. `allowed_domains` remains the control over *which* domains may be `client_id`s at all.
+
+Spec §8.6 permits a dev/test-only exception: an AS on loopback may fetch loopback addresses. Authgear widens this slightly, as `insecure_fetch_address_allowed` — every non-publicly-routable range, including `169.254.169.254`, because a containerised document host is usually on an RFC 1918 address rather than loopback.
+
+CIMD keeps one flag of its own:
 
 ```yaml
 # authgear.features.yaml
 oauth:
   client_id_metadata_document:
     insecure_http_allowed: false
-    insecure_fetch_address_allowed: false
 ```
 
-- `insecure_http_allowed`: permits `http://` wherever CIMD requires `https` — the `client_id`, the document's `logo_uri`/`client_uri`/`tos_uri`/`policy_uri`, and the logo fetch. It relaxes the scheme and nothing else.
-- `insecure_fetch_address_allowed`: permits connecting to a non-publicly-routable address. Note this is **every** such range, including `169.254.169.254`, not loopback only: a test or containerised local-development document host is typically reached at an RFC 1918 address rather than on loopback, so a loopback-only exception would not work for either.
+`insecure_http_allowed` permits `http://` wherever CIMD requires `https` — the `client_id`, the document's `logo_uri`/`client_uri`/`tos_uri`/`policy_uri`, and the logo fetch. Scheme only. It stays CIMD-specific because no other fetch path requires `https`.
 
-Both default `false`, and both live in `authgear.features.yaml` rather than `authgear.yaml` — so they are settable only through the Site Admin surface, never by a project admin, and should be set as an app-specific override rather than at the cluster or plan layer. Every fetch that uses either is logged with the project id and target host, so a flag left set on a deployed project is not invisible. **With both `false` — always the case for a project serving real traffic — the rules above apply unconditionally.**
+Both default `false` and both live in `authgear.features.yaml`, so a project admin cannot set either. Every fetch that uses either is logged with the project id and target host. **With both `false`, the rules above apply unconditionally.**
 
-The choice of per-project feature config over a process-wide `DEV_MODE` switch is deliberate, and not only about who can set it: a global switch cannot express a permissive project and a strict project at the same time, which makes the *enforcement* path impossible to test end to end. Being able to assert that `http://` and private addresses really are refused matters more than the simpler gate.
+Feature config rather than a process-wide `DEV_MODE` switch: a global switch cannot express a permissive project and a strict project at once, which would make the enforcement path untestable end to end.
 
 The same rules apply to fetching `logo_uri` ([§8.8](https://www.ietf.org/archive/id/draft-ietf-oauth-client-id-metadata-document-02.html#section-8.8)) — through the same resolve-once transport and address filter — with three additional constraints specific to images: a 256 KiB response cap, an allowlist of `image/png`, `image/jpeg`, `image/gif` and `image/webp` where the declared and sniffed types must agree, and a separate rate-limit bucket so logo traffic cannot starve document resolution. `image/svg+xml` is deliberately **not** accepted: an SVG is a scriptable document, and it would be served from Authgear's own origin. Should confidential CIMD clients be added later, `jwks_uri` is subject to the same rules again.
 

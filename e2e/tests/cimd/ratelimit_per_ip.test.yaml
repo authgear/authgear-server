@@ -9,7 +9,6 @@ authgear.features.yaml:
     oauth:
       client_id_metadata_document:
         insecure_http_allowed: true
-        insecure_fetch_address_allowed: true
         rate_limits:
           fetch:
             per_ip:

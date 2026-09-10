@@ -124,6 +124,8 @@ We've provided detailed instructions on how to set up a self-hosted instance of 
 
 [Helm Chart](https://docs.authgear.com/deployment/production-deployment/helm) is the recommended way to deploy Authgear on Kubernetes for production usage
 
+Before upgrading, check [docs/BREAKING-CHANGES.md](docs/BREAKING-CHANGES.md) for anything between your current release and the one you are moving to.
+
 ## How to contribute
 Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) if you need instructions on contributing to the development of Authgear Server.
 

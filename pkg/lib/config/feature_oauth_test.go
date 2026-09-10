@@ -13,13 +13,11 @@ func TestOAuthClientIDMetadataDocumentFeatureConfigNilSafety(t *testing.T) {
 		var c *config.OAuthFeatureConfig
 		So(func() {
 			So(c.GetClientIDMetadataDocument().IsInsecureHTTPAllowed(), ShouldBeFalse)
-			So(c.GetClientIDMetadataDocument().IsInsecureFetchAddressAllowed(), ShouldBeFalse)
 		}, ShouldNotPanic)
 	})
 
 	Convey("(*OAuthClientIDMetadataDocumentFeatureConfig)(nil) is safe", t, func() {
 		var c *config.OAuthClientIDMetadataDocumentFeatureConfig
 		So(c.IsInsecureHTTPAllowed(), ShouldBeFalse)
-		So(c.IsInsecureFetchAddressAllowed(), ShouldBeFalse)
 	})
 }

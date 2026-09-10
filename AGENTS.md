@@ -78,6 +78,7 @@ authgear-server/
 |---|---|
 | [README.md](README.md) | Project overview, local setup, build, running Authgear |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution workflow, coding standards, testing, commit/PR process |
+| [docs/BREAKING-CHANGES.md](docs/BREAKING-CHANGES.md) | What breaks on upgrade, per release tag — **every breaking change must be recorded here, see below** |
 | [docs/specs/convention.md](docs/specs/convention.md) | Spec writing convention — required reading before authoring a new spec |
 | [docs/specs/api.md](docs/specs/api.md) | Authgear public API spec (OAuth/OIDC, flows, endpoints) |
 | [docs/specs/api-admin.md](docs/specs/api-admin.md) | Admin API spec (GraphQL, endpoints, auth) |
@@ -123,6 +124,23 @@ For more targets, browse the root `Makefile` and `portal/package.json` / `authui
 - Prefer existing local patterns over inventing new ones.
 - Reuse skills for repeatable workflows.
 - If you change code, run the narrowest relevant test or build first, then broaden only if the change crosses package boundaries.
+
+## Breaking changes
+
+[docs/BREAKING-CHANGES.md](docs/BREAKING-CHANGES.md) is what an operator reads when upgrading between release tags (`YYYY-MM-DD.N`). A change belongs there when a deployment that works today can stop working after the upgrade:
+
+- a new default that refuses input previously accepted
+- a removed, renamed, or newly required config field
+- a changed default value
+- stricter validation of existing config or requests
+- a behaviour change a deployment could be relying on
+
+Rules:
+
+- Add the entry under `## [Unreleased]`, **in the same commit as the change itself** — not as a follow-up.
+- State what changed, who is affected, how it shows up (the log line, error, or symptom to search for), and what to do about it.
+- Bug fixes, new features, and internal refactors do **not** belong there. It is not a changelog.
+- On release, `## [Unreleased]` is renamed to the new tag and a fresh empty one opened above it.
 
 ## Skills
 
@@ -186,6 +204,7 @@ The **PR number is appended** to the subject of the squash-merge commit (added b
 
 ## Verification
 
+- If the change can break a working deployment, confirm `docs/BREAKING-CHANGES.md` has an entry under `## [Unreleased]` — see [Breaking changes](#breaking-changes).
 - Go changes: run `go test` on the affected package(s), and wider tests if the change is shared infrastructure.
 - Frontend changes: run the relevant `npm run build` or `npm run typecheck` command in the affected package.
 - Generated files: rerun the generator that owns the file, not a manual edit.

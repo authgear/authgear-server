@@ -26,9 +26,14 @@ var (
 )
 
 func logoFetcherFor(httpClient *http.Client, featureConfig *config.OAuthClientIDMetadataDocumentFeatureConfig) *LogoFetcher {
+	return logoFetcherForWithHTTP(httpClient, featureConfig, nil)
+}
+
+func logoFetcherForWithHTTP(httpClient *http.Client, featureConfig *config.OAuthClientIDMetadataDocumentFeatureConfig, httpFeatureConfig *config.HTTPFeatureConfig) *LogoFetcher {
 	return &LogoFetcher{
 		HTTPClients:        &CIMDHTTPClients{Strict: httpClient, Insecure: httpClient},
 		OAuthFeatureConfig: &config.OAuthFeatureConfig{ClientIDMetadataDocument: featureConfig},
+		HTTPFeatureConfig:  httpFeatureConfig,
 		AppID:              "test-app",
 	}
 }
@@ -190,9 +195,8 @@ func TestLogoFetcherFetch(t *testing.T) {
 				FollowRedirect: false,
 				Transport:      transport,
 			})
-			f := logoFetcherFor(client, &config.OAuthClientIDMetadataDocumentFeatureConfig{
-				InsecureFetchAddressAllowed: new(false),
-			})
+			f := logoFetcherForWithHTTP(client, &config.OAuthClientIDMetadataDocumentFeatureConfig{},
+				&config.HTTPFeatureConfig{InsecureFetchAddressAllowed: new(false)})
 			_, _, err := f.Fetch(ctx, srv.URL)
 			So(errors.Is(err, errBlockedAddress), ShouldBeTrue)
 		})
@@ -204,9 +208,8 @@ func TestLogoFetcherFetch(t *testing.T) {
 			}))
 			defer srv.Close()
 
-			f := logoFetcherFor(newLoopbackHTTPClient(certPool(srv), nil), &config.OAuthClientIDMetadataDocumentFeatureConfig{
-				InsecureFetchAddressAllowed: new(true),
-			})
+			f := logoFetcherForWithHTTP(newLoopbackHTTPClient(certPool(srv), nil), &config.OAuthClientIDMetadataDocumentFeatureConfig{},
+				&config.HTTPFeatureConfig{InsecureFetchAddressAllowed: new(true)})
 			_, _, err := f.Fetch(ctx, srv.URL)
 			So(err, ShouldBeNil)
 		})

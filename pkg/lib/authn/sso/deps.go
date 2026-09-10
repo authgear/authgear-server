@@ -14,10 +14,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func ProvideOAuthHTTPClient(env *config.EnvironmentConfig) OAuthHTTPClient {
-	client := httputil.NewExternalClient(5 * time.Second)
-
+func ProvideOAuthHTTPClient(env *config.EnvironmentConfig, f *config.HTTPFeatureConfig) OAuthHTTPClient {
+	// The end-to-end test transport replaces the transport wholesale, proxy
+	// and all, so the address policy below cannot apply to it and does not
+	// try to. This branch is reachable only when the deployment sets one of
+	// the End2End* environment variables.
 	if env.End2EndHTTPProxy != "" || env.End2EndTLSCACertFile != "" {
+		client := httputil.NewExternalClient(5 * time.Second)
+
 		transport := &http.Transport{
 			TLSClientConfig: &tls.Config{
 				// TLS 1.2 is minimum version by default
@@ -47,9 +51,21 @@ func ProvideOAuthHTTPClient(env *config.EnvironmentConfig) OAuthHTTPClient {
 		}
 
 		client.Transport = transport
+		return OAuthHTTPClient{client}
 	}
 
-	return OAuthHTTPClient{client}
+	// An OAuth provider's discovery_document_endpoint comes from the
+	// project's config, and the jwks_uri this client fetches next comes from
+	// whatever that endpoint returned -- so the second hop is chosen by the
+	// discovery server, not by anyone here. Both go through the same client,
+	// so both are bound by the same address policy.
+	return OAuthHTTPClient{
+		httputil.NewSSRFSafeExternalClient(5*time.Second, httputil.SSRFSafeExternalClientOptions{
+			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
+			Sink:                    "sso.oauth.providers.discovery_document_endpoint",
+		}),
+	}
 }
 
 var DependencySet = wire.NewSet(

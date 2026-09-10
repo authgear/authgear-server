@@ -63,7 +63,6 @@ oauth:
     app2app_enabled: false
   client_id_metadata_document:
     insecure_http_allowed: false
-    insecure_fetch_address_allowed: false
     rate_limits:
       fetch:
         per_project:
@@ -79,6 +78,8 @@ hook:
     maximum: 99
   non_blocking_handler:
     maximum: 99
+http:
+  insecure_fetch_address_allowed: false
 audit_log:
   retrieval_days: -1
 google_tag_manager:

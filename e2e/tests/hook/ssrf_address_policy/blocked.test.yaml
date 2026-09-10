@@ -1,0 +1,61 @@
+name: A hook aimed at a non-publicly-routable address is not delivered
+# The e2e deployment sets http.insecure_fetch_address_allowed at the cluster
+# layer, because its own hook receivers run on loopback. This case overrides it
+# back to false to exercise what a deployment serving projects it does not
+# control actually does: the hook URL points at loopback, so the request must
+# never leave the process.
+#
+# Structured after usage/feature_hook_delivery.test.yaml, which asserts the
+# same hook IS delivered with the flag left at the deployment's setting. The
+# hook server records every delivery it receives, so an empty result is the
+# assertion that nothing was sent -- not merely that the flow succeeded anyway.
+authgear.features.yaml:
+  override: |
+    http:
+      insecure_fetch_address_allowed: false
+    usage:
+      hooks:
+      - url: 'http://127.0.0.1:2626/[[.AppID]]/ssrf-blocked'
+        match: "*"
+      limits:
+        sms:
+        - quota: 1
+          period: "day"
+          action: "alert"
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231402"
+      }
+  - name: send sms
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+  - name: wait for the delivery that must not happen
+    action: sleep
+    sleep_for: 2s
+  - name: hook server received nothing
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/ssrf-blocked"
+    hook_server_output:
+      rows: |
+        []
