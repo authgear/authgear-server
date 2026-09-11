@@ -1197,10 +1197,21 @@ Payload:
       "source": "DCR",
       "kind": "THIRD_PARTY",
       "client_name": "PR #123 preview",
+      "client_uri": "https://pr-123.preview.example.com",
       "application_type": "web",
+      "token_endpoint_auth_method": "none",
       "redirect_uris": ["https://pr-123.preview.example.com/callback"],
       "grant_types": ["authorization_code", "refresh_token"],
       "response_types": ["code"]
+    },
+    "request": {
+      "client_name": "PR #123 preview",
+      "client_uri": "https://pr-123.preview.example.com",
+      "redirect_uris": ["https://pr-123.preview.example.com/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"],
+      "application_type": "web",
+      "token_endpoint_auth_method": "none"
     },
     "initial_access_token": {
       "id": "60f4c2a1-9d3e-4a7b-8c15-2e6f0b9d4a83",
@@ -1215,9 +1226,11 @@ Payload:
 - `client.client_id`: The `client_id` assigned to the client. See [Client ID Format](./dcr.md#client-id-format).
 - `client.source`: How the client came to exist. `DCR` for a client created by the registration endpoint.
 - `client.kind`: `FIRST_PARTY` or `THIRD_PARTY`. Determined by the type of Initial Access Token used, not by `application_type`. See [Initial Access Token](./dcr.md#initial-access-token).
-- `client.client_name`: The registered client name. Absent if the client did not provide one.
+- `client.client_name`, `client.client_uri`, `client.logo_uri`, `client.tos_uri`, `client.policy_uri`: The registered values. Absent if the client did not provide one.
 - `client.application_type`: `web` or `native`.
-- `client.redirect_uris`, `client.grant_types`, `client.response_types`: The registered values, after defaults have been applied. See [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
+- `client.token_endpoint_auth_method`: Always `none` — DCR ignores whatever the caller asked for and always registers a public client with no secret. See [`request.token_endpoint_auth_method`](#oauthclientregistered) below for what was actually requested.
+- `client.redirect_uris`, `client.grant_types`, `client.response_types`: The registered values, after defaults have been applied and any unimplemented entries dropped. See [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
+- `request`: The client metadata the caller asked for, **as sent** — no defaults applied, no normalization, nothing dropped. Same shape and same rationale as [`oauth.client.registration.failed`'s `request`](#oauthclientregistrationfailed): `client.grant_types` can have fewer entries than `request.grant_types` when the caller asked for a grant type Authgear does not implement, and `client.token_endpoint_auth_method` is always `none` regardless of what `request.token_endpoint_auth_method` says — this is the only place either discrepancy is visible. Fields absent from the request are absent here too.
 - `initial_access_token`: The Initial Access Token that authorized the registration. **The field does not exist** when the project allows open registration (`initial_access_token_required: false`) and the client presented no token.
   - `initial_access_token.id`: The ID of the token, as returned by the `initialAccessTokens` Admin API query. The token value itself is never included, nor is a hash of it.
   - `initial_access_token.type`: `FIRST_PARTY` or `THIRD_PARTY`.
@@ -1264,7 +1277,7 @@ Payload:
 - `initial_access_token`: Present only when `message` is `expired` — the only case where a token row exists to describe. Same shape as in [oauth.client.registered](#oauthclientregistered). An unknown token has nothing to report, and none was presented in the `not_presented` case.
 - `request`: The client metadata the caller asked for, **as sent** — no defaults applied, no normalization, nothing dropped. `message` names the rule that failed but never the value that failed it, so this is what turns `grant_type_unsupported` into an actionable record: the registering client is a third party whose request body the admin cannot otherwise see. Fields absent from the request are absent here.
 
-  It includes `token_endpoint_auth_method` even though that field is [ignored](./dcr.md#token_endpoint_auth_method-optional) and can no longer fail a registration — it is recorded because it is invisible everywhere else, and "what did the client ask to authenticate with?" is a routine follow-up question when a registration fails for some other reason.
+  It includes `token_endpoint_auth_method` even though that field is [ignored](./dcr.md#token_endpoint_auth_method-optional) and can no longer fail a registration — the persisted client always registers as `none`, so "what did the client ask to authenticate with?" would otherwise be unanswerable, whether the registration failed or (see [`oauth.client.registered`'s own `request`](#oauthclientregistered)) succeeded.
 
   The key is **absent** when the request never got as far as a decoded body — `message` of `malformed_header`, `not_presented` or `malformed_json` — and present for every other failure, including `limit_exceeded` and an unknown or expired token, which are decided after the body is read. Absent is therefore "nothing was parsed", never "an empty request was sent".
 

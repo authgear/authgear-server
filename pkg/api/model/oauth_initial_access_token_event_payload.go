@@ -1,26 +1,25 @@
-package nonblocking
+package model
 
-import (
-	"time"
-
-	"github.com/authgear/authgear-server/pkg/api/model"
-)
+import "time"
 
 // EventPayloadInitialAccessToken describes an initial access token in an
-// audit event payload. Shared by oauth.client.registered and
+// audit event payload. Shared by nonblocking's oauth.client.registered and
 // oauth.client.registration.failed, deliberately -- unlike the per-event
 // Client payload structs, which are kept independent on purpose, this one
 // must never diverge: the point is that a token presents identically in
 // both records, so an auditor correlating "which clients did leaked token
 // X register, and when did it stop working" reads one shape throughout.
+// Lives in this package rather than nonblocking for the same reason as
+// OAuthClientRegistrationRequest and OAuthClientResolutionDocument: plain
+// data referenced from outside the event system too.
 //
 // Never carries the token value or a hash of it (a hash is still a
 // guessing oracle). ID is the row uuid the Admin API already exposes.
 type EventPayloadInitialAccessToken struct {
-	ID        string                            `json:"id"`
-	Type      model.OAuthInitialAccessTokenType `json:"type"`
-	CreatedAt time.Time                         `json:"created_at"`
-	ExpiresAt time.Time                         `json:"expires_at"`
+	ID        string                      `json:"id"`
+	Type      OAuthInitialAccessTokenType `json:"type"`
+	CreatedAt time.Time                   `json:"created_at"`
+	ExpiresAt time.Time                   `json:"expires_at"`
 }
 
 // NewEventPayloadInitialAccessToken maps nil to nil, which is what both
@@ -28,7 +27,7 @@ type EventPayloadInitialAccessToken struct {
 // absent one has no row to describe. Combined with `omitempty` on the
 // field, that drops the key entirely rather than emitting an object of
 // zero values.
-func NewEventPayloadInitialAccessToken(iat *model.OAuthInitialAccessToken) *EventPayloadInitialAccessToken {
+func NewEventPayloadInitialAccessToken(iat *OAuthInitialAccessToken) *EventPayloadInitialAccessToken {
 	if iat == nil {
 		return nil
 	}

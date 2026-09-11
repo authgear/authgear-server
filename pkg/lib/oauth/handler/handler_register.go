@@ -68,22 +68,16 @@ type RegistrationHandler struct {
 // These fields are the registration as Authgear recorded it, not an echo
 // of the request -- §3.2.1 requires all registered metadata, which is
 // what makes substituting a requested value safe.
+// RegistrationResponse embeds model.OAuthClientRegisteredMetadata rather
+// than repeating its fields -- see that type's own comment for why: the
+// same embed backs oauth.client.registered's audit event, so the two
+// cannot drift apart the way they once did (client_uri/logo_uri/tos_uri/
+// policy_uri/token_endpoint_auth_method were present here but missing from
+// the event).
 type RegistrationResponse struct {
-	ClientID         string   `json:"client_id"`
-	ClientIDIssuedAt int64    `json:"client_id_issued_at"`
-	ClientName       string   `json:"client_name,omitempty"`
-	RedirectURIs     []string `json:"redirect_uris"`
-	GrantTypes       []string `json:"grant_types"`
-	ResponseTypes    []string `json:"response_types"`
-	ApplicationType  string   `json:"application_type"`
-	// TokenEndpointAuthMethod is always "none", and never omitted: the
-	// request's own value is ignored, so this is how a client that asked
-	// for client_secret_post learns it must use PKCE alone.
-	TokenEndpointAuthMethod string `json:"token_endpoint_auth_method"`
-	ClientURI               string `json:"client_uri,omitempty"`
-	LogoURI                 string `json:"logo_uri,omitempty"`
-	TOSURI                  string `json:"tos_uri,omitempty"`
-	PolicyURI               string `json:"policy_uri,omitempty"`
+	ClientID         string `json:"client_id"`
+	ClientIDIssuedAt int64  `json:"client_id_issued_at"`
+	model.OAuthClientRegisteredMetadata
 }
 
 // registrationRequestBody is the raw JSON shape of the POST /oauth2/register
@@ -105,8 +99,8 @@ type registrationRequestBody struct {
 
 // auditRequest describes this body for the failure event, as sent. Only
 // the failure paths with a decoded body call it; the rest pass nil.
-func (b *registrationRequestBody) auditRequest() *nonblocking.OAuthClientRegistrationFailedEventPayloadRequest {
-	return &nonblocking.OAuthClientRegistrationFailedEventPayloadRequest{
+func (b *registrationRequestBody) auditRequest() *model.OAuthClientRegistrationRequest {
+	return &model.OAuthClientRegistrationRequest{
 		ClientName:              derefStringOr(b.ClientName, ""),
 		RedirectURIs:            b.RedirectURIs,
 		GrantTypes:              b.GrantTypes,
@@ -206,7 +200,7 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 		}
 		client = c
 		countBeforeCreate = count
-		return h.Events.DispatchEventOnCommit(ctx, newOAuthClientRegisteredEventPayload(client, iat))
+		return h.Events.DispatchEventOnCommit(ctx, newOAuthClientRegisteredEventPayload(client, iat, body.auditRequest()))
 	})
 	if err != nil {
 		if errors.Is(err, dcr.ErrInitialAccessTokenNotFound) {
@@ -225,18 +219,9 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	h.UsageLimiter.ReportStandingCreated(ctx, model.UsageNameOAuthClientDCR, countBeforeCreate)
 
 	return &RegistrationResponse{
-		ClientID:                client.ClientID,
-		ClientIDIssuedAt:        client.CreatedAt.Unix(),
-		ClientName:              client.Name,
-		RedirectURIs:            client.RedirectURIs,
-		GrantTypes:              client.GrantTypes,
-		ResponseTypes:           client.ResponseTypes,
-		ApplicationType:         derefStringOr(client.ApplicationType, ""),
-		TokenEndpointAuthMethod: "none",
-		ClientURI:               derefStringOr(client.ClientURI, ""),
-		LogoURI:                 derefStringOr(client.LogoURI, ""),
-		TOSURI:                  derefStringOr(client.TOSURI, ""),
-		PolicyURI:               derefStringOr(client.PolicyURI, ""),
+		ClientID:                      client.ClientID,
+		ClientIDIssuedAt:              client.CreatedAt.Unix(),
+		OAuthClientRegisteredMetadata: model.NewOAuthClientRegisteredMetadata(client),
 	}, nil
 }
 
@@ -255,7 +240,7 @@ func (h *RegistrationHandler) registerClientInTx(
 	ctx context.Context,
 	token string,
 	normalized *dcr.NormalizedRegistration,
-	auditRequest *nonblocking.OAuthClientRegistrationFailedEventPayloadRequest,
+	auditRequest *model.OAuthClientRegistrationRequest,
 ) (client *model.OAuthClient, iat *model.OAuthInitialAccessToken, countBeforeCreate int, err error) {
 	kind := model.OAuthClientKindThirdParty
 	if token != "" {
@@ -351,14 +336,14 @@ func (h *RegistrationHandler) dispatchRegistrationFailed(
 	usageName model.UsageName,
 	quota int,
 	iat *model.OAuthInitialAccessToken,
-	auditRequest *nonblocking.OAuthClientRegistrationFailedEventPayloadRequest,
+	auditRequest *model.OAuthClientRegistrationRequest,
 ) {
 	h.dispatchImmediately(ctx, &nonblocking.OAuthClientRegistrationFailedEventPayload{
 		Reason:             reason,
 		Message:            message,
 		UsageName:          usageName,
 		Quota:              quota,
-		InitialAccessToken: nonblocking.NewEventPayloadInitialAccessToken(iat),
+		InitialAccessToken: model.NewEventPayloadInitialAccessToken(iat),
 		Request:            auditRequest,
 	})
 }
@@ -399,20 +384,20 @@ func derefStringOr(s *string, fallback string) string {
 // successful registration. iat is nil under open registration
 // (initial_access_token_required: false), in which case the payload's
 // InitialAccessToken field is left nil too — see
-// nonblocking.OAuthClientRegisteredEventPayload.
-func newOAuthClientRegisteredEventPayload(client *model.OAuthClient, iat *model.OAuthInitialAccessToken) *nonblocking.OAuthClientRegisteredEventPayload {
+// nonblocking.OAuthClientRegisteredEventPayload. auditRequest is the
+// request body as sent, from registrationRequestBody.auditRequest() -- it
+// is what lets the event show a grant_type or token_endpoint_auth_method
+// the caller asked for that Client above silently dropped or ignored.
+func newOAuthClientRegisteredEventPayload(client *model.OAuthClient, iat *model.OAuthInitialAccessToken, auditRequest *model.OAuthClientRegistrationRequest) *nonblocking.OAuthClientRegisteredEventPayload {
 	payload := &nonblocking.OAuthClientRegisteredEventPayload{
 		Client: nonblocking.OAuthClientRegisteredEventPayloadClient{
-			ClientID:        client.ClientID,
-			Source:          client.Source,
-			Kind:            client.Kind,
-			ClientName:      client.Name,
-			ApplicationType: derefStringOr(client.ApplicationType, ""),
-			RedirectURIs:    client.RedirectURIs,
-			GrantTypes:      client.GrantTypes,
-			ResponseTypes:   client.ResponseTypes,
+			ClientID:                      client.ClientID,
+			Source:                        client.Source,
+			Kind:                          client.Kind,
+			OAuthClientRegisteredMetadata: model.NewOAuthClientRegisteredMetadata(client),
 		},
+		Request: *auditRequest,
 	}
-	payload.InitialAccessToken = nonblocking.NewEventPayloadInitialAccessToken(iat)
+	payload.InitialAccessToken = model.NewEventPayloadInitialAccessToken(iat)
 	return payload
 }

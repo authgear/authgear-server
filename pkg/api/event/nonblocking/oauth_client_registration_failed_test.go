@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 func TestOAuthClientRegistrationFailedEventPayload(t *testing.T) {
@@ -36,14 +37,14 @@ func TestOAuthClientRegistrationFailedEventPayload(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(b), ShouldNotContainSubstring, `"request"`)
 
-			payload.Request = &nonblocking.OAuthClientRegistrationFailedEventPayloadRequest{}
+			payload.Request = &model.OAuthClientRegistrationRequest{}
 			b, err = json.Marshal(payload)
 			So(err, ShouldBeNil)
 			So(string(b), ShouldContainSubstring, `"request":{}`)
 		})
 
 		Convey("the request is recorded as sent, including the ignored auth method", func() {
-			payload.Request = &nonblocking.OAuthClientRegistrationFailedEventPayloadRequest{
+			payload.Request = &model.OAuthClientRegistrationRequest{
 				GrantTypes:              []string{"client_credentials"},
 				TokenEndpointAuthMethod: "client_secret_post",
 			}

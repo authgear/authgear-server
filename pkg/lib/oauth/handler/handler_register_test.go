@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -420,10 +421,10 @@ func TestRegistrationHandler(t *testing.T) {
 			// Same fixture token: the shape the registered event just carried
 			// is byte-identical to what the failure event would have emitted
 			// had this same token instead been expired -- proving both
-			// events genuinely share nonblocking.EventPayloadInitialAccessToken
+			// events genuinely share model.EventPayloadInitialAccessToken
 			// rather than two independently-built lookalikes.
 			expiredVariant := &model.OAuthInitialAccessToken{Meta: token.Meta, Type: token.Type, ExpiresAt: token.ExpiresAt}
-			fromFailure := nonblocking.NewEventPayloadInitialAccessToken(expiredVariant)
+			fromFailure := model.NewEventPayloadInitialAccessToken(expiredVariant)
 			So(registered.InitialAccessToken, ShouldResemble, fromFailure)
 		})
 
@@ -493,7 +494,13 @@ func TestRegistrationHandler(t *testing.T) {
 					}, nil
 				},
 			)
-			events.EXPECT().DispatchEventOnCommit(gomock.Any(), gomock.Any()).Return(nil)
+			var registered *nonblocking.OAuthClientRegisteredEventPayload
+			events.EXPECT().DispatchEventOnCommit(gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, payload apievent.Payload) error {
+					registered = payload.(*nonblocking.OAuthClientRegisteredEventPayload)
+					return nil
+				},
+			)
 			expectNoDispatch()
 
 			resp, err := h.Handle(context.Background(), newRequest(body, ""))
@@ -505,6 +512,69 @@ func TestRegistrationHandler(t *testing.T) {
 			// The requested client_secret_post is not honored, and the
 			// response says so.
 			So(resp.TokenEndpointAuthMethod, ShouldEqual, "none")
+
+			// The persisted client only ever shows what survived...
+			So(registered.Client.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
+			So(registered.Client.TokenEndpointAuthMethod, ShouldEqual, "none")
+			// ...but Request shows what Claude actually asked for, dropped
+			// grant type and ignored auth method included -- otherwise an
+			// auditor could never tell the two apart from this record.
+			So(registered.Request.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"})
+			So(registered.Request.TokenEndpointAuthMethod, ShouldEqual, "client_secret_post")
+		})
+
+		Convey("registered event carries client_uri/logo_uri/tos_uri/policy_uri on both Client and Request", func() {
+			body := `{"redirect_uris":["https://app.example.com/cb"],` +
+				`"client_uri":"https://app.example.com","logo_uri":"https://app.example.com/logo.png",` +
+				`"tos_uri":"https://app.example.com/tos","policy_uri":"https://app.example.com/policy"}`
+
+			b := false
+			oauthConfig.DynamicClientRegistration.InitialAccessTokenRequired = &b
+			dcrService.EXPECT().LockForClientCount(gomock.Any(), model.OAuthClientSourceDCR).Return(nil)
+			dcrService.EXPECT().CountClientsBySource(gomock.Any(), model.OAuthClientSourceDCR).Return(uint64(0), nil)
+			usageLimiter.EXPECT().CheckStanding(gomock.Any(), model.UsageNameOAuthClientDCR, 0).Return(nil)
+			usageLimiter.EXPECT().ReportStandingCreated(gomock.Any(), model.UsageNameOAuthClientDCR, 0)
+
+			appType := "web"
+			clientURI := "https://app.example.com"
+			logoURI := "https://app.example.com/logo.png"
+			tosURI := "https://app.example.com/tos"
+			policyURI := "https://app.example.com/policy"
+			dcrService.EXPECT().RegisterClient(gomock.Any(), gomock.Any()).Return(&model.OAuthClient{
+				Meta:            model.Meta{ID: "client-record-id", CreatedAt: fixedTime},
+				ClientID:        "dcrc_uris",
+				Source:          model.OAuthClientSourceDCR,
+				Kind:            model.OAuthClientKindThirdParty,
+				ApplicationType: &appType,
+				ClientURI:       &clientURI,
+				LogoURI:         &logoURI,
+				TOSURI:          &tosURI,
+				PolicyURI:       &policyURI,
+				RedirectURIs:    []string{"https://app.example.com/cb"},
+				GrantTypes:      []string{"authorization_code", "refresh_token"},
+				ResponseTypes:   []string{"code"},
+			}, nil)
+
+			var registered *nonblocking.OAuthClientRegisteredEventPayload
+			events.EXPECT().DispatchEventOnCommit(gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, payload apievent.Payload) error {
+					registered = payload.(*nonblocking.OAuthClientRegisteredEventPayload)
+					return nil
+				},
+			)
+			expectNoDispatch()
+
+			_, err := h.Handle(context.Background(), newRequest(body, ""))
+			So(err, ShouldBeNil)
+
+			So(registered.Client.ClientURI, ShouldEqual, "https://app.example.com")
+			So(registered.Client.LogoURI, ShouldEqual, "https://app.example.com/logo.png")
+			So(registered.Client.TOSURI, ShouldEqual, "https://app.example.com/tos")
+			So(registered.Client.PolicyURI, ShouldEqual, "https://app.example.com/policy")
+			So(registered.Request.ClientURI, ShouldEqual, "https://app.example.com")
+			So(registered.Request.LogoURI, ShouldEqual, "https://app.example.com/logo.png")
+			So(registered.Request.TOSURI, ShouldEqual, "https://app.example.com/tos")
+			So(registered.Request.PolicyURI, ShouldEqual, "https://app.example.com/policy")
 		})
 
 		Convey("successful registration emits only oauth.client.registered, never a failure event", func() {
@@ -543,5 +613,32 @@ func TestRegistrationHandler(t *testing.T) {
 			So(protoErr.StatusCode, ShouldEqual, http.StatusUnauthorized)
 			So(protoErr.Response["error"], ShouldEqual, "invalid_initial_access_token")
 		})
+	})
+}
+
+// TestRegisteredClientMetadataCannotDrift is a structural backstop for
+// model.OAuthClientRegisteredMetadata's own contract: RegistrationResponse
+// and oauth.client.registered's Client must embed that exact type, by that
+// exact name, as an anonymous field. This is what makes the previous bug --
+// client_uri/logo_uri/tos_uri/policy_uri/token_endpoint_auth_method present
+// in the HTTP response but missing from the audit event -- impossible to
+// reintroduce by a future edit that flattens either struct back to
+// individual fields: doing so would fail this test even though it would
+// still compile.
+func TestRegisteredClientMetadataCannotDrift(t *testing.T) {
+	Convey("RegistrationResponse and OAuthClientRegisteredEventPayloadClient embed the same metadata type", t, func() {
+		metadataType := reflect.TypeOf(model.OAuthClientRegisteredMetadata{})
+
+		responseType := reflect.TypeOf(handler.RegistrationResponse{})
+		responseField, ok := responseType.FieldByName(metadataType.Name())
+		So(ok, ShouldBeTrue)
+		So(responseField.Anonymous, ShouldBeTrue)
+		So(responseField.Type, ShouldEqual, metadataType)
+
+		eventClientType := reflect.TypeOf(nonblocking.OAuthClientRegisteredEventPayloadClient{})
+		eventField, ok := eventClientType.FieldByName(metadataType.Name())
+		So(ok, ShouldBeTrue)
+		So(eventField.Anonymous, ShouldBeTrue)
+		So(eventField.Type, ShouldEqual, metadataType)
 	})
 }
