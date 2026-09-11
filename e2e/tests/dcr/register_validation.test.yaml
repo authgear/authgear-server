@@ -76,6 +76,96 @@ steps:
 
 ---
 
+# RFC 8252 §7.3 treats the loopback IP literals the same as the "localhost"
+# hostname -- a native/CLI client that binds its callback listener to
+# 127.0.0.1 (rather than resolving "localhost") must be accepted too.
+name: native application_type accepts http://127.0.0.1 redirect_uris
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "application_type": "native",
+        "redirect_uris": ["http://127.0.0.1:60327/callback/abc"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]",
+          "application_type": "native",
+          "redirect_uris": ["http://127.0.0.1:60327/callback/abc"]
+        }
+
+---
+
+name: native application_type accepts http://[::1] redirect_uris
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "application_type": "native",
+        "redirect_uris": ["http://[::1]:3000/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]",
+          "application_type": "native",
+          "redirect_uris": ["http://[::1]:3000/callback"]
+        }
+
+---
+
+# Loopback is the only relaxation -- an ordinary non-loopback IP still needs
+# https:// (or a custom scheme) exactly like any other host would.
+name: native application_type rejects http:// on a non-loopback IP
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "application_type": "native",
+        "redirect_uris": ["http://127.0.0.2/callback"]
+      }
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_redirect_uri"
+        }
+
+---
+
 name: web application_type rejects http://localhost redirect_uris
 authgear.yaml:
   override: |
