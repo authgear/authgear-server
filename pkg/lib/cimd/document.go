@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 // CIMDDocumentInvalid is the one apierrors.Kind shared by every
@@ -220,7 +221,7 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 //   - a custom (non-http, non-https) URI scheme
 //
 // Unlike dcr's redirect URI rule, application_type is NOT a parameter. DCR
-// gates http://localhost on application_type: native; CIMD cannot, because
+// gates loopback http:// on application_type: native; CIMD cannot, because
 // the MCP Authorization spec's own reference CIMD document uses
 // http://127.0.0.1:3000/callback and http://localhost:3000/callback while
 // omitting application_type entirely (so it defaults to "web"). Gating
@@ -241,15 +242,11 @@ func validateCIMDRedirectURI(raw string) error {
 		return nil
 	case "http":
 		// url.URL.Hostname() strips the brackets from "[::1]:3000", so this
-		// matches "http://[::1]:3000/callback" too. RFC 8252 §7.3 treats
-		// both IPv4 and IPv6 loopback as loopback, and an IPv6-only
-		// developer machine has no 127.0.0.1 to listen on.
-		switch u.Hostname() {
-		case "localhost", "127.0.0.1", "::1":
-			return nil
-		default:
+		// matches "http://[::1]:3000/callback" too.
+		if !httputil.IsLoopbackHost(u.Hostname()) {
 			return ErrDocumentRedirectURIInvalid
 		}
+		return nil
 	default:
 		// Any custom scheme (com.example.app:/callback, myapp://cb, ...).
 		return nil
