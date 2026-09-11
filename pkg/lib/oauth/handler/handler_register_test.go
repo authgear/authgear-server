@@ -627,15 +627,15 @@ func TestRegistrationHandler(t *testing.T) {
 // still compile.
 func TestRegisteredClientMetadataCannotDrift(t *testing.T) {
 	Convey("RegistrationResponse and OAuthClientRegisteredEventPayloadClient embed the same metadata type", t, func() {
-		metadataType := reflect.TypeOf(model.OAuthClientRegisteredMetadata{})
+		metadataType := reflect.TypeFor[model.OAuthClientRegisteredMetadata]()
 
-		responseType := reflect.TypeOf(handler.RegistrationResponse{})
+		responseType := reflect.TypeFor[handler.RegistrationResponse]()
 		responseField, ok := responseType.FieldByName(metadataType.Name())
 		So(ok, ShouldBeTrue)
 		So(responseField.Anonymous, ShouldBeTrue)
 		So(responseField.Type, ShouldEqual, metadataType)
 
-		eventClientType := reflect.TypeOf(nonblocking.OAuthClientRegisteredEventPayloadClient{})
+		eventClientType := reflect.TypeFor[nonblocking.OAuthClientRegisteredEventPayloadClient]()
 		eventField, ok := eventClientType.FieldByName(metadataType.Name())
 		So(ok, ShouldBeTrue)
 		So(eventField.Anonymous, ShouldBeTrue)
