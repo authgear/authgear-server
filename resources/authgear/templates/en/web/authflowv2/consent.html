@@ -5,7 +5,24 @@
 {{ $appName := (translate "app.name" nil) }}
 {{ $clientName := or $.ClientName "null" }}
 
-<div class="flex-1-0-auto screen-icon-layout">
+{{/* A client can request "openid" and nothing else: it wants to know who
+     you are and no more. Every other scope is what makes this a consent
+     screen, so with none of them there is nothing to consent to -- the page
+     is a sign-in confirmation, and says so instead of listing a permission
+     that restates the act the user is already performing. "openid" itself is
+     mandatory (ValidateScopesByClientConfig rejects a request without it),
+     so this is the minimum, not an empty request. */}}
+{{ $hasFullUserInfoScope := has "https://authgear.com/scopes/full-userinfo" $.Scopes }}
+{{ $hasNamedScopes := or
+  $hasFullUserInfoScope
+  (has "profile" $.Scopes)
+  (has "email" $.Scopes)
+  (has "phone" $.Scopes)
+  (has "address" $.Scopes) }}
+{{ $hasAppScopes := $.CustomScopes }}
+{{ $isSignInOnly := and (not $hasNamedScopes) (not $hasAppScopes) }}
+
+<div class="flex-1-0-auto screen-icon-layout screen-icon-layout--compact">
   <div class="screen-icon-layout__icon">
     {{ if $.ClientLogoURI }}
       <img
@@ -20,7 +37,7 @@
     {{ end }}
   </div>
   <div class="screen-title-description">
-    <h1 class="screen-title">
+    <h1 class="screen-title consent-title">
       {{ include "v2.page.consent.default.title" (dict "ClientName" $clientName) }}
     </h1>
     {{ if $.ClientIDHostname }}
@@ -28,79 +45,103 @@
         {{ include "v2.page.consent.default.client-hostname-desc" (dict "hostname" $.ClientIDHostname) }}
       </p>
     {{ end }}
-    <div class="flex flex-col gap-4">
-      <p class="text-center text-[1rem] font-medium text-[var(--color-neutral-700)] leading-[1.5rem]">
-        {{ include "v2.page.consent.default.signed-in-as-label" $.UserProfile }}
+    <div class="consent-body">
+      <p class="consent-identity">
+        {{ include "v2.page.consent.default.identity" $.UserProfile }}
       </p>
-      <h2 class="screen-description flex flex-col gap-4">
-        <p>
-          {{ include "v2.page.consent.default.subtitle" (dict "ClientName" $clientName) }}
-        </p>
-        <ul class="list-disc list-inside text-start">
-          {{ if (has "openid" $.Scopes) }}
-            <li>
-              {{ include "v2.page.consent.scopes.openid" nil }}
-            </li>
-          {{ end }}
+      {{/* Two sections: what any sign-in to this project grants, and what this
+           client asked for on top of it. Both are always labelled -- with no
+           subtitle above them, the labels are what tells the reader which is
+           which. */}}
+      {{ $hasAccountScopes := $hasNamedScopes }}
 
-          {{ if (has "https://authgear.com/scopes/full-userinfo" $.Scopes) }}
-            <li>
-              {{ include "v2.page.consent.scopes.full-userinfo" nil }}
-            </li>
-          {{ end }}
+      {{ if not $isSignInOnly }}
+      <div class="consent-scopes">
+        {{ if $hasAccountScopes }}
+          <div class="consent-scope-section">
+            <p class="consent-scope-section__label">
+              {{ include "v2.page.consent.default.scopes-account-label" nil }}
+            </p>
+            {{/* full-userinfo allows every claim (ScopeAllowsClaim returns
+                 true for it unconditionally), so profile/email/phone/address
+                 grant nothing on top of it. Listing them alongside states the
+                 same access twice -- five bullets for what one bullet says,
+                 and each narrower one reads as a limit that is not there. */}}
+            <ul class="consent-scope-list">
+              {{ if $hasFullUserInfoScope }}
+                <li>{{ include "v2.page.consent.scopes.full-userinfo" nil }}</li>
+              {{ else }}
+                {{ if (has "profile" $.Scopes) }}
+                  <li>{{ include "v2.page.consent.scopes.profile" nil }}</li>
+                {{ end }}
 
-          {{ if (has "profile" $.Scopes) }}
-            <li>
-              {{ include "v2.page.consent.scopes.profile" nil }}
-            </li>
-          {{ end }}
+                {{ if (has "email" $.Scopes) }}
+                  <li>{{ include "v2.page.consent.scopes.email" nil }}</li>
+                {{ end }}
 
-          {{ if (has "email" $.Scopes) }}
-            <li>
-              {{ include "v2.page.consent.scopes.email" nil }}
-            </li>
-          {{ end }}
+                {{ if (has "phone" $.Scopes) }}
+                  <li>{{ include "v2.page.consent.scopes.phone" nil }}</li>
+                {{ end }}
 
-          {{ if (has "phone" $.Scopes) }}
-            <li>
-              {{ include "v2.page.consent.scopes.phone" nil }}
-            </li>
-          {{ end }}
-
-          {{ if (has "address" $.Scopes) }}
-            <li>
-              {{ include "v2.page.consent.scopes.address" nil }}
-            </li>
-          {{ end }}
-
-          {{ range $.CustomScopes }}
-            <li>{{ .DisplayText }}</li>
-          {{ end }}
-
-          {{ if (has "offline_access" $.Scopes) }}
-            <li>
-              {{ include "v2.page.consent.scopes.offline-access" nil }}
-            </li>
-          {{ end }}
-        </ul>
-        {{ if (and $.ClientPolicyURI $.ClientTOSURI) }}
-          <div class="text-sm primary-txt">
-            {{ include "v2.page.consent.default.policy-and-tos-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI "tosURI" $.ClientTOSURI) }}
-          </div>
-        {{ else if $.ClientPolicyURI }}
-          <div class="text-sm primary-txt">
-            {{ include "v2.page.consent.default.policy-link-desc" (dict "clientName" $.ClientName "policyURI" $.ClientPolicyURI) }}
-          </div>
-        {{ else if $.ClientTOSURI }}
-          <div class="text-sm primary-txt">
-            {{ include "v2.page.consent.default.tos-link-desc" (dict "clientName" $.ClientName "tosURI" $.ClientTOSURI) }}
+                {{ if (has "address" $.Scopes) }}
+                  <li>{{ include "v2.page.consent.scopes.address" nil }}</li>
+                {{ end }}
+              {{ end }}
+            </ul>
           </div>
         {{ end }}
-      </h2>
+
+        {{ if $hasAppScopes }}
+          <div class="consent-scope-section">
+            {{/* "also" refers back to the account section, so it is only
+                 correct when that section is there. A client asking for
+                 resource scopes and no identity scopes is the common MCP
+                 shape, not an edge case. */}}
+            <p class="consent-scope-section__label">
+              {{ if $hasAccountScopes }}
+                {{ include "v2.page.consent.default.scopes-app-label" nil }}
+              {{ else }}
+                {{ include "v2.page.consent.default.scopes-app-only-label" nil }}
+              {{ end }}
+            </p>
+            <ul class="consent-scope-list">
+              {{ range $.CustomScopes }}
+                <li>{{ .DisplayText }}</li>
+              {{ end }}
+            </ul>
+          </div>
+        {{ end }}
+      </div>
+      {{ end }}
+
+      {{/* The variant a client's declared URIs add up to. All three are
+           optional and independent, so each combination is its own whole
+           sentence inside one select message: the connectors and the
+           possessive belong to the sentence, not to the template. */}}
+      {{ $w := $.ClientURI }}
+      {{ $p := $.ClientPolicyURI }}
+      {{ $t := $.ClientTOSURI }}
+      {{ $variant := "" }}
+      {{ if and $w $p $t }}{{ $variant = "websitePolicyTOS" }}{{ end }}
+      {{ if and $w $p (not $t) }}{{ $variant = "websitePolicy" }}{{ end }}
+      {{ if and $w $t (not $p) }}{{ $variant = "websiteTOS" }}{{ end }}
+      {{ if and $p $t (not $w) }}{{ $variant = "policyTOS" }}{{ end }}
+      {{ if and $w (not $p) (not $t) }}{{ $variant = "websiteOnly" }}{{ end }}
+      {{ if and $p (not $w) (not $t) }}{{ $variant = "policyOnly" }}{{ end }}
+      {{ if and $t (not $w) (not $p) }}{{ $variant = "tosOnly" }}{{ end }}
+      {{ if $variant }}
+        <div class="body-text--sm">
+          {{ include "v2.page.consent.default.client-links-desc" (dict
+            "variant" $variant
+            "clientName" $.ClientName
+            "websiteURI" $w
+            "policyURI" $p
+            "tosURI" $t) }}
+        </div>
+      {{ end }}
     </div>
   </div>
-  <div></div>
-  <div class="flex flex-col gap-4">
+  <div class="consent-actions">
     <form method="post" novalidate>
       <button
         class="primary-btn w-full"
@@ -109,7 +150,7 @@
         value="consent"
         data-turbo="false"
         data-authgear-event="authgear.button.consent_allow"
-      >{{ include "v2.page.consent.default.continue-button-label" . }}</button>
+      >{{ if $isSignInOnly }}{{ include "v2.component.button.default.label-continue" . }}{{ else }}{{ include "v2.page.consent.default.continue-button-label" . }}{{ end }}</button>
     </form>
 
     <form method="post" novalidate>

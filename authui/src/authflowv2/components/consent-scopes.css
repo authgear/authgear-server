@@ -1,0 +1,149 @@
+@layer components {
+  :root {
+    --consent-scopes__text-color: var(--color-neutral-400);
+    --consent-scopes__group-gap: 1.25rem;
+
+    --consent-scope-section-label__font-family: var(
+      --typography-label-medium__font-family
+    );
+    --consent-scope-section-label__font-size: var(
+      --typography-label-medium__font-size
+    );
+    --consent-scope-section-label__line-height: var(
+      --typography-label-medium__line-height
+    );
+    --consent-scope-section-label__letter-spacing: var(
+      --typography-label-medium__letter-spacing
+    );
+    --consent-scope-section-label__font-weight: 600;
+    --consent-scope-section-label__text-color: var(--color-neutral-700);
+
+    --consent-scope-list__font-family: var(
+      --typography-body-medium__font-family
+    );
+    --consent-scope-list__font-size: var(--typography-body-medium__font-size);
+    --consent-scope-list__line-height: var(
+      --typography-body-medium__line-height
+    );
+    --consent-scope-list__marker-color: var(--color-neutral-300);
+
+    --consent-scopes__border-radius: var(--border-radius-rounded-square);
+    --consent-scopes__ring-width: 1.5px;
+    --consent-scopes__ring-color: var(--color-neutral-100);
+    --consent-scopes__padding: 1.25rem;
+  }
+
+  :root.dark {
+    --consent-scopes__text-color: var(--color-neutral-200);
+    --consent-scope-section-label__text-color: var(--color-neutral-100);
+    --consent-scope-list__marker-color: var(--color-neutral-400);
+    --consent-scopes__ring-color: var(--color-neutral-500);
+  }
+
+  /* The requested permissions, in sections: what signing in grants, then what
+     this particular client asked for on top. Always start-aligned, even on a
+     centre-aligned project: a bulleted list reads as a column of items, and
+     centring turns it into ragged text with the bullets adrift. */
+  .consent-scopes {
+    @apply flex flex-col;
+    @apply text-start;
+    @apply ring-inset
+      ring-[length:var(--consent-scopes\_\_ring-width)]
+      ring-[color:var(--consent-scopes\_\_ring-color)];
+
+    gap: var(--consent-scopes__group-gap);
+    color: var(--consent-scopes__text-color);
+    padding: var(--consent-scopes__padding);
+    border-radius: var(--consent-scopes__border-radius);
+  }
+
+  /* One step down the scale from .screen-title's headline-medium. A client
+     name is arbitrary length and sits in this title, so it wraps to two or
+     three lines where other screens have a fixed phrase. Re-points the
+     component's own tokens rather than restating a font size, so the title
+     stays on the type scale. */
+  .consent-title {
+    --screen-title__font-size: var(--typography-headline-small__font-size);
+    --screen-title__line-height: var(--typography-headline-small__line-height);
+    --screen-title__letter-spacing: var(
+      --typography-headline-small__letter-spacing
+    );
+  }
+
+  /* The name is an inline-block capped at the column width, which gives
+     "hold it together if it fits, otherwise start a line, otherwise wrap"
+     without a breakpoint or a length test:
+
+       - space on the title line      -> "Sign in to Acme" stays one line
+       - not enough space beside it   -> the box moves down whole, so the
+                                         break lands after "Sign in to"
+       - wider than the column        -> max-width caps it and it wraps
+                                         inside, at hyphens and spaces first
+
+     overflow-wrap: anywhere is what lets the box shrink below its longest
+     word, so a 50-character name cannot set a min-content width that widens
+     the grid and pushes the panel and buttons off screen. */
+  .consent-client-name {
+    display: inline-block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .consent-body {
+    @apply flex flex-col;
+
+    gap: 1.5rem;
+  }
+
+  .consent-identity {
+    @apply text-center;
+
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 500;
+    color: var(--color-neutral-700);
+  }
+
+  /* No margin overrides on the panel or the legal line: the border gives the
+     permissions their own edge, so both sit on .consent-body's base gap and
+     the space above and below the box is even. The legal line follows the
+     project's alignment-content setting -- :root[alignment-content=center]
+     .body-text--sm outranks a bare class here, so do not try to start-align
+     it from this file. */
+
+  .consent-actions {
+    @apply flex flex-col gap-4;
+
+    margin-block-start: 0.5rem;
+  }
+
+  .consent-scope-section {
+    @apply flex flex-col gap-1.5;
+  }
+
+  .consent-scope-section__label {
+    font-family: var(--consent-scope-section-label__font-family);
+    font-size: var(--consent-scope-section-label__font-size);
+    line-height: var(--consent-scope-section-label__line-height);
+    letter-spacing: var(--consent-scope-section-label__letter-spacing);
+    font-weight: var(--consent-scope-section-label__font-weight);
+    color: var(--consent-scope-section-label__text-color);
+  }
+
+  /* list-outside, not list-inside: the marker sits in the padding, so the
+     second line of a wrapped item aligns under the first line's text
+     instead of returning to the marker's column. */
+  .consent-scope-list {
+    @apply list-disc list-outside;
+    @apply flex flex-col gap-1.5;
+    @apply ps-5;
+
+    font-family: var(--consent-scope-list__font-family);
+    font-size: var(--consent-scope-list__font-size);
+    line-height: var(--consent-scope-list__line-height);
+
+    li::marker {
+      color: var(--consent-scope-list__marker-color);
+    }
+  }
+}
