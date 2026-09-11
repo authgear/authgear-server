@@ -14,27 +14,76 @@ export const AUDIT_LOG_DATE_RANGE_PRESET_ORDER: AuditLogDateRangePresetKey[] = [
   "custom",
 ];
 
+// rangeFrom and rangeTo are both inclusive instants at the minute granularity
+// of the date-time picker. A whole local day therefore runs from 00:00 to
+// 23:59; toExclusiveRangeTo turns the latter into the exclusive bound the
+// backend expects.
+
 function startOfDay(date: Date): Date {
   return DateTime.fromJSDate(date).startOf("day").toJSDate();
 }
 
-// The from/to query params are local calendar dates (written with
-// DateTime.toISODate()), so they must be read back in the local zone too.
-// `new Date("YYYY-MM-DD")` parses as UTC midnight, which is the previous
-// calendar day in every UTC-negative zone and would shift the range by a day
-// on every reload.
-function parseLocalDateOnly(value: string | null): Date | null {
+function endOfDay(date: Date): Date {
+  return DateTime.fromJSDate(date).endOf("day").startOf("minute").toJSDate();
+}
+
+function isStartOfDay(date: Date): boolean {
+  return date.getTime() === startOfDay(date).getTime();
+}
+
+function isEndOfDay(date: Date): boolean {
+  return date.getTime() === endOfDay(date).getTime();
+}
+
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+// The from/to query params are ISO datetimes with offset (see
+// serializeDateRangeSearchParam). Before the picker had a time component they
+// were local calendar dates written with DateTime.toISODate(); those still
+// live in bookmarks and must be read back in the local zone as whole inclusive
+// days. `new Date("YYYY-MM-DD")` would parse as UTC midnight, which is the
+// previous calendar day in every UTC-negative zone.
+export function parseDateRangeSearchParam(
+  value: string | null,
+  bound: "from" | "to"
+): Date | null {
   if (value == null || value === "") {
     return null;
   }
-  const parsed = DateTime.fromISO(value).startOf("day").toJSDate();
-  return isNaN(parsed.getTime()) ? null : parsed;
+  const date = DateTime.fromISO(value).toJSDate();
+  if (isNaN(date.getTime())) {
+    return null;
+  }
+  if (DATE_ONLY_PATTERN.test(value)) {
+    return bound === "to" ? endOfDay(date) : startOfDay(date);
+  }
+  return date;
 }
 
-function isSameDay(a: Date | null, b: Date | null): boolean {
+export function serializeDateRangeSearchParam(date: Date | null): string {
+  if (date == null) {
+    return "";
+  }
+  return DateTime.fromJSDate(date).toISO({ suppressMilliseconds: true });
+}
+
+// The backend filters with `created_at < rangeTo`. rangeTo is inclusive at
+// minute granularity, so the exclusive bound is the start of the next minute.
+export function toExclusiveRangeTo(rangeTo: Date): Date {
+  return DateTime.fromJSDate(rangeTo)
+    .plus({ minutes: 1 })
+    .startOf("minute")
+    .toJSDate();
+}
+
+function isSameInstant(a: Date | null, b: Date | null): boolean {
   if (a == null || b == null) {
     return a === b;
   }
+  return a.getTime() === b.getTime();
+}
+
+function isSameDay(a: Date, b: Date): boolean {
   return DateTime.fromJSDate(a).hasSame(DateTime.fromJSDate(b), "day");
 }
 
@@ -51,19 +100,19 @@ export function getPresetDateRange(
   referenceDate: Date,
   minDate?: Date
 ): { from: Date; to: Date } {
-  const to = startOfDay(referenceDate);
-  const toDateTime = DateTime.fromJSDate(to);
+  const to = endOfDay(referenceDate);
+  const startOfReferenceDay = DateTime.fromJSDate(startOfDay(referenceDate));
   let from: Date;
 
   switch (preset) {
     case "today":
-      from = to;
+      from = startOfReferenceDay.toJSDate();
       break;
     case "last7Days":
-      from = toDateTime.minus({ days: 6 }).toJSDate();
+      from = startOfReferenceDay.minus({ days: 6 }).toJSDate();
       break;
     case "last30Days":
-      from = toDateTime.minus({ days: 29 }).toJSDate();
+      from = startOfReferenceDay.minus({ days: 29 }).toJSDate();
       break;
   }
 
@@ -86,8 +135,8 @@ export function detectDateRangePreset(
   for (const preset of ["today", "last7Days", "last30Days"] as const) {
     const expected = getPresetDateRange(preset, referenceDate, minDate);
     if (
-      isSameDay(rangeFrom, expected.from) &&
-      isSameDay(rangeTo, expected.to)
+      isSameInstant(rangeFrom, expected.from) &&
+      isSameInstant(rangeTo, expected.to)
     ) {
       return preset;
     }
@@ -109,8 +158,8 @@ export function getInitialAuditLogDateRange(
     queryLastUpdatedAt != null
       ? new Date(Number(queryLastUpdatedAt))
       : new Date();
-  const fromParam = parseLocalDateOnly(queryFrom);
-  const toParam = parseLocalDateOnly(queryTo);
+  const fromParam = parseDateRangeSearchParam(queryFrom, "from");
+  const toParam = parseDateRangeSearchParam(queryTo, "to");
   const preset = detectDateRangePreset(fromParam, toParam, referenceDate);
 
   if (preset === "custom") {
@@ -121,15 +170,23 @@ export function getInitialAuditLogDateRange(
   return { preset, rangeFrom: range.from, rangeTo: range.to };
 }
 
-export function formatCustomDateRangeLabel(
-  locale: string,
-  rangeFrom: Date | null,
-  rangeTo: Date | null
-): string | null {
-  if (rangeFrom == null || rangeTo == null) {
-    return null;
-  }
+const dateTimeLabelFormat = {
+  month: "short" as const,
+  day: "numeric" as const,
+  hour: "numeric" as const,
+  minute: "numeric" as const,
+};
 
+const dateTimeWithYearLabelFormat = {
+  ...dateTimeLabelFormat,
+  year: "numeric" as const,
+};
+
+function formatWholeDaysLabel(
+  locale: string,
+  rangeFrom: Date,
+  rangeTo: Date
+): string | null {
   const fromDateTime = DateTime.fromJSDate(rangeFrom).setLocale(locale);
   const toDateTime = DateTime.fromJSDate(rangeTo);
   const fromLabel = formatDateOnly(locale, rangeFrom);
@@ -151,4 +208,37 @@ export function formatCustomDateRangeLabel(
   }
 
   return `${fromLabel} – ${toLabel}`;
+}
+
+function formatDateTimesLabel(
+  locale: string,
+  rangeFrom: Date,
+  rangeTo: Date
+): string {
+  const fromDateTime = DateTime.fromJSDate(rangeFrom).setLocale(locale);
+  const toDateTime = DateTime.fromJSDate(rangeTo).setLocale(locale);
+  const fromLabel = fromDateTime.toLocaleString(
+    fromDateTime.hasSame(toDateTime, "year")
+      ? dateTimeLabelFormat
+      : dateTimeWithYearLabelFormat
+  );
+  const toLabel = toDateTime.toLocaleString(dateTimeWithYearLabelFormat);
+  return `${fromLabel} – ${toLabel}`;
+}
+
+export function formatCustomDateRangeLabel(
+  locale: string,
+  rangeFrom: Date | null,
+  rangeTo: Date | null
+): string | null {
+  if (rangeFrom == null || rangeTo == null) {
+    return null;
+  }
+
+  // Only show the times when the range does not cover whole days, so preset
+  // style ranges stay as compact as before.
+  if (isStartOfDay(rangeFrom) && isEndOfDay(rangeTo)) {
+    return formatWholeDaysLabel(locale, rangeFrom, rangeTo);
+  }
+  return formatDateTimesLabel(locale, rangeFrom, rangeTo);
 }

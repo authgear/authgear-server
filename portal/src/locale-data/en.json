@@ -1540,6 +1540,8 @@
   "AuditLogScreen.date-range.custom-placeholder": "Select date range",
   "AuditLogScreen.date-range.start-date": "Start Date",
   "AuditLogScreen.date-range.end-date": "End Date",
+  "AuditLogScreen.date-range.start-datetime": "Start Date & Time",
+  "AuditLogScreen.date-range.end-datetime": "End Date & Time",
   "AuditLogScreen.refresh": "Refresh",
   "AuditLogScreen.last-update-at": "Refresh. Updated: {datetime}",
   "AuditLogScreen.acitity-kind.user": "Users Activities",

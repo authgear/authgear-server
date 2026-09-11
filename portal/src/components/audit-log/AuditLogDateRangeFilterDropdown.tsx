@@ -109,6 +109,7 @@ export const AuditLogDateRangeFilterDropdown: React.VFC<AuditLogDateRangeFilterD
               type="button"
               className={styles.trigger}
               aria-label={selectedLabel}
+              title={showCustomRangeLabel ? selectedLabel : undefined}
             >
               <span className={styles.triggerLabel}>{selectedLabel}</span>
               <ChevronDownIcon className={styles.triggerIcon} />

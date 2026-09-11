@@ -39,6 +39,7 @@ import AuditLogDateRangeDialog from "../../components/audit-log/AuditLogDateRang
 import {
   AuditLogDateRangePresetKey,
   getPresetDateRange,
+  toExclusiveRangeTo,
 } from "../../components/audit-log/dateRangePresets";
 import { serializeActivityTypesToQuery } from "../../components/audit-log/ActivityTypeFilterDropdown";
 import { AuditLogKind, USER_ACTIVITY_TYPES } from "./auditLogActivityTypes";
@@ -144,6 +145,12 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
       return minDate;
     }, [lastUpdatedAt, logRetrievalDays]);
 
+    // Any time on the current day is pickable, matching the preset end of day.
+    const datePickerMaxDate = useMemo(
+      () => DateTime.fromJSDate(lastUpdatedAt).endOf("day").toJSDate(),
+      [lastUpdatedAt]
+    );
+
     const queryRangeFrom = useMemo(() => {
       if (rangeFrom != null) {
         return rangeFrom.toISOString();
@@ -156,10 +163,7 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
 
     const queryRangeTo = useMemo(() => {
       if (rangeTo != null) {
-        return DateTime.fromJSDate(rangeTo)
-          .plus({ days: 1 })
-          .toJSDate()
-          .toISOString();
+        return toExclusiveRangeTo(rangeTo).toISOString();
       }
       return lastUpdatedAt.toISOString();
     }, [rangeTo, lastUpdatedAt]);
@@ -442,17 +446,18 @@ const UserDetailsLogs: React.VFC<UserDetailsLogsProps> =
           hidden={dateRangeDialogHidden}
           title={renderToString("AuditLogScreen.date-range.custom")}
           fromDatePickerLabel={renderToString(
-            "AuditLogScreen.date-range.start-date"
+            "AuditLogScreen.date-range.start-datetime"
           )}
           toDatePickerLabel={renderToString(
-            "AuditLogScreen.date-range.end-date"
+            "AuditLogScreen.date-range.end-datetime"
           )}
           rangeFrom={uncommittedRangeFrom ?? undefined}
           rangeTo={uncommittedRangeTo ?? undefined}
           fromDatePickerMinDate={datePickerMinDate}
-          fromDatePickerMaxDate={lastUpdatedAt}
+          fromDatePickerMaxDate={datePickerMaxDate}
           toDatePickerMinDate={datePickerMinDate}
-          toDatePickerMaxDate={lastUpdatedAt}
+          toDatePickerMaxDate={datePickerMaxDate}
+          showTimePicker={true}
           onSelectRangeFrom={onSelectRangeFrom}
           onSelectRangeTo={onSelectRangeTo}
           onCommitDateRange={commitDateRange}
