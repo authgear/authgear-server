@@ -38,27 +38,34 @@ var (
 	ErrDocumentURIFieldNotHTTPS           = CIMDDocumentInvalid.NewWithCause("cimd: uri field must use https", apierrors.StringCause("URIFieldNotHTTPS"))
 )
 
-// rawDocument is the wire shape. Every field the spec says to reject or
-// ignore -- client_secret, client_secret_expires_at, jwks_uri,
-// software_statement, token_endpoint_auth_method, and any unknown
-// property -- is simply absent from this struct, so encoding/json drops
-// it. There is no need to name them and no DisallowUnknownFields: spec
-// § Validation says "Unrecognized properties are ignored (the spec
-// explicitly allows additional properties)", and spec §4.1 says
-// credential material is "always ignored", not "rejected". A document
-// carrying a client_secret is therefore VALID and its secret is
+// rawDocument is the wire shape. Every field the spec says to reject --
+// client_secret, client_secret_expires_at, jwks_uri, software_statement,
+// and any unknown property -- is simply absent from this struct, so
+// encoding/json drops it. There is no need to name them and no
+// DisallowUnknownFields: spec § Validation says "Unrecognized properties
+// are ignored (the spec explicitly allows additional properties)", and
+// spec §4.1 says credential material is "always ignored", not "rejected".
+// A document carrying a client_secret is therefore VALID and its secret is
 // discarded.
+//
+// token_endpoint_auth_method IS named here, unlike the fields above,
+// despite being ignored exactly the same way: Rule 1 never validates or
+// acts on it, but Document.TokenEndpointAuthMethod carries it through
+// purely so oauth.client.resolved's audit record can show what a document
+// declared, the same way DCR's registrationRequestBody keeps it for
+// oauth.client.registered/oauth.client.registration.failed.
 type rawDocument struct {
-	ClientID        *string  `json:"client_id"`
-	ClientName      *string  `json:"client_name"`
-	RedirectURIs    []string `json:"redirect_uris"`
-	GrantTypes      []string `json:"grant_types"`
-	ResponseTypes   []string `json:"response_types"`
-	ApplicationType *string  `json:"application_type"`
-	LogoURI         *string  `json:"logo_uri"`
-	ClientURI       *string  `json:"client_uri"`
-	TOSURI          *string  `json:"tos_uri"`
-	PolicyURI       *string  `json:"policy_uri"`
+	ClientID                *string  `json:"client_id"`
+	ClientName              *string  `json:"client_name"`
+	RedirectURIs            []string `json:"redirect_uris"`
+	GrantTypes              []string `json:"grant_types"`
+	ResponseTypes           []string `json:"response_types"`
+	ApplicationType         *string  `json:"application_type"`
+	LogoURI                 *string  `json:"logo_uri"`
+	ClientURI               *string  `json:"client_uri"`
+	TOSURI                  *string  `json:"tos_uri"`
+	PolicyURI               *string  `json:"policy_uri"`
+	TokenEndpointAuthMethod *string  `json:"token_endpoint_auth_method"`
 }
 
 // Document is a rawDocument after defaults have been applied and every
@@ -70,15 +77,45 @@ type Document struct {
 	RedirectURIs []string
 	// GrantTypes holds only the grant types Authgear implements, in the
 	// document's order -- Rule 5 dropped the rest.
-	GrantTypes    []string
+	GrantTypes []string
+	// RawGrantTypes is the document's declared grant_types, before Rule 5
+	// filtering -- nil if the document omitted the field, same as
+	// rawDocument.GrantTypes. Not used for anything but the audit trail
+	// (oauth.client.resolved's Document.GrantTypes): the persisted client
+	// only ever gets GrantTypes above.
+	RawGrantTypes []string
 	ResponseTypes []string
+	// RawResponseTypes is the document's declared response_types, before
+	// Rule 6's default is applied -- nil if the document omitted the
+	// field. Same relationship to ResponseTypes as RawGrantTypes has to
+	// GrantTypes, though Rule 6 never filters entries the way Rule 5
+	// does -- an unsupported response_type rejects the whole document
+	// rather than being dropped, so this exists only for "no defaults
+	// applied" audit-trail consistency, not because entries can go
+	// missing silently.
+	RawResponseTypes []string
 	// ApplicationType is always "web" or "native" -- never nil, never
-	// anything else.
+	// anything else. Rule 3 never substitutes a value, unlike Rule 5's
+	// grant_types filtering: an invalid application_type rejects the whole
+	// document rather than falling back to a default, so this can never
+	// diverge from what the document declared the way GrantTypes can --
+	// RawApplicationType exists only for the same "no defaults applied"
+	// audit-trail consistency as RawGrantTypes, not because this one can
+	// hide anything.
 	ApplicationType string
-	LogoURI         *string
-	ClientURI       *string
-	TOSURI          *string
-	PolicyURI       *string
+	// RawApplicationType is the document's declared application_type, ""
+	// if absent -- same relationship to ApplicationType as
+	// RawGrantTypes has to GrantTypes.
+	RawApplicationType string
+	LogoURI            *string
+	ClientURI          *string
+	TOSURI             *string
+	PolicyURI          *string
+	// TokenEndpointAuthMethod is the document's declared value, "" if
+	// absent. Never validated, never acted on -- Rule 1 ignores it
+	// unconditionally -- kept only for the audit trail, same as
+	// RawGrantTypes.
+	TokenEndpointAuthMethod string
 }
 
 var cimdSupportedGrantTypes = map[string]bool{
@@ -116,9 +153,10 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 		return nil, errors.Join(ErrDocumentNotJSONObject, err)
 	}
 
-	// Rule 1: token_endpoint_auth_method is ignored -- no check here and no
-	// field in rawDocument. Numbering below is kept as-is so the spec's
-	// rules still line up.
+	// Rule 1: token_endpoint_auth_method is ignored -- no check here, and
+	// the value below is kept only for the audit trail (Document's own
+	// comment), never validated or acted on. Numbering below is kept as-is
+	// so the spec's rules still line up.
 
 	// Rule 2: client_id MUST be present and MUST equal requestURL
 	// byte-for-byte. No normalization, no case folding, no trailing-slash
@@ -200,15 +238,19 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 	// "Client <clientID>" fallback is NOT applied here; it is computed on
 	// read by oauthclient.Client.DisplayName().
 	return &Document{
-		ClientName:      raw.ClientName,
-		RedirectURIs:    raw.RedirectURIs,
-		GrantTypes:      grantTypes,
-		ResponseTypes:   responseTypes,
-		ApplicationType: applicationType,
-		LogoURI:         raw.LogoURI,
-		ClientURI:       raw.ClientURI,
-		TOSURI:          raw.TOSURI,
-		PolicyURI:       raw.PolicyURI,
+		ClientName:              raw.ClientName,
+		RedirectURIs:            raw.RedirectURIs,
+		GrantTypes:              grantTypes,
+		RawGrantTypes:           raw.GrantTypes,
+		ResponseTypes:           responseTypes,
+		RawResponseTypes:        raw.ResponseTypes,
+		ApplicationType:         applicationType,
+		RawApplicationType:      derefStringOr(raw.ApplicationType, ""),
+		TokenEndpointAuthMethod: derefStringOr(raw.TokenEndpointAuthMethod, ""),
+		LogoURI:                 raw.LogoURI,
+		ClientURI:               raw.ClientURI,
+		TOSURI:                  raw.TOSURI,
+		PolicyURI:               raw.PolicyURI,
 	}, nil
 }
 

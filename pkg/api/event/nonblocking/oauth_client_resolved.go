@@ -24,9 +24,14 @@ type OAuthClientResolvedEventPayloadClient struct {
 	TOSURI          string                  `json:"tos_uri,omitempty"`
 	PolicyURI       string                  `json:"policy_uri,omitempty"`
 	ApplicationType string                  `json:"application_type,omitempty"`
-	RedirectURIs    []string                `json:"redirect_uris"`
-	GrantTypes      []string                `json:"grant_types"`
-	ResponseTypes   []string                `json:"response_types"`
+	// TokenEndpointAuthMethod is always "none": CIMD ignores whatever a
+	// document declares (see docs/specs/cimd.md's
+	// token_endpoint_auth_method section) and always resolves the client
+	// as public with no secret.
+	TokenEndpointAuthMethod string   `json:"token_endpoint_auth_method,omitempty"`
+	RedirectURIs            []string `json:"redirect_uris"`
+	GrantTypes              []string `json:"grant_types"`
+	ResponseTypes           []string `json:"response_types"`
 }
 
 type OAuthClientResolvedEventPayload struct {
@@ -34,6 +39,14 @@ type OAuthClientResolvedEventPayload struct {
 	// record is complete on its own and a changed record shows the
 	// resulting client alongside its previous state.
 	Client OAuthClientResolvedEventPayloadClient `json:"client"`
+	// Document is the metadata document as fetched for this resolution --
+	// no defaults applied, nothing dropped. Client above is what was
+	// actually persisted, which can differ: an unimplemented grant_type is
+	// silently dropped rather than refused, and token_endpoint_auth_method
+	// is always ignored, so Document is what makes either of those visible
+	// in the audit log at all. See model.OAuthClientResolutionDocument's
+	// own doc comment.
+	Document model.OAuthClientResolutionDocument `json:"document"`
 	// Created is true on first resolution, false on a refetch that changed
 	// something. An explicit discriminator: an auditor should not have to
 	// infer it from OldClient being absent.

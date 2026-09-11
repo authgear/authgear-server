@@ -479,8 +479,9 @@ func (s *Service) upsert(ctx context.Context, clientID string, doc *Document, ex
 	changed := !created && existing.MetadataChangedFrom(options)
 	if created || changed {
 		payload := &nonblocking.OAuthClientResolvedEventPayload{
-			Client:  oauthClientResolvedEventPayloadClient(client),
-			Created: created,
+			Client:   oauthClientResolvedEventPayloadClient(client),
+			Document: oauthClientResolutionDocumentEventPayload(doc),
+			Created:  created,
 		}
 		if changed {
 			old := oauthClientResolvedEventPayloadClient(existing)
@@ -505,9 +506,33 @@ func oauthClientResolvedEventPayloadClient(c *oauthclient.Client) nonblocking.OA
 		TOSURI:          derefStringOr(c.TOSURI, ""),
 		PolicyURI:       derefStringOr(c.PolicyURI, ""),
 		ApplicationType: c.ApplicationType,
-		RedirectURIs:    c.RedirectURIs,
-		GrantTypes:      c.GrantTypes,
-		ResponseTypes:   c.ResponseTypes,
+		// CIMD always resolves the client as a public client with no
+		// secret, whatever token_endpoint_auth_method the document
+		// declared -- see oauthClientResolutionDocumentEventPayload for
+		// that.
+		TokenEndpointAuthMethod: "none",
+		RedirectURIs:            c.RedirectURIs,
+		GrantTypes:              c.GrantTypes,
+		ResponseTypes:           c.ResponseTypes,
+	}
+}
+
+// oauthClientResolutionDocumentEventPayload describes doc as fetched, before
+// Rule 5 grant_types filtering -- see Document.RawGrantTypes and
+// Document.TokenEndpointAuthMethod's own comments, and
+// model.OAuthClientResolutionDocument's.
+func oauthClientResolutionDocumentEventPayload(doc *Document) model.OAuthClientResolutionDocument {
+	return model.OAuthClientResolutionDocument{
+		ClientName:              derefStringOr(doc.ClientName, ""),
+		RedirectURIs:            doc.RedirectURIs,
+		GrantTypes:              doc.RawGrantTypes,
+		ResponseTypes:           doc.RawResponseTypes,
+		ApplicationType:         doc.RawApplicationType,
+		TokenEndpointAuthMethod: doc.TokenEndpointAuthMethod,
+		ClientURI:               derefStringOr(doc.ClientURI, ""),
+		LogoURI:                 derefStringOr(doc.LogoURI, ""),
+		TOSURI:                  derefStringOr(doc.TOSURI, ""),
+		PolicyURI:               derefStringOr(doc.PolicyURI, ""),
 	}
 }
 

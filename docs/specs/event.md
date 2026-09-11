@@ -1301,9 +1301,18 @@ Payload, on first resolution:
       "kind": "THIRD_PARTY",
       "client_name": "Example MCP Client",
       "application_type": "web",
+      "token_endpoint_auth_method": "none",
       "redirect_uris": ["http://127.0.0.1:3000/callback"],
       "grant_types": ["authorization_code", "refresh_token"],
       "response_types": ["code"]
+    },
+    "document": {
+      "client_name": "Example MCP Client",
+      "redirect_uris": ["http://127.0.0.1:3000/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"],
+      "application_type": "web",
+      "token_endpoint_auth_method": "none"
     },
     "created": true
   }
@@ -1339,7 +1348,8 @@ Payload, on a refetch that changed something:
 }
 ```
 
-- `client`: The client's state after the resolution — `client_id`, `source`, `kind`, `client_name`, `client_uri`, `logo_uri`, `tos_uri`, `policy_uri`, `application_type`, `redirect_uris`, `grant_types`, `response_types`, with `source` always `CIMD` and `kind` always `THIRD_PARTY`.
+- `client`: The client's state after the resolution — `client_id`, `source`, `kind`, `client_name`, `client_uri`, `logo_uri`, `tos_uri`, `policy_uri`, `application_type`, `token_endpoint_auth_method`, `redirect_uris`, `grant_types`, `response_types`, with `source` always `CIMD`, `kind` always `THIRD_PARTY`, and `token_endpoint_auth_method` always `none` — CIMD ignores whatever the document declares and always resolves the client as public with no secret. See `document.token_endpoint_auth_method` below for what the document actually declared.
+- `document`: The metadata document as fetched for this resolution — no defaults applied, nothing dropped. Same rationale as [`oauth.client.registered`'s `request`](#oauthclientregistered): `client.grant_types` can have fewer entries than `document.grant_types` when the document declares a grant type Authgear does not implement, and `client.token_endpoint_auth_method` is always `none` regardless of what `document.token_endpoint_auth_method` says — this is the only place either discrepancy is visible. Fields absent from the document are absent here too. Unlike `old_client`, there is no "old document" — only the document for this resolution is shown.
 - `created`: `true` on first resolution, `false` on a refetch that changed something.
 - `old_client`: The client's state immediately before this resolution, same shape as `client`. Absent when `created` is `true` (there is no "before"), and otherwise always present — this event is never emitted for a refetch that produced identical metadata, so a present `old_client` is guaranteed to differ from `client` in at least one field. Only fields derived from the document are ever compared to decide whether to emit this event at all — never `last_fetched_at`, which changes on every refetch by construction — and the three list fields are compared as sets, so reordering entries alone does not count as a change. `client` and `old_client` show full state rather than a computed list of changed fields, so the reader does the diffing.
 
