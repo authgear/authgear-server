@@ -7,6 +7,7 @@ import {
   AUDIT_LOG_DATE_RANGE_PRESET_ORDER,
   AuditLogDateRangePresetKey,
   formatCustomDateRangeLabel,
+  formatDateRangeBoundLabel,
 } from "./dateRangePresets";
 import styles from "./AuditLogDateRangeFilterDropdown.module.css";
 
@@ -18,6 +19,10 @@ interface AuditLogDateRangeFilterDropdownProps {
   onChange: (value: AuditLogDateRangePresetKey) => void;
   rangeFrom?: Date | null;
   rangeTo?: Date | null;
+  // Include the time of day in the custom range label when a bound is not on
+  // a day boundary. Leave off for date-only pickers, whose Dates may carry an
+  // arbitrary time (e.g. UTC midnight).
+  showTime?: boolean;
   onOpenCustomDateRangeDialog?: () => void;
   presets?: AuditLogDateRangePresetKey[];
 }
@@ -29,6 +34,7 @@ export const AuditLogDateRangeFilterDropdown: React.VFC<AuditLogDateRangeFilterD
     onChange,
     rangeFrom = null,
     rangeTo = null,
+    showTime = false,
     onOpenCustomDateRangeDialog,
     presets = AUDIT_LOG_DATE_RANGE_PRESET_ORDER,
   }) {
@@ -45,8 +51,22 @@ export const AuditLogDateRangeFilterDropdown: React.VFC<AuditLogDateRangeFilterD
     }, [renderToString]);
 
     const customRangeLabel = useMemo(() => {
-      return formatCustomDateRangeLabel(locale, rangeFrom, rangeTo);
-    }, [locale, rangeFrom, rangeTo]);
+      if (rangeFrom != null && rangeTo != null) {
+        return formatCustomDateRangeLabel(locale, rangeFrom, rangeTo, showTime);
+      }
+      // Open-ended range: only one bound was set.
+      if (rangeFrom != null) {
+        return renderToString("AuditLogScreen.date-range.from-only", {
+          from: formatDateRangeBoundLabel(locale, rangeFrom, "from", showTime),
+        });
+      }
+      if (rangeTo != null) {
+        return renderToString("AuditLogScreen.date-range.to-only", {
+          to: formatDateRangeBoundLabel(locale, rangeTo, "to", showTime),
+        });
+      }
+      return null;
+    }, [locale, rangeFrom, rangeTo, renderToString, showTime]);
 
     const customDateInputPlaceholder = renderToString(
       "AuditLogScreen.date-range.custom-placeholder"
@@ -109,6 +129,7 @@ export const AuditLogDateRangeFilterDropdown: React.VFC<AuditLogDateRangeFilterD
               type="button"
               className={styles.trigger}
               aria-label={selectedLabel}
+              title={showCustomRangeLabel ? selectedLabel : undefined}
             >
               <span className={styles.triggerLabel}>{selectedLabel}</span>
               <ChevronDownIcon className={styles.triggerIcon} />

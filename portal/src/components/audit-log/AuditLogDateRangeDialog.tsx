@@ -3,7 +3,11 @@ import { Dialog, Flex } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
-import { DateFieldDate, toDateString } from "../v2/DateField/DateField";
+import {
+  DateFieldDate,
+  DateFieldDateTime,
+  toDateString,
+} from "../v2/DateField/DateField";
 import styles from "./AuditLogDateRangeDialog.module.css";
 
 interface AuditLogDateRangeDialogProps {
@@ -17,6 +21,9 @@ interface AuditLogDateRangeDialogProps {
   fromDatePickerMaxDate?: Date;
   toDatePickerMinDate?: Date;
   toDatePickerMaxDate?: Date;
+  // Pick a time of day as well as a date. The min/max bounds then apply as
+  // instants rather than as calendar days.
+  showTimePicker?: boolean;
   onSelectRangeFrom?: (date: Date | null | undefined) => void;
   onSelectRangeTo?: (date: Date | null | undefined) => void;
   onCommitDateRange?: (e?: React.MouseEvent<unknown>) => void;
@@ -28,6 +35,45 @@ function toMinMaxString(date: Date | undefined): string | undefined {
     return undefined;
   }
   return toDateString(date);
+}
+
+interface RangeBoundFieldProps {
+  showTimePicker: boolean;
+  label: string;
+  value: Date | undefined;
+  minDate: Date | undefined;
+  maxDate: Date | undefined;
+  onChange: (date: Date | null) => void;
+}
+
+function RangeBoundField(props: RangeBoundFieldProps): React.ReactElement {
+  const { showTimePicker, label, value, minDate, maxDate, onChange } = props;
+
+  const min = useMemo(() => toMinMaxString(minDate), [minDate]);
+  const max = useMemo(() => toMinMaxString(maxDate), [maxDate]);
+
+  if (showTimePicker) {
+    return (
+      <DateFieldDateTime
+        size="2"
+        label={label}
+        value={value ?? null}
+        min={minDate}
+        max={maxDate}
+        onChange={onChange}
+      />
+    );
+  }
+  return (
+    <DateFieldDate
+      size="2"
+      label={label}
+      value={value ?? null}
+      min={min}
+      max={max}
+      onChange={onChange}
+    />
+  );
 }
 
 const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
@@ -43,6 +89,7 @@ const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
       fromDatePickerMaxDate,
       toDatePickerMinDate,
       toDatePickerMaxDate,
+      showTimePicker = false,
       onSelectRangeFrom,
       onSelectRangeTo,
       onCommitDateRange,
@@ -72,45 +119,28 @@ const AuditLogDateRangeDialog: React.VFC<AuditLogDateRangeDialogProps> =
       [onSelectRangeTo]
     );
 
-    const fromMin = useMemo(
-      () => toMinMaxString(fromDatePickerMinDate),
-      [fromDatePickerMinDate]
-    );
-    const fromMax = useMemo(
-      () => toMinMaxString(fromDatePickerMaxDate),
-      [fromDatePickerMaxDate]
-    );
-    const toMin = useMemo(
-      () => toMinMaxString(toDatePickerMinDate),
-      [toDatePickerMinDate]
-    );
-    const toMax = useMemo(
-      () => toMinMaxString(toDatePickerMaxDate),
-      [toDatePickerMaxDate]
-    );
-
     return (
       <Dialog.Root open={!hidden} onOpenChange={onOpenChange}>
-        <Dialog.Content maxWidth="400px" size="3">
+        <Dialog.Content maxWidth={showTimePicker ? "420px" : "400px"} size="3">
           <Dialog.Title>{title}</Dialog.Title>
           <div className={styles.fields}>
             <div className={styles.field}>
-              <DateFieldDate
-                size="2"
+              <RangeBoundField
+                showTimePicker={showTimePicker}
                 label={fromDatePickerLabel}
-                value={rangeFrom ?? null}
-                min={fromMin}
-                max={fromMax}
+                value={rangeFrom}
+                minDate={fromDatePickerMinDate}
+                maxDate={fromDatePickerMaxDate}
                 onChange={onChangeRangeFrom}
               />
             </div>
             <div className={styles.field}>
-              <DateFieldDate
-                size="2"
+              <RangeBoundField
+                showTimePicker={showTimePicker}
                 label={toDatePickerLabel}
-                value={rangeTo ?? null}
-                min={toMin}
-                max={toMax}
+                value={rangeTo}
+                minDate={toDatePickerMinDate}
+                maxDate={toDatePickerMaxDate}
                 onChange={onChangeRangeTo}
               />
             </div>
