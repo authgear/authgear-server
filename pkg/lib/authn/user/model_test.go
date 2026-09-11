@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 func TestComputeUserEndUserActionID(t *testing.T) {
@@ -115,5 +116,50 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 				},
 			},
 		}), ShouldEqual, "uid=example-user")
+	})
+}
+
+func TestSortOptionApply(t *testing.T) {
+	Convey("SortOption.Apply", t, func() {
+		newQuery := func() db.SelectBuilder {
+			return db.NewSQLBuilderApp("public", "app-id").Select("id").From("t")
+		}
+		sortByLastLogin := SortOption{
+			SortBy:        SortByLastLoginAt,
+			SortDirection: model.SortDirectionDesc,
+		}
+
+		Convey("uses the sort key as the column name by default", func() {
+			sql, _, err := sortByLastLogin.Apply(newQuery(), "").ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldContainSubstring, "ORDER BY last_login_at desc NULLS LAST")
+		})
+
+		Convey("resolves the column through SortColumns", func() {
+			sql, _, err := sortByLastLogin.ApplyWithColumns(newQuery(), "", userSortColumns).ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldContainSubstring, "ORDER BY login_at desc NULLS LAST")
+			So(sql, ShouldNotContainSubstring, "last_login_at")
+		})
+
+		Convey("falls back to the sort key for keys missing from SortColumns", func() {
+			byCreatedAt := SortOption{
+				SortBy:        SortByCreatedAt,
+				SortDirection: model.SortDirectionAsc,
+			}
+			sql, _, err := byCreatedAt.ApplyWithColumns(newQuery(), "", SortColumns{
+				SortByLastLoginAt: "login_at",
+			}).ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldContainSubstring, "ORDER BY created_at asc NULLS LAST")
+		})
+
+		Convey("filters the cursor on the resolved column", func() {
+			sql, args, err := sortByLastLogin.ApplyWithColumns(newQuery(), "2026-09-10T00:00:00Z", userSortColumns).ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldContainSubstring, "login_at <")
+			So(sql, ShouldNotContainSubstring, "last_login_at <")
+			So(args, ShouldContain, "2026-09-10T00:00:00Z")
+		})
 	})
 }

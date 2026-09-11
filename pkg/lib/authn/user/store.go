@@ -333,10 +333,21 @@ func (s *Store) Count(ctx context.Context) (uint64, error) {
 	return count, nil
 }
 
+// userSortColumns maps sort keys to _auth_user columns. SortByLastLoginAt means
+// the most recent login, which _auth_user stores in login_at; its last_login_at
+// column holds the login before that (see UpdateLoginTime). Sorting by
+// last_login_at ranked users by their previous login while the list displayed
+// their latest one. _search_user stores the latest login in last_login_at, so
+// the search path keeps the default column names.
+var userSortColumns = SortColumns{
+	SortByCreatedAt:   "created_at",
+	SortByLastLoginAt: "login_at",
+}
+
 func (s *Store) QueryPage(ctx context.Context, listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
 	query := s.selectQuery("u")
 
-	query = listOption.SortOption.Apply(query, "")
+	query = listOption.SortOption.ApplyWithColumns(query, "", userSortColumns)
 
 	query, offset, err := db.ApplyPageArgs(query, pageArgs)
 	if err != nil {
