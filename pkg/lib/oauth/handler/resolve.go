@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"slices"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -59,21 +58,17 @@ func parseRedirectURI(
 	return redirectURI, nil
 }
 
-// loopbackRedirectURIHosts are the hosts RFC 8252 §7.3 treats as the loopback
-// interface. url.URL.Hostname() strips the brackets from "[::1]:53412", so
-// "::1" matches "http://[::1]:53412/callback" too. This mirrors the host set
-// accepted by pkg/lib/cimd and pkg/lib/dcr when validating registered URIs.
-var loopbackRedirectURIHosts = []string{"localhost", "127.0.0.1", "::1"}
-
 // isLoopbackRedirectURI reports whether u is a loopback redirect URI in the
-// sense of RFC 8252 §7.3, that is, the "http" scheme on a loopback host.
-// url.Parse already lowercases the scheme; the host is lowercased here since
-// RFC 3986 §3.2.2 makes it case-insensitive.
+// sense of RFC 8252 §7.3, that is, the "http" scheme on a loopback host
+// (httputil.IsLoopbackHost -- the same set pkg/lib/cimd and pkg/lib/dcr
+// accept when validating registered URIs). url.Parse already lowercases the
+// scheme; the host is lowercased here since RFC 3986 §3.2.2 makes it
+// case-insensitive.
 func isLoopbackRedirectURI(u *url.URL) bool {
 	if u.Scheme != "http" {
 		return false
 	}
-	return slices.Contains(loopbackRedirectURIHosts, strings.ToLower(u.Hostname()))
+	return httputil.IsLoopbackHost(strings.ToLower(u.Hostname()))
 }
 
 // matchLoopbackRedirectURI implements RFC 8252 §7.3, which says the
