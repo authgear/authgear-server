@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Papayagan ang app na ito na i-access ang",
   "v2.page.consent.default.scopes-app-label": "Papayagan din ang app na ito na",
   "v2.page.consent.default.scopes-app-only-label": "Papayagan ang app na ito na",
-  "v2.page.consent.default.title": "Mag-sign in sa {ClientName}",
+  "v2.page.consent.default.title": "Mag-sign in sa <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "Ang iyong address",
   "v2.page.consent.scopes.email": "Ang iyong email address",
   "v2.page.consent.scopes.full-userinfo": "Lahat ng nasa iyong profile, kabilang ang iyong email address, numero ng telepono, at address",

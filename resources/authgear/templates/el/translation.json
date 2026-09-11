@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Αυτή η εφαρμογή θα μπορεί να έχει πρόσβαση σε",
   "v2.page.consent.default.scopes-app-label": "Αυτή η εφαρμογή θα μπορεί επίσης να",
   "v2.page.consent.default.scopes-app-only-label": "Αυτή η εφαρμογή θα μπορεί να",
-  "v2.page.consent.default.title": "Σύνδεση στο {ClientName}",
+  "v2.page.consent.default.title": "Σύνδεση στο <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "Τη διεύθυνσή σας",
   "v2.page.consent.scopes.email": "Τη διεύθυνση email σας",
   "v2.page.consent.scopes.full-userinfo": "Όλα τα στοιχεία του προφίλ σας, συμπεριλαμβανομένων της διεύθυνσης email, του αριθμού τηλεφώνου και της διεύθυνσής σας",

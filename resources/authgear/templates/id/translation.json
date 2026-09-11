@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Aplikasi ini akan diizinkan untuk mengakses",
   "v2.page.consent.default.scopes-app-label": "Aplikasi ini juga akan diizinkan untuk",
   "v2.page.consent.default.scopes-app-only-label": "Aplikasi ini akan diizinkan untuk",
-  "v2.page.consent.default.title": "Masuk ke {ClientName}",
+  "v2.page.consent.default.title": "Masuk ke <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "Alamat Anda",
   "v2.page.consent.scopes.email": "Alamat email Anda",
   "v2.page.consent.scopes.full-userinfo": "Semua yang ada di profil Anda, termasuk alamat email, nomor telepon, dan alamat Anda",

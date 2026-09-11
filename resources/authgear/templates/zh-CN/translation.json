@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "此应用将被允许访问",
   "v2.page.consent.default.scopes-app-label": "此应用还将被允许",
   "v2.page.consent.default.scopes-app-only-label": "此应用将被允许",
-  "v2.page.consent.default.title": "登录 {ClientName}",
+  "v2.page.consent.default.title": "登录 <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "您的地址",
   "v2.page.consent.scopes.email": "您的电子邮件地址",
   "v2.page.consent.scopes.full-userinfo": "您个人资料中的所有信息，包括您的电子邮件地址、电话号码和地址",

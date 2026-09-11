@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "แอปนี้จะได้รับอนุญาตให้เข้าถึง",
   "v2.page.consent.default.scopes-app-label": "นอกจากนี้ แอปนี้จะได้รับอนุญาตให้",
   "v2.page.consent.default.scopes-app-only-label": "แอปนี้จะได้รับอนุญาตให้",
-  "v2.page.consent.default.title": "เข้าสู่ระบบ {ClientName}",
+  "v2.page.consent.default.title": "เข้าสู่ระบบ <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "ที่อยู่ของคุณ",
   "v2.page.consent.scopes.email": "อีเมลของคุณ",
   "v2.page.consent.scopes.full-userinfo": "ข้อมูลทั้งหมดในโปรไฟล์ของคุณ รวมถึงอีเมล หมายเลขโทรศัพท์ และที่อยู่",

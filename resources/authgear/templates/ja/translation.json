@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "このアプリは以下の情報にアクセスできるようになります",
   "v2.page.consent.default.scopes-app-label": "このアプリは以下の操作も行えるようになります",
   "v2.page.consent.default.scopes-app-only-label": "このアプリは以下の操作を行えるようになります",
-  "v2.page.consent.default.title": "{ClientName}にログイン",
+  "v2.page.consent.default.title": "<span class=\"consent-client-name\">{ClientName}</span>にログイン",
   "v2.page.consent.scopes.address": "あなたの住所",
   "v2.page.consent.scopes.email": "あなたのメールアドレス",
   "v2.page.consent.scopes.full-userinfo": "メールアドレス、電話番号、住所を含むプロフィールのすべての情報",

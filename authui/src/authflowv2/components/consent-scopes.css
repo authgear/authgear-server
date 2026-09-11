@@ -70,6 +70,25 @@
     );
   }
 
+  /* The name is an inline-block capped at the column width, which gives
+     "hold it together if it fits, otherwise start a line, otherwise wrap"
+     without a breakpoint or a length test:
+
+       - space on the title line      -> "Sign in to Acme" stays one line
+       - not enough space beside it   -> the box moves down whole, so the
+                                         break lands after "Sign in to"
+       - wider than the column        -> max-width caps it and it wraps
+                                         inside, at hyphens and spaces first
+
+     overflow-wrap: anywhere is what lets the box shrink below its longest
+     word, so a 50-character name cannot set a min-content width that widens
+     the grid and pushes the panel and buttons off screen. */
+  .consent-client-name {
+    display: inline-block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
   .consent-body {
     @apply flex flex-col;
 

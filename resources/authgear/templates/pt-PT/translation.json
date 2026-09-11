@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Esta aplicação poderá aceder a",
   "v2.page.consent.default.scopes-app-label": "Esta aplicação também poderá",
   "v2.page.consent.default.scopes-app-only-label": "Esta aplicação poderá",
-  "v2.page.consent.default.title": "Iniciar sessão em {ClientName}",
+  "v2.page.consent.default.title": "Iniciar sessão em <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "A sua morada",
   "v2.page.consent.scopes.email": "O seu endereço de email",
   "v2.page.consent.scopes.full-userinfo": "Tudo no seu perfil, incluindo o seu endereço de email, número de telefone e morada",

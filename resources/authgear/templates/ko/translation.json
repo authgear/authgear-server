@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "이 앱은 다음 정보에 접근할 수 있습니다",
   "v2.page.consent.default.scopes-app-label": "이 앱은 또한 다음 작업을 수행할 수 있습니다",
   "v2.page.consent.default.scopes-app-only-label": "이 앱은 다음 작업을 수행할 수 있습니다",
-  "v2.page.consent.default.title": "{ClientName}에 로그인",
+  "v2.page.consent.default.title": "<span class=\"consent-client-name\">{ClientName}</span>에 로그인",
   "v2.page.consent.scopes.address": "주소",
   "v2.page.consent.scopes.email": "이메일 주소",
   "v2.page.consent.scopes.full-userinfo": "이메일 주소, 전화번호, 주소를 포함한 프로필의 모든 정보",

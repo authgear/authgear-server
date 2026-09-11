@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "此應用程式將可存取",
   "v2.page.consent.default.scopes-app-label": "此應用程式亦將可",
   "v2.page.consent.default.scopes-app-only-label": "此應用程式將可",
-  "v2.page.consent.default.title": "登入 {ClientName}",
+  "v2.page.consent.default.title": "登入 <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "您的地址",
   "v2.page.consent.scopes.email": "您的電子郵件地址",
   "v2.page.consent.scopes.full-userinfo": "您個人資料中的所有內容，包括您的電子郵件地址、電話號碼和地址",

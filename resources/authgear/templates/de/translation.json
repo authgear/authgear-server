@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Diese App erhält Zugriff auf",
   "v2.page.consent.default.scopes-app-label": "Diese App darf außerdem",
   "v2.page.consent.default.scopes-app-only-label": "Diese App darf",
-  "v2.page.consent.default.title": "Bei {ClientName} anmelden",
+  "v2.page.consent.default.title": "Bei <span class=\"consent-client-name\">{ClientName}</span> anmelden",
   "v2.page.consent.scopes.address": "Ihre Adresse",
   "v2.page.consent.scopes.email": "Ihre E-Mail-Adresse",
   "v2.page.consent.scopes.full-userinfo": "Alles in Ihrem Profil, einschließlich Ihrer E-Mail-Adresse, Telefonnummer und Adresse",

@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Cette application sera autorisée à accéder à",
   "v2.page.consent.default.scopes-app-label": "Cette application sera également autorisée à",
   "v2.page.consent.default.scopes-app-only-label": "Cette application sera autorisée à",
-  "v2.page.consent.default.title": "Se connecter à {ClientName}",
+  "v2.page.consent.default.title": "Se connecter à <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "Votre adresse",
   "v2.page.consent.scopes.email": "Votre adresse e-mail",
   "v2.page.consent.scopes.full-userinfo": "Tout le contenu de votre profil, y compris votre adresse e-mail, votre numéro de téléphone et votre adresse",

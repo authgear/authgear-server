@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Deze app krijgt toegang tot",
   "v2.page.consent.default.scopes-app-label": "Deze app mag ook",
   "v2.page.consent.default.scopes-app-only-label": "Deze app mag",
-  "v2.page.consent.default.title": "Inloggen bij {ClientName}",
+  "v2.page.consent.default.title": "Inloggen bij <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "Uw adres",
   "v2.page.consent.scopes.email": "Uw e-mailadres",
   "v2.page.consent.scopes.full-userinfo": "Alles in uw profiel, inclusief uw e-mailadres, telefoonnummer en adres",

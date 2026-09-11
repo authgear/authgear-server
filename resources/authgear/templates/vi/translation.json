@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Ứng dụng này sẽ được phép truy cập",
   "v2.page.consent.default.scopes-app-label": "Ứng dụng này cũng sẽ được phép",
   "v2.page.consent.default.scopes-app-only-label": "Ứng dụng này sẽ được phép",
-  "v2.page.consent.default.title": "Đăng nhập vào {ClientName}",
+  "v2.page.consent.default.title": "Đăng nhập vào <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "Địa chỉ của bạn",
   "v2.page.consent.scopes.email": "Địa chỉ email của bạn",
   "v2.page.consent.scopes.full-userinfo": "Mọi thông tin trong hồ sơ của bạn, bao gồm địa chỉ email, số điện thoại và địa chỉ",

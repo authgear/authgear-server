@@ -579,7 +579,7 @@
   "v2.page.consent.default.scopes-account-label": "Este aplicativo poderá acessar",
   "v2.page.consent.default.scopes-app-label": "Este aplicativo também poderá",
   "v2.page.consent.default.scopes-app-only-label": "Este aplicativo poderá",
-  "v2.page.consent.default.title": "Entrar em {ClientName}",
+  "v2.page.consent.default.title": "Entrar em <span class=\"consent-client-name\">{ClientName}</span>",
   "v2.page.consent.scopes.address": "Seu endereço",
   "v2.page.consent.scopes.email": "Seu endereço de e-mail",
   "v2.page.consent.scopes.full-userinfo": "Tudo no seu perfil, incluindo seu endereço de e-mail, número de telefone e endereço",
