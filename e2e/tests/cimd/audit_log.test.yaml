@@ -186,3 +186,84 @@ steps:
             "served_stale_record": "false"
           }
         ]
+
+---
+
+# The document declares a grant type Authgear does not implement
+# (urn:ietf:params:oauth:grant-type:jwt-bearer, same as Claude's real CIMD
+# document -- see cimd/document_test.go) and a token_endpoint_auth_method,
+# both of which CIMD ignores. Resolution must still succeed (Rule 5 drops
+# the unsupported entry rather than refusing the whole document), and the
+# audit event's `client` must show only what survived while `document`
+# shows what was actually declared -- otherwise neither fact is visible
+# anywhere.
+name: oauth.client.resolved shows token_endpoint_auth_method and the document as fetched, including a dropped grant_type
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "audit-log-metadata.json",
+        "document": {
+          "client_id": "http://localhost:2727/audit-log-metadata.json",
+          "client_name": "Metadata Client",
+          "redirect_uris": ["http://127.0.0.1:3000/callback"],
+          "grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"],
+          "response_types": ["code"],
+          "token_endpoint_auth_method": "client_secret_post"
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: http://localhost:2727/audit-log-metadata.json
+      response_type: code
+      redirect_uri: http://127.0.0.1:3000/callback
+      scope: openid
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+      code_challenge_method: S256
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             data->'payload'->'client'->>'token_endpoint_auth_method' AS client_auth_method,
+             data->'payload'->'client'->'grant_types' AS client_grant_types,
+             data->'payload'->'document'->>'token_endpoint_auth_method' AS document_auth_method,
+             data->'payload'->'document'->'grant_types' AS document_grant_types
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.resolved'
+        AND client_id = 'http://localhost:2727/audit-log-metadata.json'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.resolved",
+            "client_auth_method": "none",
+            "client_grant_types": ["authorization_code", "refresh_token"],
+            "document_auth_method": "client_secret_post",
+            "document_grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"]
+          }
+        ]

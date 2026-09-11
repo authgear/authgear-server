@@ -1197,10 +1197,21 @@ Payload:
       "source": "DCR",
       "kind": "THIRD_PARTY",
       "client_name": "PR #123 preview",
+      "client_uri": "https://pr-123.preview.example.com",
       "application_type": "web",
+      "token_endpoint_auth_method": "none",
       "redirect_uris": ["https://pr-123.preview.example.com/callback"],
       "grant_types": ["authorization_code", "refresh_token"],
       "response_types": ["code"]
+    },
+    "request": {
+      "client_name": "PR #123 preview",
+      "client_uri": "https://pr-123.preview.example.com",
+      "redirect_uris": ["https://pr-123.preview.example.com/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"],
+      "application_type": "web",
+      "token_endpoint_auth_method": "none"
     },
     "initial_access_token": {
       "id": "60f4c2a1-9d3e-4a7b-8c15-2e6f0b9d4a83",
@@ -1215,9 +1226,11 @@ Payload:
 - `client.client_id`: The `client_id` assigned to the client. See [Client ID Format](./dcr.md#client-id-format).
 - `client.source`: How the client came to exist. `DCR` for a client created by the registration endpoint.
 - `client.kind`: `FIRST_PARTY` or `THIRD_PARTY`. Determined by the type of Initial Access Token used, not by `application_type`. See [Initial Access Token](./dcr.md#initial-access-token).
-- `client.client_name`: The registered client name. Absent if the client did not provide one.
+- `client.client_name`, `client.client_uri`, `client.logo_uri`, `client.tos_uri`, `client.policy_uri`: The registered values. Absent if the client did not provide one.
 - `client.application_type`: `web` or `native`.
-- `client.redirect_uris`, `client.grant_types`, `client.response_types`: The registered values, after defaults have been applied. See [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
+- `client.token_endpoint_auth_method`: Always `none` — DCR ignores whatever the caller asked for and always registers a public client with no secret. See [`request.token_endpoint_auth_method`](#oauthclientregistered) below for what was actually requested.
+- `client.redirect_uris`, `client.grant_types`, `client.response_types`: The registered values, after defaults have been applied and any unimplemented entries dropped. See [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
+- `request`: The client metadata the caller asked for, **as sent** — no defaults applied, no normalization, nothing dropped. Same shape and same rationale as [`oauth.client.registration.failed`'s `request`](#oauthclientregistrationfailed): `client.grant_types` can have fewer entries than `request.grant_types` when the caller asked for a grant type Authgear does not implement, and `client.token_endpoint_auth_method` is always `none` regardless of what `request.token_endpoint_auth_method` says — this is the only place either discrepancy is visible. Fields absent from the request are absent here too.
 - `initial_access_token`: The Initial Access Token that authorized the registration. **The field does not exist** when the project allows open registration (`initial_access_token_required: false`) and the client presented no token.
   - `initial_access_token.id`: The ID of the token, as returned by the `initialAccessTokens` Admin API query. The token value itself is never included, nor is a hash of it.
   - `initial_access_token.type`: `FIRST_PARTY` or `THIRD_PARTY`.
@@ -1242,6 +1255,14 @@ Payload:
       "type": "FIRST_PARTY",
       "created_at": "2026-07-20T09:14:02Z",
       "expires_at": "2026-08-20T09:14:02Z"
+    },
+    "request": {
+      "client_name": "Some MCP Client",
+      "redirect_uris": ["https://app.example.com/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"],
+      "token_endpoint_auth_method": "client_secret_post",
+      "client_uri": "https://app.example.com"
     }
   }
 }
@@ -1251,9 +1272,16 @@ Payload:
   - `invalid_initial_access_token` — the `Authorization` header was malformed, a token was required and absent, or the token presented was unknown or expired.
   - `invalid_client_metadata` — the body was not a JSON object, or failed a rule in [Accepted Client Metadata](./dcr.md#accepted-client-metadata).
   - `limit_exceeded` — the project is at its [`oauth_client_dcr` quota](./dcr.md#client-limit).
-- `message`: The specific cause within `reason`. For `invalid_initial_access_token`: `malformed_header`, `not_presented`, `unknown` or `expired`. For `invalid_client_metadata`: the rule that failed, e.g. `malformed_json`, `redirect_uris_missing`, `redirect_uri_invalid`, `grant_type_unsupported`, `response_type_inconsistent`, `application_type_unsupported`, `token_endpoint_auth_method_not_accepted`, `uri_field_not_https`. Absent for `limit_exceeded`, which has no sub-cases.
+- `message`: The specific cause within `reason`. For `invalid_initial_access_token`: `malformed_header`, `not_presented`, `unknown` or `expired`. For `invalid_client_metadata`: the rule that failed, e.g. `malformed_json`, `redirect_uris_missing`, `redirect_uri_invalid`, `grant_type_unsupported`, `response_type_inconsistent`, `application_type_unsupported`, `uri_field_not_https`. `token_endpoint_auth_method_not_accepted` is no longer among them — the requested value is [ignored](./dcr.md#token_endpoint_auth_method-optional) rather than refused, so it can no longer fail a registration. Absent for `limit_exceeded`, which has no sub-cases.
 - `usage_name`, `quota`: Present only for `limit_exceeded`. The usage name (`oauth_client_dcr`) and the quota that was reached.
 - `initial_access_token`: Present only when `message` is `expired` — the only case where a token row exists to describe. Same shape as in [oauth.client.registered](#oauthclientregistered). An unknown token has nothing to report, and none was presented in the `not_presented` case.
+- `request`: The client metadata the caller asked for, **as sent** — no defaults applied, no normalization, nothing dropped. `message` names the rule that failed but never the value that failed it, so this is what turns `grant_type_unsupported` into an actionable record: the registering client is a third party whose request body the admin cannot otherwise see. Fields absent from the request are absent here.
+
+  It includes `token_endpoint_auth_method` even though that field is [ignored](./dcr.md#token_endpoint_auth_method-optional) and can no longer fail a registration — the persisted client always registers as `none`, so "what did the client ask to authenticate with?" would otherwise be unanswerable, whether the registration failed or (see [`oauth.client.registered`'s own `request`](#oauthclientregistered)) succeeded.
+
+  The key is **absent** when the request never got as far as a decoded body — `message` of `malformed_header`, `not_presented` or `malformed_json` — and present for every other failure, including `limit_exceeded` and an unknown or expired token, which are decided after the body is read. Absent is therefore "nothing was parsed", never "an empty request was sent".
+
+  Every value is client-authored and unvalidated: reaching this record means the request was **rejected**, so read `request` as what the caller claimed, never as configuration Authgear accepted. It is bounded by the 1 MB request body limit and by the endpoint's per-IP and per-project [rate limits](./dcr.md#rate-limits), which are consumed before the body is parsed.
 
 Note that the HTTP response does **not** distinguish these messages: all four `invalid_initial_access_token` cases return the same error to the caller, so a caller guessing tokens learns nothing. The distinction exists only in the audit log, which only the project admin can read.
 
@@ -1273,9 +1301,18 @@ Payload, on first resolution:
       "kind": "THIRD_PARTY",
       "client_name": "Example MCP Client",
       "application_type": "web",
+      "token_endpoint_auth_method": "none",
       "redirect_uris": ["http://127.0.0.1:3000/callback"],
       "grant_types": ["authorization_code", "refresh_token"],
       "response_types": ["code"]
+    },
+    "document": {
+      "client_name": "Example MCP Client",
+      "redirect_uris": ["http://127.0.0.1:3000/callback"],
+      "grant_types": ["authorization_code", "refresh_token"],
+      "response_types": ["code"],
+      "application_type": "web",
+      "token_endpoint_auth_method": "none"
     },
     "created": true
   }
@@ -1311,7 +1348,8 @@ Payload, on a refetch that changed something:
 }
 ```
 
-- `client`: The client's state after the resolution — `client_id`, `source`, `kind`, `client_name`, `client_uri`, `logo_uri`, `tos_uri`, `policy_uri`, `application_type`, `redirect_uris`, `grant_types`, `response_types`, with `source` always `CIMD` and `kind` always `THIRD_PARTY`.
+- `client`: The client's state after the resolution — `client_id`, `source`, `kind`, `client_name`, `client_uri`, `logo_uri`, `tos_uri`, `policy_uri`, `application_type`, `token_endpoint_auth_method`, `redirect_uris`, `grant_types`, `response_types`, with `source` always `CIMD`, `kind` always `THIRD_PARTY`, and `token_endpoint_auth_method` always `none` — CIMD ignores whatever the document declares and always resolves the client as public with no secret. See `document.token_endpoint_auth_method` below for what the document actually declared.
+- `document`: The metadata document as fetched for this resolution — no defaults applied, nothing dropped. Same rationale as [`oauth.client.registered`'s `request`](#oauthclientregistered): `client.grant_types` can have fewer entries than `document.grant_types` when the document declares a grant type Authgear does not implement, and `client.token_endpoint_auth_method` is always `none` regardless of what `document.token_endpoint_auth_method` says — this is the only place either discrepancy is visible. Fields absent from the document are absent here too. Unlike `old_client`, there is no "old document" — only the document for this resolution is shown.
 - `created`: `true` on first resolution, `false` on a refetch that changed something.
 - `old_client`: The client's state immediately before this resolution, same shape as `client`. Absent when `created` is `true` (there is no "before"), and otherwise always present — this event is never emitted for a refetch that produced identical metadata, so a present `old_client` is guaranteed to differ from `client` in at least one field. Only fields derived from the document are ever compared to decide whether to emit this event at all — never `last_fetched_at`, which changes on every refetch by construction — and the three list fields are compared as sets, so reordering entries alone does not count as a change. `client` and `old_client` show full state rather than a computed list of changed fields, so the reader does the diffing.
 
@@ -1338,7 +1376,7 @@ Payload:
   - `unavailable` — the document could not be retrieved. **Every** transport-level failure is this one value: DNS failure, blocked address, connection refused, TLS failure, timeout, non-2xx response, oversize body, unparseable body.
   - `invalid` — a JSON object was retrieved and failed a rule in [Accepted Metadata Fields](./cimd.md#accepted-metadata-fields).
   - `limit_exceeded` — the document resolved cleanly but the project is at its [`oauth_client_cimd` quota](./cimd.md#client-limit), so no record was created.
-- `message`: The rule that failed, for `invalid` only — e.g. `client_id_mismatch`, `redirect_uris_missing`, `redirect_uri_invalid`, `token_endpoint_auth_method_not_accepted`. **Never present for `unavailable`.**
+- `message`: The rule that failed, for `invalid` only — e.g. `client_id_mismatch`, `redirect_uris_missing`, `redirect_uri_invalid`, `grant_type_unsupported`. **Never present for `unavailable`.**
 - `usage_name`, `quota`: Present only for `limit_exceeded`.
 - `served_stale_record`: `true` when a persisted record already existed and was served despite this failure, so the client still works on its last-known metadata; `false` when the client was left unresolvable. Always `false` for `limit_exceeded`, which only arises when there was no record. See [Error Handling](./cimd.md#error-handling).
 

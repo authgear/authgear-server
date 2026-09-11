@@ -4,37 +4,36 @@ import (
 	"errors"
 	"net/url"
 	"slices"
+
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var (
 	ErrDCRRedirectURIsMissing = errors.New("dcr: redirect_uris is required")
 	ErrDCRRedirectURIInvalid  = errors.New("dcr: invalid redirect_uri")
-	// ErrDCRTokenEndpointAuthMethodNotAccepted is returned when
-	// token_endpoint_auth_method is present and is anything other than
-	// "none" -- every DCR-registered client is public and uses PKCE, so
-	// "none" is accepted (it's simply what every such client already is),
-	// but "client_secret_post"/"client_secret_basic" are rejected since
-	// Authgear never issues a client_secret via DCR.
-	ErrDCRTokenEndpointAuthMethodNotAccepted = errors.New("dcr: token_endpoint_auth_method is not accepted")
-	ErrDCRGrantTypeUnsupported               = errors.New("dcr: unsupported grant_type")
-	ErrDCRResponseTypeInconsistent           = errors.New("dcr: response_types is inconsistent with grant_types")
-	ErrDCRApplicationTypeUnsupported         = errors.New("dcr: unsupported application_type")
-	ErrDCRURIFieldNotHTTPS                   = errors.New("dcr: uri field must use https")
+	// ErrDCRGrantTypeUnsupported is returned only when grant_types was
+	// provided and no entry survived filtering.
+	ErrDCRGrantTypeUnsupported       = errors.New("dcr: no supported grant_type")
+	ErrDCRResponseTypeInconsistent   = errors.New("dcr: response_types is inconsistent with grant_types")
+	ErrDCRApplicationTypeUnsupported = errors.New("dcr: unsupported application_type")
+	ErrDCRURIFieldNotHTTPS           = errors.New("dcr: uri field must use https")
 )
 
 // RegistrationRequest is the parsed (but not yet validated/normalized)
 // POST /oauth2/register request body.
 type RegistrationRequest struct {
-	ClientName              *string
-	RedirectURIs            []string
-	GrantTypes              []string // nil means "not provided" (apply default)
-	ResponseTypes           []string // nil means "not provided" (apply default)
-	ApplicationType         *string
-	LogoURI                 *string
-	ClientURI               *string
-	TOSURI                  *string
-	PolicyURI               *string
-	TokenEndpointAuthMethod *string // only used for rejecting the request if present and not "none"
+	ClientName      *string
+	RedirectURIs    []string
+	GrantTypes      []string // nil means "not provided" (apply default)
+	ResponseTypes   []string // nil means "not provided" (apply default)
+	ApplicationType *string
+	LogoURI         *string
+	ClientURI       *string
+	TOSURI          *string
+	PolicyURI       *string
+	// token_endpoint_auth_method is deliberately absent: it is ignored, and
+	// the response reports the registered "none". See
+	// docs/specs/dcr.md#token_endpoint_auth_method-optional.
 }
 
 // NormalizedRegistration is a RegistrationRequest after defaults have been
@@ -68,11 +67,11 @@ var dcrSupportedResponseTypes = map[string]bool{
 // response_types, application_type) and returns one of the sentinel
 // errors above on the first rule violated — the HTTP handler layer maps
 // each to its exact RFC 7591 (error, status) pair.
+//
+// Metadata Authgear does not implement is dropped rather than refused,
+// per RFC 7591 §3.2.1's allowance to substitute suitable values, and the
+// response reports what was registered.
 func ValidateAndNormalize(req *RegistrationRequest) (*NormalizedRegistration, error) {
-	if req.TokenEndpointAuthMethod != nil && *req.TokenEndpointAuthMethod != "none" {
-		return nil, ErrDCRTokenEndpointAuthMethodNotAccepted
-	}
-
 	applicationType := "web"
 	if req.ApplicationType != nil {
 		applicationType = *req.ApplicationType
@@ -90,14 +89,21 @@ func ValidateAndNormalize(req *RegistrationRequest) (*NormalizedRegistration, er
 		}
 	}
 
-	grantTypes := req.GrantTypes
-	if grantTypes == nil {
-		grantTypes = []string{"authorization_code", "refresh_token"}
+	// Entries Authgear does not implement are dropped; erroring only if the
+	// request provided entries and lost them all. Same rule as CIMD's
+	// (cimd/document.go, Rule 5).
+	rawGrantTypes := req.GrantTypes
+	if rawGrantTypes == nil {
+		rawGrantTypes = []string{"authorization_code", "refresh_token"}
 	}
-	for _, gt := range grantTypes {
-		if !dcrSupportedGrantTypes[gt] {
-			return nil, ErrDCRGrantTypeUnsupported
+	grantTypes := make([]string, 0, len(rawGrantTypes))
+	for _, gt := range rawGrantTypes {
+		if dcrSupportedGrantTypes[gt] {
+			grantTypes = append(grantTypes, gt)
 		}
+	}
+	if len(grantTypes) == 0 && len(rawGrantTypes) > 0 {
+		return nil, ErrDCRGrantTypeUnsupported
 	}
 
 	responseTypes := req.ResponseTypes
@@ -139,8 +145,8 @@ func ValidateAndNormalize(req *RegistrationRequest) (*NormalizedRegistration, er
 
 // validateRedirectURI implements the per-application_type redirect URI
 // scheme rules from docs/specs/dcr.md's application_type table: web must
-// use https://, localhost not allowed; native must use a custom URI
-// scheme or http://localhost.
+// use https://, loopback not allowed; native must use a custom URI scheme
+// or a loopback http:// URI.
 func validateRedirectURI(raw string, applicationType string) error {
 	u, err := url.Parse(raw)
 	if err != nil || !u.IsAbs() {
@@ -158,7 +164,7 @@ func validateRedirectURI(raw string, applicationType string) error {
 	case "native":
 		switch u.Scheme {
 		case "http":
-			if u.Hostname() != "localhost" {
+			if !httputil.IsLoopbackHost(u.Hostname()) {
 				return ErrDCRRedirectURIInvalid
 			}
 		case "https":

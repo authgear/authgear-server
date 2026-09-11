@@ -76,6 +76,96 @@ steps:
 
 ---
 
+# RFC 8252 §7.3 treats the loopback IP literals the same as the "localhost"
+# hostname -- a native/CLI client that binds its callback listener to
+# 127.0.0.1 (rather than resolving "localhost") must be accepted too.
+name: native application_type accepts http://127.0.0.1 redirect_uris
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "application_type": "native",
+        "redirect_uris": ["http://127.0.0.1:60327/callback/abc"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]",
+          "application_type": "native",
+          "redirect_uris": ["http://127.0.0.1:60327/callback/abc"]
+        }
+
+---
+
+name: native application_type accepts http://[::1] redirect_uris
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "application_type": "native",
+        "redirect_uris": ["http://[::1]:3000/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]",
+          "application_type": "native",
+          "redirect_uris": ["http://[::1]:3000/callback"]
+        }
+
+---
+
+# Loopback is the only relaxation -- an ordinary non-loopback IP still needs
+# https:// (or a custom scheme) exactly like any other host would.
+name: native application_type rejects http:// on a non-loopback IP
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "application_type": "native",
+        "redirect_uris": ["http://127.0.0.2/callback"]
+      }
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_redirect_uri"
+        }
+
+---
+
 name: web application_type rejects http://localhost redirect_uris
 authgear.yaml:
   override: |
@@ -166,6 +256,8 @@ steps:
 # invalid_client_metadata / "dcr: token_endpoint_auth_method is not
 # accepted" solely because Inspector explicitly sends
 # token_endpoint_auth_method=none, which every DCR client already is.
+# That value is now ignored rather than required, but keep sending it --
+# the point of this case is the captured body, unchanged.
 name: MCP Inspector's exact registration request succeeds
 authgear.yaml:
   override: |
@@ -201,12 +293,56 @@ steps:
           "grant_types": ["authorization_code", "refresh_token"],
           "response_types": ["code"],
           "application_type": "native",
+          "token_endpoint_auth_method": "none",
           "client_uri": "https://github.com/modelcontextprotocol/inspector"
         }
 
 ---
 
-name: token_endpoint_auth_method other than none returns invalid_client_metadata
+# Claude's hosted MCP connector body, which asks for client_secret_post
+# and the jwt-bearer grant. Authgear implements neither and used to refuse
+# the whole registration; both are now substituted and the response
+# reports what was registered.
+name: metadata Authgear does not implement is registered as what it can offer
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "Claude",
+        "client_uri": "https://claude.ai",
+        "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
+        "grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"],
+        "response_types": ["code"],
+        "token_endpoint_auth_method": "client_secret_post"
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]",
+          "client_id_issued_at": "[[number]]",
+          "client_name": "Claude",
+          "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
+          "grant_types": ["authorization_code", "refresh_token"],
+          "response_types": ["code"],
+          "application_type": "web",
+          "token_endpoint_auth_method": "none",
+          "client_uri": "https://claude.ai"
+        }
+
+---
+
+name: grant_types with no value Authgear implements returns invalid_client_metadata
 authgear.yaml:
   override: |
     oauth:
@@ -222,7 +358,7 @@ steps:
     http_request_body: |
       {
         "redirect_uris": ["https://example.com/callback"],
-        "token_endpoint_auth_method": "client_secret_post"
+        "grant_types": ["urn:ietf:params:oauth:grant-type:jwt-bearer"]
       }
     http_output:
       http_status: 400

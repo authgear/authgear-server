@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"slices"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -58,6 +58,55 @@ func parseRedirectURI(
 	return redirectURI, nil
 }
 
+// isLoopbackRedirectURI reports whether u is a loopback redirect URI in the
+// sense of RFC 8252 §7.3, that is, the "http" scheme on a loopback host
+// (httputil.IsLoopbackHost -- the same set pkg/lib/cimd and pkg/lib/dcr
+// accept when validating registered URIs). url.Parse already lowercases the
+// scheme; the host is lowercased here since RFC 3986 §3.2.2 makes it
+// case-insensitive.
+func isLoopbackRedirectURI(u *url.URL) bool {
+	if u.Scheme != "http" {
+		return false
+	}
+	return httputil.IsLoopbackHost(strings.ToLower(u.Hostname()))
+}
+
+// matchLoopbackRedirectURI implements RFC 8252 §7.3, which says the
+// authorization server "MUST allow any port to be specified at the time of the
+// request for loopback IP redirect URIs, to accommodate clients that obtain an
+// available ephemeral port from the operating system at the time of the
+// request". Native and CLI apps bind an OS-assigned ephemeral port, so the port
+// of their redirect URI is not known when the client is registered.
+//
+// The exception applies only when both the registered URI and the incoming URI
+// are loopback URIs. The port is then the only component allowed to differ:
+// scheme, host, path, query and fragment must still match. Everything else
+// keeps requiring strict equality, so a client that registers no loopback URI
+// sees no change in behaviour.
+//
+// Confining the exception to the "http" scheme on a loopback host keeps it
+// safe: such a redirect never leaves the end-user's machine, so an arbitrary
+// port cannot be turned into a cross-origin redirection to an attacker. PKCE
+// continues to protect the code against other local processes.
+func matchLoopbackRedirectURI(allowedURIString string, redirectURI *url.URL) bool {
+	allowedURI, err := url.Parse(allowedURIString)
+	if err != nil {
+		return false
+	}
+	if !isLoopbackRedirectURI(allowedURI) || !isLoopbackRedirectURI(redirectURI) {
+		return false
+	}
+	return redirectURIWithoutPort(allowedURI) == redirectURIWithoutPort(redirectURI)
+}
+
+// redirectURIWithoutPort serializes u with the port component removed, so that
+// two loopback URIs can be compared on every component except the port.
+func redirectURIWithoutPort(u *url.URL) string {
+	withoutPort := *u
+	withoutPort.Host = strings.ToLower(u.Hostname())
+	return withoutPort.String()
+}
+
 func validateRedirectURI(
 	client *config.OAuthClientConfig,
 	httpProto httputil.HTTPProto,
@@ -69,8 +118,15 @@ func validateRedirectURI(
 	allowed := false
 	redirectURIString := redirectURI.String()
 
-	if slices.Contains(client.RedirectURIs, redirectURIString) {
-		allowed = true
+	for _, allowedURIString := range client.RedirectURIs {
+		if allowedURIString == redirectURIString {
+			allowed = true
+			break
+		}
+		if matchLoopbackRedirectURI(allowedURIString, redirectURI) {
+			allowed = true
+			break
+		}
 	}
 
 	// Implicitly allow URIs at same origin as the AS.
