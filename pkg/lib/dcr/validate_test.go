@@ -76,6 +76,30 @@ func TestValidateAndNormalize(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("native application_type accepts http://127.0.0.1 loopback, any port", func() {
+			req := validReq()
+			req.ApplicationType = new("native")
+			req.RedirectURIs = []string{"http://127.0.0.1:60327/callback/abc"}
+			_, err := dcr.ValidateAndNormalize(req)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("native application_type accepts http://[::1] loopback", func() {
+			req := validReq()
+			req.ApplicationType = new("native")
+			req.RedirectURIs = []string{"http://[::1]:3000/callback"}
+			_, err := dcr.ValidateAndNormalize(req)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("native application_type rejects non-loopback IP", func() {
+			req := validReq()
+			req.ApplicationType = new("native")
+			req.RedirectURIs = []string{"http://127.0.0.2/callback"}
+			_, err := dcr.ValidateAndNormalize(req)
+			So(err, ShouldEqual, dcr.ErrDCRRedirectURIInvalid)
+		})
+
 		Convey("native application_type rejects https", func() {
 			req := validReq()
 			req.ApplicationType = new("native")

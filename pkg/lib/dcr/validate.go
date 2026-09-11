@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/url"
 	"slices"
+
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var (
@@ -143,8 +145,8 @@ func ValidateAndNormalize(req *RegistrationRequest) (*NormalizedRegistration, er
 
 // validateRedirectURI implements the per-application_type redirect URI
 // scheme rules from docs/specs/dcr.md's application_type table: web must
-// use https://, localhost not allowed; native must use a custom URI
-// scheme or http://localhost.
+// use https://, loopback not allowed; native must use a custom URI scheme
+// or a loopback http:// URI.
 func validateRedirectURI(raw string, applicationType string) error {
 	u, err := url.Parse(raw)
 	if err != nil || !u.IsAbs() {
@@ -162,7 +164,7 @@ func validateRedirectURI(raw string, applicationType string) error {
 	case "native":
 		switch u.Scheme {
 		case "http":
-			if u.Hostname() != "localhost" {
+			if !httputil.IsLoopbackHost(u.Hostname()) {
 				return ErrDCRRedirectURIInvalid
 			}
 		case "https":

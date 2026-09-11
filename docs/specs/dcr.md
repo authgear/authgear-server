@@ -409,7 +409,7 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 
 | `error` value | HTTP status | Meaning |
 |---|---|---|
-| `invalid_redirect_uri` | 400 | One or more `redirect_uris` are invalid (e.g. plain `http://` for non-localhost) |
+| `invalid_redirect_uri` | 400 | One or more `redirect_uris` are invalid (e.g. plain `http://` for a non-loopback host) |
 | `invalid_client_metadata` | 400 | Other metadata validation failure — see table below |
 | `invalid_initial_access_token` | 401 | IAT is missing, expired, or not recognized |
 | `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, a first-party IAT is required but a third-party IAT or no IAT was presented, or the project's [client limit](#client-limit) has been reached) |
@@ -441,7 +441,7 @@ Array of redirect URIs the client will use in authorization code flows. Each URI
 - An `https://` URI, **or**
 - A custom URI scheme (e.g., `com.example.app://callback`) for native apps.
 
-Plain `http://` URIs are rejected except for `http://localhost` (loopback), which is allowed for native app development.
+Plain `http://` URIs are rejected except for a loopback address — `http://localhost`, `http://127.0.0.1` or `http://[::1]`, any port — which is allowed for native app development. Per [RFC 8252 §7.3](https://www.rfc-editor.org/rfc/rfc8252#section-7.3), both the `localhost` hostname and the IPv4/IPv6 loopback literals count as loopback; a client that binds its callback listener to `127.0.0.1` (as many native/CLI OAuth clients do, to avoid `localhost` DNS-resolution ambiguity) is accepted the same as one that uses `localhost`. Same set CIMD accepts — see [CIMD's `redirect_uris`](./cimd.md#redirect_uris-required).
 
 Each URI must be an absolute URI (per RFC 3986 §4.3) and must not contain a fragment component (`#`).
 
@@ -474,10 +474,10 @@ Controls the client's technical profile (redirect URI rules, PKCE requirements).
 
 | Value | IAT type required | Consent screen | `kind` | Redirect URI validation |
 |---|---|---|---|---|
-| `web` (default) | none or `iat_tp_` | Yes | `THIRD_PARTY` | Must use `https://`; `localhost` not allowed |
-| `native` | none or `iat_tp_` | Yes | `THIRD_PARTY` | Custom URI scheme or `http://localhost` |
-| `web` | `iat_fp_` | No | `FIRST_PARTY` | Must use `https://`; `localhost` not allowed |
-| `native` | `iat_fp_` | No | `FIRST_PARTY` | Custom URI scheme or `http://localhost` |
+| `web` (default) | none or `iat_tp_` | Yes | `THIRD_PARTY` | Must use `https://`; loopback not allowed |
+| `native` | none or `iat_tp_` | Yes | `THIRD_PARTY` | Custom URI scheme or loopback `http://` |
+| `web` | `iat_fp_` | No | `FIRST_PARTY` | Must use `https://`; loopback not allowed |
+| `native` | `iat_fp_` | No | `FIRST_PARTY` | Custom URI scheme or loopback `http://` |
 
 Default: `web`.
 
