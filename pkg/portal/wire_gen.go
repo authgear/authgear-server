@@ -553,8 +553,11 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 func newStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	manager := rootProvider.Resources
+	environmentConfig := rootProvider.EnvironmentConfig
+	sourceMapConfig := deps.ProvideSourceMapConfig(environmentConfig)
 	staticAssetsHandler := &transport.StaticAssetsHandler{
 		Resources: manager,
+		SourceMap: sourceMapConfig,
 	}
 	return staticAssetsHandler
 }

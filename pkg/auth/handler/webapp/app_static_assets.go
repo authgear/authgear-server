@@ -32,6 +32,7 @@ type ResourceManager interface {
 
 type AppStaticAssetsHandler struct {
 	Resources ResourceManager
+	SourceMap httputil.SourceMapConfig
 }
 
 func (h *AppStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +40,7 @@ func (h *AppStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		FileSystem:          h.makeFs(r.Context()),
 		AssetsDir:           web.AppAssetsURLDirname,
 		FallbackToIndexHTML: false,
+		SourceMap:           h.SourceMap,
 	}
 	fileServer.ServeHTTP(w, r)
 }

@@ -66,5 +66,14 @@ func TestIsSourceMapPath(t *testing.T) {
 
 		result = IsSourceMapPath("style.css")
 		So(result, ShouldEqual, false)
+
+		result = IsSourceMapPath("script.hash.js.MAP")
+		So(result, ShouldEqual, true)
+
+		result = IsSourceMapPath("script.hash.js.Map")
+		So(result, ShouldEqual, true)
+
+		result = IsSourceMapPath("script.hash.js.map.")
+		So(result, ShouldEqual, false)
 	})
 }

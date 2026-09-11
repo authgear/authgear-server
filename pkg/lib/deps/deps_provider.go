@@ -50,6 +50,7 @@ var EnvConfigDeps = wire.NewSet(
 		"SMSGatewayConfig",
 		"SharedAuthgearEndpoint",
 	),
+	ProvideSourceMapConfig,
 	wire.FieldsOf(new(*config.SMSGatewayEnvironmentConfig),
 		"Default",
 		"Twilio",
@@ -116,6 +117,13 @@ var RootDependencySet = wire.NewSet(
 		"BaseResources",
 	),
 )
+
+func ProvideSourceMapConfig(cfg *config.EnvironmentConfig) httputil.SourceMapConfig {
+	return httputil.SourceMapConfig{
+		Enabled:     cfg.SourceMap.Enabled,
+		SentryToken: cfg.SourceMap.SentryToken,
+	}
+}
 
 func ProvideRemoteIP(r *http.Request, trustProxy config.TrustProxy) httputil.RemoteIP {
 	return httputil.RemoteIP(httputil.GetIP(r, bool(trustProxy)))
