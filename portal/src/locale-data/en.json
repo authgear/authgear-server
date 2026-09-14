@@ -1602,7 +1602,7 @@
   "AuditLogActivityType.subcategory.admin-api-session": "Session",
   "AuditLogActivityType.subcategory.admin-api-password": "Password & OTP",
   "AuditLogActivityType.subcategory.admin-api-group-role": "Groups & roles",
-  "AuditLogActivityType.subcategory.admin-api-oauth": "OAuth resources & clients",
+  "AuditLogActivityType.subcategory.admin-api-oauth": "OAuth resources",
   "AuditLogActivityType.subcategory.project-app": "App",
   "AuditLogActivityType.subcategory.project-billing": "Billing",
   "AuditLogActivityType.subcategory.project-collaborator": "Collaborator",

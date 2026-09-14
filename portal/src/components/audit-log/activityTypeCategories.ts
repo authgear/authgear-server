@@ -128,15 +128,16 @@ function getAdminApiActivityTypeSubcategory(
     .replace(/^ADMIN_API_MUTATION_/, "")
     .replace(/_EXECUTED$/, "");
 
-  if (
-    mutation.includes("RESOURCE") ||
-    mutation.includes("SCOPE") ||
-    mutation.includes("CLIENTID") ||
-    mutation.includes("SCOPES") ||
-    // DELETE_DYNAMIC_CLIENT says CLIENT, not CLIENTID, so the test above
-    // misses it and the fallback files it under "User account".
-    mutation.includes("CLIENT")
-  ) {
+  // Deleting a dynamic client belongs with the events that created it
+  // (OAUTH_CLIENT_REGISTERED/RESOLVED), not with the resource/scope
+  // mutations below: one client's history should sit under one filter
+  // heading. Checked first because "DYNAMIC_CLIENT" would otherwise fall
+  // through to the catch-all and be filed under "User".
+  if (mutation.includes("DYNAMIC_CLIENT")) {
+    return "dynamic-client";
+  }
+
+  if (mutation.includes("RESOURCE") || mutation.includes("SCOPE")) {
     return "admin-api-oauth";
   }
 
