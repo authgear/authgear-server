@@ -13,6 +13,10 @@ import (
 	"syscall"
 )
 
+// smsGatewayPathPrefix marks the paths that answer as an SMS gateway. No
+// event-hook receiver uses it, so the two shapes never meet.
+const smsGatewayPathPrefix = "sms-gateway/"
+
 type recorder struct {
 	mu       sync.Mutex
 	requests map[string][]map[string]interface{}
@@ -87,6 +91,14 @@ func main() {
 			rec.append(path, payload)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
+			// A custom SMS provider reads the response body and treats
+			// anything but code "ok" as a send failure, so a path under
+			// sms-gateway/ answers in the shape docs/specs/sms_gateway.md
+			// defines rather than the generic one.
+			if strings.HasPrefix(path, smsGatewayPathPrefix) {
+				_, _ = w.Write([]byte(`{"code":"ok"}`))
+				return
+			}
 			_, _ = w.Write([]byte(`{"result":"ok"}`))
 		case http.MethodGet:
 			w.Header().Set("Content-Type", "application/json")
