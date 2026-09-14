@@ -72,7 +72,10 @@ const MobileViewHeaderIconSection: React.VFC<
           the dark/colored variant meant for a light background. */}
       <Logo
         inverted={true}
-        containerClassName={logoStyles.logo__containerHeader}
+        containerClassName={cn(
+          logoStyles.logo__containerHeader,
+          logoStyles.logo__containerHeaderMobile
+        )}
       />
     </Link>
   );

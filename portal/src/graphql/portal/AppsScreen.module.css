@@ -2,7 +2,23 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  /* The panel is fixed-height on mobile too, so prefer the dynamic viewport
+     unit where available: on iOS Safari 100vh includes the area behind the
+     browser toolbar and would hide the bottom of the list. Older browsers
+     ignore this line and keep the 100vh above. */
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  height: 100dvh;
   width: 100vw;
+}
+
+/* Unlike ScreenLayoutScrollView, this stays a fixed-height container on
+   mobile too, so the panel can fill the viewport under the header and scroll
+   its rows internally on every width. */
+.content {
+  flex: 1 0 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
 }
 
 .body {
@@ -10,12 +26,41 @@
   max-width: 720px;
   margin: 0 auto;
   padding: 24px 20px 40px;
+  box-sizing: border-box;
+  /* Fill the container so the panel can cap its height and scroll the rows
+     inside itself. */
+  height: 100%;
   display: flex;
   flex-direction: column;
-  row-gap: 20px;
+
+  /* On mobile the panel goes edge to edge under the header. */
+  @apply mobile:max-w-none mobile:p-0;
+}
+
+/* The title, toolbar and rows share one bordered panel; the rows are divided
+   by hairlines inside it, like the other v2 list tables. The panel is a
+   column that shrinks to the available height, and only .list scrolls, so the
+   title, toolbar and border stay put however long the list is. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-3);
+  background-color: var(--color-panel-solid);
+
+  /* Full width and full height on mobile; the header already draws the
+     hairline above it, so the panel needs no border of its own. */
+  @apply mobile:flex-1 mobile:border-0 mobile:rounded-none;
+}
+
+.panelTitle {
+  flex: none;
+  padding: 20px 16px 0;
 }
 
 .toolbar {
+  flex: none;
   display: flex;
   flex-direction: row;
   /* The v2 TextField reserves an error/hint row below the input, making its
@@ -24,6 +69,8 @@
      reserved space. */
   align-items: flex-start;
   gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--gray-a6);
 }
 
 .search {
@@ -31,43 +78,62 @@
   min-width: 0;
 }
 
+.quota {
+  flex: none;
+  padding: 12px 16px;
+}
+
 .list {
   display: flex;
   flex-direction: column;
-  row-gap: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  /* Clip scrolled rows (and their hover background) to the panel's rounded
+     bottom corners. */
+  border-bottom-left-radius: calc(var(--radius-3) - 1px);
+  border-bottom-right-radius: calc(var(--radius-3) - 1px);
+
+  @apply mobile:rounded-none;
 }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  row-gap: 4px;
-  padding: 16px;
-  border: 1px solid var(--gray-a5);
-  border-radius: var(--radius-3);
-  background-color: var(--color-panel-solid);
+/* When the quota callout sits between the toolbar and the rows, restore the
+   hairline above the first row. */
+.quota + .list {
+  border-top: 1px solid var(--gray-a6);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 16px;
+  align-items: baseline;
+  padding: 14px 16px;
   text-decoration: none;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
-.card:hover {
-  border-color: var(--accent-8);
-  background-color: var(--accent-a2);
+.row + .row {
+  border-top: 1px solid var(--gray-a6);
 }
 
-.cardAppID {
+.row:hover {
+  background-color: var(--gray-a2);
+}
+
+.rowAppID {
   color: var(--gray-12);
   /* Deprecated but safari does not support "overflow-wrap: break-word;" */
   /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated */
   word-break: break-word;
 }
 
-.cardAppName {
+.rowOrigin {
   color: var(--gray-a11);
-  /* stylelint-disable-next-line declaration-property-value-keyword-no-deprecated */
-  word-break: break-word;
+  text-align: right;
 }
 
 .emptyText {
-  padding: 24px 0;
+  padding: 24px 16px;
   text-align: center;
 }

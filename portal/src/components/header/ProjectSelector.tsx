@@ -46,13 +46,9 @@ const ProjectSelector: React.VFC<ProjectSelectorProps> =
       });
     }, [apps, isAuthgearOnce, authgearAppID]);
 
-    const sortedApps = useMemo(() => {
-      return [...filteredApps].sort((a, b) => a.appID.localeCompare(b.appID));
-    }, [filteredApps]);
-
     const otherApps = useMemo(() => {
-      return sortedApps.filter((app) => app.appID !== displayAppID);
-    }, [sortedApps, displayAppID]);
+      return filteredApps.filter((app) => app.appID !== displayAppID);
+    }, [filteredApps, displayAppID]);
 
     const createButtonDisabled =
       isProjectQuotaReached(viewer ?? null) || isAuthgearOnce;

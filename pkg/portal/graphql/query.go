@@ -40,7 +40,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			},
 		},
 		"appList": &graphql.Field{
-			Description: "The list of apps accessible to the current viewer",
+			Description: "The list of apps accessible to the current viewer, sorted by app ID in ascending order",
 			Type: graphql.NewList(graphql.NewNonNull(graphql.NewObject(graphql.ObjectConfig{
 				Name: "AppListItem",
 				Fields: graphql.Fields{

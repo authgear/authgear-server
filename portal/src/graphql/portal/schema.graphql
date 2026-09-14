@@ -717,7 +717,9 @@ type Query {
     rangeTo: Date!
   ): Chart
 
-  """The list of apps accessible to the current viewer"""
+  """
+  The list of apps accessible to the current viewer, sorted by app ID in ascending order
+  """
   appList: [AppListItem!]
 
   """Check whether the viewer can accept the collaboration invitation"""

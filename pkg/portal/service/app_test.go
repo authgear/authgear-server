@@ -7,6 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	runtimeresource "github.com/authgear/authgear-server"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -72,6 +73,57 @@ func TestValidateAppID(t *testing.T) {
 		Convey("some examples of valid app ID", func() {
 			So(service.validateAppID(ctx, "myapp"), ShouldBeNil)
 			So(service.validateAppID(ctx, "this-app"), ShouldBeNil)
+		})
+	})
+}
+
+func TestSortAppListItems(t *testing.T) {
+	Convey("sortAppListItems", t, func() {
+		appIDs := func(items []*model.AppListItem) []string {
+			out := make([]string, len(items))
+			for i, item := range items {
+				out[i] = item.AppID
+			}
+			return out
+		}
+
+		Convey("orders items by app ID in ascending byte order", func() {
+			items := []*model.AppListItem{
+				{AppID: "zebra-4d3c2b", PublicOrigin: "https://zebra-4d3c2b.example.com"},
+				{AppID: "apple-10", PublicOrigin: "https://apple-10.example.com"},
+				{AppID: "mango-9f8e7d", PublicOrigin: "https://mango-9f8e7d.example.com"},
+				{AppID: "apple-2", PublicOrigin: "https://apple-2.example.com"},
+			}
+
+			sortAppListItems(items)
+
+			So(appIDs(items), ShouldResemble, []string{
+				"apple-10",
+				"apple-2",
+				"mango-9f8e7d",
+				"zebra-4d3c2b",
+			})
+			// Each item keeps its own origin; only the order changes.
+			So(items[0].PublicOrigin, ShouldEqual, "https://apple-10.example.com")
+		})
+
+		Convey("leaves an already sorted list unchanged", func() {
+			items := []*model.AppListItem{
+				{AppID: "a-project"},
+				{AppID: "b-project"},
+			}
+
+			sortAppListItems(items)
+
+			So(appIDs(items), ShouldResemble, []string{"a-project", "b-project"})
+		})
+
+		Convey("accepts an empty or nil list", func() {
+			empty := []*model.AppListItem{}
+			sortAppListItems(empty)
+			So(empty, ShouldBeEmpty)
+
+			So(func() { sortAppListItems(nil) }, ShouldNotPanic)
 		})
 	})
 }

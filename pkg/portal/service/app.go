@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/lib/pq"
@@ -177,7 +179,18 @@ func (s *AppService) GetAppList(ctx context.Context, userID string) ([]*model.Ap
 			PublicOrigin: app.Context.Config.AppConfig.HTTP.PublicOrigin,
 		})
 	}
+	sortAppListItems(appList)
 	return appList, nil
+}
+
+// sortAppListItems orders the list by app ID in ascending byte order, so every
+// client shows projects in the same predictable order regardless of which
+// config source produced the IDs. App IDs are lowercase letters, digits and
+// hyphens, so byte order is alphabetical order.
+func sortAppListItems(items []*model.AppListItem) {
+	slices.SortFunc(items, func(a, b *model.AppListItem) int {
+		return strings.Compare(a.AppID, b.AppID)
+	})
 }
 
 // GetProjectQuota acquires connection.
