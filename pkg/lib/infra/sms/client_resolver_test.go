@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/custom"
 )
 
 // nolint: gocognit
@@ -177,6 +178,74 @@ func TestClientResolver(t *testing.T) {
 
 			})
 		}
+	})
+}
+
+// TestClientResolverWebHookSelection pins which webhook a resolved custom
+// client carries, because that is what decides whether the fetch address
+// policy applies. See docs/specs/ssrf-protection.md.
+func TestClientResolverWebHookSelection(t *testing.T) {
+	Convey("the webhook depends on where the URL came from", t, func() {
+		envCustom := config.SMSGatewayEnvironmentCustomSMSProviderConfig{
+			URL:     "http://authgear-sms-gateway.default.svc.cluster.local:8080/send",
+			Timeout: "30",
+		}
+		secretsCustom := &config.CustomSMSProviderConfig{
+			URL: "https://sms.example.com/send",
+		}
+
+		resolveWebHook := func(r ClientResolver) custom.SMSWebHookCaller {
+			client, _, err := r.ResolveClient()
+			So(err, ShouldBeNil)
+			customClient, ok := client.(*custom.CustomClient)
+			So(ok, ShouldBeTrue)
+			return customClient.SMSWebHook
+		}
+
+		Convey("SMS_GATEWAY_CUSTOM_URL is not bound by the address policy", func() {
+			webhook := resolveWebHook(ClientResolver{
+				EnvironmentDefaultUseConfigFrom:    config.SMSGatewayEnvironmentDefaultUseConfigFromEnvironmentVariable,
+				EnvironmentDefaultProvider:         config.SMSGatewayEnvironmentDefaultProviderCustom,
+				EnvironmentCustomSMSProviderConfig: envCustom,
+			})
+
+			So(webhook, ShouldHaveSameTypeAs, &custom.EnvSMSWebHook{})
+		})
+
+		Convey("a project selecting environment_variable is not bound by it either", func() {
+			// The project only says "use what the operator configured"; it
+			// never names the destination.
+			webhook := resolveWebHook(ClientResolver{
+				AuthgearYAMLSMSGateway: &config.SMSGatewayConfig{
+					UseConfigFrom: config.SMSGatewayUseConfigFromEnvironmentVariable,
+					Provider:      config.SMSProviderCustom,
+				},
+				EnvironmentCustomSMSProviderConfig: envCustom,
+			})
+
+			So(webhook, ShouldHaveSameTypeAs, &custom.EnvSMSWebHook{})
+		})
+
+		Convey("messaging.sms_provider is bound by the address policy", func() {
+			webhook := resolveWebHook(ClientResolver{
+				AuthgearYAMLSMSProvider:                    config.SMSProviderCustom,
+				AuthgearSecretsYAMLCustomSMSProviderConfig: secretsCustom,
+			})
+
+			So(webhook, ShouldHaveSameTypeAs, &custom.SMSWebHook{})
+		})
+
+		Convey("a project selecting authgear.secrets.yaml is bound by it", func() {
+			webhook := resolveWebHook(ClientResolver{
+				AuthgearYAMLSMSGateway: &config.SMSGatewayConfig{
+					UseConfigFrom: config.SMSGatewayUseConfigFromAuthgearSecretsYAML,
+					Provider:      config.SMSProviderCustom,
+				},
+				AuthgearSecretsYAMLCustomSMSProviderConfig: secretsCustom,
+			})
+
+			So(webhook, ShouldHaveSameTypeAs, &custom.SMSWebHook{})
+		})
 	})
 }
 

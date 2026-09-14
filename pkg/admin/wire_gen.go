@@ -936,6 +936,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -949,6 +955,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,

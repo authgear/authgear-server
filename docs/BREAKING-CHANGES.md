@@ -28,12 +28,14 @@ Authgear now refuses to connect to an address that is not publicly routable when
 | --- | --- |
 | `hook.blocking_handlers[].url` | the auth flow the hook gates fails, so logins or signups break |
 | `hook.non_blocking_handlers[].url` | the event is not delivered |
-| `messaging.custom_sms_provider.url` | SMS, so OTP delivery breaks |
+| `sms.custom.url` in `authgear.secrets.yaml` (`messaging.custom_sms_provider.url`) | SMS, so OTP delivery breaks |
 | `account_migration.hook.url` | account migration |
 | `proof_of_phone_number_verification.hook.url` | phone number verification |
 | an SSO provider's `discovery_document_endpoint`, and the `jwks_uri` it names | login with that provider |
 
 Addresses like `http://10.0.0.5:8080/hook`, `http://host.docker.internal:3000/hook` and `http://my-service.svc.cluster.local/hook` are all refused by default after this upgrade.
+
+**Not affected** — the SMS gateway named by the `SMS_GATEWAY_CUSTOM_URL` environment variable. You set that one, not a project admin, so it may keep pointing at an in-cluster address and needs no allowlist entry. That includes a project whose `authgear.yaml` says `messaging.sms_gateway.use_config_from: environment_variable`.
 
 **Symptom** — one `ERROR` per refused fetch, from logger `ssrf-address-policy`:
 

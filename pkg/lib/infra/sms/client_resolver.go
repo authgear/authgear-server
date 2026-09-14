@@ -79,7 +79,12 @@ type ClientResolver struct {
 	EnvironmentCustomSMSProviderConfig config.SMSGatewayEnvironmentCustomSMSProviderConfig
 
 	SMSDenoHook custom.SMSDenoHook
-	SMSWebHook  custom.SMSWebHook
+	// SMSWebHook fetches the URL a project configured in
+	// authgear.secrets.yaml, so it is bound by the fetch address policy.
+	SMSWebHook custom.SMSWebHook
+	// EnvSMSWebHook fetches SMS_GATEWAY_CUSTOM_URL, which this deployment
+	// configured, so it is not. See docs/specs/ssrf-protection.md.
+	EnvSMSWebHook custom.EnvSMSWebHook
 }
 
 func (r *ClientResolver) ResolveClient() (smsapi.Client, SMSClientCredentials, error) {
@@ -286,7 +291,7 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 		}
 	}
 
-	return nexmo.NewNexmoClient((*config.NexmoCredentials)(nexmoClientCredentials)), nexmoClientCredentials, twilio.NewTwilioClient(twilioClientCredentials.toSecret()), twilioClientCredentials, custom.NewCustomClient((*config.CustomSMSProviderConfig)(customClientCredentials), r.SMSDenoHook, &r.SMSWebHook), customClientCredentials
+	return nexmo.NewNexmoClient((*config.NexmoCredentials)(nexmoClientCredentials)), nexmoClientCredentials, twilio.NewTwilioClient(twilioClientCredentials.toSecret()), twilioClientCredentials, custom.NewCustomClient((*config.CustomSMSProviderConfig)(customClientCredentials), r.SMSDenoHook, &r.EnvSMSWebHook), customClientCredentials
 }
 
 func (r *ClientResolver) resolveRawClients() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *custom.CustomClient, *CustomClientCredentials) {

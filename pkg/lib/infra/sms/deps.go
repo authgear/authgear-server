@@ -9,9 +9,12 @@ import (
 var DependencySet = wire.NewSet(
 	custom.NewSMSHookTimeout,
 	custom.NewHookHTTPClient,
+	custom.NewEnvSMSHookTimeout,
+	custom.NewEnvHookHTTPClient,
 	custom.NewHookDenoClient,
 	wire.Struct(new(ClientResolver), "*"),
 	wire.Struct(new(Sender), "*"),
 	wire.Struct(new(custom.SMSWebHook), "*"),
+	wire.Struct(new(custom.EnvSMSWebHook), "*"),
 	wire.Struct(new(custom.SMSDenoHook), "*"),
 )
