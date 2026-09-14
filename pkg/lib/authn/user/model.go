@@ -56,19 +56,35 @@ func (o SortOption) GetSortDirection() model.SortDirection {
 	return model.SortDirectionDesc
 }
 
+// SortColumns maps a sort key to the column that holds it in a particular
+// table, for tables whose column names differ from the SortBy values.
+type SortColumns map[SortBy]string
+
+// Apply orders the query by the sort key, using the SortBy value as the column
+// name. Tables that store a sort key under another name use ApplyWithColumns.
 func (o SortOption) Apply(builder db.SelectBuilder, after string) db.SelectBuilder {
+	return o.ApplyWithColumns(builder, after, nil)
+}
+
+// ApplyWithColumns is Apply with the sort key resolved through columns. A key
+// missing from columns falls back to its SortBy value as the column name.
+func (o SortOption) ApplyWithColumns(builder db.SelectBuilder, after string, columns SortColumns) db.SelectBuilder {
 	sortBy := o.GetSortBy()
+	column := string(sortBy)
+	if c, ok := columns[sortBy]; ok {
+		column = c
+	}
 
 	sortDirection := o.GetSortDirection()
 
-	q := builder.OrderBy(fmt.Sprintf("%s %s NULLS LAST", sortBy, sortDirection))
+	q := builder.OrderBy(fmt.Sprintf("%s %s NULLS LAST", column, sortDirection))
 
 	if after != "" {
 		switch sortDirection {
 		case model.SortDirectionDesc:
-			q = q.Where(fmt.Sprintf("%s < ?", sortBy), after)
+			q = q.Where(fmt.Sprintf("%s < ?", column), after)
 		case model.SortDirectionAsc:
-			q = q.Where(fmt.Sprintf("%s > ?", sortBy), after)
+			q = q.Where(fmt.Sprintf("%s > ?", column), after)
 		}
 	}
 
