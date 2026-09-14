@@ -14,6 +14,7 @@ import {
 import PaginationWidget, { PaginationProps } from "../../PaginationWidget";
 import { CardTable } from "../v2/CardTable/CardTable";
 import { CopyIconButton } from "../v2/CopyIconButton/CopyIconButton";
+import { Tooltip } from "../v2/Tooltip/Tooltip";
 import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./DynamicClientList.module.css";
 
@@ -94,9 +95,11 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow({
       onKeyDown={onRowKeyDown}
     >
       <CardTable.Cell className={styles.colName}>
-        <Text size="2" className={styles.clientName}>
-          {client.name}
-        </Text>
+        <Tooltip content={client.name}>
+          <Text size="2" className={styles.clientName}>
+            {client.name}
+          </Text>
+        </Tooltip>
       </CardTable.Cell>
       <CardTable.Cell className={styles.colClientId} onClick={stopPropagation}>
         <Text size="2" className={styles.clientIdText}>
