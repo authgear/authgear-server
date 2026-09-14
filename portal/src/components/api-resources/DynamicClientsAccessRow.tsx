@@ -92,9 +92,12 @@ export const DynamicClientsAccessRow: React.VFC<DynamicClientsAccessRowProps> =
             <FormattedMessage
               id="DynamicClientsAccessRow.description"
               values={{
+                // This setting governs every dynamic third-party client, both
+                // CIMD-resolved and DCR-registered, so it links to the page
+                // covering both rather than to either mechanism's own page.
                 // eslint-disable-next-line react/no-unstable-nested-components
                 dynamicClientsLink: (chunks: React.ReactNode) => (
-                  <ExternalLink href="https://docs.authgear.com/integration/client-id-metadata-document">
+                  <ExternalLink href="https://docs.authgear.com/get-started/auth-for-mcp">
                     {chunks}
                   </ExternalLink>
                 ),
