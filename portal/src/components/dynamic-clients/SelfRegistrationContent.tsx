@@ -21,13 +21,13 @@ import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynami
 import { OAuthClientSource } from "../../graphql/adminapi/globalTypes.generated";
 import styles from "./SelfRegistrationContent.module.css";
 
+// A save the admin triggered themselves needs only a glance to confirm.
+const SAVED_TOAST_DURATION_MS = 2000;
+
 // JSON pointer of the object holding the default_client_config fields. Passing
 // it (with fieldName) lets the config schema's validation errors -- e.g.
 // "minimum" when a lifetime is 0 or negative -- bind to the field that caused
 // them instead of only reaching the generic error bar.
-// A save the admin triggered themselves needs only a glance to confirm.
-const SAVED_TOAST_DURATION_MS = 2000;
-
 const DEFAULT_CLIENT_CONFIG_JSON_POINTER =
   "/oauth/dynamic_client_registration/default_client_config";
 

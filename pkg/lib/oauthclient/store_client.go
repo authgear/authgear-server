@@ -306,9 +306,6 @@ type storeListClientResult struct {
 	TotalCount uint64
 }
 
-// ListClients returns every dynamic client (all sources), ordered by
-// created_at DESC — dcr.md's dynamicClients query takes only pagination
-// args and distinguishes sources via the returned "source" field.
 // ListClients lists persisted dynamic clients, newest first. A non-nil
 // source restricts the page AND the total count to that source, so a
 // filtered listing's totalCount still describes the filtered set -- the

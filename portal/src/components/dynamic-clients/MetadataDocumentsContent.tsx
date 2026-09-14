@@ -26,13 +26,13 @@ import { useCalloutToast } from "../v2/Callout/Callout";
 import { Tooltip } from "../v2/Tooltip/Tooltip";
 import styles from "./MetadataDocumentsContent.module.css";
 
+// A save the admin triggered themselves needs only a glance to confirm.
+const SAVED_TOAST_DURATION_MS = 2000;
+
 // JSON pointers of the objects holding the fields, so the config schema's
 // validation errors -- "minimum" on a lifetime, "pattern" on a domain --
 // bind to the field that caused them instead of only reaching the generic
 // error bar. TextFieldList appends the item index itself.
-// A save the admin triggered themselves needs only a glance to confirm.
-const SAVED_TOAST_DURATION_MS = 2000;
-
 const CIMD_JSON_POINTER = "/oauth/client_id_metadata_document";
 const CIMD_CLIENT_CONFIG_JSON_POINTER =
   "/oauth/client_id_metadata_document/client_config";
