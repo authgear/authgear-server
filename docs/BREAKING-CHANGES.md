@@ -28,7 +28,7 @@ Authgear now refuses to connect to an address that is not publicly routable when
 | --- | --- |
 | `hook.blocking_handlers[].url` | the auth flow the hook gates fails, so logins or signups break |
 | `hook.non_blocking_handlers[].url` | the event is not delivered |
-| `sms.custom.url` in `authgear.secrets.yaml` (`messaging.custom_sms_provider.url`) | SMS, so OTP delivery breaks |
+| `sms.custom.url` in `authgear.secrets.yaml` | SMS, so OTP delivery breaks |
 | `account_migration.hook.url` | account migration |
 | `proof_of_phone_number_verification.hook.url` | phone number verification |
 | an SSO provider's `discovery_document_endpoint`, and the `jwks_uri` it names | login with that provider |

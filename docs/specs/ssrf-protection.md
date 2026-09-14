@@ -7,7 +7,7 @@ Authgear fetches URLs it did not choose: webhook targets, an SSO provider's disc
 | Fetch | URL comes from |
 | --- | --- |
 | Blocking / non-blocking event webhooks | `hook.blocking_handlers[].url`, `hook.non_blocking_handlers[].url` |
-| Custom SMS provider | `messaging.custom_sms_provider.url`, i.e. `sms.custom.url` in `authgear.secrets.yaml` |
+| Custom SMS provider | `sms.custom.url` in `authgear.secrets.yaml` |
 | Account migration hook | `account_migration.hook.url` |
 | Phone number verification hook | `proof_of_phone_number_verification.hook.url` |
 | OIDC discovery document | an SSO provider's `discovery_document_endpoint` |
