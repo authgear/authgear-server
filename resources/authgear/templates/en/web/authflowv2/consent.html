@@ -3,7 +3,6 @@
 {{ define "page-content" }}
 
 {{ $appName := (translate "app.name" nil) }}
-{{ $clientName := or $.ClientName "null" }}
 
 {{/* A client can request "openid" and nothing else: it wants to know who
      you are and no more. Every other scope is what makes this a consent
@@ -38,7 +37,7 @@
   </div>
   <div class="screen-title-description">
     <h1 class="screen-title consent-title">
-      {{ include "v2.page.consent.default.title" (dict "ClientName" $clientName) }}
+      {{ include "v2.page.consent.default.title" (dict "ClientName" $.ClientName) }}
     </h1>
     {{ if $.ClientIDHostname }}
       <p class="text-center text-sm text-[var(--color-neutral-600)]">
