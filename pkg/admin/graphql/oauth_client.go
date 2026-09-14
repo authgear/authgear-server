@@ -5,6 +5,7 @@ import (
 
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -19,6 +20,34 @@ var oauthClientSourceType = graphql.NewEnum(graphql.EnumConfig{
 		"CIMD":   &graphql.EnumValueConfig{Value: string(model.OAuthClientSourceCIMD)},
 	},
 })
+
+// ErrDynamicClientsSourceStatic is returned when the dynamicClients query is
+// filtered by STATIC. The enum is shared with OAuthClient.source, where STATIC
+// is a real value, so it cannot be dropped from the type -- the argument has to
+// reject it instead.
+var ErrDynamicClientsSourceStatic = apierrors.NewInvalid("source: STATIC is not a dynamic client source")
+
+// ParseDynamicClientsSourceArg reads the optional "source" argument of the
+// dynamicClients query.
+//
+// STATIC is rejected rather than answered with an empty page. A statically
+// configured client lives in authgear.yaml and is never persisted as a dynamic
+// client, so `source: STATIC` can only ever be a caller mistake -- and an empty
+// connection would read as "this project has no static clients", which is a
+// different and possibly false claim. Failing loudly is the only answer that
+// cannot be misread.
+func ParseDynamicClientsSourceArg(args map[string]any) (*model.OAuthClientSource, error) {
+	raw, ok := args["source"].(string)
+	if !ok {
+		// Absent (or null): no filter, list every dynamic client.
+		return nil, nil
+	}
+	source := model.OAuthClientSource(raw)
+	if source == model.OAuthClientSourceStatic {
+		return nil, ErrDynamicClientsSourceStatic
+	}
+	return &source, nil
+}
 
 var oauthClientKindType = graphql.NewEnum(graphql.EnumConfig{
 	Name: "OAuthClientKind",

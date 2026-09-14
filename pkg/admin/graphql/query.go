@@ -500,7 +500,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
 				"source": &graphql.ArgumentConfig{
 					Type:        oauthClientSourceType,
-					Description: "Restrict the listing, and its totalCount, to clients from this source. Omit for every dynamic client. STATIC never matches: a statically configured client does not exist outside authgear.yaml.",
+					Description: "Restrict the listing, and its totalCount, to clients from this source. Omit for every dynamic client. STATIC is rejected with an error: a statically configured client lives in authgear.yaml and never appears in this listing, so filtering by it cannot describe anything.",
 				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (any, error) {
@@ -508,9 +508,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				gqlCtx := GQLContext(ctx)
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
-				var source *apimodel.OAuthClientSource
-				if s, ok := p.Args["source"].(string); ok {
-					source = (*apimodel.OAuthClientSource)(&s)
+				source, err := ParseDynamicClientsSourceArg(p.Args)
+				if err != nil {
+					return nil, err
 				}
 
 				refs, result, err := gqlCtx.DCRFacade.ListClients(ctx, pageArgs, source)
