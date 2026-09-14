@@ -52,6 +52,10 @@ interface NavLink {
   textKey: string;
   url: string;
   icon?: NavIconComponent;
+  // Extra path prefixes that should also count as this link being selected,
+  // for a screen reached from this link (e.g. via a button, not its own nav
+  // entry) whose URL does not sit under `url` itself.
+  matchPrefixes?: string[];
 }
 
 interface ScreenNavProps {
@@ -78,25 +82,30 @@ function getSelectedKey(
   items: NavLinkItem[],
   pathname: string
 ): string | undefined {
+  // The matched key (a link's own url, always) and the length of whichever
+  // prefix (the url itself or one of its matchPrefixes) actually matched,
+  // so a longer matchPrefix can still win the longest-match comparison
+  // without changing what gets returned as selected.
   let out = "";
+  let outMatchLength = 0;
+  const consider = (link: NavLink) => {
+    for (const prefix of [link.url, ...(link.matchPrefixes ?? [])]) {
+      if (pathname.startsWith(prefix) && prefix.length > outMatchLength) {
+        out = link.url;
+        outMatchLength = prefix.length;
+      }
+    }
+  };
   for (const item of items) {
     switch (item.type) {
       case "group": {
         for (const link of item.children) {
-          if (pathname.startsWith(link.url)) {
-            if (link.url.length > out.length) {
-              out = link.url;
-            }
-          }
+          consider(link);
         }
         break;
       }
       case "link": {
-        if (pathname.startsWith(item.url)) {
-          if (item.url.length > out.length) {
-            out = item.url;
-          }
-        }
+        consider(item);
         break;
       }
       default:
@@ -262,6 +271,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             type: "link" as const,
             textKey: "AIAgentsScreen.title",
             url: `/project/${appID}/configuration/apps/agents`,
+            // The dynamic-clients list has no nav entry of its own -- it is
+            // reached from this screen's ClientCountCard -- so its URL must
+            // still resolve back to this link rather than to the sibling
+            // Client Applications link that happens to share its prefix.
+            matchPrefixes: [
+              `/project/${appID}/configuration/apps/dynamic-clients`,
+            ],
           },
         ],
       },

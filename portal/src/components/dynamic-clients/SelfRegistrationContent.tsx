@@ -154,16 +154,19 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
     const [isDisableConfirmationVisible, setIsDisableConfirmationVisible] =
       useState(false);
 
-    // The SAVED value gates the cards below, never the pending one: the
+    // Gated on saved AND pending, not saved alone. Saved alone left the
+    // cards up after the admin switched the toggle off locally, since OFF is
+    // deferred until Save (see setRegistrationEnabled below) and the saved
+    // config does not change until then. Requiring the pending value too
+    // hides the cards the instant the toggle goes off, while ON still only
+    // reveals them once the saveOnly write actually lands: the
     // initial-access-token controls act through the Admin API the moment
     // they are used, while POST /oauth2/register checks the saved config
     // (handler_register.go), so a card reachable before its save landed
-    // could mint a token whose curl example is refused. Turning registration
-    // on is written immediately, so the cards still appear at once; turning
-    // it off leaves them up until the admin saves, which is accurate --
-    // registration really is still running until then.
+    // could mint a token whose curl example is refused.
     const savedRegistrationEnabled =
-      effectiveConfig.oauth?.dynamic_client_registration?.enabled ?? false;
+      (effectiveConfig.oauth?.dynamic_client_registration?.enabled ?? false) &&
+      state.dynamicClientRegistrationEnabled;
     const publicOrigin = effectiveConfig.http?.public_origin ?? "";
     const registrationEndpoint = `${publicOrigin}/oauth2/register`;
 

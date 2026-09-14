@@ -168,11 +168,16 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
     const [isAnyDomainConfirmationVisible, setIsAnyDomainConfirmationVisible] =
       useState(false);
 
-    // The SAVED value gates the cards below -- same contract as the DCR tab,
-    // so both mechanisms show what the server will actually do rather than
-    // what is merely staged.
+    // Gated on saved AND pending, not saved alone -- same contract as the DCR
+    // tab. Saved alone left the cards up after the admin switched the toggle
+    // off locally, since OFF is deferred until Save (see onEnabledChange
+    // below) and the saved config does not change until then. Requiring the
+    // pending value too hides the cards the instant the toggle goes off,
+    // while ON still only reveals them once the saveOnly write actually
+    // lands.
     const savedEnabled =
-      effectiveConfig.oauth?.client_id_metadata_document?.enabled ?? false;
+      (effectiveConfig.oauth?.client_id_metadata_document?.enabled ?? false) &&
+      state.cimdEnabled;
 
     // Asymmetric in the same way as the DCR switch, so the two mechanisms
     // behave identically. ON is written straight away via saveOnly, which

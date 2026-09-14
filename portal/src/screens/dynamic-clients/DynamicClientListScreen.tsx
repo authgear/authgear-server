@@ -202,17 +202,25 @@ function DynamicClientListScreenContent(): React.ReactElement {
     !loading && clients.length === 0 && offset === 0 && sourceFilter !== "all";
 
   return (
-    <ScreenContent>
+    // ScreenContent's default "auto-rows" layout uses fixed-width grid
+    // columns on desktop, pinning .widget (and the table inside it) to a
+    // narrow fixed width regardless of viewport -- the table then overflows
+    // that cell instead of the page, clipping the trailing columns with no
+    // visible way to reach them. "list" uses flexible columns instead, same
+    // as every other list screen under configuration/apps (see
+    // ClientApplicationsScreen.tsx, AIAgentsScreen.tsx).
+    <ScreenContent layout="list">
       <div className={cn(styles.widget, styles.pageHeader)}>
-        {/* Back to the client-applications page, the index of the group this
-            listing sits in. */}
+        {/* Back to the AI Agents screen: the only page that links into this
+            listing (via ClientCountCard's "View all"), so Back should return
+            there rather than to the sibling static-clients page. */}
         <Link
-          to={`/project/${appID}/configuration/apps`}
+          to={`/project/${appID}/configuration/apps/agents`}
           className={styles.backLink}
         >
           <ChevronLeftIcon className={styles.backLinkIcon} />
           <span>
-            <FormattedMessage id="ClientApplicationsScreen.title" />
+            <FormattedMessage id="AIAgentsScreen.title" />
           </span>
         </Link>
         <Heading as="h1" size="5" weight="bold" className={styles.pageTitle}>
