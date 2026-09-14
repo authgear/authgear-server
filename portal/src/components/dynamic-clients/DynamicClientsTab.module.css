@@ -1,7 +1,0 @@
-.root {
-  @apply flex flex-col gap-4;
-}
-
-.rootWithSaveBar {
-  padding-bottom: 5.5rem;
-}

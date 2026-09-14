@@ -1,0 +1,26 @@
+/* Shared by ClientApplicationsScreen.tsx and AIAgentsScreen.tsx. */
+
+.widget {
+  /* Span 12, like the client list and both mechanism tabs. */
+  grid-column: 1 / span 12;
+
+  @apply tablet:col-span-full;
+}
+
+.pageHeader {
+  @apply flex flex-col gap-2;
+}
+
+.pageTitle {
+  margin: 0;
+  color: var(--gray-12);
+}
+
+.pageDescription {
+  margin: 0;
+  color: var(--gray-a11);
+}
+
+.stack {
+  @apply flex flex-col gap-4;
+}

@@ -43,6 +43,11 @@
   @apply overflow-hidden;
 }
 
+.colSource {
+  flex: 0 0 5.5rem;
+  @apply overflow-hidden;
+}
+
 .colRegisteredAt {
   flex: 0 0 11rem;
   @apply overflow-hidden;
@@ -50,6 +55,17 @@
 
 .colRegisteredAt.colRegisteredAt {
   @apply mobile:hidden;
+}
+
+.colLastFetchedAt {
+  flex: 0 0 11rem;
+  @apply overflow-hidden;
+}
+
+/* Compound selector for the same specificity reason as .colClientId above:
+   CardTable's .cell sets display:flex at equal specificity. */
+.colLastFetchedAt.colLastFetchedAt {
+  @apply tablet:hidden;
 }
 
 .colActions {

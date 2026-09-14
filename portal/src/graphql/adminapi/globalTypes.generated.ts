@@ -1508,7 +1508,7 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
-  /** Clients that exist outside authgear.yaml: DCR-registered (and, once implemented, CIMD-resolved) clients. */
+  /** Clients that exist outside authgear.yaml: DCR-registered and CIMD-resolved clients. */
   dynamicClients?: Maybe<OAuthClientConnection>;
   /** Fraud protection decision records */
   fraudProtectionLogs?: Maybe<FraudProtectionDecisionRecordConnection>;
@@ -1557,6 +1557,7 @@ export type QueryDynamicClientsArgs = {
   before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  source?: InputMaybe<OAuthClientSource>;
 };
 
 

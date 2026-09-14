@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Text } from "@radix-ui/themes";
 import { FormattedMessage } from "../../intl";
+import ExternalLink from "../../ExternalLink";
 import { Toggle } from "../v2/Toggle/Toggle";
 import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog";
 import { Resource } from "../../graphql/adminapi/globalTypes.generated";
@@ -88,7 +89,20 @@ export const DynamicClientsAccessRow: React.VFC<DynamicClientsAccessRowProps> =
             <FormattedMessage id="DynamicClientsAccessRow.title" />
           </Text>
           <Text size="1" color="gray">
-            <FormattedMessage id="DynamicClientsAccessRow.description" />
+            <FormattedMessage
+              id="DynamicClientsAccessRow.description"
+              values={{
+                // This setting governs every dynamic third-party client, both
+                // CIMD-resolved and DCR-registered, so it links to the page
+                // covering both rather than to either mechanism's own page.
+                // eslint-disable-next-line react/no-unstable-nested-components
+                dynamicClientsLink: (chunks: React.ReactNode) => (
+                  <ExternalLink href="https://docs.authgear.com/get-started/auth-for-mcp">
+                    {chunks}
+                  </ExternalLink>
+                ),
+              }}
+            />
           </Text>
         </div>
         <Toggle

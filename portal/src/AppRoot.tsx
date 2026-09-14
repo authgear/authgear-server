@@ -90,9 +90,6 @@ const AddSingleSignOnConfigurationScreen = lazy(
 const EditSingleSignOnConfigurationScreen = lazy(
   async () => import("./graphql/portal/EditSingleSignOnConfigurationScreen")
 );
-const ApplicationsConfigurationScreen = lazy(
-  async () => import("./graphql/portal/ApplicationsConfigurationScreen")
-);
 const CreateOAuthClientScreen = lazy(
   async () => import("./graphql/portal/CreateOAuthClientScreen")
 );
@@ -226,6 +223,12 @@ const EditOAuthClientResourceScopeScreen = lazy(
 );
 const DynamicClientListScreen = lazy(
   async () => import("./screens/dynamic-clients/DynamicClientListScreen")
+);
+const ClientApplicationsScreen = lazy(
+  async () => import("./screens/dynamic-clients/ClientApplicationsScreen")
+);
+const AIAgentsScreen = lazy(
+  async () => import("./screens/dynamic-clients/AIAgentsScreen")
 );
 
 const AppRoot: React.VFC = function AppRoot() {
@@ -656,7 +659,15 @@ const AppRoot: React.VFC = function AppRoot() {
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
-                    <ApplicationsConfigurationScreen />
+                    <ClientApplicationsScreen />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="agents"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <AIAgentsScreen />
                   </Suspense>
                 }
               />
@@ -677,7 +688,7 @@ const AppRoot: React.VFC = function AppRoot() {
                 }
               />
               <Route
-                path="dcr"
+                path="dynamic-clients"
                 element={
                   <Suspense fallback={<ShowLoading />}>
                     <DynamicClientListScreen />

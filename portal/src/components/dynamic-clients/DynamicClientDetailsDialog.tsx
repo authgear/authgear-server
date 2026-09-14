@@ -47,6 +47,16 @@ export const DynamicClientDetailsDialog: React.VFC<DynamicClientDetailsDialogPro
       [onDismiss]
     );
 
+    // Radix focuses the first tabbable control when the dialog opens, which
+    // here is the copy button -- and a tooltip opens on any focus that did not
+    // come from a pointer press, so its "Copy" label appeared unprompted. Focus
+    // the dialog itself instead (FocusScope renders it with tabIndex -1). Tab
+    // still reaches the copy button, where the tooltip belongs.
+    const onOpenAutoFocus = useCallback((event: Event) => {
+      event.preventDefault();
+      (event.currentTarget as HTMLElement | null)?.focus();
+    }, []);
+
     const onDeleteClicked = useCallback(() => {
       if (client != null) {
         onDelete(client);
@@ -55,7 +65,11 @@ export const DynamicClientDetailsDialog: React.VFC<DynamicClientDetailsDialogPro
 
     return (
       <Dialog.Root open={client != null} onOpenChange={onOpenChange}>
-        <Dialog.Content maxWidth="480px" size="3">
+        <Dialog.Content
+          maxWidth="480px"
+          size="3"
+          onOpenAutoFocus={onOpenAutoFocus}
+        >
           <Dialog.Title>{client?.name ?? ""}</Dialog.Title>
           {client != null ? (
             <div className={styles.fields}>
@@ -79,9 +93,20 @@ export const DynamicClientDetailsDialog: React.VFC<DynamicClientDetailsDialogPro
                   <FormattedMessage id="DynamicClientDetailsDialog.source.dcr" />
                 )}
               </Field>
-              <Field labelId="DynamicClientDetailsDialog.registered-at">
-                {formatDatetime(locale, client.registeredAt) ?? ""}
-              </Field>
+              {/* A CIMD client has no registeredAt -- there is no
+                  registration event, only a fetch -- and a DCR client has no
+                  lastFetchedAt. Each field is shown only where it carries a
+                  value, rather than as an empty row. */}
+              {client.registeredAt != null ? (
+                <Field labelId="DynamicClientDetailsDialog.registered-at">
+                  {formatDatetime(locale, client.registeredAt) ?? ""}
+                </Field>
+              ) : null}
+              {client.lastFetchedAt != null ? (
+                <Field labelId="DynamicClientDetailsDialog.last-fetched-at">
+                  {formatDatetime(locale, client.lastFetchedAt) ?? ""}
+                </Field>
+              ) : null}
               {client.applicationType != null ? (
                 <Field labelId="DynamicClientDetailsDialog.application-type">
                   {client.applicationType}

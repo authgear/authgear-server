@@ -9,7 +9,8 @@ export type ActivityTypeCategoryGroupId =
   | "usage"
   | "m2m"
   | "admin-api"
-  | "project";
+  | "project"
+  | "dynamic-client";
 
 export type ActivityTypeSubcategoryId =
   | "account"
@@ -35,7 +36,8 @@ export type ActivityTypeSubcategoryId =
   | "project-app"
   | "project-billing"
   | "project-collaborator"
-  | "project-domain";
+  | "project-domain"
+  | "dynamic-client";
 
 /** @deprecated Use ActivityTypeSubcategoryId instead. Kept for call-site compatibility. */
 export type ActivityTypeCategoryId = ActivityTypeSubcategoryId;
@@ -51,6 +53,7 @@ export const ACTIVITY_TYPE_CATEGORY_GROUP_ORDER: ActivityTypeCategoryGroupId[] =
     "m2m",
     "admin-api",
     "project",
+    "dynamic-client",
   ];
 
 const GROUP_SUBCATEGORY_ORDER: Record<
@@ -84,6 +87,7 @@ const GROUP_SUBCATEGORY_ORDER: Record<
     "project-collaborator",
     "project-domain",
   ],
+  "dynamic-client": ["dynamic-client"],
 };
 
 const SUBCATEGORY_TO_GROUP: Record<
@@ -114,6 +118,7 @@ const SUBCATEGORY_TO_GROUP: Record<
   "project-billing": "project",
   "project-collaborator": "project",
   "project-domain": "project",
+  "dynamic-client": "dynamic-client",
 };
 
 function getAdminApiActivityTypeSubcategory(
@@ -123,12 +128,16 @@ function getAdminApiActivityTypeSubcategory(
     .replace(/^ADMIN_API_MUTATION_/, "")
     .replace(/_EXECUTED$/, "");
 
-  if (
-    mutation.includes("RESOURCE") ||
-    mutation.includes("SCOPE") ||
-    mutation.includes("CLIENTID") ||
-    mutation.includes("SCOPES")
-  ) {
+  // Deleting a dynamic client belongs with the events that created it
+  // (OAUTH_CLIENT_REGISTERED/RESOLVED), not with the resource/scope
+  // mutations below: one client's history should sit under one filter
+  // heading. Checked first because "DYNAMIC_CLIENT" would otherwise fall
+  // through to the catch-all and be filed under "User".
+  if (mutation.includes("DYNAMIC_CLIENT")) {
+    return "dynamic-client";
+  }
+
+  if (mutation.includes("RESOURCE") || mutation.includes("SCOPE")) {
     return "admin-api-oauth";
   }
 
@@ -201,6 +210,12 @@ export function getActivityTypeSubcategory(
   if (AUTHENTICATION_SIGNIN_ACTIVITY_TYPE_KEYS.has(activityTypeKey)) {
     return "authentication-signin";
   }
+  // Before the catch-all below: OAUTH_CLIENT_* shares no prefix with any
+  // other family, so without its own rule it lands in "account" -- a group
+  // about the end user, which these events have none of.
+  if (activityTypeKey.startsWith("OAUTH_CLIENT_")) {
+    return "dynamic-client";
+  }
   if (activityTypeKey.startsWith("USER_")) {
     return "account";
   }
@@ -240,6 +255,8 @@ export function getActivityTypeSubcategory(
   if (activityTypeKey.startsWith("M2M_")) {
     return "m2m";
   }
+  // Catch-all. A new activity type whose prefix is not handled above lands
+  // here, so check this function when adding one.
   return "account";
 }
 

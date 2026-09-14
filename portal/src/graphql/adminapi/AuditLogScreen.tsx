@@ -47,6 +47,12 @@ import {
   serializeActivityTypesToQuery,
 } from "../../components/audit-log/ActivityTypeFilterDropdown";
 import {
+  PROJECT_ACTIVITY_TYPES,
+  AuditLogKind,
+  isAuditLogKind,
+  USER_ACTIVITY_TYPES,
+} from "./auditLogActivityTypes";
+import {
   AuditLogDateRangePresetKey,
   detectDateRangePreset,
   getInitialAuditLogDateRange,
@@ -54,21 +60,6 @@ import {
 } from "../../components/audit-log/dateRangePresets";
 
 const pageSize = 100;
-
-const ALL_ACTIVITY_TYPES = Object.values(AuditLogActivityType);
-const ADMIN_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
-  (activityType) =>
-    activityType.startsWith("ADMIN_API") || activityType.startsWith("PROJECT")
-);
-// Activity types to hide from the audit log (shown elsewhere in the portal)
-const HIDDEN_ACTIVITY_TYPES = [
-  AuditLogActivityType.FraudProtectionDecisionRecorded,
-];
-const USER_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
-  (activityType) =>
-    !ADMIN_ACTIVITY_TYPES.includes(activityType) &&
-    !HIDDEN_ACTIVITY_TYPES.includes(activityType)
-);
 
 function areActivityTypesEqual(
   left: AuditLogActivityType[],
@@ -78,14 +69,6 @@ function areActivityTypesEqual(
     return false;
   }
   return left.every((activityType) => right.includes(activityType));
-}
-
-enum AuditLogKind {
-  User = "user",
-  Admin = "admin",
-}
-function isAuditLogKind(s: string): s is AuditLogKind {
-  return Object.values(AuditLogKind).includes(s as AuditLogKind);
 }
 
 const AuditLogScreen: React.VFC = function AuditLogScreen() {
@@ -150,7 +133,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const availableActivityTypes = useMemo(() => {
     return auditLogKind === "admin"
-      ? ADMIN_ACTIVITY_TYPES
+      ? PROJECT_ACTIVITY_TYPES
       : USER_ACTIVITY_TYPES;
   }, [auditLogKind]);
 
@@ -678,10 +661,10 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           >
             <Tabs.List>
               <Tabs.Trigger value={AuditLogKind.User}>
-                {renderToString("AuditLogScreen.acitity-kind.user")}
+                {renderToString("AuditLogScreen.activity-kind.user")}
               </Tabs.Trigger>
               <Tabs.Trigger value={AuditLogKind.Admin}>
-                {renderToString("AuditLogScreen.acitity-kind.admin")}
+                {renderToString("AuditLogScreen.activity-kind.project")}
               </Tabs.Trigger>
             </Tabs.List>
           </Tabs.Root>

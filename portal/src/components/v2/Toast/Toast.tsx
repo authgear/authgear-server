@@ -9,7 +9,7 @@ import { Toast } from "radix-ui";
 import styles from "./Toast.module.css";
 
 export interface ToastProviderContext {
-  registerToast: (el: React.ReactElement) => string;
+  registerToast: (el: React.ReactElement, duration?: number) => string;
   removeToast: (id: string) => void;
 }
 
@@ -28,19 +28,22 @@ function nextToastID(): string {
 export function ToastProvider({
   children,
 }: ToastProviderProps): React.ReactElement {
-  const [toasts, setToasts] = useState<Map<string, React.ReactElement>>(
-    new Map()
-  );
+  const [toasts, setToasts] = useState<
+    Map<string, { el: React.ReactElement; duration?: number }>
+  >(new Map());
 
-  const registerToast = useCallback((el: React.ReactElement): string => {
-    const id = nextToastID();
-    setToasts((prev) => {
-      const newToasts = new Map(prev);
-      newToasts.set(id, el);
-      return newToasts;
-    });
-    return id;
-  }, []);
+  const registerToast = useCallback(
+    (el: React.ReactElement, duration?: number): string => {
+      const id = nextToastID();
+      setToasts((prev) => {
+        const newToasts = new Map(prev);
+        newToasts.set(id, { el, duration });
+        return newToasts;
+      });
+      return id;
+    },
+    []
+  );
 
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => {
@@ -61,8 +64,8 @@ export function ToastProvider({
     <ProviderCtx.Provider value={context}>
       <Toast.Provider swipeDirection="right">
         {children}
-        {Array.from(toasts.entries()).map(([id, el]) => (
-          <ToastRoot key={id} id={id}>
+        {Array.from(toasts.entries()).map(([id, { el, duration }]) => (
+          <ToastRoot key={id} id={id} duration={duration}>
             {el}
           </ToastRoot>
         ))}
@@ -102,9 +105,13 @@ export function useMaybeToastContext(): ToastContext | undefined {
 
 function ToastRoot({
   id,
+  duration,
   children,
 }: {
   id: string;
+  // Omitted keeps Radix's default; pass a shorter one for a toast that only
+  // confirms something the admin just did.
+  duration?: number;
   children?: React.ReactChild | null;
 }): React.ReactElement {
   const { removeToast } = useToastProviderContext();
@@ -136,6 +143,7 @@ function ToastRoot({
         className={styles.ToastRoot}
         open={open}
         onOpenChange={onOpenChange}
+        duration={duration}
       >
         {children}
       </Toast.Root>

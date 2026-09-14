@@ -97,17 +97,18 @@ export function Callout({
 }
 
 export function useCalloutToast(): {
-  showToast: (props: CalloutProps) => void;
+  showToast: (props: CalloutProps & { duration?: number }) => void;
 } {
   const { registerToast } = useToastProviderContext();
 
   const showToast = useCallback(
-    (props: CalloutProps) => {
+    ({ duration, ...props }: CalloutProps & { duration?: number }) => {
       registerToast(
         <Callout
           {...props}
           className={cn(props.className, styles["calloutRoot--toast"])}
-        />
+        />,
+        duration
       );
     },
     [registerToast]

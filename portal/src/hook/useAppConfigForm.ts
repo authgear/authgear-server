@@ -23,6 +23,20 @@ export interface AppConfigFormModel<State> {
     fn: (state: State) => State,
     ignoreConflict?: boolean
   ) => Promise<void>;
+  // Save exactly one change, and nothing else.
+  //
+  // Unlike saveWith, which commits the whole pending state, this applies fn
+  // twice. What gets WRITTEN is fn(initialState) -- the last saved config
+  // with the one change on top -- so an edit the admin has not finished
+  // cannot fail validation and take this change down with it. What stays in
+  // the FORM afterwards is fn(currentState) -- their pending edits with the
+  // same change on top -- so those edits are neither committed unreviewed
+  // nor silently discarded. They remain pending, and the save bar keeps
+  // offering them.
+  saveOnly: (
+    fn: (state: State) => State,
+    ignoreConflict?: boolean
+  ) => Promise<void>;
   setCanSave: (canSave?: boolean) => void;
   effectiveConfig: PortalAPIAppConfig;
   // Always-fresh dirty check, safe to call from anywhere (see
@@ -121,7 +135,15 @@ export function useAppConfigForm<State>(
   }, [isUpdating, setCurrentState]);
 
   const performSave = useCallback(
-    async (stateToSave: State, ignoreConflict: boolean) => {
+    // stateAfterSave is what the form holds once the save lands. null -- the
+    // default -- drops back to the reloaded config, which is what a save of
+    // the whole form should do. saveOnly passes the pending edits it did not
+    // write, so they survive the reload instead of being reset away.
+    async (
+      stateToSave: State,
+      ignoreConflict: boolean,
+      stateAfterSave: State | null = null
+    ) => {
       const err = validate?.(stateToSave);
       if (err) {
         setUpdateError(err);
@@ -144,7 +166,7 @@ export function useAppConfigForm<State>(
           ignoreConflict,
         });
         await reload();
-        setCurrentState(null);
+        setCurrentState(stateAfterSave);
         setIsSubmitted(true);
       } catch (e: unknown) {
         setUpdateError(e);
@@ -209,6 +231,33 @@ export function useAppConfigForm<State>(
     ]
   );
 
+  const saveOnly = useCallback(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
+    async (fn: (state: State) => State, ignoreConflict: boolean = false) => {
+      if (!rawConfig || !initialState || secretConfig == null || isUpdating) {
+        return;
+      }
+      // Written: the last saved state plus this one change, so nothing the
+      // admin is still typing can make it fail.
+      const stateToSave = fn(initialState);
+      // Kept: their pending edits plus the same change. Applied before the
+      // request rather than after, so the control settles immediately and
+      // the edits never blink out of the fields while the save is in flight.
+      const stateAfterSave = fn(currentState ?? initialState);
+      setCurrentState(stateAfterSave);
+      await performSave(stateToSave, ignoreConflict, stateAfterSave);
+    },
+    [
+      rawConfig,
+      initialState,
+      secretConfig,
+      isUpdating,
+      currentState,
+      performSave,
+      setCurrentState,
+    ]
+  );
+
   const state = currentState ?? initialState;
   const setState = useCallback(
     (fn: (state: State) => State) => {
@@ -233,6 +282,7 @@ export function useAppConfigForm<State>(
     reset,
     save,
     saveWith,
+    saveOnly,
     effectiveConfig,
     getIsDirty,
   };

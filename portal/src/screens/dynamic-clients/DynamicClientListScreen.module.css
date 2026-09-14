@@ -38,3 +38,16 @@
   margin: 0;
   color: var(--gray-12);
 }
+
+.filterBar {
+  @apply flex flex-row items-center gap-2;
+}
+
+.sourceFilter {
+  min-width: 10rem;
+}
+
+.filteredEmpty {
+  @apply py-6;
+  margin: 0;
+}

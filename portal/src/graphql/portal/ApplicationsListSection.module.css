@@ -3,20 +3,6 @@
   @apply tablet:col-span-full;
 }
 
-.pageHeader {
-  grid-column: 1 / span 12;
-  @apply tablet:col-span-full;
-  @apply flex items-center justify-between gap-4;
-}
-
-.pageTitle {
-  margin: 0;
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 600;
-  color: var(--gray-12);
-}
-
 .pageDescription {
   margin: 0;
   color: var(--gray-a11);
