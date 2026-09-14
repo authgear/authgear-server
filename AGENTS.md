@@ -122,6 +122,7 @@ For more targets, browse the root `Makefile` and `portal/package.json` / `authui
 - Preserve user changes. Do not revert unrelated edits.
 - Keep changes small and targeted.
 - Prefer existing local patterns over inventing new ones.
+- Keep comments short. Explain *why*, not *what*, and match the comment density of the surrounding file. One or two lines is usually enough; a block longer than the code it introduces is too long. Do not restate the diff, narrate each statement, or write paragraph-length rationale in code or migrations — that belongs in the commit message or PR description.
 - Reuse skills for repeatable workflows.
 - If you change code, run the narrowest relevant test or build first, then broaden only if the change crosses package boundaries.
 
