@@ -1,6 +1,7 @@
 @import "./components/layout.css";
 @import "./components/widget.css";
 @import "./components/screen-title.css";
+@import "./components/consent-scopes.css";
 @import "./components/screen-description.css";
 @import "./components/screen-title-description.css";
 @import "./components/screen-logo-layout.css";

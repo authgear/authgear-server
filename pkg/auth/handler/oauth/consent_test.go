@@ -22,16 +22,42 @@ func TestConsentViewModelForClient(t *testing.T) {
 		})
 
 		Convey("static client with no client_name: ClientName is the config's Name, not empty", func() {
-			// Name is always populated by config parsing/defaulting for a
-			// static client (it falls back to ClientID if client_name is
-			// unset) -- the bug this fixes was reading ClientName directly,
-			// which IS empty in that case.
 			client := &config.OAuthClientConfig{
 				ClientID: "static-client",
 				Name:     "static-client",
 			}
 			vm := consentViewModelForClient(client, nil)
 			So(vm.ClientName, ShouldEqual, "static-client")
+			So(vm.ClientName, ShouldNotBeEmpty)
+		})
+
+		Convey("a static client with an empty Name falls back to client_name -- `name` is required but has no minLength, so `name: \"\"` is valid config", func() {
+			// Verified against config.Parse: a third_party_app with
+			// `name: ""` and a valid `client_name` parses, leaving Name
+			// empty. SetDefaults does not populate Name either. The
+			// template used to paper over this with `or $.ClientName
+			// "null"`, which rendered the literal word "null" in the title
+			// while the client-links sentence -- which had no such fallback
+			// -- rendered "See ’s website." on the same screen.
+			client := &config.OAuthClientConfig{
+				ClientID:   "static-client",
+				Name:       "",
+				ClientName: "Acme",
+			}
+			vm := consentViewModelForClient(client, nil)
+			So(vm.ClientName, ShouldEqual, "Acme")
+		})
+
+		Convey("a client with neither Name nor client_name falls back to \"Client <clientID>\", never to empty", func() {
+			// The same rule oauthclient.Client.DisplayName() applies, so a
+			// client that reaches the screen by any route gets one
+			// non-empty name and every consumer of the view model agrees
+			// on it.
+			client := &config.OAuthClientConfig{
+				ClientID: "static-client",
+			}
+			vm := consentViewModelForClient(client, nil)
+			So(vm.ClientName, ShouldEqual, "Client static-client")
 			So(vm.ClientName, ShouldNotBeEmpty)
 		})
 

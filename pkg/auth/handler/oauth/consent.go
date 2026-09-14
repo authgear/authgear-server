@@ -64,6 +64,11 @@ type ConsentViewModel struct {
 	ClientName      string
 	ClientPolicyURI string
 	ClientTOSURI    string
+	// ClientURI is the client's self-asserted homepage (client_uri in both
+	// RFC 7591 and a CIMD document, https-only). Shown with the policy and
+	// terms links, which are self-asserted in the same way -- unlike
+	// ClientIDHostname below, none of the three proves anything.
+	ClientURI string
 	// ClientLogoURI is the client's self-asserted logo. Empty unless the
 	// client declared one. Rendered directly here as a plain cross-origin
 	// <img>; Part 7 replaces this with a server-side proxy URL to close the
@@ -209,9 +214,24 @@ func consentViewModelForClient(client *config.OAuthClientConfig, endpoints Conse
 	// the literal string "null" via `or $.ClientName "null"`. Every DCR
 	// client registered without a client_name hits this; a CIMD client hits
 	// it far more often, since client_name is optional in the document.
+	//
+	// Name itself is not guaranteed non-empty either: a static client's
+	// "name" is required by the schema but carries no minLength, so
+	// `name: ""` parses. Resolve the fallback here, once, the way
+	// oauthclient.Client.DisplayName() does -- client_name, then
+	// "Client <clientID>" -- so every consumer of this view model gets one
+	// non-empty value and no template has to invent its own fallback.
 	viewModel.ClientName = client.Name
+	if viewModel.ClientName == "" {
+		if client.ClientName != "" {
+			viewModel.ClientName = client.ClientName
+		} else {
+			viewModel.ClientName = "Client " + client.ClientID
+		}
+	}
 	viewModel.ClientPolicyURI = client.PolicyURI
 	viewModel.ClientTOSURI = client.TOSURI
+	viewModel.ClientURI = client.ClientURI
 	// Point the <img> at Authgear's own proxy instead of the client's
 	// server, so the end user's browser never contacts the client (spec §
 	// Privacy Considerations §9.2). Only for a dynamic client -- a static
