@@ -168,41 +168,42 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
     const [isAnyDomainConfirmationVisible, setIsAnyDomainConfirmationVisible] =
       useState(false);
 
-    // The saved value, not the pending one -- same contract as the DCR tab:
-    // the switch and the cards both show what the server will actually do,
-    // and settle when the save does.
-    const enabled =
+    // The SAVED value gates the cards below -- same contract as the DCR tab,
+    // so both mechanisms show what the server will actually do rather than
+    // what is merely staged.
+    const savedEnabled =
       effectiveConfig.oauth?.client_id_metadata_document?.enabled ?? false;
 
-    // Saved immediately, matching the same switch on the DCR tab. CIMD has no
-    // counterpart to that tab's initial access tokens -- nothing here acts
-    // before a save -- so this is for consistency between two otherwise
-    // identical tabs rather than to close a hole.
+    // Asymmetric in the same way as the DCR switch, so the two mechanisms
+    // behave identically. ON is written straight away via saveOnly, which
+    // commits the switch and nothing else. OFF is deferred until the admin
+    // presses Save, so the switch never has to discard an unfinished edit --
+    // a seeded empty domain row, say -- in order to get itself written.
+    //
+    // CIMD has no counterpart to the DCR tab's initial access tokens, so
+    // nothing here acts ahead of a save in either direction; matching that
+    // tab is the whole reason for the immediate ON.
     const onEnabledChange = useCallback(
       (checked: boolean) => {
+        if (!checked) {
+          setState((prev) => ({ ...prev, cimdEnabled: false }));
+          return;
+        }
         form
-          .saveWith((prev) =>
-            // Turning it off starts from the last saved state rather than the
-            // pending one: an unfinished edit elsewhere on the tab -- a seeded
-            // empty domain row, say -- would otherwise fail validation and
-            // take the switch down with it, leaving CIMD enabled on the
-            // server while the switch reads off. Turning it on carries
-            // pending edits, which is what the toast reports.
-            checked
-              ? { ...prev, cimdEnabled: true }
-              : { ...form.initialState, cimdEnabled: false }
-          )
+          .saveOnly((prev) => ({ ...prev, cimdEnabled: true }))
           .then(() => {
             showToast({
               type: "success",
-              text: <FormattedMessage id="changes-saved" />,
+              text: (
+                <FormattedMessage id="MetadataDocumentsContent.enable.toast.on" />
+              ),
               duration: SAVED_TOAST_DURATION_MS,
             });
           })
           // performSave rethrows, and the form's error bar renders it.
           .catch(() => {});
       },
-      [form, showToast]
+      [form, setState, showToast]
     );
 
     const setDomainMode = useCallback(
@@ -353,7 +354,7 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
               />
             </Text>
             <Toggle
-              checked={enabled}
+              checked={state.cimdEnabled}
               disabled={isUpdating}
               onCheckedChange={onEnabledChange}
               text={
@@ -362,7 +363,7 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
             />
           </SettingsSectionCard>
 
-          {enabled ? (
+          {savedEnabled ? (
             <SettingsSectionCard
               contentClassName="gap-4"
               title={
@@ -436,7 +437,7 @@ export const MetadataDocumentsContent: React.VFC<MetadataDocumentsContentProps> 
             </SettingsSectionCard>
           ) : null}
 
-          {enabled ? (
+          {savedEnabled ? (
             <SettingsSectionCard
               contentClassName="gap-4"
               title={<FormattedMessage id="DynamicClientConfig.title" />}

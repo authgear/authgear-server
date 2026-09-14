@@ -154,16 +154,15 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
     const [isDisableConfirmationVisible, setIsDisableConfirmationVisible] =
       useState(false);
 
-    // The SAVED value, not the pending one. It drives both the switch and
-    // the cards, so what is on screen always matches what the server will
-    // do: the initial-access-token controls act through the Admin API the
-    // moment they are used, while POST /oauth2/register checks the saved
-    // config (handler_register.go), so a card reachable before its save
-    // landed could mint a token whose curl example is refused. A save from
-    // the switch cannot fail on a pending edit either, since nothing here is
-    // editable while disabled. The switch therefore settles when the save
-    // does, which is also what the toast confirms.
-    const registrationEnabled =
+    // The SAVED value gates the cards below, never the pending one: the
+    // initial-access-token controls act through the Admin API the moment
+    // they are used, while POST /oauth2/register checks the saved config
+    // (handler_register.go), so a card reachable before its save landed
+    // could mint a token whose curl example is refused. Turning registration
+    // on is written immediately, so the cards still appear at once; turning
+    // it off leaves them up until the admin saves, which is accurate --
+    // registration really is still running until then.
+    const savedRegistrationEnabled =
       effectiveConfig.oauth?.dynamic_client_registration?.enabled ?? false;
     const publicOrigin = effectiveConfig.http?.public_origin ?? "";
     const registrationEndpoint = `${publicOrigin}/oauth2/register`;
@@ -177,50 +176,54 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
     });
     const hasDCRClients = (dcrData?.dynamicClients?.totalCount ?? 0) > 0;
 
-    // Saved immediately, unlike every other control on this tab. The
-    // initial-access-token controls below act through the Admin API the moment
-    // they are used, while POST /oauth2/register checks the SAVED config
-    // (handler_register.go: 403 access_denied when disabled) -- so a token
-    // created while this switch was merely pending came with a curl example
-    // that could not work. This tab's form covers only
-    // oauth.dynamic_client_registration, so the save cannot carry an edit
-    // belonging to another tab; it does commit anything else pending here,
-    // which is what the toast reports.
+    // The two directions are deliberately asymmetric, because only one of
+    // them is dangerous to defer.
+    //
+    // ON is written immediately. The initial-access-token controls it reveals
+    // act through the Admin API the moment they are used, while
+    // POST /oauth2/register checks the SAVED config (handler_register.go: 403
+    // access_denied when disabled) -- a token created while this switch was
+    // merely pending came with a curl example that could not work. saveOnly
+    // writes the switch and nothing else, so an edit pending elsewhere on the
+    // page is neither committed unreviewed nor able to fail the save.
+    //
+    // OFF is deferred like every other control here. Nothing on this page
+    // acts ahead of a save in that direction, so there is no hazard to close
+    // -- and deferring means the switch never has to discard an unfinished
+    // edit to get itself written. The admin reviews both together and presses
+    // Save once.
     const setRegistrationEnabled = useCallback(
       (checked: boolean) => {
-        form
-          .saveWith((prev) =>
-            // Turning it off starts from the last saved state rather than the
-            // pending one: an unfinished edit elsewhere on the tab -- a
-            // half-typed token lifetime, say -- would otherwise fail
-            // validation and take the switch down with it, leaving
-            // registration enabled on the server while the switch reads off.
-            // Turning it on carries pending edits, which is what the toast
-            // reports.
-            //
+        if (!checked) {
+          setState((prev) => ({
+            ...prev,
+            dynamicClientRegistrationEnabled: false,
             // Switching registration off also resets the initial access token
             // requirement, so re-enabling always starts from the safe default
             // rather than quietly restoring open registration. Turning the
             // requirement off again is an explicit, separately confirmed act.
-            checked
-              ? { ...prev, dynamicClientRegistrationEnabled: true }
-              : {
-                  ...form.initialState,
-                  dynamicClientRegistrationEnabled: false,
-                  initialAccessTokenRequired: true,
-                }
-          )
+            initialAccessTokenRequired: true,
+          }));
+          return;
+        }
+        form
+          .saveOnly((prev) => ({
+            ...prev,
+            dynamicClientRegistrationEnabled: true,
+          }))
           .then(() => {
             showToast({
               type: "success",
-              text: <FormattedMessage id="changes-saved" />,
+              text: (
+                <FormattedMessage id="SelfRegistrationContent.enable.toast.on" />
+              ),
               duration: SAVED_TOAST_DURATION_MS,
             });
           })
           // performSave rethrows, and the form's error bar renders it.
           .catch(() => {});
       },
-      [form, showToast]
+      [form, setState, showToast]
     );
 
     const onEnabledChange = useCallback(
@@ -348,7 +351,7 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
               />
             </Text>
             <Toggle
-              checked={registrationEnabled}
+              checked={state.dynamicClientRegistrationEnabled}
               disabled={isUpdating}
               onCheckedChange={onEnabledChange}
               text={
@@ -357,7 +360,7 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
             />
           </SettingsSectionCard>
 
-          {registrationEnabled ? (
+          {savedRegistrationEnabled ? (
             <SettingsSectionCard
               contentClassName="gap-4"
               title={
@@ -378,7 +381,7 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
             </SettingsSectionCard>
           ) : null}
 
-          {registrationEnabled ? (
+          {savedRegistrationEnabled ? (
             <SettingsSectionCard
               contentClassName="gap-4"
               title={
@@ -403,7 +406,7 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
             </SettingsSectionCard>
           ) : null}
 
-          {registrationEnabled ? (
+          {savedRegistrationEnabled ? (
             <SettingsSectionCard
               contentClassName="gap-4"
               title={<FormattedMessage id="DynamicClientConfig.title" />}
