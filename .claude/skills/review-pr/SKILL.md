@@ -1,6 +1,6 @@
 ---
 name: review-pr
-description: Produce a structured code review report for the current branch's PR (purpose, API interface changes, code quality, bugs, security, performance), with a mandatory second verification pass. Use when the user asks "what does this PR do", "review this branch/PR", or asks to confirm/double-check review findings and look for more issues.
+description: Produce a structured code review report for the current branch's PR (purpose, API interface changes, code quality, bugs, behavior changes, security, performance), with a mandatory second verification pass. Use when the user asks "what does this PR do", "review this branch/PR", or asks to confirm/double-check review findings and look for more issues.
 argument-hint: "[remote/branch to compare against, defaults to upstream main]"
 ---
 
@@ -18,7 +18,33 @@ Do NOT assume the local `master`/`main` branch is up to date — in this repo it
 
 ## Phase 2: Write the report
 
-Structure the report under these six headings. Base every claim on an actual diff read (`git show <commit>`, `git diff <base>..HEAD -- <path>`), not on commit message text alone — commit messages describe intent, not necessarily what the code does.
+Structure the report under these seven headings. Base every claim on an actual diff read (`git show <commit>`, `git diff <base>..HEAD -- <path>`), not on commit message text alone — commit messages describe intent, not necessarily what the code does.
+
+### Give every finding an ID and a name
+
+Every finding under **Code quality**, **Bugs**, **Behavior changes**, **Security** and **Performance** gets an ID, a severity, and a short name — not just bugs. Bare bullets make findings impossible to accept, reject or refer back to one at a time.
+
+Format: `**<ID> (<severity>) — <short name>**`, then the body.
+
+| Heading | ID prefix | Example |
+|---|---|---|
+| Code quality issues | `Q` | `**Q3 (low) — Comment contradicts the code**` |
+| Bugs | `B` | `**B1 (high) — Consent screen renders "null" as the client name**` |
+| Behavior changes | `BC` | `**BC2 (medium) — "Signed in as" label dropped**` |
+| Security issues | `S` | `**S1 (high) — New resolver skips the tenant filter**` |
+| Performance issues | `P` | `**P1 (medium) — N+1 on the dashboard query**` |
+
+Severity is `high` / `medium` / `low`. Number within each heading, most severe first. The name is a noun phrase naming the defect, not the fix — it is what the user will type back at you ("fix Q3", "BC2 is intended"), so keep it short and distinct.
+
+### Classifying a finding: bug vs. behavior change vs. code quality
+
+These three are decided by **what the change does to the user**, not by how the code looks. Getting this wrong is itself a review defect — a deliberate redesign filed as a "bug" reads as an accusation, and a user-visible regression filed as "code quality" gets skipped.
+
+- **Bug** — the code produces a wrong result that nobody chose. Output the author would call wrong if you showed it to them: a rendered literal `null`, an off-by-one, a dropped constraint, two code paths disagreeing about the same value. **Anything user-visible and unintended is a bug, never code quality** — a wrong string on screen is a behavior problem even when its cause is a stale variable.
+- **Behavior change** — the diff deliberately changes what users see or get, and the change is a decision, not a mistake. Removed disclosure, reworded copy, a control that now does something else, a default that moved. The author may well answer "accepted as intended" — that is a valid outcome, so state the consequence and let them decide. Report it even when clearly intentional: an intended change can still be one nobody thought through, and this heading is where the deployment-facing impact gets surfaced.
+- **Code quality** — no user-visible effect at all. Readability, dead code, duplication, a comment that misdescribes the code, an inconsistent-but-equivalent idiom. If you cannot describe a user-facing symptom, it belongs here.
+
+When a finding could be two of these, file it under the more user-facing one (Bug > Behavior change > Code quality) and say in one clause why.
 
 1. **Major purpose** — 3-6 sentences synthesizing what the set of commits accomplishes and why, grouped by theme if the commits span multiple concerns.
 
@@ -40,6 +66,8 @@ Structure the report under these six headings. Base every claim on an actual dif
    - Config-backed inputs with no error binding: an input whose value is written to app config but which passes no `parentJSONPointer`/`fieldName`, so schema violations (`minimum`, `type`) reach only the generic error bar. Compare against sibling forms editing the same config section.
    - One setting, two strings: a setting exposed on both a create and an edit surface that owns near-duplicate message ids (`Foo.bar.label` and `CreateFoo.bar.label`) instead of sharing one. Diff the rendered text of both surfaces, not just the code — divergent wording for one setting is a defect, and a label byte-identical to a *different* setting's label is worse.
 
+   Before filing anything here, ask what a user would see. Two code paths reading the same value differently, a stale fallback still in the template, a duplicated constant — these *look* like tidiness findings but each one renders something wrong on a screen, which makes them Bugs. Code quality is for findings with no user-facing symptom at all.
+
 4. **Bugs** — trace actual runtime behavior, don't just eyeball it. Prioritize:
    - Off-by-one and boundary math in date/time range logic
    - Label/copy vs. implementation mismatches (does the UI string still describe what the code now does after the diff?)
@@ -53,7 +81,17 @@ Structure the report under these six headings. Base every claim on an actual dif
 
    For each bug, state the concrete failure scenario (inputs/state → wrong output), not just "this looks suspicious."
 
-5. **Security issues** — check every new/changed handler, resolver, and query for:
+   A finding belongs here only if the result is wrong by the author's own standard. If the diff deliberately changed what the user sees, it is a **Behavior change** (heading 5) even when you think the old behaviour was better — see the classification rule above.
+
+5. **Behavior changes** — what this diff changes about what users see or get, where the change looks deliberate. Include the heading even when the PR is pure refactoring; say explicitly that behaviour is unchanged. Look for:
+   - **Information removed from a screen**: a disclosure, label, warning or list entry the old code rendered and the new code does not. Name what the user can no longer see, and what they are agreeing to without seeing it. Removed *security-relevant* disclosure (what a grant actually permits, what will be shared, what persists after the window closes) is the highest-value case — trace what the removed line was telling the user against the code that still grants it.
+   - **Reworded user-facing copy**: check the new wording still matches what the code enforces (see the copy-vs-behaviour checks under Bugs), and check whether the string is one a deployment could have customised — see the overridable-resource point under API interface changes.
+   - **A control that now does something else**: a button whose label, destination or submitted value changed; a default that moved; a confirmation that is no longer asked.
+   - **A branch that now classifies differently**: a condition added to decide which of two UIs to show. Enumerate the inputs that change side, and check each one is genuinely in the bucket it lands in — a classifier that quietly puts a consequential case in the "nothing to see here" bucket is the expensive failure mode.
+
+   For each, state the before → after in user-visible terms and the deployment-facing consequence. Then stop — do not argue the design. The author accepting one as intended is a normal outcome; a finding here is a question, not a defect claim.
+
+6. **Security issues** — check every new/changed handler, resolver, and query for:
    - **Authorization/tenant scoping**: does every new GraphQL resolver, Admin API handler, or Site Admin handler enforce the same authz/role checks as sibling resolvers, and is every DB query scoped by `app_id`/tenant so one tenant cannot read or mutate another's data (IDOR)?
    - **Injection**: are all new SQL queries built through the existing query builder / parameterized placeholders (`db.SelectBuilder`, `?`/`$1` placeholders) with no raw string concatenation of user input, including inside JSONB path expressions (`data#>>'{...}'`) where a dynamic path segment could come from user input?
    - **Secrets/PII exposure**: does the diff log, return in an error message, or expose in a GraphQL field anything that should be redacted (tokens, full phone numbers/emails beyond what's already exposed, internal IDs that leak cross-tenant info)?
@@ -62,7 +100,7 @@ Structure the report under these six headings. Base every claim on an actual dif
    - **Input validation**: are new config fields, GraphQL args, and query params validated (length, enum membership, range) consistently with sibling fields, before use in a query or written to config?
    - Treat findings here as high-priority even if the report has few other findings — call out explicitly if a check produced no findings ("no authz regressions found in the resolvers touched by this diff") rather than omitting the section.
 
-6. **Performance issues** — check for:
+7. **Performance issues** — check for:
    - N+1 or repeated-round-trip patterns: multiple independent DB queries derived from the same base query/filter that could be one query or run concurrently, especially in hot-path screens (dashboards, list views)
    - Missing bounds: new queries/list endpoints without a `LIMIT`/pagination cap, or unbounded time ranges that can return arbitrarily large result sets
    - Missing indexes: new `WHERE`/`GROUP BY`/`ORDER BY` columns on large tables (`_audit_log` and other high-volume tables) that aren't covered by an existing index — check `pkg/lib/infra/db/migration/` (or `cmd/authgear/cmd/cmdaudit/migrations/`) for the relevant table's index list. An index existing is not sufficient: confirm the query's actual `WHERE`/`GROUP BY`/`ORDER BY` expression is textually identical to the indexed expression (same functions, same nesting/wrapping — e.g. `COALESCE(UPPER(x), '')` does **not** match an index built on `upper(x)`). Postgres only uses expression indexes on an exact syntactic match, not a semantically-equivalent one — cite the migration's exact expression next to the query's exact expression when making this claim.
@@ -88,6 +126,9 @@ Re-derive every reported bug, security issue, and quality issue marked as object
 - **Orphaned i18n key / dead CSS claims**: grep the exact message id or CSS class name across the whole frontend source tree (not just the changed file) to confirm zero references remain, and quote the grep command and its (empty) output — don't flag a key/class as dead based on only checking the file(s) the diff touched.
 - **Authz/tenant-scoping claims**: grep sibling resolvers/handlers for the authz call or `app_id` filter they use, and confirm the new code either has the matching call or is genuinely missing it — cite both the sibling's pattern and the new code's diff.
 - **Injection claims**: cite the exact line constructing the query/path and confirm whether the interpolated value is attacker-controlled input or a fixed/internal constant.
+- **Every `file:line` citation**: re-derive each one against the file on disk *after* the report is drafted, and quote the line's actual text beside the number. Line numbers drift while you work — between reading a diff hunk and writing the finding, and again if you edit anything — and a citation the user opens and does not find reads as a fabricated finding, which costs more trust than the finding was worth. `grep -n '<the exact text>' <file>` is the check; if the text is gone, the finding is stale, not the file.
+- **Behavior-change claims**: show the before and the after, don't assert the delta. `git show <base>:<path>` (or `git diff <base>..HEAD -- <path>`) for the old rendering, the working file for the new, side by side. For *removed* information specifically, prove the underlying capability still exists: grep for the thing the removed line described (the scope, the permission, the field) in the code that still grants it, and cite the granting line — "the screen no longer says X" is only a finding if X is still true.
+- **Classification check**: re-read each finding's heading against the classification rule in Phase 2 before reporting. The two mistakes to look for: a user-visible wrong output filed under Code quality because its cause looked cosmetic, and a deliberate redesign filed under Bugs because you preferred the old behaviour. Moving a finding between headings at this stage is normal.
 - **Index/performance claims**: grep the migration files for the touched table to confirm whether an index covering the new query's filter/group columns exists or not — cite the migration file, don't guess. If an index exists, diff its exact indexed expression against the query's exact `WHERE`/`GROUP BY`/`ORDER BY` expression side by side (don't just confirm the column name appears in both) — a wrapper mismatch (extra `COALESCE`, missing `UPPER`, different JSONB path syntax) means the index can't actually be used. Separately, for any new DB aggregate on a high-volume table, grep the rest of the diff for a sibling code path resolving equivalent data a cheaper way (in-process lookup, cache, existing per-row field) — an index existing doesn't mean the aggregate itself was the right call.
 - Re-check `git diff --stat` scope once more against `git show --stat` per commit to make sure no claim is actually about upstream `main`'s unrelated churn rather than this PR's diff.
 
@@ -96,6 +137,8 @@ While verifying, also spend one pass looking at any files that were touched by t
 ## Output format
 
 Present the final report as:
-- The six Phase 2 headings, each finding stated concretely with a `file:line` reference. Include the Security and Performance headings even when empty — state explicitly that no issues were found rather than omitting the section.
-- For a follow-up verification request specifically, present bugs/quality/security/performance issues as: original claim → verification method used → outcome (confirmed / refined / retracted), followed by any newly found issues from the extra pass.
+- The seven Phase 2 headings, each finding carrying its `<ID> (<severity>) — <name>` label and a `file:line` reference. Include the Behavior changes, Security and Performance headings even when empty — state explicitly that none were found rather than omitting the section.
+- Quote the cited line's text next to the first `file:line` of each finding, not the number alone — see the citation check in Phase 3.
+- For a follow-up verification request specifically, present quality/bug/behavior-change/security/performance findings as: original claim → verification method used → outcome (confirmed / refined / retracted), keeping each finding's original ID so the user can map the two reports onto each other. Follow with any newly found issues from the extra pass, numbered after the existing ones.
+- Close with what blocks merge and what does not, by ID.
 - Keep prose tight — this is a report to act on, not an essay.
