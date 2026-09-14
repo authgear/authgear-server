@@ -167,12 +167,53 @@ falls through to the generic error bar with no indication which field caused it.
 The pointer is the parent object's, e.g.
 `/oauth/dynamic_client_registration/default_client_config` + `access_token_lifetime_seconds`.
 
-**Do not save from an individual control.** `saveWith(fn)` applies `fn` to
-`currentState` and saves *the whole form* — including edits elsewhere on the screen,
-and on sibling tabs that share the same form model — then clears the dirty flag, so
-the save bar disappears as if nothing had been pending. A toggle that "should take
-effect immediately" still belongs behind the Save button; use `setState` like every
-other control.
+**A feature on/off toggle defers to Save, like every other control.** `saveWith(fn)`
+applies `fn` to `currentState` and saves *the whole form* — including edits elsewhere
+on the screen, and on sibling tabs that share the same form model — then clears the
+dirty flag, so the save bar disappears as if nothing had been pending. The default for
+a toggle, however instant it feels, is plain `setState`: the admin sees it in the save
+bar alongside whatever else they were editing and commits them together.
+
+**The one exception is enabling something whose controls act on the server the moment
+they appear — and it applies to the enable direction only.** The DCR switch reveals the
+initial-access-token card, which mints a token through the Admin API immediately, while
+`POST /oauth2/register` checks the *saved* config: a token created against a merely
+pending switch shipped a curl example that 403s. Turning the feature *off* reveals
+nothing and arms nothing, so it carries no such hazard. If you cannot name the specific
+control that acts before the save, you do not have this exception — "it ought to apply
+at once" is not one.
+
+In order of preference:
+
+1. **Both directions deferred.** Reach for this first.
+2. **Enable saves immediately, disable stays dirty-only.** Only when (1) causes a real
+   problem, and only with the hazard named in a comment at the call site.
+
+Never the reverse, and never both directions immediate. An immediate *disable* has to
+build what it writes from `initialState`, so that an unfinished edit elsewhere cannot
+fail validation and leave the switch reading off while the server still has the feature
+on. Building from `initialState` is precisely what throws the admin's pending edits
+away — silently, fields reset, while a success toast claims they were saved.
+
+**When you do save immediately, use `saveOnly(fn)`, not `saveWith(fn)`.** `saveOnly`
+writes `fn(initialState)` — the last saved config plus this one change, so nothing
+half-typed can fail it — and keeps `fn(currentState)` in the form, so pending edits are
+neither committed unreviewed nor discarded. `saveWith` commits everything. Use
+`saveOnly` even when the screen currently has nothing else editable in that state: that
+is a property of today's layout, not of the control, and it stops being true the moment
+someone adds a field.
+
+Two details that travel with the immediate-enable path:
+
+- **The switch follows the pending value; whatever it gates follows the saved value.**
+  The switch must be able to read off before the save lands; the cards below it must
+  not. While a turn-off is pending the feature really is still running, and on the way
+  back on a control that acts immediately must not appear a round-trip before the server
+  agrees. See `SelfRegistrationContent.tsx` (`savedRegistrationEnabled`) and
+  `MetadataDocumentsContent.tsx` (`savedEnabled`).
+- **The toast names the setting that was written.** After `saveOnly` exactly one setting
+  was saved, so "The changes have been saved" is false whenever anything else is still
+  pending.
 
 ## User-facing copy must match enforced behaviour
 
@@ -260,7 +301,8 @@ Before submitting a portal UI change:
 - [ ] Callbacks that may receive rich content (links, JSX) are typed `React.ReactNode`, not `string`.
 - [ ] No local constant restates a server-side config default; placeholders and fallbacks come from `form.effectiveConfig`.
 - [ ] Every config-backed input passes `parentJSONPointer` + `fieldName` so schema errors land on the field.
-- [ ] No individual control calls `saveWith`; nothing is written until Save.
+- [ ] Feature on/off toggles defer to Save in both directions — or, if enabling must be immediate, a comment names the control that acts before the save, the disable direction is still dirty-only, and no control calls `saveWith`.
+- [ ] Any immediate save goes through `saveOnly` (which keeps pending edits) rather than `saveWith` (which commits the whole form), the switch reads the pending value while the cards it gates read the saved one, and the toast names the setting written rather than claiming the page was saved.
 - [ ] Copy naming who a permission covers was checked against the enforcing code, and sibling strings making the same claim were grepped and fixed together.
 - [ ] A setting with create and edit surfaces shares one message id rather than near-duplicate keys.
 - [ ] Every i18n key whose last reference this change removed is deleted from `locale-data/en.json` — found by diffing the orphan set at the merge base against `HEAD`, and each one checked against the dynamic-key families before deleting.
