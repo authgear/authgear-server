@@ -847,7 +847,7 @@
   "DynamicClientDetailsDialog.tos-uri": "Terms of service URI",
   "DynamicClientDetailsDialog.policy-uri": "Privacy policy URI",
   "AIAgentsScreen.allowed-resources.title": "Allowed API resources",
-  "AIAgentsScreen.allowed-resources.description": "All dynamic clients share these resources and scopes. First-party clients are unaffected.",
+  "AIAgentsScreen.allowed-resources.description": "Dynamic third-party clients share these resources and scopes. First-party clients are unaffected.",
   "AIAgentsScreen.allowed-resources.manage": "Manage access in the <apiResourcesLink>API Resources</apiResourcesLink> section.",
   "DynamicClientAllowedResources.empty": "No API resource allows dynamic third-party access.",
   "DynamicClientAllowedResources.no-scopes": "No scopes allowed yet.",
