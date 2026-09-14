@@ -157,57 +157,36 @@ identities, authenticators. None of those creations is individually capped, and
 before this limit none was rate limited either, so a caller's write rate was
 bounded only by how fast it could issue requests.
 
-**What is counted.** One token per **top-level mutation field** of the executed
-operation, taken before the operation is executed. A GraphQL document may carry
-several mutation fields, and aliases allow the same field to repeat, so charging
-per HTTP request would let batching buy writes at a discount. That discount is
-bounded but real: `graphqlutil` already refuses a document with more than
-`maxMutationFieldsPerRequest` (5) top-level mutation fields, so per-request
-charging would understate the cost of a maximal document fivefold. Fields
-reached through a fragment spread are counted as the fields they expand to.
+**What is counted.** One token per mutation, not one per request. A document
+carrying several mutations — including the same mutation repeated under
+different aliases — costs one token each.
 
-Two consequences of that cap are worth stating. `n` is always between 1 and 5
-when it reaches the limiter, so an `n`-token take is never large. And because
-the token-bucket script only writes when the whole take conforms — and so never
-improves the bucket's state when it does not — a document with more mutation
-fields than `burst` can never succeed, on an empty bucket or otherwise. That is
-unreachable at the default (5 ≤ 300) and only becomes reachable if a tier
-configures `burst` below 5, which no tier should.
+**What is not counted.** Queries, and the Admin API's non-GraphQL endpoints,
+which carry their own limits.
 
-**What is not counted.** Queries are excluded. A single portal screen fires many
-queries and one mutation, so a bucket sized for legitimate mutation volume would
-break the console if it also had to absorb reads, and read floods are a different
-problem (cost per query, not unbounded row growth) that wants a different
-control. Also excluded are the Admin API's non-GraphQL endpoints, which already
-have their own limits: user import/export are bounded by the `user_import_usage`
-/ `user_export_usage` usage limits, and presign image upload by its fixed
-10/hour.
-
-**Buckets.** This first version gates the Admin API as a whole: one scope,
-named `all`, whose bucket every mutation field consumes from. Exceeding it
-fails the whole operation with
-`TooManyRequest` / `RateLimited`, carrying the offending `rate_limit.name` and
-`rate_limit.group` in the error details, and emits a
-[`rate_limit.blocked`](./event.md#rate_limitblocked) audit log.
-
-The rejection is **not** shaped like a GraphQL error. It happens before the
-operation reaches the executor, so the response is the standard API error
-envelope with HTTP 429 —
+**Exceeding the limit** fails the whole operation with HTTP 429 and
+`TooManyRequest` / `RateLimited`, naming the limit that rejected it:
 
 ```json
-{ "error": { "name": "TooManyRequest", "reason": "RateLimited", "code": 429, "info": { "rate_limit": { "name": "admin_api.mutation.all.per_project", "group": "admin_api.mutation" } } } }
+{
+  "error": {
+    "name": "TooManyRequest",
+    "reason": "RateLimited",
+    "code": 429,
+    "info": {
+      "rate_limit": {
+        "name": "admin_api.mutation.all.per_project",
+        "group": "admin_api.mutation"
+      }
+    }
+  }
+}
 ```
 
-— rather than a 200 carrying an `errors` array. This matches how the Admin API
-already reports a document exceeding `maxMutationFieldsPerRequest`, but it
-differs from every error raised *during* execution, so a client that only reads
-`errors` will see a rate limit rejection as an empty response. Read the HTTP
-status.
-
-Authorization runs first. The Admin API's authz middleware sits ahead of this
-handler in the route chain, so a request without a valid Admin API key is
-refused before any token is taken — an unauthenticated caller cannot drain a
-project's bucket.
+The request is rejected before the operation executes, so this is the API error
+envelope rather than a 200 carrying a GraphQL `errors` array — a client that
+reads only `errors` sees an empty response, so read the HTTP status. A
+[`rate_limit.blocked`](./event.md#rate_limitblocked) audit log is emitted.
 
 | Bucket                               | Scope                  | Default     |
 | ------------------------------------ | ---------------------- | ----------- |
@@ -225,10 +204,10 @@ Three notes on that table:
   *unauthenticated*, so IP is the only handle they have on a caller. It is also
   a different concern from the per-IP limits on the authentication flows, which
   exist to stop credential brute-forcing; nothing here is guessable.
-- **The default is a backstop, not a throttle.** 1000 mutation fields per
-  minute is far above anything a portal console produces (the screens batch
-  list operations, so assigning a role to twenty users is one `addRoleToUsers`
-  field) and far above ordinary automation, so no legitimate integration should
+- **The default is a backstop, not a throttle.** 1000 mutations per minute is
+  far above anything a portal console produces (the screens batch list
+  operations, so assigning a role to twenty users is one `addRoleToUsers`
+  call) and far above ordinary automation, so no legitimate integration should
   ever have to design around it. It exists to stop a runaway or hostile caller
   from writing without bound, not to shape normal traffic.
 - **What it bounds, and what it does not.** It bounds the *rate*. It does not
@@ -295,7 +274,7 @@ admin_api:
 
 The idea is that top-level `all` bounds Admin API requests as a whole, GraphQL
 and non-GraphQL alike, while `query` and `mutation` bound GraphQL queries and
-[mutation fields](#admin-api-mutations). Under those two, every child is a
+[mutations](#admin-api-mutations). Under those two, every child is a
 scope and every child of a scope is a bucket: `all` is the reserved scope
 meaning "everything under this target", and an individual field is a scope
 keyed by its GraphQL field name in snake_case. Top-level `all` has no
