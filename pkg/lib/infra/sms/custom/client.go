@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -16,6 +17,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	utilhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
 )
+
+// DefaultSMSHookTimeout is what both timeout constructors fall back to when
+// the deployment or the project did not configure one.
+const DefaultSMSHookTimeout = 60 * time.Second
 
 type SMSHookTimeout struct {
 	Timeout time.Duration
@@ -25,8 +30,26 @@ func NewSMSHookTimeout(smsCfg *config.CustomSMSProviderConfig) SMSHookTimeout {
 	if smsCfg != nil && smsCfg.Timeout != nil {
 		return SMSHookTimeout{Timeout: smsCfg.Timeout.Duration()}
 	} else {
-		return SMSHookTimeout{Timeout: 60 * time.Second}
+		return SMSHookTimeout{Timeout: DefaultSMSHookTimeout}
 	}
+}
+
+// EnvSMSHookTimeout carries SMS_GATEWAY_CUSTOM_TIMEOUT, which is a number of
+// seconds. It is kept apart from SMSHookTimeout because the two come from
+// different sources and reach different clients.
+type EnvSMSHookTimeout struct {
+	Timeout time.Duration
+}
+
+// NewEnvSMSHookTimeout never returns a zero duration: zero on
+// http.Client.Timeout means no timeout at all, which is not what an unset or
+// malformed SMS_GATEWAY_CUSTOM_TIMEOUT asks for.
+func NewEnvSMSHookTimeout(envCfg config.SMSGatewayEnvironmentCustomSMSProviderConfig) EnvSMSHookTimeout {
+	seconds, err := strconv.Atoi(envCfg.Timeout)
+	if err != nil || seconds <= 0 {
+		return EnvSMSHookTimeout{Timeout: DefaultSMSHookTimeout}
+	}
+	return EnvSMSHookTimeout{Timeout: time.Duration(seconds) * time.Second}
 }
 
 type HookHTTPClient interface {
@@ -37,13 +60,40 @@ type HookHTTPClientImpl struct {
 	*http.Client
 }
 
+// NewHookHTTPClient is for the custom SMS provider a project configures in
+// authgear.secrets.yaml. A project admin chooses that URL, so it is bound by
+// the fetch address policy; see docs/specs/ssrf-protection.md.
 func NewHookHTTPClient(timeout SMSHookTimeout, f *config.HTTPFeatureConfig) HookHTTPClient {
 	return HookHTTPClientImpl{
 		utilhttputil.NewSSRFSafeExternalClient(timeout.Timeout, utilhttputil.SSRFSafeExternalClientOptions{
 			AllowNonPublicAddresses: f.IsInsecureFetchAddressAllowed(),
 			AllowedHosts:            f.GetInsecureFetchAddressAllowedHosts(),
-			Sink:                    "messaging.custom_sms_provider.url",
+			Sink:                    "sms.custom.url",
 		}),
+	}
+}
+
+// EnvHookHTTPClient is a distinct interface from HookHTTPClient, not an alias
+// of it: wire has to be able to provide both in one injector, and nothing that
+// fetches a project-supplied URL should be able to pick this one up by
+// accident.
+type EnvHookHTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+type EnvHookHTTPClientImpl struct {
+	*http.Client
+}
+
+// NewEnvHookHTTPClient is for the SMS gateway this deployment configures
+// through SMS_GATEWAY_CUSTOM_URL. It deliberately applies no address policy:
+// the operator chose the destination, and running authgear-sms-gateway beside
+// Authgear in the same cluster -- so on an address that is not publicly
+// routable -- is the normal deployment. Same reasoning as the Deno hook runner
+// and object storage; see docs/specs/ssrf-protection.md.
+func NewEnvHookHTTPClient(timeout EnvSMSHookTimeout) EnvHookHTTPClient {
+	return EnvHookHTTPClientImpl{
+		utilhttputil.NewExternalClient(timeout.Timeout),
 	}
 }
 
@@ -78,12 +128,32 @@ type SMSWebHook struct {
 }
 
 func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) error {
-	req, err := w.PrepareRequest(ctx, u, payload)
+	return callWebHook(ctx, w.WebHook, w.Client, u, payload)
+}
+
+// EnvSMSWebHook calls the SMS gateway named by SMS_GATEWAY_CUSTOM_URL. It
+// differs from SMSWebHook only in which client it holds; the request and the
+// response handling are the same, which is why both delegate to callWebHook.
+type EnvSMSWebHook struct {
+	hook.WebHook
+	Client EnvHookHTTPClient
+}
+
+func (w *EnvSMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) error {
+	return callWebHook(ctx, w.WebHook, w.Client, u, payload)
+}
+
+type webHookDoer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+func callWebHook(ctx context.Context, wh hook.WebHook, client webHookDoer, u *url.URL, payload SendOptions) error {
+	req, err := wh.PrepareRequest(ctx, u, payload)
 	if err != nil {
 		return err
 	}
 
-	resp, err := w.Client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -179,15 +249,26 @@ func (d *SMSDenoHook) handleOutput(output any) error {
 	return handleResponse("denohook", responseBody, jsonText)
 }
 
+// SMSWebHookCaller is what CustomClient needs of a webhook, so that the same
+// client serves both the project-configured URL and the one this deployment
+// configures.
+type SMSWebHookCaller interface {
+	SupportURL(u *url.URL) bool
+	Call(ctx context.Context, u *url.URL, payload SendOptions) error
+}
+
+var _ SMSWebHookCaller = (*SMSWebHook)(nil)
+var _ SMSWebHookCaller = (*EnvSMSWebHook)(nil)
+
 type CustomClient struct {
 	Config      *config.CustomSMSProviderConfig
 	SMSDenoHook SMSDenoHook
-	SMSWebHook  SMSWebHook
+	SMSWebHook  SMSWebHookCaller
 }
 
 var _ smsapi.Client = (*CustomClient)(nil)
 
-func NewCustomClient(c *config.CustomSMSProviderConfig, d SMSDenoHook, w SMSWebHook) *CustomClient {
+func NewCustomClient(c *config.CustomSMSProviderConfig, d SMSDenoHook, w SMSWebHookCaller) *CustomClient {
 	if c == nil {
 		return nil
 	}

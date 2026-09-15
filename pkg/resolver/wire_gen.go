@@ -885,6 +885,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -898,6 +904,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,

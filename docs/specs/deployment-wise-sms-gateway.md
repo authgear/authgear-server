@@ -27,6 +27,10 @@ SMS_GATEWAY_DEFAULT_PROVIDER=twilio|nexmo|custom
 
 - `SMS_GATEWAY_{PROVIDER}_*`
   - The provider specific configs and credentials.
+- `SMS_GATEWAY_CUSTOM_URL`
+  - Not subject to the fetch address policy, so it may name an in-cluster address such as `http://authgear-sms-gateway.default.svc.cluster.local:8080/send`. The operator sets it, so the destination is this deployment's own. `sms.custom.url` in `authgear.secrets.yaml` is chosen by a project admin and *is* subject to the policy. See [ssrf-protection.md](./ssrf-protection.md).
+- `SMS_GATEWAY_CUSTOM_TIMEOUT`
+  - In seconds. Defaults to 60 when unset, non-numeric, or not positive.
 - `SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM`
   - The default sms gateway config source. Can be `environment_variable` or `authgear.secrets.yaml`.
 - `SMS_GATEWAY_DEFAULT_PROVIDER`

@@ -986,6 +986,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -999,6 +1005,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -2047,6 +2054,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -2060,6 +2073,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -3221,6 +3235,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -3234,6 +3254,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -5449,6 +5470,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -5462,6 +5489,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -6338,6 +6366,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -6351,6 +6385,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -7302,6 +7337,12 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -7315,6 +7356,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -8257,6 +8299,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -8270,6 +8318,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -9370,6 +9419,12 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -9383,6 +9438,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -10470,6 +10526,12 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -10483,6 +10545,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -12146,6 +12209,12 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -12159,6 +12228,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -13363,6 +13433,12 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -13376,6 +13452,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -14587,6 +14664,12 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -14600,6 +14683,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -15828,6 +15912,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -15841,6 +15931,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -16940,6 +17031,12 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -16953,6 +17050,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -18062,6 +18160,12 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -18075,6 +18179,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -19200,6 +19305,12 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -19213,6 +19324,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -20334,6 +20446,12 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -20347,6 +20465,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -21483,6 +21602,12 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -21496,6 +21621,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -22604,6 +22730,12 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -22617,6 +22749,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -23752,6 +23885,12 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -23765,6 +23904,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -24899,6 +25039,12 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -24912,6 +25058,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -26046,6 +26193,12 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -26059,6 +26212,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -27182,6 +27336,12 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -27195,6 +27355,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -28338,6 +28499,12 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -28351,6 +28518,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -29485,6 +29653,12 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -29498,6 +29672,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -30633,6 +30808,12 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -30646,6 +30827,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -31790,6 +31972,12 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -31803,6 +31991,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -32937,6 +33126,12 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -32950,6 +33145,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -34076,6 +34272,12 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -34089,6 +34291,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -35245,6 +35448,12 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -35258,6 +35467,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -36393,6 +36603,12 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -36406,6 +36622,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -37529,6 +37746,12 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -37542,6 +37765,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -38661,6 +38885,12 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -38674,6 +38904,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -39773,6 +40004,12 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -39786,6 +40023,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -40881,6 +41119,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -40894,6 +41138,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -42090,6 +42335,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -42103,6 +42354,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -43198,6 +43450,12 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -43211,6 +43469,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -44415,6 +44674,12 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -44428,6 +44693,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -45632,6 +45898,12 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -45645,6 +45917,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -46756,6 +47029,12 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -46769,6 +47048,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -47805,6 +48085,12 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -47818,6 +48104,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -49359,6 +49646,12 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -49372,6 +49665,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -50467,6 +50761,12 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -50480,6 +50780,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -51743,6 +52044,12 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -51756,6 +52063,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -52803,6 +53111,12 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -52816,6 +53130,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -53815,6 +54130,12 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -53828,6 +54149,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -54861,6 +55183,12 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -54874,6 +55202,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -55923,6 +56252,12 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -55936,6 +56271,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -57061,6 +57397,12 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -57074,6 +57416,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -58167,6 +58510,12 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -58180,6 +58529,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -59326,6 +59676,12 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -59339,6 +59695,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -60265,6 +60622,12 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -60278,6 +60641,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -61192,6 +61556,12 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -61205,6 +61575,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -62433,6 +62804,12 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -62446,6 +62823,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -63667,6 +64045,12 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -63680,6 +64064,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -64891,6 +65276,12 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -64904,6 +65295,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -66112,6 +66504,12 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -66125,6 +66523,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -67337,6 +67736,12 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -67350,6 +67755,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -68560,6 +68966,12 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -68573,6 +68985,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -69781,6 +70194,12 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -69794,6 +70213,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -70998,6 +71418,12 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -71011,6 +71437,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -72215,6 +72642,12 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -72228,6 +72661,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -73437,6 +73871,12 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -73450,6 +73890,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -74660,6 +75101,12 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -74673,6 +75120,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -75877,6 +76325,12 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -75890,6 +76344,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -77098,6 +77553,12 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -77111,6 +77572,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -78315,6 +78777,12 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -78328,6 +78796,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -79532,6 +80001,12 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -79545,6 +80020,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -80749,6 +81225,12 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -80762,6 +81244,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -81966,6 +82449,12 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -81979,6 +82468,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -83190,6 +83680,12 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -83203,6 +83699,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -84409,6 +84906,12 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -84422,6 +84925,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -85627,6 +86131,12 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -85640,6 +86150,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -86843,6 +87354,12 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -86856,6 +87373,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -88154,6 +88672,12 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -88167,6 +88691,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -89791,6 +90316,12 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -89804,6 +90335,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -91008,6 +91540,12 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -91021,6 +91559,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -92225,6 +92764,12 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -92238,6 +92783,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -93582,6 +94128,12 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -93595,6 +94147,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -94801,6 +95354,12 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -94814,6 +95373,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -95997,6 +96557,12 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -96010,6 +96576,7 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -96915,6 +97482,12 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -96928,6 +97501,7 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -97863,6 +98437,12 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -97876,6 +98456,7 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -98804,6 +99385,12 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -98817,6 +99404,7 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -99770,6 +100358,12 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -99783,6 +100377,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -100890,6 +101485,12 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -100903,6 +101504,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -102025,6 +102627,12 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -102038,6 +102646,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -103162,6 +103771,12 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -103175,6 +103790,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -104285,6 +104901,12 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -104298,6 +104920,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -105425,6 +106048,12 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -105438,6 +106067,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -106571,6 +107201,12 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -106584,6 +107220,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -107699,6 +108336,12 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -107712,6 +108355,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -108835,6 +109479,12 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -108848,6 +109498,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -109973,6 +110624,12 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -109986,6 +110643,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -111096,6 +111754,12 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -111109,6 +111773,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -112237,6 +112902,12 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -112250,6 +112921,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -113365,6 +114037,12 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -113378,6 +114056,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -114505,6 +115184,12 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -114518,6 +115203,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -115628,6 +116314,12 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -115641,6 +116333,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -116764,6 +117457,12 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -116777,6 +117476,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -117903,6 +118603,12 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -117916,6 +118622,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -119028,6 +119735,12 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -119041,6 +119754,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -120835,6 +121549,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -120848,6 +121568,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -121740,6 +122461,12 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -121753,6 +122480,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -122834,6 +123562,12 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -122847,6 +123581,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,
@@ -123818,6 +124553,12 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
 	clientResolver := &sms.ClientResolver{
 		AuthgearYAMLSMSProvider:                    smsProvider,
 		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
@@ -123831,6 +124572,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
 		SMSDenoHook:                                smsDenoHook,
 		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
 	}
 	smsSender := &sms.Sender{
 		ClientResolver: clientResolver,

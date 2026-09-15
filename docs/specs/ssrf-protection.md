@@ -7,7 +7,7 @@ Authgear fetches URLs it did not choose: webhook targets, an SSO provider's disc
 | Fetch | URL comes from |
 | --- | --- |
 | Blocking / non-blocking event webhooks | `hook.blocking_handlers[].url`, `hook.non_blocking_handlers[].url` |
-| Custom SMS provider | `messaging.custom_sms_provider.url` |
+| Custom SMS provider | `sms.custom.url` in `authgear.secrets.yaml` |
 | Account migration hook | `account_migration.hook.url` |
 | Phone number verification hook | `proof_of_phone_number_verification.hook.url` |
 | OIDC discovery document | an SSO provider's `discovery_document_endpoint` |
@@ -21,6 +21,10 @@ The portal's test-SMS action takes its URL from the mutation input and is restri
 ## Unrestricted fetches
 
 The Deno hook runner (`DENO_ENDPOINT`), object storage, and the SMS/captcha/analytics vendors. This deployment configures where they point, and they legitimately address internal hosts, so the address rules do not apply to them.
+
+The SMS gateway named by `SMS_GATEWAY_CUSTOM_URL` is one of these. Running `authgear-sms-gateway` beside Authgear in the same cluster — so on an address that is not publicly routable — is the normal deployment, and an operator who sets that variable has already chosen the destination. Restricting it would mean asking them to name the same host twice.
+
+`messaging.sms_gateway.use_config_from: environment_variable` in `authgear.yaml` reaches that fetch, even though a project sets it. It only selects the operator's configuration; a project cannot name a host through it, and cannot reach the unrestricted client by any other route. The same custom SMS provider configured the other way — `sms.custom.url` in `authgear.secrets.yaml`, whether reached through `messaging.sms_provider` or through `messaging.sms_gateway.use_config_from: authgear.secrets.yaml` — is restricted, as is the portal's test-SMS action.
 
 ## Address rules
 

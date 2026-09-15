@@ -1,0 +1,78 @@
+name: The SMS gateway from SMS_GATEWAY_CUSTOM_URL is reached on a loopback address
+# SMS_GATEWAY_CUSTOM_URL is set by whoever operates the deployment, not by a
+# project admin, so the fetch address policy does not apply to it -- see
+# docs/specs/ssrf-protection.md. The e2e deployment points it at the hook
+# server on 127.0.0.1, which is exactly the address the policy refuses for a
+# project-supplied URL, so this only passes if the exemption is real.
+#
+# insecure_fetch_address_allowed is forced back to false because the e2e
+# deployment sets it true at the cluster layer; leaving it on would make the
+# test pass no matter which client is used, which is the whole question.
+#
+# test_mode.sms.suppressed is forced off too: the deployment suppresses SMS,
+# which short-circuits before ResolveClient is ever called.
+authgear.yaml:
+  override: |
+    messaging:
+      sms_gateway:
+        use_config_from: environment_variable
+        provider: custom
+authgear.features.yaml:
+  override: |
+    http:
+      insecure_fetch_address_allowed: false
+    test_mode:
+      sms:
+        suppressed: false
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+
+  - name: identify phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591231501"
+      }
+
+  - name: send sms through the gateway
+    action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: wait for the delivery
+    action: sleep
+    sleep_for: 2s
+
+  # The audit row is scoped to this test's app, so it cannot be satisfied by
+  # another test's delivery to the same gateway path.
+  - name: the sms was sent, not blocked and not suppressed
+    action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('sms.sent', 'sms.suppressed')
+      ORDER BY activity_type
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "sms.sent"
+          }
+        ]
