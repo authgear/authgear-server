@@ -255,6 +255,7 @@ func TestPrepareUserAccessTokenResourceBinding(t *testing.T) {
 			opaque, ok := result.(*prepareUserAccessTokenResultOpaque)
 			So(ok, ShouldBeTrue)
 			So(opaque.OriginalToken, ShouldEqual, "opaque-token")
+			So(opaque.Scopes, ShouldResemble, []string{"openid"})
 		})
 
 		Convey("third-party client, with resource: JWT with aud=[resourceURI]", func() {
@@ -283,6 +284,7 @@ func TestPrepareUserAccessTokenResourceBinding(t *testing.T) {
 			decodedToken, err := jwt.ParseString(tokenResult.Token, jwt.WithKeySet(keys), jwt.WithValidate(false))
 			So(err, ShouldBeNil)
 			So(decodedToken.Audience(), ShouldResemble, []string{"https://api.example.com/orders"})
+			So(tokenResult.Scopes, ShouldResemble, []string{"openid", "read:orders"})
 		})
 
 		Convey("first-party client, no resource, IssueJWTAccessToken=false: opaque, unchanged", func() {
