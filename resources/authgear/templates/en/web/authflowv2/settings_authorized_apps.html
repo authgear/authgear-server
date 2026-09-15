@@ -106,9 +106,6 @@
     {{ if has "address" $scopes }}
       {{ $descriptions = append $descriptions (include "v2.page.consent.scopes.address" nil) }}
     {{ end }}
-    {{ if has "offline_access" $scopes }}
-      {{ $descriptions = append $descriptions (include "v2.page.consent.scopes.offline-access" nil) }}
-    {{ end }}
     {{ join ", " $descriptions }}
   </p>
   <p>
