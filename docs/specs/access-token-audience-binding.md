@@ -26,7 +26,6 @@ This is implemented via [RFC 8707 — Resource Indicators for OAuth 2.0](https:/
 
 Two parts of this specification are described in full below but are **not implemented**:
 
-- **First-party clients using `resource`.** Outside the `client_credentials` grant, a first-party client that sends `resource` receives `invalid_target`. Only **dynamic** third-party clients — DCR-registered today, CIMD-resolved later — can currently use the parameter with `authorization_code` / `refresh_token`. A static `third_party_app` client also receives `invalid_target`: it has no mechanism to be associated with a Resource for these grants (unlike an M2M client's explicit Client-Resource Association for `client_credentials`), so this is not a "not yet implemented" gap to close later — `allow_dynamic_third_party_client_access` is dynamic-only by design, per its name. First-party support is planned separately.
 - **Multiple `resource` values in one request.** Exactly one `resource` value is accepted; the `aud` claim therefore always contains a single URI. The multi-resource behaviour and the intersection-downscoping rule described below apply only once first-party multi-resource support is built.
 - **The `scope_by_aud` claim.** Not implemented. A resource-bound access token carries `aud` and the (unfiltered) `scope` claim only; there is no claim mapping individual scopes to individual audiences. This is safe today because at most one resource URI can ever appear in `aud` (see the point above) — every granted scope already applies to that single audience, so a per-audience breakdown carries no extra information. `scope_by_aud` becomes necessary once multiple resources can appear in one token; it is deferred alongside multi-resource support.
 
@@ -34,7 +33,9 @@ Everything else in this document is implemented as written.
 
 ## Glossary
 
-**Resource** — a protected API or service identified by an `https://` URI (e.g. `https://api.example.com/orders`). Resources are pre-registered in the portal and optionally configured with `access_policy.allow_dynamic_third_party_client_access: true` to permit dynamic (DCR/CIMD) third-party client access. See [API Resources and Scopes](./api-resource.md).
+**Resource** — a protected API or service identified by an `https://` URI (e.g. `https://api.example.com/orders`). Resources are pre-registered in the portal, each carrying an `access_policy` object with one key per client category that declares which categories may request it. See [API Resources and Scopes](./api-resource.md).
+
+**Client category** — one of static first-party, static third-party, dynamic first-party, dynamic third-party. Every client belongs to exactly one, and each has its own `access_policy` key. See [API Resources and Scopes — Client categories](./api-resource.md#client-categories).
 
 **Resource-specific Scope** — a scope value (e.g. `read:orders`) that is defined on a Resource and only meaningful when the corresponding Resource is included in the `resource` parameter.
 
@@ -90,7 +91,11 @@ An **opaque** access token is issued instead of a JWT. The opaque token:
 
 This solves the audience confusion problem for third-party clients by design: without specifying a `resource`, a third-party client can only access userinfo and nothing else.
 
-**A third-party client's access token is never accepted by the `/resolve` endpoint, whether it is this opaque default or a resource-bound JWT (below).** `/resolve` is used to gate access to the project's own resources (e.g. an nginx `auth_request`); it has no notion of "resource" and its response never exposes the token's `aud` for a caller to check independently (see [api-resolver.md](./api-resolver.md)). This is a decision to avoid audience confusion. Only a first-party client's access token, opaque or JWT, may be used with `/resolve`.
+**`/resolve` accepts an access token only when it belongs to a first-party client**, static or dynamic. Resource binding makes no difference either way.
+
+`/resolve` is meant for a client deployed on the same site as Authgear, behind the same reverse proxy (an nginx `auth_request`) — a first-party client can be deployed that way however it was registered. A third-party client is by definition not trusted by the project and not same-site; `/resolve` also has no notion of "resource" and never exposes the token's `aud` for a caller to check independently (see [api-resolver.md](./api-resolver.md)), so accepting one would invite audience confusion.
+
+See [client.md — Access Token Behavior by Client Kind](./client.md#access-token-behavior-by-client-kind) for the per-client-kind breakdown.
 
 **Both client types (with `resource` parameter):**
 
@@ -100,7 +105,7 @@ A JWT access token is issued with:
 aud = ["<resource_uri>"]
 ```
 
-The project endpoint is **not** included. See [How It Works](#how-it-works) for the access precondition. For a third-party client specifically, this JWT is still not accepted by `/resolve` — see above.
+The project endpoint is **not** included. See [How It Works](#how-it-works) for the access precondition. Such a JWT is accepted by `/resolve` when its client is first-party, and never when it is third-party — as above, resource binding does not change that.
 
 ## How It Works
 
@@ -113,12 +118,17 @@ The project endpoint is **not** included. See [How It Works](#how-it-works) for 
 
 ### With Resource Indicator
 
-When `resource` is specified, Authgear checks whether the client is permitted to access that resource using the following logic:
+When `resource` is specified at `/oauth2/authorize`, Authgear determines the client's [category](./api-resource.md#client-categories) and permits access only if both the Resource and every requested Scope have that category's `access_policy` key set to `true`. Otherwise `invalid_target`.
 
-1. If the Resource has `access_policy.allow_dynamic_third_party_client_access: true` **and** the requested Scope(s) have `access_policy.allow_dynamic_third_party_client_access: true` — any **dynamic** third-party client is allowed. A static `third_party_app` client is never allowed by this policy, regardless of the flag — see [Implementation Status](#implementation-status).
-2. Otherwise, an explicit Client-Resource Association is required. Currently only M2M clients support explicit associations (see [API Resources and Scopes](./api-resource.md#client-resource-association)). Dynamic third-party clients without the access policy set on the resource cannot use it, and static third-party clients cannot use it at all.
+The check is per-category and literal: a static third-party client is not covered by `allow_dynamic_third_party_client_access`, and a dynamic first-party client is not covered by `allow_static_first_party_client_access`.
+
+The policy is re-read on every access token issuance, not only here, so a grant records what was authorized rather than whether it still is — see [API Resources and Scopes — Revocation](./api-resource.md#revocation).
+
+Client-Resource Associations play no part in any of this — they are consulted only by `client_credentials`, and the two mechanisms are partitioned by grant rather than OR-ed. See [Relationship to Client-Resource Association](./api-resource.md#relationship-to-client-resource-association).
 
 When access is permitted, a JWT access token is issued with `aud = [<resource_uri>]`. The project endpoint is **not** included in `aud`.
+
+Authgear-specific scopes (`https://authgear.com/scopes/full-access`, `https://authgear.com/scopes/full-userinfo`, `https://authgear.com/scopes/pre-authenticated-url`) and `device_sso` may be requested alongside `resource`; its presence neither grants nor withdraws them. A resource-bound token can therefore carry project-level privileges even though its `aud` names an external resource server. This is deliberate.
 
 See [API Resources and Scopes](./api-resource.md) for how to register Resources and configure access.
 
@@ -140,7 +150,7 @@ GET /oauth2/authorize
 - `resource` is optional.
   - First-party client, omitted: issues a JWT with `aud = [<project_endpoint>]`.
   - Third-party client, omitted: issues an opaque access token.
-- Each `resource` value must refer to a Resource the client is permitted to access: either the Resource and requested Scopes have `access_policy.allow_dynamic_third_party_client_access: true` (for **dynamic** third-party clients only — a static `third_party_app` client is never permitted, see [Implementation Status](#implementation-status)), or the client is an M2M client with an explicit Client-Resource Association for that Resource. Otherwise `invalid_target` is returned.
+- Each `resource` value must refer to a Resource the client is permitted to access: the Resource and every requested Scope must both set the `access_policy` key for the client's [category](./api-resource.md#client-categories). Otherwise `invalid_target` is returned.
 - Resource URIs must not be prefixed by the Authgear project endpoint.
 - The granted resources are bound to the authorization code and stored server-side.
 
@@ -168,6 +178,7 @@ grant_type=authorization_code
   - If resources were bound to the authorization code, the token is issued as a JWT with `aud` containing those resource URIs.
   - If no resources were bound (first-party client only): JWT with `aud = [<project_endpoint>]`.
   - If no resources were bound (third-party client): opaque access token.
+- The Resource's and Scopes' `access_policy` is re-read before the token is issued — see [API Resources and Scopes — Revocation](./api-resource.md#revocation).
 
 ### `refresh_token` grant
 
@@ -187,6 +198,7 @@ grant_type=refresh_token
 - If provided, it must be a subset of the resources originally authorized (downscoping is allowed; upscoping is not).
 - If omitted, the new access token is issued for the same resources as the previous access token in this session.
 - Requesting a resource not in the original grant returns `invalid_target`.
+- The Resource's and Scopes' `access_policy` is re-read before the token is issued — see [API Resources and Scopes — Revocation](./api-resource.md#revocation).
 
 ## Access Token Claims
 
@@ -204,7 +216,7 @@ When `resource` is specified, `aud` contains **only** the requested resource URI
 }
 ```
 
-The userinfo endpoint accepts tokens where `scope` contains OIDC scopes (e.g. `openid`, `profile`, `email`), regardless of the `aud` claim. Resource servers should validate `aud` contains their own URI and `scope` contains the required resource-specific scopes. A resource-bound token issued to a **third-party** client is additionally never accepted by the `/resolve` endpoint (see [Authgear's decision](#authgears-decision)) — only the resource server it names in `aud` should accept it.
+The userinfo endpoint accepts tokens where `scope` contains OIDC scopes (e.g. `openid`, `profile`, `email`), regardless of the `aud` claim. Resource servers should validate `aud` contains their own URI and `scope` contains the required resource-specific scopes. A resource-bound token issued to a **third-party** client is additionally never accepted by the `/resolve` endpoint (see [Authgear's decision](#authgears-decision)) — for such a client, only the resource server it names in `aud` should accept it.
 
 ### Default — first-party client
 
@@ -246,9 +258,8 @@ Error response format differs by endpoint:
 |---|---|
 | `resource` URI is not a pre-registered Resource | `invalid_target` |
 | `resource` URI is prefixed by the Authgear project endpoint | `invalid_target` |
-| Client is a dynamic third-party client and the Resource does not have `access_policy.allow_dynamic_third_party_client_access: true` | `invalid_target` |
-| Client is a static `third_party_app` client, or any first-party client (static or dynamic) | `invalid_target` |
-| Client is an M2M client and no explicit Client-Resource Association exists | `invalid_target` |
+| The Resource does not set the `access_policy` key for the client's category | `invalid_target` |
+| Client is an M2M client (M2M clients cannot use `/oauth2/authorize` at all) | `unauthorized_client` |
 | `scope` includes a resource-specific scope but no matching `resource` was requested | `invalid_scope` |
 | Requested scope is not permitted for the client on that resource | `invalid_scope` |
 
@@ -258,12 +269,17 @@ Error response format differs by endpoint:
 |---|---|---|
 | `resource` URI at token exchange (`authorization_code` grant) is not a subset of what was authorized | `invalid_target` | 400 |
 | `resource` URI at refresh (`refresh_token` grant) is not a subset of the original grant | `invalid_target` | 400 |
+| The bound Resource no longer allows the client's category, or has been deleted (either grant) | `invalid_target` | 400 |
 
 ## Backward Compatibility
 
 ### First-party clients
 
-Unchanged. JWT with `aud = [<project_endpoint>]`. Existing resource servers that validate `aud` contains `<project_endpoint>` continue to work without modification.
+Unchanged when `resource` is omitted: JWT with `aud = [<project_endpoint>]`. Existing resource servers that validate `aud` contains `<project_endpoint>` continue to work without modification.
+
+Extending the `access_policy` to first-party clients does not change any existing deployment, because every key defaults to `false` (see [api-resource.md — Defaults](./api-resource.md#defaults)): a first-party client that sends `resource` keeps receiving `invalid_target` until an admin turns the relevant key on, and no Resource that exists today becomes reachable by a client that could not reach it before.
+
+Once a key is on, note that the resulting token's `aud` **replaces** the project endpoint rather than adding to it — a client that starts sending `resource` loses the audience its existing resource servers validate against. Sending `resource` is therefore a per-request decision, not a project-wide switch.
 
 ### Third-party clients
 
@@ -275,6 +291,9 @@ When `resource` is specified, `aud` contains **only** the resource URI(s). This 
 
 ## Relationship to M2M
 
-The `m2m` client type (`client_credentials` grant) already supports resource indicators as described in `docs/specs/m2m.md`. This spec extends the same mechanism — the same pre-registered Resources and the same client-resource association model — to the `authorization_code` and `refresh_token` grants for all client types. `docs/specs/m2m.md` documents a `scope_by_aud` claim for multi-resource `client_credentials` tokens; that claim is not implemented for either grant family today (see [Implementation Status](#implementation-status)).
+The `m2m` client type (`client_credentials` grant) already supports resource indicators as described in `docs/specs/m2m.md`. This spec extends resource indicators — the same pre-registered Resources and Scopes — to the `authorization_code` and `refresh_token` grants. `docs/specs/m2m.md` documents a `scope_by_aud` claim for multi-resource `client_credentials` tokens; that claim is not implemented for either grant family today (see [Implementation Status](#implementation-status)).
 
-The key difference is that for `client_credentials`, `resource` is **required** (per existing implementation). For `authorization_code` and `refresh_token`, `resource` is **optional** to preserve backward compatibility.
+Two things do **not** carry across:
+
+- **`resource` is required** for `client_credentials` (per existing implementation), and **optional** for `authorization_code` and `refresh_token`, to preserve backward compatibility.
+- **The authorization mechanism is different.** `client_credentials` uses an explicit Client-Resource Association and never consults `access_policy`; `authorization_code`/`refresh_token` use `access_policy` and never consult an association. The two are partitioned by grant, not layered — see [api-resource.md — Relationship to Client-Resource Association](./api-resource.md#relationship-to-client-resource-association) and [m2m.md](./m2m.md#discussion-resource-scope-client-and-downscoping).

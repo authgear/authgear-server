@@ -359,6 +359,12 @@ To strictly follow [About scope and access_token](#discussion-about-scope-and-ac
 **explicit** association between Resource and Client are **required**,
 regardless of whether the client is **public** or **confidential**, **first-party** or **third-party**.
 
+This holds for `client_credentials` unconditionally: a Resource's [`access_policy`](./api-resource.md#access-policy) governs the `authorization_code` and `refresh_token` grants only and never waives the association requirement here. The grant has no user and no consent screen, so the client is the principal, and its least-privilege model depends on an admin naming each client and each scope explicitly.
+
+An `m2m` client is in no `access_policy` category at all, since `client_credentials` is the only grant it can use. A `confidential` client is in the static first-party category *and* can use `client_credentials`, so both rules apply to it: `access_policy` at `/oauth2/authorize`, the association requirement at `client_credentials`.
+
+Conversely, only a client that can use `client_credentials` may be associated with a Resource — an association on any other client is inert, because no other grant consults one. See [API Resources and Scopes — Which clients may be associated](./api-resource.md#which-clients-may-be-associated).
+
 For the following examples, assume
 
 - `johndoe` is `onlinestore:admin` **but not** `inventory:admin`.

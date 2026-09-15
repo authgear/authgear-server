@@ -5,7 +5,7 @@ Authgear supports Dynamic Client Registration as defined by:
 - [RFC 7591 — OAuth 2.0 Dynamic Client Registration Protocol](https://www.rfc-editor.org/rfc/rfc7591)
 - [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html)
 
-> See also [Client ID Metadata Documents (CIMD)](./cimd.md) — a proposed, registration-free alternative for the same "unregistered client" problem, likely to supersede DCR's open-registration mode for the MCP use case below.
+> See also [Client ID Metadata Documents (CIMD)](./cimd.md) — a registration-free alternative for the same "unregistered client" problem, likely to supersede DCR's open-registration mode for the MCP use case below.
 
 ## Table of Contents
 
@@ -245,7 +245,7 @@ oauth:
 
 - `oauth.dynamic_client_registration.default_client_config`: Optional. Object. The default client config applied to all DCR-registered clients. Useful when stricter settings are needed for the DCR cohort. Per-client overrides are not yet supported; see [Future Works](#future-works). Supports a subset of the fields defined in [Custom Client Metadata](./oidc.md#custom-client-metadata): `access_token_lifetime_seconds`, `refresh_token_lifetime_seconds`, `refresh_token_idle_timeout_enabled`, `refresh_token_idle_timeout_seconds`.
 
-> **Note:** Resource access for third-party clients is configured via the portal, not `authgear.yaml`. Resources and Scopes with `access_policy.allow_dynamic_third_party_client_access: true` are accessible to dynamic third-party clients — DCR-registered today, CIMD-resolved later — not to a static `third_party_app` client declared in `authgear.yaml`, which has no mechanism to be granted resource access for these grants. See [API Resources and Scopes](./api-resource.md#access-policy).
+> **Note:** Resource access for third-party clients is configured via the portal, not `authgear.yaml`. Resources and Scopes with `access_policy.allow_dynamic_third_party_client_access: true` are accessible to dynamic third-party clients — DCR-registered today, CIMD-resolved later. A static `third_party_app` client declared in `authgear.yaml` is a different category with its own key, `allow_static_third_party_client_access`. See [API Resources and Scopes](./api-resource.md#access-policy).
 
 ### Client Limit
 
@@ -525,9 +525,9 @@ DCR client secrets are stored hashed in the database.
 
 By default, all Authgear access tokens share `aud = [<project_endpoint>]`. A resource server that only validates `aud` cannot distinguish tokens intended for different services — this is the **audience confusion** risk.
 
-Authgear mitigates this via RFC 8707 resource indicators. Resource owners pre-register their API as a Resource in the portal and associate it with allowed clients. When a client requests a token with `resource=<uri>`, the issued access token includes that URI in `aud`, and the resource server can enforce `aud` contains its own URI.
+Authgear mitigates this via RFC 8707 resource indicators. Resource owners pre-register their API as a Resource in the portal and declare which categories of client may request it. When a client requests a token with `resource=<uri>`, the issued access token includes that URI in `aud`, and the resource server can enforce `aud` contains its own URI.
 
-DCR-registered clients, being dynamic third-party clients, support resource indicators via API Resources registered in the portal. Only Resources with `access_policy.allow_dynamic_third_party_client_access: true` are accessible, and only Scopes with `access_policy.allow_dynamic_third_party_client_access: true` may be requested — this policy is dynamic-only by design, so a static `third_party_app` client cannot use it even if the flag is set. All other project resources and scopes remain inaccessible, preventing audience confusion against first-party clients.
+DCR-registered clients, being dynamic third-party clients, support resource indicators via API Resources registered in the portal. Only Resources with `access_policy.allow_dynamic_third_party_client_access: true` are accessible, and only Scopes with `access_policy.allow_dynamic_third_party_client_access: true` may be requested. The key is literal and covers this one client category only — a static `third_party_app` client is governed by its own `allow_static_third_party_client_access` key, and setting the dynamic key does not reach it. All other project resources and scopes remain inaccessible, preventing audience confusion against first-party clients.
 
 A DCR client that requests no `resource` parameter receives an opaque access token, scoped to the userinfo endpoint only — never a JWT with the project endpoint as `aud`, which is reserved for first-party clients. See [Access Token Audience Binding — How It Works](./access-token-audience-binding.md#how-it-works).
 
