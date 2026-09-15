@@ -433,6 +433,9 @@ func NewRouter(ctx context.Context, p *deps.RootProvider, configSource *configso
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsSessionsRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsSessionsHandler),
 	})
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsAuthorizedAppsRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
+		SettingV2: p.Handler(newWebAppAuthflowV2SettingsAuthorizedAppsHandler),
+	})
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsChangePasswordRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsChangePasswordHandler),
 	})

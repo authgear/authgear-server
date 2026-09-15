@@ -4,15 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"time"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -31,36 +27,19 @@ func ConfigureAuthflowV2SettingsSessionsRoute(route httproute.Route) httproute.R
 		WithPathPattern("/settings/sessions")
 }
 
-type Authorization struct {
-	ID                    string
-	ClientID              string
-	ClientName            string
-	ClientLogoURI         string
-	Scope                 []string
-	CreatedAt             time.Time
-	HasFullUserInfoAccess bool
-}
-
-type SettingsSessionsClientResolver interface {
-	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
-}
-
 type SettingsSessionsViewModel struct {
 	CurrentSessionID string
 	Sessions         []*sessionlisting.Session
-	Authorizations   []Authorization
 }
 
 type AuthflowV2SettingsSessionsHandler struct {
-	Database            *appdb.Handle
-	ControllerFactory   handlerwebapp.ControllerFactory
-	BaseViewModel       *viewmodels.BaseViewModeler
-	SettingsViewModel   *viewmodels.SettingsViewModeler
-	Renderer            handlerwebapp.Renderer
-	Sessions            SettingsSessionManager
-	Authorizations      SettingsAuthorizationService
-	OAuthClientResolver SettingsSessionsClientResolver
-	SessionListing      SettingsSessionListingService
+	Database          *appdb.Handle
+	ControllerFactory handlerwebapp.ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	SettingsViewModel *viewmodels.SettingsViewModeler
+	Renderer          handlerwebapp.Renderer
+	Sessions          SettingsSessionManager
+	SessionListing    SettingsSessionListingService
 }
 
 func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]any, error) {
@@ -91,41 +70,6 @@ func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http
 		return nil, err
 	}
 	settingsSessionsViewModel.Sessions = sessionModels
-
-	// Get third party app authorization
-	filter := oauth.NewKeepThirdPartyAuthorizationFilter(h.OAuthClientResolver)
-	authorizations, err := h.Authorizations.ListByUser(ctx, *userID, filter)
-	if err != nil {
-		return nil, err
-	}
-	authzs := []Authorization{}
-	for _, authz := range authorizations {
-		// One resolve per authorization, same as the filter just did --
-		// ResolveClient is cached, and the alternative (threading the
-		// resolved config out of the filter) would couple the filter to
-		// this caller's rendering needs.
-		//
-		// Client.Name, not Client.ClientName: the display-name fallback, so
-		// a dynamic client with no client_name shows "Client <clientID>"
-		// rather than blank. Same fix as consent.go's consentViewModelForClient.
-		clientName := authz.ClientID
-		logoURI := ""
-		if c := h.OAuthClientResolver.ResolveClient(ctx, authz.ClientID); c != nil {
-			clientName = c.Name
-			logoURI = c.LogoURI
-		}
-		authzs = append(authzs, Authorization{
-			ID:                    authz.ID,
-			ClientID:              authz.ClientID,
-			ClientName:            clientName,
-			ClientLogoURI:         logoURI, // new field; nothing renders it yet
-			Scope:                 authz.Scopes,
-			CreatedAt:             authz.CreatedAt,
-			HasFullUserInfoAccess: authz.IsAuthorized([]string{oauth.FullUserInfoScope}),
-		})
-	}
-
-	settingsSessionsViewModel.Authorizations = authzs
 
 	settingsSessionsViewModel.CurrentSessionID = s.SessionID()
 	viewmodels.Embed(data, settingsSessionsViewModel)
@@ -191,34 +135,6 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 		userID := currentSession.GetAuthenticationInfo().UserID
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			return h.Sessions.TerminateAllExcept(ctx, userID, currentSession, false)
-		})
-		if err != nil {
-			return err
-		}
-
-		result := webapp.Result{RedirectURI: redirectURI}
-		result.WriteResponse(w, r)
-		return nil
-	})
-
-	ctrl.PostAction("remove_authorization", func(ctx context.Context) error {
-		authorizationID := r.Form.Get("x_authorization_id")
-		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			authz, err := h.Authorizations.GetByID(ctx, authorizationID)
-			if err != nil {
-				return err
-			}
-
-			if authz.UserID != currentSession.GetAuthenticationInfo().UserID {
-				return apierrors.NewForbidden("cannot remove authorization")
-			}
-
-			err = h.Authorizations.Delete(ctx, authz)
-			if err != nil {
-				return err
-			}
-
-			return nil
 		})
 		if err != nil {
 			return err
