@@ -37,6 +37,13 @@ func ProvideConfigSource(ctrl *configsource.Controller) *configsource.ConfigSour
 	return ctrl.GetConfigSource()
 }
 
+func ProvideSourceMapConfig(cfg *config.EnvironmentConfig) httputil.SourceMapConfig {
+	return httputil.SourceMapConfig{
+		Enabled:     cfg.SourceMap.Enabled,
+		SentryToken: cfg.SourceMap.SentryToken,
+	}
+}
+
 func ProvideAuditDatabaseCredentials(cfg *config.EnvironmentConfig) *config.AuditDatabaseCredentials {
 	if cfg.AuditDatabase.DatabaseURL != "" && cfg.AuditDatabase.DatabaseSchema != "" {
 		return &config.AuditDatabaseCredentials{
@@ -100,6 +107,7 @@ var DependencySet = wire.NewSet(
 	ProvideConfigSource,
 	ProvideAppBaseResources,
 	ProvideAuditDatabaseCredentials,
+	ProvideSourceMapConfig,
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Value(template.DefaultLanguageTag(intl.BuiltinBaseLanguage)),
 	wire.Value(template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})),

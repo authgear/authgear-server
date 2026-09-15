@@ -2,7 +2,9 @@ package httputil
 
 import (
 	"bytes"
+	"crypto/subtle"
 	"errors"
+	"fmt"
 	htmltemplate "html/template"
 	"io"
 	"io/fs"
@@ -10,7 +12,38 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 )
+
+const sourceMapBasicAuthRealm = "source map"
+
+// SourceMapConfig configures how FileServer serves source map (*.map) files.
+type SourceMapConfig struct {
+	// Enabled sets whether source map files are served at all.
+	// When it is false, source map files are served as if they did not exist.
+	Enabled bool
+	// SentryToken, when non-empty, protects source map files with HTTP basic authentication.
+	// The token is the password, and the username is ignored.
+	// Sentry fetches a publicly hosted source map with a configurable header,
+	// so it can be configured to send `Authorization: Basic <base64 of ":<token>">`.
+	// See https://docs.sentry.io/platforms/javascript/sourcemaps/uploading/hosting-publicly/
+	SentryToken string
+}
+
+// IsAuthorized tells whether r is allowed to fetch a source map file.
+func (c SourceMapConfig) IsAuthorized(r *http.Request) bool {
+	if c.SentryToken == "" {
+		return true
+	}
+
+	_, password, ok := r.BasicAuth()
+	if !ok {
+		return false
+	}
+
+	return subtle.ConstantTimeCompare([]byte(password), []byte(c.SentryToken)) == 1
+}
 
 type FileServerIndexHTMLTemplateDataKeyType struct{}
 
@@ -25,6 +58,9 @@ type FileServer struct {
 	FileSystem          http.FileSystem
 	AssetsDir           string
 	FallbackToIndexHTML bool
+	// SourceMap configures how source map (*.map) files are served.
+	// The zero value serves no source map file.
+	SourceMap SourceMapConfig
 }
 
 func (s *FileServer) writeError(w http.ResponseWriter, err error) {
@@ -42,6 +78,15 @@ func (s *FileServer) writeError(w http.ResponseWriter, err error) {
 	}
 	w.WriteHeader(http.StatusInternalServerError)
 	return
+}
+
+func (s *FileServer) writeUnauthorized(w http.ResponseWriter) {
+	// http.Error is NOT used intentionally to avoid returning a text/plain response.
+	// The desired response is WITHOUT content-type, and with content-length: 0
+	w.Header().Del("Content-Type")
+	w.Header().Set("Content-Length", "0")
+	w.Header().Set("WWW-Authenticate", fmt.Sprintf("Basic realm=%q", sourceMapBasicAuthRealm))
+	w.WriteHeader(http.StatusUnauthorized)
 }
 
 func (s *FileServer) open(name string) (http.File, fs.FileInfo, error) {
@@ -62,7 +107,7 @@ func (s *FileServer) open(name string) (http.File, fs.FileInfo, error) {
 	return file, stat, nil
 }
 
-func (s *FileServer) serveAsset(w http.ResponseWriter, r *http.Request) {
+func (s *FileServer) serveAsset(w http.ResponseWriter, r *http.Request, isSourceMap bool) {
 	file, stat, err := s.open(r.URL.Path)
 	if err != nil {
 		s.writeError(w, err)
@@ -70,7 +115,13 @@ func (s *FileServer) serveAsset(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	w.Header().Set("Cache-Control", "public, max-age=604800")
+	if isSourceMap {
+		// A source map response can be protected by credentials,
+		// so it must never be stored by a shared cache.
+		w.Header().Set("Cache-Control", "no-store")
+	} else {
+		w.Header().Set("Cache-Control", "public, max-age=604800")
+	}
 	http.ServeContent(w, r, stat.Name(), stat.ModTime(), file)
 }
 
@@ -141,6 +192,22 @@ func (s *FileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// We always normalize the path before we pass it to FileSystem.
 	r.URL.Path = path.Clean("/" + r.URL.Path)
 
+	// Source map files embed the application source code, so they are not served
+	// unless they are explicitly enabled, and they can additionally be protected
+	// by HTTP basic authentication.
+	isSourceMap := filepathutil.IsSourceMapPath(r.URL.Path)
+	if isSourceMap {
+		if !s.SourceMap.Enabled {
+			// Behave as if the source map file did not exist.
+			s.writeError(w, fs.ErrNotExist)
+			return
+		}
+		if !s.SourceMap.IsAuthorized(r) {
+			s.writeUnauthorized(w)
+			return
+		}
+	}
+
 	// First of all we need to identity whether the path
 	// seems like fetching a name-hashed file.
 	//
@@ -150,7 +217,7 @@ func (s *FileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// If the request fetches a non-name-hashed file,
 	// we fallback to index.html for not found.
 	if strings.HasPrefix(r.URL.Path, "/"+s.AssetsDir) {
-		s.serveAsset(w, r)
+		s.serveAsset(w, r, isSourceMap)
 	} else {
 		s.serveOther(w, r)
 	}
