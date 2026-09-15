@@ -233,6 +233,7 @@ type TokenHandler struct {
 	OfflineGrantService             TokenHandlerOfflineGrantService
 	PreAuthenticatedURLTokenService PreAuthenticatedURLTokenService
 	ClientResourceScopeService      TokenHandlerClientResourceScopeService
+	ResourceAccessPolicyService     ResourceAccessPolicyService
 	Graphs                          GraphService
 	IDTokenIssuer                   IDTokenIssuer
 	Clock                           clock.Clock

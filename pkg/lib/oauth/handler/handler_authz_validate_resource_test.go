@@ -34,15 +34,24 @@ type stubResourceScopeService struct {
 	err      error
 }
 
-func (s *stubResourceScopeService) GetResourceByURI(ctx context.Context, uri string) (*resourcescope.Resource, error) {
+func (s *stubResourceScopeService) GetResourceByURI(ctx context.Context, uri string, client model.ClientCategoryClassifier) (*resourcescope.Resource, error) {
 	if s.err != nil {
 		return nil, s.err
+	}
+	if !s.resource.AccessPolicy.AllowsClient(client) {
+		return nil, resourcescope.ErrResourceNotFound
 	}
 	return s.resource, nil
 }
 
-func (s *stubResourceScopeService) ListScopesByResourceID(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error) {
-	return s.scopes, nil
+func (s *stubResourceScopeService) ListScopesByResourceID(ctx context.Context, resourceID string, client model.ClientCategoryClassifier) ([]*resourcescope.Scope, error) {
+	var allowed []*resourcescope.Scope
+	for _, sc := range s.scopes {
+		if sc.AccessPolicy.AllowsClient(client) {
+			allowed = append(allowed, sc)
+		}
+	}
+	return allowed, nil
 }
 
 func TestAuthorizationHandlerValidateResource(t *testing.T) {
@@ -123,7 +132,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 				"resource": "https://api.example.com/secret",
 			})
 			So(scopes, ShouldBeNil)
-			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource not found or not accessible to third-party clients"))
+			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource not found or not accessible to this client"))
 		})
 
 		Convey("dynamic third-party client with a resource found but policy-disabled is invalid_target", func() {
@@ -138,7 +147,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 				"resource": "https://api.example.com/orders",
 			})
 			So(scopes, ShouldBeNil)
-			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource not found or not accessible to third-party clients"))
+			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource not found or not accessible to this client"))
 		})
 
 		Convey("static third-party client requesting a resource is invalid_target, not routed through the dynamic access policy", func() {
@@ -203,8 +212,17 @@ func TestAuthorizationHandlerResourceScopeDisplayNames(t *testing.T) {
 			So(names, ShouldBeNil)
 		})
 
-		Convey("a client type not eligible for the resource parameter returns nil", func() {
-			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
+		Convey("a client whose category the policy does not admit returns nil", func() {
+			// spaClient is static first-party; the stub resource below has
+			// every access_policy key false, so it fails closed exactly
+			// like a resource that does not exist.
+			h := &AuthorizationHandler{
+				IDTokenIssuer: stubIDTokenIssuer{},
+				Database:      &db.MockHandle{},
+				ResourceScopeService: &stubResourceScopeService{
+					resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: "https://api.example.com/orders"},
+				},
+			}
 			names := h.resourceScopeDisplayNames(context.Background(), spaClient, protocol.AuthorizationRequest{
 				"resource": "https://api.example.com/orders",
 			})

@@ -144,18 +144,6 @@ type AuthorizationHandlerCIMDService interface {
 	EnsureClientResolved(ctx context.Context, clientID string) error
 }
 
-// AuthorizationHandlerResourceScopeService is the access-policy read path
-// (docs/plans/resource-indicator/2026-09-15-01-access-policy-model.md §6) —
-// deliberately a different service shape from handler_token.go's
-// TokenHandlerClientResourceScopeService, which checks an explicit M2M
-// client-resource association instead. Unlike that service, neither method
-// here filters by policy itself; the policy check is
-// model.AccessPolicy.AllowsClient, applied by the caller.
-type AuthorizationHandlerResourceScopeService interface {
-	GetResourceByURI(ctx context.Context, uri string) (*resourcescope.Resource, error)
-	ListScopesByResourceID(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error)
-}
-
 var AuthorizationHandlerLogger = slogutil.NewLogger("oauth-authz")
 
 type AuthorizationHandler struct {
@@ -184,7 +172,7 @@ type AuthorizationHandler struct {
 	PreAuthenticatedURLTokenService         AuthorizationHandlerPreAuthenticatedURLTokenService
 	IDTokenIssuer                           IDTokenIssuer
 	AuthorizationHandlerAccessTokenEncoding AuthorizationHandlerAccessTokenEncoding
-	ResourceScopeService                    AuthorizationHandlerResourceScopeService
+	ResourceScopeService                    ResourceAccessPolicyService
 	CIMDService                             AuthorizationHandlerCIMDService
 }
 
@@ -199,7 +187,7 @@ type AuthorizationHandler struct {
 // (deliberately outside one, since the consent screen must not be rendered
 // inside a write transaction) — see pkg/lib/usage.Limiter.dispatchEventImmediately
 // for the same pattern.
-func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (allowedResourceScopes []string, err error) {
+func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (allowedScopes []string, err error) {
 	resourceURI := r.Resource()
 	if resourceURI == "" {
 		return nil, nil
@@ -209,42 +197,22 @@ func (h *AuthorizationHandler) validateResource(ctx context.Context, client *con
 	}
 
 	switch {
+	case client.ApplicationType == config.OAuthClientApplicationTypeM2M:
+		// M2M clients do not use /oauth2/authorize at all — already rejected
+		// earlier in ValidateRequestWithoutTx. Unreachable in practice; kept
+		// only so the switch is exhaustive and self-documenting.
+		return nil, protocol.NewError("unauthorized_client", "m2m clients are not allowed to use the authorize endpoint")
 	case client.IsDynamicClient() && client.IsThirdParty():
-		// Both checks are required, independently:
-		//   - IsThirdParty alone is also true for a static
-		//     OAuthClientApplicationTypeThirdPartyApp client, but the path
-		//     below is gated by a Resource/Scope's
-		//     allow_dynamic_third_party_client_access policy specifically —
-		//     a static third-party client must fall through to default
-		//     below (deferred; see its comment) rather than being granted
-		//     access via a policy meant only for dynamically-resolved
-		//     clients.
-		//   - IsDynamicClient alone is not enough either: a dynamic
-		//     first-party client (Kind == FIRST_PARTY) IsDynamicClient()
-		//     but not IsThirdParty() (see OAuthClientConfig.IsDynamic's
-		//     comment) — first-party support for the resource parameter is
-		//     separately deferred, same as for static first-party clients.
-		var resource *resourcescope.Resource
-		var allowedScopes []*resourcescope.Scope
+		// This arm is currently the only one reached below the switch --
+		// every other client falls into the default case, which always
+		// errors. See
+		// docs/plans/resource-indicator/2026-09-15-03-oauth-enforcement.md §3
+		// for widening this to every client category.
+		var allowed []string
 		read := func(ctx context.Context) error {
 			var err error
-			resource, err = h.ResourceScopeService.GetResourceByURI(ctx, resourceURI)
-			if err != nil {
-				return err
-			}
-			if !resource.AccessPolicy.AllowsClient(client) {
-				return resourcescope.ErrResourceNotFound
-			}
-			scopes, err := h.ResourceScopeService.ListScopesByResourceID(ctx, resource.ID)
-			if err != nil {
-				return err
-			}
-			for _, s := range scopes {
-				if s.AccessPolicy.AllowsClient(client) {
-					allowedScopes = append(allowedScopes, s)
-				}
-			}
-			return nil
+			allowed, err = allowedResourceScopes(ctx, h.ResourceScopeService, client, resourceURI)
+			return err
 		}
 		if h.Database.IsInTx(ctx) {
 			err = read(ctx)
@@ -252,17 +220,9 @@ func (h *AuthorizationHandler) validateResource(ctx context.Context, client *con
 			err = h.Database.ReadOnly(ctx, read)
 		}
 		if err != nil {
-			if errors.Is(err, resourcescope.ErrResourceNotFound) {
-				return nil, protocol.NewError("invalid_target", "resource not found or not accessible to third-party clients")
-			}
 			return nil, err
 		}
-		return slice.Map(allowedScopes, func(s *resourcescope.Scope) string { return s.Scope }), nil
-	case client.ApplicationType == config.OAuthClientApplicationTypeM2M:
-		// M2M clients do not use /oauth2/authorize at all — already rejected
-		// earlier in ValidateRequestWithoutTx. Unreachable in practice; kept
-		// only so the switch is exhaustive and self-documenting.
-		return nil, protocol.NewError("unauthorized_client", "m2m clients are not allowed to use the authorize endpoint")
+		return allowed, nil
 	default:
 		// Every client that isn't both dynamic and third-party — always
 		// error. This covers: every static client type including
@@ -281,40 +241,27 @@ func (h *AuthorizationHandler) validateResource(ctx context.Context, client *con
 // resourceScopeDisplayNames looks up the human-readable display text (the
 // Scope's Description, falling back to the scope's own name if unset) for
 // every scope belonging to r's "resource" parameter, keyed by scope name,
-// for the consent screen to show. It mirrors validateResource's
-// dynamic-third-party-client-with-a-resource condition, but unlike
-// validateResource this is purely informational for rendering: it returns
-// nil rather than an error for every other case (no resource requested, a
-// client type not eligible for the resource parameter, or a lookup
-// failure) -- by the time this is called, validateResource has already
-// succeeded for the same request in the same transaction (see
-// doHandleConsentRequest), so those scopes are already known valid; this
-// function only decides how to label them on screen.
+// for the consent screen to show. Unlike validateResource, it returns nil
+// rather than an error on any failure -- by the time this is called,
+// validateResource has already succeeded for the same request in the same
+// transaction (see doHandleConsentRequest), so this only decides how to
+// label already-valid scopes. It does its own Resource/Scope read rather
+// than calling allowedResourceScopes because it needs each Scope's
+// Description, not just its name.
 func (h *AuthorizationHandler) resourceScopeDisplayNames(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) map[string]string {
 	resourceURI := r.Resource()
-	if resourceURI == "" || !(client.IsDynamicClient() && client.IsThirdParty()) {
+	if resourceURI == "" {
 		return nil
 	}
 
 	var scopes []*resourcescope.Scope
 	read := func(ctx context.Context) error {
-		resource, err := h.ResourceScopeService.GetResourceByURI(ctx, resourceURI)
+		resource, err := h.ResourceScopeService.GetResourceByURI(ctx, resourceURI, client)
 		if err != nil {
 			return err
 		}
-		if !resource.AccessPolicy.AllowsClient(client) {
-			return resourcescope.ErrResourceNotFound
-		}
-		allScopes, err := h.ResourceScopeService.ListScopesByResourceID(ctx, resource.ID)
-		if err != nil {
-			return err
-		}
-		for _, s := range allScopes {
-			if s.AccessPolicy.AllowsClient(client) {
-				scopes = append(scopes, s)
-			}
-		}
-		return nil
+		scopes, err = h.ResourceScopeService.ListScopesByResourceID(ctx, resource.ID, client)
+		return err
 	}
 	var err error
 	if h.Database.IsInTx(ctx) {

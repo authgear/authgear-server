@@ -1278,6 +1278,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	oAuthFeatureConfig := featureConfig.OAuth
 	cimdhttpClients := cimd.ProvideCIMDHTTPClients(httpFeatureConfig)
 	fetcher := &cimd.Fetcher{
@@ -1336,7 +1339,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		PreAuthenticatedURLTokenService:         preAuthenticatedURLTokenServiceImpl,
 		IDTokenIssuer:                           idTokenIssuer,
 		AuthorizationHandlerAccessTokenEncoding: oauthAccessTokenEncoding,
-		ResourceScopeService:                    resourcescopeStore,
+		ResourceScopeService:                    accessPolicyService,
 		CIMDService:                             cimdService,
 	}
 	authorizeHandler := &oauth3.AuthorizeHandler{
@@ -2346,6 +2349,9 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	oAuthFeatureConfig := featureConfig.OAuth
 	cimdhttpClients := cimd.ProvideCIMDHTTPClients(httpFeatureConfig)
 	fetcher := &cimd.Fetcher{
@@ -2404,7 +2410,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		PreAuthenticatedURLTokenService:         preAuthenticatedURLTokenServiceImpl,
 		IDTokenIssuer:                           idTokenIssuer,
 		AuthorizationHandlerAccessTokenEncoding: oauthAccessTokenEncoding,
-		ResourceScopeService:                    resourcescopeStore,
+		ResourceScopeService:                    accessPolicyService,
 		CIMDService:                             cimdService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -3398,6 +3404,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
 		Store: resourcescopeStore,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	facadeIdentityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
@@ -3606,6 +3615,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService:             oauthOfflineGrantService,
 		PreAuthenticatedURLTokenService: preAuthenticatedURLTokenServiceImpl,
 		ClientResourceScopeService:      clientResourceScopeService,
+		ResourceAccessPolicyService:     accessPolicyService,
 		Graphs:                          interactionService,
 		IDTokenIssuer:                   idTokenIssuer,
 		Clock:                           clockClock,
@@ -8462,6 +8472,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
 		Store: resourcescopeStore,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	facadeIdentityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
@@ -8670,6 +8683,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService:             oauthOfflineGrantService,
 		PreAuthenticatedURLTokenService: preAuthenticatedURLTokenServiceImpl,
 		ClientResourceScopeService:      clientResourceScopeService,
+		ResourceAccessPolicyService:     accessPolicyService,
 		Graphs:                          interactionService,
 		IDTokenIssuer:                   idTokenIssuer,
 		Clock:                           clockClock,
@@ -51223,6 +51237,9 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
 		Store: resourcescopeStore,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{
 		Secrets:                   oAuthKeyMaterials,
 		Clock:                     clockClock,
@@ -51294,6 +51311,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService:             oauthOfflineGrantService,
 		PreAuthenticatedURLTokenService: preAuthenticatedURLTokenServiceImpl,
 		ClientResourceScopeService:      clientResourceScopeService,
+		ResourceAccessPolicyService:     accessPolicyService,
 		Graphs:                          interactionService,
 		IDTokenIssuer:                   idTokenIssuer,
 		Clock:                           clockClock,

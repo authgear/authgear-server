@@ -16,7 +16,6 @@ import (
 	oauthsession "github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	oidc "github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	protocol "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
-	resourcescope "github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -617,57 +616,4 @@ func (m *MockAuthorizationHandlerCIMDService) EnsureClientResolved(ctx context.C
 func (mr *MockAuthorizationHandlerCIMDServiceMockRecorder) EnsureClientResolved(ctx, clientID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnsureClientResolved", reflect.TypeOf((*MockAuthorizationHandlerCIMDService)(nil).EnsureClientResolved), ctx, clientID)
-}
-
-// MockAuthorizationHandlerResourceScopeService is a mock of AuthorizationHandlerResourceScopeService interface.
-type MockAuthorizationHandlerResourceScopeService struct {
-	ctrl     *gomock.Controller
-	recorder *MockAuthorizationHandlerResourceScopeServiceMockRecorder
-}
-
-// MockAuthorizationHandlerResourceScopeServiceMockRecorder is the mock recorder for MockAuthorizationHandlerResourceScopeService.
-type MockAuthorizationHandlerResourceScopeServiceMockRecorder struct {
-	mock *MockAuthorizationHandlerResourceScopeService
-}
-
-// NewMockAuthorizationHandlerResourceScopeService creates a new mock instance.
-func NewMockAuthorizationHandlerResourceScopeService(ctrl *gomock.Controller) *MockAuthorizationHandlerResourceScopeService {
-	mock := &MockAuthorizationHandlerResourceScopeService{ctrl: ctrl}
-	mock.recorder = &MockAuthorizationHandlerResourceScopeServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockAuthorizationHandlerResourceScopeService) EXPECT() *MockAuthorizationHandlerResourceScopeServiceMockRecorder {
-	return m.recorder
-}
-
-// GetResourceByURI mocks base method.
-func (m *MockAuthorizationHandlerResourceScopeService) GetResourceByURI(ctx context.Context, uri string) (*resourcescope.Resource, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResourceByURI", ctx, uri)
-	ret0, _ := ret[0].(*resourcescope.Resource)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetResourceByURI indicates an expected call of GetResourceByURI.
-func (mr *MockAuthorizationHandlerResourceScopeServiceMockRecorder) GetResourceByURI(ctx, uri interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResourceByURI", reflect.TypeOf((*MockAuthorizationHandlerResourceScopeService)(nil).GetResourceByURI), ctx, uri)
-}
-
-// ListScopesByResourceID mocks base method.
-func (m *MockAuthorizationHandlerResourceScopeService) ListScopesByResourceID(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListScopesByResourceID", ctx, resourceID)
-	ret0, _ := ret[0].([]*resourcescope.Scope)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListScopesByResourceID indicates an expected call of ListScopesByResourceID.
-func (mr *MockAuthorizationHandlerResourceScopeServiceMockRecorder) ListScopesByResourceID(ctx, resourceID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListScopesByResourceID", reflect.TypeOf((*MockAuthorizationHandlerResourceScopeService)(nil).ListScopesByResourceID), ctx, resourceID)
 }
