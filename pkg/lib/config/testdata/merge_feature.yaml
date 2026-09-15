@@ -169,6 +169,18 @@ configs:
   - test_mode:
       sms:
         suppressed: true
+  # admin_api.rate_limits: a layer setting only the mutation bucket must not
+  # reset create_session_enabled or the usage limits set by the earlier
+  # admin_api layers above -- that is the AdminAPIFeatureConfig -> RateLimits
+  # -> Mutation -> All cascade working.
+  - admin_api:
+      rate_limits:
+        mutation:
+          all:
+            per_project:
+              enabled: true
+              period: 30s
+              burst: 7
 result:
   test_mode:
     fixed_oob_otp:
@@ -217,6 +229,13 @@ result:
       enabled: false
       period: month
       quota: 1
+    rate_limits:
+      mutation:
+        all:
+          per_project:
+            enabled: true
+            period: 30s
+            burst: 7
   ui:
     white_labeling:
       disabled: true

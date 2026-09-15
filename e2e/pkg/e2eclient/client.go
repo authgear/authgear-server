@@ -825,6 +825,23 @@ type GraphQLResponse struct {
 			Reason    string `json:"reason"`
 		} `json:"extensions"`
 	} `json:"errors"`
+	// Error carries the api.Response envelope the Admin API returns when it
+	// rejects a request *before* executing it -- exceeding a rate limit, or
+	// carrying too many mutation fields. Those rejections never reach the
+	// GraphQL executor, so they appear here rather than in Errors, and the
+	// response carries a non-200 status.
+	Error *GraphQLResponseError `json:"error"`
+}
+
+type GraphQLResponseError struct {
+	Name   string `json:"name"`
+	Reason string `json:"reason"`
+	Info   struct {
+		RateLimit struct {
+			Name  string `json:"name"`
+			Group string `json:"group"`
+		} `json:"rate_limit"`
+	} `json:"info"`
 }
 
 // In e2e test, recommend to use `GraphQLAPIRaw` below to check the response in JSON string format over a GraphQLResponse Object
