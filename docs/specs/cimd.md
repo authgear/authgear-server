@@ -291,8 +291,7 @@ Every other step reads that persisted record — a plain lookup, never a live fe
 
 - **`/oauth2/token`** (both `authorization_code` and `refresh_token` grants) reads it to validate the client and load its config.
 - **The Admin API's `dynamicClients` query and `user.authorizations` field** read it. There is nothing to fail: neither has a network dependency at all.
-
-  There is no end-user "Authorized Apps" page in the Auth UI today — `/settings/sessions` lists signed-in devices, not authorized third-party apps. When such a surface is built it reads this same record for `client_name`/`logo_uri`; until then, the end-user surface is a known gap rather than a delivered feature.
+- **The Auth UI's `/settings/authorized-apps` page** (see [Third-Party Client spec — Sessions and Authorization Management](./third-party-client.md#sessions-and-authorization-management)) also reads it, for the same `client_name`/`logo_uri` display purpose.
 
 Because the record is shared rather than frozen per grant, both endpoints always see the *current* known state of the client, not what was true when any particular user originally authorized it. This is also what lets Authgear implement spec §8.4/§8.4.1's "notice metadata changed compared to the last time it fetched", which a per-grant snapshot could never support: a refetch compares the fetched document against the stored record and, when they differ, emits [`oauth.client.resolved`](./event.md#oauthclientresolved) with both the new and the previous client state (`client` and `old_client`), rather than a computed list of changed fields.
 
@@ -450,4 +449,4 @@ Like any third-party client, a CIMD client that requests no `resource` parameter
 
 CIMD clients are returned by [DCR's `dynamicClients` query](./dcr.md#new-query) alongside DCR-registered clients — no separate query is needed, since both are now backed by a real, deduplicated, per-`client_id` record (see [Where resolution happens](#where-resolution-happens)). A CIMD client is distinguished from a DCR client via `source: CIMD` on the unified `OAuthClient` model (see [client.md](./client.md#graphql-type)); `registeredAt` stays `null` (there is no registration event, only a resolution) and `lastFetchedAt` carries the freshness signal DCR clients don't have.
 
-There is no end-user "Authorized Apps" page in the Auth UI today, so there is currently no end-user surface reading this record — `/settings/sessions` lists signed-in devices rather than authorized third-party apps. This is a known gap rather than a delivered feature; when such a surface is built it reads the same persisted record for display (`client_name`, `logo_uri`) and needs no separate mechanism.
+The Auth UI's `/settings/authorized-apps` page (see [Third-Party Client spec — Sessions and Authorization Management](./third-party-client.md#sessions-and-authorization-management)) is the end-user surface reading this record — distinct from `/settings/sessions`, which lists signed-in devices rather than authorized third-party apps. It reads the same persisted record for display (`client_name`, `logo_uri`) and needs no separate mechanism.
