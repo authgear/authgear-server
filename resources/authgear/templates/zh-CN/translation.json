@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "登录到 {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "使用其他帐户",
   "v2.page.settings-advanced-settings.default.title": "高级设置",
-  "v2.page.settings-authorized-apps.default.empty": "您还没有授权任何第三方应用。",
+  "v2.page.settings-authorized-apps.default.empty": "您还没有授权任何应用。",
   "v2.page.settings-authorized-apps.default.item-description": "已于 <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span> 授权",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "这将撤销 {clientName} 对您帐户的访问权限并使其令牌失效。这不会使您退出 Authgear。",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "移除访问权限",

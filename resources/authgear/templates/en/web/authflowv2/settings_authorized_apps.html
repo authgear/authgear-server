@@ -16,7 +16,7 @@
   {{ $ctx := . }}
 
   {{ if not .Authorizations }}
-    <p class="settings-description">
+    <p class="settings-description text-center pt-5">
       {{ include "v2.page.settings-authorized-apps.default.empty" nil }}
     </p>
   {{ end }}

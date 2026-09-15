@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "Iniciar sessão em {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Usar outra conta",
   "v2.page.settings-advanced-settings.default.title": "Definições Avançadas",
-  "v2.page.settings-authorized-apps.default.empty": "Ainda não autorizou nenhuma aplicação de terceiros.",
+  "v2.page.settings-authorized-apps.default.empty": "Ainda não autorizou nenhuma aplicação.",
   "v2.page.settings-authorized-apps.default.item-description": "Autorizado em <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "Isto irá revogar o acesso de {clientName} à sua conta e invalidar os seus tokens. Isto não termina a sua sessão no Authgear.",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "Remover acesso",

@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "{AppOrClientName}에 로그인",
   "v2.page.select-account.default.use-another-account": "다른 계정 사용",
   "v2.page.settings-advanced-settings.default.title": "고급 설정",
-  "v2.page.settings-authorized-apps.default.empty": "아직 타사 앱을 승인한 적이 없습니다.",
+  "v2.page.settings-authorized-apps.default.empty": "아직 승인한 앱이 없습니다.",
   "v2.page.settings-authorized-apps.default.item-description": "<span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>에 승인됨",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "이 작업은 {clientName}의 계정 액세스 권한을 취소하고 토큰을 무효화합니다. 이 작업으로 Authgear에서 로그아웃되지는 않습니다.",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "액세스 제거",

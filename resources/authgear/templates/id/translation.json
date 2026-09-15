@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "Masuk ke {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gunakan akun lain",
   "v2.page.settings-advanced-settings.default.title": "Pengaturan Lanjutan",
-  "v2.page.settings-authorized-apps.default.empty": "Anda belum mengotorisasi aplikasi pihak ketiga apa pun.",
+  "v2.page.settings-authorized-apps.default.empty": "Anda belum mengizinkan aplikasi apa pun.",
   "v2.page.settings-authorized-apps.default.item-description": "Diotorisasi pada <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "Tindakan ini akan mencabut akses {clientName} ke akun Anda dan membatalkan token-tokennya. Ini tidak akan mengeluarkan Anda dari Authgear.",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "Hapus akses",

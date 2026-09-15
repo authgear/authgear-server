@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "Đăng nhập vào {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Sử dụng tài khoản khác",
   "v2.page.settings-advanced-settings.default.title": "Cài đặt nâng cao",
-  "v2.page.settings-authorized-apps.default.empty": "Bạn chưa cấp quyền cho ứng dụng bên thứ ba nào.",
+  "v2.page.settings-authorized-apps.default.empty": "Bạn chưa cấp quyền cho ứng dụng nào.",
   "v2.page.settings-authorized-apps.default.item-description": "Đã cấp quyền vào <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "Thao tác này sẽ thu hồi quyền truy cập của {clientName} vào tài khoản của bạn và vô hiệu hóa các token của ứng dụng đó. Việc này sẽ không đăng xuất bạn khỏi Authgear.",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "Xóa quyền truy cập",

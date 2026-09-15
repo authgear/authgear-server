@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "Log in to {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Use another account",
   "v2.page.settings-advanced-settings.default.title": "Advanced Settings",
-  "v2.page.settings-authorized-apps.default.empty": "You haven''t authorized any third-party apps yet.",
+  "v2.page.settings-authorized-apps.default.empty": "You haven''t authorized any apps yet.",
   "v2.page.settings-authorized-apps.default.item-description": "Authorized on <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "This will revoke {clientName}''s access to your account and invalidate its tokens. This does not sign you out of Authgear.",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "Remove access",

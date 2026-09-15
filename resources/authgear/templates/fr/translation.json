@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "Connectez-vous à {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Utiliser un autre compte",
   "v2.page.settings-advanced-settings.default.title": "Paramètres avancés",
-  "v2.page.settings-authorized-apps.default.empty": "Vous n''avez pas encore autorisé d''applications tierces.",
+  "v2.page.settings-authorized-apps.default.empty": "Vous n''avez pas encore autorisé d''applications.",
   "v2.page.settings-authorized-apps.default.item-description": "Autorisé le <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "Cela révoquera l''accès de {clientName} à votre compte et invalidera ses jetons. Cela ne vous déconnectera pas d''Authgear.",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "Supprimer l''accès",

@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "{AppOrClientName}にログイン",
   "v2.page.select-account.default.use-another-account": "別のアカウントを使用",
   "v2.page.settings-advanced-settings.default.title": "高度な設定",
-  "v2.page.settings-authorized-apps.default.empty": "サードパーティアプリをまだ承認していません。",
+  "v2.page.settings-authorized-apps.default.empty": "まだアプリを承認していません。",
   "v2.page.settings-authorized-apps.default.item-description": "<span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>に承認済み",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "これにより、{clientName}のアカウントへのアクセスが取り消され、そのトークンが無効になります。これによってAuthgearからサインアウトすることはありません。",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "アクセスを削除",

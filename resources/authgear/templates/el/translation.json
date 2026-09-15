@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "Συνδεθείτε στο {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Χρησιμοποιήστε άλλον λογαριασμό",
   "v2.page.settings-advanced-settings.default.title": "Προχωρημένες Ρυθμίσεις",
-  "v2.page.settings-authorized-apps.default.empty": "Δεν έχετε εξουσιοδοτήσει ακόμα καμία εφαρμογή τρίτου μέρους.",
+  "v2.page.settings-authorized-apps.default.empty": "Δεν έχετε εξουσιοδοτήσει ακόμα καμία εφαρμογή.",
   "v2.page.settings-authorized-apps.default.item-description": "Εξουσιοδοτήθηκε στις <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "Αυτό θα ανακαλέσει την πρόσβαση του {clientName} στον λογαριασμό σας και θα ακυρώσει τα tokens του. Αυτό δεν θα σας αποσυνδέσει από το Authgear.",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "Αφαίρεση πρόσβασης",

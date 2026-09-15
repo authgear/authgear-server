@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "Log masuk ke {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gunakan akaun lain",
   "v2.page.settings-advanced-settings.default.title": "Tetapan Lanjutan",
-  "v2.page.settings-authorized-apps.default.empty": "Anda belum membenarkan mana-mana aplikasi pihak ketiga lagi.",
+  "v2.page.settings-authorized-apps.default.empty": "Anda belum memberi kebenaran kepada mana-mana aplikasi lagi.",
   "v2.page.settings-authorized-apps.default.item-description": "Dibenarkan pada <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "Ini akan menarik balik akses {clientName} kepada akaun anda dan membatalkan tokennya. Ini tidak akan mendaftar keluar anda daripada Authgear.",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "Alih keluar akses",

@@ -692,7 +692,7 @@
   "v2.page.select-account.default.title": "เข้าสู่ระบบ {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "ใช้บัญชีอื่น",
   "v2.page.settings-advanced-settings.default.title": "การตั้งค่าขั้นสูง",
-  "v2.page.settings-authorized-apps.default.empty": "คุณยังไม่ได้อนุญาตแอปของบุคคลที่สามใด ๆ",
+  "v2.page.settings-authorized-apps.default.empty": "คุณยังไม่ได้ให้สิทธิ์แอปใด ๆ",
   "v2.page.settings-authorized-apps.default.item-description": "อนุญาตเมื่อ <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description": "การดำเนินการนี้จะเพิกถอนสิทธิ์การเข้าถึงบัญชีของคุณของ {clientName} และทำให้โทเคนของแอปนี้ใช้งานไม่ได้ การดำเนินการนี้จะไม่ทำให้คุณออกจากระบบ Authgear",
   "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title": "ลบสิทธิ์การเข้าถึง",
