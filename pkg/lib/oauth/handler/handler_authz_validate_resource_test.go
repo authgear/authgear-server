@@ -150,46 +150,86 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource not found or not accessible to this client"))
 		})
 
-		Convey("static third-party client requesting a resource is invalid_target, not routed through the dynamic access policy", func() {
-			// Regression test: IsThirdParty() alone is also true for a static
-			// third_party_app client, but the allow_dynamic_third_party_client_access
-			// policy must only ever be reachable by a dynamically-resolved
-			// (DCR/CIMD) client. A static third-party client requesting a
-			// resource must fall through to the same "not permitted" error
-			// as spa/native/confidential below, not be granted access via
-			// that policy.
-			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
-			scopes, err := h.validateResource(context.Background(), staticThirdPartyClient, protocol.AuthorizationRequest{
-				"resource": "https://api.example.com/orders",
-			})
-			So(scopes, ShouldBeNil)
-			So(err, ShouldResemble, protocol.NewError("invalid_target", "this client is not permitted to use the resource parameter"))
-		})
+		// Every client category (static/dynamic x first/third party) now
+		// reaches the access policy. The matrix below asserts a client of
+		// one category is admitted only by its own policy key, and denied
+		// by every other category's.
+		categories := []struct {
+			name   string
+			client *config.OAuthClientConfig
+			// own is the AccessPolicy with only this category's key true.
+			own model.AccessPolicy
+		}{
+			{
+				name:   "static first-party",
+				client: spaClient,
+				own:    model.AccessPolicy{AllowStaticFirstPartyClientAccess: true},
+			},
+			{
+				name:   "static third-party",
+				client: staticThirdPartyClient,
+				own:    model.AccessPolicy{AllowStaticThirdPartyClientAccess: true},
+			},
+			{
+				name:   "dynamic first-party",
+				client: dynamicFirstPartyClient,
+				own:    model.AccessPolicy{AllowDynamicFirstPartyClientAccess: true},
+			},
+			{
+				name:   "dynamic third-party",
+				client: dynamicThirdPartyClient,
+				own:    model.AccessPolicy{AllowDynamicThirdPartyClientAccess: true},
+			},
+		}
 
-		Convey("dynamic first-party client requesting a resource is invalid_target, not routed through the dynamic access policy", func() {
-			// Regression test for the other half of the fix: IsDynamicClient()
-			// alone is also true for a dynamic first-party client (Kind ==
-			// FIRST_PARTY resolves to the ordinary "spa"/"native"
-			// ApplicationType, not the synthetic DynamicThirdParty one), but
-			// first-party support for the resource parameter is deferred,
-			// same as for static first-party clients -- both IsDynamicClient
-			// and IsThirdParty must hold for the dynamic-access-policy path.
-			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
-			scopes, err := h.validateResource(context.Background(), dynamicFirstPartyClient, protocol.AuthorizationRequest{
-				"resource": "https://api.example.com/orders",
+		for _, cat := range categories {
+			Convey(cat.name+" client is admitted by a Resource that allows its own category", func() {
+				h := &AuthorizationHandler{
+					IDTokenIssuer: stubIDTokenIssuer{},
+					Database:      &db.MockHandle{},
+					ResourceScopeService: &stubResourceScopeService{
+						resource: &resourcescope.Resource{
+							ID:           "resource-id",
+							ResourceURI:  "https://api.example.com/orders",
+							AccessPolicy: cat.own,
+						},
+						scopes: []*resourcescope.Scope{
+							{Scope: "read:orders", AccessPolicy: cat.own},
+						},
+					},
+				}
+				scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
+					"resource": "https://api.example.com/orders",
+				})
+				So(err, ShouldBeNil)
+				So(scopes, ShouldResemble, []string{"read:orders"})
 			})
-			So(scopes, ShouldBeNil)
-			So(err, ShouldResemble, protocol.NewError("invalid_target", "this client is not permitted to use the resource parameter"))
-		})
 
-		Convey("static spa/native/confidential client requesting any resource is invalid_target", func() {
-			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
-			scopes, err := h.validateResource(context.Background(), spaClient, protocol.AuthorizationRequest{
-				"resource": "https://api.example.com/orders",
-			})
-			So(scopes, ShouldBeNil)
-			So(err, ShouldResemble, protocol.NewError("invalid_target", "this client is not permitted to use the resource parameter"))
-		})
+			for _, other := range categories {
+				if other.name == cat.name {
+					continue
+				}
+				other := other
+				Convey(cat.name+" client is invalid_target against a Resource that only allows "+other.name, func() {
+					h := &AuthorizationHandler{
+						IDTokenIssuer: stubIDTokenIssuer{},
+						Database:      &db.MockHandle{},
+						ResourceScopeService: &stubResourceScopeService{
+							resource: &resourcescope.Resource{
+								ID:           "resource-id",
+								ResourceURI:  "https://api.example.com/orders",
+								AccessPolicy: other.own,
+							},
+						},
+					}
+					scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
+						"resource": "https://api.example.com/orders",
+					})
+					So(scopes, ShouldBeNil)
+					So(err, ShouldResemble, protocol.NewError("invalid_target", "resource not found or not accessible to this client"))
+				})
+			}
+		}
 	})
 }
 

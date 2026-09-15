@@ -188,6 +188,70 @@ func TestAuthorizationHandler(t *testing.T) {
 			})
 		})
 
+		Convey("grant type required for response_type", func() {
+			clientResolver.ClientConfigs["m2m-client"] = &config.OAuthClientConfig{
+				ClientID:        "m2m-client",
+				ApplicationType: config.OAuthClientApplicationTypeM2M,
+			}
+
+			Convey("m2m client requesting response_type=code is unauthorized_client", func() {
+				// m2m's only grant is client_credentials, so it lacks
+				// authorization_code -- the grant code/none leads to. No
+				// redirect_uri is registered for this client, but the
+				// same-origin-as-AS rule implicitly allows one, so this
+				// reaches the grant check rather than failing earlier on
+				// the redirect URI.
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
+					"client_id":     "m2m-client",
+					"redirect_uri":  "http://accounts.example.com/settings",
+					"response_type": "code",
+				})
+				So(resp.Body.String(), ShouldEqual, redirectHTML(
+					"http://accounts.example.com/settings?error=unauthorized_client&error_description=this+client%27s+grant+types+do+not+include+authorization_code",
+				))
+			})
+
+			Convey("m2m client requesting response_type=settings-action is unauthorized_client naming the settings-action grant", func() {
+				// Same client, different response_type: the grant checked
+				// against follows response_type, not a hardcoded
+				// authorization_code.
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
+					"client_id":     "m2m-client",
+					"redirect_uri":  "http://accounts.example.com/settings",
+					"response_type": "urn:authgear:params:oauth:response-type:settings-action",
+				})
+				So(resp.Body.String(), ShouldEqual, redirectHTML(
+					"http://accounts.example.com/settings?error=unauthorized_client&error_description=this+client%27s+grant+types+do+not+include+urn%3Aauthgear%3Aparams%3Aoauth%3Agrant-type%3Asettings-action",
+				))
+			})
+
+			Convey("a bare token response_type skips the grant check and is rejected downstream as unsupported_response_type", func() {
+				// "token" alone is whitelisted (whitelistedResponseTypes)
+				// but has no entry in validateGrantTypeForResponseType's
+				// switch -- it must not be treated as authorization_code,
+				// but it also must not be rejected by this check itself:
+				// validateRequestParameters (called right after) already
+				// owns rejecting it, with unsupported_response_type. This
+				// pins that the two don't disagree about which error code
+				// a bare "token" gets.
+				clientResolver.ClientConfigs["client-id"] = &config.OAuthClientConfig{
+					ClientID:     "client-id",
+					RedirectURIs: []string{"https://example.com/"},
+				}
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
+					"client_id":     "client-id",
+					"redirect_uri":  "https://example.com/",
+					"response_type": "token",
+				})
+				So(resp.Body.String(), ShouldEqual, redirectHTML(
+					"https://example.com/?error=unsupported_response_type&error_description=response_type%3A+token+is+not+supported",
+				))
+			})
+		})
+
 		Convey("CIMD resolution", func() {
 			Convey("EnsureClientResolved is called before ClientResolver.ResolveClient", func() {
 				ensureCalled := false
