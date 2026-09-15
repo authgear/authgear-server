@@ -1,0 +1,261 @@
+name: Revoking a third-party authorization (the /settings/authorized-apps "remove" action) invalidates its refresh token without needing a new login
+authgear.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        enabled: true
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+authgear.features.yaml:
+  override: |
+    oauth:
+      client_id_metadata_document:
+        insecure_http_allowed: true
+        insecure_fetch_address_allowed: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: configure_document
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://localhost:2727/_control/set
+    http_request_body: |
+      {
+        "path": "settings-authorized-apps-{{ .AppID }}.json",
+        "document": {
+          "client_id": "http://localhost:2727/settings-authorized-apps-{{ .AppID }}.json",
+          "client_name": "E2E Authorized Apps Client",
+          "redirect_uris": ["http://localhost:4000"],
+          "grant_types": ["authorization_code", "refresh_token"],
+          "response_types": ["code"],
+          "token_endpoint_auth_method": "none"
+        }
+      }
+    http_output:
+      http_status: 200
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: http://localhost:2727/settings-authorized-apps-{{ .AppID }}.json
+    oauth_setup_scope:
+      - openid
+      - offline_access
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: http://localhost:2727/settings-authorized-apps-{{ .AppID }}.json
+    output:
+      result: |
+        {
+          "access_token": "[[string]]",
+          "refresh_token": "[[string]]"
+        }
+
+  # The refresh token works before the authorization is revoked.
+  - name: refresh_before_revoke
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: http://localhost:2727/settings-authorized-apps-{{ .AppID }}.json
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer"
+        }
+
+  - name: query_authorizations_before_revoke
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey: "username", loginIDValue: "e2e_login") {
+            authorizations {
+              edges {
+                node {
+                  id
+                  clientID
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": {
+              "authorizations": {
+                "edges": [
+                  {
+                    "node": {
+                      "id": "[[string]]",
+                      "clientID": "http://localhost:2727/settings-authorized-apps-{{ .AppID }}.json"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "errors": null
+        }
+
+  # This is the same AuthorizationFacade.Delete/AuthorizationService.Delete
+  # code path the /settings/authorized-apps page's "remove_authorization"
+  # POST action calls, per docs/specs/third-party-client.md's "Sessions and
+  # Authorization Management": revoking an authorization deletes all refresh
+  # tokens issued to that client, without touching the user's IdP session.
+  - name: delete_authorization
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation ($authorizationID: ID!) {
+          deleteAuthorization(input: {authorizationID: $authorizationID}) {
+            user {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "authorizationID": "{{ (index .steps.query_authorizations_before_revoke.result.data.getUserByLoginID.authorizations.edges 0).node.id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "deleteAuthorization": {
+              "user": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+
+  - name: verify_authorization_removed
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey: "username", loginIDValue: "e2e_login") {
+            authorizations {
+              edges {
+                node {
+                  clientID
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": {
+              "authorizations": {
+                "edges": []
+              }
+            }
+          },
+          "errors": null
+        }
+
+  # The client's refresh token no longer works -- proof the revoke actually
+  # deleted the offline grant/refresh tokens, not just the authorization row.
+  - name: refresh_after_revoke
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: http://localhost:2727/settings-authorized-apps-{{ .AppID }}.json
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_grant"
+        }
+
+  # Independent proof the user's own IdP login is unaffected by revoking a
+  # third-party authorization -- they can still log in normally afterward.
+  - name: verify_idp_login_still_works
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
