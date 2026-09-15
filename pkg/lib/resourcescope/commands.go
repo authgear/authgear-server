@@ -64,8 +64,16 @@ func (c *Commands) GetResourceByURI(ctx context.Context, uri string) (*model.Res
 }
 
 func (c *Commands) AddResourceToClientID(ctx context.Context, resourceURI, clientID string) error {
-	if _, found := c.OAuthConfig.GetClient(clientID); !found {
+	client, found := c.OAuthConfig.GetClient(clientID)
+	if !found {
 		return ErrClientNotFound
+	}
+	// Only a client that can use client_credentials has any use for an
+	// association: authorization_code and refresh_token are governed
+	// solely by access_policy and never consult one. See
+	// docs/specs/api-resource.md § Which clients may be associated.
+	if !client.ApplicationType.IsClientCredentialsFlowAllowed() {
+		return ErrClientCannotBeAssociatedWithResource
 	}
 	resource, err := c.Store.GetResourceByURI(ctx, resourceURI)
 	if err != nil {
