@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -73,6 +74,7 @@ func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
+		wire.Bind(new(transport.MutationRateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(http.Handler), new(*transport.GraphQLHandler)),
 	))
 }

@@ -40,6 +40,12 @@ type ResultCallbackFn func(ctx context.Context, params *graphql.Params, result *
 type Handler struct {
 	Schema           *graphql.Schema
 	ResultCallbackFn ResultCallbackFn
+	// BeforeExecuteFn, when set, is called after the request options are parsed
+	// and validated, and before the operation executes. mutationFieldCount is
+	// the number of top-level mutation fields the operation will execute, and
+	// is 0 for a query. Returning an error rejects the request without
+	// executing it; the error's apierrors kind determines the status code.
+	BeforeExecuteFn func(ctx context.Context, mutationFieldCount int) error
 }
 
 type RequestOptions struct {
@@ -147,9 +153,24 @@ func (h *Handler) ContextHandler(ctx context.Context, w http.ResponseWriter, r *
 		panic(err)
 	}
 
-	if err := validateMutationFieldCount(opts.Query, opts.OperationName, maxMutationFieldsPerRequest); err != nil {
+	mutationFieldCount, err := CountTopLevelMutationFields(opts.Query, opts.OperationName)
+	if err != nil {
 		writeErrorResponse(ctx, w, err)
 		return
+	}
+	if mutationFieldCount > maxMutationFieldsPerRequest {
+		writeErrorResponse(ctx, w, apierrors.NewBadRequest(
+			fmt.Sprintf("too many mutation fields in one request: got %d, limit is %d",
+				mutationFieldCount, maxMutationFieldsPerRequest),
+		))
+		return
+	}
+
+	if h.BeforeExecuteFn != nil {
+		if err := h.BeforeExecuteFn(ctx, mutationFieldCount); err != nil {
+			writeErrorResponse(ctx, w, err)
+			return
+		}
 	}
 
 	// execute graphql query
@@ -206,18 +227,23 @@ func writeErrorResponse(ctx context.Context, w http.ResponseWriter, err error) {
 	}
 }
 
-func validateMutationFieldCount(query string, operationName string, limit int) error {
+// CountTopLevelMutationFields returns the number of top-level fields the
+// document's selected operation will execute when that operation is a
+// mutation, and 0 otherwise — for a query, or for an operation that cannot be
+// resolved (see findOperation). Fragment spreads are expanded, so a spread
+// contributes the fields it expands to; a fragment cycle is an error.
+func CountTopLevelMutationFields(query string, operationName string) (int, error) {
 	doc, err := parser.Parse(parser.ParseParams{Source: query})
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	operation, err := findOperation(doc, operationName)
 	if err != nil || operation == nil {
-		return err
+		return 0, err
 	}
 	if operation.Operation != ast.OperationTypeMutation {
-		return nil
+		return 0, nil
 	}
 
 	fragments := make(map[string]*ast.FragmentDefinition)
@@ -229,16 +255,7 @@ func validateMutationFieldCount(query string, operationName string, limit int) e
 		fragments[fragment.Name.Value] = fragment
 	}
 
-	count, err := countTopLevelFields(operation.SelectionSet, fragments, map[string]bool{})
-	if err != nil {
-		return err
-	}
-	if count > limit {
-		return apierrors.NewBadRequest(
-			fmt.Sprintf("too many mutation fields in one request: got %d, limit is %d", count, limit),
-		)
-	}
-	return nil
+	return countTopLevelFields(operation.SelectionSet, fragments, map[string]bool{})
 }
 
 func findOperation(doc *ast.Document, operationName string) (*ast.OperationDefinition, error) {

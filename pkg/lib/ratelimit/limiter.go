@@ -58,6 +58,21 @@ func (l *Limiter) Reserve(ctx context.Context, spec BucketSpec) (*Reservation, *
 	return l.reserveN(ctx, spec, weight)
 }
 
+// AllowN is Allow, taking n tokens instead of 1, for an operation whose cost is
+// known up front — e.g. a GraphQL document carrying n mutation fields.
+// n is multiplied by the group's weight, so AllowN(ctx, spec, 1) is Allow.
+//
+// The take is atomic in both directions: the GCRA script writes only when the
+// whole n conforms, so a rejected call consumes nothing and a partial take can
+// never happen. Calling Allow n times instead would not be equivalent — a
+// failure partway through would leave the earlier tokens consumed, and Allow
+// discards the Reservation that could have cancelled them.
+func (l *Limiter) AllowN(ctx context.Context, spec BucketSpec, n int) (*FailedReservation, error) {
+	weight := spec.RateLimitGroup.ResolveWeight(ctx)
+	_, failedReservation, err := l.reserveN(ctx, spec, float64(n)*weight)
+	return failedReservation, err
+}
+
 // reserveN is the general entry point.
 // If you ever need to pass n=0, you should use GetTimeToAct() instead.
 func (l *Limiter) reserveN(ctx context.Context, spec BucketSpec, n float64) (*Reservation, *FailedReservation, error) {

@@ -1,0 +1,127 @@
+name: Admin API mutations are rate limited per project, and queries are not charged
+authgear.features.yaml:
+  override: |
+    admin_api:
+      rate_limits:
+        mutation:
+          all:
+            per_project:
+              enabled: true
+              period: 1h
+              burst: 2
+steps:
+  - name: create_group_1
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createGroup($key: String!) {
+          createGroup(input: { key: $key, name: "Group" }) {
+            group {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "key": "ratelimit_group_1"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createGroup": {
+              "group": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null,
+          "error": null
+        }
+
+  - name: create_group_2
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createGroup($key: String!) {
+          createGroup(input: { key: $key, name: "Group" }) {
+            group {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "key": "ratelimit_group_2"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createGroup": {
+              "group": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null,
+          "error": null
+        }
+
+  # The bucket held 2 tokens, so the third mutation is rejected before it
+  # executes. The rejection is the api.Response envelope rather than a GraphQL
+  # error, because it never reaches the executor.
+  - name: create_group_3_exceeds_configured_burst
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createGroup($key: String!) {
+          createGroup(input: { key: $key, name: "Group" }) {
+            group {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "key": "ratelimit_group_3"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": null,
+          "error": {
+            "name": "TooManyRequest",
+            "reason": "RateLimited",
+            "info": {
+              "rate_limit": {
+                "name": "admin_api.mutation.all.per_project",
+                "group": "admin_api.mutation"
+              }
+            }
+          }
+        }
+
+  # Queries take no tokens, so reading still works on an exhausted bucket.
+  - name: query_groups_still_works
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          groups(first: 1) {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "errors": null,
+          "error": null
+        }
