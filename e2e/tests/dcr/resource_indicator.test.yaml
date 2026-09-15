@@ -623,14 +623,16 @@ steps:
 
 ---
 
-name: A dynamic first-party client requesting resource= always gets invalid_target
-# Regression test: IsDynamicClient() alone is not enough to reach the
-# dynamic-third-party-only access policy path (see
-# AuthorizationHandler.validateResource) -- IsThirdParty() must also hold.
-# A first-party IAT (per docs/specs/dcr.md) registers exactly this kind of
-# client, and first-party support for the resource parameter is deferred
-# regardless of whether the client is static or dynamically registered
-# (access-token-audience-binding.md's Implementation Status).
+name: A dynamic first-party client requesting resource= gets invalid_target when no Resource allows its category
+# Regression test: IsDynamicClient() alone must not be enough to reach the
+# dynamic-third-party access policy key -- IsThirdParty() must also hold. A
+# first-party IAT (per docs/specs/dcr.md) registers exactly this client
+# shape: dynamic AND first-party, its own category
+# (allow_dynamic_first_party_client_access), distinct from dynamic
+# third-party. No Resource in this project grants that category, so the
+# request is refused -- not because the client type is categorically
+# blocked (see the next test, where the same client shape succeeds once an
+# admin grants it).
 authgear.yaml:
   override: |
     oauth:
@@ -695,14 +697,8 @@ steps:
     http_output:
       http_status: 303
       location_contains:
-        # Asserting error_description too, not just error=invalid_target,
-        # matters here specifically: if IsThirdParty() were ever (bugfully)
-        # true for this client, it would instead fall into the
-        # dynamic-third-party "resource not found" branch, which is also
-        # invalid_target -- same error code, wrong reason, and this
-        # regression would go undetected without checking the description.
         - "error=invalid_target"
-        - "error_description=this+client+is+not+permitted+to+use+the+resource+parameter"
+        - "error_description=resource+not+found+or+not+accessible+to+this+client"
 
 ---
 
