@@ -46,12 +46,17 @@ type OAuthClientRegistrationFailedEventPayload struct {
 	// UsageName and Quota are set only when Reason is "limit_exceeded".
 	UsageName model.UsageName `json:"usage_name,omitempty"`
 	Quota     int             `json:"quota,omitempty"`
+	// Request is what the caller asked for. Nil, and the key absent, only
+	// where no body was decoded: Message "malformed_header",
+	// "not_presented" or "malformed_json". A pointer so that case stays
+	// distinguishable from a body of `{}`, which records an empty object.
+	Request *model.OAuthClientRegistrationRequest `json:"request,omitempty"`
 	// InitialAccessToken identifies the token that was rejected. Present
 	// only when Message is "expired" -- an unknown token has no row to
 	// describe, and none was presented in the "not_presented" case. Shared
 	// shape with oauth.client.registered, deliberately: see
-	// EventPayloadInitialAccessToken's own doc comment.
-	InitialAccessToken *EventPayloadInitialAccessToken `json:"initial_access_token,omitempty"`
+	// model.EventPayloadInitialAccessToken's own doc comment.
+	InitialAccessToken *model.EventPayloadInitialAccessToken `json:"initial_access_token,omitempty"`
 }
 
 func (e *OAuthClientRegistrationFailedEventPayload) NonBlockingEventType() event.Type {

@@ -152,10 +152,11 @@ var payloadRegistry = []any{
 // countPayloadSourceFiles counts the *.go files in dir that define payload
 // types, i.e. every file except test files and the shared helper files that
 // carry no payload type of their own (util.go and project.go in
-// nonblocking's case; oauth_initial_access_token.go defines
-// EventPayloadInitialAccessToken, a sub-object shared by
-// oauth.client.registered and oauth.client.registration.failed, not a
-// payload in its own right).
+// nonblocking's case). Sub-objects shared across multiple event payloads
+// but referenced from outside the event system too --
+// EventPayloadInitialAccessToken, OAuthClientRegistrationRequest,
+// OAuthClientResolutionDocument -- live in pkg/api/model instead of here,
+// so this directory no longer needs an exception list for them.
 func countPayloadSourceFiles(t *testing.T, dir string) int {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -167,7 +168,7 @@ func countPayloadSourceFiles(t *testing.T, dir string) int {
 		if entry.IsDir() {
 			continue
 		}
-		if name == "util.go" || name == "project.go" || name == "oauth_initial_access_token.go" {
+		if name == "util.go" || name == "project.go" {
 			continue
 		}
 		if !hasSuffix(name, ".go") || hasSuffix(name, "_test.go") {

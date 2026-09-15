@@ -64,33 +64,54 @@ type RegistrationHandler struct {
 // RegistrationResponse is the RFC 7591 §3.2.1 success response. There is
 // deliberately no client_secret / client_secret_expires_at field: DCR
 // clients are always public, per docs/specs/dcr.md.
+//
+// These fields are the registration as Authgear recorded it, not an echo
+// of the request -- §3.2.1 requires all registered metadata, which is
+// what makes substituting a requested value safe.
+// RegistrationResponse embeds model.OAuthClientRegisteredMetadata rather
+// than repeating its fields -- see that type's own comment for why: the
+// same embed backs oauth.client.registered's audit event, so the two
+// cannot drift apart the way they once did (client_uri/logo_uri/tos_uri/
+// policy_uri/token_endpoint_auth_method were present here but missing from
+// the event).
 type RegistrationResponse struct {
-	ClientID         string   `json:"client_id"`
-	ClientIDIssuedAt int64    `json:"client_id_issued_at"`
-	ClientName       string   `json:"client_name,omitempty"`
-	RedirectURIs     []string `json:"redirect_uris"`
-	GrantTypes       []string `json:"grant_types"`
-	ResponseTypes    []string `json:"response_types"`
-	ApplicationType  string   `json:"application_type"`
-	ClientURI        string   `json:"client_uri,omitempty"`
-	LogoURI          string   `json:"logo_uri,omitempty"`
-	TOSURI           string   `json:"tos_uri,omitempty"`
-	PolicyURI        string   `json:"policy_uri,omitempty"`
+	ClientID         string `json:"client_id"`
+	ClientIDIssuedAt int64  `json:"client_id_issued_at"`
+	model.OAuthClientRegisteredMetadata
 }
 
 // registrationRequestBody is the raw JSON shape of the POST /oauth2/register
 // request body, decoded before being handed to dcr.ValidateAndNormalize.
 type registrationRequestBody struct {
-	ClientName              *string  `json:"client_name"`
-	RedirectURIs            []string `json:"redirect_uris"`
-	GrantTypes              []string `json:"grant_types"`
-	ResponseTypes           []string `json:"response_types"`
-	ApplicationType         *string  `json:"application_type"`
-	LogoURI                 *string  `json:"logo_uri"`
-	ClientURI               *string  `json:"client_uri"`
-	TOSURI                  *string  `json:"tos_uri"`
-	PolicyURI               *string  `json:"policy_uri"`
-	TokenEndpointAuthMethod *string  `json:"token_endpoint_auth_method"`
+	ClientName      *string  `json:"client_name"`
+	RedirectURIs    []string `json:"redirect_uris"`
+	GrantTypes      []string `json:"grant_types"`
+	ResponseTypes   []string `json:"response_types"`
+	ApplicationType *string  `json:"application_type"`
+	LogoURI         *string  `json:"logo_uri"`
+	ClientURI       *string  `json:"client_uri"`
+	TOSURI          *string  `json:"tos_uri"`
+	PolicyURI       *string  `json:"policy_uri"`
+	// TokenEndpointAuthMethod is decoded but never validated: it is kept
+	// only so a failed registration can record what was asked for.
+	TokenEndpointAuthMethod *string `json:"token_endpoint_auth_method"`
+}
+
+// auditRequest describes this body for the failure event, as sent. Only
+// the failure paths with a decoded body call it; the rest pass nil.
+func (b *registrationRequestBody) auditRequest() *model.OAuthClientRegistrationRequest {
+	return &model.OAuthClientRegistrationRequest{
+		ClientName:              derefStringOr(b.ClientName, ""),
+		RedirectURIs:            b.RedirectURIs,
+		GrantTypes:              b.GrantTypes,
+		ResponseTypes:           b.ResponseTypes,
+		ApplicationType:         derefStringOr(b.ApplicationType, ""),
+		TokenEndpointAuthMethod: derefStringOr(b.TokenEndpointAuthMethod, ""),
+		ClientURI:               derefStringOr(b.ClientURI, ""),
+		LogoURI:                 derefStringOr(b.LogoURI, ""),
+		TOSURI:                  derefStringOr(b.TOSURI, ""),
+		PolicyURI:               derefStringOr(b.PolicyURI, ""),
+	}
 }
 
 func (h *RegistrationHandler) checkRateLimit(ctx context.Context, spec ratelimit.BucketSpec) error {
@@ -131,38 +152,37 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	if authHeader := r.Header.Get("Authorization"); authHeader != "" {
 		const prefix = "Bearer "
 		if !strings.HasPrefix(authHeader, prefix) {
-			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "malformed_header", "", 0, nil)
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "malformed_header", "", 0, nil, nil)
 			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid Authorization header", http.StatusUnauthorized)
 		}
 		token = strings.TrimPrefix(authHeader, prefix)
 	}
 
 	if token == "" && h.OAuthConfig.DynamicClientRegistration.IsInitialAccessTokenRequired() {
-		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "not_presented", "", 0, nil)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "not_presented", "", 0, nil, nil)
 		return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "an initial access token is required", http.StatusUnauthorized)
 	}
 
 	var body registrationRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata, "malformed_json", "", 0, nil)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata, "malformed_json", "", 0, nil, nil)
 		return nil, protocol.NewErrorStatusCode("invalid_client_metadata", "malformed JSON body", http.StatusBadRequest)
 	}
 
 	normalized, err := dcr.ValidateAndNormalize(&dcr.RegistrationRequest{
-		ClientName:              body.ClientName,
-		RedirectURIs:            body.RedirectURIs,
-		GrantTypes:              body.GrantTypes,
-		ResponseTypes:           body.ResponseTypes,
-		ApplicationType:         body.ApplicationType,
-		LogoURI:                 body.LogoURI,
-		ClientURI:               body.ClientURI,
-		TOSURI:                  body.TOSURI,
-		PolicyURI:               body.PolicyURI,
-		TokenEndpointAuthMethod: body.TokenEndpointAuthMethod,
+		ClientName:      body.ClientName,
+		RedirectURIs:    body.RedirectURIs,
+		GrantTypes:      body.GrantTypes,
+		ResponseTypes:   body.ResponseTypes,
+		ApplicationType: body.ApplicationType,
+		LogoURI:         body.LogoURI,
+		ClientURI:       body.ClientURI,
+		TOSURI:          body.TOSURI,
+		PolicyURI:       body.PolicyURI,
 	})
 	if err != nil {
 		httpErr, message := mapDCRValidationError(err)
-		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata, message, "", 0, nil)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidClientMetadata, message, "", 0, nil, body.auditRequest())
 		return nil, httpErr
 	}
 
@@ -173,22 +193,22 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	var iat *model.OAuthInitialAccessToken
 	var countBeforeCreate int
 	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
-		c, i, count, err := h.registerClientInTx(ctx, token, normalized)
+		c, i, count, err := h.registerClientInTx(ctx, token, normalized, body.auditRequest())
 		iat = i // set even on error: see registerClientInTx's own comment
 		if err != nil {
 			return err
 		}
 		client = c
 		countBeforeCreate = count
-		return h.Events.DispatchEventOnCommit(ctx, newOAuthClientRegisteredEventPayload(client, iat))
+		return h.Events.DispatchEventOnCommit(ctx, newOAuthClientRegisteredEventPayload(client, iat, body.auditRequest()))
 	})
 	if err != nil {
 		if errors.Is(err, dcr.ErrInitialAccessTokenNotFound) {
-			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "unknown", "", 0, nil)
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "unknown", "", 0, nil, body.auditRequest())
 			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid or expired initial access token", http.StatusUnauthorized)
 		}
 		if errors.Is(err, dcr.ErrInitialAccessTokenExpired) {
-			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "expired", "", 0, iat)
+			h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonInvalidInitialAccessToken, "expired", "", 0, iat, body.auditRequest())
 			return nil, protocol.NewErrorStatusCode("invalid_initial_access_token", "invalid or expired initial access token", http.StatusUnauthorized)
 		}
 		// Any other error -- including the limit_exceeded access_denied
@@ -199,17 +219,9 @@ func (h *RegistrationHandler) Handle(ctx context.Context, r *http.Request) (*Reg
 	h.UsageLimiter.ReportStandingCreated(ctx, model.UsageNameOAuthClientDCR, countBeforeCreate)
 
 	return &RegistrationResponse{
-		ClientID:         client.ClientID,
-		ClientIDIssuedAt: client.CreatedAt.Unix(),
-		ClientName:       client.Name,
-		RedirectURIs:     client.RedirectURIs,
-		GrantTypes:       client.GrantTypes,
-		ResponseTypes:    client.ResponseTypes,
-		ApplicationType:  derefStringOr(client.ApplicationType, ""),
-		ClientURI:        derefStringOr(client.ClientURI, ""),
-		LogoURI:          derefStringOr(client.LogoURI, ""),
-		TOSURI:           derefStringOr(client.TOSURI, ""),
-		PolicyURI:        derefStringOr(client.PolicyURI, ""),
+		ClientID:                      client.ClientID,
+		ClientIDIssuedAt:              client.CreatedAt.Unix(),
+		OAuthClientRegisteredMetadata: model.NewOAuthClientRegisteredMetadata(client),
 	}, nil
 }
 
@@ -228,6 +240,7 @@ func (h *RegistrationHandler) registerClientInTx(
 	ctx context.Context,
 	token string,
 	normalized *dcr.NormalizedRegistration,
+	auditRequest *model.OAuthClientRegistrationRequest,
 ) (client *model.OAuthClient, iat *model.OAuthInitialAccessToken, countBeforeCreate int, err error) {
 	kind := model.OAuthClientKindThirdParty
 	if token != "" {
@@ -261,7 +274,7 @@ func (h *RegistrationHandler) registerClientInTx(
 		// this transaction, so the record survives the rollback this
 		// triggers.
 		usageName, quota, _ := usage.StandingUsageLimitDetails(limitErr)
-		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonLimitExceeded, "", usageName, quota, nil)
+		h.dispatchRegistrationFailed(ctx, nonblocking.OAuthClientRegistrationReasonLimitExceeded, "", usageName, quota, nil, auditRequest)
 		return nil, iat, 0, protocol.NewErrorStatusCode("access_denied", "the project has reached its dynamic client registration limit", http.StatusForbidden)
 	}
 
@@ -300,8 +313,6 @@ func mapDCRValidationError(err error) (httpErr error, message string) {
 		message = "response_type_inconsistent"
 	case errors.Is(err, dcr.ErrDCRApplicationTypeUnsupported):
 		message = "application_type_unsupported"
-	case errors.Is(err, dcr.ErrDCRTokenEndpointAuthMethodNotAccepted):
-		message = "token_endpoint_auth_method_not_accepted"
 	case errors.Is(err, dcr.ErrDCRURIFieldNotHTTPS):
 		message = "uri_field_not_https"
 	default:
@@ -315,7 +326,8 @@ func mapDCRValidationError(err error) (httpErr error, message string) {
 
 // dispatchRegistrationFailed builds and dispatches oauth.client.registration.failed.
 // usageName/quota are set only when reason is limit_exceeded; iat is set
-// only for the "expired" message, mirroring
+// only for the "expired" message; auditRequest is nil only where the
+// request body was never decoded -- all mirroring
 // OAuthClientRegistrationFailedEventPayload's own field comments.
 func (h *RegistrationHandler) dispatchRegistrationFailed(
 	ctx context.Context,
@@ -324,13 +336,15 @@ func (h *RegistrationHandler) dispatchRegistrationFailed(
 	usageName model.UsageName,
 	quota int,
 	iat *model.OAuthInitialAccessToken,
+	auditRequest *model.OAuthClientRegistrationRequest,
 ) {
 	h.dispatchImmediately(ctx, &nonblocking.OAuthClientRegistrationFailedEventPayload{
 		Reason:             reason,
 		Message:            message,
 		UsageName:          usageName,
 		Quota:              quota,
-		InitialAccessToken: nonblocking.NewEventPayloadInitialAccessToken(iat),
+		InitialAccessToken: model.NewEventPayloadInitialAccessToken(iat),
+		Request:            auditRequest,
 	})
 }
 
@@ -370,20 +384,20 @@ func derefStringOr(s *string, fallback string) string {
 // successful registration. iat is nil under open registration
 // (initial_access_token_required: false), in which case the payload's
 // InitialAccessToken field is left nil too — see
-// nonblocking.OAuthClientRegisteredEventPayload.
-func newOAuthClientRegisteredEventPayload(client *model.OAuthClient, iat *model.OAuthInitialAccessToken) *nonblocking.OAuthClientRegisteredEventPayload {
+// nonblocking.OAuthClientRegisteredEventPayload. auditRequest is the
+// request body as sent, from registrationRequestBody.auditRequest() -- it
+// is what lets the event show a grant_type or token_endpoint_auth_method
+// the caller asked for that Client above silently dropped or ignored.
+func newOAuthClientRegisteredEventPayload(client *model.OAuthClient, iat *model.OAuthInitialAccessToken, auditRequest *model.OAuthClientRegistrationRequest) *nonblocking.OAuthClientRegisteredEventPayload {
 	payload := &nonblocking.OAuthClientRegisteredEventPayload{
 		Client: nonblocking.OAuthClientRegisteredEventPayloadClient{
-			ClientID:        client.ClientID,
-			Source:          client.Source,
-			Kind:            client.Kind,
-			ClientName:      client.Name,
-			ApplicationType: derefStringOr(client.ApplicationType, ""),
-			RedirectURIs:    client.RedirectURIs,
-			GrantTypes:      client.GrantTypes,
-			ResponseTypes:   client.ResponseTypes,
+			ClientID:                      client.ClientID,
+			Source:                        client.Source,
+			Kind:                          client.Kind,
+			OAuthClientRegisteredMetadata: model.NewOAuthClientRegisteredMetadata(client),
 		},
+		Request: *auditRequest,
 	}
-	payload.InitialAccessToken = nonblocking.NewEventPayloadInitialAccessToken(iat)
+	payload.InitialAccessToken = model.NewEventPayloadInitialAccessToken(iat)
 	return payload
 }

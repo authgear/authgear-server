@@ -1,0 +1,140 @@
+name: The loopback any-port exception is confined to the registered loopback URI
+# The RFC 8252 §7.3 exception ignores the port and nothing else. Everything
+# below differs from the registered URI in some other component, so every one
+# of them must still be refused.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    oauth:
+      clients:
+      - client_id: e2eloopback
+        name: CLI app
+        x_application_type: native
+        grant_types:
+        - authorization_code
+        - refresh_token
+        response_types:
+        - code
+        redirect_uris:
+        - http://127.0.0.1/callback
+      - client_id: e2ewebapp
+        name: Web app
+        x_application_type: spa
+        grant_types:
+        - authorization_code
+        - refresh_token
+        response_types:
+        - code
+        redirect_uris:
+        - https://app.example.com/callback
+steps:
+  - name: reject_different_path
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2eloopback
+      redirect_uri: http://127.0.0.1:53412/other
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - redirect URI is not allowed
+
+  - name: reject_different_query
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2eloopback
+      redirect_uri: http://127.0.0.1:53412/callback?next=http://evil.example.com
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - redirect URI is not allowed
+
+  # https on the loopback is not a loopback redirect URI: the exception exists
+  # because http on the loopback never leaves the machine, and only for that.
+  - name: reject_https_scheme
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2eloopback
+      redirect_uri: https://127.0.0.1:53412/callback
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - redirect URI is not allowed
+
+  # 127.0.0.1, localhost and [::1] stay distinct hosts. A client that wants
+  # more than one of them registers more than one of them.
+  - name: reject_other_loopback_host
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2eloopback
+      redirect_uri: http://localhost:53412/callback
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - redirect URI is not allowed
+
+  - name: reject_host_that_only_looks_like_loopback
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2eloopback
+      redirect_uri: http://127.0.0.1.evil.example.com:53412/callback
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - redirect URI is not allowed
+
+  # A non-loopback client keeps strict equality, port included.
+  - name: reject_port_substitution_on_non_loopback_client
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2ewebapp
+      redirect_uri: https://app.example.com:9000/callback
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - redirect URI is not allowed

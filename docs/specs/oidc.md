@@ -81,6 +81,54 @@ response_types:
 
 Refresh token is not used.
 
+#### CLI application Client Metadata example
+
+```yaml
+redirect_uris:
+- "http://127.0.0.1/callback"
+grant_types:
+- authorization_code
+- refresh_token
+response_types:
+- code
+```
+
+Note that no port is registered. See [Redirect URI Matching](#redirect-uri-matching).
+
+### Redirect URI Matching
+
+The `redirect_uri` of an authorization request must match one of the client's
+`redirect_uris` exactly, with one exception.
+
+**Loopback exception.** When a registered entry has scheme `http` and host
+`127.0.0.1`, `[::1]` or `localhost`, its port is ignored on both sides of the
+comparison. Scheme, host, path and query must still match, and the three hosts
+stay distinct. This implements
+[RFC 8252 §7.3](https://datatracker.ietf.org/doc/html/rfc8252#section-7.3).
+
+With `http://127.0.0.1/callback` registered:
+
+| `redirect_uri` | Result |
+| -- | -- |
+| `http://127.0.0.1:53412/callback` | allowed |
+| `http://127.0.0.1/callback` | allowed |
+| `http://localhost:53412/callback` | rejected — different host |
+| `https://127.0.0.1:53412/callback` | rejected — scheme is not `http` |
+| `http://127.0.0.1:53412/other` | rejected — different path |
+
+Two things the exception does not cover:
+
+- **CORS.** `redirect_uris` also feed the CORS allowed-origin matcher
+  (`pkg/lib/infra/middleware/cors_matcher.go`), which compares ports exactly, so
+  `http://127.0.0.1/callback` allows the origin `http://127.0.0.1` only. The
+  loopback flow uses top-level navigations and needs no CORS, but a browser app
+  served from an ephemeral loopback port must register the origin it runs on.
+- **`post_logout_redirect_uris`**, which still require an exact match per
+  [OpenID Connect RP-Initiated Logout 1.0 §3](https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RedirectionAfterLogout).
+  A client on an ephemeral port can log in but is not redirected back after
+  logout; it lands on the Settings page through the fallback described in
+  [RP-Initiated Logout](#rp-initiated-logout).
+
 ## Authentication Request
 
 ### scope

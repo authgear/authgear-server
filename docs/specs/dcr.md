@@ -102,7 +102,8 @@ Response:
   "redirect_uris": ["https://pr-123.preview.example.com/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "application_type": "web"
+  "application_type": "web",
+  "token_endpoint_auth_method": "none"
 }
 ```
 
@@ -189,7 +190,8 @@ Response:
   "redirect_uris": ["https://mcp-client.example.com/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "application_type": "web"
+  "application_type": "web",
+  "token_endpoint_auth_method": "none"
 }
 ```
 
@@ -387,7 +389,8 @@ See [Accepted Client Metadata](#accepted-client-metadata) for the full list of r
   "redirect_uris": ["https://pr-123.preview.example.com/callback"],
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
-  "application_type": "web"
+  "application_type": "web",
+  "token_endpoint_auth_method": "none"
 }
 ```
 
@@ -406,7 +409,7 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 
 | `error` value | HTTP status | Meaning |
 |---|---|---|
-| `invalid_redirect_uri` | 400 | One or more `redirect_uris` are invalid (e.g. plain `http://` for non-localhost) |
+| `invalid_redirect_uri` | 400 | One or more `redirect_uris` are invalid (e.g. plain `http://` for a non-loopback host) |
 | `invalid_client_metadata` | 400 | Other metadata validation failure — see table below |
 | `invalid_initial_access_token` | 401 | IAT is missing, expired, or not recognized |
 | `access_denied` | 403 | Registration is not permitted (e.g. DCR is disabled, a first-party IAT is required but a third-party IAT or no IAT was presented, or the project's [client limit](#client-limit) has been reached) |
@@ -418,8 +421,7 @@ Error responses follow [RFC 7591 §3.2.2](https://www.rfc-editor.org/rfc/rfc7591
 |---|---|
 | `redirect_uris` is missing | omitted from request body |
 | `redirect_uris` contains a URI with a fragment component | `https://example.com/callback#section` |
-| `token_endpoint_auth_method` is provided and is not `none` | `token_endpoint_auth_method=client_secret_post` |
-| `grant_types` contains an unsupported value | `grant_types=["implicit"]` |
+| `grant_types` contains no value Authgear implements | `grant_types=["implicit"]` |
 | `response_types` contains an unsupported value | `response_types=["token"]` |
 | `response_types` is inconsistent with `grant_types` | `grant_types=["refresh_token"]` + `response_types=["code"]` without `authorization_code` |
 | `logo_uri`, `client_uri`, `tos_uri`, or `policy_uri` is not `https://` | `logo_uri=http://example.com/logo.png` |
@@ -439,7 +441,7 @@ Array of redirect URIs the client will use in authorization code flows. Each URI
 - An `https://` URI, **or**
 - A custom URI scheme (e.g., `com.example.app://callback`) for native apps.
 
-Plain `http://` URIs are rejected except for `http://localhost` (loopback), which is allowed for native app development.
+Plain `http://` URIs are rejected except for a loopback address — `http://localhost`, `http://127.0.0.1` or `http://[::1]`, any port — which is allowed for native app development. Per [RFC 8252 §7.3](https://www.rfc-editor.org/rfc/rfc8252#section-7.3), both the `localhost` hostname and the IPv4/IPv6 loopback literals count as loopback; a client that binds its callback listener to `127.0.0.1` (as many native/CLI OAuth clients do, to avoid `localhost` DNS-resolution ambiguity) is accepted the same as one that uses `localhost`. Same set CIMD accepts — see [CIMD's `redirect_uris`](./cimd.md#redirect_uris-required).
 
 Each URI must be an absolute URI (per RFC 3986 §4.3) and must not contain a fragment component (`#`).
 
@@ -456,6 +458,10 @@ Array of grant types the client is allowed to use. Accepted values:
 
 Default: `["authorization_code", "refresh_token"]`.
 
+Any other value is **dropped**, on the same [RFC 7591 §3.2.1](https://www.rfc-editor.org/rfc/rfc7591#section-3.2.1) substitution grounds as [`token_endpoint_auth_method`](#token_endpoint_auth_method-optional): only what survives is registered, and the response reports it, so a client that asked for a grant Authgear does not implement can see that it did not get it. A request that provided `grant_types` and lost *every* entry — `["implicit"]`, say — still returns `invalid_client_metadata`, because it asked for nothing Authgear can offer and there is no suitable value to substitute. An explicitly empty `grant_types` provided nothing to drop and is left to the [`response_types`](#response_types-optional) consistency rule, as before.
+
+Same rule as [CIMD's](./cimd.md#grant_types-optional), and for the same reason: an MCP client sends one registration body to every authorization server it meets, so it advertises what it can do anywhere rather than what any one server implements.
+
 ### `response_types` (optional)
 
 Array of response types. Must be consistent with `grant_types`. The only accepted value is `code`, which must be paired with the `authorization_code` grant type. Requesting `response_types=["code"]` without `authorization_code` in `grant_types`, or vice versa, returns `invalid_client_metadata`.
@@ -468,10 +474,10 @@ Controls the client's technical profile (redirect URI rules, PKCE requirements).
 
 | Value | IAT type required | Consent screen | `kind` | Redirect URI validation |
 |---|---|---|---|---|
-| `web` (default) | none or `iat_tp_` | Yes | `THIRD_PARTY` | Must use `https://`; `localhost` not allowed |
-| `native` | none or `iat_tp_` | Yes | `THIRD_PARTY` | Custom URI scheme or `http://localhost` |
-| `web` | `iat_fp_` | No | `FIRST_PARTY` | Must use `https://`; `localhost` not allowed |
-| `native` | `iat_fp_` | No | `FIRST_PARTY` | Custom URI scheme or `http://localhost` |
+| `web` (default) | none or `iat_tp_` | Yes | `THIRD_PARTY` | Must use `https://`; loopback not allowed |
+| `native` | none or `iat_tp_` | Yes | `THIRD_PARTY` | Custom URI scheme or loopback `http://` |
+| `web` | `iat_fp_` | No | `FIRST_PARTY` | Must use `https://`; loopback not allowed |
+| `native` | `iat_fp_` | No | `FIRST_PARTY` | Custom URI scheme or loopback `http://` |
 
 Default: `web`.
 
@@ -479,7 +485,13 @@ The IAT type — not `application_type` — determines whether the registered cl
 
 ### `token_endpoint_auth_method` (optional)
 
-The only accepted value is `none`. Every DCR-registered client is public and uses PKCE — Authgear never issues a `client_secret` via DCR — so `none` is simply a client explicitly stating what's already true, and is accepted. Any other value (e.g. `client_secret_post`, `client_secret_basic`) returns `invalid_client_metadata`, since Authgear has no client secret to authenticate with. Omitting the field entirely is equivalent to sending `none`.
+**Ignored.** Whatever the client asks for, the registered value is always `none`, and the response reports `"token_endpoint_auth_method": "none"` so the client learns what it got. Omitting the field is equivalent to sending anything else.
+
+Every DCR-registered client is public and uses PKCE — Authgear never issues a `client_secret` via DCR — so there is no value the client can ask for that would change how it authenticates. Substituting is [RFC 7591 §3.2.1](https://www.rfc-editor.org/rfc/rfc7591#section-3.2.1) behaviour ("The authorization server MAY reject **or replace** any of the client's requested metadata values submitted during the registration and substitute them with suitable values"), and the same section requires the response to carry all registered metadata, which is what makes the substitution visible rather than silent.
+
+Refusing the registration instead — as an earlier version of this spec did for every value other than `none` — taught the client nothing it could act on and blocked a real client for no benefit: Claude's MCP connector registration asks for `client_secret_post`, so every hosted Claude connector failed with `invalid_client_metadata` against a project with DCR enabled. Nothing was protected by that refusal, since no `client_secret` exists to be misused and the response never carried a secret either way.
+
+[CIMD](./cimd.md#token_endpoint_auth_method-optional) ignores the field the same way, for the same reason.
 
 ### `logo_uri` (optional)
 

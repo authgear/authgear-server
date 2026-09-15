@@ -9,19 +9,33 @@ const (
 	OAuthClientRegistered event.Type = "oauth.client.registered"
 )
 
+// OAuthClientRegisteredEventPayloadClient embeds
+// model.OAuthClientRegisteredMetadata rather than repeating its fields --
+// see that type's own comment for why: the same embed backs
+// handler.RegistrationResponse, so the two cannot drift apart the way they
+// once did (client_uri/logo_uri/tos_uri/policy_uri/
+// token_endpoint_auth_method were present in the HTTP response but missing
+// here).
 type OAuthClientRegisteredEventPayloadClient struct {
-	ClientID        string                  `json:"client_id"`
-	Source          model.OAuthClientSource `json:"source"`
-	Kind            model.OAuthClientKind   `json:"kind"`
-	ClientName      string                  `json:"client_name,omitempty"`
-	ApplicationType string                  `json:"application_type,omitempty"`
-	RedirectURIs    []string                `json:"redirect_uris"`
-	GrantTypes      []string                `json:"grant_types"`
-	ResponseTypes   []string                `json:"response_types"`
+	ClientID string                  `json:"client_id"`
+	Source   model.OAuthClientSource `json:"source"`
+	Kind     model.OAuthClientKind   `json:"kind"`
+	model.OAuthClientRegisteredMetadata
 }
 
 type OAuthClientRegisteredEventPayload struct {
 	Client OAuthClientRegisteredEventPayloadClient `json:"client"`
+
+	// Request is the client metadata the caller asked for, as sent -- no
+	// defaults applied, no normalization, nothing dropped. Client above is
+	// what was actually registered, which can differ: an unimplemented
+	// grant_type is silently dropped rather than refused, and
+	// token_endpoint_auth_method is always ignored, so Request is what
+	// makes either of those visible in the audit log at all. Shared type
+	// with oauth.client.registration.failed's own Request field, since it
+	// is the same record either way -- see
+	// model.OAuthClientRegistrationRequest's own doc comment.
+	Request model.OAuthClientRegistrationRequest `json:"request"`
 
 	// InitialAccessToken is nil under open registration
 	// (initial_access_token_required: false), and the `omitempty` drops the
@@ -32,10 +46,10 @@ type OAuthClientRegisteredEventPayload struct {
 	// because "no IAT" must be distinguishable from "an IAT with empty
 	// fields". docs/specs/event.md documents the key as absent, not null.
 	//
-	// EventPayloadInitialAccessToken, not a type of its own: it is shared
-	// with oauth.client.registration.failed's "expired" outcome, so a token
+	// model.EventPayloadInitialAccessToken is shared with
+	// oauth.client.registration.failed's "expired" outcome, so a token
 	// presents identically in both records.
-	InitialAccessToken *EventPayloadInitialAccessToken `json:"initial_access_token,omitempty"`
+	InitialAccessToken *model.EventPayloadInitialAccessToken `json:"initial_access_token,omitempty"`
 }
 
 func (e *OAuthClientRegisteredEventPayload) NonBlockingEventType() event.Type {

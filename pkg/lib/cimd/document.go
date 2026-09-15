@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 // CIMDDocumentInvalid is the one apierrors.Kind shared by every
@@ -27,26 +28,32 @@ import (
 var CIMDDocumentInvalid = apierrors.Invalid.WithReason("CIMDDocumentInvalid")
 
 var (
-	ErrDocumentNotJSONObject                      = CIMDDocumentInvalid.NewWithCause("cimd: document is not a JSON object", apierrors.StringCause("NotJSONObject"))
-	ErrDocumentClientIDMismatch                   = CIMDDocumentInvalid.NewWithCause("cimd: client_id does not equal the request URL", apierrors.StringCause("ClientIDMismatch"))
-	ErrDocumentRedirectURIsMissing                = CIMDDocumentInvalid.NewWithCause("cimd: redirect_uris is required", apierrors.StringCause("RedirectURIsMissing"))
-	ErrDocumentRedirectURIInvalid                 = CIMDDocumentInvalid.NewWithCause("cimd: invalid redirect_uri", apierrors.StringCause("RedirectURIInvalid"))
-	ErrDocumentGrantTypeUnsupported               = CIMDDocumentInvalid.NewWithCause("cimd: unsupported grant_type", apierrors.StringCause("GrantTypeUnsupported"))
-	ErrDocumentResponseTypeInconsistent           = CIMDDocumentInvalid.NewWithCause("cimd: response_types is inconsistent with grant_types", apierrors.StringCause("ResponseTypeInconsistent"))
-	ErrDocumentApplicationTypeUnsupported         = CIMDDocumentInvalid.NewWithCause("cimd: unsupported application_type", apierrors.StringCause("ApplicationTypeUnsupported"))
-	ErrDocumentTokenEndpointAuthMethodNotAccepted = CIMDDocumentInvalid.NewWithCause("cimd: token_endpoint_auth_method is not accepted", apierrors.StringCause("TokenEndpointAuthMethodNotAccepted"))
-	ErrDocumentURIFieldNotHTTPS                   = CIMDDocumentInvalid.NewWithCause("cimd: uri field must use https", apierrors.StringCause("URIFieldNotHTTPS"))
+	ErrDocumentNotJSONObject              = CIMDDocumentInvalid.NewWithCause("cimd: document is not a JSON object", apierrors.StringCause("NotJSONObject"))
+	ErrDocumentClientIDMismatch           = CIMDDocumentInvalid.NewWithCause("cimd: client_id does not equal the request URL", apierrors.StringCause("ClientIDMismatch"))
+	ErrDocumentRedirectURIsMissing        = CIMDDocumentInvalid.NewWithCause("cimd: redirect_uris is required", apierrors.StringCause("RedirectURIsMissing"))
+	ErrDocumentRedirectURIInvalid         = CIMDDocumentInvalid.NewWithCause("cimd: invalid redirect_uri", apierrors.StringCause("RedirectURIInvalid"))
+	ErrDocumentGrantTypeUnsupported       = CIMDDocumentInvalid.NewWithCause("cimd: no supported grant_type", apierrors.StringCause("GrantTypeUnsupported"))
+	ErrDocumentResponseTypeInconsistent   = CIMDDocumentInvalid.NewWithCause("cimd: response_types is inconsistent with grant_types", apierrors.StringCause("ResponseTypeInconsistent"))
+	ErrDocumentApplicationTypeUnsupported = CIMDDocumentInvalid.NewWithCause("cimd: unsupported application_type", apierrors.StringCause("ApplicationTypeUnsupported"))
+	ErrDocumentURIFieldNotHTTPS           = CIMDDocumentInvalid.NewWithCause("cimd: uri field must use https", apierrors.StringCause("URIFieldNotHTTPS"))
 )
 
-// rawDocument is the wire shape. Every field the spec says to reject or
-// ignore -- client_secret, client_secret_expires_at, jwks_uri,
-// software_statement, and any unknown property -- is simply absent from
-// this struct, so encoding/json drops it. There is no need to name them
-// and no DisallowUnknownFields: spec § Validation says "Unrecognized
-// properties are ignored (the spec explicitly allows additional
-// properties)", and spec §4.1 says credential material is "always ignored",
-// not "rejected". A document carrying a client_secret is therefore VALID
-// and its secret is discarded.
+// rawDocument is the wire shape. Every field the spec says to reject --
+// client_secret, client_secret_expires_at, jwks_uri, software_statement,
+// and any unknown property -- is simply absent from this struct, so
+// encoding/json drops it. There is no need to name them and no
+// DisallowUnknownFields: spec § Validation says "Unrecognized properties
+// are ignored (the spec explicitly allows additional properties)", and
+// spec §4.1 says credential material is "always ignored", not "rejected".
+// A document carrying a client_secret is therefore VALID and its secret is
+// discarded.
+//
+// token_endpoint_auth_method IS named here, unlike the fields above,
+// despite being ignored exactly the same way: Rule 1 never validates or
+// acts on it, but Document.TokenEndpointAuthMethod carries it through
+// purely so oauth.client.resolved's audit record can show what a document
+// declared, the same way DCR's registrationRequestBody keeps it for
+// oauth.client.registered/oauth.client.registration.failed.
 type rawDocument struct {
 	ClientID                *string  `json:"client_id"`
 	ClientName              *string  `json:"client_name"`
@@ -66,17 +73,49 @@ type rawDocument struct {
 // of dcr.NormalizedRegistration, and for the same reason: the caller
 // (Part 3) copies it straight onto oauthclient.NewClientOptions.
 type Document struct {
-	ClientName    *string
-	RedirectURIs  []string
-	GrantTypes    []string
+	ClientName   *string
+	RedirectURIs []string
+	// GrantTypes holds only the grant types Authgear implements, in the
+	// document's order -- Rule 5 dropped the rest.
+	GrantTypes []string
+	// RawGrantTypes is the document's declared grant_types, before Rule 5
+	// filtering -- nil if the document omitted the field, same as
+	// rawDocument.GrantTypes. Not used for anything but the audit trail
+	// (oauth.client.resolved's Document.GrantTypes): the persisted client
+	// only ever gets GrantTypes above.
+	RawGrantTypes []string
 	ResponseTypes []string
+	// RawResponseTypes is the document's declared response_types, before
+	// Rule 6's default is applied -- nil if the document omitted the
+	// field. Same relationship to ResponseTypes as RawGrantTypes has to
+	// GrantTypes, though Rule 6 never filters entries the way Rule 5
+	// does -- an unsupported response_type rejects the whole document
+	// rather than being dropped, so this exists only for "no defaults
+	// applied" audit-trail consistency, not because entries can go
+	// missing silently.
+	RawResponseTypes []string
 	// ApplicationType is always "web" or "native" -- never nil, never
-	// anything else.
+	// anything else. Rule 3 never substitutes a value, unlike Rule 5's
+	// grant_types filtering: an invalid application_type rejects the whole
+	// document rather than falling back to a default, so this can never
+	// diverge from what the document declared the way GrantTypes can --
+	// RawApplicationType exists only for the same "no defaults applied"
+	// audit-trail consistency as RawGrantTypes, not because this one can
+	// hide anything.
 	ApplicationType string
-	LogoURI         *string
-	ClientURI       *string
-	TOSURI          *string
-	PolicyURI       *string
+	// RawApplicationType is the document's declared application_type, ""
+	// if absent -- same relationship to ApplicationType as
+	// RawGrantTypes has to GrantTypes.
+	RawApplicationType string
+	LogoURI            *string
+	ClientURI          *string
+	TOSURI             *string
+	PolicyURI          *string
+	// TokenEndpointAuthMethod is the document's declared value, "" if
+	// absent. Never validated, never acted on -- Rule 1 ignores it
+	// unconditionally -- kept only for the audit trail, same as
+	// RawGrantTypes.
+	TokenEndpointAuthMethod string
 }
 
 var cimdSupportedGrantTypes = map[string]bool{
@@ -114,12 +153,10 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 		return nil, errors.Join(ErrDocumentNotJSONObject, err)
 	}
 
-	// Rule 1: token_endpoint_auth_method, if present, MUST be "none".
-	// Checked first, mirroring dcr.ValidateAndNormalize. Rejects
-	// private_key_jwt and every client_secret_* variant.
-	if raw.TokenEndpointAuthMethod != nil && *raw.TokenEndpointAuthMethod != "none" {
-		return nil, ErrDocumentTokenEndpointAuthMethodNotAccepted
-	}
+	// Rule 1: token_endpoint_auth_method is ignored -- no check here, and
+	// the value below is kept only for the audit trail (Document's own
+	// comment), never validated or acted on. Numbering below is kept as-is
+	// so the spec's rules still line up.
 
 	// Rule 2: client_id MUST be present and MUST equal requestURL
 	// byte-for-byte. No normalization, no case folding, no trailing-slash
@@ -150,16 +187,21 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 		}
 	}
 
-	// Rule 5: grant_types MUST be a subset of
-	// ["authorization_code", "refresh_token"].
-	grantTypes := raw.GrantTypes
-	if grantTypes == nil {
-		grantTypes = []string{"authorization_code", "refresh_token"}
+	// Rule 5: entries Authgear does not implement are dropped; erroring
+	// only if the document declared entries and lost them all. An
+	// explicitly empty list had nothing to lose, so Rule 7 decides it.
+	rawGrantTypes := raw.GrantTypes
+	if rawGrantTypes == nil {
+		rawGrantTypes = []string{"authorization_code", "refresh_token"}
 	}
-	for _, gt := range grantTypes {
-		if !cimdSupportedGrantTypes[gt] {
-			return nil, ErrDocumentGrantTypeUnsupported
+	grantTypes := make([]string, 0, len(rawGrantTypes))
+	for _, gt := range rawGrantTypes {
+		if cimdSupportedGrantTypes[gt] {
+			grantTypes = append(grantTypes, gt)
 		}
+	}
+	if len(grantTypes) == 0 && len(rawGrantTypes) > 0 {
+		return nil, ErrDocumentGrantTypeUnsupported
 	}
 
 	// Rule 6: response_types MUST be a subset of ["code"].
@@ -174,8 +216,7 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 	}
 
 	// Rule 7: response_types MUST be consistent with grant_types. Same rule
-	// as DCR (dcr/validate.go): contains(grantTypes, "authorization_code")
-	// == contains(responseTypes, "code").
+	// as DCR (dcr/validate.go), applied to the filtered grant types.
 	hasAuthorizationCode := slices.Contains(grantTypes, "authorization_code")
 	hasCode := slices.Contains(responseTypes, "code")
 	if hasAuthorizationCode != hasCode {
@@ -197,15 +238,19 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 	// "Client <clientID>" fallback is NOT applied here; it is computed on
 	// read by oauthclient.Client.DisplayName().
 	return &Document{
-		ClientName:      raw.ClientName,
-		RedirectURIs:    raw.RedirectURIs,
-		GrantTypes:      grantTypes,
-		ResponseTypes:   responseTypes,
-		ApplicationType: applicationType,
-		LogoURI:         raw.LogoURI,
-		ClientURI:       raw.ClientURI,
-		TOSURI:          raw.TOSURI,
-		PolicyURI:       raw.PolicyURI,
+		ClientName:              raw.ClientName,
+		RedirectURIs:            raw.RedirectURIs,
+		GrantTypes:              grantTypes,
+		RawGrantTypes:           raw.GrantTypes,
+		ResponseTypes:           responseTypes,
+		RawResponseTypes:        raw.ResponseTypes,
+		ApplicationType:         applicationType,
+		RawApplicationType:      derefStringOr(raw.ApplicationType, ""),
+		TokenEndpointAuthMethod: derefStringOr(raw.TokenEndpointAuthMethod, ""),
+		LogoURI:                 raw.LogoURI,
+		ClientURI:               raw.ClientURI,
+		TOSURI:                  raw.TOSURI,
+		PolicyURI:               raw.PolicyURI,
 	}, nil
 }
 
@@ -218,7 +263,7 @@ func ParseAndValidate(requestURL string, body []byte, allowInsecureHTTP bool) (*
 //   - a custom (non-http, non-https) URI scheme
 //
 // Unlike dcr's redirect URI rule, application_type is NOT a parameter. DCR
-// gates http://localhost on application_type: native; CIMD cannot, because
+// gates loopback http:// on application_type: native; CIMD cannot, because
 // the MCP Authorization spec's own reference CIMD document uses
 // http://127.0.0.1:3000/callback and http://localhost:3000/callback while
 // omitting application_type entirely (so it defaults to "web"). Gating
@@ -239,15 +284,11 @@ func validateCIMDRedirectURI(raw string) error {
 		return nil
 	case "http":
 		// url.URL.Hostname() strips the brackets from "[::1]:3000", so this
-		// matches "http://[::1]:3000/callback" too. RFC 8252 §7.3 treats
-		// both IPv4 and IPv6 loopback as loopback, and an IPv6-only
-		// developer machine has no 127.0.0.1 to listen on.
-		switch u.Hostname() {
-		case "localhost", "127.0.0.1", "::1":
-			return nil
-		default:
+		// matches "http://[::1]:3000/callback" too.
+		if !httputil.IsLoopbackHost(u.Hostname()) {
 			return ErrDocumentRedirectURIInvalid
 		}
+		return nil
 	default:
 		// Any custom scheme (com.example.app:/callback, myapp://cb, ...).
 		return nil

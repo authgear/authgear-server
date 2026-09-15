@@ -1,4 +1,4 @@
-package nonblocking_test
+package model_test
 
 import (
 	"testing"
@@ -6,14 +6,13 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 func TestNewEventPayloadInitialAccessToken(t *testing.T) {
 	Convey("NewEventPayloadInitialAccessToken", t, func() {
 		Convey("nil maps to nil", func() {
-			So(nonblocking.NewEventPayloadInitialAccessToken(nil), ShouldBeNil)
+			So(model.NewEventPayloadInitialAccessToken(nil), ShouldBeNil)
 		})
 
 		Convey("a real token maps to its id, type, created_at and expires_at -- never the token value", func() {
@@ -27,7 +26,7 @@ func TestNewEventPayloadInitialAccessToken(t *testing.T) {
 				ExpiresAt: expiresAt,
 				Type:      model.OAuthInitialAccessTokenTypeThirdParty,
 			}
-			result := nonblocking.NewEventPayloadInitialAccessToken(iat)
+			result := model.NewEventPayloadInitialAccessToken(iat)
 			So(result, ShouldNotBeNil)
 			So(result.ID, ShouldEqual, "iat-id-123")
 			So(result.Type, ShouldEqual, model.OAuthInitialAccessTokenTypeThirdParty)

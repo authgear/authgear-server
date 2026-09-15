@@ -1,0 +1,144 @@
+name: A loopback redirect URI is accepted on any port and delivers the code there
+# RFC 8252 §7.3: "The authorization server MUST allow any port to be specified
+# at the time of the request for loopback IP redirect URIs, to accommodate
+# clients that obtain an available ephemeral port from the operating system at
+# the time of the request."
+#
+# The client below registers http://127.0.0.1/callback with no port at all,
+# which is the registration shape a CLI or native app can actually commit to;
+# the port it ends up listening on is only known at runtime.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    oauth:
+      clients:
+      - client_id: e2eloopback
+        name: CLI app
+        x_application_type: native
+        grant_types:
+        - authorization_code
+        - refresh_token
+        response_types:
+        - code
+        redirect_uris:
+        - http://127.0.0.1/callback
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # 53412 is the "ephemeral port the OS handed us", and it appears nowhere in
+  # the client config.
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      client_id: e2eloopback
+      redirect_uri: http://127.0.0.1:53412/callback
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+    http_output:
+      http_status: 302
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_userinfo_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  # The code must be delivered to the port the client asked for, not to the
+  # registered one.
+  - name: get_code
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+      location_contains:
+        - "http://127.0.0.1:53412/callback?"
+        - "code="
+
+  # And the code exchange must accept the same ephemeral redirect_uri back.
+  - name: exchange_code
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: e2eloopback
+      redirect_uri: http://127.0.0.1:53412/callback
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ (urlParse .steps.get_code.result.http_response_headers.location).query | regexFind \"code=[^&]+\" | trimPrefix \"code=\" }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer"
+        }
+
+  # Confirm the issued access token actually works.
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.http_json_body.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }

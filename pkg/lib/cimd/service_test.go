@@ -464,6 +464,59 @@ func TestServiceEnsureClientResolved(t *testing.T) {
 			So(payload.Client.ClientName, ShouldEqual, "New Client")
 		})
 
+		Convey("audit: resolved event's Document shows the document as fetched, dropped grant_type and ignored auth method included", func() {
+			var ds *documentServer
+			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {
+				doc := `{"client_id":"` + ds.URL + `/x","client_name":"New Client",` +
+					`"redirect_uris":["http://127.0.0.1:3000/callback"],` +
+					`"grant_types":["authorization_code","refresh_token","urn:ietf:params:oauth:grant-type:jwt-bearer"],` +
+					`"response_types":["code"],"token_endpoint_auth_method":"client_secret_post"}`
+				_, _ = w.Write([]byte(doc))
+			})
+			defer ds.Close()
+
+			commands := &stubCommands{upsertFn: func(o *oauthclient.UpsertCIMDClientOptions) (*oauthclient.Client, bool, error) {
+				return &oauthclient.Client{
+					ClientID:      o.ClientID,
+					Source:        model.OAuthClientSourceCIMD,
+					Kind:          model.OAuthClientKindThirdParty,
+					ClientName:    o.ClientName,
+					RedirectURIs:  o.RedirectURIs,
+					GrantTypes:    o.GrantTypes,
+					ResponseTypes: o.ResponseTypes,
+				}, true, nil
+			}}
+			events := &stubEventService{}
+			svc := &cimd.Service{
+				OAuthConfig:  enabledOAuthConfig(),
+				Fetcher:      fetcherFor(ds),
+				Commands:     commands,
+				Queries:      &stubQueries{},
+				Database:     &stubDatabase{},
+				RateLimiter:  &stubRateLimiter{},
+				UsageLimiter: &stubUsageLimiter{},
+				Events:       events,
+				SingleFlight: newWorkingSingleFlight(t),
+			}
+
+			clientID := ds.URL + "/x"
+			err := svc.EnsureClientResolved(ctx, clientID)
+			So(err, ShouldBeNil)
+			So(events.dispatched, ShouldHaveLength, 1)
+			payload, ok := events.dispatched[0].Payload.(*nonblocking.OAuthClientResolvedEventPayload)
+			So(ok, ShouldBeTrue)
+
+			// The persisted client only ever shows what survived Rule 5
+			// filtering, and always resolves as a public client.
+			So(payload.Client.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token"})
+			So(payload.Client.TokenEndpointAuthMethod, ShouldEqual, "none")
+			// Document shows the document as fetched -- the dropped grant
+			// type and the ignored auth method included -- otherwise an
+			// auditor could never tell the two apart from this record.
+			So(payload.Document.GrantTypes, ShouldResemble, []string{"authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"})
+			So(payload.Document.TokenEndpointAuthMethod, ShouldEqual, "client_secret_post")
+		})
+
 		Convey("audit: refetch, metadata identical: no event at all -- the routine hourly case", func() {
 			var ds *documentServer
 			ds = newDocumentServer(func(w http.ResponseWriter, r *http.Request) {

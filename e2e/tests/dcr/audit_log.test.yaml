@@ -474,3 +474,77 @@ steps:
             "quota": "2"
           }
         ]
+
+---
+
+# Claude's registration body again (see register_validation.test.yaml's
+# "metadata Authgear does not implement" case for the HTTP response side of
+# this). Here we check the audit log: client_uri/logo_uri/tos_uri/policy_uri
+# and token_endpoint_auth_method must appear on `client` (previously
+# missing entirely), and `request` must show what Claude actually asked
+# for -- the jwt-bearer grant Rule 5 dropped and the client_secret_post
+# DCR always ignores -- neither of which is visible on `client` alone.
+name: oauth.client.registered records client_uri/logo_uri/tos_uri/policy_uri, token_endpoint_auth_method, and the original request
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "Claude",
+        "client_uri": "https://claude.ai",
+        "logo_uri": "https://claude.ai/logo.png",
+        "tos_uri": "https://claude.ai/tos",
+        "policy_uri": "https://claude.ai/policy",
+        "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
+        "grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"],
+        "response_types": ["code"],
+        "token_endpoint_auth_method": "client_secret_post"
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+  - name: verify_audit_log
+    action: audit_query
+    audit_query: |
+      SELECT activity_type,
+             data->'payload'->'client'->>'client_uri' AS client_uri,
+             data->'payload'->'client'->>'logo_uri' AS logo_uri,
+             data->'payload'->'client'->>'tos_uri' AS tos_uri,
+             data->'payload'->'client'->>'policy_uri' AS policy_uri,
+             data->'payload'->'client'->>'token_endpoint_auth_method' AS client_auth_method,
+             data->'payload'->'client'->'grant_types' AS client_grant_types,
+             data->'payload'->'request'->>'token_endpoint_auth_method' AS request_auth_method,
+             data->'payload'->'request'->'grant_types' AS request_grant_types
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'oauth.client.registered'
+        AND client_id = '{{ .steps.register.result.http_json_body.client_id }}'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "oauth.client.registered",
+            "client_uri": "https://claude.ai",
+            "logo_uri": "https://claude.ai/logo.png",
+            "tos_uri": "https://claude.ai/tos",
+            "policy_uri": "https://claude.ai/policy",
+            "client_auth_method": "none",
+            "client_grant_types": ["authorization_code", "refresh_token"],
+            "request_auth_method": "client_secret_post",
+            "request_grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"]
+          }
+        ]
