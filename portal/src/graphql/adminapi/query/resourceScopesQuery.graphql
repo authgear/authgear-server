@@ -16,6 +16,9 @@ query ResourceScopesQuery(
             scope
             description
             accessPolicy {
+              allowStaticFirstPartyClientAccess
+              allowStaticThirdPartyClientAccess
+              allowDynamicFirstPartyClientAccess
               allowDynamicThirdPartyClientAccess
             }
             createdAt

@@ -45,7 +45,7 @@ var nodeScope = node(
 			},
 			"accessPolicy": &graphql.Field{
 				Type:        graphql.NewNonNull(accessPolicyType),
-				Description: "The access policy governing third-party client access to this scope.",
+				Description: "The access policy controlling which categories of client may access this scope without a per-client association.",
 			},
 		},
 	}),

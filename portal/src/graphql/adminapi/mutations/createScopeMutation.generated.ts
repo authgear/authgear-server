@@ -8,7 +8,7 @@ export type CreateScopeMutationMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateScopeMutationMutation = { __typename?: 'Mutation', createScope: { __typename?: 'CreateScopePayload', scope: { __typename?: 'Scope', id: string, scope: string, description?: string | null, resourceID: string, createdAt: any, updatedAt: any, accessPolicy: { __typename?: 'AccessPolicy', allowDynamicThirdPartyClientAccess: boolean } } } };
+export type CreateScopeMutationMutation = { __typename?: 'Mutation', createScope: { __typename?: 'CreateScopePayload', scope: { __typename?: 'Scope', id: string, scope: string, description?: string | null, resourceID: string, createdAt: any, updatedAt: any, accessPolicy: { __typename?: 'AccessPolicy', allowStaticFirstPartyClientAccess: boolean, allowStaticThirdPartyClientAccess: boolean, allowDynamicFirstPartyClientAccess: boolean, allowDynamicThirdPartyClientAccess: boolean } } } };
 
 
 export const CreateScopeMutationDocument = gql`
@@ -20,6 +20,9 @@ export const CreateScopeMutationDocument = gql`
       description
       resourceID
       accessPolicy {
+        allowStaticFirstPartyClientAccess
+        allowStaticThirdPartyClientAccess
+        allowDynamicFirstPartyClientAccess
         allowDynamicThirdPartyClientAccess
       }
       createdAt

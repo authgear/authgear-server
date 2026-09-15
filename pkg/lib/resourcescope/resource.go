@@ -25,16 +25,18 @@ type NewResourceOptions struct {
 	URI  newResourceURI
 	Name *string
 	// AccessPolicy is nil when the caller did not specify one, in which case
-	// the resource is created with the zero value (no third-party access).
-	AccessPolicy *model.AccessPolicy
+	// the resource is created with every key false (no access).
+	AccessPolicy *model.AccessPolicyPatch
 }
 
 type UpdateResourceOptions struct {
 	ResourceURI string
 	NewName     *string
 	// AccessPolicy is nil when the caller did not specify one, in which case
-	// the existing access policy is left unchanged.
-	AccessPolicy *model.AccessPolicy
+	// the existing access policy is unchanged. A non-nil patch is merged
+	// into the stored policy field by field; a field left nil in the patch
+	// is unchanged even when other fields are set.
+	AccessPolicy *model.AccessPolicyPatch
 }
 
 type ListResourcesOptions struct {

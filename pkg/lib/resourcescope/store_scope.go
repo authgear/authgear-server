@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
 	"github.com/google/uuid"
@@ -19,10 +20,6 @@ import (
 
 func (s *Store) NewScope(resource *Resource, options *NewScopeOptions) *Scope {
 	now := s.Clock.NowUTC()
-	accessPolicy := model.AccessPolicy{}
-	if options.AccessPolicy != nil {
-		accessPolicy = *options.AccessPolicy
-	}
 	return &Scope{
 		ID:           uuid.NewString(),
 		CreatedAt:    now,
@@ -30,7 +27,7 @@ func (s *Store) NewScope(resource *Resource, options *NewScopeOptions) *Scope {
 		ResourceID:   resource.ID,
 		Scope:        options.Scope.Value,
 		Description:  options.Description,
-		AccessPolicy: accessPolicy,
+		AccessPolicy: options.AccessPolicy.Apply(model.AccessPolicy{}),
 	}
 }
 
@@ -93,11 +90,13 @@ func (s *Store) UpdateScope(ctx context.Context, options *UpdateScopeOptions) er
 	}
 
 	if options.AccessPolicy != nil {
-		accessPolicy, err := json.Marshal(*options.AccessPolicy)
+		patch, err := json.Marshal(*options.AccessPolicy)
 		if err != nil {
 			return err
 		}
-		q = q.Set("access_policy", accessPolicy)
+		// Merge, not replace -- see the identical comment in
+		// store_resource.go's UpdateResource.
+		q = q.Set("access_policy", sq.Expr("access_policy || ?::jsonb", patch))
 	}
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)

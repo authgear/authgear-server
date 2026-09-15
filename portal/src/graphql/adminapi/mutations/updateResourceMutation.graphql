@@ -5,6 +5,9 @@ mutation UpdateResourceMutation($input: UpdateResourceInput!) {
       name
       resourceURI
       accessPolicy {
+        allowStaticFirstPartyClientAccess
+        allowStaticThirdPartyClientAccess
+        allowDynamicFirstPartyClientAccess
         allowDynamicThirdPartyClientAccess
       }
       createdAt

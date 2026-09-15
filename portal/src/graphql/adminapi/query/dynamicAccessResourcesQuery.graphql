@@ -7,6 +7,9 @@ query dynamicAccessResourcesQuery($first: Int, $scopesFirst: Int) {
         name
         resourceURI
         accessPolicy {
+          allowStaticFirstPartyClientAccess
+          allowStaticThirdPartyClientAccess
+          allowDynamicFirstPartyClientAccess
           allowDynamicThirdPartyClientAccess
         }
         scopes(first: $scopesFirst) {
@@ -16,6 +19,9 @@ query dynamicAccessResourcesQuery($first: Int, $scopesFirst: Int) {
               id
               scope
               accessPolicy {
+                allowStaticFirstPartyClientAccess
+                allowStaticThirdPartyClientAccess
+                allowDynamicFirstPartyClientAccess
                 allowDynamicThirdPartyClientAccess
               }
             }

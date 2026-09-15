@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
 	"github.com/google/uuid"
@@ -19,17 +20,13 @@ import (
 
 func (s *Store) NewResource(options *NewResourceOptions) *Resource {
 	now := s.Clock.NowUTC()
-	accessPolicy := model.AccessPolicy{}
-	if options.AccessPolicy != nil {
-		accessPolicy = *options.AccessPolicy
-	}
 	return &Resource{
 		ID:           uuid.NewString(),
 		CreatedAt:    now,
 		UpdatedAt:    now,
 		ResourceURI:  options.URI.Value,
 		Name:         options.Name,
-		AccessPolicy: accessPolicy,
+		AccessPolicy: options.AccessPolicy.Apply(model.AccessPolicy{}),
 	}
 }
 
@@ -85,11 +82,16 @@ func (s *Store) UpdateResource(ctx context.Context, options *UpdateResourceOptio
 	}
 
 	if options.AccessPolicy != nil {
-		accessPolicy, err := json.Marshal(*options.AccessPolicy)
+		patch, err := json.Marshal(*options.AccessPolicy)
 		if err != nil {
 			return err
 		}
-		q = q.Set("access_policy", accessPolicy)
+		// Merge rather than replace: || on two jsonb objects takes the
+		// right-hand value for a shared key and keeps every other key on
+		// the left, which is AccessPolicyPatch's contract. Doing it in SQL
+		// rather than read-modify-write keeps a concurrent update of a
+		// different key from being lost.
+		q = q.Set("access_policy", sq.Expr("access_policy || ?::jsonb", patch))
 	}
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)

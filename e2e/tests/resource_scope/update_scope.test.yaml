@@ -34,4 +34,87 @@ steps:
             }
           },
           "errors": null
-        } 
+        }
+---
+name: Update Scope - accessPolicy merges rather than replaces
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - name: Set allowDynamicThirdPartyClientAccess only
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation UpdateScope {
+          updateScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "fixturescope1",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            scope {
+              accessPolicy {
+                allowStaticFirstPartyClientAccess
+                allowStaticThirdPartyClientAccess
+                allowDynamicFirstPartyClientAccess
+                allowDynamicThirdPartyClientAccess
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateScope": {
+              "scope": {
+                "accessPolicy": {
+                  "allowStaticFirstPartyClientAccess": false,
+                  "allowStaticThirdPartyClientAccess": false,
+                  "allowDynamicFirstPartyClientAccess": false,
+                  "allowDynamicThirdPartyClientAccess": true
+                }
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: Set allowStaticFirstPartyClientAccess only -- the earlier key must survive
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation UpdateScope {
+          updateScope(input: {
+            resourceURI: "https://fixtureresource/1",
+            scope: "fixturescope1",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            scope {
+              accessPolicy {
+                allowStaticFirstPartyClientAccess
+                allowStaticThirdPartyClientAccess
+                allowDynamicFirstPartyClientAccess
+                allowDynamicThirdPartyClientAccess
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateScope": {
+              "scope": {
+                "accessPolicy": {
+                  "allowStaticFirstPartyClientAccess": true,
+                  "allowStaticThirdPartyClientAccess": false,
+                  "allowDynamicFirstPartyClientAccess": false,
+                  "allowDynamicThirdPartyClientAccess": true
+                }
+              }
+            }
+          },
+          "errors": null
+        }

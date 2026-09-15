@@ -32,12 +32,25 @@ export type Scalars = {
 
 export type AccessPolicy = {
   __typename?: 'AccessPolicy';
-  /** Whether a dynamic third-party client (DCR or CIMD) can request this resource/scope via the resource parameter. Static third-party clients are never covered by this flag, and neither are dynamic first-party clients. */
+  /** When true, any dynamically registered first-party client (DCR-registered with a first-party Initial Access Token, or CIMD-resolved as first-party) may access this Resource or Scope without a per-client association. */
+  allowDynamicFirstPartyClientAccess: Scalars['Boolean']['output'];
+  /** When true, any dynamically registered third-party client (DCR/CIMD) may access this Resource or Scope without a per-client association. Static third-party clients are never covered by this flag. */
   allowDynamicThirdPartyClientAccess: Scalars['Boolean']['output'];
+  /** When true, any client declared in authgear.yaml with a first-party application type (spa, traditional_webapp, native, confidential) may access this Resource or Scope without a per-client association. Does not cover m2m clients, and has no effect on the client_credentials grant. */
+  allowStaticFirstPartyClientAccess: Scalars['Boolean']['output'];
+  /** When true, any third_party_app client declared in authgear.yaml may access this Resource or Scope without a per-client association. */
+  allowStaticThirdPartyClientAccess: Scalars['Boolean']['output'];
 };
 
 export type AccessPolicyInput = {
+  /** Default false on create; unchanged on update. */
+  allowDynamicFirstPartyClientAccess?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Default false on create; unchanged on update. */
   allowDynamicThirdPartyClientAccess?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Default false on create; unchanged on update. */
+  allowStaticFirstPartyClientAccess?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Default false on create; unchanged on update. */
+  allowStaticThirdPartyClientAccess?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 /** The account lockout state of a user */
@@ -527,7 +540,7 @@ export type CreateInitialAccessTokenPayload = {
 };
 
 export type CreateResourceInput = {
-  /** The optional access policy of the resource. Defaults to no third-party access if omitted. */
+  /** The optional access policy of the resource. If omitted, all access policy fields default to false. */
   accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The optional name of the resource. */
   name?: InputMaybe<Scalars['String']['input']>;
@@ -555,7 +568,7 @@ export type CreateRolePayload = {
 };
 
 export type CreateScopeInput = {
-  /** The optional access policy of the scope. Defaults to no third-party access if omitted. */
+  /** The optional access policy of the scope. If omitted, all access policy fields default to false. */
   accessPolicy?: InputMaybe<AccessPolicyInput>;
   /** The optional description of the scope. */
   description?: InputMaybe<Scalars['String']['input']>;
@@ -1794,7 +1807,7 @@ export type ResetPasswordPayload = {
 /** Authgear resource */
 export type Resource = Entity & Node & {
   __typename?: 'Resource';
-  /** The access policy governing third-party client access to this resource. */
+  /** The access policy controlling which categories of client may access this resource without a per-client association. */
   accessPolicy: AccessPolicy;
   /** The list of client IDs associated with this Resource. */
   clientIDs: Array<Scalars['String']['output']>;
@@ -1957,7 +1970,7 @@ export type ScheduleAccountDeletionPayload = {
 /** Authgear scope */
 export type Scope = Entity & Node & {
   __typename?: 'Scope';
-  /** The access policy governing third-party client access to this scope. */
+  /** The access policy controlling which categories of client may access this scope without a per-client association. */
   accessPolicy: AccessPolicy;
   /** The creation time of entity */
   createdAt: Scalars['DateTime']['output'];

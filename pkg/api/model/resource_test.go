@@ -96,4 +96,65 @@ func TestAccessPolicy(t *testing.T) {
 			So(string(b), ShouldEqual, "{}")
 		})
 	})
+
+	Convey("AccessPolicyPatch tags match AccessPolicy's", t, func() {
+		// The store marshals a patch and merges it straight into the stored
+		// JSONB object (jsonb `||`), so a tag mismatch here would silently
+		// write under the wrong key.
+		policy := model.AccessPolicy{
+			AllowStaticFirstPartyClientAccess:  true,
+			AllowStaticThirdPartyClientAccess:  true,
+			AllowDynamicFirstPartyClientAccess: true,
+			AllowDynamicThirdPartyClientAccess: true,
+		}
+		trueVal := true
+		patch := model.AccessPolicyPatch{
+			AllowStaticFirstPartyClientAccess:  &trueVal,
+			AllowStaticThirdPartyClientAccess:  &trueVal,
+			AllowDynamicFirstPartyClientAccess: &trueVal,
+			AllowDynamicThirdPartyClientAccess: &trueVal,
+		}
+
+		policyBytes, err := json.Marshal(policy)
+		So(err, ShouldBeNil)
+		patchBytes, err := json.Marshal(patch)
+		So(err, ShouldBeNil)
+
+		var policyMap, patchMap map[string]any
+		So(json.Unmarshal(policyBytes, &policyMap), ShouldBeNil)
+		So(json.Unmarshal(patchBytes, &patchMap), ShouldBeNil)
+
+		So(patchMap, ShouldResemble, policyMap)
+	})
+
+	Convey("AccessPolicyPatch.Apply", t, func() {
+		Convey("a nil receiver returns base unchanged", func() {
+			var patch *model.AccessPolicyPatch
+			base := model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}
+			So(patch.Apply(base), ShouldResemble, base)
+		})
+
+		Convey("unset fields are left alone, set fields overwrite, in both directions", func() {
+			base := model.AccessPolicy{
+				AllowStaticFirstPartyClientAccess: true,
+				AllowStaticThirdPartyClientAccess: true,
+			}
+			trueVal := true
+			falseVal := false
+			patch := &model.AccessPolicyPatch{
+				// Unset: AllowStaticFirstPartyClientAccess stays true.
+				AllowStaticThirdPartyClientAccess:  &falseVal, // true -> false
+				AllowDynamicFirstPartyClientAccess: &trueVal,  // false -> true
+				// Unset: AllowDynamicThirdPartyClientAccess stays false.
+			}
+
+			got := patch.Apply(base)
+			So(got, ShouldResemble, model.AccessPolicy{
+				AllowStaticFirstPartyClientAccess:  true,
+				AllowStaticThirdPartyClientAccess:  false,
+				AllowDynamicFirstPartyClientAccess: true,
+				AllowDynamicThirdPartyClientAccess: false,
+			})
+		})
+	})
 }
