@@ -5,6 +5,7 @@ add
 android
 animation
 api
+apps
 arrow_back_ios
 arrow_forward_ios
 auto_delete
@@ -58,6 +59,7 @@ image
 info
 input
 ios
+join
 key
 key_vertical
 keyboard
