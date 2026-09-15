@@ -5,7 +5,39 @@ package model
 // to false, so the zero value is "no access" for every grant this policy
 // governs.
 type AccessPolicy struct {
+	AllowStaticFirstPartyClientAccess  bool `json:"allow_static_first_party_client_access,omitempty"`
+	AllowStaticThirdPartyClientAccess  bool `json:"allow_static_third_party_client_access,omitempty"`
+	AllowDynamicFirstPartyClientAccess bool `json:"allow_dynamic_first_party_client_access,omitempty"`
 	AllowDynamicThirdPartyClientAccess bool `json:"allow_dynamic_third_party_client_access,omitempty"`
+}
+
+// ClientCategoryClassifier is the client shape AllowsClient needs to place
+// a client into one of the spec's four categories
+// (docs/specs/api-resource.md § Client categories). Declared here instead
+// of accepting *config.OAuthClientConfig directly, since pkg/lib/config
+// imports this package; config.OAuthClientConfig satisfies it structurally.
+type ClientCategoryClassifier interface {
+	IsDynamicClient() bool
+	IsThirdParty() bool
+}
+
+// AllowsClient reports whether p opens this Resource or Scope to client.
+//
+// An m2m client is neither dynamic nor third-party and so would read
+// AllowStaticFirstPartyClientAccess here, which would be wrong -- m2m is in
+// no category at all. Nothing calls this for one: client_credentials is its
+// only grant, and access_policy does not govern that grant.
+func (p AccessPolicy) AllowsClient(client ClientCategoryClassifier) bool {
+	switch {
+	case client.IsDynamicClient() && client.IsThirdParty():
+		return p.AllowDynamicThirdPartyClientAccess
+	case client.IsDynamicClient():
+		return p.AllowDynamicFirstPartyClientAccess
+	case client.IsThirdParty():
+		return p.AllowStaticThirdPartyClientAccess
+	default:
+		return p.AllowStaticFirstPartyClientAccess
+	}
 }
 
 type Resource struct {
