@@ -8,13 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
-// accessPolicyAllowDynamicThirdPartyClientAccessKey is the JSON key of
-// model.AccessPolicy.AllowDynamicThirdPartyClientAccess's `json:"..."` tag.
-// Go struct tags can't be referenced as a constant, so this is a deliberate
-// duplication kept next to the raw-SQL JSONB lookups in store_resource.go
-// and store_scope.go that can't go through the struct at all.
-const accessPolicyAllowDynamicThirdPartyClientAccessKey = "allow_dynamic_third_party_client_access"
-
 type newResourceURI struct {
 	Value string
 }

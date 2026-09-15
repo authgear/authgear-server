@@ -7,6 +7,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -33,14 +34,14 @@ type stubResourceScopeService struct {
 	err      error
 }
 
-func (s *stubResourceScopeService) GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*resourcescope.Resource, error) {
+func (s *stubResourceScopeService) GetResourceByURI(ctx context.Context, uri string) (*resourcescope.Resource, error) {
 	if s.err != nil {
 		return nil, s.err
 	}
 	return s.resource, nil
 }
 
-func (s *stubResourceScopeService) ListScopesForThirdPartyAccess(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error) {
+func (s *stubResourceScopeService) ListScopesByResourceID(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error) {
 	return s.scopes, nil
 }
 
@@ -86,10 +87,20 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 				IDTokenIssuer: stubIDTokenIssuer{},
 				Database:      &db.MockHandle{},
 				ResourceScopeService: &stubResourceScopeService{
-					resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: "https://api.example.com/orders"},
+					resource: &resourcescope.Resource{
+						ID:          "resource-id",
+						ResourceURI: "https://api.example.com/orders",
+						AccessPolicy: model.AccessPolicy{
+							AllowDynamicThirdPartyClientAccess: true,
+						},
+					},
 					scopes: []*resourcescope.Scope{
-						{Scope: "read:orders"},
-						{Scope: "write:orders"},
+						{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowDynamicThirdPartyClientAccess: true}},
+						{Scope: "write:orders", AccessPolicy: model.AccessPolicy{AllowDynamicThirdPartyClientAccess: true}},
+						// Not returned: the Resource allows the category but
+						// this Scope does not -- the spec's two-level check,
+						// both must be true.
+						{Scope: "delete:orders"},
 					},
 				},
 			}
@@ -100,7 +111,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 			So(scopes, ShouldResemble, []string{"read:orders", "write:orders"})
 		})
 
-		Convey("dynamic third-party client with a policy-disabled (not found) resource is invalid_target", func() {
+		Convey("dynamic third-party client with a resource not found is invalid_target", func() {
 			h := &AuthorizationHandler{
 				IDTokenIssuer: stubIDTokenIssuer{},
 				Database:      &db.MockHandle{},
@@ -110,6 +121,21 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 			}
 			scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://api.example.com/secret",
+			})
+			So(scopes, ShouldBeNil)
+			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource not found or not accessible to third-party clients"))
+		})
+
+		Convey("dynamic third-party client with a resource found but policy-disabled is invalid_target", func() {
+			h := &AuthorizationHandler{
+				IDTokenIssuer: stubIDTokenIssuer{},
+				Database:      &db.MockHandle{},
+				ResourceScopeService: &stubResourceScopeService{
+					resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: "https://api.example.com/orders"},
+				},
+			}
+			scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+				"resource": "https://api.example.com/orders",
 			})
 			So(scopes, ShouldBeNil)
 			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource not found or not accessible to third-party clients"))
@@ -190,10 +216,16 @@ func TestAuthorizationHandlerResourceScopeDisplayNames(t *testing.T) {
 				IDTokenIssuer: stubIDTokenIssuer{},
 				Database:      &db.MockHandle{},
 				ResourceScopeService: &stubResourceScopeService{
-					resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: "https://api.example.com/orders"},
+					resource: &resourcescope.Resource{
+						ID:          "resource-id",
+						ResourceURI: "https://api.example.com/orders",
+						AccessPolicy: model.AccessPolicy{
+							AllowDynamicThirdPartyClientAccess: true,
+						},
+					},
 					scopes: []*resourcescope.Scope{
-						{Scope: "read:orders", Description: &desc},
-						{Scope: "write:orders"},
+						{Scope: "read:orders", Description: &desc, AccessPolicy: model.AccessPolicy{AllowDynamicThirdPartyClientAccess: true}},
+						{Scope: "write:orders", AccessPolicy: model.AccessPolicy{AllowDynamicThirdPartyClientAccess: true}},
 					},
 				},
 			}

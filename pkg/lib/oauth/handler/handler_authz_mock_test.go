@@ -642,32 +642,32 @@ func (m *MockAuthorizationHandlerResourceScopeService) EXPECT() *MockAuthorizati
 	return m.recorder
 }
 
-// GetResourceByURIForThirdPartyAccess mocks base method.
-func (m *MockAuthorizationHandlerResourceScopeService) GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*resourcescope.Resource, error) {
+// GetResourceByURI mocks base method.
+func (m *MockAuthorizationHandlerResourceScopeService) GetResourceByURI(ctx context.Context, uri string) (*resourcescope.Resource, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResourceByURIForThirdPartyAccess", ctx, uri)
+	ret := m.ctrl.Call(m, "GetResourceByURI", ctx, uri)
 	ret0, _ := ret[0].(*resourcescope.Resource)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetResourceByURIForThirdPartyAccess indicates an expected call of GetResourceByURIForThirdPartyAccess.
-func (mr *MockAuthorizationHandlerResourceScopeServiceMockRecorder) GetResourceByURIForThirdPartyAccess(ctx, uri interface{}) *gomock.Call {
+// GetResourceByURI indicates an expected call of GetResourceByURI.
+func (mr *MockAuthorizationHandlerResourceScopeServiceMockRecorder) GetResourceByURI(ctx, uri interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResourceByURIForThirdPartyAccess", reflect.TypeOf((*MockAuthorizationHandlerResourceScopeService)(nil).GetResourceByURIForThirdPartyAccess), ctx, uri)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResourceByURI", reflect.TypeOf((*MockAuthorizationHandlerResourceScopeService)(nil).GetResourceByURI), ctx, uri)
 }
 
-// ListScopesForThirdPartyAccess mocks base method.
-func (m *MockAuthorizationHandlerResourceScopeService) ListScopesForThirdPartyAccess(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error) {
+// ListScopesByResourceID mocks base method.
+func (m *MockAuthorizationHandlerResourceScopeService) ListScopesByResourceID(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListScopesForThirdPartyAccess", ctx, resourceID)
+	ret := m.ctrl.Call(m, "ListScopesByResourceID", ctx, resourceID)
 	ret0, _ := ret[0].([]*resourcescope.Scope)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ListScopesForThirdPartyAccess indicates an expected call of ListScopesForThirdPartyAccess.
-func (mr *MockAuthorizationHandlerResourceScopeServiceMockRecorder) ListScopesForThirdPartyAccess(ctx, resourceID interface{}) *gomock.Call {
+// ListScopesByResourceID indicates an expected call of ListScopesByResourceID.
+func (mr *MockAuthorizationHandlerResourceScopeServiceMockRecorder) ListScopesByResourceID(ctx, resourceID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListScopesForThirdPartyAccess", reflect.TypeOf((*MockAuthorizationHandlerResourceScopeService)(nil).ListScopesForThirdPartyAccess), ctx, resourceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListScopesByResourceID", reflect.TypeOf((*MockAuthorizationHandlerResourceScopeService)(nil).ListScopesByResourceID), ctx, resourceID)
 }

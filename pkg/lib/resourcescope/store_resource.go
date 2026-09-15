@@ -168,31 +168,6 @@ func (s *Store) GetResourceByURI(ctx context.Context, uri string) (*Resource, er
 	return r, nil
 }
 
-// GetResourceByURIForThirdPartyAccess returns the resource only if its
-// access_policy allows third-party access; otherwise ErrResourceNotFound,
-// deliberately reusing the same not-found error M2M's GetClientResourceByURI
-// uses for "not associated" so both grant paths collapse to invalid_target
-// identically at the call site.
-func (s *Store) GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*Resource, error) {
-	q := s.selectResourceQuery("r").
-		Where(fmt.Sprintf("r.uri = ? AND (r.access_policy->>'%s')::boolean IS TRUE", accessPolicyAllowDynamicThirdPartyClientAccessKey), uri)
-
-	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := s.scanResource(row)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrResourceNotFound
-		}
-		return nil, err
-	}
-
-	return r, nil
-}
-
 func (s *Store) GetManyResources(ctx context.Context, ids []string) ([]*Resource, error) {
 	q := s.selectResourceQuery("r").Where("r.id = ANY (?)", pq.Array(ids))
 	return s.queryResources(ctx, q)

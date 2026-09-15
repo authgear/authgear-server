@@ -144,14 +144,16 @@ type AuthorizationHandlerCIMDService interface {
 	EnsureClientResolved(ctx context.Context, clientID string) error
 }
 
-// AuthorizationHandlerResourceScopeService is the third-party access-policy
-// read path (docs/plans/dcr/2026-08-17-04-resource-access-policy.md §5.1) —
+// AuthorizationHandlerResourceScopeService is the access-policy read path
+// (docs/plans/resource-indicator/2026-09-15-01-access-policy-model.md §6) —
 // deliberately a different service shape from handler_token.go's
 // TokenHandlerClientResourceScopeService, which checks an explicit M2M
-// client-resource association instead.
+// client-resource association instead. Unlike that service, neither method
+// here filters by policy itself; the policy check is
+// model.AccessPolicy.AllowsClient, applied by the caller.
 type AuthorizationHandlerResourceScopeService interface {
-	GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*resourcescope.Resource, error)
-	ListScopesForThirdPartyAccess(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error)
+	GetResourceByURI(ctx context.Context, uri string) (*resourcescope.Resource, error)
+	ListScopesByResourceID(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error)
 }
 
 var AuthorizationHandlerLogger = slogutil.NewLogger("oauth-authz")
@@ -226,12 +228,23 @@ func (h *AuthorizationHandler) validateResource(ctx context.Context, client *con
 		var allowedScopes []*resourcescope.Scope
 		read := func(ctx context.Context) error {
 			var err error
-			resource, err = h.ResourceScopeService.GetResourceByURIForThirdPartyAccess(ctx, resourceURI)
+			resource, err = h.ResourceScopeService.GetResourceByURI(ctx, resourceURI)
 			if err != nil {
 				return err
 			}
-			allowedScopes, err = h.ResourceScopeService.ListScopesForThirdPartyAccess(ctx, resource.ID)
-			return err
+			if !resource.AccessPolicy.AllowsClient(client) {
+				return resourcescope.ErrResourceNotFound
+			}
+			scopes, err := h.ResourceScopeService.ListScopesByResourceID(ctx, resource.ID)
+			if err != nil {
+				return err
+			}
+			for _, s := range scopes {
+				if s.AccessPolicy.AllowsClient(client) {
+					allowedScopes = append(allowedScopes, s)
+				}
+			}
+			return nil
 		}
 		if h.Database.IsInTx(ctx) {
 			err = read(ctx)
@@ -285,12 +298,23 @@ func (h *AuthorizationHandler) resourceScopeDisplayNames(ctx context.Context, cl
 
 	var scopes []*resourcescope.Scope
 	read := func(ctx context.Context) error {
-		resource, err := h.ResourceScopeService.GetResourceByURIForThirdPartyAccess(ctx, resourceURI)
+		resource, err := h.ResourceScopeService.GetResourceByURI(ctx, resourceURI)
 		if err != nil {
 			return err
 		}
-		scopes, err = h.ResourceScopeService.ListScopesForThirdPartyAccess(ctx, resource.ID)
-		return err
+		if !resource.AccessPolicy.AllowsClient(client) {
+			return resourcescope.ErrResourceNotFound
+		}
+		allScopes, err := h.ResourceScopeService.ListScopesByResourceID(ctx, resource.ID)
+		if err != nil {
+			return err
+		}
+		for _, s := range allScopes {
+			if s.AccessPolicy.AllowsClient(client) {
+				scopes = append(scopes, s)
+			}
+		}
+		return nil
 	}
 	var err error
 	if h.Database.IsInTx(ctx) {

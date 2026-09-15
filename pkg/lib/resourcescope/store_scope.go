@@ -317,11 +317,10 @@ func (s *Store) scanScope(scanner db.Scanner) (*Scope, error) {
 	return sc, nil
 }
 
-// ListScopesForThirdPartyAccess returns only the scopes of resourceID whose
-// access_policy allows third-party access.
-func (s *Store) ListScopesForThirdPartyAccess(ctx context.Context, resourceID string) ([]*Scope, error) {
-	q := s.selectScopeQuery("s").
-		Where(fmt.Sprintf("s.resource_id = ? AND (s.access_policy->>'%s')::boolean IS TRUE", accessPolicyAllowDynamicThirdPartyClientAccessKey), resourceID)
+// ListScopesByResourceID returns every scope of resourceID, unpaginated and
+// unfiltered by access_policy -- the caller applies the policy check.
+func (s *Store) ListScopesByResourceID(ctx context.Context, resourceID string) ([]*Scope, error) {
+	q := s.selectScopeQuery("s").Where("s.resource_id = ?", resourceID)
 	return s.queryScopes(ctx, q)
 }
 
