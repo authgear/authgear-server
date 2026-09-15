@@ -176,3 +176,17 @@ func TestScopeAllowsClaim(t *testing.T) {
 		})
 	})
 }
+
+func TestIsResourceScope(t *testing.T) {
+	Convey("IsResourceScope", t, func() {
+		Convey("false for every member of AllowedScopes", func() {
+			for _, s := range AllowedScopes {
+				So(IsResourceScope(s), ShouldBeFalse)
+			}
+		})
+
+		Convey("true for a resource-specific scope", func() {
+			So(IsResourceScope("read:orders"), ShouldBeTrue)
+		})
+	})
+}

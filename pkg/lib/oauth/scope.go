@@ -55,6 +55,15 @@ var AllowedScopes = []string{
 	PreAuthenticatedURLScope,
 }
 
+// IsResourceScope reports whether scope is resource-specific rather than
+// project-level. AllowedScopes is the closed set of project-level scopes,
+// and ValidateScopesByClientConfig admits a resource scope by appending the
+// Resource's own scopes to it -- so "not in AllowedScopes" is the same
+// discriminator, used from the other side.
+func IsResourceScope(scope string) bool {
+	return !slices.Contains(AllowedScopes, scope)
+}
+
 var scopeClaims = map[string]map[string]struct{}{
 	ScopeProfile: {
 		// https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims

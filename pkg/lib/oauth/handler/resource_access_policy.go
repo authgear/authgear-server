@@ -5,11 +5,14 @@ package handler
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 // ResourceAccessPolicyService is the access-policy read path, shared by
@@ -57,4 +60,28 @@ func allowedResourceScopes(
 		allowed[i] = s.Scope
 	}
 	return allowed, nil
+}
+
+// resourceScopesForIssuance re-reads the access policy and returns granted
+// minus any resource-specific scope the Resource no longer opens to the
+// client's category. Only the returned value is narrowed -- the caller's
+// own grant is left alone, so a re-enabled key is restored on the next
+// issuance without the user re-authorizing. See
+// docs/specs/api-resource.md § Revocation.
+func (h *TokenHandler) resourceScopesForIssuance(
+	ctx context.Context,
+	client *config.OAuthClientConfig,
+	resourceURI string,
+	granted []string,
+) ([]string, error) {
+	if resourceURI == "" {
+		return granted, nil
+	}
+	stillAllowed, err := allowedResourceScopes(ctx, h.ResourceAccessPolicyService, client, resourceURI)
+	if err != nil {
+		return nil, err
+	}
+	return slice.Filter(granted, func(s string) bool {
+		return !oauth.IsResourceScope(s) || slices.Contains(stillAllowed, s)
+	}), nil
 }
