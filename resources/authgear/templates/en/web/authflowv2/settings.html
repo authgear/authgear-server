@@ -187,6 +187,16 @@
         }}
       </a>
 
+      <a href="{{ call $.MakeURL "/settings/authorized-apps" }}" class="contents">
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "Label" ( include "v2.page.settings.default.authorized-apps-button-label" nil )
+            "WithArrow" true
+            "MaterialIconName" "apps"
+          )
+        }}
+      </a>
+
 
       {{ $show_advanced_settings_button := false }}
       {{ if $.AccountDeletionAllowed }}
