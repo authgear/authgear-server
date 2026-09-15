@@ -20,6 +20,7 @@ type GlobalEmbeddedResourceManager interface {
 
 type GeneratedStaticAssetsHandler struct {
 	EmbeddedResources GlobalEmbeddedResourceManager
+	SourceMap         httputil.SourceMapConfig
 }
 
 func (h *GeneratedStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +28,7 @@ func (h *GeneratedStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		FileSystem:          h.EmbeddedResources,
 		AssetsDir:           web.GeneratedAssetsURLDirname,
 		FallbackToIndexHTML: false,
+		SourceMap:           h.SourceMap,
 	}
 	fileServer.ServeHTTP(w, r)
 }

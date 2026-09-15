@@ -138,4 +138,7 @@ type EnvironmentConfig struct {
 
 	// Analytic configures analytics forwarding (e.g. PostHog) from the server runtime.
 	Analytic AnalyticConfig `envconfig:"ANALYTIC"`
+
+	// SourceMap configures how source map files (*.map) are served.
+	SourceMap SourceMapEnvironmentConfig `envconfig:"SOURCE_MAP"`
 }
