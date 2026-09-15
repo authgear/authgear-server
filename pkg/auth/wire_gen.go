@@ -37008,6 +37008,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 		Renderer:            responseRenderer,
 		Authorizations:      authorizationService,
 		OAuthClientResolver: resolver,
+		Endpoints:           endpointsEndpoints,
 	}
 	return authflowV2SettingsAuthorizedAppsHandler
 }

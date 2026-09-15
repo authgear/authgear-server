@@ -115,8 +115,8 @@
 /pkg/auth/handler/webapp/authflowv2/select_account.go:187:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings.go:89:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_advanced.go:46:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_authorized_apps.go:121:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_authorized_apps.go:123:39: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_authorized_apps.go:142:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_authorized_apps.go:144:39: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_biometric.go:101:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_change_password.go:83:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_delete_account.go:102:30: requestcontext

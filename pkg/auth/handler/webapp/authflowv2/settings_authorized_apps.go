@@ -3,6 +3,7 @@ package authflowv2
 import (
 	"context"
 	"net/http"
+	"net/url"
 
 	"time"
 
@@ -34,6 +35,14 @@ type SettingsSessionsClientResolver interface {
 	ResolveClient(ctx context.Context, clientID string) *config.OAuthClientConfig
 }
 
+// SettingsAuthorizedAppsClientLogoEndpoint is a narrow interface (not the
+// whole oauth.EndpointsProvider) so this handler's dependency is exactly the
+// one method it uses -- same shape as oauth/consent.go's
+// ConsentClientLogoEndpoint.
+type SettingsAuthorizedAppsClientLogoEndpoint interface {
+	ClientLogoURL(clientID string) *url.URL
+}
+
 type Authorization struct {
 	ID            string
 	ClientID      string
@@ -55,6 +64,7 @@ type AuthflowV2SettingsAuthorizedAppsHandler struct {
 	Renderer            handlerwebapp.Renderer
 	Authorizations      SettingsAuthorizationService
 	OAuthClientResolver SettingsSessionsClientResolver
+	Endpoints           SettingsAuthorizedAppsClientLogoEndpoint
 }
 
 func (h *AuthflowV2SettingsAuthorizedAppsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]any, error) {
@@ -92,7 +102,18 @@ func (h *AuthflowV2SettingsAuthorizedAppsHandler) GetData(ctx context.Context, r
 		logoURI := ""
 		if c := h.OAuthClientResolver.ResolveClient(ctx, authz.ClientID); c != nil {
 			clientName = c.Name
-			logoURI = c.LogoURI
+			// Point the <img> at Authgear's own proxy instead of the
+			// client's server, so the end user's browser never contacts
+			// the client (spec § Privacy Considerations §9.2). Only for a
+			// dynamic client, matching oauth/consent.go's
+			// consentViewModelForClient -- a static client's logo is
+			// project-collaborator-configured and continues to render
+			// directly.
+			if c.LogoURI != "" && c.IsDynamicClient() {
+				logoURI = h.Endpoints.ClientLogoURL(c.ClientID).String()
+			} else {
+				logoURI = c.LogoURI
+			}
 		}
 		authzs = append(authzs, Authorization{
 			ID:            authz.ID,
