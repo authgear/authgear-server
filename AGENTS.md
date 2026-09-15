@@ -147,7 +147,7 @@ Rules:
 
 Use existing repo skills instead of one-off instructions when they fit:
 
-- `api-design`
+- `api-design` — **use this before writing or editing any file under `docs/specs/`**, and before designing or reviewing a config schema, Admin GraphQL type, HTTP endpoint, or Authflow step (spec writing conventions: say it once, no implementation details, be concise, exact scope; plus the API design checklist)
 - `bootstrap-local-dev` — **use this for first-time setup on a fresh machine** (asdf + Homebrew install, env files, DB migrations, MinIO, bootstrap account)
 - `update-deps`
 - `new-siteadmin-api`
