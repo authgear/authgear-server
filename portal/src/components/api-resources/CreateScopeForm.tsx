@@ -9,6 +9,7 @@ import { useFormTopErrors } from "../../form";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { TextField } from "../v2/TextField/TextField";
+import { FieldLabelWithTooltip } from "../v2/FieldLabelWithTooltip/FieldLabelWithTooltip";
 import styles from "./CreateScopeForm.module.css";
 
 export interface CreateScopeFormState {
@@ -77,6 +78,15 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
       [setState]
     );
 
+    const descriptionLabel = (
+      <FieldLabelWithTooltip
+        tooltip={<FormattedMessage id="ScopeForm.description.tooltip" />}
+        tooltipLabel={renderToString("ScopeForm.description.tooltip")}
+      >
+        <FormattedMessage id="CreateScopeForm.description.label" />
+      </FieldLabelWithTooltip>
+    );
+
     return (
       <form onSubmit={onSubmit} className={cn(styles.form, className)}>
         <div className={styles.root}>
@@ -96,10 +106,7 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
           <div className={styles.field}>
             <TextField
               size="2"
-              label={
-                <FormattedMessage id="CreateScopeForm.description.label" />
-              }
-              hint={<FormattedMessage id="ScopeForm.description.hint" />}
+              label={descriptionLabel}
               fieldName="description"
               parentJSONPointer=""
               type="text"

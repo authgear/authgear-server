@@ -7,6 +7,7 @@ import { ResourceScopesQueryDocument } from "../../graphql/adminapi/query/resour
 import { Scope } from "../../graphql/adminapi/globalTypes.generated";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { TextField } from "../v2/TextField/TextField";
+import { FieldLabelWithTooltip } from "../v2/FieldLabelWithTooltip/FieldLabelWithTooltip";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import ErrorRenderer from "../../ErrorRenderer";
@@ -137,6 +138,15 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
       return topErrors.length > 0 ? <ErrorRenderer errors={topErrors} /> : null;
     }, [updateError]);
 
+    const descriptionLabel = (
+      <FieldLabelWithTooltip
+        tooltip={<FormattedMessage id="ScopeForm.description.tooltip" />}
+        tooltipLabel={renderToString("ScopeForm.description.tooltip")}
+      >
+        <FormattedMessage id="ScopeForm.description.label" />
+      </FieldLabelWithTooltip>
+    );
+
     return (
       <Dialog.Root open={open} onOpenChange={onOpenChange}>
         <Dialog.Content maxWidth="480px" size="3">
@@ -158,8 +168,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
             />
             <TextField
               size="2"
-              label={<FormattedMessage id="ScopeForm.description.label" />}
-              hint={<FormattedMessage id="ScopeForm.description.hint" />}
+              label={descriptionLabel}
               type="text"
               value={state.description}
               onChange={onDescriptionChange}

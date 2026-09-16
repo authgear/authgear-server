@@ -2532,7 +2532,7 @@
   "EditScopeScreen.title": "Edit Scope",
   "ScopeForm.scope.label": "Scope",
   "ScopeForm.description.label": "Description",
-  "ScopeForm.description.hint": "Shown to users on the consent screen when an application requests this scope. If left empty, the scope name is shown instead.",
+  "ScopeForm.description.tooltip": "Shown to users on the consent screen when an application requests this scope. If left empty, the scope name is shown instead.",
   "CreateScopeForm.scope.label": "Scope",
   "CreateScopeForm.description.label": "Description",
   "CreateScopeForm.add.button": "Add Scope",
