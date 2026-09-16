@@ -83,15 +83,25 @@ func (a APIErrorExtension) HasResult() bool { return false }
 
 func (a APIErrorExtension) GetResult(ctx context.Context) any { return nil }
 
+// originalError unwraps err as deep as possible, stopping (rather than
+// descending into a nil) once the wrapper's own OriginalError is nil --
+// true for graphql-go's own internally-constructed errors, such as a
+// variable coercion failure, which never wrap anything. Descending anyway
+// would return a nil error, and the caller's err.Error() would panic on it.
 func originalError(err error) error {
 	for err != nil {
 		if wrapper, ok := err.(interface{ OriginalError() error }); ok {
-			err = wrapper.OriginalError()
+			if inner := wrapper.OriginalError(); inner != nil {
+				err = inner
+				continue
+			}
 		} else if gError, ok := err.(*gqlerrors.Error); ok {
-			err = gError.OriginalError
-		} else {
-			break
+			if gError.OriginalError != nil {
+				err = gError.OriginalError
+				continue
+			}
 		}
+		break
 	}
 	return err
 }
