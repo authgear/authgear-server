@@ -159,6 +159,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
             <TextField
               size="2"
               label={<FormattedMessage id="ScopeForm.description.label" />}
+              hint={<FormattedMessage id="ScopeForm.description.hint" />}
               type="text"
               value={state.description}
               onChange={onDescriptionChange}

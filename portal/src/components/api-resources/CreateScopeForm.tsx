@@ -99,6 +99,7 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
               label={
                 <FormattedMessage id="CreateScopeForm.description.label" />
               }
+              hint={<FormattedMessage id="ScopeForm.description.hint" />}
               fieldName="description"
               parentJSONPointer=""
               type="text"
