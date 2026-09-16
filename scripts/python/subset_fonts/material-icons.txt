@@ -5,6 +5,7 @@ add
 android
 animation
 api
+apps
 arrow_back_ios
 arrow_forward_ios
 auto_delete
@@ -14,6 +15,7 @@ border_color
 box
 call
 cancel
+category
 check
 check_circle
 class
@@ -58,6 +60,7 @@ image
 info
 input
 ios
+join
 key
 key_vertical
 keyboard

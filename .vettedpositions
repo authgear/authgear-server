@@ -115,6 +115,8 @@
 /pkg/auth/handler/webapp/authflowv2/select_account.go:187:33: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings.go:89:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_advanced.go:46:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_authorized_apps.go:142:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_authorized_apps.go:144:39: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_biometric.go:101:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_change_password.go:83:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_delete_account.go:102:30: requestcontext
@@ -151,8 +153,8 @@
 /pkg/auth/handler/webapp/authflowv2/settings_passkey.go:106:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_profile.go:40:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/settings_profile_edit.go:171:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:142:30: requestcontext
-/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:144:39: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:86:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/settings_sessions.go:88:39: requestcontext
 /pkg/auth/handler/webapp/authflowv2/setup_oob_otp.go:162:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/setup_totp.go:122:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/terminate_other_sessions.go:74:26: requestcontext
