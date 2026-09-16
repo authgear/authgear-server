@@ -10,7 +10,6 @@ import {
   ApplicationListItem,
 } from "../../components/api-resources/ApplicationList";
 import { UnauthorizeApplicationDialog } from "../../components/api-resources/UnauthorizeApplicationDialog";
-import { DynamicClientsAccessRow } from "../../components/api-resources/DynamicClientsAccessRow";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ResourceQueryDocument,
@@ -227,8 +226,6 @@ export function APIResourceDetailsScreenApplicationsSection({
           }
           contentClassName={styles.cardContent}
         >
-          <DynamicClientsAccessRow resource={resource} />
-          <hr className={styles.divider} />
           <div className={styles.m2mSection}>
             <Text as="p" size="3" weight="medium" className={styles.m2mHeading}>
               <FormattedMessage id="APIResourceDetailsScreen.applications.m2m.title" />

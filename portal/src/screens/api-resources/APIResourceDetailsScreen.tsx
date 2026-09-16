@@ -8,6 +8,7 @@ import { Resource } from "../../graphql/adminapi/globalTypes.generated";
 import { APIResourceDetailsScreenDetailsSection } from "./APIResourceDetailsScreenDetailsSection";
 import { APIResourceDetailsScreenScopesSection } from "./APIResourceDetailsScreenScopesSection";
 import { APIResourceDetailsScreenApplicationsSection } from "./APIResourceDetailsScreenApplicationsSection";
+import { APIResourceDetailsScreenDynamicClientsSection } from "./APIResourceDetailsScreenDynamicClientsSection";
 import { APIResourceDetailsScreenTestSection } from "./APIResourceDetailsScreenTestSection";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "../../graphql/portal/mutations/generateAppSecretVisitTokenMutation";
@@ -46,6 +47,7 @@ function APIResourceDetailsContent({
         resource={resource}
         effectiveAppConfig={effectiveAppConfig}
       />
+      <APIResourceDetailsScreenDynamicClientsSection resource={resource} />
       <APIResourceDetailsScreenTestSection
         resource={resource}
         effectiveAppConfig={effectiveAppConfig}
