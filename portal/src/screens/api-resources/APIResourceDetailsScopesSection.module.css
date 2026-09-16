@@ -7,7 +7,8 @@
 }
 
 .addSection {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col gap-4 rounded-lg border border-solid p-4;
+  border-color: var(--gray-a5);
 }
 
 .addHeading {
@@ -16,12 +17,6 @@
 
 .createForm {
   @apply w-full min-w-0;
-}
-
-.divider {
-  margin: 0;
-  border: 0;
-  border-top: 1px solid var(--gray-a5);
 }
 
 .listSection {

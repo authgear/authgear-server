@@ -117,20 +117,6 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
               )}
             />
           </div>
-          <div className={styles.submit}>
-            <PrimaryButton
-              size="2"
-              type="submit"
-              text={
-                <span className={styles.submitContent}>
-                  <PlusIcon width="1rem" height="1rem" />
-                  <FormattedMessage id="CreateScopeForm.add.button" />
-                </span>
-              }
-              disabled={!canSave || isFormIncomplete(state)}
-              loading={isUpdating}
-            />
-          </div>
         </div>
         {/* Full width under the fields, mirroring EditScopeDialog's checkbox
             on the edit path: same label, same trigger. */}
@@ -143,6 +129,20 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
             <FormattedMessage id="ScopeForm.allow-dynamic-access.label" />
           </Text>
         </label>
+        <div className={styles.submit}>
+          <PrimaryButton
+            size="2"
+            type="submit"
+            text={
+              <span className={styles.submitContent}>
+                <PlusIcon width="1rem" height="1rem" />
+                <FormattedMessage id="CreateScopeForm.add.button" />
+              </span>
+            }
+            disabled={!canSave || isFormIncomplete(state)}
+            loading={isUpdating}
+          />
+        </div>
       </form>
     );
   };

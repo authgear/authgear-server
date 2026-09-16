@@ -195,7 +195,6 @@ export function APIResourceDetailsScreenScopesSection({
               setState={form.setState}
             />
           </div>
-          <hr className={styles.divider} />
           <div className={styles.listSection}>
             {hasListContent ? (
               <>

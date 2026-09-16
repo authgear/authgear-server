@@ -1,5 +1,5 @@
 .root {
-  @apply flex items-end w-full min-w-0 gap-x-4;
+  @apply flex items-start w-full min-w-0 gap-x-4;
 }
 
 .field {
@@ -7,7 +7,7 @@
 }
 
 .submit {
-  @apply flex-none;
+  @apply self-start;
 }
 
 .submitContent {
@@ -17,10 +17,6 @@
 @media (max-width: 1080px) {
   .root {
     @apply flex-col items-stretch gap-y-4;
-  }
-
-  .submit {
-    @apply self-start;
   }
 }
 
