@@ -36,6 +36,12 @@ func TestCommandsAddResourceToClientID(t *testing.T) {
 			config.OAuthClientApplicationTypeNative,
 			config.OAuthClientApplicationTypeThirdPartyApp,
 			config.OAuthClientApplicationTypeDynamicThirdParty,
+			// Confidential clients could use client_credentials
+			// historically; they no longer can (see
+			// OAuthClientApplicationType.IsClientCredentialsFlowAllowed),
+			// so a confidential client is no longer associable either --
+			// this check derives from the same flag.
+			config.OAuthClientApplicationTypeConfidential,
 		}
 		for _, appType := range disallowed {
 			Convey("a "+string(appType)+" client returns ErrClientCannotBeAssociatedWithResource, distinct from ErrClientNotFound", func() {
@@ -47,7 +53,6 @@ func TestCommandsAddResourceToClientID(t *testing.T) {
 		}
 
 		allowed := []config.OAuthClientApplicationType{
-			config.OAuthClientApplicationTypeConfidential,
 			config.OAuthClientApplicationTypeM2M,
 		}
 		for _, appType := range allowed {

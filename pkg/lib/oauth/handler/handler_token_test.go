@@ -1270,8 +1270,11 @@ func TestTokenHandler(t *testing.T) {
 				{ID: "scope-id-2", ResourceID: resourceID, Scope: "write"},
 			}
 			clientResolver.ClientConfigs[clientID] = &config.OAuthClientConfig{
-				ClientID:            clientID,
-				ApplicationType:     config.OAuthClientApplicationTypeConfidential,
+				ClientID: clientID,
+				// m2m, not confidential: confidential clients can no
+				// longer use client_credentials (see
+				// OAuthClientApplicationType.IsClientCredentialsFlowAllowed).
+				ApplicationType:     config.OAuthClientApplicationTypeM2M,
 				AccessTokenLifetime: config.DurationSeconds(3600),
 				IssueJWTAccessToken: true,
 			}
@@ -1609,6 +1612,35 @@ func TestTokenHandler(t *testing.T) {
 			})
 		})
 
+		Convey("confidential client requesting client_credentials is unauthorized_client", func() {
+			// The grant-type gate in doHandleWithTx rejects this before any
+			// of handleClientCredentials' own checks run -- none of those
+			// services has an EXPECT set, so gomock fails the test if any
+			// of them is called.
+			clientID := "confidential-client"
+			clientResolver.ClientConfigs[clientID] = &config.OAuthClientConfig{
+				ClientID:        clientID,
+				ApplicationType: config.OAuthClientApplicationTypeConfidential,
+			}
+			rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+
+			req, _ := http.NewRequest("POST", "/token", nil)
+			r := protocol.TokenRequest{
+				"grant_type":    []string{"client_credentials"},
+				"client_id":     []string{clientID},
+				"client_secret": []string{"whatever"},
+				"resource":      []string{"https://api.example.com/resource"},
+			}
+			ctx := context.Background()
+			resp := handle(ctx, req, r)
+
+			So(resp.Result().StatusCode, ShouldEqual, 400)
+			var body map[string]any
+			err := json.Unmarshal(resp.Body.Bytes(), &body)
+			So(err, ShouldBeNil)
+			So(body["error"], ShouldEqual, "unauthorized_client")
+		})
+
 		Convey("client authentication via HTTP Basic auth (client_secret_basic)", func() {
 			clientID := "basic-auth-client"
 			resourceURI := "https://api.example.com/resource"
@@ -1617,8 +1649,12 @@ func TestTokenHandler(t *testing.T) {
 				{ID: "scope-id-1", ResourceID: resourceID, Scope: "read"},
 			}
 			clientResolver.ClientConfigs[clientID] = &config.OAuthClientConfig{
-				ClientID:            clientID,
-				ApplicationType:     config.OAuthClientApplicationTypeConfidential,
+				ClientID: clientID,
+				// m2m, not confidential -- see the same note in the
+				// "client_credentials flow" Convey above. This test's own
+				// purpose (client_secret_basic credential extraction) is
+				// unaffected by which client type carries it.
+				ApplicationType:     config.OAuthClientApplicationTypeM2M,
 				AccessTokenLifetime: config.DurationSeconds(3600),
 				IssueJWTAccessToken: true,
 			}

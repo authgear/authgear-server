@@ -4,10 +4,10 @@ API Resources represent protected external services identified by HTTPS URIs. To
 
 Resources are shared across multiple features:
 
-Which mechanism grants a Resource depends on the **grant**, not on the client — a `confidential` client that uses both is subject to both:
+Which mechanism grants a Resource depends on the **grant**, and the two partition both by grant and by client type — no client type uses both:
 
-- **`client_credentials`** — the client requests tokens bound to a specific Resource through an explicit Client-Resource Association. The `access_policy` described below does **not** govern this grant. See [M2M spec](./m2m.md).
-- **`authorization_code` and `refresh_token`** — a client may request a token for a Resource when that Resource's `access_policy` allows the client's *category*. There are four categories and one policy key per category; see [Access Policy](#access-policy), [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
+- **`client_credentials`** — `m2m` clients only. The client requests tokens bound to a specific Resource through an explicit Client-Resource Association. The `access_policy` described below does **not** govern this grant. See [M2M spec](./m2m.md).
+- **`authorization_code` and `refresh_token`** — every other client type. A client may request a token for a Resource when that Resource's `access_policy` allows the client's *category*. There are four categories and one policy key per category; see [Access Policy](#access-policy), [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
 
 ## Table of Contents
 
@@ -84,7 +84,7 @@ There is no such pre-selection at the Scope level — a new Scope starts with ev
 
 `access_policy` governs the `authorization_code` and `refresh_token` grants only. It does **not** govern `client_credentials`, which always requires an explicit Client-Resource Association regardless of every key in this object.
 
-A `confidential` client is the only client type subject to both rules, because it is the only one that is in a category *and* can use `client_credentials`: `allow_static_first_party_client_access: true` lets it send `resource` at `/oauth2/authorize`, and does **not** let it skip the association at `client_credentials`.
+No client type is subject to both rules: `client_credentials` is `m2m`-only, and `m2m` is in no `access_policy` category (below), so the two rules never both apply to the same client.
 
 > **Rationale:** the `client_credentials` grant has no user and no consent screen — the client *is* the principal. Its least-privilege model depends on an admin naming each client and each scope explicitly, so a blanket category-level grant would silently widen it. See [M2M spec](./m2m.md).
 
@@ -117,9 +117,7 @@ There are two ways a client can be granted a Resource, and **the grant decides w
 | `client_credentials` | An explicit [Client-Resource Association](#client-resource-association) | `access_policy` is not consulted |
 | `authorization_code`, `refresh_token` | `access_policy`, at both the Resource and Scope level | An association is not consulted |
 
-So neither mechanism can override the other: a request only ever goes through one of them.
-
-`confidential` is the only client type that can hold an association *and* use `authorization_code`/`refresh_token`. Even for it the split holds per request: its association is what `client_credentials` reads, and `access_policy` is what `/oauth2/authorize` reads. An association never widens what it can do at the authorization endpoint, and `allow_static_first_party_client_access` never widens what it can do at `client_credentials`.
+So neither mechanism can override the other: a request only ever goes through one of them. In practice this is also a partition by client type, not only by grant: `client_credentials` is `m2m`-only (see [Which clients may be associated](#which-clients-may-be-associated)), and `m2m` cannot use `authorization_code`/`refresh_token`, so no client ever has both an association and an `access_policy` category to reconcile.
 
 There is deliberately **no** key meaning "only explicitly selected clients may access this". For `authorization_code`/`refresh_token` that is what an `access_policy` with all keys `false` already means, and a key named `allow_*` that restricted rather than granted would invert the meaning of every other key in the object.
 

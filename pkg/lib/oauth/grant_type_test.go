@@ -82,7 +82,7 @@ func TestGetAllowedGrantTypes(t *testing.T) {
 			"urn:authgear:params:oauth:grant-type:settings-action",
 		})
 
-		test("confidential client with client_credentials", &config.OAuthClientConfig{
+		test("confidential client does not get client_credentials", &config.OAuthClientConfig{
 			ApplicationType:                config.OAuthClientApplicationTypeConfidential,
 			GrantTypes_do_not_use_directly: []string{},
 		}, []string{
@@ -94,6 +94,29 @@ func TestGetAllowedGrantTypes(t *testing.T) {
 			"urn:authgear:params:oauth:grant-type:app2app-request",
 			"urn:authgear:params:oauth:grant-type:id-token",
 			"urn:authgear:params:oauth:grant-type:settings-action",
+		})
+
+		// Regression guard: client_credentials is no longer the default for
+		// confidential clients, but nothing validates GrantTypes_do_not_use_directly
+		// against ApplicationType, so a config left over from before that
+		// change (or one hand-edited to add it) must not re-grant it.
+		test("confidential client cannot re-grant client_credentials via raw config", &config.OAuthClientConfig{
+			ApplicationType:                config.OAuthClientApplicationTypeConfidential,
+			GrantTypes_do_not_use_directly: []string{"client_credentials"},
+		}, []string{
+			"authorization_code",
+			"refresh_token",
+			"urn:ietf:params:oauth:grant-type:token-exchange",
+			"urn:authgear:params:oauth:grant-type:anonymous-request",
+			"urn:authgear:params:oauth:grant-type:biometric-request",
+			"urn:authgear:params:oauth:grant-type:app2app-request",
+			"urn:authgear:params:oauth:grant-type:id-token",
+			"urn:authgear:params:oauth:grant-type:settings-action",
+		})
+
+		test("m2m client keeps client_credentials", &config.OAuthClientConfig{
+			ApplicationType: config.OAuthClientApplicationTypeM2M,
+		}, []string{
 			"client_credentials",
 		})
 	})
