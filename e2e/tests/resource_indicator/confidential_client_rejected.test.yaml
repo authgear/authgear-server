@@ -1,0 +1,173 @@
+name: Confidential client requesting client_credentials is unauthorized_client
+# Confidential clients could use client_credentials historically, but the
+# capability was removed: m2m is the only client type it is available to
+# now (OAuthClientApplicationType.IsClientCredentialsFlowAllowed). This
+# hits /oauth2/token directly rather than through Admin API, so it proves
+# the rejection end to end, not just at the unit-test level.
+steps:
+  - name: client_credentials
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: client_credentials
+      client_id: e2econfidential
+      client_secret: e2esecret
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "unauthorized_client"
+        }
+
+---
+
+name: A confidential client cannot be associated with a Resource
+# AddResourceToClientID derives its gate from the same flag as the
+# grant-type check above, so this stops working at the same time.
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: { resourceURI: "https://api.example.com/orders" }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: associate_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          addResourceToClientID(input: {
+            clientID: "e2econfidential",
+            resourceURI: "https://api.example.com/orders"
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "reason": "ClientCannotBeAssociatedWithResource"
+              }
+            }
+          ]
+        }
+
+---
+
+name: Confidential client keeps working end to end for authorization_code, only client_credentials was removed
+# Regression guard: the fix only touches IsClientCredentialsFlowAllowed
+# and GetAllowedGrantTypes' filtering of a stale client_credentials grant
+# type entry -- it must not affect a confidential client's actual grant.
+# Confidential is static first-party (IsThirdParty() false), so it is
+# admitted by allow_static_first_party_client_access like e2e is, and
+# consent is skipped.
+before:
+  - type: user_import
+    user_import: users.json
+  - type: create_session
+    create_session:
+      session_type: idp
+      session_id: e2e-idp-session-1
+      token: e2eidpsessiontoken1
+      select_user_id_sql: |
+        SELECT id FROM _auth_user u
+          WHERE u.app_id = '{{ .AppID }}' AND
+          u.standard_attributes ->> 'preferred_username' = 'e2e_login';
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_session_cookie:
+      idp_session_id: e2e-idp-session-1
+      idp_session_token: e2eidpsessiontoken1
+    http_request_query:
+      client_id: e2econfidential
+      response_type: code
+      redirect_uri: http://localhost
+      scope: "openid read:orders"
+      resource: https://api.example.com/orders
+      prompt: none
+      state: teststate
+    http_output:
+      http_status: 303
+
+  - name: token
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_headers:
+      Authorization: "Basic {{ printf \"%s:%s\" \"e2econfidential\" \"e2esecret\" | b64enc }}"
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      redirect_uri: http://localhost
+      code: "{{ regexFind \"[?&]code=[^&]+\" .steps.authorize.result.http_response_headers.location | trimPrefix \"?code=\" | trimPrefix \"&code=\" }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "token_type": "Bearer",
+          "id_token": "[[string]]",
+          "scope": "openid read:orders"
+        }

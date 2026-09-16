@@ -1,0 +1,437 @@
+name: Dynamic first-party client gets a resource-bound access token, no consent
+# A native client registered with a FIRST_PARTY initial access token is
+# dynamic and first-party. Consent is skipped (first-party), so the code
+# comes straight from finish_redirect_uri.
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowDynamicFirstPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowDynamicFirstPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "E2E dynamic first-party client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    output:
+      result: |
+        {
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "aud": ["https://api.example.com/orders"],
+            "scope": "openid read:orders"
+          }
+        }
+
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }
+
+---
+
+name: Dynamic third-party client gets a resource-bound access token, with consent
+# Registering without an initial access token (initial_access_token_required
+# false) classifies the client as dynamic third-party, so consent is shown.
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E dynamic third-party client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    output:
+      result: |
+        {
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "aud": ["https://api.example.com/orders"],
+            "scope": "openid read:orders"
+          }
+        }
+
+  - name: userinfo
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/userinfo
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "sub": "[[string]]"
+        }
+
+---
+
+name: Dynamic first-party client is not admitted by a Resource that only grants the dynamic third-party category
+# Regression test: IsDynamicClient() alone must not be enough to reach the
+# allow_dynamic_third_party_client_access category -- a dynamic first-party
+# client (registered with a FIRST_PARTY initial access token) must fall
+# through to invalid_target instead.
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_iat
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createInitialAccessToken(input: { type: FIRST_PARTY }) {
+            token
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createInitialAccessToken": {
+              "token": "[[string]]"
+            }
+          },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ .steps.create_iat.result.data.createInitialAccessToken.token }}"
+    http_request_body: |
+      {
+        "client_name": "E2E dynamic first-party client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: authorize_with_resource
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+      response_type: code
+      redirect_uri: http://localhost:4000
+      scope: openid
+      resource: https://api.example.com/orders
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 303
+      location_contains:
+        - "error=invalid_target"
