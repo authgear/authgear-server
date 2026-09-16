@@ -7,7 +7,6 @@ import {
 import {
   ChevronDownIcon,
   DotsVerticalIcon,
-  InfoCircledIcon,
   ListBulletIcon,
   Pencil1Icon,
   PlusIcon,
@@ -26,7 +25,7 @@ import {
 } from "../../components/v2/IconRadioCards/IconRadioCards";
 import { SquareIcon } from "../../components/v2/SquareIcon/SquareIcon";
 import { FormField } from "../../components/v2/FormField/FormField";
-import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
+import { FieldLabelWithTooltip } from "../../components/v2/FieldLabelWithTooltip/FieldLabelWithTooltip";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
@@ -508,21 +507,6 @@ function emptyStringToUndefined(value: string | undefined): string | undefined {
     return undefined;
   }
   return value;
-}
-
-function FieldLabelWithTooltip(props: {
-  labelId: string;
-  tooltipId: string;
-}): React.ReactElement {
-  const { labelId, tooltipId } = props;
-  return (
-    <span className={styles.tooltipLabel}>
-      <FormattedMessage id={labelId} />
-      <Tooltip content={<FormattedMessage id={tooltipId} />}>
-        <InfoCircledIcon className={styles.infoIcon} />
-      </Tooltip>
-    </span>
-  );
 }
 
 function WidgetCheckbox(props: {
@@ -1097,9 +1081,15 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 labelSpace="1"
                 label={
                   <FieldLabelWithTooltip
-                    labelId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
-                    tooltipId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message"
-                  />
+                    tooltip={
+                      <FormattedMessage id="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message" />
+                    }
+                    tooltipLabel={renderToString(
+                      "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message"
+                    )}
+                  >
+                    <FormattedMessage id="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label" />
+                  </FieldLabelWithTooltip>
                 }
               >
                 <div className={styles.uriList}>

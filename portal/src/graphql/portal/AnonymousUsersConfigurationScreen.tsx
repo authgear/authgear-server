@@ -11,11 +11,7 @@ import {
   Separator,
   Text,
 } from "@radix-ui/themes";
-import {
-  DotsVerticalIcon,
-  InfoCircledIcon,
-  Pencil1Icon,
-} from "@radix-ui/react-icons";
+import { DotsVerticalIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import {
   isPromotionConflictBehaviour,
@@ -32,7 +28,7 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
+import { FieldLabelWithTooltip } from "../../components/v2/FieldLabelWithTooltip/FieldLabelWithTooltip";
 import { Toggle } from "../../components/v2/Toggle/Toggle";
 import { FormField } from "../../components/v2/FormField/FormField";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
@@ -115,23 +111,6 @@ interface OAuthClientListItem {
   refreshTokenLifetime: string;
 }
 
-function LabelWithTooltip(props: {
-  labelId: string;
-  tooltipId: string;
-}): React.ReactElement {
-  const { labelId, tooltipId } = props;
-  return (
-    <div className={styles.tooltipLabel}>
-      <Text as="span" size="2">
-        <FormattedMessage id={labelId} />
-      </Text>
-      <Tooltip content={<FormattedMessage id={tooltipId} />}>
-        <InfoCircledIcon className={styles.infoIcon} />
-      </Tooltip>
-    </div>
-  );
-}
-
 interface AnonymousUserLifeTimeDescriptionProps {
   form: AppConfigFormModel<FormState>;
   className?: string;
@@ -212,10 +191,18 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
           <div className={styles.sessionInfo}>
             {sessionIdleTimeoutEnabled ? (
               <>
-                <LabelWithTooltip
-                  labelId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.idle-timeout"
-                  tooltipId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout"
-                />
+                <Text as="span" size="2">
+                  <FieldLabelWithTooltip
+                    tooltip={
+                      <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout" />
+                    }
+                    tooltipLabel={renderToString(
+                      "AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout"
+                    )}
+                  >
+                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.idle-timeout" />
+                  </FieldLabelWithTooltip>
+                </Text>
                 <Text as="span" size="2">
                   <FormattedMessage
                     id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
@@ -230,10 +217,18 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                 </Text>
               </>
             ) : null}
-            <LabelWithTooltip
-              labelId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime"
-              tooltipId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime"
-            />
+            <Text as="span" size="2">
+              <FieldLabelWithTooltip
+                tooltip={
+                  <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime" />
+                }
+                tooltipLabel={renderToString(
+                  "AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime"
+                )}
+              >
+                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime" />
+              </FieldLabelWithTooltip>
+            </Text>
             <Text as="span" size="2">
               <FormattedMessage
                 id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
@@ -260,28 +255,28 @@ const AnonymousUserLifeTimeDescription: React.VFC<AnonymousUserLifeTimeDescripti
                 <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.name" />
               </CardTable.HeaderCell>
               <CardTable.HeaderCell className={styles.colIdleTimeout}>
-                <div className={styles.tooltipLabel}>
+                <FieldLabelWithTooltip
+                  tooltip={
+                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-idle-timeout" />
+                  }
+                  tooltipLabel={renderToString(
+                    "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-idle-timeout"
+                  )}
+                >
                   <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.refresh-token-idle-timeout" />
-                  <Tooltip
-                    content={
-                      <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-idle-timeout" />
-                    }
-                  >
-                    <InfoCircledIcon className={styles.infoIcon} />
-                  </Tooltip>
-                </div>
+                </FieldLabelWithTooltip>
               </CardTable.HeaderCell>
               <CardTable.HeaderCell className={styles.colLifetime}>
-                <div className={styles.tooltipLabel}>
+                <FieldLabelWithTooltip
+                  tooltip={
+                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-lifetime" />
+                  }
+                  tooltipLabel={renderToString(
+                    "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-lifetime"
+                  )}
+                >
                   <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.refresh-token-lifetime" />
-                  <Tooltip
-                    content={
-                      <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip.refresh-token-lifetime" />
-                    }
-                  >
-                    <InfoCircledIcon className={styles.infoIcon} />
-                  </Tooltip>
-                </div>
+                </FieldLabelWithTooltip>
               </CardTable.HeaderCell>
               <CardTable.HeaderCell
                 className={styles.colActions}

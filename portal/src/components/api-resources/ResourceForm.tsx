@@ -1,11 +1,5 @@
 import React, { useContext, useCallback, useEffect, useId } from "react";
-import {
-  Flex,
-  IconButton,
-  Text,
-  TextField as RadixTextField,
-} from "@radix-ui/themes";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { Text, TextField as RadixTextField } from "@radix-ui/themes";
 import cn from "classnames";
 import styles from "./ResourceForm.module.css";
 import { Context, FormattedMessage } from "../../intl";
@@ -15,8 +9,8 @@ import { useErrorMessageBarContext } from "../../ErrorMessageBar";
 import { useLoading } from "../../hook/loading";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { TextField } from "../v2/TextField/TextField";
+import { FieldLabelWithTooltip } from "../v2/FieldLabelWithTooltip/FieldLabelWithTooltip";
 import { FormField } from "../v2/FormField/FormField";
-import { Tooltip } from "../v2/Tooltip/Tooltip";
 import { CopyIconButton } from "../v2/CopyIconButton/CopyIconButton";
 
 export interface ResourceFormState {
@@ -81,27 +75,15 @@ export const ResourceForm: React.VFC<ResourceFormProps> =
     }, [errors, setErrors]);
 
     const resourceURILabel = (
-      <Flex display="inline-flex" align="center" gap="1">
-        <span>
-          <FormattedMessage id="ResourceForm.resourceURI.label" />
-        </span>
+      <FieldLabelWithTooltip
+        tooltip={<FormattedMessage id="ResourceForm.resourceURI.tooltip" />}
+        tooltipLabel={renderToString("ResourceForm.resourceURI.tooltip")}
+      >
+        <FormattedMessage id="ResourceForm.resourceURI.label" />
         <span className={styles.requiredMark} aria-hidden="true">
           *
         </span>
-        <Tooltip
-          content={<FormattedMessage id="ResourceForm.resourceURI.tooltip" />}
-        >
-          <IconButton
-            type="button"
-            variant="ghost"
-            color="gray"
-            size="1"
-            aria-label={renderToString("ResourceForm.resourceURI.tooltip")}
-          >
-            <InfoCircledIcon width="1rem" height="1rem" />
-          </IconButton>
-        </Tooltip>
-      </Flex>
+      </FieldLabelWithTooltip>
     );
 
     return (
