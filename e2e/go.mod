@@ -4,6 +4,9 @@ go 1.26.6
 
 replace github.com/authgear/authgear-server v0.0.0 => ../
 
+// The fork keeps the upstream module path, so it can only be pulled in via replace.
+replace github.com/iawaknahc/gomessageformat => github.com/oursky/gomessageformat v0.0.0-20260812135726-04797505aebe
+
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/authgear/authgear-server v0.0.0
