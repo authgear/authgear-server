@@ -57,6 +57,8 @@ import {
   detectDateRangePreset,
   getInitialAuditLogDateRange,
   getPresetDateRange,
+  serializeDateRangeSearchParam,
+  toExclusiveRangeTo,
 } from "../../components/audit-log/dateRangePresets";
 
 const pageSize = 100;
@@ -191,6 +193,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return minDate;
   }, [lastUpdatedAt, logRetrievalDays]);
 
+  // Any time on the current day is pickable, matching the preset end of day.
+  const datePickerMaxDate = useMemo(
+    () => DateTime.fromJSDate(lastUpdatedAt).endOf("day").toJSDate(),
+    [lastUpdatedAt]
+  );
+
   const queryRangeFrom = useMemo(() => {
     if (rangeFrom != null) {
       return rangeFrom.toISOString();
@@ -203,10 +211,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const queryRangeTo = useMemo(() => {
     if (rangeTo != null) {
-      return DateTime.fromJSDate(rangeTo)
-        .plus({ days: 1 })
-        .toJSDate()
-        .toISOString();
+      return toExclusiveRangeTo(rangeTo).toISOString();
     }
     return lastUpdatedAt.toISOString();
   }, [rangeTo, lastUpdatedAt]);
@@ -255,6 +260,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       onChange: onChangeDateRangePreset,
       rangeFrom,
       rangeTo,
+      showTime: true,
       onOpenCustomDateRangeDialog,
     };
   }, [
@@ -313,10 +319,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
     const params: URLSearchParamsInit = {};
 
-    const newQueryFrom =
-      rangeFrom != null ? DateTime.fromJSDate(rangeFrom).toISODate() : "";
-    const newQueryTo =
-      rangeTo != null ? DateTime.fromJSDate(rangeTo).toISODate() : "";
+    const newQueryFrom = serializeDateRangeSearchParam(rangeFrom);
+    const newQueryTo = serializeDateRangeSearchParam(rangeTo);
     const newQueryOrderBy = sortDirection;
     const newQueryPage = page.toString();
     const newQueryActivityType = serializeActivityTypesToQuery(
@@ -704,15 +708,18 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         hidden={dateRangeDialogHidden}
         title={renderToString("AuditLogScreen.date-range.custom")}
         fromDatePickerLabel={renderToString(
-          "AuditLogScreen.date-range.start-date"
+          "AuditLogScreen.date-range.start-datetime"
         )}
-        toDatePickerLabel={renderToString("AuditLogScreen.date-range.end-date")}
+        toDatePickerLabel={renderToString(
+          "AuditLogScreen.date-range.end-datetime"
+        )}
         rangeFrom={uncommittedRangeFrom ?? undefined}
         rangeTo={uncommittedRangeTo ?? undefined}
         fromDatePickerMinDate={datePickerMinDate}
-        fromDatePickerMaxDate={lastUpdatedAt}
+        fromDatePickerMaxDate={datePickerMaxDate}
         toDatePickerMinDate={datePickerMinDate}
-        toDatePickerMaxDate={lastUpdatedAt}
+        toDatePickerMaxDate={datePickerMaxDate}
+        showTimePicker={true}
         onSelectRangeFrom={onSelectRangeFrom}
         onSelectRangeTo={onSelectRangeTo}
         onCommitDateRange={commitDateRange}

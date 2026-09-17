@@ -26,6 +26,8 @@ export interface AuditLogFilterBarPropsDateRange {
   onChange: (value: AuditLogDateRangePresetKey) => void;
   rangeFrom?: Date | null;
   rangeTo?: Date | null;
+  // Set when the custom range dialog picks times, so the label shows them.
+  showTime?: boolean;
   onOpenCustomDateRangeDialog?: () => void;
 }
 
@@ -104,6 +106,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
               onChange={dateRange.onChange}
               rangeFrom={dateRange.rangeFrom}
               rangeTo={dateRange.rangeTo}
+              showTime={dateRange.showTime}
               onOpenCustomDateRangeDialog={
                 dateRange.onOpenCustomDateRangeDialog
               }
