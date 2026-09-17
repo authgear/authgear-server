@@ -41,10 +41,15 @@
   @apply w-full min-w-0;
 }
 
-.m2mSection {
+.subsection {
   @apply flex flex-col gap-4;
 }
 
-.m2mHeading {
+.subsectionHeader {
+  @apply flex flex-col gap-1;
+}
+
+.subsectionHeading,
+.subsectionDescription {
   margin: 0;
 }

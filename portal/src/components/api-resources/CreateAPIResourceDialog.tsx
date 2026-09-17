@@ -22,6 +22,8 @@ import {
 import { useCreateResourceMutationMutation } from "../../graphql/adminapi/mutations/createResourceMutation.generated";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { ResourceFormState, sanitizeFormState } from "./ResourceForm";
+import { AccessPolicyCheckboxes } from "./AccessPolicyCheckboxes";
+import { AccessPolicyState, CLOSED_ACCESS_POLICY } from "./accessPolicy";
 import { TextField } from "../v2/TextField/TextField";
 import { FieldLabelWithTooltip } from "../v2/FieldLabelWithTooltip/FieldLabelWithTooltip";
 import { FormField } from "../v2/FormField/FormField";
@@ -30,9 +32,22 @@ import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import ErrorRenderer from "../../ErrorRenderer";
 import styles from "./CreateAPIResourceDialog.module.css";
 
-const defaultState: ResourceFormState = {
+interface CreateResourceState extends ResourceFormState {
+  accessPolicy: AccessPolicyState;
+}
+
+// Every key defaults to false server-side. The spec has the portal
+// pre-select static first-party clients (docs/specs/api-resource.md,
+// "Defaults"); pre-selecting dynamic first-party clients as well is a
+// portal decision on top of that.
+const defaultState: CreateResourceState = {
   name: "",
   resourceURI: "",
+  accessPolicy: {
+    ...CLOSED_ACCESS_POLICY,
+    allowStaticFirstPartyClientAccess: true,
+    allowDynamicFirstPartyClientAccess: true,
+  },
 };
 
 const errorRules: ErrorParseRule[] = [
@@ -61,7 +76,7 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
     const resourceURIId = useId();
     const [createResource] = useCreateResourceMutationMutation();
 
-    const form = useSimpleForm<ResourceFormState, string>({
+    const form = useSimpleForm<CreateResourceState, string>({
       defaultState,
       submit: async (s) => {
         const state = sanitizeFormState(s);
@@ -70,6 +85,7 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
             input: {
               name: state.name,
               resourceURI: state.resourceURI,
+              accessPolicy: s.accessPolicy,
             },
           },
         });
@@ -137,6 +153,13 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const resourceURI = e.target.value.replace(/^(\s*)https:\/\//, "");
         setState((s) => ({ ...s, resourceURI }));
+      },
+      [setState]
+    );
+
+    const onAccessPolicyChange = useCallback(
+      (accessPolicy: AccessPolicyState) => {
+        setState((s) => ({ ...s, accessPolicy }));
       },
       [setState]
     );
@@ -217,6 +240,17 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
                 </RadixTextField.Slot>
               </RadixTextField.Root>
             </FormField>
+            <AccessPolicyCheckboxes
+              title={
+                <FormattedMessage id="AccessPolicyCheckboxes.resource.title" />
+              }
+              hint={
+                <FormattedMessage id="AccessPolicyCheckboxes.resource.hint" />
+              }
+              value={state.accessPolicy}
+              disabled={isUpdating}
+              onChange={onAccessPolicyChange}
+            />
             <Flex gap="3" mt="4" justify="end">
               <SecondaryButton
                 size="2"

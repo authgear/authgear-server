@@ -1,0 +1,3 @@
+.form {
+  @apply flex flex-col gap-3 mt-4;
+}

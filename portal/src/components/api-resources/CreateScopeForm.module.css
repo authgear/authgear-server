@@ -23,7 +23,3 @@
 .form {
   @apply flex flex-col w-full min-w-0 gap-y-3;
 }
-
-.dynamicAccessLabel {
-  @apply flex items-center gap-2;
-}

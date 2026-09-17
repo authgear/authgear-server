@@ -23,6 +23,10 @@
   @apply flex flex-col gap-4;
 }
 
+.toolbar {
+  @apply flex flex-wrap items-center justify-between gap-3;
+}
+
 .searchField {
   width: 16.25rem;
   max-width: 100%;

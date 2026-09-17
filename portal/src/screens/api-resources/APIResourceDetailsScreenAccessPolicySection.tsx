@@ -10,6 +10,8 @@ import {
   ApplicationListItem,
 } from "../../components/api-resources/ApplicationList";
 import { UnauthorizeApplicationDialog } from "../../components/api-resources/UnauthorizeApplicationDialog";
+import { ResourceAccessPolicyTable } from "../../components/api-resources/ResourceAccessPolicyTable";
+import ExternalLink from "../../ExternalLink";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ResourceQueryDocument,
@@ -24,9 +26,9 @@ import {
   TextFieldIcon,
 } from "../../components/v2/TextField/TextField";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
-import styles from "./APIResourceDetailsApplicationsSection.module.css";
+import styles from "./APIResourceDetailsAccessPolicySection.module.css";
 
-export function APIResourceDetailsScreenApplicationsSection({
+export function APIResourceDetailsScreenAccessPolicySection({
   resource,
   effectiveAppConfig,
 }: {
@@ -219,17 +221,63 @@ export function APIResourceDetailsScreenApplicationsSection({
       <div className={styles.body}>
         <SettingsSectionCard
           title={
-            <FormattedMessage id="APIResourceDetailsScreen.section.applications" />
+            <FormattedMessage id="APIResourceDetailsScreen.section.access-policy" />
           }
           description={
-            <FormattedMessage id="APIResourceDetailsScreen.applications.description" />
+            <FormattedMessage id="APIResourceDetailsScreen.access-policy.description" />
           }
           contentClassName={styles.cardContent}
         >
-          <div className={styles.m2mSection}>
-            <Text as="p" size="3" weight="medium" className={styles.m2mHeading}>
-              <FormattedMessage id="APIResourceDetailsScreen.applications.m2m.title" />
-            </Text>
+          <div className={styles.subsection}>
+            <div className={styles.subsectionHeader}>
+              <Text
+                as="p"
+                size="3"
+                weight="medium"
+                className={styles.subsectionHeading}
+              >
+                <FormattedMessage id="APIResourceDetailsScreen.access-policy.user-delegated.title" />
+              </Text>
+              <Text
+                as="p"
+                size="2"
+                color="gray"
+                className={styles.subsectionDescription}
+              >
+                <FormattedMessage
+                  id="APIResourceDetailsScreen.access-policy.user-delegated.description"
+                  values={{
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    dynamicClientsLink: (chunks: React.ReactNode) => (
+                      <ExternalLink href="https://docs.authgear.com/get-started/auth-for-mcp">
+                        {chunks}
+                      </ExternalLink>
+                    ),
+                  }}
+                />
+              </Text>
+            </div>
+            <ResourceAccessPolicyTable resource={resource} />
+          </div>
+          <div className={styles.subsection}>
+            <div className={styles.subsectionHeader}>
+              <Text
+                as="p"
+                size="3"
+                weight="medium"
+                className={styles.subsectionHeading}
+              >
+                <FormattedMessage id="APIResourceDetailsScreen.applications.m2m.title" />
+              </Text>
+              <Text
+                as="p"
+                size="2"
+                color="gray"
+                className={styles.subsectionDescription}
+              >
+                <FormattedMessage id="APIResourceDetailsScreen.access-policy.m2m.description" />
+              </Text>
+            </div>
             {isEmpty ? (
               <Text as="p" size="2" color="gray" className={styles.empty}>
                 <FormattedMessage
