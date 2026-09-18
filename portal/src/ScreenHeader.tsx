@@ -244,6 +244,12 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
               <div className={styles.drawerBody}>
                 <ScreenNav mobileView={true} onLinkClick={dismissNavbar} />
               </div>
+              <div className={styles.drawerFooter}>
+                <span className={styles.drawerFooterLabel}>
+                  {renderToString("ScreenHeader.appearance")}
+                </span>
+                <AppearanceSwitcher />
+              </div>
             </div>
           </div>
         ) : null}
@@ -275,7 +281,18 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
             {renderToString("ScreenHeader.links.schedule-demo")}
           </a>
         </div>
-        <AppearanceSwitcher />
+        {/* Where there is a drawer, the switcher lives inside it on mobile so
+            the project name keeps the header width. The screens without one
+            (projects list, wizard, invitation) have no project name either, so
+            it stays in the header at every width. */}
+        <div
+          className={cn(
+            styles.headerAppearance,
+            showHamburger && styles.headerAppearanceWithDrawer
+          )}
+        >
+          <AppearanceSwitcher />
+        </div>
         {viewer != null ? (
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>
