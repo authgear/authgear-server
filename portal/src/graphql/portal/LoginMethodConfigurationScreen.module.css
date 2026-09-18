@@ -44,7 +44,7 @@
 }
 
 .loginMethodIconChecked .loginMethodIconIcon {
-  color: white;
+  color: var(--accent-contrast);
 }
 
 .loginMethodIconUnchecked {
@@ -77,7 +77,7 @@
 .criteriaLabelIcon {
   box-sizing: content-box;
   padding: 0 0 0 5px;
-  color: var(--accent-9);
+  color: var(--accent-11);
   cursor: pointer;
 }
 
@@ -125,7 +125,7 @@
   display: inline;
   vertical-align: text-bottom;
   margin-left: 4px;
-  color: #176df3;
+  color: var(--accent-11);
   cursor: pointer;
 }
 

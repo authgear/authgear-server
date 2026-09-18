@@ -152,12 +152,12 @@
 .passwordCellExpired {
   grid-area: pexpired;
 
-  @apply text-neutral-dark;
+  color: var(--gray-12);
   @apply text-xs;
 }
 
 .passwordCellExpiredPrefix {
-  @apply text-neutral-dark;
+  color: var(--gray-12);
   @apply text-xs;
   @apply font-semibold;
 }

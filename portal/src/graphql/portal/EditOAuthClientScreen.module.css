@@ -25,7 +25,7 @@
   gap: 4px;
   font-size: 14px;
   line-height: 20px;
-  color: var(--accent-9);
+  color: var(--accent-11);
   text-decoration: none;
   width: fit-content;
 }
@@ -42,8 +42,8 @@
 }
 
 .quickStartItem {
-  border: 1px solid #cecece;
-  color: #201f1e;
+  border: 1px solid var(--gray-a6);
+  color: var(--gray-12);
   border-radius: 2px;
   padding: 10px 12px;
   cursor: pointer;
@@ -53,12 +53,12 @@
 .quickStartItem:focus,
 .quickStartItem:active,
 .quickStartItem:active:hover {
-  color: #201f1e;
+  color: var(--gray-12);
   text-decoration: none;
 }
 
 .quickStartItemHovered {
-  border-color: #176df3;
+  border-color: var(--accent-9);
 }
 
 .quickStartItemContainer {
@@ -78,13 +78,13 @@
 }
 
 .quickStartItemArrowIcon {
-  color: #898989;
+  color: var(--gray-a9);
   font-size: 6px;
 }
 
 .quickStartItemHovered .quickStartItemArrowIcon,
 .quickStartItemOpenTutorial {
-  color: #176df3;
+  color: var(--accent-11);
   pointer-events: none;
 }
 
@@ -96,7 +96,7 @@
 
 .quickStartScreenTitleIcon {
   padding-right: 4px;
-  color: var(--accent-9);
+  color: var(--accent-11);
 }
 
 .quickStartScreenDescription {
@@ -121,7 +121,7 @@
   width: 64px;
   height: 64px;
   border-radius: 12px;
-  background: #eef4ff;
+  background: var(--accent-a3);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -131,7 +131,7 @@
 .clientHeaderIcon {
   font-size: 32px;
   line-height: 1;
-  color: #0969da;
+  color: var(--accent-11);
 }
 
 .clientHeaderText {
@@ -151,11 +151,11 @@
   gap: 8px;
   flex-wrap: wrap;
   font-size: 13px;
-  color: #57606a;
+  color: var(--gray-11);
 }
 
 .clientHeaderMetaSep {
-  color: #d0d7de;
+  color: var(--gray-a6);
 }
 
 .clientHeaderClientIdLabel {
@@ -165,10 +165,10 @@
 .clientHeaderClientId {
   font-family: var(--code-font-family);
   font-size: 12px;
-  background: #f6f8fa;
+  background: var(--gray-a2);
   padding: 2px 6px;
   border-radius: 4px;
-  color: #24292f;
+  color: var(--gray-12);
 }
 
 .clientHeaderCopy {
