@@ -228,11 +228,24 @@ describe("appearance classes", () => {
 });
 
 describe("index.html bootstrap script", () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, "..", "index.html"),
+    "utf8"
+  );
+
   it("uses the same storage key as the module", () => {
-    const html = fs.readFileSync(
-      path.join(__dirname, "..", "index.html"),
-      "utf8"
-    );
     expect(html).toContain(`"${APPEARANCE_STORAGE_KEY}"`);
+  });
+
+  it("applies the same classes as the module", () => {
+    // The script duplicates the resolve rule so the first paint is correct.
+    // Drift here is invisible: the page just flashes the other theme once.
+    const el = document.createElement("div");
+    applyResolvedAppearance(el, "dark");
+    const darkClass = el.className;
+    applyResolvedAppearance(el, "light");
+    const lightClass = el.className;
+    expect(html).toContain(`"${darkClass}"`);
+    expect(html).toContain(`"${lightClass}"`);
   });
 });

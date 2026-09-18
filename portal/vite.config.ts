@@ -136,7 +136,14 @@ const portalStaticAssetsPlugin: Plugin = {
       "../resources/portal/static/img"
     );
     server.middlewares.use("/img", (req, res, next) => {
-      const requested = decodeURIComponent((req.url ?? "/").split("?")[0]);
+      let requested: string;
+      try {
+        requested = decodeURIComponent((req.url ?? "/").split("?")[0]);
+      } catch {
+        // A malformed percent-escape is not ours to serve.
+        next();
+        return;
+      }
       const file = path.join(root, requested);
       // Keep the middleware inside the asset directory.
       if (file !== root && !file.startsWith(root + path.sep)) {
