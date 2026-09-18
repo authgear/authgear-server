@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -299,6 +300,34 @@ func (e *End2EndCmd) QuerySMTPLog(subject string, recipient string) ([]interface
 	}
 
 	return rows, nil
+}
+
+// QuerySyslogServer asks the e2e syslog recorder (cmd/syslogserver) for the
+// messages it has received on port so far, scoped to this test's own app
+// ID. minCount makes the recorder wait (up to 10s) until at least that
+// many messages have arrived, absorbing the asynchronous, batched nature
+// of delivery instead of every test needing its own sleep. Arrival order
+// is already occurrence order (see cmd/syslogserver), so unlike
+// QueryHookServer this does not need to re-sort the rows.
+func (e *End2EndCmd) QuerySyslogServer(port int, minCount int) ([]interface{}, error) {
+	q := url.Values{}
+	q.Set("app_id", e.AppID)
+	q.Set("port", strconv.Itoa(port))
+	q.Set("min_count", strconv.Itoa(minCount))
+
+	resp, err := http.Get("http://127.0.0.1:5141/messages?" + q.Encode())
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var payload struct {
+		Messages []interface{} `json:"messages"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+	return payload.Messages, nil
 }
 
 func (e *End2EndCmd) QueryHookServer(path string) ([]interface{}, error) {
