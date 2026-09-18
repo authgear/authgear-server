@@ -4,7 +4,7 @@
 
 .accordionToggle {
   @apply w-auto cursor-pointer border-0 bg-transparent p-0;
-  color: var(--accent-9);
+  color: var(--accent-11);
 }
 
 .accordionToggle:hover {

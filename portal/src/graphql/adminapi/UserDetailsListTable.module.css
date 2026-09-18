@@ -112,5 +112,5 @@
   @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
   align-self: flex-start;
   margin-top: 16px;
-  color: var(--accent-9);
+  color: var(--accent-11);
 }

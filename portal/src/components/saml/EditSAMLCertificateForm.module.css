@@ -37,7 +37,7 @@
 
 .activateButton {
   @apply inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-sm font-semibold whitespace-nowrap;
-  color: var(--accent-9);
+  color: var(--accent-11);
 }
 
 .activateButton:disabled {
@@ -46,7 +46,7 @@
 
 .generateKeyButton {
   @apply inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-sm font-semibold;
-  color: var(--accent-9);
+  color: var(--accent-11);
 }
 
 .generateKeyButton:disabled {
