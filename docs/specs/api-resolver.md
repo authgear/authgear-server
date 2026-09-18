@@ -6,7 +6,11 @@ In nginx, it is the `auth_request` directive while in Traefik, it is `ForwardAut
 
 The resolve endpoint `/resolve` looks at `Cookie:` and `Authentication:` to authenticate the request. `Cookie:` has higher precedence.
 
-A bearer access token presented this way is not always accepted, even if it is otherwise valid: **any** access token belonging to a **third-party client** (DCR-registered or static `third_party_app`) is deliberately rejected here — `x-authgear-session-valid` below is `false` — regardless of whether the token is opaque or a resource-bound JWT. This endpoint has no notion of "resource" and never exposes the token's `aud` in its response, so this is a decision to avoid audience confusion (see [access-token-audience-binding.md](./access-token-audience-binding.md)). Every first-party client's access token (opaque or JWT) is accepted normally. See [client.md — Access Token Behavior by Client Kind](./client.md#access-token-behavior-by-client-kind) for the full breakdown by client kind.
+A bearer access token presented this way is accepted only when it belongs to a **first-party client**. **Any** access token belonging to a **third-party client** (static `third_party_app`, DCR-registered or CIMD-resolved) is rejected — `x-authgear-session-valid` below is `false` — whether the token is opaque or a resource-bound JWT.
+
+This endpoint is meant for a client deployed on the same site as Authgear, behind the same reverse proxy. A first-party client can be deployed that way whether it was declared in `authgear.yaml` or registered dynamically, so how it was registered does not matter here. A third-party client is by definition operated by someone the project does not trust and is not same-site, and this endpoint has no notion of "resource" and never exposes the token's `aud` in its response, so accepting one would invite audience confusion (see [access-token-audience-binding.md](./access-token-audience-binding.md)).
+
+Resource binding does not affect the decision either way: a first-party client's token is accepted whether or not it names a resource. See [client.md — Access Token Behavior by Client Kind](./client.md#access-token-behavior-by-client-kind) for the full breakdown by client kind.
 
 The resolve endpoint does not write body. Instead, it adds the following headers in the response.
 

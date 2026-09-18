@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"context"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -35,6 +36,10 @@ type IssueAccessGrantResult struct {
 	Token     string
 	TokenType string
 	ExpiresIn int
+	// Scopes is what the issued token actually carries. WriteTo always
+	// reports it in the response, matching RFC 6749 §5.1 and the
+	// client_credentials grant, which already does this.
+	Scopes []string
 }
 
 func (r *IssueAccessGrantResult) WriteTo(resp protocol.TokenResponse) {
@@ -42,6 +47,7 @@ func (r *IssueAccessGrantResult) WriteTo(resp protocol.TokenResponse) {
 		resp.TokenType(r.TokenType)
 		resp.AccessToken(r.Token)
 		resp.ExpiresIn(r.ExpiresIn)
+		resp.Scope(strings.Join(r.Scopes, " "))
 	}
 }
 

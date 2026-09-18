@@ -6,6 +6,9 @@ mutation CreateScopeMutation($input: CreateScopeInput!) {
       description
       resourceID
       accessPolicy {
+        allowStaticFirstPartyClientAccess
+        allowStaticThirdPartyClientAccess
+        allowDynamicFirstPartyClientAccess
         allowDynamicThirdPartyClientAccess
       }
       createdAt

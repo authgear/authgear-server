@@ -76,6 +76,7 @@ type PrepareUserAccessTokenResult interface {
 type prepareUserAccessTokenResultOpaque struct {
 	OriginalToken string
 	ClientConfig  *config.OAuthClientConfig
+	Scopes        []string
 }
 
 func (r *prepareUserAccessTokenResultOpaque) prepareUserAccessTokenResult() {}
@@ -84,6 +85,7 @@ type prepareUserAccessTokenResultJWT struct {
 	Event        *event.Event
 	ForBackup    map[string]any
 	ClientConfig *config.OAuthClientConfig
+	Scopes       []string
 }
 
 func (r *prepareUserAccessTokenResultJWT) prepareUserAccessTokenResult() {}
@@ -104,6 +106,7 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 		return &prepareUserAccessTokenResultOpaque{
 			OriginalToken: options.OriginalToken,
 			ClientConfig:  options.ClientConfig,
+			Scopes:        options.AccessGrant.Scopes,
 		}, nil
 	}
 
@@ -184,6 +187,7 @@ func (e *AccessTokenEncoding) PrepareUserAccessToken(ctx context.Context, option
 		Event:        event,
 		ForBackup:    forBackup,
 		ClientConfig: options.ClientConfig,
+		Scopes:       options.AccessGrant.Scopes,
 	}, nil
 }
 
@@ -205,6 +209,7 @@ func (e *AccessTokenEncoding) MakeUserAccessTokenFromPreparationResult(
 			Token:     v.OriginalToken,
 			TokenType: "Bearer",
 			ExpiresIn: int(v.ClientConfig.AccessTokenLifetime),
+			Scopes:    v.Scopes,
 		}, nil
 	case *prepareUserAccessTokenResultJWT:
 		err := e.Events.DispatchEventWithoutTx(ctx, v.Event)
@@ -236,6 +241,7 @@ func (e *AccessTokenEncoding) MakeUserAccessTokenFromPreparationResult(
 			Token:     string(signed),
 			TokenType: "Bearer",
 			ExpiresIn: int(v.ClientConfig.AccessTokenLifetime),
+			Scopes:    v.Scopes,
 		}, nil
 	default:
 		panic(fmt.Errorf("unexpected PreparationResult: %T", options.PreparationResult))

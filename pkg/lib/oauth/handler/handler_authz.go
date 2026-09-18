@@ -144,16 +144,6 @@ type AuthorizationHandlerCIMDService interface {
 	EnsureClientResolved(ctx context.Context, clientID string) error
 }
 
-// AuthorizationHandlerResourceScopeService is the third-party access-policy
-// read path (docs/plans/dcr/2026-08-17-04-resource-access-policy.md §5.1) —
-// deliberately a different service shape from handler_token.go's
-// TokenHandlerClientResourceScopeService, which checks an explicit M2M
-// client-resource association instead.
-type AuthorizationHandlerResourceScopeService interface {
-	GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*resourcescope.Resource, error)
-	ListScopesForThirdPartyAccess(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error)
-}
-
 var AuthorizationHandlerLogger = slogutil.NewLogger("oauth-authz")
 
 type AuthorizationHandler struct {
@@ -182,22 +172,23 @@ type AuthorizationHandler struct {
 	PreAuthenticatedURLTokenService         AuthorizationHandlerPreAuthenticatedURLTokenService
 	IDTokenIssuer                           IDTokenIssuer
 	AuthorizationHandlerAccessTokenEncoding AuthorizationHandlerAccessTokenEncoding
-	ResourceScopeService                    AuthorizationHandlerResourceScopeService
+	ResourceScopeService                    ResourceAccessPolicyService
 	CIMDService                             AuthorizationHandlerCIMDService
 }
 
 // validateResource returns the resource-specific scopes the client is
 // allowed to request for the requested resource. The returned slice is nil
-// when no resource was requested. See
-// docs/plans/dcr/2026-08-17-04-resource-access-policy.md §5.1.
+// when no resource was requested. Every client category
+// (docs/specs/api-resource.md § Client categories) now reaches the access
+// policy -- whether the client and this request's response_type may use
+// /oauth2/authorize at all is ValidateRequestWithoutTx's job, checked
+// before this function is ever called.
 //
-// It guards its own reads with an IsInTx/ReadOnly branch rather than
-// requiring an open transaction from the caller: it is called from both
-// doHandleRequestWithTx (inside a transaction) and doHandleConsentRequest
-// (deliberately outside one, since the consent screen must not be rendered
-// inside a write transaction) — see pkg/lib/usage.Limiter.dispatchEventImmediately
-// for the same pattern.
-func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (allowedResourceScopes []string, err error) {
+// It guards its own reads with an IsInTx/ReadOnly branch since it is
+// called both inside a transaction (doHandleRequestWithTx) and outside one
+// (doHandleConsentRequest, which must not render the consent screen inside
+// a write transaction).
+func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (allowedScopes []string, err error) {
 	resourceURI := r.Resource()
 	if resourceURI == "" {
 		return nil, nil
@@ -206,90 +197,46 @@ func (h *AuthorizationHandler) validateResource(ctx context.Context, client *con
 		return nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
 	}
 
-	switch {
-	case client.IsDynamicClient() && client.IsThirdParty():
-		// Both checks are required, independently:
-		//   - IsThirdParty alone is also true for a static
-		//     OAuthClientApplicationTypeThirdPartyApp client, but the path
-		//     below is gated by a Resource/Scope's
-		//     allow_dynamic_third_party_client_access policy specifically —
-		//     a static third-party client must fall through to default
-		//     below (deferred; see its comment) rather than being granted
-		//     access via a policy meant only for dynamically-resolved
-		//     clients.
-		//   - IsDynamicClient alone is not enough either: a dynamic
-		//     first-party client (Kind == FIRST_PARTY) IsDynamicClient()
-		//     but not IsThirdParty() (see OAuthClientConfig.IsDynamic's
-		//     comment) — first-party support for the resource parameter is
-		//     separately deferred, same as for static first-party clients.
-		var resource *resourcescope.Resource
-		var allowedScopes []*resourcescope.Scope
-		read := func(ctx context.Context) error {
-			var err error
-			resource, err = h.ResourceScopeService.GetResourceByURIForThirdPartyAccess(ctx, resourceURI)
-			if err != nil {
-				return err
-			}
-			allowedScopes, err = h.ResourceScopeService.ListScopesForThirdPartyAccess(ctx, resource.ID)
-			return err
-		}
-		if h.Database.IsInTx(ctx) {
-			err = read(ctx)
-		} else {
-			err = h.Database.ReadOnly(ctx, read)
-		}
-		if err != nil {
-			if errors.Is(err, resourcescope.ErrResourceNotFound) {
-				return nil, protocol.NewError("invalid_target", "resource not found or not accessible to third-party clients")
-			}
-			return nil, err
-		}
-		return slice.Map(allowedScopes, func(s *resourcescope.Scope) string { return s.Scope }), nil
-	case client.ApplicationType == config.OAuthClientApplicationTypeM2M:
-		// M2M clients do not use /oauth2/authorize at all — already rejected
-		// earlier in ValidateRequestWithoutTx. Unreachable in practice; kept
-		// only so the switch is exhaustive and self-documenting.
-		return nil, protocol.NewError("unauthorized_client", "m2m clients are not allowed to use the authorize endpoint")
-	default:
-		// Every client that isn't both dynamic and third-party — always
-		// error. This covers: every static client type including
-		// third_party_app (static third-party clients have their own
-		// client-resource association mechanism,
-		// resourcescope.ClientResourceScopeService, used today by the
-		// client_credentials grant, rather than the dynamic-access-policy
-		// path above — wiring that in for authorization_code is deferred to
-		// a later, separate piece of work); and every first-party client,
-		// static or dynamic, since first-party support for the resource
-		// parameter is separately deferred.
-		return nil, protocol.NewError("invalid_target", "this client is not permitted to use the resource parameter")
+	var allowed []string
+	read := func(ctx context.Context) error {
+		var err error
+		allowed, err = allowedResourceScopes(ctx, h.ResourceScopeService, client, resourceURI)
+		return err
 	}
+	if h.Database.IsInTx(ctx) {
+		err = read(ctx)
+	} else {
+		err = h.Database.ReadOnly(ctx, read)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return allowed, nil
 }
 
 // resourceScopeDisplayNames looks up the human-readable display text (the
 // Scope's Description, falling back to the scope's own name if unset) for
 // every scope belonging to r's "resource" parameter, keyed by scope name,
-// for the consent screen to show. It mirrors validateResource's
-// dynamic-third-party-client-with-a-resource condition, but unlike
-// validateResource this is purely informational for rendering: it returns
-// nil rather than an error for every other case (no resource requested, a
-// client type not eligible for the resource parameter, or a lookup
-// failure) -- by the time this is called, validateResource has already
-// succeeded for the same request in the same transaction (see
-// doHandleConsentRequest), so those scopes are already known valid; this
-// function only decides how to label them on screen.
+// for the consent screen to show. Unlike validateResource, it returns nil
+// rather than an error on any failure -- by the time this is called,
+// validateResource has already succeeded for the same request in the same
+// transaction (see doHandleConsentRequest), so this only decides how to
+// label already-valid scopes. It does its own Resource/Scope read rather
+// than calling allowedResourceScopes because it needs each Scope's
+// Description, not just its name.
 func (h *AuthorizationHandler) resourceScopeDisplayNames(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) map[string]string {
 	resourceURI := r.Resource()
-	if resourceURI == "" || !(client.IsDynamicClient() && client.IsThirdParty()) {
+	if resourceURI == "" {
 		return nil
 	}
 
 	var scopes []*resourcescope.Scope
 	read := func(ctx context.Context) error {
-		resource, err := h.ResourceScopeService.GetResourceByURIForThirdPartyAccess(ctx, resourceURI)
+		resource, err := h.ResourceScopeService.GetResourceByURI(ctx, resourceURI, client)
 		if err != nil {
 			return err
 		}
-		scopes, err = h.ResourceScopeService.ListScopesForThirdPartyAccess(ctx, resource.ID)
+		scopes, err = h.ResourceScopeService.ListScopesByResourceID(ctx, resource.ID, client)
 		return err
 	}
 	var err error
@@ -1071,50 +1018,42 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 		}
 	}
 
-	switch client.ApplicationType {
-	case config.OAuthClientApplicationTypeM2M:
+	originWhitelist := []string{}
+	if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
+		originWhitelist = client.PreAuthenticatedURLAllowedOrigins
+	}
+
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
+	if errResp != nil {
 		return ctx, nil, &AuthorizationResultError{
 			ResponseMode: r.ResponseMode(),
-			Response:     protocol.NewErrorResponse("unauthorized_client", "m2m clients are not allowed to use the authorize endpoint"),
+			Response:     errResp,
 		}
-	default:
-		originWhitelist := []string{}
-		if r.ResponseType().Equal(PreAuthenticatedURLTokenResponseType) {
-			originWhitelist = client.PreAuthenticatedURLAllowedOrigins
-		}
-
-		redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
-		if errResp != nil {
-			return ctx, nil, &AuthorizationResultError{
-				ResponseMode: r.ResponseMode(),
-				Response:     errResp,
-			}
-		}
-
-		if err := h.doValidateRequestWithoutTx(client, r); err != nil {
-			var oauthError *protocol.OAuthProtocolError
-			resultErr := AuthorizationResultError{
-				RedirectURI:  redirectURI,
-				ResponseMode: r.ResponseMode(),
-			}
-			if errors.As(err, &oauthError) {
-				resultErr.Response = oauthError.Response
-			} else {
-				resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
-				resultErr.InternalError = true
-			}
-			state := r.State()
-			if state != "" {
-				resultErr.Response.State(r.State())
-			}
-			return ctx, nil, &resultErr
-		}
-
-		return ctx, &AuthorizationParams{
-			Client:      client,
-			RedirectURI: redirectURI,
-		}, nil
 	}
+
+	if err := h.doValidateRequestWithoutTx(client, r); err != nil {
+		var oauthError *protocol.OAuthProtocolError
+		resultErr := AuthorizationResultError{
+			RedirectURI:  redirectURI,
+			ResponseMode: r.ResponseMode(),
+		}
+		if errors.As(err, &oauthError) {
+			resultErr.Response = oauthError.Response
+		} else {
+			resultErr.Response = protocol.NewErrorResponse("server_error", "internal server error")
+			resultErr.InternalError = true
+		}
+		state := r.State()
+		if state != "" {
+			resultErr.Response.State(r.State())
+		}
+		return ctx, nil, &resultErr
+	}
+
+	return ctx, &AuthorizationParams{
+		Client:      client,
+		RedirectURI: redirectURI,
+	}, nil
 }
 
 // cimdResolutionError maps a cimd.Service failure onto an authorization
@@ -1176,6 +1115,38 @@ func (h *AuthorizationHandler) validateResponseTypeIsWhitelisted(r protocol.Auth
 	}
 	if !ok {
 		return protocol.NewError("unauthorized_client", "response type is not allowed for this client")
+	}
+	return nil
+}
+
+// validateGrantTypeForResponseType checks that client is allowed the grant
+// this request's response_type leads to: code/none -> authorization_code,
+// settings-action -> the settings-action grant. Every other whitelisted
+// response_type (pre-authenticated-url-token, and a bare "token") is left
+// unchecked here rather than assumed to mean authorization_code -- see the
+// default case below for why each is safe to skip. This replaces a
+// hardcoded m2m rejection: m2m happens to be the only client shape lacking
+// both grants today, but the check itself is about the grant, not the
+// client type.
+func (h *AuthorizationHandler) validateGrantTypeForResponseType(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) error {
+	var requiredGrantType string
+	switch {
+	case r.ResponseType().Equal(CodeResponseType), r.ResponseType().Equal(NoneResponseType):
+		requiredGrantType = oauth.AuthorizationCodeGrantType
+	case r.ResponseType().Equal(SettingsActonResponseType):
+		requiredGrantType = oauth.SettingsActionGrantType
+	default:
+		// Includes PreAuthenticatedURLTokenResponseType (gated separately
+		// by client.PreAuthenticatedURLEnabled and a scope, not by
+		// grant_types) and a bare "token" -- no grant check here for
+		// either. validateRequestParameters, called right after this,
+		// already rejects a bare "token" with unsupported_response_type;
+		// returning our own error here would run first and shadow it with
+		// the wrong error code.
+		return nil
+	}
+	if !slice.ContainsString(oauth.GetAllowedGrantTypes(client), requiredGrantType) {
+		return protocol.NewError("unauthorized_client", fmt.Sprintf("this client's grant types do not include %s", requiredGrantType))
 	}
 	return nil
 }
@@ -1245,6 +1216,10 @@ func (h *AuthorizationHandler) doValidateRequestWithoutTx(
 	r protocol.AuthorizationRequest,
 ) error {
 	if err := h.validateResponseTypeIsWhitelisted(r); err != nil {
+		return err
+	}
+
+	if err := h.validateGrantTypeForResponseType(client, r); err != nil {
 		return err
 	}
 

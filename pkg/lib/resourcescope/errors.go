@@ -12,3 +12,4 @@ var ErrScopeDuplicate = apierrors.BadRequest.WithReason("ScopeDuplicate").New("d
 
 var ErrClientNotFound = apierrors.NotFound.WithReason("ClientNotFound").New("client not found")
 var ErrResourceNotAssociatedWithClient = apierrors.Forbidden.WithReason("ResourceNotAssociatedWithClient").New("resource is not associated with the client")
+var ErrClientCannotBeAssociatedWithResource = apierrors.Invalid.WithReason("ClientCannotBeAssociatedWithResource").New("client cannot use the client_credentials grant")

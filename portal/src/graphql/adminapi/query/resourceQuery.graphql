@@ -6,6 +6,9 @@ query ResourceQuery($id: ID!) {
       resourceURI
       clientIDs
       accessPolicy {
+        allowStaticFirstPartyClientAccess
+        allowStaticThirdPartyClientAccess
+        allowDynamicFirstPartyClientAccess
         allowDynamicThirdPartyClientAccess
       }
       createdAt

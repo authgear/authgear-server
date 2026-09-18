@@ -9,7 +9,7 @@ export type DynamicAccessResourcesQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type DynamicAccessResourcesQueryQuery = { __typename?: 'Query', resources?: { __typename?: 'ResourceConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ResourceEdge', node?: { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, accessPolicy: { __typename?: 'AccessPolicy', allowDynamicThirdPartyClientAccess: boolean }, scopes?: { __typename?: 'ScopeConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, accessPolicy: { __typename?: 'AccessPolicy', allowDynamicThirdPartyClientAccess: boolean } } | null } | null> | null } | null } | null } | null> | null } | null };
+export type DynamicAccessResourcesQueryQuery = { __typename?: 'Query', resources?: { __typename?: 'ResourceConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ResourceEdge', node?: { __typename?: 'Resource', id: string, name?: string | null, resourceURI: string, accessPolicy: { __typename?: 'AccessPolicy', allowStaticFirstPartyClientAccess: boolean, allowStaticThirdPartyClientAccess: boolean, allowDynamicFirstPartyClientAccess: boolean, allowDynamicThirdPartyClientAccess: boolean }, scopes?: { __typename?: 'ScopeConnection', totalCount?: number | null, edges?: Array<{ __typename?: 'ScopeEdge', node?: { __typename?: 'Scope', id: string, scope: string, accessPolicy: { __typename?: 'AccessPolicy', allowStaticFirstPartyClientAccess: boolean, allowStaticThirdPartyClientAccess: boolean, allowDynamicFirstPartyClientAccess: boolean, allowDynamicThirdPartyClientAccess: boolean } } | null } | null> | null } | null } | null } | null> | null } | null };
 
 
 export const DynamicAccessResourcesQueryDocument = gql`
@@ -22,6 +22,9 @@ export const DynamicAccessResourcesQueryDocument = gql`
         name
         resourceURI
         accessPolicy {
+          allowStaticFirstPartyClientAccess
+          allowStaticThirdPartyClientAccess
+          allowDynamicFirstPartyClientAccess
           allowDynamicThirdPartyClientAccess
         }
         scopes(first: $scopesFirst) {
@@ -31,6 +34,9 @@ export const DynamicAccessResourcesQueryDocument = gql`
               id
               scope
               accessPolicy {
+                allowStaticFirstPartyClientAccess
+                allowStaticThirdPartyClientAccess
+                allowDynamicFirstPartyClientAccess
                 allowDynamicThirdPartyClientAccess
               }
             }

@@ -22,7 +22,7 @@ var createResourceInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"accessPolicy": &graphql.InputObjectFieldConfig{
 			Type:        accessPolicyInputType,
-			Description: "The optional access policy of the resource. Defaults to no third-party access if omitted.",
+			Description: "The optional access policy of the resource. If omitted, all access policy fields default to false.",
 		},
 	},
 })

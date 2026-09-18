@@ -1,0 +1,242 @@
+name: Revocation - clearing an access_policy key takes effect on the next refresh, not immediately
+# Both levels: Scope-level clears and restores across two refreshes without
+# the grant itself losing the scope; Resource-level then fails the whole
+# refresh. See docs/specs/api-resource.md § Revocation. This exercises
+# TokenHandler.resourceScopesForIssuance, which re-reads the access policy
+# on every access token issuance rather than trusting the original grant.
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2e
+    oauth_setup_scope:
+      - openid
+      - offline_access
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: e2e
+
+  - name: refresh_before_revocation
+    action: oauth_refresh_token
+    oauth_refresh_token_refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    oauth_refresh_token_client_id: e2e
+    output:
+      result: |
+        {
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "scope": "openid offline_access read:orders",
+            "aud": ["https://api.example.com/orders"]
+          }
+        }
+
+  - name: clear_scope_key
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          updateScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: false }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "updateScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # Scope level revoked: the resource scope is dropped from the issued
+  # token, but the grant itself and the project-level (openid) scope are
+  # unaffected.
+  - name: refresh_after_scope_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "scope": "openid offline_access"
+        }
+
+  - name: restore_scope_key
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          updateScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "updateScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # Re-enabling restores the scope on the next refresh without the user
+  # re-authorizing -- the grant itself was never touched.
+  - name: refresh_after_scope_restored
+    action: oauth_refresh_token
+    oauth_refresh_token_refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    oauth_refresh_token_client_id: e2e
+    output:
+      result: |
+        {
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "scope": "openid offline_access read:orders",
+            "aud": ["https://api.example.com/orders"]
+          }
+        }
+
+  - name: clear_resource_key
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          updateResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: false }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "updateResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # Resource level revoked: the whole refresh fails, rather than falling
+  # back to an unbound token.
+  - name: refresh_after_resource_revoked
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.exchange_code.result.refresh_token }}"
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_target"
+        }

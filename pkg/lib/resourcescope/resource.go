@@ -8,13 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
-// accessPolicyAllowDynamicThirdPartyClientAccessKey is the JSON key of
-// model.AccessPolicy.AllowDynamicThirdPartyClientAccess's `json:"..."` tag.
-// Go struct tags can't be referenced as a constant, so this is a deliberate
-// duplication kept next to the raw-SQL JSONB lookups in store_resource.go
-// and store_scope.go that can't go through the struct at all.
-const accessPolicyAllowDynamicThirdPartyClientAccessKey = "allow_dynamic_third_party_client_access"
-
 type newResourceURI struct {
 	Value string
 }
@@ -32,16 +25,18 @@ type NewResourceOptions struct {
 	URI  newResourceURI
 	Name *string
 	// AccessPolicy is nil when the caller did not specify one, in which case
-	// the resource is created with the zero value (no third-party access).
-	AccessPolicy *model.AccessPolicy
+	// the resource is created with every key false (no access).
+	AccessPolicy *model.AccessPolicyPatch
 }
 
 type UpdateResourceOptions struct {
 	ResourceURI string
 	NewName     *string
 	// AccessPolicy is nil when the caller did not specify one, in which case
-	// the existing access policy is left unchanged.
-	AccessPolicy *model.AccessPolicy
+	// the existing access policy is unchanged. A non-nil patch is merged
+	// into the stored policy field by field; a field left nil in the patch
+	// is unchanged even when other fields are set.
+	AccessPolicy *model.AccessPolicyPatch
 }
 
 type ListResourcesOptions struct {

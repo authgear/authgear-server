@@ -233,6 +233,7 @@ type TokenHandler struct {
 	OfflineGrantService             TokenHandlerOfflineGrantService
 	PreAuthenticatedURLTokenService PreAuthenticatedURLTokenService
 	ClientResourceScopeService      TokenHandlerClientResourceScopeService
+	ResourceAccessPolicyService     ResourceAccessPolicyService
 	Graphs                          GraphService
 	IDTokenIssuer                   IDTokenIssuer
 	Clock                           clock.Clock
@@ -1766,6 +1767,14 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		return nil, protocol.NewError("invalid_target", "resource must be a subset of the resource authorized by the code")
 	}
 
+	// Re-read the access policy before issuing anything: only the token
+	// issued here is narrowed, the grant itself keeps every authorized
+	// scope. See docs/specs/api-resource.md § Revocation.
+	issuedScopes, err := h.resourceScopesForIssuance(ctx, client, resourceURI, code.AuthorizationRequest.Scope())
+	if err != nil {
+		return nil, err
+	}
+
 	issueRefreshToken := false
 	issueIDToken := false
 	issueDeviceToken := h.shouldIssueDeviceSecret(code.AuthorizationRequest.Scope())
@@ -2003,7 +2012,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:       client,
-		Scopes:             code.AuthorizationRequest.Scope(),
+		Scopes:             issuedScopes,
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
 		SessionLike: SimpleSessionLike{
@@ -2068,6 +2077,14 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		return nil, protocol.NewError("invalid_target", "resource must be a subset of the resource originally authorized")
 	}
 
+	// Re-read the access policy before issuing anything: only the token
+	// issued here is narrowed, the grant itself keeps every authorized
+	// scope. See docs/specs/api-resource.md § Revocation.
+	issuedScopes, err := h.resourceScopesForIssuance(ctx, client, resourceURI, offlineGrantSession.Scopes)
+	if err != nil {
+		return nil, err
+	}
+
 	resp := protocol.TokenResponse{}
 
 	offlineGrant, _, err := h.rotateDeviceSecretIfSufficientScope(
@@ -2102,7 +2119,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:             client,
-		Scopes:                   offlineGrantSession.Scopes,
+		Scopes:                   issuedScopes,
 		AuthorizationID:          authz.ID,
 		AuthenticationInfo:       offlineGrantSession.GetAuthenticationInfo(),
 		SessionLike:              offlineGrantSession,

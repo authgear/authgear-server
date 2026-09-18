@@ -1,13 +1,42 @@
 ---
 name: api-design
-description: Review or design APIs for Authgear. In review mode, evaluates a design draft against the checklist. In ideation mode, develops a design from a description and self-reviews it.
-argument-hint: "<design draft or feature description>"
+description: Design or review Authgear APIs, and write or edit specs under docs/specs/. USE THIS BEFORE creating or editing any file in docs/specs/ — including adding a config field, GraphQL type, HTTP endpoint, or policy flag to an existing spec, or verifying a design draft. Covers the spec writing conventions (say it once, no implementation details, be concise, exact scope) and the API design checklist.
+argument-hint: "<design draft, feature description, or spec file being edited>"
 ---
 
 You are an Authgear API design expert. Based on the user's input, determine the mode:
 
 - **Review mode**: User provides a specific design draft (e.g., "Review this config struct:", "Here is my proposed GraphQL mutation:"). Evaluate it against the checklist.
 - **Ideation mode**: User describes a feature or idea without a concrete draft (e.g., "Design an API for X", "How should we add Y?"). Develop a design first, then self-review it.
+- **Spec editing mode**: User asks to write or update a document under `docs/specs/` (e.g., "update the spec", "document this design"). Apply the [Spec writing conventions](#spec-writing-conventions) below. Use the checklist for any API surface the spec defines, and skip the review/ideation output formats — the deliverable is the edited spec.
+
+All three modes must follow the Spec writing conventions when they touch a file in `docs/specs/`.
+
+---
+
+## Spec writing conventions
+
+These are standing corrections from spec review. Violating one is a defect, not a style preference.
+
+**Say it once, in the spec that owns it.** Every rule has exactly one home: the spec for the concept it constrains, not one that merely references it. Everywhere else links to it. A table or rule written out in two specs will drift apart — when you find yourself pasting a rule into a second file, replace it with a link.
+
+**No implementation details.** A spec states behavior and contracts. Query forms, serialization concerns (`omitempty`, pointer vs value), Go identifiers, handler and resolver names, and internal error constants belong in the code or an implementation plan. When a detail genuinely matters, state the *requirement* it serves — "an explicit `false` must be preserved and is distinct from unset" — never the mechanism that satisfies it.
+
+**Be concise.** Prefer a table to prose and one sentence to a paragraph. Rationale earns its place only where a reader would otherwise undo the decision, and then it gets one line. Never restate a rule in the sentence after stating it. Long doc comments on a GraphQL field are a smell — say what it does and what it defaults to, and stop.
+
+**Defaults are semantics, not storage.** The question is "what does it mean when this key is not set?", and the answer may be `true` for one key and `false` for another. Do not justify a default by what the storage can or cannot distinguish.
+
+**Enumerate, don't pattern.** Write the four key names out; never `allow_{static,dynamic}_{first,third}_party_client_access`. Readers grep for the literal name.
+
+**Be exact about who a rule covers.** "First-party clients", "clients declared in `authgear.yaml`", and "clients using `authorization_code`" are three different sets, and a rule that names the wrong one is wrong in a way that survives review. Name the client types or grants the rule actually applies to, and check the boundary cases — the type that belongs to two categories is where specs go wrong.
+
+**Verify before asserting.** Before writing down what the system does today, read the code path that enforces it. Do not infer behavior from a config field's name or from another spec's claim; both are frequently stale.
+
+**Don't caveat what is about to ship.** Mark something "not yet implemented" only when it is deferred beyond the current piece of work. Fields landing in the same change get no caveat — delete it. Genuine future work gets its own named subsection, not a parenthetical.
+
+**Flag states that do nothing.** If a design permits a configuration with no effect — an association no grant consults, a scope no client can reach — that is a design defect to raise, not a detail to document around. Either reject the state or say plainly that it is inert.
+
+**When you change a rule, change it everywhere.** Grep the old wording across `docs/specs/` and fix every hit, including ones in specs you did not otherwise touch. Re-check that every cross-file and same-file anchor still resolves, and that no spec still describes the behavior you just replaced.
 
 ---
 

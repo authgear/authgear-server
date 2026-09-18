@@ -75,6 +75,10 @@ By default (no `resource` parameter), a third-party client receives an **opaque*
 
 When the `resource` parameter is specified and the referenced Resource permits access, a **JWT** access token is issued with `aud` set to the resource URI only.
 
+Whether a Resource permits access depends on the client's category, and static and dynamic third-party clients have separate `access_policy` keys — `allow_static_third_party_client_access` and `allow_dynamic_third_party_client_access` respectively. Neither key covers the other category. See [API Resources and Scopes — Client categories](./api-resource.md#client-categories).
+
+A third-party client's access token is never accepted at `/resolve`, whether it is the opaque default or a resource-bound JWT.
+
 See [Access Token Audience Binding](./access-token-audience-binding.md) for the full specification.
 
 ## Sessions and Authorization Management

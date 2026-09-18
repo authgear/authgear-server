@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
 	"github.com/google/uuid"
@@ -19,17 +20,13 @@ import (
 
 func (s *Store) NewResource(options *NewResourceOptions) *Resource {
 	now := s.Clock.NowUTC()
-	accessPolicy := model.AccessPolicy{}
-	if options.AccessPolicy != nil {
-		accessPolicy = *options.AccessPolicy
-	}
 	return &Resource{
 		ID:           uuid.NewString(),
 		CreatedAt:    now,
 		UpdatedAt:    now,
 		ResourceURI:  options.URI.Value,
 		Name:         options.Name,
-		AccessPolicy: accessPolicy,
+		AccessPolicy: options.AccessPolicy.Apply(model.AccessPolicy{}),
 	}
 }
 
@@ -85,11 +82,16 @@ func (s *Store) UpdateResource(ctx context.Context, options *UpdateResourceOptio
 	}
 
 	if options.AccessPolicy != nil {
-		accessPolicy, err := json.Marshal(*options.AccessPolicy)
+		patch, err := json.Marshal(*options.AccessPolicy)
 		if err != nil {
 			return err
 		}
-		q = q.Set("access_policy", accessPolicy)
+		// Merge rather than replace: || on two jsonb objects takes the
+		// right-hand value for a shared key and keeps every other key on
+		// the left, which is AccessPolicyPatch's contract. Doing it in SQL
+		// rather than read-modify-write keeps a concurrent update of a
+		// different key from being lost.
+		q = q.Set("access_policy", sq.Expr("access_policy || ?::jsonb", patch))
 	}
 
 	result, err := s.SQLExecutor.ExecWith(ctx, q)
@@ -168,31 +170,6 @@ func (s *Store) GetResourceByURI(ctx context.Context, uri string) (*Resource, er
 	return r, nil
 }
 
-// GetResourceByURIForThirdPartyAccess returns the resource only if its
-// access_policy allows third-party access; otherwise ErrResourceNotFound,
-// deliberately reusing the same not-found error M2M's GetClientResourceByURI
-// uses for "not associated" so both grant paths collapse to invalid_target
-// identically at the call site.
-func (s *Store) GetResourceByURIForThirdPartyAccess(ctx context.Context, uri string) (*Resource, error) {
-	q := s.selectResourceQuery("r").
-		Where(fmt.Sprintf("r.uri = ? AND (r.access_policy->>'%s')::boolean IS TRUE", accessPolicyAllowDynamicThirdPartyClientAccessKey), uri)
-
-	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := s.scanResource(row)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrResourceNotFound
-		}
-		return nil, err
-	}
-
-	return r, nil
-}
-
 func (s *Store) GetManyResources(ctx context.Context, ids []string) ([]*Resource, error) {
 	q := s.selectResourceQuery("r").Where("r.id = ANY (?)", pq.Array(ids))
 	return s.queryResources(ctx, q)
@@ -220,7 +197,7 @@ type storeListResourceResult struct {
 
 func (s *Store) ListResources(ctx context.Context, options *ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*storeListResourceResult, error) {
 	q := s.selectResourceQuery("r").
-		OrderBy("r.created_at DESC")
+		OrderBy("r.created_at DESC", "r.id ASC")
 	q = s.applyListResourcesOptions(q, "r", options)
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)

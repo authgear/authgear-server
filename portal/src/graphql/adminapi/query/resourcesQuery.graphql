@@ -17,6 +17,9 @@ query resourcesQuery(
         clientIDs
         resourceURI
         accessPolicy {
+          allowStaticFirstPartyClientAccess
+          allowStaticThirdPartyClientAccess
+          allowDynamicFirstPartyClientAccess
           allowDynamicThirdPartyClientAccess
         }
         createdAt

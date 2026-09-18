@@ -14,6 +14,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -67,6 +68,7 @@ func TestTokenHandler(t *testing.T) {
 
 		offlineGrantService := NewMockTokenHandlerOfflineGrantService(ctrl)
 		clientResourceScopeService := NewMockTokenHandlerClientResourceScopeService(ctrl)
+		resourceAccessPolicyService := NewMockResourceAccessPolicyService(ctrl)
 		appSessionTokens := NewMockTokenHandlerAppSessionTokenStore(ctrl)
 
 		events := NewMockEventService(ctrl)
@@ -98,6 +100,7 @@ func TestTokenHandler(t *testing.T) {
 			IDTokenIssuer:                   idTokenIssuer,
 			PreAuthenticatedURLTokenService: preAuthenticatedURLService,
 			ClientResourceScopeService:      clientResourceScopeService,
+			ResourceAccessPolicyService:     resourceAccessPolicyService,
 			RateLimiter:                     rateLimiter,
 			AppSessionTokens:                appSessionTokens,
 			CodeGrantService:                codeGrantService,
@@ -322,6 +325,209 @@ func TestTokenHandler(t *testing.T) {
 				So(body, ShouldNotContainKey, "refresh_token")
 			})
 
+			// Revocation: the access policy is re-read on every issuance, not
+			// only when the grant is created. See
+			// docs/specs/api-resource.md § Revocation.
+			Convey("resource-bound refresh, Resource level revoked: invalid_target, and the offline grant is untouched", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID: "app-id",
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+				}
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"refresh_token"}
+				r["client_id"] = []string{"app-id"}
+				r["refresh_token"] = []string{"asdf"}
+				refreshTokenHash := "hash1"
+				offlineGrant := &oauth.OfflineGrant{
+					ID:              "offline-grant-id",
+					Attrs:           *session.NewAttrs("user-id"),
+					InitialClientID: "app-id",
+					RefreshTokens: []oauth.OfflineGrantRefreshToken{{
+						ClientID:         "app-id",
+						Scopes:           []string{"openid", "read:orders"},
+						InitialTokenHash: refreshTokenHash,
+						ResourceURI:      "https://api.example.com/orders",
+					}},
+					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
+				}
+				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
+
+				// app-id is static first-party (ApplicationType unset,
+				// IsDynamic false); the Resource allows no category, so the
+				// service reports it as not found and the refresh fails
+				// closed.
+				resourceAccessPolicyService.EXPECT().GetResourceByURI(gomock.Any(), "https://api.example.com/orders", gomock.Any()).
+					Return(nil, resourcescope.ErrResourceNotFound)
+
+				// The access policy is checked before any of PrepareIDToken,
+				// AccessOfflineGrant, UpdateOfflineGrantDeviceInfo or
+				// TokenService.PrepareUserAccessGrantByRefreshToken -- none
+				// of them has an EXPECT set, so gomock fails the test if any
+				// of them is called.
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 400)
+				var body map[string]any
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_target")
+			})
+
+			Convey("resource-bound refresh, Scope level revoked: the resource scope is dropped, OIDC scopes and response scope survive", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID: "app-id",
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+				}
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"refresh_token"}
+				r["client_id"] = []string{"app-id"}
+				r["refresh_token"] = []string{"asdf"}
+				refreshTokenHash := "hash1"
+				offlineGrant := &oauth.OfflineGrant{
+					ID:              "offline-grant-id",
+					Attrs:           *session.NewAttrs("user-id"),
+					InitialClientID: "app-id",
+					RefreshTokens: []oauth.OfflineGrantRefreshToken{{
+						ClientID:         "app-id",
+						Scopes:           []string{"openid", "read:orders"},
+						InitialTokenHash: refreshTokenHash,
+						ResourceURI:      "https://api.example.com/orders",
+					}},
+					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
+				}
+				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
+
+				idTokenIssuer.EXPECT().PrepareIDToken(gomock.Any(), gomock.Any()).Return(&oidc.PrepareIDTokenResult{}, nil)
+				idTokenIssuer.EXPECT().MakeIDTokenFromPreparationResult(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
+				// The Resource still allows the category; its Scope
+				// "read:orders" no longer does, so the service filters it
+				// out before returning -- the two-level check.
+				resourceAccessPolicyService.EXPECT().GetResourceByURI(gomock.Any(), "https://api.example.com/orders", gomock.Any()).
+					Return(&resourcescope.Resource{
+						ID:          "resource-id",
+						ResourceURI: "https://api.example.com/orders",
+						AccessPolicy: model.AccessPolicy{
+							AllowStaticFirstPartyClientAccess: true,
+						},
+					}, nil)
+				resourceAccessPolicyService.EXPECT().ListScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
+					Return(nil, nil) // read:orders access_policy cleared, filtered out by the service
+
+				var capturedScopes []string
+				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+						capturedScopes = options.Scopes
+						return &handler.PrepareUserAccessGrantByRefreshTokenResult{
+							PreparationResult: nil,
+						}, nil
+					})
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+					return &oauth.IssueAccessGrantResult{
+						Token:     "access-token",
+						TokenType: "Bearer",
+						ExpiresIn: 300,
+						Scopes:    capturedScopes,
+					}, nil
+				})
+
+				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
+				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+
+				// The grant itself keeps read:orders -- only the issued
+				// token dropped it.
+				So(capturedScopes, ShouldResemble, []string{"openid"})
+				So(offlineGrant.RefreshTokens[0].Scopes, ShouldResemble, []string{"openid", "read:orders"})
+
+				var body map[string]any
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["scope"], ShouldEqual, "openid")
+			})
+
+			Convey("resource-bound refresh, re-enabling a cleared Scope key restores it on the next issuance", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID: "app-id",
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+				}
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"refresh_token"}
+				r["client_id"] = []string{"app-id"}
+				r["refresh_token"] = []string{"asdf"}
+				refreshTokenHash := "hash1"
+				offlineGrant := &oauth.OfflineGrant{
+					ID:              "offline-grant-id",
+					Attrs:           *session.NewAttrs("user-id"),
+					InitialClientID: "app-id",
+					RefreshTokens: []oauth.OfflineGrantRefreshToken{{
+						ClientID:         "app-id",
+						Scopes:           []string{"openid", "read:orders"},
+						InitialTokenHash: refreshTokenHash,
+						ResourceURI:      "https://api.example.com/orders",
+					}},
+					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
+				}
+				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
+
+				idTokenIssuer.EXPECT().PrepareIDToken(gomock.Any(), gomock.Any()).Return(&oidc.PrepareIDTokenResult{}, nil)
+				idTokenIssuer.EXPECT().MakeIDTokenFromPreparationResult(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
+				// Unlike the previous case, the Scope's key is set again.
+				resourceAccessPolicyService.EXPECT().GetResourceByURI(gomock.Any(), "https://api.example.com/orders", gomock.Any()).
+					Return(&resourcescope.Resource{
+						ID:          "resource-id",
+						ResourceURI: "https://api.example.com/orders",
+						AccessPolicy: model.AccessPolicy{
+							AllowStaticFirstPartyClientAccess: true,
+						},
+					}, nil)
+				resourceAccessPolicyService.EXPECT().ListScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
+					Return([]*resourcescope.Scope{
+						{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}},
+					}, nil)
+
+				var capturedScopes []string
+				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+						capturedScopes = options.Scopes
+						return &handler.PrepareUserAccessGrantByRefreshTokenResult{
+							PreparationResult: nil,
+						}, nil
+					})
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+					return &oauth.IssueAccessGrantResult{
+						Token:     "access-token",
+						TokenType: "Bearer",
+						ExpiresIn: 300,
+						Scopes:    capturedScopes,
+					}, nil
+				})
+
+				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
+				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", refreshTokenHash, &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+				So(capturedScopes, ShouldResemble, []string{"openid", "read:orders"})
+			})
+
 			Convey("rate limited", func() {
 				req, _ := http.NewRequest("POST", "/token", nil)
 				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
@@ -459,6 +665,288 @@ func TestTokenHandler(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(body["access_token"], ShouldEqual, "access-token")
 				So(body, ShouldNotContainKey, "refresh_token")
+			})
+
+			// Revocation: the access policy is re-read on every issuance,
+			// not only when the authorization code is exchanged. See
+			// docs/specs/api-resource.md § Revocation.
+			Convey("resource-bound exchange, Resource level revoked: invalid_target before any offline grant is created", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID:        "app-id",
+					ApplicationType: config.OAuthClientApplicationTypeSPA,
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+				}
+
+				verifier := pkce.GenerateS256Verifier()
+
+				authzRequest := protocol.AuthorizationRequest{
+					"client_id":             "app-id",
+					"redirect_uri":          "https://example.com/",
+					"scope":                 "openid read:orders",
+					"resource":              "https://api.example.com/orders",
+					"code_challenge":        verifier.Challenge(),
+					"code_challenge_method": "S256",
+				}
+				codeGrant := &oauth.CodeGrant{
+					AppID:           appID,
+					AuthorizationID: "authz-id",
+					AuthenticationInfo: authenticationinfo.T{
+						UserID: "user-id",
+					},
+					RedirectURI:          "https://example.com/",
+					AuthorizationRequest: authzRequest,
+					ExpireAt:             clock.NowUTC().Add(time.Hour),
+				}
+				codeHash := oauth.HashToken("the-code")
+				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), codeHash).Return(codeGrant, nil)
+				codeGrants.EXPECT().ConsumeCodeGrant(gomock.Any(), codeGrant).Return(nil)
+
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(&oidc.UIInfo{}, nil, nil)
+
+				authz := &oauth.Authorization{
+					ID:       "authz-id",
+					ClientID: "app-id",
+					UserID:   "user-id",
+					Scopes:   []string{"openid", "read:orders"},
+				}
+				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(authz, nil)
+
+				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+
+				// app-id is static first-party; the Resource allows no
+				// category, so the service reports it as not found and the
+				// exchange must fail closed, before TokenService.IssueOfflineGrant
+				// or PrepareUserAccessGrantByRefreshToken -- neither has an
+				// EXPECT set, so gomock fails the test if either is called.
+				resourceAccessPolicyService.EXPECT().GetResourceByURI(gomock.Any(), "https://api.example.com/orders", gomock.Any()).
+					Return(nil, resourcescope.ErrResourceNotFound)
+
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"authorization_code"}
+				r["client_id"] = []string{"app-id"}
+				r["code"] = []string{"the-code"}
+				r["redirect_uri"] = []string{"https://example.com/"}
+				r["code_verifier"] = []string{verifier.CodeVerifier}
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 400)
+
+				var body map[string]any
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["error"], ShouldEqual, "invalid_target")
+			})
+
+			Convey("resource-bound exchange, Scope level revoked: the resource scope is dropped from the issued token", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID:        "app-id",
+					ApplicationType: config.OAuthClientApplicationTypeSPA,
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+				}
+
+				verifier := pkce.GenerateS256Verifier()
+
+				authzRequest := protocol.AuthorizationRequest{
+					"client_id":             "app-id",
+					"redirect_uri":          "https://example.com/",
+					"scope":                 "openid read:orders",
+					"resource":              "https://api.example.com/orders",
+					"code_challenge":        verifier.Challenge(),
+					"code_challenge_method": "S256",
+				}
+				codeGrant := &oauth.CodeGrant{
+					AppID:           appID,
+					AuthorizationID: "authz-id",
+					AuthenticationInfo: authenticationinfo.T{
+						UserID: "user-id",
+					},
+					RedirectURI:          "https://example.com/",
+					AuthorizationRequest: authzRequest,
+					ExpireAt:             clock.NowUTC().Add(time.Hour),
+				}
+				codeHash := oauth.HashToken("the-code")
+				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), codeHash).Return(codeGrant, nil)
+				codeGrants.EXPECT().ConsumeCodeGrant(gomock.Any(), codeGrant).Return(nil)
+
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(&oidc.UIInfo{}, nil, nil)
+
+				authz := &oauth.Authorization{
+					ID:       "authz-id",
+					ClientID: "app-id",
+					UserID:   "user-id",
+					Scopes:   []string{"openid", "read:orders"},
+				}
+				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(authz, nil)
+
+				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+
+				// The Resource still allows the category; its Scope
+				// "read:orders" no longer does, so the service filters it
+				// out before returning -- the two-level check.
+				resourceAccessPolicyService.EXPECT().GetResourceByURI(gomock.Any(), "https://api.example.com/orders", gomock.Any()).
+					Return(&resourcescope.Resource{
+						ID:          "resource-id",
+						ResourceURI: "https://api.example.com/orders",
+						AccessPolicy: model.AccessPolicy{
+							AllowStaticFirstPartyClientAccess: true,
+						},
+					}, nil)
+				resourceAccessPolicyService.EXPECT().ListScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
+					Return(nil, nil) // read:orders access_policy cleared, filtered out by the service
+
+				issuedOfflineGrant := &oauth.OfflineGrant{
+					ID:    "offline-grant-id",
+					Attrs: *session.NewAttrs("user-id"),
+				}
+				tokenService.EXPECT().IssueOfflineGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(issuedOfflineGrant, "", nil)
+
+				idTokenIssuer.EXPECT().PrepareIDToken(gomock.Any(), gomock.Any()).Return(&oidc.PrepareIDTokenResult{}, nil)
+				idTokenIssuer.EXPECT().MakeIDTokenFromPreparationResult(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
+				var capturedScopes []string
+				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+						capturedScopes = options.Scopes
+						return &handler.PrepareUserAccessGrantByRefreshTokenResult{
+							PreparationResult: nil,
+						}, nil
+					})
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+					return &oauth.IssueAccessGrantResult{
+						Token:     "access-token",
+						TokenType: "Bearer",
+						ExpiresIn: 300,
+						Scopes:    capturedScopes,
+					}, nil
+				})
+
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"authorization_code"}
+				r["client_id"] = []string{"app-id"}
+				r["code"] = []string{"the-code"}
+				r["redirect_uri"] = []string{"https://example.com/"}
+				r["code_verifier"] = []string{verifier.CodeVerifier}
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+				So(capturedScopes, ShouldResemble, []string{"openid"})
+
+				var body map[string]any
+				err := json.Unmarshal(res.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["scope"], ShouldEqual, "openid")
+			})
+
+			Convey("resource-bound exchange, everything still allowed: the issued token keeps the resource scope", func() {
+				req, _ := http.NewRequest("POST", "/token", nil)
+				clientResolver.ClientConfigs["app-id"] = &config.OAuthClientConfig{
+					ClientID:        "app-id",
+					ApplicationType: config.OAuthClientApplicationTypeSPA,
+					RedirectURIs: []string{
+						"https://example.com/",
+					},
+				}
+
+				verifier := pkce.GenerateS256Verifier()
+
+				authzRequest := protocol.AuthorizationRequest{
+					"client_id":             "app-id",
+					"redirect_uri":          "https://example.com/",
+					"scope":                 "openid read:orders",
+					"resource":              "https://api.example.com/orders",
+					"code_challenge":        verifier.Challenge(),
+					"code_challenge_method": "S256",
+				}
+				codeGrant := &oauth.CodeGrant{
+					AppID:           appID,
+					AuthorizationID: "authz-id",
+					AuthenticationInfo: authenticationinfo.T{
+						UserID: "user-id",
+					},
+					RedirectURI:          "https://example.com/",
+					AuthorizationRequest: authzRequest,
+					ExpireAt:             clock.NowUTC().Add(time.Hour),
+				}
+				codeHash := oauth.HashToken("the-code")
+				codeGrants.EXPECT().GetCodeGrant(gomock.Any(), codeHash).Return(codeGrant, nil)
+				codeGrants.EXPECT().ConsumeCodeGrant(gomock.Any(), codeGrant).Return(nil)
+
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(&oidc.UIInfo{}, nil, nil)
+
+				authz := &oauth.Authorization{
+					ID:       "authz-id",
+					ClientID: "app-id",
+					UserID:   "user-id",
+					Scopes:   []string{"openid", "read:orders"},
+				}
+				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(authz, nil)
+
+				rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+
+				// Unlike the previous case, the Scope's key is still set.
+				resourceAccessPolicyService.EXPECT().GetResourceByURI(gomock.Any(), "https://api.example.com/orders", gomock.Any()).
+					Return(&resourcescope.Resource{
+						ID:          "resource-id",
+						ResourceURI: "https://api.example.com/orders",
+						AccessPolicy: model.AccessPolicy{
+							AllowStaticFirstPartyClientAccess: true,
+						},
+					}, nil)
+				resourceAccessPolicyService.EXPECT().ListScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
+					Return([]*resourcescope.Scope{
+						{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}},
+					}, nil)
+
+				issuedOfflineGrant := &oauth.OfflineGrant{
+					ID:    "offline-grant-id",
+					Attrs: *session.NewAttrs("user-id"),
+				}
+				tokenService.EXPECT().IssueOfflineGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(issuedOfflineGrant, "", nil)
+
+				idTokenIssuer.EXPECT().PrepareIDToken(gomock.Any(), gomock.Any()).Return(&oidc.PrepareIDTokenResult{}, nil)
+				idTokenIssuer.EXPECT().MakeIDTokenFromPreparationResult(gomock.Any(), gomock.Any()).Return("id-token", nil)
+
+				var capturedScopes []string
+				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, options handler.PrepareUserAccessGrantByRefreshTokenOptions) (*handler.PrepareUserAccessGrantByRefreshTokenResult, error) {
+						capturedScopes = options.Scopes
+						return &handler.PrepareUserAccessGrantByRefreshTokenResult{
+							PreparationResult: nil,
+						}, nil
+					})
+				accessTokenEncoding.EXPECT().MakeUserAccessTokenFromPreparationResult(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, options oauth.MakeUserAccessTokenFromPreparationOptions) (*oauth.IssueAccessGrantResult, error) {
+					return &oauth.IssueAccessGrantResult{
+						Token:     "access-token",
+						TokenType: "Bearer",
+						ExpiresIn: 300,
+						Scopes:    capturedScopes,
+					}, nil
+				})
+
+				r := protocol.TokenRequest{}
+				r["grant_type"] = []string{"authorization_code"}
+				r["client_id"] = []string{"app-id"}
+				r["code"] = []string{"the-code"}
+				r["redirect_uri"] = []string{"https://example.com/"}
+				r["code_verifier"] = []string{verifier.CodeVerifier}
+
+				ctx := context.Background()
+				res := handle(ctx, req, r)
+				So(res.Result().StatusCode, ShouldEqual, 200)
+				So(capturedScopes, ShouldResemble, []string{"openid", "read:orders"})
 			})
 
 			Convey("a rate limited exchange does not consume the code", func() {
@@ -782,8 +1270,11 @@ func TestTokenHandler(t *testing.T) {
 				{ID: "scope-id-2", ResourceID: resourceID, Scope: "write"},
 			}
 			clientResolver.ClientConfigs[clientID] = &config.OAuthClientConfig{
-				ClientID:            clientID,
-				ApplicationType:     config.OAuthClientApplicationTypeConfidential,
+				ClientID: clientID,
+				// m2m, not confidential: confidential clients can no
+				// longer use client_credentials (see
+				// OAuthClientApplicationType.IsClientCredentialsFlowAllowed).
+				ApplicationType:     config.OAuthClientApplicationTypeM2M,
 				AccessTokenLifetime: config.DurationSeconds(3600),
 				IssueJWTAccessToken: true,
 			}
@@ -1121,6 +1612,35 @@ func TestTokenHandler(t *testing.T) {
 			})
 		})
 
+		Convey("confidential client requesting client_credentials is unauthorized_client", func() {
+			// The grant-type gate in doHandleWithTx rejects this before any
+			// of handleClientCredentials' own checks run -- none of those
+			// services has an EXPECT set, so gomock fails the test if any
+			// of them is called.
+			clientID := "confidential-client"
+			clientResolver.ClientConfigs[clientID] = &config.OAuthClientConfig{
+				ClientID:        clientID,
+				ApplicationType: config.OAuthClientApplicationTypeConfidential,
+			}
+			rateLimiter.EXPECT().Allow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil, nil)
+
+			req, _ := http.NewRequest("POST", "/token", nil)
+			r := protocol.TokenRequest{
+				"grant_type":    []string{"client_credentials"},
+				"client_id":     []string{clientID},
+				"client_secret": []string{"whatever"},
+				"resource":      []string{"https://api.example.com/resource"},
+			}
+			ctx := context.Background()
+			resp := handle(ctx, req, r)
+
+			So(resp.Result().StatusCode, ShouldEqual, 400)
+			var body map[string]any
+			err := json.Unmarshal(resp.Body.Bytes(), &body)
+			So(err, ShouldBeNil)
+			So(body["error"], ShouldEqual, "unauthorized_client")
+		})
+
 		Convey("client authentication via HTTP Basic auth (client_secret_basic)", func() {
 			clientID := "basic-auth-client"
 			resourceURI := "https://api.example.com/resource"
@@ -1129,8 +1649,12 @@ func TestTokenHandler(t *testing.T) {
 				{ID: "scope-id-1", ResourceID: resourceID, Scope: "read"},
 			}
 			clientResolver.ClientConfigs[clientID] = &config.OAuthClientConfig{
-				ClientID:            clientID,
-				ApplicationType:     config.OAuthClientApplicationTypeConfidential,
+				ClientID: clientID,
+				// m2m, not confidential -- see the same note in the
+				// "client_credentials flow" Convey above. This test's own
+				// purpose (client_secret_basic credential extraction) is
+				// unaffected by which client type carries it.
+				ApplicationType:     config.OAuthClientApplicationTypeM2M,
 				AccessTokenLifetime: config.DurationSeconds(3600),
 				IssueJWTAccessToken: true,
 			}

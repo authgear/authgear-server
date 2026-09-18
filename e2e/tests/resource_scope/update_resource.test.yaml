@@ -33,4 +33,123 @@ steps:
             }
           },
           "errors": null
-        } 
+        }
+---
+name: Update Resource - accessPolicy merges rather than replaces
+before:
+  - type: custom_sql
+    custom_sql:
+      path: simple_fixtures.sql
+steps:
+  - name: Set allowDynamicThirdPartyClientAccess only
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation UpdateResource {
+          updateResource(input: {
+            resourceURI: "https://fixtureresource/1",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource {
+              accessPolicy {
+                allowStaticFirstPartyClientAccess
+                allowStaticThirdPartyClientAccess
+                allowDynamicFirstPartyClientAccess
+                allowDynamicThirdPartyClientAccess
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateResource": {
+              "resource": {
+                "accessPolicy": {
+                  "allowStaticFirstPartyClientAccess": false,
+                  "allowStaticThirdPartyClientAccess": false,
+                  "allowDynamicFirstPartyClientAccess": false,
+                  "allowDynamicThirdPartyClientAccess": true
+                }
+              }
+            }
+          },
+          "errors": null
+        }
+  - name: Set allowStaticFirstPartyClientAccess only -- the earlier key must survive
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation UpdateResource {
+          updateResource(input: {
+            resourceURI: "https://fixtureresource/1",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            resource {
+              accessPolicy {
+                allowStaticFirstPartyClientAccess
+                allowStaticThirdPartyClientAccess
+                allowDynamicFirstPartyClientAccess
+                allowDynamicThirdPartyClientAccess
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateResource": {
+              "resource": {
+                "accessPolicy": {
+                  "allowStaticFirstPartyClientAccess": true,
+                  "allowStaticThirdPartyClientAccess": false,
+                  "allowDynamicFirstPartyClientAccess": false,
+                  "allowDynamicThirdPartyClientAccess": true
+                }
+              }
+            }
+          },
+          "errors": null
+        }
+
+  - name: accessPolicy {} is a no-op, not a clear
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation UpdateResource {
+          updateResource(input: {
+            resourceURI: "https://fixtureresource/1",
+            accessPolicy: {}
+          }) {
+            resource {
+              accessPolicy {
+                allowStaticFirstPartyClientAccess
+                allowStaticThirdPartyClientAccess
+                allowDynamicFirstPartyClientAccess
+                allowDynamicThirdPartyClientAccess
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateResource": {
+              "resource": {
+                "accessPolicy": {
+                  "allowStaticFirstPartyClientAccess": true,
+                  "allowStaticThirdPartyClientAccess": false,
+                  "allowDynamicFirstPartyClientAccess": false,
+                  "allowDynamicThirdPartyClientAccess": true
+                }
+              }
+            }
+          },
+          "errors": null
+        }

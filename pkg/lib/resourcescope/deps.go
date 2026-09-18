@@ -9,4 +9,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Queries), "*"),
 	wire.Struct(new(Commands), "*"),
 	wire.Struct(new(ClientResourceScopeService), "*"),
+	wire.Struct(new(AccessPolicyService), "*"),
 )

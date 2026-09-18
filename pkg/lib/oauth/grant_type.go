@@ -43,6 +43,12 @@ func GetAllowedGrantTypes(c *config.OAuthClientConfig) []string {
 
 		var allowed []string
 		for _, g := range c.GrantTypes_do_not_use_directly {
+			// Raw config content isn't validated against ApplicationType,
+			// so a stale client_credentials entry must still be filtered
+			// here rather than trusted.
+			if g == ClientCredentialsGrantType && !c.ApplicationType.IsClientCredentialsFlowAllowed() {
+				continue
+			}
 			_, ok := seen[g]
 			if !ok {
 				allowed = append(allowed, g)

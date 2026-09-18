@@ -7,6 +7,9 @@ query ScopeQuery($id: ID!) {
       description
       resourceID
       accessPolicy {
+        allowStaticFirstPartyClientAccess
+        allowStaticThirdPartyClientAccess
+        allowDynamicFirstPartyClientAccess
         allowDynamicThirdPartyClientAccess
       }
       createdAt

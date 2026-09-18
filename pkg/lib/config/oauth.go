@@ -108,7 +108,9 @@ func (t OAuthClientApplicationType) IsClientCredentialsFlowAllowed() bool {
 	case OAuthClientApplicationTypeNative:
 		return false
 	case OAuthClientApplicationTypeConfidential:
-		return true
+		// m2m is the only intended client type for client_credentials;
+		// see docs/specs/m2m.md.
+		return false
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return false
 	case OAuthClientApplicationTypeM2M:
