@@ -37,7 +37,7 @@
 /* The same accent wash that is barely a tint on white reads as a separate navy
    panel over a dark ground, so dark mode leaves the sidebar on the page
    background and lets the border carry the division. */
-:global(.dark) .nav {
+:global(.dark-theme) .nav {
   background-color: transparent;
 }
 

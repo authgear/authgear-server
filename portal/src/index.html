@@ -25,7 +25,9 @@
           preference === "dark" ||
           (preference !== "light" &&
             window.matchMedia("(prefers-color-scheme: dark)").matches);
-        document.documentElement.classList.add(dark ? "dark" : "light");
+        document.documentElement.classList.add(
+          dark ? "dark-theme" : "light-theme"
+        );
       })();
     </script>
     <style>

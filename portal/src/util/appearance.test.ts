@@ -86,11 +86,11 @@ describe("resolveAppearance", () => {
 describe("applyResolvedAppearance", () => {
   it("keeps exactly one appearance class and leaves others alone", () => {
     const el = document.createElement("div");
-    el.classList.add("keep-me", "light");
+    el.classList.add("keep-me", "light-theme");
     applyResolvedAppearance(el, "dark");
-    expect(Array.from(el.classList)).toEqual(["keep-me", "dark"]);
+    expect(Array.from(el.classList)).toEqual(["keep-me", "dark-theme"]);
     applyResolvedAppearance(el, "light");
-    expect(Array.from(el.classList)).toEqual(["keep-me", "light"]);
+    expect(Array.from(el.classList)).toEqual(["keep-me", "light-theme"]);
   });
 });
 
@@ -129,7 +129,9 @@ describe("appearance store", () => {
   it("persists, applies and notifies on setAppearance", () => {
     const mod = loadFreshModule();
     mod.initAppearance();
-    expect(document.documentElement.classList.contains("light")).toBe(true);
+    expect(document.documentElement.classList.contains("light-theme")).toBe(
+      true
+    );
 
     const listener = jest.fn<() => void>();
     mod.subscribeAppearance(listener);
@@ -140,8 +142,12 @@ describe("appearance store", () => {
       preference: "dark",
       resolved: "dark",
     });
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
-    expect(document.documentElement.classList.contains("light")).toBe(false);
+    expect(document.documentElement.classList.contains("dark-theme")).toBe(
+      true
+    );
+    expect(document.documentElement.classList.contains("light-theme")).toBe(
+      false
+    );
     expect(listener).toHaveBeenCalledTimes(1);
 
     // Setting the same value again is a no-op for subscribers.
@@ -160,7 +166,9 @@ describe("appearance store", () => {
       l();
     }
     expect(mod.getAppearanceState().resolved).toBe("dark");
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(document.documentElement.classList.contains("dark-theme")).toBe(
+      true
+    );
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
@@ -184,7 +192,9 @@ describe("appearance store", () => {
     // initAppearance() first; the class must still land on <html>.
     const mod = loadFreshModule();
     mod.setAppearance("dark");
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(document.documentElement.classList.contains("dark-theme")).toBe(
+      true
+    );
   });
 
   it("picks up changes made in another tab", () => {
@@ -196,11 +206,24 @@ describe("appearance store", () => {
       new StorageEvent("storage", { key: APPEARANCE_STORAGE_KEY })
     );
     expect(mod.getAppearanceState().preference).toBe("dark");
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(document.documentElement.classList.contains("dark-theme")).toBe(
+      true
+    );
 
     window.localStorage.clear();
     window.dispatchEvent(new StorageEvent("storage", { key: null }));
     expect(mod.getAppearanceState().preference).toBe("system");
+  });
+});
+
+describe("appearance classes", () => {
+  it("does not use the bare class that marks a dark island", () => {
+    // `components/v2` puts a plain `dark` class on a single component to render
+    // it on a dark surface; the page-level class must stay distinct from it.
+    const el = document.createElement("div");
+    applyResolvedAppearance(el, "dark");
+    expect(el.classList.contains("dark")).toBe(false);
+    expect(el.classList.contains("dark-theme")).toBe(true);
   });
 });
 

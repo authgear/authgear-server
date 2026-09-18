@@ -43,12 +43,12 @@ button[disabled] {
 
 /* The appearance class lives on <html> (see util/appearance.ts). Radix only
    paints its background inside .radix-themes, so paint the document too. */
-html.light {
+html.light-theme {
   background-color: white;
   color-scheme: light;
 }
 
-html.dark {
+html.dark-theme {
   background-color: var(--slate-1);
   color-scheme: dark;
 }

@@ -1,10 +1,13 @@
 // Portal appearance: light, dark, or follow the device.
 //
-// The resolved mode is applied as a `light` or `dark` class on <html>, which
-// Radix Themes, Tailwind (`darkMode: "class"`) and content portalled to
-// <body> all pick up. The inline bootstrap script in index.html applies the
-// same class before the bundle loads so the first paint is already correct;
-// keep APPEARANCE_STORAGE_KEY and the resolve rule in sync with it.
+// The resolved mode is applied as a `light-theme` or `dark-theme` class on
+// <html>, which Radix Themes, Tailwind and content portalled to <body> all pick
+// up. Radix accepts `dark`/`light` too, but `components/v2` already uses a bare
+// `dark` class to mark a single component as sitting on a dark island (see the
+// `darkMode` props there), so the page-level class has to be the other spelling
+// or those two meanings collide. The inline bootstrap script in index.html
+// applies the same class before the bundle loads so the first paint is already
+// correct; keep APPEARANCE_STORAGE_KEY and the resolve rule in sync with it.
 
 export const APPEARANCE_STORAGE_KEY = "authgear-portal-appearance";
 const DARK_MEDIA_QUERY = "(prefers-color-scheme: dark)";
@@ -46,8 +49,8 @@ export function applyResolvedAppearance(
   root: Element,
   resolved: ResolvedAppearance
 ): void {
-  root.classList.remove("light", "dark");
-  root.classList.add(resolved);
+  root.classList.remove("light-theme", "dark-theme");
+  root.classList.add(`${resolved}-theme`);
 }
 
 function readStoredAppearance(): Appearance {
