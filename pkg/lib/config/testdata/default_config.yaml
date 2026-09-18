@@ -288,6 +288,8 @@ messaging:
       period: 24h
       burst: 50
 search: {}
+telemetry:
+  audit_logs: {}
 authentication:
   identities:
     - oauth

@@ -1796,3 +1796,143 @@ config:
           action: deny
           source:
             geo_location_codes: ["USA"]
+
+---
+name: telemetry-audit-log-stream-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: collector.internal:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+
+---
+name: telemetry-audit-log-stream-duplicated-name
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/1/name: duplicated audit log stream name 'collector' with streams[0]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: collector.internal:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: other.internal:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+
+---
+name: telemetry-audit-log-stream-invalid-address
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/tcp/address: format
+    map[Addr:collector.internal Err:missing port in address format:x_host_port]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: collector.internal
+          syslog:
+            format: rfc5424
+            framing: newline
+
+---
+name: telemetry-audit-log-stream-facility-unknown-value
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/syslog/facility: enum
+    map[actual:local8 expected:[user local0 local1 local2 local3 local4 local5 local6 local7]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: collector.internal:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+            facility: local8
+
+---
+name: telemetry-audit-log-stream-facility-old-numeric-form-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/syslog/facility: type
+    map[actual:[integer number] expected:[string]]
+  /telemetry/audit_logs/streams/0/syslog/facility: enum
+    map[actual:16 expected:[user local0 local1 local2 local3 local4 local5 local6 local7]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: collector.internal:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+            facility: 16
+
+---
+name: telemetry-audit-log-stream-invalid-name
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/name: pattern
+    map[actual:bad name! expected:^[a-zA-Z0-9_-]{1,63}$]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: "bad name!"
+          type: syslog
+          transport: tcp
+          tcp:
+            address: collector.internal:5140
+          syslog:
+            format: rfc5424
+            framing: newline
