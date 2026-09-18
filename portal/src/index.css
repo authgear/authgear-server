@@ -40,3 +40,15 @@ button[disabled] {
 :root {
   --screen-header-height: 48px;
 }
+
+/* The appearance class lives on <html> (see util/appearance.ts). Radix only
+   paints its background inside .radix-themes, so paint the document too. */
+html.light {
+  background-color: white;
+  color-scheme: light;
+}
+
+html.dark {
+  background-color: var(--slate-1);
+  color-scheme: dark;
+}

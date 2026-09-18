@@ -26,6 +26,7 @@ import { useSettingsAnchor } from "./hook/authgear";
 import { Logo } from "./components/common/Logo";
 import logoStyles from "./components/common/Logo.module.css";
 import ProjectSelector from "./components/header/ProjectSelector";
+import { AppearanceSwitcher } from "./components/header/AppearanceSwitcher";
 
 interface HeaderAppSectionProps {
   appID: string;
@@ -274,6 +275,7 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
             {renderToString("ScreenHeader.links.schedule-demo")}
           </a>
         </div>
+        <AppearanceSwitcher />
         {viewer != null ? (
           <DropdownMenu.Root>
             <DropdownMenu.Trigger>

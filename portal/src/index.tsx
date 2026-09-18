@@ -38,6 +38,7 @@ import {
 import { setAutoFreeze } from "immer";
 import { Settings } from "luxon";
 import ReactApp from "./ReactApp";
+import { initAppearance } from "./util/appearance";
 
 Settings.throwOnInvalid = true;
 // Tell typescript that we expect luxon to always return something or throw, instead of returning null | something.
@@ -105,6 +106,7 @@ window.MonacoEnvironment = {
     return new editorWorker();
   },
 };
+initAppearance();
 loader.config({ monaco });
 loader.init().then(() => {
   const container = document.getElementById("react-app-root");
