@@ -69,10 +69,7 @@ const MobileViewHeaderIconSection: React.VFC<
     </button>
   ) : (
     <Link to="/" className={styles.logoLink}>
-      {/* inverted renders the colored logo (logo-inverted.png), which is
-          the dark/colored variant meant for a light background. */}
       <Logo
-        inverted={true}
         containerClassName={cn(
           logoStyles.logo__containerHeader,
           logoStyles.logo__containerHeaderMobile
@@ -85,12 +82,7 @@ const MobileViewHeaderIconSection: React.VFC<
 const DesktopViewHeaderIconSection: React.VFC = () => {
   return (
     <Link to="/" className={styles.logoLink}>
-      {/* inverted renders the colored logo (logo-inverted.png), which is
-          the dark/colored variant meant for a light background. */}
-      <Logo
-        inverted={true}
-        containerClassName={logoStyles.logo__containerHeader}
-      />
+      <Logo containerClassName={logoStyles.logo__containerHeader} />
     </Link>
   );
 };
@@ -235,10 +227,7 @@ const ScreenHeader: React.VFC<ScreenNavProps> = function ScreenHeader(props) {
                   className={styles.logoLink}
                   onClick={dismissNavbar}
                 >
-                  <Logo
-                    inverted={true}
-                    containerClassName={logoStyles.logo__containerHeader}
-                  />
+                  <Logo containerClassName={logoStyles.logo__containerHeader} />
                 </Link>
               </div>
               <div className={styles.drawerBody}>

@@ -4,29 +4,29 @@ import styles from "./Logo.module.css";
 import { Context } from "../../intl";
 import { useAppearance } from "../../hook/useAppearance";
 
+/**
+ * Which mark to draw. "auto" picks from the appearance, which is what a logo on
+ * the page background wants. Name one explicitly when the logo sits on a
+ * surface that does not follow the appearance, such as the onboarding gradient.
+ */
+export type LogoVariant = "auto" | "color" | "white";
+
 export function Logo({
-  inverted,
+  variant = "auto",
   containerClassName,
 }: {
-  inverted?: boolean;
+  variant?: LogoVariant;
   containerClassName?: string;
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { resolved } = useAppearance();
-  // `inverted` asks for the colored logo, which only reads well on a light
-  // surface; in dark mode the plain (white) logo is shown instead.
-  const colored = inverted === true && resolved === "light";
-  const src = useMemo(() => {
-    if ((import.meta as any).env.DEV) {
-      // In local, system.logo-inverted-uri does not exist, use the image in production for development
-      return colored
-        ? "https://portal.authgear.com/img/logo-inverted.png"
-        : "https://portal.authgear.com/img/logo.png";
-    }
-    return renderToString(
-      colored ? "system.logo-inverted-uri" : "system.logo-uri"
-    );
-  }, [colored, renderToString]);
+  const colored =
+    variant === "auto" ? resolved === "light" : variant === "color";
+  const src = useMemo(
+    () =>
+      renderToString(colored ? "system.logo-inverted-uri" : "system.logo-uri"),
+    [colored, renderToString]
+  );
 
   return (
     <div className={cn(styles.logo__container, containerClassName)}>

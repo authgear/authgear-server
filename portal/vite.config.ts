@@ -112,8 +112,54 @@ const sriPlugin: Plugin = {
   },
 };
 
+// In development nginx sends everything except /api to this server, so the
+// portal's own static assets — served out of the Go binary in production — 404
+// here and fall back to index.html. Serve them from the resource directory so
+// development shows the assets that actually ship, instead of pointing at a
+// copy somewhere else.
+const MIME_TYPES: Record<string, string> = {
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".ico": "image/x-icon",
+};
+
+const portalStaticAssetsPlugin: Plugin = {
+  name: "vite-plugin-authgear-portal:static-assets",
+  apply: "serve",
+  configureServer(server) {
+    const root = path.resolve(
+      import.meta.dirname,
+      "../resources/portal/static/img"
+    );
+    server.middlewares.use("/img", (req, res, next) => {
+      const requested = decodeURIComponent((req.url ?? "/").split("?")[0]);
+      const file = path.join(root, requested);
+      // Keep the middleware inside the asset directory.
+      if (file !== root && !file.startsWith(root + path.sep)) {
+        next();
+        return;
+      }
+      fs.readFile(file).then(
+        (body) => {
+          res.setHeader(
+            "Content-Type",
+            MIME_TYPES[path.extname(file).toLowerCase()] ??
+              "application/octet-stream"
+          );
+          res.end(body);
+        },
+        () => next()
+      );
+    });
+  },
+};
+
 function viteAuthgearPortal() {
-  return [noncePlugin, sriPlugin];
+  return [noncePlugin, sriPlugin, portalStaticAssetsPlugin];
 }
 
 export default defineConfig({
