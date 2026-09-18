@@ -10,10 +10,11 @@ type AccessPolicyKey =
   | "allowDynamicFirstPartyClientAccess"
   | "allowDynamicThirdPartyClientAccess";
 
-// The keys the portal offers. Static third-party clients are left out for
-// now: the third_party_app type cannot be created on the Client Applications
-// page, so the key would have nothing to point at. A value set through the
-// Admin API is still shown read-only in the scope list.
+// The keys the portal offers. The static first-party key is labelled "Client
+// applications", after the page those clients are created on. Static
+// third-party clients are left out for now: the third_party_app type cannot
+// be created there, so the key would have nothing to point at. A value set
+// through the Admin API is still shown read-only in the scope list.
 export type VisibleAccessPolicyKey = Exclude<
   AccessPolicyKey,
   "allowStaticThirdPartyClientAccess"
