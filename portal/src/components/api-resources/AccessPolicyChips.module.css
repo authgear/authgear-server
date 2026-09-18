@@ -1,0 +1,49 @@
+.root {
+  @apply flex flex-wrap gap-2 min-w-0;
+}
+
+/* Same height as a size-2 TextField so the chips share the row's baseline. */
+.chip {
+  @apply inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer;
+  height: var(--space-6);
+  padding: 0 var(--space-3);
+  border-radius: 9999px;
+  border: 1px solid var(--gray-a7);
+  background-color: var(--color-surface);
+  color: var(--gray-12);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+}
+
+.chip:hover {
+  background-color: var(--gray-a3);
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported */
+.chip:focus-visible {
+  outline: 2px solid var(--focus-8);
+  outline-offset: 1px;
+}
+
+.chip:disabled {
+  @apply cursor-not-allowed;
+  color: var(--gray-a8);
+}
+
+.chip--checked,
+.chip--checked:hover {
+  background-color: var(--accent-9);
+  border-color: var(--accent-9);
+  color: var(--accent-contrast);
+}
+
+.chip--mixed {
+  border-style: dashed;
+  color: var(--gray-11);
+}
+
+.chipIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}

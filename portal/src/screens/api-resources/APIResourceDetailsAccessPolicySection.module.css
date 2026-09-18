@@ -41,16 +41,15 @@
   @apply w-full min-w-0;
 }
 
-.divider {
-  margin: 0;
-  border: 0;
-  border-top: 1px solid var(--gray-a5);
-}
-
-.m2mSection {
+.subsection {
   @apply flex flex-col gap-4;
 }
 
-.m2mHeading {
+.subsectionHeader {
+  @apply flex flex-col gap-1;
+}
+
+.subsectionHeading,
+.subsectionDescription {
   margin: 0;
 }

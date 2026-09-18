@@ -1,0 +1,20 @@
+.root {
+  @apply flex flex-col gap-2 min-w-0;
+}
+
+.heading {
+  @apply flex flex-col gap-1;
+}
+
+.title,
+.hint {
+  margin: 0;
+}
+
+.items {
+  @apply flex flex-col gap-2;
+}
+
+.item {
+  @apply flex items-center gap-2;
+}

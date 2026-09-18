@@ -1,0 +1,13 @@
+.colClients {
+  @apply min-w-0 flex-1;
+}
+
+.colAllowed {
+  width: 6rem;
+  flex-shrink: 0;
+  @apply justify-end;
+}
+
+.clientText {
+  @apply flex min-w-0 flex-col gap-1;
+}

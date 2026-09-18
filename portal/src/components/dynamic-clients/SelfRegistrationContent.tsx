@@ -48,10 +48,9 @@ export function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     dynamicClientRegistrationEnabled: dcr?.enabled ?? false,
     // Absent means required — the spec default. The requirement only means
-    // anything while registration is enabled, so normalise it back to required
-    // whenever registration is off: that way enabling registration can never
-    // silently open it, including for a config that arrived with the
-    // requirement already turned off. constructConfig then drops the key.
+    // anything while registration is enabled, so normalise it to required
+    // whenever registration is off and let constructConfig drop the key;
+    // setRegistrationEnabled chooses the value that enabling writes.
     initialAccessTokenRequired:
       dcr?.enabled ?? false ? dcr?.initial_access_token_required ?? true : true,
     accessTokenLifetimeSeconds:
@@ -201,10 +200,8 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
           setState((prev) => ({
             ...prev,
             dynamicClientRegistrationEnabled: false,
-            // Switching registration off also resets the initial access token
-            // requirement, so re-enabling always starts from the safe default
-            // rather than quietly restoring open registration. Turning the
-            // requirement off again is an explicit, separately confirmed act.
+            // Reset so constructConfig drops the key while registration is
+            // off; re-enabling sets it again below.
             initialAccessTokenRequired: true,
           }));
           return;
@@ -213,6 +210,9 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
           .saveOnly((prev) => ({
             ...prev,
             dynamicClientRegistrationEnabled: true,
+            // Enabling starts as open registration. The server treats an
+            // absent key as required, so this must be written explicitly.
+            initialAccessTokenRequired: false,
           }))
           .then(() => {
             showToast({

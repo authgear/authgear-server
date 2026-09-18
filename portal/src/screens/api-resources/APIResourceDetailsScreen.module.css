@@ -1,7 +1,32 @@
+.headerMeta {
+  @apply flex flex-wrap items-center gap-2 min-w-0;
+  font-size: 13px;
+  color: var(--gray-11);
+}
+
+.headerMetaLabel {
+  font-weight: 500;
+}
+
+.headerIdentifier {
+  @apply min-w-0 truncate;
+  font-family: var(--code-font-family);
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--gray-a3);
+  color: var(--gray-12);
+}
+
 .content {
-  @apply pt-6 flex flex-col gap-4;
+  @apply flex flex-col gap-4;
   grid-column: 1 / span 9;
   @apply tablet:col-span-full;
   /* Clearance for the Details section's SaveFunctionBar. */
   padding-bottom: 5.5rem;
+}
+
+/* After .content so the wider span wins at equal specificity. */
+.content--wide {
+  @apply col-span-full;
 }

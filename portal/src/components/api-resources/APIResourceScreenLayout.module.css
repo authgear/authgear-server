@@ -11,16 +11,34 @@
 }
 
 .header {
-  @apply col-span-full;
+  @apply col-span-full flex flex-col gap-5;
 }
 
 .headerConstrained {
   grid-column: 1 / span 9;
-  @apply tablet:col-span-full;
+  @apply tablet:col-span-full flex flex-col gap-5;
 }
 
 .headerMain {
-  @apply flex flex-col gap-2;
+  /* Same rhythm as the client page: 20px under the back link. */
+  @apply flex flex-col gap-5;
+}
+
+.headerBody {
+  @apply flex items-center gap-4 min-w-0;
+}
+
+.headerIcon {
+  @apply flex flex-none items-center justify-center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.75rem;
+  background-color: var(--accent-3);
+  color: var(--accent-9);
+}
+
+.headerText {
+  @apply flex flex-col gap-2 min-w-0;
 }
 
 .backLink {

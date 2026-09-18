@@ -1,0 +1,4 @@
+.bar {
+  @apply flex flex-wrap items-center gap-3;
+  min-height: var(--space-6);
+}
