@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -10,6 +11,13 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+// ErrMutexNotAcquired is returned by WithMutexExpiry when the mutex is
+// already held elsewhere. It is deliberately not the underlying redsync
+// error (which varies: ErrTaken, ErrNodeTaken, ErrFailed, depending on how
+// the attempt failed) so that callers have one sentinel to check against
+// regardless of which of those fired.
+var ErrMutexNotAcquired = errors.New("redis: mutex not acquired")
 
 var HandleLogger = slogutil.NewLogger("redis-handle")
 
@@ -65,6 +73,29 @@ func (h *Handle) WithMutex(ctx context.Context, name string, do func() error) er
 	mutex := h.NewMutex(name)
 	if err := mutex.LockContext(ctx); err != nil {
 		return err
+	}
+	unlockCtx := context.WithoutCancel(ctx)
+	defer func() {
+		_, _ = mutex.UnlockContext(unlockCtx)
+	}()
+	return do()
+}
+
+// WithMutexExpiry is like WithMutex, but for a critical section whose
+// duration is not knowable in advance -- for example a batch delivery
+// across every app and stream in one tick -- so the caller picks the lock
+// expiry instead of the fixed 5s/5-tries NewMutex uses. It makes exactly
+// one attempt: a caller polling on an interval wants to skip a tick it
+// cannot get the lock for, not block waiting on it.
+func (h *Handle) WithMutexExpiry(ctx context.Context, name string, expiry time.Duration, do func() error) error {
+	redsyncInstance := h.pool.instance(&h.ConnectionOptions).Redsync
+	mutex := redsyncInstance.NewMutex(
+		name,
+		redsync.WithExpiry(expiry),
+		redsync.WithTries(1),
+	)
+	if err := mutex.LockContext(ctx); err != nil {
+		return ErrMutexNotAcquired
 	}
 	unlockCtx := context.WithoutCancel(ctx)
 	defer func() {

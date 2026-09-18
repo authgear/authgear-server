@@ -1063,3 +1063,29 @@ var (
 	_wireRandValue      = idpsession.Rand(rand.SecureRand)
 	_wireMaxTrialsValue = password.DefaultMaxTrials
 )
+
+func newAuditLogStreamingRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+	pool := p.RedisPool
+	environmentConfig := p.EnvironmentConfig
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	handle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	senderServiceFactory := &SenderServiceFactory{
+		BackgroundProvider: p,
+	}
+	runnableFactory := auditlogstreaming.NewRunnableFactory(handle, durationString, ctrl, senderServiceFactory)
+	runner := auditlogstreaming.NewRunner(ctx, runnableFactory, durationString)
+	return runner
+}
+
+func newSenderImpl(p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *auditlogstreaming.SenderImpl {
+	configConfig := appContext.Config
+	appConfig := configConfig.AppConfig
+	httpConfig := appConfig.HTTP
+	telemetryConfig := appConfig.Telemetry
+	secretConfig := configConfig.SecretConfig
+	telemetryAuditLogStreamTLSMaterials := deps.ProvideTelemetryAuditLogStreamTLSMaterials(secretConfig)
+	senderImpl := auditlogstreaming.NewSenderImpl(appID, httpConfig, telemetryConfig, telemetryAuditLogStreamTLSMaterials)
+	return senderImpl
+}
