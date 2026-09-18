@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -63,11 +64,19 @@ func (r *recorder) append(m message) {
 }
 
 // matching returns every recorded message for port, and for appID when
-// appID is non-empty, in the order they arrived.
+// appID is non-empty, in the order they arrived, save that entries are
+// grouped by framing (stably, so arrival order survives within a group).
+// Two streams configured on the same port race to deliver the same
+// underlying event, so their relative order is not meaningful; grouping
+// by framing makes that race deterministic for tests without hiding a
+// real per-stream ordering regression, since arrival order is preserved
+// inside each group.
 func (r *recorder) matching(appID string, port int) []message {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	var out []message
+	// A nil slice marshals to JSON null, which the e2e matcher cannot
+	// compare against a "[]" schema, so start non-nil.
+	out := []message{}
 	for _, m := range r.messages {
 		if m.Port != port {
 			continue
@@ -77,6 +86,7 @@ func (r *recorder) matching(appID string, port int) []message {
 		}
 		out = append(out, m)
 	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Framing < out[j].Framing })
 	return out
 }
 

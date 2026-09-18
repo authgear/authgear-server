@@ -1,0 +1,116 @@
+name: Every persisted audit log entry is streamed, and only those
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: 127.0.0.1:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  # Email identification, verified by OTP, persists email.sent (the OTP
+  # delivery) and user.created (signup completion) -- two entries from
+  # one flow, which is what lets this test compare a set, not a singleton.
+  - name: signup_email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "streaming@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: signup_verify
+    action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_finish
+    action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "channels": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: wait_for_delivery
+    action: syslog_server_query
+    syslog_server_port: 5140
+    syslog_server_min_count: 2
+    syslog_server_output:
+      rows: |
+        [
+          {
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "email.sent"
+            }
+          },
+          {
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "user.created"
+            }
+          }
+        ]
+
+  # The direct test of "streamed if and only if persisted": the set of
+  # activity_type values the audit database holds for this app is
+  # exactly the set that arrived at the recorder above -- neither more
+  # (nothing streamed that wasn't persisted) nor less (nothing persisted
+  # failed to stream).
+  - name: verify_persisted_matches_streamed
+    action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          { "activity_type": "email.sent" },
+          { "activity_type": "user.created" }
+        ]
