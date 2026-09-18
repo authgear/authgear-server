@@ -29,38 +29,40 @@
 
 # Audit Log Streaming
 
-Audit Log Streaming delivers [audit log](./audit-log.md) entries to an external log collector as they occur.
+Audit Log Streaming delivers [audit log](./audit-log.md) entries to an external log collector shortly after they occur.
 
 ## About Audit Log Streaming
 
 - It is configured per project in `authgear.yaml`.
 - It streams the same entries that are written to the audit database. An entry is streamed if and only if it is persisted as an audit log.
 - It is asynchronous. It never blocks and never fails an end-user request.
+- It is batched. An entry is queued when it occurs, and the queue is delivered once a minute. An entry therefore reaches the collector up to a minute after it occurs.
 - It is at-most-once. There is no acknowledgement from the collector.
 - The audit database remains the source of truth. Streaming is an additional copy.
 
 ## Configuration
 
 ```yaml
-audit:
-  streams:
-  - name: collector
-    type: syslog
-    transport: tcp
-    tcp:
-      address: collector.internal:5140
-      tls:
-        enabled: true
-    syslog:
-      format: rfc5424
-      framing: newline
-      facility: 16
-      app_name: authgear
-      structured_data_id: authgear
+telemetry:
+  audit_logs:
+    streams:
+    - name: collector
+      type: syslog
+      transport: tcp
+      tcp:
+        address: collector.internal:5140
+        tls:
+          enabled: true
+      syslog:
+        format: rfc5424
+        framing: newline
+        facility: 16
+        app_name: authgear
+        structured_data_id: authgear
 ```
 
-- `audit.streams` is a list. Every configured stream receives every audit log entry.
-- When `audit.streams` is absent or empty, no streaming occurs.
+- `telemetry.audit_logs.streams` is a list. Every configured stream receives every audit log entry.
+- When `telemetry.audit_logs.streams` is absent or empty, no streaming occurs.
 
 ### The stream object
 
@@ -113,11 +115,11 @@ Certificates are not configured here. They are in [the tls secret](#the-tls-secr
 
 ### The tls secret
 
-The certificate material is in `authgear.secrets.yaml` under the key `audit.streams.tls`. It is a list keyed by stream name.
+The certificate material is in `authgear.secrets.yaml` under the key `telemetry.audit_logs.streams.tls`. It is a list keyed by stream name.
 
 ```yaml
 secrets:
-- key: audit.streams.tls
+- key: telemetry.audit_logs.streams.tls
   data:
   - stream_name: collector
     client_certificate:
@@ -146,7 +148,8 @@ secrets:
 
 - An item declares at least one of `client_certificate` and `certificate_authority`.
 - `client_certificate` and `certificate_authority` are independent. Either may be declared without the other.
-- The configuration is rejected when `stream_name` matches no stream, or when the named stream does not enable `tcp.tls`.
+- An item whose `stream_name` matches no stream, or whose stream does not enable `tcp.tls`, is ignored. It is not an error, so removing a stream does not break the project.
+- An item whose `stream_name` matches no stream is removed the next time `authgear.yaml` is saved. Material of a stream that still exists is kept, even while its `tcp.tls` is disabled, so that disabling TLS and re-enabling it does not require re-uploading the certificates.
 - The certificate authority that signs the client certificate is chosen by the collector. It does not have to be the one in `certificate_authority`.
 - Certificate expiry is not tracked. A stream fails to connect once its client certificate expires.
 
@@ -155,16 +158,18 @@ secrets:
 Availability is gated in `authgear.features.yaml`.
 
 ```yaml
-audit_log:
-  streaming:
-    disabled: false
+telemetry:
+  audit_logs:
+    streaming:
+      disabled: false
 ```
 
 | Field | Required | Values | Default | Description |
 |---|---|---|---|---|
-| `disabled` | no | boolean | `false` | When true, the project cannot configure `audit.streams`. |
+| `disabled` | no | boolean | `false` | When true, the project cannot configure `telemetry.audit_logs.streams`. |
 
-- Saving an `authgear.yaml` with a non-empty `audit.streams` fails when `disabled` is true.
+- Saving an `authgear.yaml` with a non-empty `telemetry.audit_logs.streams` fails when `disabled` is true.
+- A project whose `authgear.yaml` already has streams stops streaming when `disabled` becomes true. The configured streams are ignored at runtime.
 
 ## Type: syslog
 
@@ -179,7 +184,7 @@ A message is a single [RFC5424](https://datatracker.ietf.org/doc/html/rfc5424) m
 | PRI | See [PRI](#pri). |
 | VERSION | `1` |
 | TIMESTAMP | `context.timestamp` as RFC 3339 in UTC. The event carries whole seconds, so there is no fractional part. |
-| HOSTNAME | The hostname of the Authgear process. `-` when unavailable. |
+| HOSTNAME | The host of `http.public_origin`, without the port. It identifies the project, not the Authgear process that delivered the entry. `-` when it is not a valid HOSTNAME. |
 | APP-NAME | `syslog.app_name`. |
 | PROCID | `-` |
 | MSGID | `authgear-audit-log` |
@@ -271,9 +276,13 @@ An entry whose `payload` is large can exceed 8192 bytes. Use `octet_counting` on
 
 ## Delivery
 
-- Every entry is sent to the destination of every configured stream once. A send that fails is not retried, and the entry is dropped. Delivery is therefore at-most-once.
+An entry is queued when it is persisted. Once a minute the queue of a project is taken as a batch and sent to every configured stream of that project.
+
+- Every entry is sent to the destination of every configured stream once. A batch that fails to send is not retried, and its entries are dropped. Delivery is therefore at-most-once.
 - A dropped entry stays in the audit database, and is retrievable with the Admin API `auditLogs` query for the retention period.
-- Entries of one Authgear process are delivered in the order they occurred. There is no order guarantee across processes.
+- Entries are delivered in the order they occurred.
+- The queue is bounded. A project queues at most 10000 entries between two deliveries; beyond that the oldest queued entry is dropped to make room. The bound is reached only when a project produces more than 10000 entries in a minute, or when delivery has stopped running.
+- Taking the batch clears the queue, whether or not the send succeeds. Nothing accumulates across deliveries.
 
 ## Use cases
 
@@ -282,16 +291,17 @@ An entry whose `payload` is large can exceed 8192 bytes. Use `octet_counting` on
 `authgear.yaml`:
 
 ```yaml
-audit:
-  streams:
-  - name: collector
-    type: syslog
-    transport: tcp
-    tcp:
-      address: collector.internal:5140
-    syslog:
-      format: rfc5424
-      framing: newline
+telemetry:
+  audit_logs:
+    streams:
+    - name: collector
+      type: syslog
+      transport: tcp
+      tcp:
+        address: collector.internal:5140
+      syslog:
+        format: rfc5424
+        framing: newline
 ```
 
 The syslog receiver of the collector must be configured to match:
@@ -309,7 +319,7 @@ receivers:
 A `user.authenticated` entry is sent as:
 
 ```
-<134>1 2026-07-27T10:42:36Z auth-7d9f8 authgear - authgear-audit-log [authgear app_id="myproject" id="00000000000a5a60" activity_type="user.authenticated" user_id="00000000-0000-0000-0000-000000000001" client_id="0000000000000000" ip_address="203.0.113.9"] {"id":"00000000000a5a60","seq":678496,"type":"user.authenticated","payload":{ ... },"context":{ ... }}
+<134>1 2026-07-27T10:42:36Z myproject.authgear.cloud authgear - authgear-audit-log [authgear app_id="myproject" id="00000000000a5a60" activity_type="user.authenticated" user_id="00000000-0000-0000-0000-000000000001" client_id="0000000000000000" ip_address="203.0.113.9"] {"id":"00000000000a5a60","seq":678496,"type":"user.authenticated","payload":{ ... },"context":{ ... }}
 ```
 
 terminated by an LF. MSG is abbreviated here, see [MSG](#msg).
@@ -323,25 +333,26 @@ The collector requires every sender to present a client certificate. `tcp.tls.en
 `authgear.yaml`:
 
 ```yaml
-audit:
-  streams:
-  - name: collector
-    type: syslog
-    transport: tcp
-    tcp:
-      address: collector.internal:6514
-      tls:
-        enabled: true
-    syslog:
-      format: rfc5424
-      framing: newline
+telemetry:
+  audit_logs:
+    streams:
+    - name: collector
+      type: syslog
+      transport: tcp
+      tcp:
+        address: collector.internal:6514
+        tls:
+          enabled: true
+      syslog:
+        format: rfc5424
+        framing: newline
 ```
 
 `authgear.secrets.yaml`:
 
 ```yaml
 secrets:
-- key: audit.streams.tls
+- key: telemetry.audit_logs.streams.tls
   data:
   - stream_name: collector
     client_certificate:
@@ -382,26 +393,27 @@ The connection fails when the collector does not present a certificate signed by
 ### UC3. Stream audit logs to two collectors
 
 ```yaml
-audit:
-  streams:
-  - name: prod
-    type: syslog
-    transport: tcp
-    tcp:
-      address: collector.internal:5140
-      tls:
-        enabled: true
-    syslog:
-      format: rfc5424
-      framing: newline
-  - name: staging
-    type: syslog
-    transport: tcp
-    tcp:
-      address: staging-collector.internal:5140
-    syslog:
-      format: rfc5424
-      framing: octet_counting
+telemetry:
+  audit_logs:
+    streams:
+    - name: prod
+      type: syslog
+      transport: tcp
+      tcp:
+        address: collector.internal:5140
+        tls:
+          enabled: true
+      syslog:
+        format: rfc5424
+        framing: newline
+    - name: staging
+      type: syslog
+      transport: tcp
+      tcp:
+        address: staging-collector.internal:5140
+      syslog:
+        format: rfc5424
+        framing: octet_counting
 ```
 
 Both streams receive every entry. They are independent. A failure of one does not affect the other.
@@ -409,6 +421,8 @@ Both streams receive every entry. They are independent. A failure of one does no
 ## Caveats
 
 - A long collector outage leaves a gap in the stream, which is not filled by any later delivery.
+- Delivery runs in the Authgear background worker. A deployment that does not run it queues entries and delivers none of them.
+- An entry that is queued but not yet delivered is lost if the queue store is lost. The entry remains in the audit database.
 - `tcp.address` is not validated against private or link-local ranges. This matches the existing treatment of hook URLs.
 - The default `structured_data_id` of `authgear` is not of the form `name@<private-enterprise-number>` that [RFC5424 section-6.3.2](https://datatracker.ietf.org/doc/html/rfc5424#section-6.3.2) requires for non-IANA-registered SD-IDs. Set `structured_data_id` to a compliant value where the receiver enforces it.
 - MSG is not prefixed with a BOM, which RFC 5424 recommends for UTF-8 content.
@@ -438,18 +452,19 @@ A `type` whose encoding is supplied by the project. The hook receives an entry a
 Tentative config:
 
 ```yaml
-audit:
-  streams:
-  - name: sumologic
-    type: hook
-    transport: tcp
-    tcp:
-      address: syslog.collection.us2.sumologic.com:6514
-      tls:
-        enabled: true
-    hook:
-      url: authgeardeno:///deno/audit_stream.ts
-      framing: newline
+telemetry:
+  audit_logs:
+    streams:
+    - name: sumologic
+      type: hook
+      transport: tcp
+      tcp:
+        address: syslog.collection.us2.sumologic.com:6514
+        tls:
+          enabled: true
+      hook:
+        url: authgeardeno:///deno/audit_stream.ts
+        framing: newline
 ```
 
 - The hook returns the complete message. Authgear does not check it.
@@ -487,4 +502,4 @@ A collector is not a destination. It accepts syslog inside the customer network 
 - An entry is JSON in MSG, the same object the portal shows as the Raw Event Log. The routable metadata is repeated in structured data, so a pipeline that does not parse MSG can still filter on `app_id`, `activity_type`, `user_id`, `client_id` and `ip_address`.
 - Configuration is per project, as with Auth0 Log Streams and Okta Log Streaming.
 - `type` names the encoding, so another encoding, such as OTLP, is added as a new `type` without changing existing configuration. See [additional types, transports and formats](#additional-types-transports-and-formats).
-- Streaming is real time only. A gap is recoverable from the audit database, which retains every entry.
+- Streaming carries only what is happening now. A gap is recoverable from the audit database, which retains every entry.
