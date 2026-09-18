@@ -29,6 +29,7 @@ function setup {( set -e
     go build -o dist/e2e-proxy ./cmd/proxy
     go build -o dist/e2e-smtp ./cmd/smtp
     go build -o dist/e2e-cimdserver ./cmd/cimdserver
+    go build -o dist/e2e-syslogserver ./cmd/syslogserver
     export PATH=$PATH:./dist
 
     echo "[ ] Starting authgear..."
@@ -46,6 +47,9 @@ function setup {( set -e
         echo "Error: Failed to start authgear."
         exit 1
     fi
+
+    echo "[ ] Starting authgear background..."
+    authgear background > ./logs/authgear-background.log 2>&1 &
 
     echo "[ ] Starting e2e-proxy..."
     e2e-proxy > ./logs/e2e-proxy.log 2>&1 &
@@ -88,6 +92,22 @@ function setup {( set -e
     done
     if [ "$success" = false ]; then
         echo "Error: Failed to start e2e-cimdserver."
+        exit 1
+    fi
+
+    echo "[ ] Starting e2e-syslogserver..."
+    e2e-syslogserver > ./logs/e2e-syslogserver.log 2>&1 &
+    success=false
+    for i in $(seq 10); do \
+        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:5141/healthz)" = "200" ]; then
+            echo "    - started e2e-syslogserver."
+            success=true
+            break
+        fi
+        sleep 1
+    done
+    if [ "$success" = false ]; then
+        echo "Error: Failed to start e2e-syslogserver."
         exit 1
     fi
 
@@ -140,6 +160,10 @@ function teardown {( set -e
     kill_port 8080
     kill_port 2525
     kill_port 2727
+    kill_port 5140
+    kill_port 5141
+    kill_port 6514
+    pkill -f "authgear background" || true
     $CONTAINER_RUNTIME compose down
 )}
 
