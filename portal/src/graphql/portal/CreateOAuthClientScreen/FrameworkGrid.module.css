@@ -17,5 +17,5 @@
 .icon {
   font-size: 24px;
   line-height: 1;
-  color: #0969da;
+  color: var(--accent-11);
 }

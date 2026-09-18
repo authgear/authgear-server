@@ -21,7 +21,7 @@
   width: 2rem;
   height: 2rem;
   border-radius: 8px;
-  background: #eef4ff;
+  background: var(--accent-a3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -30,7 +30,7 @@
 .emptyStateIcon {
   font-size: 20px;
   line-height: 1;
-  color: #0969da;
+  color: var(--accent-11);
 }
 
 .colName {
@@ -69,7 +69,7 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: #eef4ff;
+  background: var(--accent-a3);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -79,7 +79,7 @@
 .clientIcon {
   font-size: 26px;
   line-height: 1;
-  color: #0969da;
+  color: var(--accent-11);
 }
 
 .clientNameBlock {

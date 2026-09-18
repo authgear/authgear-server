@@ -17,6 +17,6 @@
   display: inline;
   vertical-align: text-bottom;
   margin-left: 4px;
-  color: #176df3;
+  color: var(--accent-11);
   cursor: pointer;
 }

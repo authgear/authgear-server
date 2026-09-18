@@ -197,9 +197,9 @@
   display: flex;
   flex-direction: column;
   padding: 24px;
-  border: 1px solid rgb(204 204 204 / 80%);
+  border: 1px solid var(--gray-a6);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--color-panel-solid);
 }
 
 .featureHeader {
@@ -211,7 +211,10 @@
 
 .featureIcon {
   flex: 0 0 auto;
-  color: var(--accent-9);
+  /* Step 11, not 9: the solid accent is tuned for white backgrounds and
+     glares against a dark card, while step 11 is the readable-on-background
+     accent in both themes. */
+  color: var(--accent-11);
 }
 
 .featureTitle {
@@ -226,7 +229,7 @@
 .featureDescription {
   margin-top: 16px;
   font-size: 14px;
-  color: rgb(96 94 92);
+  color: var(--gray-11);
   overflow-wrap: break-word;
   flex: 1;
 }
@@ -238,12 +241,12 @@
   justify-content: center;
   height: 36px;
   padding: 0 16px;
-  border: 1px solid rgb(204 204 204 / 80%);
+  border: 1px solid var(--gray-a6);
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
-  background: #ffffff;
-  color: rgb(50 49 48);
+  background: var(--color-panel-solid);
+  color: var(--gray-12);
   text-decoration: none;
   outline: none;
   -webkit-tap-highlight-color: transparent;
@@ -252,16 +255,16 @@
 
 .featureAction.featureAction:hover,
 .featureAction.featureAction:focus {
-  background: rgb(248 249 250);
-  border-color: rgb(180 180 180);
-  color: rgb(50 49 48);
+  background: var(--gray-a2);
+  border-color: var(--gray-a8);
+  color: var(--gray-12);
   text-decoration: none;
 }
 
 .featureAction.featureAction:active {
-  background: rgb(236 238 240);
-  border-color: rgb(150 150 150);
-  color: rgb(50 49 48);
+  background: var(--gray-a3);
+  border-color: var(--gray-a9);
+  color: var(--gray-12);
 }
 
 /* Bottom row ------------------------------------------------------------ */
@@ -272,7 +275,7 @@
   gap: 24px;
   padding: 24px;
   border-radius: 12px;
-  background: rgb(247 247 247);
+  background: var(--gray-a2);
 }
 
 .resourceColumn {
@@ -300,9 +303,9 @@
   align-items: center;
   gap: 16px;
   padding: 16px;
-  border: 1px solid rgb(204 204 204 / 80%);
+  border: 1px solid var(--gray-a6);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--color-panel-solid);
   text-decoration: none;
   outline: none;
   -webkit-tap-highlight-color: transparent;
@@ -311,20 +314,20 @@
 
 .resourceRow.resourceRow:hover,
 .resourceRow.resourceRow:focus {
-  background: rgb(243 242 241);
+  background: var(--gray-a2);
   text-decoration: none;
 }
 
 .resourceRow.resourceRow:active {
-  background: rgb(232 232 232);
-  border-color: rgb(180 180 180);
+  background: var(--gray-a3);
+  border-color: var(--gray-a8);
   text-decoration: none;
 }
 
 .resourceRow::after {
   content: "\203A";
   margin-left: auto;
-  color: rgb(120 120 120);
+  color: var(--gray-a9);
   font-size: 16px;
   line-height: 1;
 }
@@ -336,13 +339,16 @@
   height: 48px;
   align-items: center;
   justify-content: center;
-  background: #eaf1ff;
+  background: var(--accent-a3);
   border-radius: 8px;
 }
 
 .resourceIcon {
   flex: 0 0 auto;
-  color: var(--accent-9);
+  /* Step 11, not 9: the solid accent is tuned for white backgrounds and
+     glares against a dark card, while step 11 is the readable-on-background
+     accent in both themes. */
+  color: var(--accent-11);
 }
 
 .resourceTextBlock {
@@ -365,7 +371,7 @@
 
 .resourceDescription {
   font-size: 13px;
-  color: rgb(96 94 92);
+  color: var(--gray-11);
   overflow-wrap: break-word;
 }
 

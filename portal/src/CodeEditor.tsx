@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from "react";
+import { useAppearance } from "./hook/useAppearance";
 import ControlledEditor, {
   EditorProps,
   Monaco,
@@ -56,6 +57,7 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
     [whitelistedPackages]
   );
 
+  const { resolved: appearance } = useAppearance();
   const monacoRef = useRef<Monaco>();
   const resolveImports = useCallback(
     async (value: string | undefined) => {
@@ -133,6 +135,7 @@ const CodeEditor: React.VFC<CodeEditorProps> = function CodeEditor(props) {
     <div className={className}>
       <ControlledEditor
         height="100%"
+        theme={appearance === "dark" ? "vs-dark" : "light"}
         onMount={handleEditorMount}
         onChange={handleEditorChange}
         {...rest}

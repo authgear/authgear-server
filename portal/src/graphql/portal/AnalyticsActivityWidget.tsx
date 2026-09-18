@@ -7,7 +7,18 @@ import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated"
 import { Periodical } from "./globalTypes.generated";
 import { isoWeekLabels, monthLabel } from "../../util/date";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { useChartThemeColors } from "../../hook/useThemeColors";
+import { ChartThemeColors } from "../../util/themeTokens";
 import styles from "./AnalyticsActivityWidget.module.css";
+
+// Chart.js axis defaults are light-only; take the colors from the theme.
+function axisColors(colors: ChartThemeColors) {
+  return {
+    ticks: { color: colors.text },
+    grid: { color: colors.grid },
+    border: { color: colors.grid },
+  };
+}
 
 interface AnalyticsActivityWidgetActiveUserChartProps {
   chartData: AnalyticChartsQueryQuery["activeUserChart"] | null;
@@ -18,42 +29,49 @@ const AnalyticsActivityWidgetActiveUserChart: React.VFC<AnalyticsActivityWidgetA
   function AnalyticsActivityWidgetActiveUserChart(props) {
     const { renderToString } = useContext(Context);
     const { chartData, periodical } = props;
-    const options = {
-      maintainAspectRatio: false,
-      responsive: true,
-      scales: {
-        y: {
-          title: {
-            display: true,
-            text: renderToString("AnalyticsActivityWidget.active-user.label"),
+    const colors = useChartThemeColors();
+    const options = useMemo(() => {
+      return {
+        maintainAspectRatio: false,
+        responsive: true,
+        scales: {
+          y: {
+            title: {
+              display: true,
+              text: renderToString("AnalyticsActivityWidget.active-user.label"),
+              color: colors.text,
+            },
+            min: 0,
+            ...axisColors(colors),
           },
-          min: 0,
-        },
-        x: {
-          ticks: {
-            maxTicksLimit: 12,
-          },
-        },
-      },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            title: function (tooltipItem: TooltipItem<"bar">[]) {
-              const item = tooltipItem[0];
-              const dataLabels = item.chart.data.labels;
-              if (dataLabels) {
-                const labels = dataLabels[item.dataIndex];
-                // join multiple line labels to one line in the tooltip title
-                if (Array.isArray(labels)) {
-                  return labels.join(" ");
-                }
-              }
-              return tooltipItem[0].label;
+          x: {
+            ...axisColors(colors),
+            ticks: {
+              maxTicksLimit: 12,
+              color: colors.text,
             },
           },
         },
-      },
-    };
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: function (tooltipItem: TooltipItem<"bar">[]) {
+                const item = tooltipItem[0];
+                const dataLabels = item.chart.data.labels;
+                if (dataLabels) {
+                  const labels = dataLabels[item.dataIndex];
+                  // join multiple line labels to one line in the tooltip title
+                  if (Array.isArray(labels)) {
+                    return labels.join(" ");
+                  }
+                }
+                return tooltipItem[0].label;
+              },
+            },
+          },
+        },
+      };
+    }, [colors, renderToString]);
     const data = useMemo(() => {
       let labelFn = (iosDate: any) => iosDate;
       switch (periodical) {
@@ -71,11 +89,11 @@ const AnalyticsActivityWidgetActiveUserChart: React.VFC<AnalyticsActivityWidgetA
           {
             label: renderToString("AnalyticsActivityWidget.active-user.label"),
             data: chartData?.dataset.map((pt) => pt?.data),
-            backgroundColor: "#176DF3",
+            backgroundColor: colors.accent,
           },
         ],
       };
-    }, [chartData, periodical, renderToString]);
+    }, [chartData, periodical, renderToString, colors]);
     return chartData ? (
       <div className={styles.chartContainer}>
         <Bar options={options} data={data} />
@@ -93,24 +111,31 @@ const AnalyticsActivityWidgetTotalUserChart: React.VFC<AnalyticsActivityWidgetTo
   function AnalyticsActivityWidgetTotalUserChart(props) {
     const { renderToString } = useContext(Context);
     const { chartData } = props;
-    const options = {
-      maintainAspectRatio: false,
-      responsive: true,
-      scales: {
-        y: {
-          title: {
-            display: true,
-            text: renderToString("AnalyticsActivityWidget.total-user.label"),
+    const colors = useChartThemeColors();
+    const options = useMemo(() => {
+      return {
+        maintainAspectRatio: false,
+        responsive: true,
+        scales: {
+          y: {
+            title: {
+              display: true,
+              text: renderToString("AnalyticsActivityWidget.total-user.label"),
+              color: colors.text,
+            },
+            min: 0,
+            ...axisColors(colors),
           },
-          min: 0,
-        },
-        x: {
-          ticks: {
-            maxTicksLimit: 12,
+          x: {
+            ...axisColors(colors),
+            ticks: {
+              maxTicksLimit: 12,
+              color: colors.text,
+            },
           },
         },
-      },
-    };
+      };
+    }, [colors, renderToString]);
     const data = useMemo(() => {
       return {
         labels: chartData?.dataset.map((pt) => (pt ? pt.label : "")),
@@ -118,12 +143,12 @@ const AnalyticsActivityWidgetTotalUserChart: React.VFC<AnalyticsActivityWidgetTo
           {
             label: renderToString("AnalyticsActivityWidget.total-user.label"),
             data: chartData?.dataset.map((pt) => pt?.data),
-            borderColor: "#176DF3",
-            backgroundColor: "#176DF3",
+            borderColor: colors.accent,
+            backgroundColor: colors.accent,
           },
         ],
       };
-    }, [chartData, renderToString]);
+    }, [chartData, renderToString, colors]);
     return chartData ? (
       <div className={styles.chartContainer}>
         <Line options={options} data={data} />

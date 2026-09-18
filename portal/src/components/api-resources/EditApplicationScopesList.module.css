@@ -31,7 +31,7 @@
 
 .textAction {
   @apply inline-flex cursor-pointer items-center border-0 bg-transparent p-0 text-sm font-semibold;
-  color: var(--accent-9);
+  color: var(--accent-11);
 }
 
 .textAction:hover {

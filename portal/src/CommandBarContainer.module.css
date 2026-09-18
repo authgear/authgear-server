@@ -5,7 +5,7 @@
   position: sticky;
   top: var(--screen-header-height);
   z-index: 1000;
-  @apply bg-white;
+  background-color: var(--color-background);
 }
 
 .headerStatic {

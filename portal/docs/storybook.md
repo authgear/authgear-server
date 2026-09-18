@@ -35,7 +35,7 @@ Every story is wrapped with:
 
 - `AppLocaleProvider` — provides `react-intl` messages. Required by anything using `FormattedMessage` / `Context` from `src/intl`.
 - `ThemeProvider` (v2) — sets CSS variables for the v2 design tokens.
-- `initializeIcons()` from `@fluentui/react` — registers the FluentUI icon set. Without this, `IconButton` / `Icon` render blank.
+- An **Appearance** toolbar (Light / Dark / Device) — calls `setAppearance()` from `src/util/appearance.ts`, the same path the portal uses, so the `light`/`dark` class lands on `<html>` and `useAppearance()` consumers update.
 
 ## Providers needed by v1 components
 

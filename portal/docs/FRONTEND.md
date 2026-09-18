@@ -107,6 +107,30 @@ const { data, loading, error } = useAppAndSecretConfigQuery({
 - CSS Modules (`Foo.module.css`) for component-scoped styles; imported as `styles.xxx`.
 - Do **not** mix CSS Modules with `!important` to override FluentUI — extend the component's theme or pass `styles` props.
 
+### Colour tokens
+
+Never hardcode a colour. Every colour comes from a Radix token so it resolves in both
+themes; a literal hex or `white` is a light-mode-only colour that will be wrong in dark
+mode. Common tokens: `--color-background` (page), `--color-panel-solid` (cards),
+`--gray-a6` (borders), `--gray-11` (secondary text), `--gray-12` (body text).
+
+Pick the right **step** for the job — this is what the scale means, not a brightness dial:
+
+| Role | Token | Notes |
+|---|---|---|
+| Solid fill (primary button, indicator bar, focus ring) | `--accent-9` / `--accent-10` | Designed to carry white text on top. |
+| Icon or text **on a page/card background** | `--accent-11` | The readable-on-background accent in both themes. |
+| Icon or text **on a light fill** you painted yourself | `--accent-9` | e.g. an accent glyph on `--accent-contrast`. |
+
+`--accent-9` as a foreground on the page background is the mistake to watch for: it is
+tuned for white and glares against a dark card. The whole portal was swept to `--accent-11`
+for that case, with `Stepper.module.css` the one deliberate exception (its accent sits on a
+white fill).
+
+Dark mode is applied as a `light`/`dark` class on `<html>` (see `src/util/appearance.ts`),
+so a mode-specific rule is `:global(.dark) .foo { … }`. Reach for one only when a token
+genuinely cannot express the difference — the sidebar's accent wash is the current example.
+
 ## i18n conventions
 
 - All user-facing strings go through react-intl.

@@ -1,7 +1,7 @@
 code.inline-code {
   @apply inline;
-  background-color: #d8e6fd;
-  color: #201f1e;
+  background-color: var(--accent-a3);
+  color: var(--gray-12);
   font-size: inherit;
   line-height: inherit;
   letter-spacing: inherit;

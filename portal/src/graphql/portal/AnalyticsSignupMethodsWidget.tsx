@@ -6,16 +6,18 @@ import { Spinner, Text } from "@radix-ui/themes";
 import { DataPoint } from "./globalTypes.generated";
 import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { useChartThemeColors } from "../../hook/useThemeColors";
+import { ChartThemeColors } from "../../util/themeTokens";
 import styles from "./AnalyticsSignupMethodsWidget.module.css";
 
-const NoDataPlaceholderColor = "#EAEAEA";
+// Brand colors work on both light and dark surfaces, except GitHub's black,
+// which is taken from the theme so it stays visible in dark mode.
 const ColorMap: Record<string, string> = {
   email: "#FF7629",
   phone: "#92674F",
   username: "#FFB900",
   google: "#EA4335",
   facebook: "#4267B2",
-  github: "#171515",
   linkedin: "#0077B5",
   azureadv2: "#007FFF",
   azureadb2c: "#2DE7FD",
@@ -24,13 +26,18 @@ const ColorMap: Record<string, string> = {
   wechat: "#45B049",
   anonymous: "#957AFF",
 };
-const UnknownMethodColor = "#EAEAEA";
 
-function getColorCodeByMethod(method: string): string {
+function getColorCodeByMethod(
+  method: string,
+  colors: ChartThemeColors
+): string {
+  if (method === "github") {
+    return colors.neutralStrong;
+  }
   if (method in ColorMap) {
     return ColorMap[method];
   }
-  return UnknownMethodColor;
+  return colors.placeholder;
 }
 interface AnalyticsSignupMethodsChartProps {
   dataset: DataPoint[];
@@ -40,6 +47,7 @@ const AnalyticsSignupMethodsChart: React.VFC<AnalyticsSignupMethodsChartProps> =
   function AnalyticsSignupMethodsChart(props) {
     const { renderToString } = useContext(Context);
     const { dataset } = props;
+    const colors = useChartThemeColors();
 
     const noDataAvailable = useMemo(() => dataset.length === 0, [dataset]);
 
@@ -56,8 +64,8 @@ const AnalyticsSignupMethodsChart: React.VFC<AnalyticsSignupMethodsChartProps> =
     }, [noDataAvailable]);
 
     const colorList = useMemo(() => {
-      return dataset.map((pt) => getColorCodeByMethod(pt.label));
-    }, [dataset]);
+      return dataset.map((pt) => getColorCodeByMethod(pt.label, colors));
+    }, [dataset, colors]);
 
     const data = useMemo(() => {
       if (noDataAvailable) {
@@ -66,8 +74,8 @@ const AnalyticsSignupMethodsChart: React.VFC<AnalyticsSignupMethodsChartProps> =
           datasets: [
             {
               data: [1],
-              backgroundColor: [NoDataPlaceholderColor],
-              borderColor: [NoDataPlaceholderColor],
+              backgroundColor: [colors.placeholder],
+              borderColor: [colors.placeholder],
               borderWidth: 1,
             },
           ],
@@ -90,7 +98,7 @@ const AnalyticsSignupMethodsChart: React.VFC<AnalyticsSignupMethodsChartProps> =
           },
         ],
       };
-    }, [dataset, colorList, renderToString, noDataAvailable]);
+    }, [dataset, colorList, renderToString, noDataAvailable, colors]);
 
     return (
       <div className={styles.chartContainer}>
@@ -112,6 +120,7 @@ const AnalyticsSignupMethodsWidgetContent: React.VFC<AnalyticsSignupMethodsWidge
   function AnalyticsSignupMethodsWidgetContent(props) {
     const { loading, signupByMethodsChart } = props;
     const { renderToString } = useContext(Context);
+    const colors = useChartThemeColors();
 
     const dataset = useMemo(
       () =>
@@ -149,7 +158,7 @@ const AnalyticsSignupMethodsWidgetContent: React.VFC<AnalyticsSignupMethodsWidge
               <div
                 key={`legend-${pt.label}`}
                 className={styles.legendItem}
-                style={{ borderColor: getColorCodeByMethod(pt.label) }}
+                style={{ borderColor: getColorCodeByMethod(pt.label, colors) }}
               >
                 <Text as="p" size="1" className={styles.legendLabel}>
                   {methodLabels[i]}
