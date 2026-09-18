@@ -16,3 +16,31 @@
   color: var(--blue-7);
   text-decoration: none;
 }
+
+/* Radix paints tooltips inverted — a gray-12 ground with gray-1 text — which is
+   a dark bubble on a white page but a glaring white one on a dark page. In dark
+   mode make it a raised dark surface instead, lifted a couple of steps above the
+   cards it floats over so it still reads as a separate layer. */
+:global(.dark) .tooltip {
+  background-color: var(--gray-4);
+  box-shadow: var(--shadow-4);
+}
+
+:global(.dark) .tooltip :global(.rt-TooltipText) {
+  color: var(--gray-12);
+}
+
+:global(.dark) .tooltip :global(.rt-TooltipArrow) {
+  fill: var(--gray-4);
+}
+
+/* The bubble is no longer inverted here, so the light blues above would sit on a
+   dark ground; step 11 upward is the readable range. */
+:global(.dark) .tooltip a {
+  color: var(--blue-11);
+}
+
+:global(.dark) .tooltip a:hover,
+:global(.dark) .tooltip a:focus {
+  color: var(--blue-12);
+}
