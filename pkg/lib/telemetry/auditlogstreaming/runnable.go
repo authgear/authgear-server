@@ -71,6 +71,17 @@ func (r *Runnable) drain(ctx context.Context, logger slogutil.NamedLogger) error
 		if err != nil {
 			logger.WithError(err).Error(ctx, "failed to drain audit log stream queue",
 				slog.String("app_id", appID))
+			// Drain's own Redis round trip failed, not the delivery: the
+			// atomic drainScript never ran, so the queue is untouched and
+			// its entries are not lost -- but ClaimPending already
+			// removed appID from the pending set, so without this,
+			// nothing would ever look at that queue again until it next
+			// enqueues (or its TTL expires it). Re-add it so the next
+			// tick retries.
+			if markErr := r.Consumer.MarkPending(ctx, appID, queueTTLFor(r.Interval.Duration())); markErr != nil {
+				logger.WithError(markErr).Error(ctx, "failed to re-mark app pending after a failed drain",
+					slog.String("app_id", appID))
+			}
 			continue
 		}
 		if len(entries) == 0 {

@@ -86,9 +86,9 @@ func TestRunnableRun(t *testing.T) {
 		Convey("two apps queued: each app's batch is sent with that app's own appCtx", func() {
 			h := newTestRedisHandle(t)
 
-			p1 := &Producer{AppID: "app1", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p1 := &Producer{AppID: "app1", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			p1.Enqueue(ctx, newEvent("one"))
-			p2 := &Producer{AppID: "app2", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p2 := &Producer{AppID: "app2", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			p2.Enqueue(ctx, newEvent("two"))
 
 			streams := []*config.TelemetryAuditLogStreamConfig{{Name: "collector"}}
@@ -121,9 +121,9 @@ func TestRunnableRun(t *testing.T) {
 		Convey("one app's resolve failure does not prevent the other's delivery", func() {
 			h := newTestRedisHandle(t)
 
-			p1 := &Producer{AppID: "app1", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p1 := &Producer{AppID: "app1", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			p1.Enqueue(ctx, newEvent("one"))
-			p2 := &Producer{AppID: "app2", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p2 := &Producer{AppID: "app2", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			p2.Enqueue(ctx, newEvent("two"))
 
 			streams := []*config.TelemetryAuditLogStreamConfig{{Name: "collector"}}
@@ -153,7 +153,7 @@ func TestRunnableRun(t *testing.T) {
 		Convey("an app whose feature config is disabled at drain time delivers nothing", func() {
 			h := newTestRedisHandle(t)
 
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			p.Enqueue(ctx, newEvent("one"))
 
 			streams := []*config.TelemetryAuditLogStreamConfig{{Name: "collector"}}
@@ -180,7 +180,7 @@ func TestRunnableRun(t *testing.T) {
 		Convey("an app whose streams were removed between enqueue and drain delivers nothing and does not error", func() {
 			h := newTestRedisHandle(t)
 
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			p.Enqueue(ctx, newEvent("one"))
 
 			resolver := &fakeAppContextResolver{contexts: map[string]*config.AppContext{
@@ -204,7 +204,7 @@ func TestRunnableRun(t *testing.T) {
 		Convey("the redsync mutex is held for the tick: a concurrent Run returns without draining", func() {
 			h := newTestRedisHandle(t)
 
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			p.Enqueue(ctx, newEvent("one"))
 
 			resolver := &fakeAppContextResolver{contexts: map[string]*config.AppContext{}}
@@ -233,6 +233,56 @@ func TestRunnableRun(t *testing.T) {
 			entries, err := c.Drain(ctx, "app")
 			So(err, ShouldBeNil)
 			So(entries, ShouldHaveLength, 1)
+		})
+
+		Convey("a failed Drain re-marks the app pending instead of losing it until the queue expires", func() {
+			h := newTestRedisHandle(t)
+
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
+			p.Enqueue(ctx, newEvent("one"))
+
+			// Force drainScript's LRANGE/DEL to fail with a genuine
+			// Redis error (WRONGTYPE) without touching the connection,
+			// so the rest of the tick runs normally and this exercises
+			// the real MarkPending call, not a stub.
+			client := h.Client()
+			So(client.Del(ctx, redisKeyQueue("app")).Err(), ShouldBeNil)
+			So(client.Set(ctx, redisKeyQueue("app"), "not-a-list", 0).Err(), ShouldBeNil)
+
+			resolver := &fakeAppContextResolver{contexts: map[string]*config.AppContext{}}
+			senderFactory := newFakeSenderFactory()
+
+			r := &Runnable{
+				Consumer:           &Consumer{Redis: h},
+				AppContextResolver: resolver,
+				SenderFactory:      senderFactory,
+				Redis:              h,
+				Interval:           config.DurationString("1m"),
+			}
+
+			err := r.Run(ctx)
+			So(err, ShouldBeNil)
+			So(senderFactory.senders, ShouldBeEmpty)
+
+			// ClaimPending removed "app" from the pending set before
+			// Drain failed; MarkPending must have put it back, or the
+			// entry below becomes unreachable until the TTL expires it.
+			members, err := client.SMembers(ctx, redisKeyPending()).Result()
+			So(err, ShouldBeNil)
+			So(members, ShouldContain, "app")
+
+			// The queue itself was untouched by the failed Drain: fix
+			// the WRONGTYPE value and confirm the original entry is
+			// still there, reachable on the next tick.
+			So(client.Del(ctx, redisKeyQueue("app")).Err(), ShouldBeNil)
+			p2 := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
+			p2.Enqueue(ctx, newEvent("two"))
+
+			c := &Consumer{Redis: h}
+			entries, err := c.Drain(ctx, "app")
+			So(err, ShouldBeNil)
+			So(entries, ShouldHaveLength, 1)
+			So(entries[0].Event.ID, ShouldEqual, "two")
 		})
 	})
 }
