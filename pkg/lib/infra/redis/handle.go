@@ -12,11 +12,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
-// ErrMutexNotAcquired is returned by WithMutexExpiry when the mutex is
-// already held elsewhere. It is deliberately not the underlying redsync
-// error (which varies: ErrTaken, ErrNodeTaken, ErrFailed, depending on how
-// the attempt failed) so that callers have one sentinel to check against
-// regardless of which of those fired.
+// ErrMutexNotAcquired is returned by WithMutexExpiry specifically when the
+// mutex is already held elsewhere (redsync.ErrTaken / redsync.ErrNodeTaken)
+// -- contention a caller polling on an interval expects and should treat as
+// routine, not an error. It is deliberately not either of those two
+// concrete types so callers have one sentinel to check against regardless
+// of which fired. Any other failure (a Redis connectivity/auth error, for
+// example) is a real error and is returned as-is, uncollapsed, so it
+// reaches the caller's normal error handling instead of being
+// indistinguishable from routine contention.
 var ErrMutexNotAcquired = errors.New("redis: mutex not acquired")
 
 var HandleLogger = slogutil.NewLogger("redis-handle")
@@ -95,7 +99,12 @@ func (h *Handle) WithMutexExpiry(ctx context.Context, name string, expiry time.D
 		redsync.WithTries(1),
 	)
 	if err := mutex.LockContext(ctx); err != nil {
-		return ErrMutexNotAcquired
+		var errTaken *redsync.ErrTaken
+		var errNodeTaken *redsync.ErrNodeTaken
+		if errors.As(err, &errTaken) || errors.As(err, &errNodeTaken) {
+			return ErrMutexNotAcquired
+		}
+		return err
 	}
 	unlockCtx := context.WithoutCancel(ctx)
 	defer func() {
