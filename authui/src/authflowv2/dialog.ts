@@ -36,6 +36,27 @@ function dispatchDialogCloseEnd(dialogID: string) {
   );
 }
 
+const PAGE_SCROLL_LOCK_CLASS = "dialog-page-scroll-lock";
+
+/**
+ * Page scroll is locked while any dialog is open, so the backdrop placed by
+ * placeOverViewport stays over the visible area. The lock is counted because
+ * a dialog may open while another is still fading out.
+ */
+let pageScrollLockCount = 0;
+
+function lockPageScroll(): void {
+  pageScrollLockCount += 1;
+  document.documentElement.classList.add(PAGE_SCROLL_LOCK_CLASS);
+}
+
+function unlockPageScroll(): void {
+  pageScrollLockCount = Math.max(0, pageScrollLockCount - 1);
+  if (pageScrollLockCount === 0) {
+    document.documentElement.classList.remove(PAGE_SCROLL_LOCK_CLASS);
+  }
+}
+
 /**
  * Controller for dialog display
  *
@@ -58,6 +79,9 @@ function dispatchDialogCloseEnd(dialogID: string) {
  *     new CustomEvent("dialog:closed", {detail: {id: "foobar"}})
  */
 export class DialogController extends Controller {
+  // Whether this dialog currently holds one count of the page scroll lock.
+  private holdsScrollLock = false;
+
   open() {
     dispatchDialogOpen(this.element.id);
   }
@@ -81,6 +105,8 @@ export class DialogController extends Controller {
     }
 
     this.prepareHost(host);
+    this.placeOverViewport(host);
+    this.acquireScrollLock();
     this.element.classList.add("open");
     const activeElement = document.activeElement;
     if (activeElement instanceof HTMLElement) {
@@ -97,6 +123,10 @@ export class DialogController extends Controller {
       return;
     }
     this.element.classList.remove("open");
+    // Release the scroll lock now rather than in closeEnd: transitionend does
+    // not fire when the visibility transition is skipped, and the page must
+    // never stay unscrollable after the dialog is dismissed.
+    this.releaseScrollLock();
   };
 
   private getHost(): HTMLElement | null {
@@ -120,6 +150,52 @@ export class DialogController extends Controller {
 
   private revertPrepareHost(host: HTMLElement): void {
     host.classList.remove("relative");
+  }
+
+  /**
+   * The backdrop is absolutely positioned inside the host, which grows with
+   * the page. Covering the whole host would centre the dialog in the
+   * document, so on a long page it lands below the fold (DEV-3855). Instead,
+   * cover only the part of the host that is on screen right now. Page scroll
+   * is locked while the dialog is open, so this box does not need to follow
+   * the scroll position.
+   */
+  private placeOverViewport(host: HTMLElement): void {
+    if (!(this.element instanceof HTMLElement)) {
+      return;
+    }
+    const hostRect = host.getBoundingClientRect();
+    // Distance from the host's top edge down to the top of the viewport, and
+    // from the bottom of the viewport down to the host's bottom edge. Both are
+    // clamped at 0 so a host shorter than the viewport is still fully covered.
+    const top = Math.max(0, -hostRect.top);
+    const bottom = Math.max(0, hostRect.bottom - window.innerHeight);
+    this.element.style.top = `${top}px`;
+    this.element.style.bottom = `${bottom}px`;
+  }
+
+  private resetPlacement(): void {
+    if (!(this.element instanceof HTMLElement)) {
+      return;
+    }
+    this.element.style.removeProperty("top");
+    this.element.style.removeProperty("bottom");
+  }
+
+  private acquireScrollLock(): void {
+    if (this.holdsScrollLock) {
+      return;
+    }
+    this.holdsScrollLock = true;
+    lockPageScroll();
+  }
+
+  private releaseScrollLock(): void {
+    if (!this.holdsScrollLock) {
+      return;
+    }
+    this.holdsScrollLock = false;
+    unlockPageScroll();
   }
 
   get isOpened() {
@@ -147,6 +223,7 @@ export class DialogController extends Controller {
         if (host != null) {
           this.revertPrepareHost(host);
         }
+        this.resetPlacement();
         dispatchDialogCloseEnd(this.element.id);
       }
     }
@@ -176,5 +253,9 @@ export class DialogController extends Controller {
     document.removeEventListener(`dialog:close`, this.closeFromEvent);
     this.element.removeEventListener("transitionstart", this.openStart);
     this.element.removeEventListener("transitionend", this.closeEnd);
+    // The dialog is data-turbo-temporary: a successful submit swaps the page
+    // and removes it before its closing transition can end, so make sure it
+    // does not leave the page scroll locked.
+    this.releaseScrollLock();
   }
 }
