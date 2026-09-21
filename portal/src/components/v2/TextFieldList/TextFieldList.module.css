@@ -19,8 +19,7 @@
   display: flex;
   /* Top-aligned, not centred: a row whose field shows a validation message is
      taller than its input, and centring on the row drops the delete button
-     below the input it belongs to. Input and button are both 32px, so
-     top-aligning them reads as centred whenever there is no message. */
+     below the input it belongs to. */
   align-items: flex-start;
   gap: 8px;
 }
@@ -30,8 +29,14 @@
   min-width: 0;
 }
 
+/* A ghost IconButton lays out as its bare icon -- Radix cancels its padding with
+   equal negative margins -- so top-aligning it against the row leaves it riding
+   above the input's centre. Give it a box as tall as the size-2 input instead. */
 .deleteButton {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  height: var(--space-6);
 }
 
 .errors {
