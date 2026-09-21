@@ -1,6 +1,6 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Dialog, Flex } from "@radix-ui/themes";
-import { Context, FormattedMessage } from "../../intl";
+import { FormattedMessage } from "../../intl";
 import { Scope } from "../../graphql/adminapi/globalTypes.generated";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
@@ -11,7 +11,7 @@ import {
   CLOSED_ACCESS_POLICY,
   VISIBLE_ACCESS_POLICY_KEYS,
   VisibleAccessPolicyKey,
-  accessPolicyLabelIDs,
+  useAccessPolicyCategoryList,
 } from "./accessPolicy";
 import { BulkAccessChanges } from "./useBulkScopeAccess";
 import styles from "./ScopeBulkAccessDialog.module.css";
@@ -49,7 +49,7 @@ export const ScopeBulkAccessDialog: React.VFC<ScopeBulkAccessDialogProps> =
     onApply,
     onDismiss,
   }) {
-    const { renderToString } = useContext(Context);
+    const formatCategories = useAccessPolicyCategoryList();
     const initial = useMemo(() => aggregate(scopes), [scopes]);
     const [states, setStates] = useState<ChipStates>(initial);
 
@@ -104,11 +104,8 @@ export const ScopeBulkAccessDialog: React.VFC<ScopeBulkAccessDialogProps> =
     const hasChanges = Object.keys(changes).length > 0;
 
     const turningOff = useMemo(
-      () =>
-        VISIBLE_ACCESS_POLICY_KEYS.filter((key) => changes[key] === false).map(
-          (key) => renderToString(accessPolicyLabelIDs[key])
-        ),
-      [changes, renderToString]
+      () => VISIBLE_ACCESS_POLICY_KEYS.filter((key) => changes[key] === false),
+      [changes]
     );
 
     const onOpenChange = useCallback(
@@ -158,7 +155,7 @@ export const ScopeBulkAccessDialog: React.VFC<ScopeBulkAccessDialogProps> =
                 text={
                   <FormattedMessage
                     id="ScopeBulkAccessDialog.turning-off"
-                    values={{ categories: turningOff.join(", ") }}
+                    values={{ categories: formatCategories(turningOff) }}
                   />
                 }
               />

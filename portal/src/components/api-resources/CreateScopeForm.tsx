@@ -15,8 +15,8 @@ import { Callout } from "../v2/Callout/Callout";
 import { AccessPolicy } from "../../graphql/adminapi/globalTypes.generated";
 import {
   AccessPolicyState,
-  VISIBLE_ACCESS_POLICY_KEYS,
-  accessPolicyLabelIDs,
+  unreachableAccessPolicyKeys,
+  useAccessPolicyCategoryList,
 } from "./accessPolicy";
 import styles from "./CreateScopeForm.module.css";
 
@@ -87,12 +87,11 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
       [setState]
     );
 
-    const unreachableCategories = useMemo(
+    const formatCategories = useAccessPolicyCategoryList();
+    const unreachableKeys = useMemo(
       () =>
-        VISIBLE_ACCESS_POLICY_KEYS.filter(
-          (key) => state.accessPolicy[key] && !resourceAccessPolicy[key]
-        ).map((key) => renderToString(accessPolicyLabelIDs[key])),
-      [state.accessPolicy, resourceAccessPolicy, renderToString]
+        unreachableAccessPolicyKeys(state.accessPolicy, resourceAccessPolicy),
+      [state.accessPolicy, resourceAccessPolicy]
     );
 
     const descriptionLabel = (
@@ -154,7 +153,7 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
             onChange={handleAccessPolicyChange}
           />
         </FormField>
-        {unreachableCategories.length > 0 ? (
+        {unreachableKeys.length > 0 ? (
           <Callout
             type="warning"
             size="1"
@@ -162,7 +161,7 @@ export const CreateScopeForm: React.VFC<CreateScopeFormProps> =
             text={
               <FormattedMessage
                 id="ScopeForm.access-policy.unreachable"
-                values={{ categories: unreachableCategories.join(", ") }}
+                values={{ categories: formatCategories(unreachableKeys) }}
               />
             }
           />

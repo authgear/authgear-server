@@ -1,7 +1,9 @@
+import { useCallback, useContext } from "react";
 import {
   AccessPolicy,
   AccessPolicyInput,
 } from "../../graphql/adminapi/globalTypes.generated";
+import { Context } from "../../intl";
 
 // One key per client category, see docs/specs/api-resource.md "Access Policy".
 type AccessPolicyKey =
@@ -98,4 +100,32 @@ export function accessPolicyInputForKey(
   const input: AccessPolicyInput = {};
   input[key] = value;
   return input;
+}
+
+// Categories the scope allows but the parent resource does not: the
+// resource-level check fails first, so the scope is unreachable for them.
+export function unreachableAccessPolicyKeys(
+  scopePolicy: AccessPolicyState,
+  resourcePolicy: AccessPolicy
+): VisibleAccessPolicyKey[] {
+  return VISIBLE_ACCESS_POLICY_KEYS.filter(
+    (key) => scopePolicy[key] && !resourcePolicy[key]
+  );
+}
+
+// Category labels joined for interpolation into a translated sentence.
+// Intl.ListFormat so the separator and conjunction follow the active locale
+// instead of a hardcoded comma.
+export function useAccessPolicyCategoryList(): (
+  keys: readonly VisibleAccessPolicyKey[]
+) => string {
+  const { locale, renderToString } = useContext(Context);
+  return useCallback(
+    (keys) =>
+      new Intl.ListFormat(locale, {
+        style: "long",
+        type: "conjunction",
+      }).format(keys.map((key) => renderToString(accessPolicyLabelIDs[key]))),
+    [locale, renderToString]
+  );
 }

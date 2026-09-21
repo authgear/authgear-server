@@ -17,9 +17,9 @@ import { Callout } from "../v2/Callout/Callout";
 import {
   AccessPolicyState,
   CLOSED_ACCESS_POLICY,
-  VISIBLE_ACCESS_POLICY_KEYS,
-  accessPolicyLabelIDs,
   accessPolicyStateFromAccessPolicy,
+  unreachableAccessPolicyKeys,
+  useAccessPolicyCategoryList,
 } from "./accessPolicy";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
@@ -150,12 +150,11 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
       return topErrors.length > 0 ? <ErrorRenderer errors={topErrors} /> : null;
     }, [updateError]);
 
-    const unreachableCategories = useMemo(
+    const formatCategories = useAccessPolicyCategoryList();
+    const unreachableKeys = useMemo(
       () =>
-        VISIBLE_ACCESS_POLICY_KEYS.filter(
-          (key) => state.accessPolicy[key] && !resourceAccessPolicy[key]
-        ).map((key) => renderToString(accessPolicyLabelIDs[key])),
-      [state.accessPolicy, resourceAccessPolicy, renderToString]
+        unreachableAccessPolicyKeys(state.accessPolicy, resourceAccessPolicy),
+      [state.accessPolicy, resourceAccessPolicy]
     );
 
     const descriptionLabel = (
@@ -218,7 +217,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
                 onChange={onAccessPolicyChange}
               />
             </FormField>
-            {unreachableCategories.length > 0 ? (
+            {unreachableKeys.length > 0 ? (
               <Callout
                 type="warning"
                 size="1"
@@ -226,7 +225,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
                 text={
                   <FormattedMessage
                     id="ScopeForm.access-policy.unreachable"
-                    values={{ categories: unreachableCategories.join(", ") }}
+                    values={{ categories: formatCategories(unreachableKeys) }}
                   />
                 }
               />
