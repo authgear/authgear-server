@@ -2,23 +2,42 @@
   @apply flex flex-col;
 }
 
+/* The columns cannot shrink past these, so the table carries their total as
+   its own minimum and the card scrolls horizontally on a narrow viewport.
+   Without it the row overflows a viewport-width table and the right-hand
+   columns are clipped away with no way to reach them. */
+.scopeTable {
+  --col-select: 2.5rem;
+  --col-scope: 10rem;
+  --col-description: 12rem;
+  /* The badges do not truncate, so this has to fit the longest one plus its
+     unreachable warning icon -- 142px measured, with room for a font or
+     translation that runs wider. */
+  --col-access-policy: 12rem;
+  --col-actions: 3.5rem;
+  --card-table-min-width: calc(
+    var(--col-select) + var(--col-scope) + var(--col-description) +
+      var(--col-access-policy) + var(--col-actions)
+  );
+}
+
 .colSelect {
-  width: 2.5rem;
+  width: var(--col-select);
   flex-shrink: 0;
 }
 
 .colScope {
   @apply min-w-0 flex-1 overflow-hidden;
-  min-width: 10rem;
+  min-width: var(--col-scope);
 }
 
 .colDescription {
   @apply min-w-0 flex-[1.5] overflow-hidden;
-  min-width: 12rem;
+  min-width: var(--col-description);
 }
 
 .colActions {
-  width: 3.5rem;
+  width: var(--col-actions);
   flex-shrink: 0;
   @apply justify-end;
 }
@@ -45,7 +64,7 @@
 
 .colAccessPolicy {
   @apply min-w-0 flex-1 overflow-hidden;
-  min-width: 8rem;
+  min-width: var(--col-access-policy);
 }
 
 .accessPolicyBadges {

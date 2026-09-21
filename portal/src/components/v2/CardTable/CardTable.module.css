@@ -21,7 +21,11 @@
 }
 
 .table {
-  min-width: 100%;
+  /* A caller whose columns have minimum widths sets --card-table-min-width to
+     their total. The table then keeps that width and .wrapper scrolls, rather
+     than the row overflowing a table sized to the viewport and being cut off
+     by the border-radius clip below. */
+  min-width: max(100%, var(--card-table-min-width, 0px));
   border: 1px solid var(--gray-a5);
   border-radius: var(--radius-3);
   overflow: hidden;

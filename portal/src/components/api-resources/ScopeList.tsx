@@ -187,7 +187,7 @@ export const ScopeList: React.VFC<ScopeListProps> = function ScopeList(props) {
 
   return (
     <div className={cn(className, styles.listRoot)}>
-      <CardTable>
+      <CardTable className={styles.scopeTable}>
         <CardTable.Header>
           <CardTable.HeaderCell className={styles.colSelect}>
             <Checkbox
