@@ -1,5 +1,5 @@
 .root {
-  @apply flex items-end w-full min-w-0 gap-x-4;
+  @apply flex items-start w-full min-w-0 gap-x-4;
 }
 
 .field {
@@ -7,7 +7,7 @@
 }
 
 .submit {
-  @apply flex-none;
+  @apply self-start;
 }
 
 .submitContent {
@@ -18,16 +18,8 @@
   .root {
     @apply flex-col items-stretch gap-y-4;
   }
-
-  .submit {
-    @apply self-start;
-  }
 }
 
 .form {
   @apply flex flex-col w-full min-w-0 gap-y-3;
-}
-
-.dynamicAccessLabel {
-  @apply flex items-center gap-2;
 }

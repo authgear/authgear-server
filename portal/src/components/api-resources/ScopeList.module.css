@@ -2,6 +2,11 @@
   @apply flex flex-col;
 }
 
+.colSelect {
+  width: 2.5rem;
+  flex-shrink: 0;
+}
+
 .colScope {
   @apply min-w-0 flex-1 overflow-hidden;
   min-width: 10rem;
@@ -45,4 +50,19 @@
 
 .accessPolicyBadges {
   @apply flex flex-row flex-wrap gap-1;
+}
+
+.badgeText {
+  @apply inline-flex items-center gap-1;
+}
+
+.badgeUnreachable {
+  color: var(--gray-11);
+}
+
+.badgeWarnIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+  color: var(--amber-9);
 }

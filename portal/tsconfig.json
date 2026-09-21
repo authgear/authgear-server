@@ -4,7 +4,10 @@
 {
   "compilerOptions": {
     "target": "ES2015",
-    "lib": ["DOM", "ES2015"],
+    // ES2021.Intl for Intl.ListFormat. Typings only -- target stays ES2015,
+    // and every Intl API it declares is above the .browserslistrc floor
+    // (Intl.ListFormat: Safari/iOS 14.1, Firefox 78, Chrome 72).
+    "lib": ["DOM", "ES2015", "ES2021.Intl"],
     "moduleResolution": "bundler",
     "module": "es2020",
     "resolveJsonModule": true,

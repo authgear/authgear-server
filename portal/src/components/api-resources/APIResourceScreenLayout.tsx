@@ -17,6 +17,11 @@ export interface APIResourceLayoutProps {
   breadcrumbItems: BreadcrumbItem[];
   headerDescription?: React.ReactNode;
   headerSuffix?: React.ReactNode;
+  /** Rendered in a square beside the title, like the client header. */
+  headerIcon?: React.ReactNode;
+  /** A tab bar under the title block, inside the header so the grid does not
+   * hand it the leftover height. */
+  headerTabs?: React.ReactNode;
   /** Defaults to `"list"` (full-width). Use `"auto-rows"` for constrained detail pages. */
   layout?: "list" | "auto-rows";
 }
@@ -34,6 +39,8 @@ const APIResourceScreenLayout: React.VFC<APIResourceLayoutProps> =
     breadcrumbItems,
     headerDescription,
     headerSuffix,
+    headerIcon,
+    headerTabs,
     layout = "list",
   }) {
     const { appID } = useParams() as { appID: string };
@@ -79,19 +86,27 @@ const APIResourceScreenLayout: React.VFC<APIResourceLayoutProps> =
                       <span>{backLink.label}</span>
                     </Link>
                   ) : null}
-                  <div className={styles.titleRow}>
-                    <Heading
-                      as="h1"
-                      size="5"
-                      weight="bold"
-                      className={styles.pageTitle}
-                    >
-                      {title}
-                    </Heading>
-                    {headerSuffix}
+                  <div className={styles.headerBody}>
+                    {headerIcon != null ? (
+                      <div className={styles.headerIcon}>{headerIcon}</div>
+                    ) : null}
+                    <div className={styles.headerText}>
+                      <div className={styles.titleRow}>
+                        <Heading
+                          as="h1"
+                          size="5"
+                          weight="bold"
+                          className={styles.pageTitle}
+                        >
+                          {title}
+                        </Heading>
+                        {headerSuffix}
+                      </div>
+                      {headerDescription}
+                    </div>
                   </div>
-                  {headerDescription}
                 </div>
+                {headerTabs}
               </div>
               {children}
             </ScreenContent>

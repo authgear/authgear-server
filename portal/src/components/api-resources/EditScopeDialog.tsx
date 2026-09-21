@@ -1,12 +1,26 @@
 import React, { useCallback, useContext, useEffect, useMemo } from "react";
-import { Checkbox, Dialog, Flex, Text } from "@radix-ui/themes";
+import { Dialog, Flex, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
 import { parseAPIErrors, parseRawError } from "../../error/parse";
 import { useUpdateScopeMutationMutation } from "../../graphql/adminapi/mutations/updateScopeMutation.generated";
 import { ResourceScopesQueryDocument } from "../../graphql/adminapi/query/resourceScopesQuery.generated";
-import { Scope } from "../../graphql/adminapi/globalTypes.generated";
+import {
+  AccessPolicy,
+  Scope,
+} from "../../graphql/adminapi/globalTypes.generated";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { TextField } from "../v2/TextField/TextField";
+import { FieldLabelWithTooltip } from "../v2/FieldLabelWithTooltip/FieldLabelWithTooltip";
+import { AccessPolicyChips } from "./AccessPolicyChips";
+import { FormField } from "../v2/FormField/FormField";
+import { Callout } from "../v2/Callout/Callout";
+import {
+  AccessPolicyState,
+  CLOSED_ACCESS_POLICY,
+  accessPolicyStateFromAccessPolicy,
+  unreachableAccessPolicyKeys,
+  useAccessPolicyCategoryList,
+} from "./accessPolicy";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import ErrorRenderer from "../../ErrorRenderer";
@@ -14,18 +28,27 @@ import styles from "./EditScopeDialog.module.css";
 
 interface EditScopeFormState {
   description: string;
-  allowDynamicThirdPartyClientAccess: boolean;
+  accessPolicy: AccessPolicyState;
 }
 
 export interface EditScopeDialogProps {
   resourceURI: string;
+  // The parent resource's policy: a category allowed here but not there is
+  // unreachable, and is warned about.
+  resourceAccessPolicy: AccessPolicy;
   scope: Scope | null;
   onDismiss: () => void;
   onSaved?: () => void;
 }
 
 export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
-  function EditScopeDialog({ resourceURI, scope, onDismiss, onSaved }) {
+  function EditScopeDialog({
+    resourceURI,
+    resourceAccessPolicy,
+    scope,
+    onDismiss,
+    onSaved,
+  }) {
     const { renderToString } = useContext(Context);
     const [updateScope] = useUpdateScopeMutationMutation();
     const open = scope != null;
@@ -34,7 +57,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
     const form = useSimpleForm<EditScopeFormState, Scope>({
       defaultState: {
         description: "",
-        allowDynamicThirdPartyClientAccess: false,
+        accessPolicy: CLOSED_ACCESS_POLICY,
       },
       submit: async (state) => {
         if (scope == null) {
@@ -46,10 +69,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
               resourceURI,
               scope: scope.scope,
               description: state.description.trim(),
-              accessPolicy: {
-                allowDynamicThirdPartyClientAccess:
-                  state.allowDynamicThirdPartyClientAccess,
-              },
+              accessPolicy: state.accessPolicy,
             },
           },
           refetchQueries: [ResourceScopesQueryDocument],
@@ -71,8 +91,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
       }
       setState(() => ({
         description: scope.description ?? "",
-        allowDynamicThirdPartyClientAccess:
-          scope.accessPolicy.allowDynamicThirdPartyClientAccess,
+        accessPolicy: accessPolicyStateFromAccessPolicy(scope.accessPolicy),
       }));
     }, [scope, reset, setState]);
 
@@ -99,15 +118,9 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
       [setState]
     );
 
-    const onAllowDynamicAccessChange = useCallback(
-      (checked: boolean | "indeterminate") => {
-        if (checked === "indeterminate") {
-          return;
-        }
-        setState((s) => ({
-          ...s,
-          allowDynamicThirdPartyClientAccess: checked,
-        }));
+    const onAccessPolicyChange = useCallback(
+      (accessPolicy: AccessPolicyState) => {
+        setState((s) => ({ ...s, accessPolicy }));
       },
       [setState]
     );
@@ -137,6 +150,22 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
       return topErrors.length > 0 ? <ErrorRenderer errors={topErrors} /> : null;
     }, [updateError]);
 
+    const formatCategories = useAccessPolicyCategoryList();
+    const unreachableKeys = useMemo(
+      () =>
+        unreachableAccessPolicyKeys(state.accessPolicy, resourceAccessPolicy),
+      [state.accessPolicy, resourceAccessPolicy]
+    );
+
+    const descriptionLabel = (
+      <FieldLabelWithTooltip
+        tooltip={<FormattedMessage id="ScopeForm.description.tooltip" />}
+        tooltipLabel={renderToString("ScopeForm.description.tooltip")}
+      >
+        <FormattedMessage id="ScopeForm.description.label" />
+      </FieldLabelWithTooltip>
+    );
+
     return (
       <Dialog.Root open={open} onOpenChange={onOpenChange}>
         <Dialog.Content maxWidth="480px" size="3">
@@ -158,7 +187,7 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
             />
             <TextField
               size="2"
-              label={<FormattedMessage id="ScopeForm.description.label" />}
+              label={descriptionLabel}
               type="text"
               value={state.description}
               onChange={onDescriptionChange}
@@ -166,15 +195,41 @@ export const EditScopeDialog: React.VFC<EditScopeDialogProps> =
                 "CreateScopeForm.description.placeholder"
               )}
             />
-            <label className={styles.dynamicAccessLabel}>
-              <Checkbox
-                checked={state.allowDynamicThirdPartyClientAccess}
-                onCheckedChange={onAllowDynamicAccessChange}
+            <FormField
+              size="2"
+              labelSpace="1"
+              label={
+                <FieldLabelWithTooltip
+                  tooltip={
+                    <FormattedMessage id="AccessPolicyCheckboxes.scope.hint" />
+                  }
+                  tooltipLabel={renderToString(
+                    "AccessPolicyCheckboxes.scope.hint"
+                  )}
+                >
+                  <FormattedMessage id="AccessPolicyCheckboxes.scope.title" />
+                </FieldLabelWithTooltip>
+              }
+            >
+              <AccessPolicyChips
+                value={state.accessPolicy}
+                disabled={isUpdating}
+                onChange={onAccessPolicyChange}
               />
-              <Text size="2">
-                <FormattedMessage id="ScopeForm.allow-dynamic-access.label" />
-              </Text>
-            </label>
+            </FormField>
+            {unreachableKeys.length > 0 ? (
+              <Callout
+                type="warning"
+                size="1"
+                showCloseButton={false}
+                text={
+                  <FormattedMessage
+                    id="ScopeForm.access-policy.unreachable"
+                    values={{ categories: formatCategories(unreachableKeys) }}
+                  />
+                }
+              />
+            ) : null}
             <Flex gap="3" mt="4" justify="end">
               <SecondaryButton
                 size="2"

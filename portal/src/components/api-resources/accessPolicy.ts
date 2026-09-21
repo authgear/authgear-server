@@ -1,0 +1,134 @@
+import { useCallback, useContext } from "react";
+import {
+  AccessPolicy,
+  AccessPolicyInput,
+} from "../../graphql/adminapi/globalTypes.generated";
+import { Context } from "../../intl";
+
+// One key per client category, see docs/specs/api-resource.md "Access Policy".
+type AccessPolicyKey =
+  | "allowStaticFirstPartyClientAccess"
+  | "allowStaticThirdPartyClientAccess"
+  | "allowDynamicFirstPartyClientAccess"
+  | "allowDynamicThirdPartyClientAccess";
+
+// The keys the portal offers. The static first-party key is labelled "Client
+// applications", after the page those clients are created on. Static
+// third-party clients are left out for now: the third_party_app type cannot
+// be created there, so the key would have nothing to point at. A value set
+// through the Admin API is still shown read-only in the scope list.
+export type VisibleAccessPolicyKey = Exclude<
+  AccessPolicyKey,
+  "allowStaticThirdPartyClientAccess"
+>;
+
+// Form state carries only the visible keys, so no portal mutation can send
+// allowStaticThirdPartyClientAccess. Omitting it means create leaves it at
+// the API's default of false and update leaves whatever the Admin API set,
+// rather than the portal writing a key it renders no control for and could
+// never clear again.
+export type AccessPolicyState = Record<VisibleAccessPolicyKey, boolean>;
+
+// Display order wherever the categories are listed.
+export const VISIBLE_ACCESS_POLICY_KEYS: readonly VisibleAccessPolicyKey[] = [
+  "allowStaticFirstPartyClientAccess",
+  "allowDynamicFirstPartyClientAccess",
+  "allowDynamicThirdPartyClientAccess",
+];
+
+export const CLOSED_ACCESS_POLICY: AccessPolicyState = {
+  allowStaticFirstPartyClientAccess: false,
+  allowDynamicFirstPartyClientAccess: false,
+  allowDynamicThirdPartyClientAccess: false,
+};
+
+export const accessPolicyLabelIDs: Record<VisibleAccessPolicyKey, string> = {
+  allowStaticFirstPartyClientAccess: "AccessPolicy.static-first-party.label",
+  allowDynamicFirstPartyClientAccess: "AccessPolicy.dynamic-first-party.label",
+  allowDynamicThirdPartyClientAccess: "AccessPolicy.dynamic-third-party.label",
+};
+
+export const accessPolicyDescriptionIDs: Record<
+  VisibleAccessPolicyKey,
+  string
+> = {
+  allowStaticFirstPartyClientAccess:
+    "AccessPolicy.static-first-party.description",
+  allowDynamicFirstPartyClientAccess:
+    "AccessPolicy.dynamic-first-party.description",
+  allowDynamicThirdPartyClientAccess:
+    "AccessPolicy.dynamic-third-party.description",
+};
+
+// Badge-sized labels. "Client applications" is already short enough and is
+// the one name that category goes by, so it reuses its own label rather than
+// carrying a second string that has to be kept in sync with it.
+export const accessPolicyShortLabelIDs: Record<VisibleAccessPolicyKey, string> =
+  {
+    allowStaticFirstPartyClientAccess: "AccessPolicy.static-first-party.label",
+    allowDynamicFirstPartyClientAccess:
+      "AccessPolicy.dynamic-first-party.short",
+    allowDynamicThirdPartyClientAccess:
+      "AccessPolicy.dynamic-third-party.short",
+  };
+
+export function accessPolicyStateFromAccessPolicy(
+  policy: AccessPolicy
+): AccessPolicyState {
+  return {
+    allowStaticFirstPartyClientAccess: policy.allowStaticFirstPartyClientAccess,
+    allowDynamicFirstPartyClientAccess:
+      policy.allowDynamicFirstPartyClientAccess,
+    allowDynamicThirdPartyClientAccess:
+      policy.allowDynamicThirdPartyClientAccess,
+  };
+}
+
+export function withAccessPolicyKey(
+  state: AccessPolicyState,
+  key: VisibleAccessPolicyKey,
+  value: boolean
+): AccessPolicyState {
+  const next = { ...state };
+  next[key] = value;
+  return next;
+}
+
+// An input that changes one key and leaves the others as they are, which is
+// what the Admin API does with omitted fields on update.
+export function accessPolicyInputForKey(
+  key: VisibleAccessPolicyKey,
+  value: boolean
+): AccessPolicyInput {
+  const input: AccessPolicyInput = {};
+  input[key] = value;
+  return input;
+}
+
+// Categories the scope allows but the parent resource does not: the
+// resource-level check fails first, so the scope is unreachable for them.
+export function unreachableAccessPolicyKeys(
+  scopePolicy: AccessPolicyState,
+  resourcePolicy: AccessPolicy
+): VisibleAccessPolicyKey[] {
+  return VISIBLE_ACCESS_POLICY_KEYS.filter(
+    (key) => scopePolicy[key] && !resourcePolicy[key]
+  );
+}
+
+// Category labels joined for interpolation into a translated sentence.
+// Intl.ListFormat so the separator and conjunction follow the active locale
+// instead of a hardcoded comma.
+export function useAccessPolicyCategoryList(): (
+  keys: readonly VisibleAccessPolicyKey[]
+) => string {
+  const { locale, renderToString } = useContext(Context);
+  return useCallback(
+    (keys) =>
+      new Intl.ListFormat(locale, {
+        style: "long",
+        type: "conjunction",
+      }).format(keys.map((key) => renderToString(accessPolicyLabelIDs[key]))),
+    [locale, renderToString]
+  );
+}

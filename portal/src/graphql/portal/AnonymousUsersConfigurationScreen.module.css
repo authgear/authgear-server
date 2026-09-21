@@ -53,18 +53,6 @@
   padding: 0.5rem 0;
 }
 
-.tooltipLabel {
-  @apply flex items-center gap-1;
-}
-
-.infoIcon {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
-  color: var(--gray-a11);
-  cursor: help;
-}
-
 .colName,
 .colIdleTimeout,
 .colLifetime {

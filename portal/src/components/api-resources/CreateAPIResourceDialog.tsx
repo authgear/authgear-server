@@ -8,11 +8,9 @@ import React, {
 import {
   Dialog,
   Flex,
-  IconButton,
   Text,
   TextField as RadixTextField,
 } from "@radix-ui/themes";
-import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "../../intl";
 import {
@@ -24,17 +22,32 @@ import {
 import { useCreateResourceMutationMutation } from "../../graphql/adminapi/mutations/createResourceMutation.generated";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import { ResourceFormState, sanitizeFormState } from "./ResourceForm";
+import { AccessPolicyCheckboxes } from "./AccessPolicyCheckboxes";
+import { AccessPolicyState, CLOSED_ACCESS_POLICY } from "./accessPolicy";
 import { TextField } from "../v2/TextField/TextField";
+import { FieldLabelWithTooltip } from "../v2/FieldLabelWithTooltip/FieldLabelWithTooltip";
 import { FormField } from "../v2/FormField/FormField";
-import { Tooltip } from "../v2/Tooltip/Tooltip";
 import { PrimaryButton } from "../v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import ErrorRenderer from "../../ErrorRenderer";
 import styles from "./CreateAPIResourceDialog.module.css";
 
-const defaultState: ResourceFormState = {
+interface CreateResourceState extends ResourceFormState {
+  accessPolicy: AccessPolicyState;
+}
+
+// Every key defaults to false server-side. The spec has the portal
+// pre-select static first-party clients (docs/specs/api-resource.md,
+// "Defaults"); pre-selecting dynamic first-party clients as well is a
+// portal decision on top of that.
+const defaultState: CreateResourceState = {
   name: "",
   resourceURI: "",
+  accessPolicy: {
+    ...CLOSED_ACCESS_POLICY,
+    allowStaticFirstPartyClientAccess: true,
+    allowDynamicFirstPartyClientAccess: true,
+  },
 };
 
 const errorRules: ErrorParseRule[] = [
@@ -63,7 +76,7 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
     const resourceURIId = useId();
     const [createResource] = useCreateResourceMutationMutation();
 
-    const form = useSimpleForm<ResourceFormState, string>({
+    const form = useSimpleForm<CreateResourceState, string>({
       defaultState,
       submit: async (s) => {
         const state = sanitizeFormState(s);
@@ -72,6 +85,7 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
             input: {
               name: state.name,
               resourceURI: state.resourceURI,
+              accessPolicy: s.accessPolicy,
             },
           },
         });
@@ -143,6 +157,13 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
       [setState]
     );
 
+    const onAccessPolicyChange = useCallback(
+      (accessPolicy: AccessPolicyState) => {
+        setState((s) => ({ ...s, accessPolicy }));
+      },
+      [setState]
+    );
+
     const onSubmit = useCallback(
       (e: React.FormEvent) => {
         e.preventDefault();
@@ -164,28 +185,15 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
     }, [updateError]);
 
     const resourceURILabel = (
-      <Flex display="inline-flex" align="center" gap="1">
-        <span>
-          <FormattedMessage id="ResourceForm.resourceURI.label" />
-        </span>
+      <FieldLabelWithTooltip
+        tooltip={<FormattedMessage id="ResourceForm.resourceURI.tooltip" />}
+        tooltipLabel={renderToString("ResourceForm.resourceURI.tooltip")}
+      >
+        <FormattedMessage id="ResourceForm.resourceURI.label" />
         <span className={styles.requiredMark} aria-hidden="true">
           *
         </span>
-        <Tooltip
-          side="top"
-          content={<FormattedMessage id="ResourceForm.resourceURI.tooltip" />}
-        >
-          <IconButton
-            type="button"
-            variant="ghost"
-            color="gray"
-            size="1"
-            aria-label={renderToString("ResourceForm.resourceURI.tooltip")}
-          >
-            <InfoCircledIcon width="1rem" height="1rem" />
-          </IconButton>
-        </Tooltip>
-      </Flex>
+      </FieldLabelWithTooltip>
     );
 
     return (
@@ -232,6 +240,17 @@ export const CreateAPIResourceDialog: React.VFC<CreateAPIResourceDialogProps> =
                 </RadixTextField.Slot>
               </RadixTextField.Root>
             </FormField>
+            <AccessPolicyCheckboxes
+              title={
+                <FormattedMessage id="AccessPolicyCheckboxes.resource.title" />
+              }
+              hint={
+                <FormattedMessage id="AccessPolicyCheckboxes.resource.hint" />
+              }
+              value={state.accessPolicy}
+              disabled={isUpdating}
+              onChange={onAccessPolicyChange}
+            />
             <Flex gap="3" mt="4" justify="end">
               <SecondaryButton
                 size="2"
