@@ -1281,6 +1281,7 @@ export interface Authorization {
   id: string;
   clientID: string;
   createdAt: string;
+  updatedAt: string;
   scopes: string[];
 }
 
