@@ -56,7 +56,7 @@ telemetry:
       syslog:
         format: rfc5424
         framing: newline
-        facility: 16
+        facility: local0
         app_name: authgear
         structured_data_id: authgear
 ```
@@ -88,15 +88,15 @@ A new row is added here as [additional types and transports](#additional-types-t
 |---|---|---|---|---|
 | `format` | yes | `rfc5424` | | The syslog dialect. |
 | `framing` | yes | `octet_counting`, `newline` | | How records are delimited in the TCP stream. Must match the receiver. |
-| `facility` | no | integer, 0 - 23 | `16` | The syslog facility code. |
+| `facility` | no | `user`, `local0` - `local7` | `local0` | The syslog facility. |
 | `app_name` | no | string, 1-48 printable US-ASCII chars | `authgear` | The RFC 5424 APP-NAME. |
 | `structured_data_id` | no | string, 1-32 printable US-ASCII chars, no `=`, `]`, `"`, space | `authgear` | The RFC 5424 SD-ID. |
 
 `format` and `framing` are required because they change the bytes on the wire and must match the receiver configuration.
 
-`facility` is a facility code of Table 1 in [RFC5424 section-6.2.1](https://datatracker.ietf.org/doc/html/rfc5424#section-6.2.1). It is the code used in [PRI](#pri).
+`facility` names the same set of facilities redis.conf's `syslog-facility` accepts: `user` or `local0` through `local7`. Each name maps to its numeric facility code from Table 1 in [RFC5424 section-6.2.1](https://datatracker.ietf.org/doc/html/rfc5424#section-6.2.1) — `user` is `1`, `local0`-`local7` are `16`-`23` — which is the code used in [PRI](#pri).
 
-The default of `16` is `local use 0` of that table, so it does not collide with the facilities a host uses for its own messages.
+The default, `local0` (numeric code `16`, `local use 0` of that table), does not collide with the facilities a host uses for its own messages.
 
 ### The tcp object
 
@@ -205,7 +205,7 @@ The structured data element is:
 
 #### PRI
 
-PRI is `facility * 8 + severity`, where `facility` is `syslog.facility`.
+PRI is `facility * 8 + severity`, where `facility` is the numeric code `syslog.facility` maps to (see [the syslog object](#the-syslog-object)).
 
 Severity is `4` (warning) for these activity types:
 
