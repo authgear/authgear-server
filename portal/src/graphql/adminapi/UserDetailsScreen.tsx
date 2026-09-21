@@ -19,7 +19,11 @@ import UserProfileForm, {
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
-import UserDetailsAuthorization from "./UserDetailsAuthorization";
+import UserDetailsAuthorization, {
+  DynamicClients,
+} from "./UserDetailsAuthorization";
+import { useDynamicClientsQueryQuery } from "./query/dynamicClientsQuery.generated";
+import { DynamicClientListItem } from "../../components/dynamic-clients/DynamicClientList";
 
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
 import { SimpleFormModel } from "../../hook/useSimpleForm";
@@ -99,6 +103,7 @@ function buildUIPreviewAuthorizations(
       id: "fake-authorization-1",
       clientID,
       createdAt: "2024-11-12T03:20:00.000Z",
+      updatedAt: "2024-11-12T03:20:00.000Z",
       scopes: [
         "openid",
         "offline_access",
@@ -109,6 +114,7 @@ function buildUIPreviewAuthorizations(
       id: "fake-authorization-2",
       clientID: secondClientID,
       createdAt: "2025-01-18T09:05:00.000Z",
+      updatedAt: "2025-01-18T09:05:00.000Z",
       scopes: ["openid"],
     },
   ];
@@ -119,6 +125,12 @@ import {
 } from "../../ErrorMessageBar";
 import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
 import { ProfilePictureDialog } from "./ProfilePictureDialog";
+
+// The dynamic client count is bounded by the project's optional
+// oauth_client_dcr usage quota (docs/specs/dcr.md, Client Limit), typically
+// tens of clients. One page of this size covers any realistic project; a
+// client beyond it falls back to its raw client ID in the tables below.
+const DYNAMIC_CLIENTS_PAGE_SIZE = 1000;
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -354,6 +366,45 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   const oauthClientConfig: OAuthClientConfig[] = useMemo(() => {
     return appConfig.oauth?.clients ?? [];
   }, [appConfig]);
+
+  // Dynamic clients (DCR-registered or CIMD-resolved) are not in
+  // authgear.yaml, so the sessions and authorizations tables cannot name them
+  // from oauthClientConfig. Fetch the project's dynamic clients once, keyed by
+  // client ID. This is best-effort: while loading or on error the tables fall
+  // back to the raw client ID, which still identifies the row, so neither
+  // state blocks the screen.
+  const { data: dynamicClientsData } = useDynamicClientsQueryQuery({
+    variables: { first: DYNAMIC_CLIENTS_PAGE_SIZE },
+    fetchPolicy: "cache-first",
+  });
+  const dynamicClients: DynamicClients = useMemo(() => {
+    const clients = new Map<string, DynamicClientListItem>();
+    for (const edge of dynamicClientsData?.dynamicClients?.edges ?? []) {
+      const node = edge?.node;
+      if (node == null) {
+        continue;
+      }
+      clients.set(node.clientID, {
+        id: node.id,
+        clientID: node.clientID,
+        clientName: node.clientName ?? null,
+        name: node.name,
+        kind: node.kind,
+        source: node.source,
+        registeredAt: node.registeredAt ?? null,
+        lastFetchedAt: node.lastFetchedAt ?? null,
+        applicationType: node.applicationType ?? null,
+        redirectURIs: [...node.redirectURIs],
+        grantTypes: [...node.grantTypes],
+        responseTypes: [...node.responseTypes],
+        logoURI: node.logoURI ?? null,
+        clientURI: node.clientURI ?? null,
+        tosURI: node.tosURI ?? null,
+        policyURI: node.policyURI ?? null,
+      });
+    }
+    return clients;
+  }, [dynamicClientsData]);
 
   const onChangeStandardAttributes = useCallback(
     (attrs: StandardAttributesState) => {
@@ -610,10 +661,12 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             <UserDetailsSession
               sessions={sessions}
               oauthClients={oauthClientConfig}
+              dynamicClients={dynamicClients}
             />
             <UserDetailsAuthorization
               authorizations={authorizations}
               oauthClientConfig={oauthClientConfig}
+              dynamicClients={dynamicClients}
             />
           </div>
         ) : null}

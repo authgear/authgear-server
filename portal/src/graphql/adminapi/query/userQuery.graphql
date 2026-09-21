@@ -98,6 +98,7 @@ fragment UserQueryNode on User {
         clientID
         scopes
         createdAt
+        updatedAt
       }
     }
   }

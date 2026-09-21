@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Heading, IconButton, Tooltip } from "@radix-ui/themes";
+import { Badge, Heading, IconButton, Text, Tooltip } from "@radix-ui/themes";
 import { CrossCircledIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 
@@ -11,24 +11,75 @@ import { Authorization, OAuthClientConfig } from "../../types";
 import { useDeleteAuthorizationMutation } from "./mutations/deleteAuthorizationMutation";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { Callout } from "../../components/v2/Callout/Callout";
+import { DynamicClientListItem } from "../../components/dynamic-clients/DynamicClientList";
+import {
+  AuthorizationDetails,
+  AuthorizationDetailsDialog,
+  AuthorizedClient,
+} from "./AuthorizationDetailsDialog";
 
-function getDisplayNameForClient(
+// A dynamic client (DCR-registered or CIMD-resolved) is not in
+// authgear.yaml, so the static client list cannot describe it. The caller
+// passes the project's dynamic clients as the Admin API returned them, keyed
+// by client ID.
+export type DynamicClients = ReadonlyMap<string, DynamicClientListItem>;
+
+function resolveClient(
   oauthConfig: OAuthClientConfig[],
+  dynamicClients: DynamicClients,
   clientID: string
-): string {
+): AuthorizedClient {
   for (const config of oauthConfig) {
     if (config.client_id === clientID) {
-      return config.name ?? config.client_id;
+      return { kind: "static", config };
     }
   }
-  return "-";
+  const client = dynamicClients.get(clientID);
+  if (client != null) {
+    return { kind: "dynamic", client };
+  }
+  return { kind: "unknown" };
 }
 
-function hasFullUserInfoAccess(scopes: string[]): boolean {
-  if (scopes.indexOf("https://authgear.com/scopes/full-userinfo") !== -1) {
-    return true;
+function displayNameForClient(
+  client: AuthorizedClient,
+  clientID: string
+): string {
+  switch (client.kind) {
+    case "static":
+      return client.config.name ?? client.config.client_id;
+    case "dynamic":
+      return client.client.name;
+    case "unknown":
+      // The raw client ID rather than a dash: it identifies the grant even
+      // when neither list knows the client any more.
+      return clientID;
   }
-  return false;
+}
+
+const FULL_USERINFO_SCOPE = "https://authgear.com/scopes/full-userinfo";
+
+// How many scope badges a row shows before collapsing the rest into a
+// "+N more" badge; the details dialog lists them all.
+const VISIBLE_SCOPE_BADGES = 2;
+
+// Scopes that every grant carries and that grant no permission of their own,
+// so listing them would only add noise to the Permission column.
+const PROTOCOL_SCOPES: ReadonlySet<string> = new Set([
+  "openid",
+  "offline_access",
+]);
+
+function hasFullUserInfoAccess(scopes: string[]): boolean {
+  return scopes.includes(FULL_USERINFO_SCOPE);
+}
+
+// The scopes worth showing as permissions: everything except the protocol
+// scopes and the full-userinfo scope, which gets its own label.
+function permissionScopes(scopes: string[]): string[] {
+  return scopes.filter(
+    (scope) => !PROTOCOL_SCOPES.has(scope) && scope !== FULL_USERINFO_SCOPE
+  );
 }
 
 interface RemoveConfirmationDialogProps {
@@ -77,21 +128,21 @@ const RemoveConfirmationDialog: React.VFC<RemoveConfirmationDialogProps> =
   };
 
 interface AuthzItemViewModel {
-  clientName: string;
+  details: AuthorizationDetails;
   remove: () => void;
   createdAt: string;
-  scopesDesc: string;
 }
 
 interface Props {
   authorizations: Authorization[];
   oauthClientConfig: OAuthClientConfig[];
+  dynamicClients: DynamicClients;
 }
 
 const UserDetailsAuthorization: React.VFC<Props> =
   function UserDetailsAuthorization(props) {
     const { locale, renderToString } = useContext(Context);
-    const { authorizations, oauthClientConfig } = props;
+    const { authorizations, oauthClientConfig, dynamicClients } = props;
 
     const {
       deleteAuthorization,
@@ -115,17 +166,29 @@ const UserDetailsAuthorization: React.VFC<Props> =
       setIsConfirmDialogHidden(true);
     }, []);
 
+    const [detailsItem, setDetailsItem] = useState<AuthorizationDetails | null>(
+      null
+    );
+    const onDismissDetails = useCallback(() => {
+      setDetailsItem(null);
+    }, []);
+
     const authzListItems = useMemo(() => {
-      return authorizations.map(
-        (authz): AuthzItemViewModel => ({
-          clientName: getDisplayNameForClient(
-            oauthClientConfig,
-            authz.clientID
-          ),
+      return authorizations.map((authz): AuthzItemViewModel => {
+        const client = resolveClient(
+          oauthClientConfig,
+          dynamicClients,
+          authz.clientID
+        );
+        return {
+          details: {
+            authorization: authz,
+            clientName: displayNameForClient(client, authz.clientID),
+            client,
+            hasFullUserInfo: hasFullUserInfoAccess(authz.scopes),
+            permissionScopes: permissionScopes(authz.scopes),
+          },
           createdAt: formatDatetime(locale, authz.createdAt) ?? "",
-          scopesDesc: hasFullUserInfoAccess(authz.scopes)
-            ? renderToString("UserDetails.authorization.scopes.full-userinfo")
-            : "-",
           remove: () => {
             setConfirmDialogProps({
               title: renderToString(
@@ -135,22 +198,37 @@ const UserDetailsAuthorization: React.VFC<Props> =
                 "UserDetails.authorization.confirm-dialog.remove.message"
               ),
               onConfirm: () => {
-                deleteAuthorization(authz.id).finally(() =>
-                  setIsConfirmDialogHidden(true)
-                );
+                deleteAuthorization(authz.id).finally(() => {
+                  setIsConfirmDialogHidden(true);
+                  setDetailsItem(null);
+                });
               },
             });
             setIsConfirmDialogHidden(false);
           },
-        })
-      );
+        };
+      });
     }, [
       authorizations,
       locale,
       renderToString,
       oauthClientConfig,
+      dynamicClients,
       deleteAuthorization,
     ]);
+
+    // Revoke from the details dialog: reuse the row's confirmation so both
+    // paths ask the same question and run the same mutation.
+    const onRevokeFromDetails = useCallback(
+      (details: AuthorizationDetails) => {
+        const item = authzListItems.find(
+          (candidate) =>
+            candidate.details.authorization.id === details.authorization.id
+        );
+        item?.remove();
+      },
+      [authzListItems]
+    );
 
     return (
       <div className={styles.root}>
@@ -180,17 +258,87 @@ const UserDetailsAuthorization: React.VFC<Props> =
                   </div>
                   <div className={styles.actionColumn} aria-hidden={true} />
                 </div>
-                {authzListItems.map((item, index) => (
+                {authzListItems.map((item) => (
                   <div
                     className={styles.tableRow}
-                    key={`${item.clientName}-${index}`}
+                    key={item.details.authorization.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDetailsItem(item.details)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setDetailsItem(item.details);
+                      }
+                    }}
                   >
-                    <div className={styles.clientColumn}>{item.clientName}</div>
-                    <div className={styles.scopeColumn}>{item.scopesDesc}</div>
+                    <div className={styles.clientColumn}>
+                      <Tooltip
+                        content={renderToString(
+                          "UserDetails.session.clientID.tooltip.message",
+                          { clientID: item.details.authorization.clientID }
+                        )}
+                      >
+                        <span className={styles.clientName}>
+                          {item.details.clientName}
+                        </span>
+                      </Tooltip>
+                    </div>
+                    <div className={styles.scopeColumn}>
+                      {item.details.hasFullUserInfo ||
+                      item.details.permissionScopes.length > 0 ? (
+                        <div className={styles.scopeList}>
+                          {item.details.hasFullUserInfo ? (
+                            <Text size="2">
+                              <FormattedMessage id="UserDetails.authorization.scopes.full-userinfo" />
+                            </Text>
+                          ) : null}
+                          {item.details.permissionScopes
+                            .slice(0, VISIBLE_SCOPE_BADGES)
+                            .map((scope) => (
+                              <Badge
+                                key={scope}
+                                color="gray"
+                                radius="small"
+                                className={styles.scopeBadge}
+                              >
+                                {scope}
+                              </Badge>
+                            ))}
+                          {item.details.permissionScopes.length >
+                          VISIBLE_SCOPE_BADGES ? (
+                            <Badge
+                              color="gray"
+                              radius="small"
+                              variant="outline"
+                            >
+                              <FormattedMessage
+                                id="UserDetails.authorization.scopes.more"
+                                values={{
+                                  count:
+                                    item.details.permissionScopes.length -
+                                    VISIBLE_SCOPE_BADGES,
+                                }}
+                              />
+                            </Badge>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <Text size="2" color="gray">
+                          <FormattedMessage id="UserDetails.authorization.scopes.none" />
+                        </Text>
+                      )}
+                    </div>
                     <div className={styles.createdAtColumn}>
                       {item.createdAt}
                     </div>
-                    <div className={styles.actionColumn}>
+                    <div
+                      className={styles.actionColumn}
+                      // Stop the row's click-to-open so the action buttons
+                      // do only what they say.
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
                       <Tooltip
                         content={renderToString(
                           "UserDetails.authorization.action.revoke-access"
@@ -223,6 +371,11 @@ const UserDetailsAuthorization: React.VFC<Props> =
             onDismiss={onConfirmDialogDismiss}
           />
         ) : null}
+        <AuthorizationDetailsDialog
+          details={detailsItem}
+          onRevoke={onRevokeFromDetails}
+          onDismiss={onDismissDetails}
+        />
         <ErrorDialog
           error={error}
           rules={[]}
