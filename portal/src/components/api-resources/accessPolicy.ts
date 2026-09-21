@@ -22,6 +22,13 @@ export type VisibleAccessPolicyKey = Exclude<
   "allowStaticThirdPartyClientAccess"
 >;
 
+// Form state carries only the visible keys, so no portal mutation can send
+// allowStaticThirdPartyClientAccess. Omitting it means create leaves it at
+// the API's default of false and update leaves whatever the Admin API set,
+// rather than the portal writing a key it renders no control for and could
+// never clear again.
+export type AccessPolicyState = Record<VisibleAccessPolicyKey, boolean>;
+
 // Display order wherever the categories are listed.
 export const VISIBLE_ACCESS_POLICY_KEYS: readonly VisibleAccessPolicyKey[] = [
   "allowStaticFirstPartyClientAccess",
@@ -29,11 +36,8 @@ export const VISIBLE_ACCESS_POLICY_KEYS: readonly VisibleAccessPolicyKey[] = [
   "allowDynamicThirdPartyClientAccess",
 ];
 
-export type AccessPolicyState = Record<AccessPolicyKey, boolean>;
-
 export const CLOSED_ACCESS_POLICY: AccessPolicyState = {
   allowStaticFirstPartyClientAccess: false,
-  allowStaticThirdPartyClientAccess: false,
   allowDynamicFirstPartyClientAccess: false,
   allowDynamicThirdPartyClientAccess: false,
 };
@@ -73,7 +77,6 @@ export function accessPolicyStateFromAccessPolicy(
 ): AccessPolicyState {
   return {
     allowStaticFirstPartyClientAccess: policy.allowStaticFirstPartyClientAccess,
-    allowStaticThirdPartyClientAccess: policy.allowStaticThirdPartyClientAccess,
     allowDynamicFirstPartyClientAccess:
       policy.allowDynamicFirstPartyClientAccess,
     allowDynamicThirdPartyClientAccess:
@@ -83,7 +86,7 @@ export function accessPolicyStateFromAccessPolicy(
 
 export function withAccessPolicyKey(
   state: AccessPolicyState,
-  key: AccessPolicyKey,
+  key: VisibleAccessPolicyKey,
   value: boolean
 ): AccessPolicyState {
   const next = { ...state };
@@ -94,7 +97,7 @@ export function withAccessPolicyKey(
 // An input that changes one key and leaves the others as they are, which is
 // what the Admin API does with omitted fields on update.
 export function accessPolicyInputForKey(
-  key: AccessPolicyKey,
+  key: VisibleAccessPolicyKey,
   value: boolean
 ): AccessPolicyInput {
   const input: AccessPolicyInput = {};
