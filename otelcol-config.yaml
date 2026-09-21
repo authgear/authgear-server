@@ -8,14 +8,16 @@ receivers:
         endpoint: 0.0.0.0:4318
 
   # For testing telemetry.audit_logs.streams locally: point a stream's
-  # tcp.address at localhost:5140 (framing: newline) and watch delivered
+  # tcp.address at localhost:5514 (framing: newline) and watch delivered
   # entries with `docker compose logs -f otelcol`. 0.0.0.0 for the same
   # reason as the otlp receiver above -- docker-compose needs it, not
-  # localhost.
+  # localhost. 5514, not 5140/5141/6514: those are e2e's syslogserver
+  # ports (e2e/cmd/syslogserver/main.go), and e2e's own docker-compose
+  # stack can run alongside this one.
   syslog:
     protocol: rfc5424
     tcp:
-      listen_address: "0.0.0.0:5140"
+      listen_address: "0.0.0.0:5514"
 
 processors:
   attributes:
