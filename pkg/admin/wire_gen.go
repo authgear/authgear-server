@@ -596,7 +596,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -1877,7 +1878,8 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -2395,7 +2397,8 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -2914,7 +2917,8 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,

@@ -22,12 +22,14 @@ func NewProducer(
 	appID config.AppID,
 	telemetryConfig *config.TelemetryConfig,
 	featureConfig *config.FeatureConfig,
+	interval config.DurationString,
 ) *Producer {
 	return &Producer{
 		AppID:    appID,
 		Streams:  telemetryConfig.AuditLogs.Streams,
 		Disabled: *featureConfig.Telemetry.AuditLogs.Streaming.Disabled,
 		Redis:    redis,
+		Interval: interval,
 	}
 }
 

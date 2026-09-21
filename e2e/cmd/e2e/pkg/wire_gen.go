@@ -501,7 +501,8 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,

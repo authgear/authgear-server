@@ -22,7 +22,7 @@ import (
 
 // Injectors from wire.go:
 
-func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironmentConfig, redisPool *redis.Pool, redisCfg *config.RedisEnvironmentConfig, globalRedisCredentials *config.GlobalRedisCredentialsEnvironmentConfig) *audit.Sink {
+func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironmentConfig, redisPool *redis.Pool, redisCfg *config.RedisEnvironmentConfig, globalRedisCredentials *config.GlobalRedisCredentialsEnvironmentConfig, auditLogStreamingInterval config.DurationString) *audit.Sink {
 	appContext := app.Context
 	configConfig := appContext.Config
 	secretConfig := configConfig.SecretConfig
@@ -39,7 +39,7 @@ func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironment
 	handle := globalredis.NewHandle(redisPool, redisCfg, globalRedisCredentials)
 	telemetryConfig := appConfig.Telemetry
 	featureConfig := configConfig.FeatureConfig
-	producer := auditlogstreaming.NewProducer(handle, appID, telemetryConfig, featureConfig)
+	producer := auditlogstreaming.NewProducer(handle, appID, telemetryConfig, featureConfig, auditLogStreamingInterval)
 	sink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,

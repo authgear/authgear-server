@@ -700,7 +700,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -1771,7 +1772,8 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -2956,7 +2958,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -4095,7 +4098,8 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -4620,7 +4624,8 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -5207,7 +5212,8 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -6106,7 +6112,8 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -7057,7 +7064,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -8046,7 +8054,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -9151,7 +9160,8 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -10261,7 +10271,8 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -11370,7 +11381,8 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -11940,7 +11952,8 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -13167,7 +13180,8 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -14401,7 +14415,8 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -15666,7 +15681,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -16776,7 +16792,8 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -17920,7 +17937,8 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -19068,7 +19086,8 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -20212,7 +20231,8 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -21371,7 +21391,8 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -22502,7 +22523,8 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -23660,7 +23682,8 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -24817,7 +24840,8 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -25974,7 +25998,8 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -27120,7 +27145,8 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -28286,7 +28312,8 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -29443,7 +29470,8 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -30601,7 +30629,8 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -31768,7 +31797,8 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -32925,7 +32955,8 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -34074,7 +34105,8 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -35253,7 +35285,8 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -36401,7 +36434,8 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -37553,7 +37587,8 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -38699,7 +38734,8 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -39841,7 +39877,8 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -40963,7 +41000,8 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -42081,7 +42119,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -43304,7 +43343,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -44408,7 +44448,8 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -45635,7 +45676,8 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -46876,7 +46918,8 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -48010,7 +48053,8 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -49069,7 +49113,8 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -50114,7 +50159,8 @@ func newWebAppClientLogoHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -50640,7 +50686,8 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -51758,7 +51805,8 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -53030,7 +53078,8 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -54100,7 +54149,8 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -55122,7 +55172,8 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -56178,7 +56229,8 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -57250,7 +57302,8 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -58398,7 +58451,8 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -59514,7 +59568,8 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -60662,7 +60717,8 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -61611,7 +61667,8 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -62569,7 +62626,8 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -63820,7 +63878,8 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -65064,7 +65123,8 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -66298,7 +66358,8 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -67529,7 +67590,8 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -68764,7 +68826,8 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -69997,7 +70060,8 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -71228,7 +71292,8 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -72455,7 +72520,8 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -73682,7 +73748,8 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -74914,7 +74981,8 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -76147,7 +76215,8 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -77374,7 +77443,8 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -78605,7 +78675,8 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -79832,7 +79903,8 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -81059,7 +81131,8 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -82286,7 +82359,8 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -83513,7 +83587,8 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -84747,7 +84822,8 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -85976,7 +86052,8 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -87204,7 +87281,8 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -88444,7 +88522,8 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -89751,7 +89830,8 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -91398,7 +91478,8 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -92625,7 +92706,8 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -93852,7 +93934,8 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -95219,7 +95302,8 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -96448,7 +96532,8 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -97685,7 +97770,8 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -98613,7 +98699,8 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -99571,7 +99658,8 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -100522,7 +100610,8 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -101481,7 +101570,8 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -102611,7 +102701,8 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -103756,7 +103847,8 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -104903,7 +104995,8 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -106036,7 +106129,8 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -107186,7 +107280,8 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -108342,7 +108437,8 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -109480,7 +109576,8 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -110626,7 +110723,8 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -111774,7 +111872,8 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -112907,7 +113006,8 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -114058,7 +114158,8 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -115196,7 +115297,8 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -116346,7 +116448,8 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -117444,7 +117547,8 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -118590,7 +118694,8 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -119739,7 +119844,8 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -120909,7 +121015,8 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -122744,7 +122851,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -123641,7 +123749,8 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -124762,7 +124871,8 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -125738,7 +125848,8 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -126711,7 +126822,8 @@ func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
@@ -127205,7 +127317,8 @@ func newAccountManagementRateLimitMiddleware(p *deps.RequestProvider) httproute.
 	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
 	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	telemetryConfig := appConfig.Telemetry
-	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,

@@ -337,6 +337,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	httpRequestURL := deps.ProvideRequestURL(request, httpProto, httpHost)
+	durationString := environmentConfig.AuditLogStreamingInterval
 	auditService := &service.AuditService{
 		RemoteIP:                  remoteIP,
 		UserAgentString:           userAgentString,
@@ -349,6 +350,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RedisPool:                 redisPool,
 		RedisEnvironmentConfig:    redisEnvironmentConfig,
 		GlobalRedisCredentials:    globalRedisCredentialsEnvironmentConfig,
+		AuditLogStreamingInterval: durationString,
 		DenoEndpoint:              denoEndpoint,
 		GlobalSQLBuilder:          sqlBuilder,
 		GlobalSQLExecutor:         sqlExecutor,

@@ -48,6 +48,13 @@ type AuditService struct {
 	RedisEnvironmentConfig *config.RedisEnvironmentConfig
 	GlobalRedisCredentials *config.GlobalRedisCredentialsEnvironmentConfig
 
+	// AuditLogStreamingInterval is the same background worker interval
+	// used to derive the audit log stream queue's TTL -- see
+	// auditlogstreaming.queueTTLFor. The portal enqueues into the same
+	// queue the background worker drains, so it must derive the TTL the
+	// same way.
+	AuditLogStreamingInterval config.DurationString
+
 	DenoEndpoint config.DenoEndpoint
 
 	GlobalSQLBuilder  *globaldb.SQLBuilder
@@ -76,7 +83,7 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 	// AuditSink is app specific.
 	// The records MUST have correct app_id.
 	// We have construct audit sink with the target app.
-	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig, s.RedisPool, s.RedisEnvironmentConfig, s.GlobalRedisCredentials)
+	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig, s.RedisPool, s.RedisEnvironmentConfig, s.GlobalRedisCredentials, s.AuditLogStreamingInterval)
 	// The portal uses its Authgear to deliver hooks.
 	// We have construct hook sink with the Authgear app.
 	hookSink := newHookSink(authgearApp, s.DenoEndpoint)

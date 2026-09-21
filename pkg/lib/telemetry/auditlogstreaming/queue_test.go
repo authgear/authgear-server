@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	. "github.com/smartystreets/goconvey/convey"
@@ -58,7 +59,7 @@ func TestProducerConsumer(t *testing.T) {
 	Convey("Producer and Consumer", t, func() {
 		Convey("enqueue then drain returns the entries in the order they were enqueued", func() {
 			h := newTestRedisHandle(t)
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			c := &Consumer{Redis: h}
 
 			p.Enqueue(ctx, newEvent("one"))
@@ -75,7 +76,7 @@ func TestProducerConsumer(t *testing.T) {
 
 		Convey("drain clears the queue: a second drain returns empty", func() {
 			h := newTestRedisHandle(t)
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			c := &Consumer{Redis: h}
 
 			p.Enqueue(ctx, newEvent("one"))
@@ -89,7 +90,7 @@ func TestProducerConsumer(t *testing.T) {
 
 		Convey("enqueueing past maxQueueLength drops the oldest, keeping the newest", func() {
 			h := newTestRedisHandle(t)
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			c := &Consumer{Redis: h}
 
 			for i := range maxQueueLength + 10 {
@@ -106,7 +107,7 @@ func TestProducerConsumer(t *testing.T) {
 
 		Convey("the pending set contains the app after one enqueue and is empty after ClaimPending", func() {
 			h := newTestRedisHandle(t)
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			c := &Consumer{Redis: h}
 
 			p.Enqueue(ctx, newEvent("one"))
@@ -122,8 +123,8 @@ func TestProducerConsumer(t *testing.T) {
 
 		Convey("ClaimPending returns every app that enqueued, and a re-enqueued app is returned by the next claim", func() {
 			h := newTestRedisHandle(t)
-			pApp1 := &Producer{AppID: "app1", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
-			pApp2 := &Producer{AppID: "app2", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			pApp1 := &Producer{AppID: "app1", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
+			pApp2 := &Producer{AppID: "app2", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			c := &Consumer{Redis: h}
 
 			pApp1.Enqueue(ctx, newEvent("one"))
@@ -153,7 +154,7 @@ func TestProducerConsumer(t *testing.T) {
 
 		Convey("both keys carry a TTL after enqueue", func() {
 			h := newTestRedisHandle(t)
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 
 			p.Enqueue(ctx, newEvent("one"))
 
@@ -167,9 +168,39 @@ func TestProducerConsumer(t *testing.T) {
 			So(pendingTTLResult.Seconds(), ShouldBeGreaterThan, 0)
 		})
 
+		Convey("queueTTLFor derives the TTL from the interval, floored at 5 minutes", func() {
+			// Matches the pre-existing fixed constant exactly at the
+			// default interval, so existing deployments see no change.
+			So(queueTTLFor(time.Minute), ShouldEqual, 5*time.Minute)
+
+			// A short interval does not shrink the TTL below the floor --
+			// the queue must still survive an ordinary worker
+			// restart/deploy, not just one tick.
+			So(queueTTLFor(10*time.Second), ShouldEqual, 5*time.Minute)
+
+			// A longer interval scales the TTL up so the queue survives
+			// to the next drain instead of expiring first.
+			So(queueTTLFor(10*time.Minute), ShouldEqual, 50*time.Minute)
+		})
+
+		Convey("a queue's actual TTL reflects a configured interval longer than the old fixed 5 minutes", func() {
+			h := newTestRedisHandle(t)
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("10m")}
+
+			p.Enqueue(ctx, newEvent("one"))
+
+			client := h.Client()
+			queueTTLResult, ttlErr := client.TTL(ctx, redisKeyQueue("app")).Result()
+			So(ttlErr, ShouldBeNil)
+			// 50 minutes (queueTTLFor(10m)), allowing for the small amount
+			// of time the test itself takes to run.
+			So(queueTTLResult.Minutes(), ShouldBeGreaterThan, 49)
+			So(queueTTLResult.Minutes(), ShouldBeLessThanOrEqualTo, 50)
+		})
+
 		Convey("a malformed entry is skipped, not the whole batch", func() {
 			h := newTestRedisHandle(t)
-			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h}
+			p := &Producer{AppID: "app", Streams: []*config.TelemetryAuditLogStreamConfig{{}}, Redis: h, Interval: config.DurationString("1m")}
 			c := &Consumer{Redis: h}
 
 			p.Enqueue(ctx, newEvent("one"))

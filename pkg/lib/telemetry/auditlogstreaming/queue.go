@@ -20,10 +20,33 @@ const (
 	// queued entry is dropped.
 	maxQueueLength = 10000
 
-	// queueTTL expires a queue that nothing drains, so a background worker
-	// that is not running cannot pin memory forever.
-	queueTTL = 5 * time.Minute
+	// minQueueTTL floors queueTTLFor so a short configured interval cannot
+	// make a queue expire faster than an ordinary background worker
+	// restart/deploy -- it must survive the worker being gone for a while,
+	// not just one missed tick.
+	minQueueTTL = 5 * time.Minute
+
+	// queueTTLSafetyFactor is how many drain intervals a queue survives
+	// undrained before it expires. Generous on purpose: a missed tick
+	// (lock contention, a slow previous tick, see runnable.go's own 2x on
+	// the drain lock's expiry) must not lose data, and holding entries a
+	// little longer costs Redis memory, not correctness.
+	queueTTLSafetyFactor = 5
 )
+
+// queueTTLFor derives the queue TTL from the configured drain interval,
+// rather than using one fixed duration regardless of it: a TTL shorter
+// than (or too close to) the interval silently discards every entry that
+// arrives just before a gap between drains, with no error anywhere --
+// the tick that would have drained it simply finds nothing there. At the
+// default 1-minute interval this returns exactly the 5-minute floor, so
+// existing deployments see no change.
+func queueTTLFor(interval time.Duration) time.Duration {
+	if t := queueTTLSafetyFactor * interval; t > minQueueTTL {
+		return t
+	}
+	return minQueueTTL
+}
 
 // Both keys are in global Redis: the drainer is a single global worker, and
 // the keys are not app-scoped in the "app:<id>:" sense. This follows
@@ -70,13 +93,31 @@ return apps
 // clearing together is what implements the spec's "taking the batch
 // clears the queue, whether or not the send succeeds": a failure after
 // this script runs drops the batch by construction, there is nothing left
-// to retry from.
+// to retry from. A failure running this script itself is a different
+// case -- the script never executed, so the queue is untouched -- see
+// markPendingScript.
 //
 // KEYS[1] = queue key
 var drainScript = goredis.NewScript(`
 local items = redis.call("LRANGE", KEYS[1], 0, -1)
 redis.call("DEL", KEYS[1])
 return items
+`)
+
+// markPendingScript re-adds an app to the pending set. Consumer.Drain
+// calls this when drainScript itself fails to run (a Redis round-trip
+// failure, not a delivery failure): ClaimPending already removed the app
+// from the pending set, but drainScript never ran, so the app's queue is
+// untouched -- only the "check this app next tick" bookkeeping was lost.
+// Re-adding it is what makes that queue reachable again, exactly as if
+// the app had just enqueued something.
+//
+// KEYS[1] = pending key
+// ARGV[1] = app ID, ARGV[2] = TTL seconds
+var markPendingScript = goredis.NewScript(`
+redis.call("SADD", KEYS[1], ARGV[1])
+redis.call("EXPIRE", KEYS[1], tonumber(ARGV[2]))
+return redis.status_reply("OK")
 `)
 
 // Producer enqueues persisted audit log entries for streaming. It is
@@ -86,6 +127,10 @@ type Producer struct {
 	Streams  []*config.TelemetryAuditLogStreamConfig
 	Disabled bool
 	Redis    *globalredis.Handle
+	// Interval is the background worker's configured drain interval
+	// (AUDIT_LOG_STREAMING_INTERVAL), used to derive the queue TTL -- see
+	// queueTTLFor.
+	Interval config.DurationString
 }
 
 // Enqueue never returns an error and never blocks on anything but the
@@ -107,10 +152,11 @@ func (p *Producer) Enqueue(ctx context.Context, e *event.Event) {
 		return
 	}
 
+	ttl := queueTTLFor(p.Interval.Duration())
 	err = p.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		return enqueueScript.Run(ctx, conn,
 			[]string{redisKeyQueue(string(p.AppID)), redisKeyPending()},
-			string(payload), maxQueueLength, int(queueTTL.Seconds()), string(p.AppID),
+			string(payload), maxQueueLength, int(ttl.Seconds()), string(p.AppID),
 		).Err()
 	})
 	if err != nil {
@@ -137,6 +183,19 @@ func (c *Consumer) ClaimPending(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 	return appIDs, nil
+}
+
+// MarkPending re-adds appID to the pending set. Callers use this when
+// Drain fails: ClaimPending already removed appID from the pending set,
+// but if Drain's own Redis round trip then fails, drainScript never ran,
+// so the app's queue is untouched -- only the "check this app"
+// bookkeeping was lost. ttl should be the same TTL Enqueue would use
+// (queueTTLFor(interval)), so a re-marked app does not become reachable
+// for longer than an app that enqueued normally.
+func (c *Consumer) MarkPending(ctx context.Context, appID string, ttl time.Duration) error {
+	return c.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return markPendingScript.Run(ctx, conn, []string{redisKeyPending()}, appID, int(ttl.Seconds())).Err()
+	})
 }
 
 // Drain takes and clears one app's queue, decoding each entry.

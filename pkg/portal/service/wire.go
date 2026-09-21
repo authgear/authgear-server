@@ -20,6 +20,7 @@ func newAuditSink(
 	redisPool *redis.Pool,
 	redisCfg *config.RedisEnvironmentConfig,
 	globalRedisCredentials *config.GlobalRedisCredentialsEnvironmentConfig,
+	auditLogStreamingInterval config.DurationString,
 ) *audit.Sink {
 	panic(wire.Build(AuthgearDependencySet))
 }

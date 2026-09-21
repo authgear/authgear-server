@@ -89,6 +89,7 @@ var DependencySet = wire.NewSet(
 		"DatabaseConfig",
 		"RedisConfig",
 		"DenoEndpoint",
+		"AuditLogStreamingInterval",
 		"AppHostSuffixes",
 		"UIImplementation",
 		"UISettingsImplementation",
