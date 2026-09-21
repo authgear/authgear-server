@@ -2557,7 +2557,6 @@
   "ScopeList.access-policy.read-only": "{category} were allowed through the Admin API. This cannot be changed in the portal.",
   "AccessPolicy.static-first-party.label": "Client applications",
   "AccessPolicy.static-first-party.description": "Created in the Client Applications page: SPA, native, web, or confidential.",
-  "AccessPolicy.static-first-party.short": "Client applications",
   "AccessPolicy.static-third-party.label": "Static third-party clients",
   "AccessPolicy.static-third-party.short": "Static third-party",
   "AccessPolicy.dynamic-first-party.label": "Dynamic first-party clients",

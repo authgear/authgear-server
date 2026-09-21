@@ -54,9 +54,12 @@ export const accessPolicyDescriptionIDs: Record<
     "AccessPolicy.dynamic-third-party.description",
 };
 
+// Badge-sized labels. "Client applications" is already short enough and is
+// the one name that category goes by, so it reuses its own label rather than
+// carrying a second string that has to be kept in sync with it.
 export const accessPolicyShortLabelIDs: Record<VisibleAccessPolicyKey, string> =
   {
-    allowStaticFirstPartyClientAccess: "AccessPolicy.static-first-party.short",
+    allowStaticFirstPartyClientAccess: "AccessPolicy.static-first-party.label",
     allowDynamicFirstPartyClientAccess:
       "AccessPolicy.dynamic-first-party.short",
     allowDynamicThirdPartyClientAccess:
