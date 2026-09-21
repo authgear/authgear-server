@@ -98,9 +98,17 @@ type SenderImpl struct {
 
 var _ Sender = &SenderImpl{}
 
-// Send delivers entries to every configured stream. Streams are
-// independent: a failure of one does not affect the other, per the
-// spec's UC3.
+// maxConcurrentStreamDeliveries bounds how many of one app's streams are
+// delivered to concurrently within one Send call. Delivered sequentially,
+// a batch's total delivery time is the SUM of every stream's dial+write
+// time, so a single slow or unreachable collector serially delays every
+// other stream -- see forEachBounded's doc comment for why that matters
+// for the drain lock.
+const maxConcurrentStreamDeliveries = 10
+
+// Send delivers entries to every configured stream, concurrently (bounded
+// by maxConcurrentStreamDeliveries). Streams are independent: a failure
+// of one does not affect the other, per the spec's UC3.
 func (s *SenderImpl) Send(ctx context.Context, entries []QueuedEntry) {
 	if len(entries) == 0 {
 		return
@@ -108,9 +116,9 @@ func (s *SenderImpl) Send(ctx context.Context, entries []QueuedEntry) {
 
 	logger := Logger.GetLogger(ctx)
 
-	for _, streamConfig := range s.Streams {
+	forEachBounded(s.Streams, maxConcurrentStreamDeliveries, func(streamConfig *config.TelemetryAuditLogStreamConfig) {
 		s.sendToStream(ctx, logger, streamConfig, entries)
-	}
+	})
 }
 
 func (s *SenderImpl) sendToStream(

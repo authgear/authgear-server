@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -36,6 +37,25 @@ func (f *fakeSenderFactory) MakeSender(appID string, appCtx *config.AppContext) 
 	f.senders[appID] = s
 	f.mu.Unlock()
 	return s
+}
+
+// trackingSender calls onSend synchronously from within Send, letting a
+// test observe how many are in flight at once (and block them to keep
+// them in flight for the observation).
+type trackingSender struct {
+	onSend func()
+}
+
+func (s *trackingSender) Send(ctx context.Context, entries []QueuedEntry) {
+	s.onSend()
+}
+
+type trackingSenderFactory struct {
+	onSend func()
+}
+
+func (f *trackingSenderFactory) MakeSender(appID string, appCtx *config.AppContext) Sender {
+	return &trackingSender{onSend: f.onSend}
 }
 
 type fakeAppContextResolver struct {
@@ -283,6 +303,64 @@ func TestRunnableRun(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(entries, ShouldHaveLength, 1)
 			So(entries[0].Event.ID, ShouldEqual, "two")
+		})
+
+		Convey("apps are drained concurrently, bounded by maxConcurrentAppDrains", func() {
+			h := newTestRedisHandle(t)
+
+			n := maxConcurrentAppDrains + 5
+			streams := []*config.TelemetryAuditLogStreamConfig{{Name: "collector"}}
+			contexts := map[string]*config.AppContext{}
+			for i := range n {
+				appID := fmt.Sprintf("app%d", i)
+				p := &Producer{AppID: config.AppID(appID), Streams: streams, Redis: h, Interval: config.DurationString("1m")}
+				p.Enqueue(ctx, newEvent("one"))
+				contexts[appID] = newTestAppContext(fmt.Sprintf("http://%s.example.com", appID), streams, false)
+			}
+
+			var mu sync.Mutex
+			current, peak := 0, 0
+			release := make(chan struct{})
+			senderFactory := &trackingSenderFactory{onSend: func() {
+				mu.Lock()
+				current++
+				if current > peak {
+					peak = current
+				}
+				mu.Unlock()
+
+				<-release
+
+				mu.Lock()
+				current--
+				mu.Unlock()
+			}}
+
+			r := &Runnable{
+				Consumer:           &Consumer{Redis: h},
+				AppContextResolver: &fakeAppContextResolver{contexts: contexts},
+				SenderFactory:      senderFactory,
+				Redis:              h,
+				Interval:           config.DurationString("1m"),
+			}
+
+			runDone := make(chan error, 1)
+			go func() { runDone <- r.Run(ctx) }()
+
+			// Let every goroutine that is going to start, start and block
+			// in onSend, then unblock them all at once.
+			time.Sleep(300 * time.Millisecond)
+			close(release)
+			err := <-runDone
+			So(err, ShouldBeNil)
+
+			mu.Lock()
+			defer mu.Unlock()
+			// Concurrency actually happened (not silently serialized)...
+			So(peak, ShouldBeGreaterThan, 1)
+			// ...but never more than the bound, even with more apps
+			// queued than the bound.
+			So(peak, ShouldBeLessThanOrEqualTo, maxConcurrentAppDrains)
 		})
 	})
 }
