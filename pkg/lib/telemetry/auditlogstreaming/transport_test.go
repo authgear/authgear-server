@@ -80,6 +80,38 @@ func TestSenderImplSend(t *testing.T) {
 			So(got[2], ShouldContainSubstring, `"marker":"three"`)
 		})
 
+		Convey("a batch spanning multiple maxEntriesPerWrite chunks still arrives whole and in order", func() {
+			l, err := net.Listen("tcp", "127.0.0.1:0")
+			So(err, ShouldBeNil)
+			defer l.Close()
+
+			lines := readLines(t, l)
+
+			streamConfig := newTestStreamConfig("collector", false)
+			streamConfig.TCP.Address = l.Addr().String()
+
+			sender := &SenderImpl{
+				AppID:    "app",
+				Hostname: "app.example.com",
+				Streams:  []*config.TelemetryAuditLogStreamConfig{streamConfig},
+			}
+
+			// 2.5x maxEntriesPerWrite, so this batch is split across
+			// three separate conn.Write calls, not one.
+			n := maxEntriesPerWrite*2 + maxEntriesPerWrite/2
+			var entries []QueuedEntry
+			for i := range n {
+				entries = append(entries, newTestEntry(fmt.Sprintf("entry-%d", i)))
+			}
+			sender.Send(t.Context(), entries)
+
+			got := <-lines
+			So(got, ShouldHaveLength, n)
+			for i, line := range got {
+				So(line, ShouldContainSubstring, fmt.Sprintf(`"marker":"entry-%d"`, i))
+			}
+		})
+
 		Convey("two streams both receive the whole batch; a stream whose dial fails does not prevent the other", func() {
 			l, err := net.Listen("tcp", "127.0.0.1:0")
 			So(err, ShouldBeNil)

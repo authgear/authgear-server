@@ -22,6 +22,14 @@ var (
 	writeTimeout = 30 * time.Second
 )
 
+// maxEntriesPerWrite bounds how many entries are encoded into one buffer
+// and one conn.Write call. The batch (up to maxQueueLength entries, see
+// queue.go) is still delivered as a whole over one connection -- this
+// only splits the encoding/writing into fixed-size chunks, so peak memory
+// for a backlogged project's delivery stays bounded to roughly this many
+// entries' worth of frames rather than scaling with the whole batch.
+const maxEntriesPerWrite = 100
+
 // dial opens the connection for a stream: plaintext TCP, or TLS when the
 // stream enables it.
 func dial(ctx context.Context, s *ResolvedStream) (net.Conn, error) {
@@ -128,12 +136,10 @@ func (s *SenderImpl) sendToStream(
 	}
 	defer func() { _ = conn.Close() }()
 
-	var buf bytes.Buffer
-	for _, entry := range entries {
-		frame := Frame(resolved.Syslog.Framing, EncodeRFC5424(&resolved.Syslog, s.Hostname, entry.Event, entry.Raw))
-		buf.Write(frame)
-	}
-
+	// One deadline for the whole batch's transfer, set once before the
+	// chunked writes below -- not reset per chunk, which would let a
+	// slow connection take far longer than writeTimeout in total for a
+	// large batch.
 	if err := conn.SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
 		logger.WithError(err).Error(ctx, "failed to set write deadline for audit log stream",
 			slog.String("app_id", s.AppID),
@@ -141,11 +147,22 @@ func (s *SenderImpl) sendToStream(
 		return
 	}
 
-	if _, err := conn.Write(buf.Bytes()); err != nil {
-		logger.WithError(err).Error(ctx, "failed to write audit log stream",
-			slog.String("app_id", s.AppID),
-			slog.String("stream", streamConfig.Name))
-		return
+	var buf bytes.Buffer
+	for start := 0; start < len(entries); start += maxEntriesPerWrite {
+		end := min(start+maxEntriesPerWrite, len(entries))
+
+		buf.Reset()
+		for _, entry := range entries[start:end] {
+			frame := Frame(resolved.Syslog.Framing, EncodeRFC5424(&resolved.Syslog, s.Hostname, entry.Event, entry.Raw))
+			buf.Write(frame)
+		}
+
+		if _, err := conn.Write(buf.Bytes()); err != nil {
+			logger.WithError(err).Error(ctx, "failed to write audit log stream",
+				slog.String("app_id", s.AppID),
+				slog.String("stream", streamConfig.Name))
+			return
+		}
 	}
 
 	logger.Debug(ctx, "delivered audit log batch",
