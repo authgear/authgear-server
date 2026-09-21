@@ -41,7 +41,12 @@
       {{ $.CustomIcon }}
     </div>
   {{ end }}
-  <p class="settings-item__label">
+  {{/* TruncateLabel keeps the label to one line with an ellipsis, for a
+       label that is arbitrary text (an app's name). Off by default: emails
+       and phone numbers on the identity rows are meant to wrap. */}}
+  <p class="settings-item__label{{ if $.TruncateLabel }} settings-item__label--truncate{{ end }}"
+    {{ if $.TruncateLabel }}title="{{ $.Label }}"{{ end }}
+  >
     {{ $.Label }}
   </p>
 

@@ -60,7 +60,6 @@ image
 info
 input
 ios
-join
 key
 key_vertical
 keyboard

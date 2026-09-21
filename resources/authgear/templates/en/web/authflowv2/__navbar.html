@@ -1,6 +1,8 @@
 {{ define "authflowv2/__navbar.html" }}
 <nav class="navbar">
-  <h1 class="navbar__title">{{ $.Title }}</h1>
+  <h1 class="navbar__title" title="{{ $.Title }}">
+    <span class="navbar__title-text">{{ $.Title }}</span>
+  </h1>
 
   {{ if not $.Context.IsSettingsAction }}
     <a

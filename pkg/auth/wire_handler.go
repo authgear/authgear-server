@@ -332,6 +332,13 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 	))
 }
 
+func newWebAppAuthflowV2SettingsAuthorizedAppHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsAuthorizedAppHandler)),
+	))
+}
+
 func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

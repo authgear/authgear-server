@@ -56,8 +56,19 @@
       line-height: var(--navbar__title-line-height);
     }
 
+    /* The title is an overlay across the whole bar, centred. A title can be
+       arbitrary text -- an authorized app's name -- so it is inset on both
+       sides by the back item's width (icon only on mobile, icon plus the
+       "Back" label from tablet up) and clipped with an ellipsis, so it neither
+       overlaps the back item nor wraps. The same inset on both sides keeps it
+       centred over the bar. */
     @apply absolute inset-0;
     @apply flex justify-center items-center;
+    @apply px-10 tablet:px-24;
+  }
+
+  .navbar__title-text {
+    @apply block max-w-full truncate;
   }
 
   .navbar__item {

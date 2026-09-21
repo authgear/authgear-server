@@ -197,6 +197,13 @@
     font-weight: var(--settings-item__font-weight);
   }
 
+  /* One line with an ellipsis. min-width: 0 lets the grid's auto title
+     column shrink below the label's content width; without it the label
+     widens the column instead of clipping. */
+  .settings-item__label--truncate {
+    @apply min-w-0 truncate;
+  }
+
   .settings-item__forward_arrow {
     font-size: var(--settings-item__forward-arrow-font-size);
     color: var(--settings-item__forward-arrow-color);

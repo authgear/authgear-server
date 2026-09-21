@@ -102,6 +102,10 @@
     letter-spacing: var(--dialog-title__letter-spacing);
     font-weight: var(--dialog-title__font-weight);
     color: var(--dialog-title__text-color);
+    /* A title can be a client name with no break opportunity, such as the
+       generated "Client dcrc_..." fallback. Let it wrap inside the dialog
+       rather than overflow it. Same rule as .consent-client-name. */
+    overflow-wrap: anywhere;
 
     :root[alignment-content="start"] & {
       @apply text-start;

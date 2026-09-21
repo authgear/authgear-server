@@ -48,6 +48,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
@@ -142,6 +143,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.AuthflowEndpoints), new(*endpoints.Endpoints)),
 	wire.Bind(new(handleroauth.ConsentClientLogoEndpoint), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebappauthflowv2.SettingsAuthorizedAppsClientLogoEndpoint), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebappauthflowv2.SettingsAuthorizedAppsScopeStore), new(*resourcescope.Store)),
 
 	wire.Bind(new(handlerwebappauthflowv2.ResetPasswordHandlerDatabase), new(*appdb.Handle)),
 
