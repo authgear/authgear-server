@@ -110,5 +110,50 @@ func (h *Handle) WithMutexExpiry(ctx context.Context, name string, expiry time.D
 	defer func() {
 		_, _ = mutex.UnlockContext(unlockCtx)
 	}()
+
+	// Renew the lock periodically while do() runs, so a critical section
+	// that legitimately takes a while (see this method's own doc comment)
+	// does not have its lock expire out from under it -- without this, a
+	// do() that overruns expiry would let a second caller acquire the
+	// same, now-expired, lock and run concurrently, which is exactly what
+	// this lock exists to prevent.
+	if expiry > 0 {
+		extendCtx, cancelExtend := context.WithCancel(ctx)
+		extendDone := make(chan struct{})
+		go func() {
+			defer close(extendDone)
+			h.extendMutexPeriodically(extendCtx, mutex, expiry)
+		}()
+		// Registered after the unlock defer, so LIFO runs this first:
+		// the extend goroutine is fully stopped before UnlockContext
+		// touches the same *redsync.Mutex, so the two never race on it.
+		defer func() {
+			cancelExtend()
+			<-extendDone
+		}()
+	}
+
 	return do()
+}
+
+// extendMutexPeriodically calls mutex.ExtendContext every expiry/2 until
+// ctx is canceled. expiry/2 leaves a full half of the expiry window as
+// margin -- even if one extend call is slow or its result is lost, the
+// next attempt still has time to land before the lock would actually
+// expire.
+func (h *Handle) extendMutexPeriodically(ctx context.Context, mutex *redsync.Mutex, expiry time.Duration) {
+	logger := HandleLogger.GetLogger(ctx)
+	ticker := time.NewTicker(expiry / 2)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if _, err := mutex.ExtendContext(ctx); err != nil {
+				logger.WithError(err).Error(ctx, "failed to extend mutex",
+					slog.String("name", mutex.Name()))
+			}
+		}
+	}
 }

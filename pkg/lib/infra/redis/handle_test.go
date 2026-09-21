@@ -86,5 +86,39 @@ func TestHandleWithMutexExpiry(t *testing.T) {
 			})
 			So(errors.Is(err, sentinel), ShouldBeTrue)
 		})
+
+		Convey("the lock is renewed while do() runs, surviving past the original expiry", func() {
+			s := miniredis.RunT(t)
+			h := newTestHandle(t, "redis://"+s.Addr())
+
+			expiry := 300 * time.Millisecond
+			doStarted := make(chan struct{})
+			doFinished := make(chan struct{})
+			var doErr error
+			go func() {
+				doErr = h.WithMutexExpiry(ctx, "test-mutex", expiry, func() error {
+					close(doStarted)
+					// Well past expiry: without renewal the lock would
+					// already be gone from Redis partway through this.
+					time.Sleep(3 * expiry)
+					return nil
+				})
+				close(doFinished)
+			}()
+
+			<-doStarted
+			// Past the original expiry, but do() is still running.
+			time.Sleep(2 * expiry)
+
+			// If the lock were not being renewed, it would have expired
+			// in Redis by now and this would succeed instead.
+			contendErr := h.WithMutexExpiry(ctx, "test-mutex", time.Second, func() error {
+				return nil
+			})
+
+			<-doFinished
+			So(doErr, ShouldBeNil)
+			So(errors.Is(contendErr, redis.ErrMutexNotAcquired), ShouldBeTrue)
+		})
 	})
 }
