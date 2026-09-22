@@ -43,6 +43,11 @@
     /* Therefore, we changed our approach and use absolute instead */
     /* The caveat of using absolute is that we have to make sure we have no unintended positioned parent. */
     @apply absolute;
+    /* The host grows with the page, so covering it entirely centres the dialog
+       in the document rather than in the viewport when the page is longer than
+       the screen (DEV-3855). On open, dialog.ts overrides top/bottom inline so
+       the backdrop covers only the part of the host that is on screen, and
+       locks page scroll while the dialog is open so that box stays put. */
     @apply inset-0;
     @apply flex;
 
@@ -89,6 +94,11 @@
 
   .dialog-backdrop.open > .dialog {
     transform: translateY(0%);
+  }
+
+  /* Applied to <html> by dialog.ts while any dialog is open. */
+  .dialog-page-scroll-lock {
+    overflow: hidden;
   }
 
   .dialog-title-description {
