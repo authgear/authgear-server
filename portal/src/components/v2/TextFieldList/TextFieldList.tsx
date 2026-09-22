@@ -140,18 +140,19 @@ function TextFieldListItem({
         />
       </div>
       {canDelete ? (
-        <RadixIconButton
-          className={styles.deleteButton}
-          variant="ghost"
-          color="gray"
-          size="2"
-          type="button"
-          aria-label={deleteButtonAriaLabel}
-          disabled={disabled}
-          onClick={onDeleteClick}
-        >
-          <TrashIcon width="1rem" height="1rem" />
-        </RadixIconButton>
+        <div className={styles.deleteButton}>
+          <RadixIconButton
+            variant="ghost"
+            color="gray"
+            size="2"
+            type="button"
+            aria-label={deleteButtonAriaLabel}
+            disabled={disabled}
+            onClick={onDeleteClick}
+          >
+            <TrashIcon width="1rem" height="1rem" />
+          </RadixIconButton>
+        </div>
       ) : null}
     </div>
   );
