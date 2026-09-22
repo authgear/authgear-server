@@ -54,6 +54,7 @@ import {
 } from "./auditLogActivityTypes";
 import {
   AuditLogDateRangePresetKey,
+  AUDIT_LOG_DATE_RANGE_DEFAULT_PRESET,
   detectDateRangePreset,
   getInitialAuditLogDateRange,
   getPresetDateRange,
@@ -122,8 +123,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   );
 
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
-  const presetBeforeCustomDialogRef =
-    useRef<AuditLogDateRangePresetKey>("today");
+  const presetBeforeCustomDialogRef = useRef<AuditLogDateRangePresetKey>(
+    AUDIT_LOG_DATE_RANGE_DEFAULT_PRESET
+  );
   const [dateRangePreset, setDateRangePreset] =
     useState<AuditLogDateRangePresetKey>(initialDateRange.preset);
   const [auditLogKind, setAuditLogKind] = useState<AuditLogKind>(() => {
