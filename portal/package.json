@@ -26,10 +26,7 @@
   },
   "overrides": {
     "lodash": "^4.18.1",
-    "esbuild": "^0.28.1",
-    "minimatch@10.2.5": {
-      "brace-expansion": "^5.0.9"
-    }
+    "esbuild": "^0.28.1"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.2.1",
