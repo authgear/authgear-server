@@ -1,6 +1,8 @@
 package httputil
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"net/http"
 	"time"
 
@@ -56,6 +58,11 @@ type SSRFSafeExternalClientOptions struct {
 	// "hook.blocking_handlers". It appears in the log a refusal writes, so
 	// that the message says which setting to go and fix.
 	Sink string
+	// RootCAs verifies the server certificate against this pool only,
+	// instead of the system trust store. For a destination inside the
+	// deployment, issued by a private certificate authority. nil keeps the
+	// system trust store.
+	RootCAs *x509.CertPool
 }
 
 // NewSSRFSafeExternalClient returns a client for fetching a URL whose
@@ -94,6 +101,15 @@ func NewSSRFSafeExternalClient(timeout time.Duration, opts SSRFSafeExternalClien
 				IdleConnTimeout:       30 * time.Second,
 				TLSHandshakeTimeout:   timeout,
 				ResponseHeaderTimeout: timeout,
+				// Set unconditionally, not only when RootCAs != nil.
+				// tls.VersionTLS12 is already Go's client default, so no
+				// existing caller's handshake changes; stating it here
+				// makes the floor a property of this code rather than of
+				// the toolchain version.
+				TLSClientConfig: &tls.Config{
+					MinVersion: tls.VersionTLS12,
+					RootCAs:    opts.RootCAs,
+				},
 				// No Proxy. http.ProxyFromEnvironment would route the request
 				// through a proxy chosen by the environment, and the proxy --
 				// not SafeDialer -- would then resolve the name, silently
