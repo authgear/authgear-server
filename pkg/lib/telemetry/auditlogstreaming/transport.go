@@ -30,9 +30,9 @@ var (
 // entries' worth of frames rather than scaling with the whole batch.
 const maxEntriesPerWrite = 100
 
-// dial opens the connection for a stream: plaintext TCP, or TLS when the
-// stream enables it.
-func dial(ctx context.Context, s *ResolvedStream) (net.Conn, error) {
+// dial opens the connection for a stream's tcp transport: plaintext TCP,
+// or TLS when the stream enables it.
+func dial(ctx context.Context, s *ResolvedTCP) (net.Conn, error) {
 	dialCtx, cancel := context.WithTimeout(ctx, dialTimeout)
 	defer cancel()
 
@@ -127,7 +127,7 @@ func (s *SenderImpl) sendToStream(
 	streamConfig *config.TelemetryAuditLogStreamConfig,
 	entries []QueuedEntry,
 ) {
-	resolved, err := resolveStream(s.AppID, streamConfig, s.TLS)
+	resolved, err := resolveStream(s.AppID, streamConfig, s.TLS, nil)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to resolve audit log stream",
 			slog.String("app_id", s.AppID),
@@ -135,7 +135,7 @@ func (s *SenderImpl) sendToStream(
 		return
 	}
 
-	conn, err := dial(ctx, resolved)
+	conn, err := dial(ctx, resolved.TCP)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to dial audit log stream",
 			slog.String("app_id", s.AppID),
@@ -161,7 +161,7 @@ func (s *SenderImpl) sendToStream(
 
 		buf.Reset()
 		for _, entry := range entries[start:end] {
-			frame := Frame(resolved.Syslog.Framing, EncodeRFC5424(&resolved.Syslog, s.Hostname, entry.Event, entry.Raw))
+			frame := Frame(resolved.Syslog.Framing, EncodeRFC5424(resolved.Syslog, s.Hostname, entry.Event, entry.Raw))
 			buf.Write(frame)
 		}
 
