@@ -67,6 +67,84 @@ func TestTelemetryAuditLogStreamDefaults(t *testing.T) {
 	})
 }
 
+func TestTelemetryAuditLogStreamDatadogDefaults(t *testing.T) {
+	Convey("TelemetryAuditLogStreamDatadogConfig defaults", t, func() {
+		Convey("minimal datadog stream defaults site, service and source, and leaves tags nil", func() {
+			cfg, err := parseTelemetryStreams(`
+    - name: datadog
+      type: datadog
+      transport: http
+`)
+			So(err, ShouldBeNil)
+			So(cfg.Telemetry.AuditLogs.Streams, ShouldHaveLength, 1)
+			stream := cfg.Telemetry.AuditLogs.Streams[0]
+			So(stream.Datadog.Site, ShouldEqual, config.DatadogSiteUS1)
+			So(stream.Datadog.Service, ShouldEqual, "authgear")
+			So(stream.Datadog.Source, ShouldEqual, "authgear")
+			So(stream.Datadog.Tags, ShouldBeNil)
+		})
+
+		Convey("explicit site, service, source and tags survive defaulting", func() {
+			cfg, err := parseTelemetryStreams(`
+    - name: datadog
+      type: datadog
+      transport: http
+      datadog:
+        site: datadoghq.eu
+        service: myservice
+        source: myservice
+        tags:
+          env: production
+`)
+			So(err, ShouldBeNil)
+			stream := cfg.Telemetry.AuditLogs.Streams[0]
+			So(stream.Datadog.Site, ShouldEqual, config.DatadogSite("datadoghq.eu"))
+			So(stream.Datadog.Service, ShouldEqual, "myservice")
+			So(stream.Datadog.Source, ShouldEqual, "myservice")
+			So(stream.Datadog.Tags, ShouldResemble, map[string]string{"env": "production"})
+		})
+
+		Convey("a datadog stream has Syslog and TCP nil after parsing", func() {
+			cfg, err := parseTelemetryStreams(`
+    - name: datadog
+      type: datadog
+      transport: http
+`)
+			So(err, ShouldBeNil)
+			stream := cfg.Telemetry.AuditLogs.Streams[0]
+			So(stream.Syslog, ShouldBeNil)
+			So(stream.TCP, ShouldBeNil)
+			So(stream.HTTP, ShouldNotBeNil)
+			So(stream.Datadog, ShouldNotBeNil)
+		})
+
+		Convey("a syslog stream has Datadog and HTTP nil after parsing", func() {
+			cfg, err := parseTelemetryStreams(`
+    - name: collector
+      type: syslog
+      transport: tcp
+      tcp:
+        address: collector.internal:5140
+      syslog:
+        format: rfc5424
+        framing: newline
+`)
+			So(err, ShouldBeNil)
+			stream := cfg.Telemetry.AuditLogs.Streams[0]
+			So(stream.Datadog, ShouldBeNil)
+			So(stream.HTTP, ShouldBeNil)
+			So(stream.Syslog, ShouldNotBeNil)
+			So(stream.TCP, ShouldNotBeNil)
+		})
+	})
+}
+
+func TestDatadogSiteLogsIntakeURL(t *testing.T) {
+	Convey("DatadogSite.LogsIntakeURL", t, func() {
+		So(config.DatadogSite("datadoghq.eu").LogsIntakeURL(), ShouldEqual, "https://http-intake.logs.datadoghq.eu/api/v2/logs")
+	})
+}
+
 func TestTelemetryAuditLogStreamRequiredBlocks(t *testing.T) {
 	Convey("TelemetryAuditLogStreamConfig required blocks", t, func() {
 		Convey("type: syslog without a syslog block is rejected", func() {
