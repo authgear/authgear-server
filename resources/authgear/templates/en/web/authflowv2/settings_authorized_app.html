@@ -27,9 +27,13 @@
 {{/* settings-content bounds and centres the column on tablet and up, as the
      edit-email and change-password forms do. */}}
 <div class="settings-content flex flex-col gap-y-6">
-  <p class="settings-description text-center">
-    {{ include "v2.page.settings-authorized-app.default.description" nil }}
-  </p>
+  {{/* Only when there is a list to introduce: a sign-in-only grant says the
+       opposite below, and the two together read as a contradiction. */}}
+  {{ if not $isSignInOnly }}
+    <p class="settings-description text-center">
+      {{ include "v2.page.settings-authorized-app.default.description" nil }}
+    </p>
+  {{ end }}
 
   {{/* What the app was granted, in the consent screen's two sections and
        with its classes, so what the user agreed to and what they later review
