@@ -54,6 +54,7 @@ When a finding could be two of these, file it under the more user-facing one (Bu
    - HTTP/config: new endpoints, changed request/response shapes, `authgear.yaml` schema changes
    - Note whether each change is additive (safe) or a rename/removal (breaking)
    - Breaking changes are not only interface renames/removals: a new default that refuses input previously accepted, a changed default, stricter validation, or a newly required config field all stop a working deployment. Any of those needs an entry in `docs/BREAKING-CHANGES.md` under `## [Unreleased]`, added in the same commit. A missing entry is a finding — report it under this heading.
+   - OAuth error codes: if the diff adds a new `error` code, removes one, or adds a new cause for an existing one (`protocol.NewError` / `NewErrorStatusCode` in `pkg/lib/oauth/`, `pkg/lib/dpop/`, `pkg/auth/handler/oauth/`), the public list at https://docs.authgear.com/reference/apis/oauth-2.0-and-openid-connect-oidc/error-codes (`reference/apis/oauth-2.0-and-openid-connect-oidc/error-codes.md` in `authgear/docs`) needs a matching update. Report it under this heading as a docs follow-up. A reworded `error_description` alone does not need one; the page tells developers not to match on it.
 
 3. **Code quality issues** — look specifically for:
    - Formatting/lint violations: run `gofmt -l <changed .go files>` and `gofmt -d` on any that fail; for frontend, run `npm run typecheck`/`eslint`/`stylelint`/`prettier` (full CI-parity check is mandatory in Phase 3, not optional)
