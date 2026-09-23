@@ -1936,3 +1936,529 @@ config:
           syslog:
             format: rfc5424
             framing: newline
+
+---
+name: telemetry-audit-log-stream-datadog-minimal
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+
+---
+name: telemetry-audit-log-stream-datadog-full-object
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            site: datadoghq.eu
+            service: myservice
+            source: myservice
+            tags:
+              env: production
+
+---
+name: telemetry-audit-log-stream-datadog-type-with-tcp-transport-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/transport: enum
+    map[actual:tcp expected:[http]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: tcp
+          tcp:
+            address: collector.internal:5140
+
+---
+name: telemetry-audit-log-stream-syslog-type-with-http-transport-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/transport: enum
+    map[actual:http expected:[tcp]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: collector
+          type: syslog
+          transport: http
+          syslog:
+            format: rfc5424
+            framing: newline
+
+---
+name: telemetry-audit-log-stream-datadog-object-on-syslog-stream-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0: not
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: collector.internal:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+          datadog:
+            site: datadoghq.com
+
+---
+name: telemetry-audit-log-stream-syslog-object-on-datadog-stream-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0: not
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          syslog:
+            format: rfc5424
+            framing: newline
+
+---
+name: telemetry-audit-log-stream-http-object-on-tcp-transport-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0: not
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: collector.internal:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+          http:
+            endpoint: https://opw.internal:8282/api/v2/logs
+
+---
+name: telemetry-audit-log-stream-tcp-object-on-http-transport-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0: not
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          tcp:
+            address: collector.internal:5140
+
+---
+name: telemetry-audit-log-stream-datadog-site-and-http-endpoint-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog: not
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            site: datadoghq.com
+          http:
+            endpoint: https://opw.internal:8282/api/v2/logs
+
+---
+name: telemetry-audit-log-stream-datadog-site-alone-accepted
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            site: datadoghq.com
+
+---
+name: telemetry-audit-log-stream-http-endpoint-alone-accepted
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: https://opw.internal:8282/api/v2/logs
+
+---
+name: telemetry-audit-log-stream-http-endpoint-plaintext-accepted
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: http://localhost:8126/api/v2/logs
+
+---
+name: telemetry-audit-log-stream-http-endpoint-no-host-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/http/endpoint: format
+    map[error:expect non-empty host format:x_http_url]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: "https://"
+
+---
+name: telemetry-audit-log-stream-http-endpoint-userinfo-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/http/endpoint: format
+    map[error:expect no userinfo format:x_http_url]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: "https://user:pw@opw.internal:8282/api/v2/logs"
+
+---
+name: telemetry-audit-log-stream-http-endpoint-bad-scheme-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/http/endpoint: format
+    map[error:expect http or https scheme format:x_http_url]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: "ftp://opw.internal:8282/api/v2/logs"
+
+---
+name: telemetry-audit-log-stream-datadog-site-not-a-closed-enum-accepted
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            site: eu1.datadoghq.com
+
+---
+name: telemetry-audit-log-stream-datadog-site-empty-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog/site: minLength
+    map[actual:0 expected:1]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            site: ""
+
+---
+name: telemetry-audit-log-stream-datadog-site-too-long-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog/site: maxLength
+    map[actual:254 expected:253]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            site: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+---
+name: telemetry-audit-log-stream-datadog-service-empty-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog/service: minLength
+    map[actual:0 expected:1]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            service: ""
+
+---
+name: telemetry-audit-log-stream-datadog-service-too-long-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog/service: maxLength
+    map[actual:101 expected:100]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            service: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+---
+name: telemetry-audit-log-stream-datadog-source-empty-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog/source: minLength
+    map[actual:0 expected:1]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            source: ""
+
+---
+name: telemetry-audit-log-stream-datadog-source-too-long-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog/source: maxLength
+    map[actual:101 expected:100]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            source: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+---
+name: telemetry-audit-log-stream-datadog-tags-too-many-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog/tags: maxProperties
+    map[actual:21 expected:20]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            tags:
+              t0: v0
+              t1: v1
+              t2: v2
+              t3: v3
+              t4: v4
+              t5: v5
+              t6: v6
+              t7: v7
+              t8: v8
+              t9: v9
+              t10: v10
+              t11: v11
+              t12: v12
+              t13: v13
+              t14: v14
+              t15: v15
+              t16: v16
+              t17: v17
+              t18: v18
+              t19: v19
+              t20: v20
+
+---
+name: telemetry-audit-log-stream-datadog-tags-empty-value-rejected
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/0/datadog/tags/env: minLength
+    map[actual:0 expected:1]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            tags:
+              env: ""
+
+---
+name: telemetry-audit-log-stream-datadog-tags-twenty-accepted
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          datadog:
+            tags:
+              t0: v0
+              t1: v1
+              t2: v2
+              t3: v3
+              t4: v4
+              t5: v5
+              t6: v6
+              t7: v7
+              t8: v8
+              t9: v9
+              t10: v10
+              t11: v11
+              t12: v12
+              t13: v13
+              t14: v14
+              t15: v15
+              t16: v16
+              t17: v17
+              t18: v18
+              t19: v19
+
+---
+name: telemetry-audit-log-stream-datadog-duplicated-name
+error: |-
+  invalid configuration:
+  /telemetry/audit_logs/streams/1/name: duplicated audit log stream name 'mystream' with streams[0]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  telemetry:
+    audit_logs:
+      streams:
+        - name: mystream
+          type: datadog
+          transport: http
+        - name: mystream
+          type: datadog
+          transport: http
