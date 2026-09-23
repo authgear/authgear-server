@@ -411,15 +411,20 @@ func (tc *TestCase) executeStep(
 		if !ok {
 			return nil, state, false
 		}
-		rows, err := cmd.QueryHookServer(path)
+		rows, err := cmd.QueryHookServer(path, step.HookServerMinCount)
 		if err != nil {
 			t.Errorf("failed to query hook server: %v", err)
 			return nil, state, false
 		}
 		if step.HookServerOutput != nil {
+			renderedRows, ok := renderTemplateString(t, cmd, prevSteps, step.HookServerOutput.Rows)
+			if !ok {
+				return nil, state, false
+			}
 			renderedStep := step
-			renderedStep.QueryOutput = step.HookServerOutput
-			ok := validateQueryResult(t, renderedStep, rows)
+			hookServerQueryOutput := QueryOutput{Rows: renderedRows}
+			renderedStep.QueryOutput = &hookServerQueryOutput
+			ok = validateQueryResult(t, renderedStep, rows)
 			if !ok {
 				return nil, state, false
 			}

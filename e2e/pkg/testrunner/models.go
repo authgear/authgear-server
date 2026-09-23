@@ -310,6 +310,7 @@ var _ = TestCaseSchema.Add("Step", `
 		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" },
 		"hook_server_path": { "type": "string" },
+		"hook_server_min_count": { "type": "integer" },
 		"hook_server_output": { "$ref": "#/$defs/QueryOutput" },
 		"smtp_log_subject": { "type": "string" },
 		"smtp_log_recipient": { "type": "string" },
@@ -656,8 +657,9 @@ type Step struct {
 	HTTPOutput                    *HTTPOutput       `json:"http_output"`
 
 	// `action` == "hook_server_query"
-	HookServerPath   string       `json:"hook_server_path"`
-	HookServerOutput *QueryOutput `json:"hook_server_output"`
+	HookServerPath     string       `json:"hook_server_path"`
+	HookServerMinCount int          `json:"hook_server_min_count"`
+	HookServerOutput   *QueryOutput `json:"hook_server_output"`
 
 	// `action` == "smtp_log_query"
 	SMTPLogSubject   string       `json:"smtp_log_subject"`
