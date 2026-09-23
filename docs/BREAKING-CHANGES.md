@@ -18,6 +18,8 @@ make logs-summary A=2026-01-01.0 B=2026-02-01.0
 
 ## [Unreleased]
 
+## [2026-09-23.0]
+
 ### Outbound requests to private and loopback addresses are refused
 
 Authgear now refuses to connect to an address that is not publicly routable when the URL came from a project's own configuration. Loopback, private (`10/8`, `172.16/12`, `192.168/16`), link-local (including `169.254.169.254`), and the other special-use ranges of RFC 6890 are all refused. A hostname is refused if **any** address it resolves to is in one of those ranges.
