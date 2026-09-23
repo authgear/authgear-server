@@ -138,7 +138,7 @@ Every field has a default, so the object itself is optional. The API key is not 
 | `source` | no | string, 1-100 chars | `authgear` | The Datadog `ddsource` of every log. |
 | `tags` | no | map of string to string, at most 20 pairs | `{}` | Added to `ddtags` of every log. See [`ddtags`](#ddtags). |
 
-- `site` is the site parameter of one of the [Datadog sites](https://docs.datadoghq.com/getting_started/site/), not its display name. It is one of `datadoghq.com`, `us3.datadoghq.com`, `us5.datadoghq.com`, `datadoghq.eu`, `ap1.datadoghq.com`, `ap2.datadoghq.com`, `uk1.datadoghq.com`, `ddog-gov.com`, `us2.ddog-gov.com`.
+- `site` is the site parameter of one of the [Datadog sites](https://docs.datadoghq.com/getting_started/site/), not its display name -- for example `datadoghq.com`, `us3.datadoghq.com`, `us5.datadoghq.com`, `datadoghq.eu`, `ap1.datadoghq.com`, `ap2.datadoghq.com`, `uk1.datadoghq.com`, `ddog-gov.com`, `us2.ddog-gov.com`. Authgear does not validate it against that list: `site` is a free-form string, so which sites are usable is Datadog's deployment to govern, not this project's. A value Datadog does not recognise fails at delivery time, as an unreachable `http.endpoint` does, not at config save time.
 - `site` is rejected when `http.endpoint` is set. They are two ways to say the same thing, so exactly one of them is used.
 - `source` becomes `ddsource`, which is how Datadog selects the integration pipeline that post-processes a log. Datadog has no `authgear` integration, so no pipeline is installed for the default value. This is why Authgear maps the [Datadog standard attributes](#datadog-standard-attributes) itself instead of relying on a pipeline. Change `source` only when the project has its own pipeline keyed on another value.
 - `service` and `source` are also tags in Datadog, so their values are subject to [Datadog's tag rules](https://docs.datadoghq.com/getting_started/tagging/#define-tags).
@@ -162,13 +162,15 @@ Certificates are not configured here. They are in [the tls secret](#the-tls-secr
 
 | Field | Required | Values | Default | Description |
 |---|---|---|---|---|
-| `endpoint` | no | absolute `https` URL | derived from the encoding object | The exact URL requests are sent to. |
+| `endpoint` | no | absolute `http` or `https` URL | derived from the encoding object | The exact URL requests are sent to. |
 
 - `endpoint` is rejected when `datadog.site` is set. Without it, the URL is derived from `datadog.site`, see [the request](#the-request).
 - `endpoint` exists so that a project can put something of its own in front of the destination — a [Datadog Agent](https://docs.datadoghq.com/agent/), an [Observability Pipelines Worker](https://docs.datadoghq.com/observability_pipelines/), or a forward proxy. The body is unchanged, so whatever receives it has to accept the destination's payload.
-- The scheme is `https`. Plain `http` is rejected.
-- The negotiated TLS version is at least 1.2. The server certificate is verified using the host of the URL as the expected name.
-- When the stream has a `certificate_authority` in [the tls secret](#the-tls-secret), the server certificate is verified against it only. Otherwise it is verified against the system trust store. This is for a self-hosted `endpoint` with a private certificate authority. `client_certificate` is not used by the `http` transport.
+- The scheme is `http` or `https`, the same two a [hook](./hook.md) URL accepts. Nothing else is.
+- A plaintext `http` endpoint sends the `api_key` across the network in the clear, in a header, on every request. That is worse than it is for a hook, which carries a signature rather than a credential, so use `http` only for a destination on a network the deployment controls — an Agent on loopback, or a worker in the same cluster. See [the caveats](#caveats-of-type-datadog).
+- For an `https` endpoint, the negotiated TLS version is at least 1.2, and the server certificate is verified using the host of the URL as the expected name.
+- When the stream has a `certificate_authority` in [the tls secret](#the-tls-secret), the server certificate is verified against it only. Otherwise it is verified against the system trust store. This is for a self-hosted `https` endpoint with a private certificate authority. `client_certificate` is not used by the `http` transport.
+- The request is subject to the deployment's fetch address policy, as an event webhook is. An `endpoint` that resolves to an address that is not publicly routable is refused, and the chunk is dropped with one warning. An operator who runs the destination inside their own network lifts that with `http.insecure_fetch_address_allowed`, or names the host in `http.insecure_fetch_address_allowed_hosts`, in `authgear.features.yaml`. Neither is writable through the portal or the Admin API, so a project cannot grant itself the deployment's internal network by configuring a stream.
 
 ### The tls secret
 
@@ -229,7 +231,8 @@ secrets:
 
 - It is an API key, not an application key. An application key does not authenticate to the logs intake.
 - A Datadog API key is not scoped. It can write to every intake of the organization, so treat it as a full-organization write credential.
-- Saving an `authgear.yaml` with a stream of `type: datadog` fails when the secret has no item for it. Unlike the tls secret, which is optional material, the key is what makes the stream able to deliver at all.
+- A stream of `type: datadog` with no item in this secret is an invalid configuration, the way a SAML service provider with no certificates is. Saving such an `authgear.yaml` fails, and so does loading one: the pair is checked every time the configuration is read, not only when it is saved. Unlike the tls secret, which is optional material, the key is what makes the stream able to deliver at all.
+- The consequence is that the secret is written before, or together with, the stream that needs it, and that the stream is removed before the key it uses. A project left with one and not the other does not load, which for a self-hosted deployment editing the files by hand means the project stops serving until the pair is complete again.
 - An item whose `stream_name` matches no stream is ignored, and is removed the next time `authgear.yaml` is saved.
 - Key rotation is manual. Authgear does not detect a revoked key other than by the `403` it gets from the intake, see [the request](#the-request).
 
@@ -726,12 +729,28 @@ A project that sends through a [Datadog Agent](https://docs.datadoghq.com/agent/
         endpoint: https://opw.internal:8282/api/v2/logs
 ```
 
+A worker on the deployment's own network is reached only once the operator allows it, because the fetch address policy refuses a non-publicly-routable address by default. In `authgear.features.yaml`:
+
+```yaml
+http:
+  insecure_fetch_address_allowed_hosts:
+  - opw.internal
+```
+
+A destination that does not terminate TLS, such as an Agent listening on loopback, is reached over `http`. The `api_key` is then in the clear on that hop, which is the trade to make knowingly and only on a network the deployment controls.
+
+```yaml
+      http:
+        endpoint: http://localhost:8126/api/v2/logs
+```
+
 ## Caveats
 
 - A long collector outage leaves a gap in the stream, which is not filled by any later delivery.
 - Delivery runs in the Authgear background worker. A deployment that does not run it queues entries and delivers none of them.
 - An entry that is queued but not yet delivered is lost if the queue store is lost. The entry remains in the audit database.
-- `tcp.address` and `http.endpoint` are not validated against private or link-local ranges. This matches the existing treatment of hook URLs.
+- `tcp.address` is not validated against private or link-local ranges, and the `tcp` transport connects to whatever it names.
+- `http.endpoint` is not validated against those ranges either, but the `http` transport refuses to connect to one at delivery time unless the deployment allows it. This is the existing treatment of hook URLs, see [the http object](#the-http-object).
 - The default `structured_data_id` of `authgear` is not of the form `name@<private-enterprise-number>` that [RFC5424 section-6.3.2](https://datatracker.ietf.org/doc/html/rfc5424#section-6.3.2) requires for non-IANA-registered SD-IDs. Set `structured_data_id` to a compliant value where the receiver enforces it.
 - MSG is not prefixed with a BOM, which RFC 5424 recommends for UTF-8 content.
 
@@ -742,7 +761,9 @@ A project that sends through a [Datadog Agent](https://docs.datadoghq.com/agent/
 - The event payload carries personal data — email addresses, phone numbers, names, IP addresses — and is sent as-is, as is the query string of `http.url`. Redact with [Sensitive Data Scanner](https://docs.datadoghq.com/sensitive_data_scanner/), an exclusion filter, or a worker in front as in [UC4](#uc4-stream-audit-logs-to-datadog).
 - Datadog bills by ingested volume and by indexed event. Authgear does not filter, so a project pays for every entry.
 - A Datadog API key is not scoped to logs, and Authgear does not rotate it. Treat `api_key` as a full-organization write credential.
-- `datadog.site` is a closed enum. A site newer than the running Authgear version is reached with `http.endpoint`.
+- `datadog.site` is not validated against Datadog's list of sites. A typo or a decommissioned site is not caught at save time -- it produces a URL that fails at every delivery, the same failure mode as a wrong `http.endpoint`.
+- A `type: datadog` stream and its API key are validated as a pair on every configuration load, so deleting the key of a stream that still exists takes the whole project down, not just its streaming. See [the datadog secret](#the-datadog-secret).
+- An `http.endpoint` with the `http` scheme puts the `api_key` on the wire in cleartext. Authgear accepts it, as it accepts a plaintext hook URL, and does not warn beyond this: the intended destination is a local Agent or an in-cluster worker. A plaintext endpoint on a public network exposes a full-organization write credential to anyone on the path.
 
 ## Future works
 
