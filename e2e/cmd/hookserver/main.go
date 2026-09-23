@@ -11,9 +11,11 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 )
 
 // smsGatewayPathPrefix marks the paths that answer as an SMS gateway. No
@@ -25,6 +27,16 @@ const smsGatewayPathPrefix = "sms-gateway/"
 // success, following the same path-conditional shape smsGatewayPathPrefix
 // already uses for its own response.
 const logsPathSuffix = "/logs"
+
+// minCountPollInterval and minCountPollTimeout bound how long GET
+// /<path>?min_count=<n> waits for records to arrive. Streaming delivery is
+// asynchronous behind the drain interval, unlike a hook's synchronous
+// delivery, so a caller needs to wait rather than poll from the test
+// runner side.
+const (
+	minCountPollInterval = 50 * time.Millisecond
+	minCountPollTimeout  = 10 * time.Second
+)
 
 type recorder struct {
 	mu       sync.Mutex
@@ -228,6 +240,14 @@ func handlePost(rec *recorder, w http.ResponseWriter, r *http.Request, path stri
 }
 
 func handleGet(rec *recorder, w http.ResponseWriter, r *http.Request, path string) {
+	minCount, _ := strconv.Atoi(r.URL.Query().Get("min_count"))
+	if minCount > 0 {
+		deadline := time.Now().Add(minCountPollTimeout)
+		for len(rec.get(path)) < minCount && time.Now().Before(deadline) {
+			time.Sleep(minCountPollInterval)
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"requests": rec.get(path),

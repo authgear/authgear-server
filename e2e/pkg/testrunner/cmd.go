@@ -330,8 +330,19 @@ func (e *End2EndCmd) QuerySyslogServer(port int, minCount int) ([]interface{}, e
 	return payload.Messages, nil
 }
 
-func (e *End2EndCmd) QueryHookServer(path string) ([]interface{}, error) {
-	resp, err := http.Get("http://127.0.0.1:2626/" + strings.TrimPrefix(path, "/"))
+// QueryHookServer asks the e2e HTTP request recorder (cmd/hookserver) for
+// the requests it has received on path so far. minCount, when greater
+// than 0, makes the recorder wait (up to 10s) until at least that many
+// records exist at that path -- streaming delivery is asynchronous behind
+// the drain interval, unlike a hook's synchronous delivery, so a test
+// needs to wait rather than assume the request has already arrived.
+// minCount <= 0 returns immediately, which is what every existing hook
+// test relies on.
+func (e *End2EndCmd) QueryHookServer(path string, minCount int) ([]interface{}, error) {
+	q := url.Values{}
+	q.Set("min_count", strconv.Itoa(minCount))
+
+	resp, err := http.Get("http://127.0.0.1:2626/" + strings.TrimPrefix(path, "/") + "?" + q.Encode())
 	if err != nil {
 		return nil, err
 	}
