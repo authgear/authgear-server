@@ -94,6 +94,9 @@ type SenderImpl struct {
 	Hostname string
 	Streams  []*config.TelemetryAuditLogStreamConfig
 	TLS      *config.TelemetryAuditLogStreamTLSMaterials
+
+	DatadogCredentials   *config.TelemetryAuditLogStreamDatadogCredentials
+	DatadogClientFactory DatadogClientFactory
 }
 
 var _ Sender = &SenderImpl{}
@@ -127,7 +130,7 @@ func (s *SenderImpl) sendToStream(
 	streamConfig *config.TelemetryAuditLogStreamConfig,
 	entries []QueuedEntry,
 ) {
-	resolved, err := resolveStream(s.AppID, streamConfig, s.TLS, nil)
+	resolved, err := resolveStream(s.AppID, streamConfig, s.TLS, s.DatadogCredentials)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to resolve audit log stream",
 			slog.String("app_id", s.AppID),
@@ -135,6 +138,27 @@ func (s *SenderImpl) sendToStream(
 		return
 	}
 
+	switch streamConfig.Type {
+	case config.TelemetryAuditLogStreamTypeSyslog:
+		s.sendSyslogTCP(ctx, logger, streamConfig, resolved, entries)
+	case config.TelemetryAuditLogStreamTypeDatadog:
+		s.sendDatadogHTTP(ctx, logger, resolved, entries)
+	default:
+		logger.Error(ctx, "unknown audit log stream type",
+			slog.String("app_id", s.AppID),
+			slog.String("stream", streamConfig.Name),
+			slog.String("type", string(streamConfig.Type)))
+	}
+}
+
+// sendSyslogTCP delivers entries to one syslog/tcp stream.
+func (s *SenderImpl) sendSyslogTCP(
+	ctx context.Context,
+	logger slogutil.NamedLogger,
+	streamConfig *config.TelemetryAuditLogStreamConfig,
+	resolved *ResolvedStream,
+	entries []QueuedEntry,
+) {
 	conn, err := dial(ctx, resolved.TCP)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to dial audit log stream",
