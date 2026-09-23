@@ -140,7 +140,7 @@ export default function DateTimePicker(
     const options = buildTimeOptions(minTime, maxTime);
     // Keep the currently selected value visible even if it is not on an increment.
     if (timeValue !== "" && !options.includes(timeValue)) {
-      return [timeValue, ...options].sort();
+      return [timeValue, ...options].sort((a, b) => a.localeCompare(b));
     }
     return options;
   }, [maxTime, minTime, timeValue]);
