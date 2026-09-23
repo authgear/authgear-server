@@ -50,8 +50,10 @@ func severity(t event.Type) int {
 //
 //	<PRI>1 TIMESTAMP HOSTNAME APP-NAME - authgear-audit-log [SD] MSG
 //
-// hostname is the project's RFC 5424 HOSTNAME (see ResolveHostname), msg is
-// the JSON-encoded event, byte-identical to what the producer enqueued.
+// hostname is the project's hostname (see ResolveHostname): "" is written
+// as RFC 5424's "-" NILVALUE, which is HOSTNAME's own way of saying
+// "none", distinct from the datadog encoder simply omitting the field. msg
+// is the JSON-encoded event, byte-identical to what the producer enqueued.
 func EncodeRFC5424(s *ResolvedSyslog, hostname string, e *event.Event, msg []byte) []byte {
 	var buf bytes.Buffer
 
@@ -62,7 +64,11 @@ func EncodeRFC5424(s *ResolvedSyslog, hostname string, e *event.Event, msg []byt
 	buf.WriteString("1 ")
 	buf.WriteString(time.Unix(e.Context.Timestamp, 0).UTC().Format("2006-01-02T15:04:05Z"))
 	buf.WriteByte(' ')
-	buf.WriteString(hostname)
+	if hostname == "" {
+		buf.WriteString("-")
+	} else {
+		buf.WriteString(hostname)
+	}
 	buf.WriteByte(' ')
 	buf.WriteString(s.AppName)
 	buf.WriteByte(' ')
