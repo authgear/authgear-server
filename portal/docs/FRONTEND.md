@@ -127,9 +127,12 @@ tuned for white and glares against a dark card. The whole portal was swept to `-
 for that case, with `Stepper.module.css` the one deliberate exception (its accent sits on a
 white fill).
 
-Dark mode is applied as a `light`/`dark` class on `<html>` (see `src/util/appearance.ts`),
-so a mode-specific rule is `:global(.dark) .foo { … }`. Reach for one only when a token
-genuinely cannot express the difference — the sidebar's accent wash is the current example.
+Dark mode is applied as a `light-theme`/`dark-theme` class on `<html>` (see
+`src/util/appearance.ts`), so a mode-specific rule is `:global(.dark-theme) .foo { … }`.
+Not `:global(.dark)` — `components/v2` uses a bare `dark` to mark one component as sitting
+on a dark island (the `darkMode` props), so that selector misses the page mode and fires on
+those islands instead. Reach for a mode-specific rule only when a token genuinely cannot
+express the difference — the sidebar's accent wash is the current example.
 
 ## i18n conventions
 
