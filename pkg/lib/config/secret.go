@@ -260,6 +260,15 @@ func (c *SecretConfig) validateSAMLServiceProviderCerts(ctx *validation.Context,
 	}
 }
 
+func (c *SecretConfig) validateTelemetryAuditLogStreamDatadogCredentials(ctx *validation.Context, streamName string) {
+	_, data, _ := c.LookupDataWithIndex(TelemetryAuditLogStreamDatadogCredentialsKey)
+	credentials, _ := data.(*TelemetryAuditLogStreamDatadogCredentials)
+	item, ok := credentials.Resolve(streamName)
+	if !ok || item.APIKey == "" {
+		ctx.EmitErrorMessage(fmt.Sprintf("api key of audit log stream '%s' is not configured", streamName))
+	}
+}
+
 func (c *SecretConfig) validateSSOOAuthDemoCredentials(ctx context.Context, vctx *validation.Context, demoCredentials *SSOOAuthDemoCredentials) {
 	for i, item := range demoCredentials.Items {
 		providerConfig := item.ProviderConfig
@@ -320,6 +329,12 @@ func (c *SecretConfig) Validate(ctx context.Context, appConfig *AppConfig) error
 		c.validateSAMLSigningKey(vctx, appConfig.SAML.Signing.KeyID)
 	}
 
+	for _, stream := range appConfig.Telemetry.AuditLogs.Streams {
+		if stream.Type == TelemetryAuditLogStreamTypeDatadog {
+			c.validateTelemetryAuditLogStreamDatadogCredentials(vctx, stream.Name)
+		}
+	}
+
 	idx, demoCredentials, ok := c.LookupDataWithIndex(SSOOAuthDemoCredentialsKey)
 	if ok {
 		childCtx := vctx.Child("secrets", strconv.Itoa(idx), "data")
@@ -374,6 +389,8 @@ const (
 
 	// nolint: gosec
 	TelemetryAuditLogStreamTLSMaterialsKey SecretKey = "telemetry.audit_logs.streams.tls"
+	// nolint: gosec
+	TelemetryAuditLogStreamDatadogCredentialsKey SecretKey = "telemetry.audit_logs.streams.datadog"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -396,33 +413,34 @@ type secretKeyDef struct {
 }
 
 var secretItemKeys = map[SecretKey]secretKeyDef{
-	DatabaseCredentialsKey:                     {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
-	AuditDatabaseCredentialsKey:                {"AuditDatabaseCredentials", func() SecretItemData { return &AuditDatabaseCredentials{} }},
-	SearchDatabaseCredentialsKey:               {"SearchDatabaseCredentials", func() SecretItemData { return &SearchDatabaseCredentials{} }},
-	ElasticsearchCredentialsKey:                {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
-	RedisCredentialsKey:                        {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
-	AnalyticRedisCredentialsKey:                {"AnalyticRedisCredentials", func() SecretItemData { return &AnalyticRedisCredentials{} }},
-	AdminAPIAuthKeyKey:                         {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
-	OAuthSSOProviderCredentialsKey:             {"OAuthSSOProviderCredentials", func() SecretItemData { return &OAuthSSOProviderCredentials{} }},
-	SSOOAuthDemoCredentialsKey:                 {"SSOOAuthDemoCredentials", func() SecretItemData { return &SSOOAuthDemoCredentials{} }},
-	SMTPServerCredentialsKey:                   {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
-	TwilioCredentialsKey:                       {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
-	NexmoCredentialsKey:                        {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
-	OAuthKeyMaterialsKey:                       {"OAuthKeyMaterials", func() SecretItemData { return &OAuthKeyMaterials{} }},
-	CSRFKeyMaterialsKey:                        {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
-	WebhookKeyMaterialsKey:                     {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
-	ImagesKeyMaterialsKey:                      {"ImagesKeyMaterials", func() SecretItemData { return &ImagesKeyMaterials{} }},
-	WATICredentialsKey:                         {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
-	OAuthClientCredentialsKey:                  {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
-	CustomSMSProviderConfigKey:                 {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
-	Deprecated_CaptchaCloudflareCredentialsKey: {"Deprecated_CaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
-	BotProtectionProviderCredentialsKey:        {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
-	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
-	WhatsappCloudAPICredentialsKey:             {"WhatsappCloudAPICredentials", func() SecretItemData { return &WhatsappCloudAPICredentials{} }},
-	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredentials", func() SecretItemData { return &LDAPServerUserCredentials{} }},
-	SAMLIdpSigningMaterialsKey:                 {"SAMLIdpSigningMaterials", func() SecretItemData { return &SAMLIdpSigningMaterials{} }},
-	SAMLSpSigningMaterialsKey:                  {"SAMLSpSigningMaterials", func() SecretItemData { return &SAMLSpSigningMaterials{} }},
-	TelemetryAuditLogStreamTLSMaterialsKey:     {"TelemetryAuditLogStreamTLSMaterials", func() SecretItemData { return &TelemetryAuditLogStreamTLSMaterials{} }},
+	DatabaseCredentialsKey:                       {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
+	AuditDatabaseCredentialsKey:                  {"AuditDatabaseCredentials", func() SecretItemData { return &AuditDatabaseCredentials{} }},
+	SearchDatabaseCredentialsKey:                 {"SearchDatabaseCredentials", func() SecretItemData { return &SearchDatabaseCredentials{} }},
+	ElasticsearchCredentialsKey:                  {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
+	RedisCredentialsKey:                          {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
+	AnalyticRedisCredentialsKey:                  {"AnalyticRedisCredentials", func() SecretItemData { return &AnalyticRedisCredentials{} }},
+	AdminAPIAuthKeyKey:                           {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
+	OAuthSSOProviderCredentialsKey:               {"OAuthSSOProviderCredentials", func() SecretItemData { return &OAuthSSOProviderCredentials{} }},
+	SSOOAuthDemoCredentialsKey:                   {"SSOOAuthDemoCredentials", func() SecretItemData { return &SSOOAuthDemoCredentials{} }},
+	SMTPServerCredentialsKey:                     {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
+	TwilioCredentialsKey:                         {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
+	NexmoCredentialsKey:                          {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
+	OAuthKeyMaterialsKey:                         {"OAuthKeyMaterials", func() SecretItemData { return &OAuthKeyMaterials{} }},
+	CSRFKeyMaterialsKey:                          {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
+	WebhookKeyMaterialsKey:                       {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
+	ImagesKeyMaterialsKey:                        {"ImagesKeyMaterials", func() SecretItemData { return &ImagesKeyMaterials{} }},
+	WATICredentialsKey:                           {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
+	OAuthClientCredentialsKey:                    {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
+	CustomSMSProviderConfigKey:                   {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
+	Deprecated_CaptchaCloudflareCredentialsKey:   {"Deprecated_CaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
+	BotProtectionProviderCredentialsKey:          {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
+	WhatsappOnPremisesCredentialsKey:             {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
+	WhatsappCloudAPICredentialsKey:               {"WhatsappCloudAPICredentials", func() SecretItemData { return &WhatsappCloudAPICredentials{} }},
+	LDAPServerUserCredentialsKey:                 {"LDAPServerUserCredentials", func() SecretItemData { return &LDAPServerUserCredentials{} }},
+	SAMLIdpSigningMaterialsKey:                   {"SAMLIdpSigningMaterials", func() SecretItemData { return &SAMLIdpSigningMaterials{} }},
+	SAMLSpSigningMaterialsKey:                    {"SAMLSpSigningMaterials", func() SecretItemData { return &SAMLSpSigningMaterials{} }},
+	TelemetryAuditLogStreamTLSMaterialsKey:       {"TelemetryAuditLogStreamTLSMaterials", func() SecretItemData { return &TelemetryAuditLogStreamTLSMaterials{} }},
+	TelemetryAuditLogStreamDatadogCredentialsKey: {"TelemetryAuditLogStreamDatadogCredentials", func() SecretItemData { return &TelemetryAuditLogStreamDatadogCredentials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]any{
