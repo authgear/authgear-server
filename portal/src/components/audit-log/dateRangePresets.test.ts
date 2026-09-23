@@ -174,9 +174,9 @@ describe("getInitialAuditLogDateRange", () => {
     expect(rangeTo).toEqual(to);
   });
 
-  it("returns the today preset when both params are absent", () => {
+  it("returns the default preset when both params are absent", () => {
     const { preset } = getInitialAuditLogDateRange(null, null, null);
-    expect(preset).toEqual("today");
+    expect(preset).toEqual("last30Days");
   });
 });
 

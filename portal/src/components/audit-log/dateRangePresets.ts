@@ -7,6 +7,9 @@ export type AuditLogDateRangePresetKey =
   | "last30Days"
   | "custom";
 
+export const AUDIT_LOG_DATE_RANGE_DEFAULT_PRESET: AuditLogDateRangePresetKey =
+  "last30Days";
+
 export const AUDIT_LOG_DATE_RANGE_PRESET_ORDER: AuditLogDateRangePresetKey[] = [
   "today",
   "last7Days",
@@ -132,7 +135,7 @@ export function detectDateRangePreset(
   minDate?: Date
 ): AuditLogDateRangePresetKey {
   if (rangeFrom == null && rangeTo == null) {
-    return "today";
+    return AUDIT_LOG_DATE_RANGE_DEFAULT_PRESET;
   }
 
   for (const preset of ["today", "last7Days", "last30Days"] as const) {
