@@ -16,12 +16,12 @@ func TestResolveHostname(t *testing.T) {
 			So(ResolveHostname("http://app.localhost:4000"), ShouldEqual, "app.localhost")
 		})
 
-		Convey("returns - for a host containing non-ASCII", func() {
-			So(ResolveHostname("https://éxample.com"), ShouldEqual, "-")
+		Convey("returns empty for a host containing non-ASCII", func() {
+			So(ResolveHostname("https://éxample.com"), ShouldEqual, "")
 		})
 
-		Convey("returns - for an unparseable origin", func() {
-			So(ResolveHostname("http://[::1"), ShouldEqual, "-")
+		Convey("returns empty for an unparseable origin", func() {
+			So(ResolveHostname("http://[::1"), ShouldEqual, "")
 		})
 	})
 }
