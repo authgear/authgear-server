@@ -237,6 +237,7 @@ type ResourceScopeFacade interface {
 	AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 	RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 	ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
+	ListScopesByNames(ctx context.Context, names []string) ([]*apimodel.Scope, error)
 }
 
 type DCRFacade interface {

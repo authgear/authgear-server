@@ -453,6 +453,8 @@ export type Authorization = Entity & Node & {
   createdAt: Scalars['DateTime']['output'];
   /** The ID of an object */
   id: Scalars['ID']['output'];
+  /** The granted scopes, each resolved against the project's configured Resources and Scopes. One entry per granted scope name, except that a name defined by more than one Resource yields one entry per Resource. */
+  resolvedScopes: Array<AuthorizationScope>;
   scopes: Array<Scalars['String']['output']>;
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];
@@ -477,6 +479,26 @@ export type AuthorizationEdge = {
   /** The item at the end of the edge */
   node?: Maybe<Authorization>;
 };
+
+/** A granted scope name resolved against the project's configured Resources and Scopes. An authorization records scope names without the Resource they were granted for, so this resolution is by name. */
+export type AuthorizationScope = {
+  __typename?: 'AuthorizationScope';
+  /** The description configured on the Scope, when there is one. */
+  description?: Maybe<Scalars['String']['output']>;
+  /** Whether the name is project-level or defined by a Resource. */
+  kind: AuthorizationScopeKind;
+  /** The Resource defining this scope. Null for a project-level scope, and for a resource scope the project no longer defines. */
+  resource?: Maybe<Resource>;
+  /** The granted scope name. */
+  scope: Scalars['String']['output'];
+};
+
+export enum AuthorizationScopeKind {
+  /** A project-level scope, such as openid, profile or email. */
+  Project = 'PROJECT',
+  /** A scope defined by a Resource. */
+  Resource = 'RESOURCE'
+}
 
 export type Claim = {
   __typename?: 'Claim';

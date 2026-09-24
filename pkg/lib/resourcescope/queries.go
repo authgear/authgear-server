@@ -103,6 +103,23 @@ func (q *Queries) GetManyScopes(ctx context.Context, ids []string) ([]*model.Sco
 	return scopeModels, nil
 }
 
+// ListScopesByNames resolves scope names to the configured scopes across every
+// resource. A name defined by two resources yields two scopes; the caller
+// decides how to present that.
+func (q *Queries) ListScopesByNames(ctx context.Context, names []string) ([]*model.Scope, error) {
+	scopes, err := q.Store.ListScopesByNames(ctx, names)
+	if err != nil {
+		return nil, err
+	}
+
+	scopeModels := make([]*model.Scope, len(scopes))
+	for i, s := range scopes {
+		scopeModels[i] = s.ToModel()
+	}
+
+	return scopeModels, nil
+}
+
 func (q *Queries) GetManyResourceClientIDs(ctx context.Context, resourceIDs []string) (map[string][]string, error) {
 	return q.Store.ListClientIDsByResourceIDs(ctx, resourceIDs)
 }

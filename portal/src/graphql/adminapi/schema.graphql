@@ -811,6 +811,11 @@ type Authorization implements Entity & Node {
   """The ID of an object"""
   id: ID!
 
+  """
+  The granted scopes, each resolved against the project's configured Resources and Scopes. One entry per granted scope name, except that a name defined by more than one Resource yields one entry per Resource.
+  """
+  resolvedScopes: [AuthorizationScope!]!
+
   """"""
   scopes: [String!]!
 
@@ -837,6 +842,34 @@ type AuthorizationEdge {
 
   """The item at the end of the edge"""
   node: Authorization
+}
+
+"""
+A granted scope name resolved against the project's configured Resources and Scopes. An authorization records scope names without the Resource they were granted for, so this resolution is by name.
+"""
+type AuthorizationScope {
+  """The description configured on the Scope, when there is one."""
+  description: String
+
+  """Whether the name is project-level or defined by a Resource."""
+  kind: AuthorizationScopeKind!
+
+  """
+  The Resource defining this scope. Null for a project-level scope, and for a resource scope the project no longer defines.
+  """
+  resource: Resource
+
+  """The granted scope name."""
+  scope: String!
+}
+
+""""""
+enum AuthorizationScopeKind {
+  """A project-level scope, such as openid, profile or email."""
+  PROJECT
+
+  """A scope defined by a Resource."""
+  RESOURCE
 }
 
 """"""
