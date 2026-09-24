@@ -1,4 +1,4 @@
-name: Revoking a third-party authorization (the /settings/authorized-apps "remove" action) invalidates its refresh token without needing a new login
+name: Revoking a third-party authorization (the /settings/authorized-apps/view "remove" action) invalidates its refresh token without needing a new login
 authgear.yaml:
   override: |
     oauth:
@@ -163,7 +163,7 @@ steps:
         }
 
   # This is the same AuthorizationFacade.Delete/AuthorizationService.Delete
-  # code path the /settings/authorized-apps page's "remove_authorization"
+  # code path the /settings/authorized-apps/view page's "remove_authorization"
   # POST action calls, per docs/specs/third-party-client.md's "Sessions and
   # Authorization Management": revoking an authorization deletes all refresh
   # tokens issued to that client, without touching the user's IdP session.
