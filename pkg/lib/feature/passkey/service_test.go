@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -66,6 +67,29 @@ func TestPeekAttestationResponse(t *testing.T) {
 			So(strings.ToLower(err.Error()), ShouldContainSubstring, "origin")
 		})
 
+		Convey("accepts attestation from a registered Custom UI origin", func() {
+			// The public origin is a different port, so only the registered
+			// Custom UI origin can account for what the browser reported.
+			svc, cleanup := newTestService(t, "localhost:3000", "https://localhost:44329/login")
+			defer cleanup()
+
+			mustCreateSession(t, svc.Store, packedAttestationChallenge)
+
+			_, _, _, err := svc.PeekAttestationResponse(context.Background(), []byte(packedAttestationResponseES256))
+			So(err, ShouldBeNil)
+		})
+
+		Convey("rejects attestation from an unregistered origin even when others are registered", func() {
+			svc, cleanup := newTestService(t, "localhost:3000", "https://localhost:5173")
+			defer cleanup()
+
+			mustCreateSession(t, svc.Store, packedAttestationChallenge)
+
+			_, _, _, err := svc.PeekAttestationResponse(context.Background(), []byte(packedAttestationResponseES256))
+			So(err, ShouldNotBeNil)
+			So(strings.ToLower(err.Error()), ShouldContainSubstring, "origin")
+		})
+
 		Convey("uses attested credential ID instead of client supplied id", func() {
 			svc, cleanup := newTestService(t, "localhost:44329")
 			defer cleanup()
@@ -83,7 +107,10 @@ func TestPeekAttestationResponse(t *testing.T) {
 	})
 }
 
-func newTestService(t *testing.T, host string) (*Service, func()) {
+// newTestService builds a Service whose public origin is https://<host>.
+// Any customUIURIs are registered as x_custom_ui_uri on separate OAuth clients,
+// which is how a Custom UI's own origin becomes acceptable.
+func newTestService(t *testing.T, host string, customUIURIs ...string) (*Service, func()) {
 	t.Helper()
 
 	mr := miniredis.RunT(t)
@@ -97,6 +124,14 @@ func newTestService(t *testing.T, host string) (*Service, func()) {
 	req := httptest.NewRequest("GET", "https://"+host, nil)
 	req.TLS = &tls.ConnectionState{}
 
+	oauthConfig := &config.OAuthConfig{}
+	for i, uri := range customUIURIs {
+		oauthConfig.Clients = append(oauthConfig.Clients, config.OAuthClientConfig{
+			ClientID:    fmt.Sprintf("client-%d", i),
+			CustomUIURI: uri,
+		})
+	}
+
 	svc := &Service{
 		Store: &Store{
 			Redis: appredis.NewHandle(pool, hub, redisConfig, redisCredentials),
@@ -105,6 +140,7 @@ func newTestService(t *testing.T, host string) (*Service, func()) {
 		ConfigService: &ConfigService{
 			Request:            req,
 			TranslationService: &testTranslationService{},
+			OAuthConfig:        oauthConfig,
 		},
 	}
 

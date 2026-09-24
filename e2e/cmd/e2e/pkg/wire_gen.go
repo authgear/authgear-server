@@ -287,6 +287,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Request:            request,
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
+		OAuthConfig:        oAuthConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,

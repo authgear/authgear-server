@@ -49,7 +49,7 @@ func (s *Service) PeekAttestationResponse(ctx context.Context, attestationRespon
 
 	verifyUser := creationOptions.PublicKey.AuthenticatorSelection.UserVerification == protocol.VerificationRequired
 	verifyUserPresence := true
-	rpOrigins := []string{config.RPOrigin}
+	rpOrigins := config.RPOrigins
 	rpTopOrigins := rpOrigins
 	rpTopOriginVerify := protocol.TopOriginExplicitVerificationMode
 
@@ -160,7 +160,7 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 	// Since we explicitly specify the list of expected top origins, we use protocol.TopOriginExplicitVerificationMode.
 	// See https://www.w3.org/TR/webauthn-3/#dom-collectedclientdata-toporigin
 	// See https://github.com/go-webauthn/webauthn/compare/v0.10.2...v0.11.2
-	rpOrigins := []string{config.RPOrigin}
+	rpOrigins := config.RPOrigins
 	rpTopOrigins := rpOrigins
 	rpTopOriginVerify := protocol.TopOriginExplicitVerificationMode
 
