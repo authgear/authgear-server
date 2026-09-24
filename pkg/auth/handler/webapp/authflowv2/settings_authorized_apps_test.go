@@ -22,6 +22,9 @@ func TestResourcePermissions(t *testing.T) {
 				"phone",
 				"address",
 				"https://authgear.com/scopes/full-userinfo",
+				"device_sso",
+				"https://authgear.com/scopes/pre-authenticated-url",
+				"https://authgear.com/scopes/full-access",
 			}, descriptions)
 			So(got, ShouldBeEmpty)
 		})
