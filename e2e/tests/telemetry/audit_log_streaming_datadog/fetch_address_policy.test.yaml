@@ -1,0 +1,79 @@
+name: The fetch address policy governs the datadog http transport
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: http://127.0.0.1:2626/[[.AppID]]/logs
+authgear.features.yaml:
+  override: |
+    http:
+      insecure_fetch_address_allowed: false
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_username
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "streaming-datadog-policy"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "SuperSecret123"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # The rest of the suite passes only because the e2e deployment sets
+  # insecure_fetch_address_allowed: true, which is exactly the
+  # self-hosted shape that flag exists for. Overriding it back to false
+  # here proves the datadog transport is genuinely behind the policy
+  # rather than incidentally reaching loopback: the same endpoint
+  # delivers in every other case in this directory, so a false pass here
+  # is impossible.
+  - name: wait_before_checking
+    action: sleep
+    sleep_for: 3s
+
+  - name: verify_nothing_delivered
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/logs"
+    hook_server_min_count: 0
+    hook_server_output:
+      rows: "[]"

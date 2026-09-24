@@ -1,0 +1,99 @@
+name: Audit log streaming honours datadog.service, source and tags
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: http://127.0.0.1:2626/[[.AppID]]/logs
+          datadog:
+            service: e2e-service
+            source: e2e-source
+            tags:
+              env: e2e
+              team: security
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "streaming-datadog-options@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: signup_verify
+    action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_finish
+    action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "channels": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # Configured pairs come first in sorted key order, then app_id and
+  # activity_type appended from the event -- an exact string, not a
+  # substring, since ordering is a fixed decision and a map-iteration
+  # regression would otherwise pass intermittently.
+  - name: wait_for_delivery
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/logs"
+    hook_server_min_count: 2
+    hook_server_output:
+      rows: |
+        [
+          {
+            "message": "email.sent"
+          },
+          {
+            "ddsource": "e2e-source",
+            "service": "e2e-service",
+            "ddtags": "env:e2e,team:security,app_id:{{ .AppID }},activity_type:user.created",
+            "message": "user.created"
+          }
+        ]
