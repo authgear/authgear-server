@@ -90479,6 +90479,146 @@ func newWebAppAuthflowV2AccountStatusHandler(p *deps.RequestProvider) http.Handl
 	return authflowV2AccountStatusHandler
 }
 
+func newWebAppAuthflowV2ClockSkewHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
+	featureConfig := config.FeatureConfig
+	uiFeatureConfig := featureConfig.UI
+	localizationConfig := appConfig.Localization
+	request := p.Request
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	manager := appContext.Resources
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	botProtectionConfig := appConfig.BotProtection
+	appID := appConfig.ID
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	handle := appProvider.Redis
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: handle,
+		Cookies:     cookieManager,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	secretConfig := config.SecretConfig
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	clockClock := _wireSystemClockValue
+	store := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       store,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	translationService := &translation.Service{
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthClientResolver:             oauthclientResolver,
+	}
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	authUIWindowMessageAllowedOrigins := environmentConfig.AuthUIWindowMessageAllowedOrigins
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:                        trustProxy,
+		OAuth:                             oAuthConfig,
+		AuthUI:                            uiConfig,
+		AuthUIFeatureConfig:               uiFeatureConfig,
+		StaticAssets:                      staticAssetResolver,
+		ForgotPassword:                    forgotPasswordConfig,
+		Authentication:                    authenticationConfig,
+		GoogleTagManager:                  googleTagManagerConfig,
+		BotProtection:                     botProtectionConfig,
+		ErrorService:                      errorService,
+		Translations:                      translationService,
+		Clock:                             clockClock,
+		FlashMessage:                      flashMessage,
+		DefaultLanguageTag:                defaultLanguageTag,
+		SupportedLanguageTags:             supportedLanguageTags,
+		AuthUISentryDSN:                   authUISentryDSN,
+		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
+		OAuthClientResolver:               oauthclientResolver,
+	}
+	responseRenderer := &webapp.ResponseRenderer{
+		TemplateEngine: engine,
+	}
+	authflowV2ClockSkewHandler := &authflowv2.AuthflowV2ClockSkewHandler{
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+	}
+	return authflowV2ClockSkewHandler
+}
+
 func newWebAppAuthflowNoAuthenticatorHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
