@@ -590,7 +590,7 @@
   "AuthorizationDetailsDialog.client-type.static": "Client application (configured in this project)",
   "AuthorizationDetailsDialog.client-type.dcr": "Dynamic client, registered via DCR",
   "AuthorizationDetailsDialog.client-type.cimd": "Dynamic client, resolved via CIMD",
-  "AuthorizationDetailsDialog.client-type.unknown": "Unknown (the client no longer exists)",
+  "AuthorizationDetailsDialog.client-type.unknown": "Unknown",
   "AuthorizationDetailsDialog.kind": "Kind",
   "AuthorizationDetailsDialog.permissions": "Permissions",
   "AuthorizationDetailsDialog.authorized-at": "Authorized at",

@@ -12,7 +12,8 @@ import styles from "./AuthorizationDetailsDialog.module.css";
 
 // The client an authorization was granted to. A static client comes from
 // authgear.yaml; a dynamic one from the Admin API's dynamicClients query.
-// Neither is guaranteed: a client can be deleted while its grants remain.
+// "unknown" when neither lookup has it, e.g. while the dynamic clients are
+// still loading or failed to load.
 export type AuthorizedClient =
   | { kind: "static"; config: OAuthClientConfig }
   | { kind: "dynamic"; client: DynamicClientListItem }
