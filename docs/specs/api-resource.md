@@ -487,3 +487,38 @@ type ReplaceScopesOfClientIDPayload {
   scopes: [Scope!]!
 }
 ```
+
+### Resolving a granted scope
+
+An Authorization records scope names only, not the Resource each name was granted for. `resolvedScopes` resolves each granted name against the project's Resources and Scopes, so a caller can tell `execute:tools` on one Resource from the same name on another.
+
+Because [Scopes are local to their Resource](#glossary), a name that two Resources define is ambiguous, and resolution returns one entry per Resource. Two entries sharing a name are one grant of an ambiguous name, not two grants.
+
+| Granted name | `kind` | `resource` |
+|---|---|---|
+| A project-level scope (`openid`, `profile`, `email`, ...) | `PROJECT` | null |
+| A scope exactly one Resource defines | `RESOURCE` | that Resource |
+| A scope two or more Resources define | `RESOURCE` | one entry per Resource |
+| A scope the project no longer defines | `RESOURCE` | null |
+
+```graphql
+extend type Authorization {
+  """The granted scopes, resolved against this project's Resources and Scopes."""
+  resolvedScopes: [AuthorizationScope!]!
+}
+
+type AuthorizationScope {
+  scope: String!
+  kind: AuthorizationScopeKind!
+  resource: Resource
+  """The description configured on the Scope."""
+  description: String
+}
+
+enum AuthorizationScopeKind {
+  """A project-level scope."""
+  PROJECT
+  """A scope defined by a Resource."""
+  RESOURCE
+}
+```
