@@ -32,7 +32,6 @@ export interface AuthorizationDetails {
   clientName: string;
   client: AuthorizedClient;
   hasFullUserInfo: boolean;
-  permissionScopes: string[];
   resolvedPermissionScopes: AuthorizationScope[];
 }
 
