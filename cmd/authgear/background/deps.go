@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
+	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -81,6 +82,16 @@ func (f *AccountStatusServiceFactory) MakeUserService(appID string, appContext *
 	return newUserService(f.BackgroundProvider, appID, appContext)
 }
 
+// SenderServiceFactory mirrors AccountDeletionServiceFactory: it builds a
+// fresh auditlogstreaming.Sender per app, inside AppContextResolver.ResolveContext.
+type SenderServiceFactory struct {
+	BackgroundProvider *deps.BackgroundProvider
+}
+
+func (f *SenderServiceFactory) MakeSender(appID string, appContext *config.AppContext) auditlogstreaming.Sender {
+	return newSenderImpl(f.BackgroundProvider, appID, appContext)
+}
+
 type UserFacade interface {
 	DeleteFromScheduledDeletion(ctx context.Context, userID string) error
 	AnonymizeFromScheduledAnonymization(ctx context.Context, userID string) error
@@ -131,11 +142,13 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AccountDeletionServiceFactory), "*"),
 	wire.Struct(new(AccountAnonymizationServiceFactory), "*"),
 	wire.Struct(new(AccountStatusServiceFactory), "*"),
+	wire.Struct(new(SenderServiceFactory), "*"),
 	wire.Struct(new(UserService), "*"),
 	wire.Bind(new(UserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(accountdeletion.UserServiceFactory), new(*AccountDeletionServiceFactory)),
 	wire.Bind(new(accountanonymization.UserServiceFactory), new(*AccountAnonymizationServiceFactory)),
 	wire.Bind(new(accountstatus.UserServiceFactory), new(*AccountStatusServiceFactory)),
+	wire.Bind(new(auditlogstreaming.SenderFactory), new(*SenderServiceFactory)),
 	wire.Bind(new(event.Database), new(*appdb.Handle)),
 	wire.Bind(new(fraudprotection.DatabaseHandle), new(*appdb.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),

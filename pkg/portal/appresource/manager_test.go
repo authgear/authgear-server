@@ -19,6 +19,31 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+// testCertificatePEM is an arbitrary, valid, self-signed certificate used
+// wherever a test needs a well-formed X509Certificate PEM and does not care
+// about its content.
+const testCertificatePEM = "-----BEGIN CERTIFICATE-----\n" +
+	"MIIDejCCAmKgAwIBAgIgLKKTB6GZMFHZVUiFIq8LcNIr0p8HFHwKM6r5/BQ/un4w\n" +
+	"DQYJKoZIhvcNAQEFBQAwUDEJMAcGA1UEBhMAMQkwBwYDVQQKDAAxCTAHBgNVBAsM\n" +
+	"ADENMAsGA1UEAwwEdGVzdDEPMA0GCSqGSIb3DQEJARYAMQ0wCwYDVQQDDAR0ZXN0\n" +
+	"MB4XDTI0MDgwODA2NTY0OFoXDTM0MDgwOTA2NTY0OFowQTEJMAcGA1UEBhMAMQkw\n" +
+	"BwYDVQQKDAAxCTAHBgNVBAsMADENMAsGA1UEAwwEdGVzdDEPMA0GCSqGSIb3DQEJ\n" +
+	"ARYAMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5zRfTtkaa7cIsQS+\n" +
+	"F1Dg25wPEvcjHsHcq598n+RzRJzfSLRtYwgEfs0VhyjHfo2O7KhNFh5cqdkEfzwA\n" +
+	"bfxtgVLvy3yUjTMFO0FnJqrO3dkGiOAl654XUlXb4rF8DF1sPnUdd9QEZaZHGV/8\n" +
+	"YuVOc3RV15jsr2jB9rra9//guAQ0CSP4XLJ5m9vf9nJILAHLryFIzDSgOVmhi4Ig\n" +
+	"o59e9n3Hemavrta2C5Zj4cP6RNwuCV/i5lQOkzJIgksH9/EZCsR93DMEgkBS5oQQ\n" +
+	"rt9Bzlr03TNGW4n/CYKNULK/osqJd5r5g3zUaQZY2KAan+oSsEXvBjzYtrehN1dm\n" +
+	"dfbUEQIDAQABo08wTTAdBgNVHQ4EFgQUiXG6MG9PSB/clTIuzm8rW+8xLWkwHwYD\n" +
+	"VR0jBBgwFoAUiXG6MG9PSB/clTIuzm8rW+8xLWkwCwYDVR0RBAQwAoIAMA0GCSqG\n" +
+	"SIb3DQEBBQUAA4IBAQBTjdS9po3eEXukksMK6xBL3kQF1MEFUaWcgoN+h497lS9J\n" +
+	"Xe1rmWpdZ1Aehp21GQmniRKU8uPLPRQKoX8Mhc/d3fHyv9u0YPns/2Wm8TBzxwHY\n" +
+	"V2KdXZfpBdN+Z5bBRbgtKxx1z2GBfB39S2WCakS9xK8f7fuQPLIZz8eq7so5T8Hm\n" +
+	"TU95acndEpnA0u6/MjbvXtZesTRZCewQw4CkcSLTCzB8dLG55UXHytnISWlCpuAx\n" +
+	"8svq/ryZIi5vhBQFO/hG9s2Q32VvfKt2ZW8qA+gvOxEVDfAEFekKokP0Taiz77Q2\n" +
+	"AVZxEXeABxJGtiMunQTr2q1tCrJQN0d08xlA5jXl\n" +
+	"-----END CERTIFICATE-----\n"
+
 func TestManager(t *testing.T) {
 	ctx := context.Background()
 	Convey("ApplyUpdates0", t, func() {
@@ -193,6 +218,159 @@ func TestManager(t *testing.T) {
 			So(files[1].Location.Fs.GetFsLevel(), ShouldEqual, resource.FsLevelApp)
 			So(files[1].Location.Path, ShouldEqual, "deno/a.ts")
 			So(files[1].Data, ShouldEqual, []uint8(nil))
+		})
+
+		Convey("clean up orphaned audit log stream tls secrets", func() {
+			telemetryStream := func(name string, tlsEnabled bool) *config.TelemetryAuditLogStreamConfig {
+				return &config.TelemetryAuditLogStreamConfig{
+					Name:      name,
+					Type:      config.TelemetryAuditLogStreamTypeSyslog,
+					Transport: config.TelemetryAuditLogStreamTransportTCP,
+					TCP: &config.TelemetryAuditLogStreamTCPConfig{
+						Address: "collector.internal:5140",
+						TLS:     &config.TelemetryAuditLogStreamTCPTLSConfig{Enabled: tlsEnabled},
+					},
+					Syslog: &config.TelemetryAuditLogStreamSyslogConfig{
+						Format:  config.SyslogFormatRFC5424,
+						Framing: config.SyslogFramingNewline,
+					},
+				}
+			}
+
+			// appConfigYAMLWithStreams marshals cfg.AppConfig with the given
+			// streams (or none, when streams is nil) as the "incoming"
+			// authgear.yaml of an update.
+			appConfigYAMLWithStreams := func(streams []*config.TelemetryAuditLogStreamConfig) []byte {
+				appConfig := *cfg.AppConfig
+				if streams != nil {
+					appConfig.Telemetry = &config.TelemetryConfig{
+						AuditLogs: &config.TelemetryAuditLogsConfig{Streams: streams},
+					}
+				}
+				data, err := yaml.Marshal(&appConfig)
+				So(err, ShouldBeNil)
+				return data
+			}
+
+			// writeSecretsWithMaterials writes the current authgear.secrets.yaml
+			// on disk, with a telemetry.audit_logs.streams.tls item per name.
+			writeSecretsWithMaterials := func(streamNames ...string) {
+				var materials config.TelemetryAuditLogStreamTLSMaterials
+				for _, name := range streamNames {
+					materials = append(materials, config.TelemetryAuditLogStreamTLSMaterialsItem{
+						StreamName: name,
+						CertificateAuthority: &config.X509Certificate{
+							Pem: config.X509CertificatePem(testCertificatePEM),
+						},
+					})
+				}
+				materialsJSON, err := json.Marshal(materials)
+				So(err, ShouldBeNil)
+
+				secretConfig := *cfg.SecretConfig
+				secretConfig.Secrets = append(append([]config.SecretItem{}, secretConfig.Secrets...), config.SecretItem{
+					Key:     config.TelemetryAuditLogStreamTLSMaterialsKey,
+					RawData: json.RawMessage(materialsJSON),
+				})
+				data, err := yaml.Marshal(&secretConfig)
+				So(err, ShouldBeNil)
+				_ = afero.WriteFile(appFs, "authgear.secrets.yaml", data, 0666)
+			}
+
+			readBackMaterials := func(data []byte) config.TelemetryAuditLogStreamTLSMaterials {
+				secretConfig, err := config.ParsePartialSecret(context.Background(), data)
+				So(err, ShouldBeNil)
+				materials, ok := secretConfig.LookupData(config.TelemetryAuditLogStreamTLSMaterialsKey).(*config.TelemetryAuditLogStreamTLSMaterials)
+				if !ok {
+					return nil
+				}
+				return *materials
+			}
+
+			Convey("prunes the item of a removed stream and leaves other secrets untouched", func() {
+				writeSecretsWithMaterials("kept", "removed")
+
+				ctx := context.Background()
+				files, err := applyUpdates(ctx, []appresource.Update{{
+					Path: "authgear.yaml",
+					Data: appConfigYAMLWithStreams([]*config.TelemetryAuditLogStreamConfig{telemetryStream("kept", true)}),
+				}})
+				So(err, ShouldBeNil)
+				So(len(files), ShouldEqual, 2)
+				So(files[1].Location.Path, ShouldEqual, "authgear.secrets.yaml")
+
+				materials := readBackMaterials(files[1].Data)
+				So(materials, ShouldHaveLength, 1)
+				So(materials[0].StreamName, ShouldEqual, "kept")
+
+				// Every other secret key survives untouched.
+				secretConfig, err := config.ParsePartialSecret(context.Background(), files[1].Data)
+				So(err, ShouldBeNil)
+				_, _, ok := secretConfig.Lookup(config.DatabaseCredentialsKey)
+				So(ok, ShouldBeTrue)
+			})
+
+			Convey("keeps the item of a stream that still exists with tls disabled", func() {
+				writeSecretsWithMaterials("kept")
+
+				ctx := context.Background()
+				files, err := applyUpdates(ctx, []appresource.Update{{
+					Path: "authgear.yaml",
+					Data: appConfigYAMLWithStreams([]*config.TelemetryAuditLogStreamConfig{telemetryStream("kept", false)}),
+				}})
+				So(err, ShouldBeNil)
+				// Nothing was orphaned, so no secrets file is rewritten.
+				So(len(files), ShouldEqual, 1)
+			})
+
+			Convey("removes the whole secret entry when the last stream is removed", func() {
+				writeSecretsWithMaterials("removed")
+
+				ctx := context.Background()
+				files, err := applyUpdates(ctx, []appresource.Update{{
+					Path: "authgear.yaml",
+					Data: appConfigYAMLWithStreams(nil),
+				}})
+				So(err, ShouldBeNil)
+				So(len(files), ShouldEqual, 2)
+
+				secretConfig, err := config.ParsePartialSecret(context.Background(), files[1].Data)
+				So(err, ShouldBeNil)
+				_, _, found := secretConfig.Lookup(config.TelemetryAuditLogStreamTLSMaterialsKey)
+				So(found, ShouldBeFalse)
+			})
+
+			Convey("an update set without an authgear.yaml change prunes nothing", func() {
+				writeSecretsWithMaterials("removed")
+
+				updateSecretConfigInstructions := configtest.FixtureUpdateSecretConfigUpdateInstruction()
+				instructionBytes, err := json.Marshal(updateSecretConfigInstructions)
+				So(err, ShouldBeNil)
+
+				ctx := context.Background()
+				files, err := applyUpdates(ctx, []appresource.Update{{
+					Path: "authgear.secrets.yaml",
+					Data: instructionBytes,
+				}})
+				So(err, ShouldBeNil)
+				So(len(files), ShouldEqual, 1)
+
+				materials := readBackMaterials(files[0].Data)
+				So(materials, ShouldHaveLength, 1)
+				So(materials[0].StreamName, ShouldEqual, "removed")
+			})
+
+			Convey("an authgear.yaml update with no orphans returns no secrets file", func() {
+				writeSecretsWithMaterials("kept")
+
+				ctx := context.Background()
+				files, err := applyUpdates(ctx, []appresource.Update{{
+					Path: "authgear.yaml",
+					Data: appConfigYAMLWithStreams([]*config.TelemetryAuditLogStreamConfig{telemetryStream("kept", true)}),
+				}})
+				So(err, ShouldBeNil)
+				So(len(files), ShouldEqual, 1)
+			})
 		})
 	})
 

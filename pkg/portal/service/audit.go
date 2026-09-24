@@ -11,6 +11,7 @@ import (
 	libevent "github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -38,6 +39,21 @@ type AuditService struct {
 
 	Database                  *db.Pool
 	DatabaseEnvironmentConfig *config.DatabaseEnvironmentConfig
+
+	// RedisPool, RedisEnvironmentConfig and GlobalRedisCredentials are the
+	// portal's own deployment-wide Redis, the same one the auth server and
+	// background worker use for audit log stream queues -- not the target
+	// app's own appredis.
+	RedisPool              *redis.Pool
+	RedisEnvironmentConfig *config.RedisEnvironmentConfig
+	GlobalRedisCredentials *config.GlobalRedisCredentialsEnvironmentConfig
+
+	// AuditLogStreamingInterval is the same background worker interval
+	// used to derive the audit log stream queue's TTL -- see
+	// auditlogstreaming.queueTTLFor. The portal enqueues into the same
+	// queue the background worker drains, so it must derive the TTL the
+	// same way.
+	AuditLogStreamingInterval config.DurationString
 
 	DenoEndpoint config.DenoEndpoint
 
@@ -67,7 +83,7 @@ func (s *AuditService) Log(ctx context.Context, app *model.App, payload event.No
 	// AuditSink is app specific.
 	// The records MUST have correct app_id.
 	// We have construct audit sink with the target app.
-	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig)
+	auditSink := newAuditSink(app, s.Database, s.DatabaseEnvironmentConfig, s.RedisPool, s.RedisEnvironmentConfig, s.GlobalRedisCredentials, s.AuditLogStreamingInterval)
 	// The portal uses its Authgear to deliver hooks.
 	// We have construct hook sink with the Authgear app.
 	hookSink := newHookSink(authgearApp, s.DenoEndpoint)

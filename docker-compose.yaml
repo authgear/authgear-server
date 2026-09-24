@@ -117,6 +117,7 @@ services:
     - ./otelcol-config.yaml:/etc/otelcol-contrib/config.yaml
     ports:
     - "4318:4318"
+    - "5514:5514"
 
   minio:
     image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z

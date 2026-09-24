@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
@@ -14,6 +15,7 @@ var SinkLogger = slogutil.NewLogger("audit-sink")
 type Sink struct {
 	Database *auditdb.WriteHandle
 	Store    *WriteStore
+	Producer *auditlogstreaming.Producer
 }
 
 // WillDeliverBlockingEvent: the audit sink does not consume blocking events.
@@ -49,6 +51,8 @@ func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) (err
 	if err != nil {
 		return
 	}
+
+	s.Producer.Enqueue(ctx, e)
 
 	return
 }

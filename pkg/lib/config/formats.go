@@ -3,6 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
+	"net"
+	"strconv"
 
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
 
@@ -11,6 +13,29 @@ import (
 
 func init() {
 	jsonschemaformat.DefaultChecker["phone"] = FormatPhone{}
+	jsonschemaformat.DefaultChecker["x_host_port"] = FormatHostPort{}
+}
+
+// FormatHostPort checks that the input is a "host:port" address.
+type FormatHostPort struct{}
+
+func (f FormatHostPort) CheckFormat(ctx context.Context, value any) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+	host, port, err := net.SplitHostPort(str)
+	if err != nil {
+		return err
+	}
+	if host == "" {
+		return fmt.Errorf("expect non-empty host")
+	}
+	p, err := strconv.Atoi(port)
+	if err != nil || p < 1 || p > 65535 {
+		return fmt.Errorf("expect port in range 1-65535")
+	}
+	return nil
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.

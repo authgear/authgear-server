@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountanonymization"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountstatus"
+	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 )
 
@@ -53,5 +54,21 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	panic(wire.Build(
 		DependencySet,
 		wire.FieldsOf(new(*config.AppContext), "Config"),
+	))
+}
+
+func newAuditLogStreamingRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+	panic(wire.Build(
+		DependencySet,
+		auditlogstreaming.ConsumerDependencySet,
+		wire.Bind(new(auditlogstreaming.AppContextResolver), new(*configsource.Controller)),
+	))
+}
+
+func newSenderImpl(p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *auditlogstreaming.SenderImpl {
+	panic(wire.Build(
+		DependencySet,
+		wire.FieldsOf(new(*config.AppContext), "Config"),
+		auditlogstreaming.SenderDependencySet,
 	))
 }
