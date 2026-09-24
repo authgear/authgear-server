@@ -23,6 +23,7 @@ import UserDetailsAuthorization, {
   DynamicClients,
 } from "./UserDetailsAuthorization";
 import { useDynamicClientsQueryQuery } from "./query/dynamicClientsQuery.generated";
+import { AuthorizationScopeKind } from "./globalTypes.generated";
 import { DynamicClientListItem } from "../../components/dynamic-clients/DynamicClientList";
 
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
@@ -108,6 +109,25 @@ function buildUIPreviewAuthorizations(
         "openid",
         "offline_access",
         "https://authgear.com/scopes/full-userinfo",
+        "read:orders",
+      ],
+      resolvedScopes: [
+        { scope: "openid", kind: AuthorizationScopeKind.Project },
+        { scope: "offline_access", kind: AuthorizationScopeKind.Project },
+        {
+          scope: "https://authgear.com/scopes/full-userinfo",
+          kind: AuthorizationScopeKind.Project,
+        },
+        {
+          scope: "read:orders",
+          kind: AuthorizationScopeKind.Resource,
+          description: "Read orders and their line items",
+          resource: {
+            id: "fake-resource-1",
+            name: "Orders API",
+            resourceURI: "https://api.example.com/orders",
+          },
+        },
       ],
     },
     {
@@ -116,6 +136,9 @@ function buildUIPreviewAuthorizations(
       createdAt: "2025-01-18T09:05:00.000Z",
       updatedAt: "2025-01-18T09:05:00.000Z",
       scopes: ["openid"],
+      resolvedScopes: [
+        { scope: "openid", kind: AuthorizationScopeKind.Project },
+      ],
     },
   ];
 }

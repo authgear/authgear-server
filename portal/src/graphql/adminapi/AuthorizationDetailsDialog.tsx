@@ -1,12 +1,20 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Badge, Button, Dialog, Flex, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "../../intl";
-import { OAuthClientKind, OAuthClientSource } from "./globalTypes.generated";
+import {
+  AuthorizationScopeKind,
+  OAuthClientKind,
+  OAuthClientSource,
+} from "./globalTypes.generated";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import ExternalLink from "../../ExternalLink";
 import { formatDatetime } from "../../util/formatDatetime";
-import { Authorization, OAuthClientConfig } from "../../types";
+import {
+  Authorization,
+  AuthorizationScope,
+  OAuthClientConfig,
+} from "../../types";
 import { DynamicClientListItem } from "../../components/dynamic-clients/DynamicClientList";
 import styles from "./AuthorizationDetailsDialog.module.css";
 
@@ -25,6 +33,7 @@ export interface AuthorizationDetails {
   client: AuthorizedClient;
   hasFullUserInfo: boolean;
   permissionScopes: string[];
+  resolvedPermissionScopes: AuthorizationScope[];
 }
 
 export interface AuthorizationDetailsDialogProps {
@@ -33,7 +42,29 @@ export interface AuthorizationDetailsDialogProps {
   onDismiss: () => void;
 }
 
-function Field({
+// A titled block of the dialog. The section title is the strongest small text
+// in the dialog; field labels below it are gray, and the resource names inside
+// the Permissions cards are weaker still, so the nesting reads top-down.
+function Section({
+  titleId,
+  children,
+}: {
+  titleId: string;
+  children: React.ReactNode;
+}): React.ReactElement {
+  return (
+    <section className={styles.section}>
+      <Text as="p" size="1" weight="bold" className={styles.sectionTitle}>
+        <FormattedMessage id={titleId} />
+      </Text>
+      <div className={styles.sectionBody}>{children}</div>
+    </section>
+  );
+}
+
+// One label/value row. The label sits in its own column so a run of rows reads
+// as a table rather than as alternating lines of text.
+function Row({
   labelId,
   children,
 }: {
@@ -41,16 +72,18 @@ function Field({
   children: React.ReactNode;
 }): React.ReactElement {
   return (
-    <div className={styles.field}>
-      <Text size="1" color="gray">
+    <div className={styles.row}>
+      <Text size="1" color="gray" className={styles.rowLabel}>
         <FormattedMessage id={labelId} />
       </Text>
-      <Text size="2">{children}</Text>
+      <Text size="2" className={styles.rowValue}>
+        {children}
+      </Text>
     </div>
   );
 }
 
-function URIField({
+function URIRow({
   labelId,
   uri,
 }: {
@@ -61,11 +94,110 @@ function URIField({
     return null;
   }
   return (
-    <Field labelId={labelId}>
+    <Row labelId={labelId}>
       <ExternalLink href={uri} className={styles.uri}>
         {uri}
       </ExternalLink>
-    </Field>
+    </Row>
+  );
+}
+
+// One heading of the Permissions field: a Resource, or the project itself.
+// Scopes the project no longer defines get their own group -- filing them under
+// the project would claim they are project-level scopes, which they are not.
+interface ScopeGroup {
+  key: string;
+  // null for the project group and for the unknown-scope group, where
+  // labelId names the heading instead.
+  resource: AuthorizationScope["resource"];
+  labelId: string | null;
+  scopes: AuthorizationScope[];
+}
+
+const PROJECT_GROUP_KEY = "__project__";
+const UNKNOWN_GROUP_KEY = "__unknown__";
+
+// Resource groups first, in the order the server resolved them, then the
+// project group, then scopes no resource defines.
+function groupScopes(resolvedScopes: AuthorizationScope[]): ScopeGroup[] {
+  const resourceGroups = new Map<string, ScopeGroup>();
+  const projectScopes: AuthorizationScope[] = [];
+  const unknownScopes: AuthorizationScope[] = [];
+
+  for (const resolved of resolvedScopes) {
+    if (resolved.kind === AuthorizationScopeKind.Project) {
+      projectScopes.push(resolved);
+      continue;
+    }
+    const resource = resolved.resource;
+    if (resource == null) {
+      unknownScopes.push(resolved);
+      continue;
+    }
+    const existing = resourceGroups.get(resource.id);
+    if (existing != null) {
+      existing.scopes.push(resolved);
+    } else {
+      resourceGroups.set(resource.id, {
+        key: resource.id,
+        resource,
+        labelId: null,
+        scopes: [resolved],
+      });
+    }
+  }
+
+  const groups = [...resourceGroups.values()];
+  if (projectScopes.length > 0) {
+    groups.push({
+      key: PROJECT_GROUP_KEY,
+      resource: null,
+      labelId: "AuthorizationDetailsDialog.permissions.project",
+      scopes: projectScopes,
+    });
+  }
+  if (unknownScopes.length > 0) {
+    groups.push({
+      key: UNKNOWN_GROUP_KEY,
+      resource: null,
+      labelId: "AuthorizationDetailsDialog.permissions.unknown-resource",
+      scopes: unknownScopes,
+    });
+  }
+  return groups;
+}
+
+// Each resource is a bordered card so its name cannot be mistaken for a field
+// label of the dialog itself -- the containment carries the nesting, not weight.
+function ScopeGroupView({ group }: { group: ScopeGroup }): React.ReactElement {
+  return (
+    <div className={styles.scopeGroup}>
+      <Text as="p" size="2" weight="medium">
+        {group.resource != null ? (
+          group.resource.name ?? group.resource.resourceURI
+        ) : group.labelId != null ? (
+          <FormattedMessage id={group.labelId} />
+        ) : null}
+      </Text>
+      {group.resource?.name != null ? (
+        <Text as="p" size="1" color="gray" className={styles.uri}>
+          {group.resource.resourceURI}
+        </Text>
+      ) : null}
+      <div className={styles.scopeList}>
+        {group.scopes.map((resolved) => (
+          <Badge
+            key={resolved.scope}
+            color="gray"
+            radius="small"
+            className={styles.scopeBadge}
+            title={resolved.description ?? undefined}
+          >
+            {resolved.scope}
+          </Badge>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -135,135 +267,152 @@ export const AuthorizationDetailsDialog: React.VFC<AuthorizationDetailsDialogPro
       [details]
     );
 
+    const scopeGroups = useMemo(
+      () =>
+        details != null ? groupScopes(details.resolvedPermissionScopes) : [],
+      [details]
+    );
+
     const dynamicClient =
       details?.client.kind === "dynamic" ? details.client.client : null;
+
+    const hasLinks =
+      metadata != null &&
+      [
+        metadata.clientURI,
+        metadata.logoURI,
+        metadata.tosURI,
+        metadata.policyURI,
+      ].some((uri) => uri != null && uri !== "");
 
     return (
       <Dialog.Root open={details != null} onOpenChange={onOpenChange}>
         <Dialog.Content
-          maxWidth="480px"
+          maxWidth="600px"
           size="3"
           onOpenAutoFocus={onOpenAutoFocus}
         >
           <Dialog.Title>{details?.clientName ?? ""}</Dialog.Title>
           {details != null ? (
-            <div className={styles.fields}>
-              <Field labelId="AuthorizationDetailsDialog.client-id">
-                <span className={styles.copyRow}>
-                  <span className={styles.copyRowText}>
-                    {details.authorization.clientID}
-                  </span>
-                  <CopyIconButton textToCopy={details.authorization.clientID} />
-                </span>
-              </Field>
-
-              <Field labelId="AuthorizationDetailsDialog.client-type">
-                {details.client.kind === "static" ? (
-                  <FormattedMessage id="AuthorizationDetailsDialog.client-type.static" />
-                ) : dynamicClient != null ? (
-                  dynamicClient.source === OAuthClientSource.Cimd ? (
-                    <FormattedMessage id="AuthorizationDetailsDialog.client-type.cimd" />
-                  ) : (
-                    <FormattedMessage id="AuthorizationDetailsDialog.client-type.dcr" />
-                  )
-                ) : (
-                  <Text color="gray">
-                    <FormattedMessage id="AuthorizationDetailsDialog.client-type.unknown" />
-                  </Text>
-                )}
-              </Field>
-
-              {dynamicClient != null ? (
-                <Field labelId="AuthorizationDetailsDialog.kind">
-                  {dynamicClient.kind === OAuthClientKind.FirstParty ? (
-                    <FormattedMessage id="DynamicClientDetailsDialog.kind.first-party" />
-                  ) : (
-                    <FormattedMessage id="DynamicClientDetailsDialog.kind.third-party" />
-                  )}
-                </Field>
-              ) : null}
-
-              <Field labelId="AuthorizationDetailsDialog.permissions">
-                {details.hasFullUserInfo ||
-                details.permissionScopes.length > 0 ? (
-                  <div className={styles.scopeList}>
+            <div className={styles.sections}>
+              <Section titleId="AuthorizationDetailsDialog.permissions">
+                {details.hasFullUserInfo || scopeGroups.length > 0 ? (
+                  <div className={styles.scopeGroups}>
                     {details.hasFullUserInfo ? (
-                      <span>
+                      <Text as="p" size="2">
                         <FormattedMessage id="UserDetails.authorization.scopes.full-userinfo" />
-                      </span>
+                      </Text>
                     ) : null}
-                    {details.permissionScopes.map((scope) => (
-                      <Badge
-                        key={scope}
-                        color="gray"
-                        radius="small"
-                        className={styles.scopeBadge}
-                      >
-                        {scope}
-                      </Badge>
+                    {scopeGroups.map((group) => (
+                      <ScopeGroupView key={group.key} group={group} />
                     ))}
                   </div>
                 ) : (
-                  <Text color="gray">
+                  <Text size="2" color="gray">
                     <FormattedMessage id="UserDetails.authorization.scopes.none" />
                   </Text>
                 )}
-              </Field>
+              </Section>
 
-              <Field labelId="AuthorizationDetailsDialog.authorized-at">
-                {formatDatetime(locale, details.authorization.createdAt) ?? ""}
-              </Field>
-              {/* updatedAt moves each time the client is granted further
-                  scopes, so it only carries information when it differs from
-                  createdAt. */}
-              {details.authorization.updatedAt !==
-              details.authorization.createdAt ? (
-                <Field labelId="AuthorizationDetailsDialog.last-extended-at">
-                  {formatDatetime(locale, details.authorization.updatedAt) ??
+              <Section titleId="AuthorizationDetailsDialog.section.client">
+                <Row labelId="AuthorizationDetailsDialog.client-id">
+                  <span className={styles.copyRow}>
+                    <span className={styles.copyRowText}>
+                      {details.authorization.clientID}
+                    </span>
+                    <CopyIconButton
+                      textToCopy={details.authorization.clientID}
+                    />
+                  </span>
+                </Row>
+
+                <Row labelId="AuthorizationDetailsDialog.client-type">
+                  {details.client.kind === "static" ? (
+                    <FormattedMessage id="AuthorizationDetailsDialog.client-type.static" />
+                  ) : dynamicClient != null ? (
+                    dynamicClient.source === OAuthClientSource.Cimd ? (
+                      <FormattedMessage id="AuthorizationDetailsDialog.client-type.cimd" />
+                    ) : (
+                      <FormattedMessage id="AuthorizationDetailsDialog.client-type.dcr" />
+                    )
+                  ) : (
+                    <Text color="gray">
+                      <FormattedMessage id="AuthorizationDetailsDialog.client-type.unknown" />
+                    </Text>
+                  )}
+                </Row>
+
+                {dynamicClient != null ? (
+                  <Row labelId="AuthorizationDetailsDialog.kind">
+                    {dynamicClient.kind === OAuthClientKind.FirstParty ? (
+                      <FormattedMessage id="DynamicClientDetailsDialog.kind.first-party" />
+                    ) : (
+                      <FormattedMessage id="DynamicClientDetailsDialog.kind.third-party" />
+                    )}
+                  </Row>
+                ) : null}
+
+                {metadata?.applicationType != null ? (
+                  <Row labelId="DynamicClientDetailsDialog.application-type">
+                    {metadata.applicationType}
+                  </Row>
+                ) : null}
+
+                {metadata != null && metadata.redirectURIs.length > 0 ? (
+                  <Row labelId="DynamicClientDetailsDialog.redirect-uris">
+                    <div className={styles.uriList}>
+                      {metadata.redirectURIs.map((uri) => (
+                        <span key={uri} className={styles.uri}>
+                          {uri}
+                        </span>
+                      ))}
+                    </div>
+                  </Row>
+                ) : null}
+              </Section>
+
+              <Section titleId="AuthorizationDetailsDialog.section.activity">
+                <Row labelId="AuthorizationDetailsDialog.authorized-at">
+                  {formatDatetime(locale, details.authorization.createdAt) ??
                     ""}
-                </Field>
-              ) : null}
+                </Row>
+                {/* updatedAt moves each time the client is granted further
+                    scopes, so it only carries information when it differs from
+                    createdAt. */}
+                {details.authorization.updatedAt !==
+                details.authorization.createdAt ? (
+                  <Row labelId="AuthorizationDetailsDialog.last-extended-at">
+                    {formatDatetime(locale, details.authorization.updatedAt) ??
+                      ""}
+                  </Row>
+                ) : null}
+                {dynamicClient?.registeredAt != null ? (
+                  <Row labelId="DynamicClientDetailsDialog.registered-at">
+                    {formatDatetime(locale, dynamicClient.registeredAt) ?? ""}
+                  </Row>
+                ) : null}
+              </Section>
 
-              {dynamicClient?.registeredAt != null ? (
-                <Field labelId="DynamicClientDetailsDialog.registered-at">
-                  {formatDatetime(locale, dynamicClient.registeredAt) ?? ""}
-                </Field>
+              {hasLinks ? (
+                <Section titleId="AuthorizationDetailsDialog.section.links">
+                  <URIRow
+                    labelId="DynamicClientDetailsDialog.client-uri"
+                    uri={metadata.clientURI}
+                  />
+                  <URIRow
+                    labelId="DynamicClientDetailsDialog.logo-uri"
+                    uri={metadata.logoURI}
+                  />
+                  <URIRow
+                    labelId="DynamicClientDetailsDialog.tos-uri"
+                    uri={metadata.tosURI}
+                  />
+                  <URIRow
+                    labelId="DynamicClientDetailsDialog.policy-uri"
+                    uri={metadata.policyURI}
+                  />
+                </Section>
               ) : null}
-
-              {metadata?.applicationType != null ? (
-                <Field labelId="DynamicClientDetailsDialog.application-type">
-                  {metadata.applicationType}
-                </Field>
-              ) : null}
-
-              {metadata != null && metadata.redirectURIs.length > 0 ? (
-                <Field labelId="DynamicClientDetailsDialog.redirect-uris">
-                  <div className={styles.uriList}>
-                    {metadata.redirectURIs.map((uri) => (
-                      <span key={uri} className={styles.uri}>
-                        {uri}
-                      </span>
-                    ))}
-                  </div>
-                </Field>
-              ) : null}
-
-              <URIField
-                labelId="DynamicClientDetailsDialog.client-uri"
-                uri={metadata?.clientURI}
-              />
-              <URIField
-                labelId="DynamicClientDetailsDialog.logo-uri"
-                uri={metadata?.logoURI}
-              />
-              <URIField
-                labelId="DynamicClientDetailsDialog.tos-uri"
-                uri={metadata?.tosURI}
-              />
-              <URIField
-                labelId="DynamicClientDetailsDialog.policy-uri"
-                uri={metadata?.policyURI}
-              />
             </div>
           ) : null}
           <Flex gap="3" mt="4" justify="end">

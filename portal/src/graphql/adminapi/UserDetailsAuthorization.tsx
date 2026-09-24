@@ -7,7 +7,11 @@ import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsAuthorization.module.css";
 import ErrorDialog from "../../error/ErrorDialog";
-import { Authorization, OAuthClientConfig } from "../../types";
+import {
+  Authorization,
+  AuthorizationScope,
+  OAuthClientConfig,
+} from "../../types";
 import { useDeleteAuthorizationMutation } from "./mutations/deleteAuthorizationMutation";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { Callout } from "../../components/v2/Callout/Callout";
@@ -74,12 +78,24 @@ function hasFullUserInfoAccess(scopes: string[]): boolean {
   return scopes.includes(FULL_USERINFO_SCOPE);
 }
 
-// The scopes worth showing as permissions: everything except the protocol
-// scopes and the full-userinfo scope, which gets its own label.
+// Whether a granted scope is worth showing as a permission: everything except
+// the protocol scopes and the full-userinfo scope, which gets its own label.
+function isPermissionScope(scope: string): boolean {
+  return !PROTOCOL_SCOPES.has(scope) && scope !== FULL_USERINFO_SCOPE;
+}
+
 function permissionScopes(scopes: string[]): string[] {
-  return scopes.filter(
-    (scope) => !PROTOCOL_SCOPES.has(scope) && scope !== FULL_USERINFO_SCOPE
-  );
+  return scopes.filter(isPermissionScope);
+}
+
+// The same scopes as permissionScopes, resolved to the resource that defines
+// each one. A name two resources define appears once per resource, so this can
+// be longer than permissionScopes -- the row counts names, the dialog groups
+// by resource.
+function resolvedPermissionScopes(
+  resolved: AuthorizationScope[]
+): AuthorizationScope[] {
+  return resolved.filter((r) => isPermissionScope(r.scope));
 }
 
 interface RemoveConfirmationDialogProps {
@@ -187,6 +203,9 @@ const UserDetailsAuthorization: React.VFC<Props> =
             client,
             hasFullUserInfo: hasFullUserInfoAccess(authz.scopes),
             permissionScopes: permissionScopes(authz.scopes),
+            resolvedPermissionScopes: resolvedPermissionScopes(
+              authz.resolvedScopes
+            ),
           },
           createdAt: formatDatetime(locale, authz.createdAt) ?? "",
           remove: () => {
