@@ -5,7 +5,7 @@
 }
 
 .sectionCard {
-  border: 1px solid #e8e8ec;
+  border: 1px solid var(--gray-5);
   border-radius: 12px;
   padding: 24px;
   display: flex;

@@ -8,6 +8,7 @@ import ChartDataLabels, {
 } from "chartjs-plugin-datalabels";
 import { AnalyticChartsQueryQuery } from "./query/analyticChartsQuery.generated";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
+import { useChartThemeColors } from "../../hook/useThemeColors";
 import styles from "./AnalyticsSignupConversionWidget.module.css";
 
 interface AnalyticsSignupConversionChartProps {
@@ -15,17 +16,21 @@ interface AnalyticsSignupConversionChartProps {
 }
 
 const SignedUpPercentageDataIndex = 0; // index of SignedUpPercentage data in the dataset
-const SignedUpPercentageColor = "#176DF3";
-const NotSignedUpPercentageColor = "#EAEAEA";
-const LabelColor = "#FFFFFF";
-const LabelBorderColor = "#FFFFFF";
-const LabelBackgroundColor = "#176DF3";
+
+function shouldShowLabelForData(ctx: ChartDataLabelsContext): boolean {
+  const val = ctx.dataset.data[ctx.dataIndex] as number;
+  if (ctx.dataIndex === SignedUpPercentageDataIndex && val > 0) {
+    return true;
+  }
+  return false;
+}
 
 const AnalyticsSignupConversionChart: React.VFC<AnalyticsSignupConversionChartProps> =
   function AnalyticsSignupConversionChart(props) {
     const { renderToString } = useContext(Context);
     const { totalSignup = 0, totalSignupUniquePageView = 0 } =
       props.signupConversionRate ?? {};
+    const colors = useChartThemeColors();
 
     const signedUpPercentage = useMemo(() => {
       if (totalSignupUniquePageView <= 0) {
@@ -49,69 +54,61 @@ const AnalyticsSignupConversionChart: React.VFC<AnalyticsSignupConversionChartPr
       [signedUpPercentage, totalSignupUniquePageView]
     );
 
-    function shouldShowLabelForData(ctx: ChartDataLabelsContext): boolean {
-      const val = ctx.dataset.data[ctx.dataIndex] as number;
-      if (ctx.dataIndex === SignedUpPercentageDataIndex && val > 0) {
-        return true;
-      }
-      return false;
-    }
-
-    const options = {
-      maintainAspectRatio: false,
-      responsive: true,
-      plugins: {
-        datalabels: {
-          display: (ctx: ChartDataLabelsContext) => shouldShowLabelForData(ctx),
-          formatter: (val: number, ctx: ChartDataLabelsContext) => {
-            if (shouldShowLabelForData(ctx)) {
-              return ` ${val}% `;
-            }
-            return "";
-          },
-          color: LabelColor,
-          backgroundColor: LabelBackgroundColor,
-          borderColor: LabelBorderColor,
-          borderWidth: 2,
-          borderRadius: 2,
-        },
-        tooltip: {
-          filter: function (tooltipItem: TooltipItem<"pie">) {
-            // only show the tooltips for signed up percentage
-            return tooltipItem.dataIndex === SignedUpPercentageDataIndex;
-          },
-          callbacks: {
-            label: function (tooltipItem: TooltipItem<"pie">) {
-              if (tooltipItem.dataIndex === SignedUpPercentageDataIndex) {
-                return renderToString(
-                  "AnalyticsSignupConversionWidget.chart.signup-percentage.label",
-                  {
-                    percentage: signedUpPercentage,
-                  }
-                );
+    const options = useMemo(() => {
+      return {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: {
+          datalabels: {
+            display: (ctx: ChartDataLabelsContext) =>
+              shouldShowLabelForData(ctx),
+            formatter: (val: number, ctx: ChartDataLabelsContext) => {
+              if (shouldShowLabelForData(ctx)) {
+                return ` ${val}% `;
               }
               return "";
             },
+            color: colors.accentContrast,
+            backgroundColor: colors.accent,
+            borderColor: colors.surface,
+            borderWidth: 2,
+            borderRadius: 2,
+          },
+          tooltip: {
+            filter: function (tooltipItem: TooltipItem<"pie">) {
+              // only show the tooltips for signed up percentage
+              return tooltipItem.dataIndex === SignedUpPercentageDataIndex;
+            },
+            callbacks: {
+              label: function (tooltipItem: TooltipItem<"pie">) {
+                if (tooltipItem.dataIndex === SignedUpPercentageDataIndex) {
+                  return renderToString(
+                    "AnalyticsSignupConversionWidget.chart.signup-percentage.label",
+                    {
+                      percentage: signedUpPercentage,
+                    }
+                  );
+                }
+                return "";
+              },
+            },
           },
         },
-      },
-    };
+      };
+    }, [colors, renderToString, signedUpPercentage]);
 
     const data = useMemo(() => {
       return {
         datasets: [
           {
             data: [signedUpPercentage, notSignedUpViewPercentage],
-            backgroundColor: [
-              SignedUpPercentageColor,
-              NotSignedUpPercentageColor,
-            ],
-            borderColor: [SignedUpPercentageColor, NotSignedUpPercentageColor],
+            backgroundColor: [colors.accent, colors.placeholder],
+            borderColor: [colors.accent, colors.placeholder],
             borderWidth: 1,
           },
         ],
       };
-    }, [signedUpPercentage, notSignedUpViewPercentage]);
+    }, [signedUpPercentage, notSignedUpViewPercentage, colors]);
 
     return (
       <div className={styles.chartContainer}>

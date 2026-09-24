@@ -34,7 +34,10 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-full, 9999px);
+  /* Not --radius-full: Radix only sets that to 9999px when the theme's radius
+     is "full", and ours is the default, so it resolves to 0 and squares the
+     tile. The fallback never fires because the variable is defined. */
+  border-radius: 9999px;
 }
 
 .iconInfo {

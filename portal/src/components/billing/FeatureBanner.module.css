@@ -49,7 +49,7 @@
 
 .featureIcon {
   flex-shrink: 0;
-  color: var(--accent-9);
+  color: var(--accent-11);
 }
 
 .featureText {
@@ -85,12 +85,12 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-3);
-  background-color: white;
+  background-color: var(--color-panel-solid);
   flex-shrink: 0;
 }
 
 .highlightedFeatureIcon {
-  color: var(--accent-9);
+  color: var(--accent-11);
 }
 
 .highlightedFeatureText {

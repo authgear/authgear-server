@@ -45,7 +45,8 @@
 }
 
 .section {
-  @apply min-w-0 rounded-xl border border-solid bg-white p-6;
+  @apply min-w-0 rounded-xl border border-solid p-6;
+  background-color: var(--color-panel-solid);
   border-color: var(--gray-a6);
   overflow: hidden;
 }
@@ -147,7 +148,7 @@
   margin-top: 8px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--accent-9);
+  color: var(--accent-11);
 }
 
 .hookAddButton:hover {

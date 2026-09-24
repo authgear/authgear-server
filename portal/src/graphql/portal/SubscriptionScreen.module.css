@@ -138,7 +138,7 @@
 
 .processingPaymentErrorMessage {
   padding: 24px 0;
-  color: #a4262c;
+  color: var(--red-11);
 }
 
 .processingPaymentButtonContainer {

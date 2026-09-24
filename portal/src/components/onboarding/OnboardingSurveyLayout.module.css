@@ -1,13 +1,22 @@
+/* The artwork runs the full height, the logo bar included, so the survey reads
+   as one branded surface rather than a chrome strip above a gradient. The strip
+   was the page background, which is white in light mode but near-black in dark. */
 .onboardingSurveyLayout__root {
   @apply flex-1-0-auto;
   @apply flex flex-col;
+  @apply bg-no-repeat bg-cover;
+  background-color: var(--accent-9);
+
+  /* Below the mobile breakpoint the ancestors drop to content height (see
+     index.css and ReactApp.module.css), so the artwork would stop where the
+     content stops and leave the page background showing underneath. Matches the
+     unit #react-app-root already uses. */
+  min-height: 100vh;
 }
 
 .onboardingSurveyLayout__bg {
   @apply flex-1-0-auto;
-  @apply bg-no-repeat bg-cover;
   @apply flex flex-col;
-  background-color: var(--accent-9);
 }
 
 .onboardingSurveyLayout__content {
