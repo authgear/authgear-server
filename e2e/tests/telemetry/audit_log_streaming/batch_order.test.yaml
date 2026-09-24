@@ -1,0 +1,99 @@
+name: A batch is delivered in the order the entries occurred
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: 127.0.0.1:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "streaming@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: signup_verify
+    action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_finish
+    action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "channels": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # email.sent (the OTP delivery, during the verify step) occurs before
+  # user.created (signup completion). The spec no longer says "no order
+  # guarantee across processes" -- it says entries are delivered in the
+  # order they occurred, and a batch is written to one connection by one
+  # drainer. A regression that fanned out per-entry sends, or drained
+  # concurrently, would show these two in an unpredictable order instead
+  # of this one.
+  - name: wait_for_delivery
+    action: syslog_server_query
+    syslog_server_port: 5140
+    syslog_server_min_count: 2
+    syslog_server_output:
+      rows: |
+        [
+          {
+            "structured_data": {
+              "activity_type": "email.sent"
+            }
+          },
+          {
+            "structured_data": {
+              "activity_type": "user.created"
+            }
+          }
+        ]

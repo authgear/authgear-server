@@ -13,13 +13,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
+	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 // Injectors from wire.go:
 
-func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironmentConfig) *audit.Sink {
+func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironmentConfig, redisPool *redis.Pool, redisCfg *config.RedisEnvironmentConfig, globalRedisCredentials *config.GlobalRedisCredentialsEnvironmentConfig, auditLogStreamingInterval config.DurationString) *audit.Sink {
 	appContext := app.Context
 	configConfig := appContext.Config
 	secretConfig := configConfig.SecretConfig
@@ -33,9 +36,14 @@ func newAuditSink(app *model.App, pool *db.Pool, cfg *config.DatabaseEnvironment
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	handle := globalredis.NewHandle(redisPool, redisCfg, globalRedisCredentials)
+	telemetryConfig := appConfig.Telemetry
+	featureConfig := configConfig.FeatureConfig
+	producer := auditlogstreaming.NewProducer(handle, appID, telemetryConfig, featureConfig, auditLogStreamingInterval)
 	sink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	return sink
 }

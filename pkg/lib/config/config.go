@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strconv"
 
@@ -34,6 +35,7 @@ var _ = Schema.Add("AppConfig", `
 		"messaging": { "$ref": "#/$defs/MessagingConfig" },
 		"usage": { "$ref": "#/$defs/UsageConfig" },
 		"search": { "$ref": "#/$defs/SearchConfig" },
+		"telemetry": { "$ref": "#/$defs/TelemetryConfig" },
 		"authentication": { "$ref": "#/$defs/AuthenticationConfig" },
 		"session": { "$ref": "#/$defs/SessionConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthConfig" },
@@ -74,6 +76,7 @@ type AppConfig struct {
 	Messaging    *MessagingConfig    `json:"messaging,omitempty"`
 	Usage        *UsageConfig        `json:"usage,omitempty" nullable:"true"`
 	Search       *SearchConfig       `json:"search,omitempty"`
+	Telemetry    *TelemetryConfig    `json:"telemetry,omitempty"`
 
 	Authentication       *AuthenticationConfig       `json:"authentication,omitempty"`
 	Session              *SessionConfig              `json:"session,omitempty"`
@@ -149,6 +152,9 @@ func (c *AppConfig) Validate(ctx context.Context, validationCtx *validation.Cont
 
 	// Validation 11: validate saml configs
 	c.validateSAML(validationCtx)
+
+	// Validation 12: audit log stream names must be unique.
+	c.validateTelemetryAuditLogStreamNames(validationCtx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -391,6 +397,19 @@ func (c *AppConfig) validateSAML(ctx *validation.Context) {
 		for idx, sp := range c.SAML.ServiceProviders {
 			c.validateSAMLServiceProvider(ctx, idx, sp)
 		}
+	}
+}
+
+func (c *AppConfig) validateTelemetryAuditLogStreamNames(ctx *validation.Context) {
+	seen := make(map[string]int)
+	for i, stream := range c.Telemetry.AuditLogs.Streams {
+		if j, ok := seen[stream.Name]; ok {
+			ctx.Child("telemetry", "audit_logs", "streams", strconv.Itoa(i), "name").EmitErrorMessage(
+				fmt.Sprintf("duplicated audit log stream name '%s' with streams[%d]", stream.Name, j),
+			)
+			continue
+		}
+		seen[stream.Name] = i
 	}
 }
 

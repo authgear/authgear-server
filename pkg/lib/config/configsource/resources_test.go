@@ -1119,6 +1119,143 @@ http:
 			So(err, ShouldBeNil)
 		})
 	})
+
+	Convey("AuthgearYAML telemetry.audit_logs.streams feature config", t, func() {
+		path := "authgear.yaml"
+		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
+		descriptor := &AuthgearYAMLDescriptor{}
+
+		streamYAML := `telemetry:
+  audit_logs:
+    streams:
+    - name: collector
+      type: syslog
+      transport: tcp
+      tcp:
+        address: collector.internal:5140
+      syslog:
+        format: rfc5424
+        framing: newline
+`
+
+		Convey("disabled=true rejects a new stream", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+			featureConfig, err := config.ParseFeatureConfig(ctx, []byte(`
+telemetry:
+  audit_logs:
+    streaming:
+      disabled: true
+`))
+			So(err, ShouldBeNil)
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			_, err = descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+`),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://test
+`+streamYAML),
+			)
+			So(err, ShouldBeError, `invalid authgear.yaml:
+/telemetry/audit_logs/streams: audit log streaming is disallowed`)
+		})
+
+		Convey("disabled=true allows saving an unchanged stream (plan downgrade)", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+			featureConfig, err := config.ParseFeatureConfig(ctx, []byte(`
+telemetry:
+  audit_logs:
+    streaming:
+      disabled: true
+`))
+			So(err, ShouldBeNil)
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			// Original already has the same stream configured (from when
+			// disabled was false). Saving it unchanged after a downgrade
+			// must succeed.
+			_, err = descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+` + streamYAML),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://test
+`+streamYAML),
+			)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("disabled=false allows a new stream", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			domainService := NewMockDomainService(ctrl)
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+
+			featureConfig := config.NewEffectiveDefaultFeatureConfig()
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, ContextKeyFeatureConfig, featureConfig)
+			ctx = context.WithValue(ctx, ContextKeyAppHostSuffixes, &config.AppHostSuffixes{})
+			ctx = context.WithValue(ctx, ContextKeyDomainService, domainService)
+
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+`),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://test
+`+streamYAML),
+			)
+			So(err, ShouldBeNil)
+		})
+	})
 }
 
 func TestAuthgearYAMLTargetStep(t *testing.T) {

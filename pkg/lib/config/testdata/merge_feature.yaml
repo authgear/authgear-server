@@ -1,5 +1,15 @@
 configs:
   - {}
+  # telemetry.audit_logs.streaming.disabled must survive every later layer
+  # below that does not mention telemetry, exactly like audit_log.retrieval_days
+  # set here must survive every later layer that does not mention audit_log --
+  # that is TelemetryFeatureConfig -> AuditLogs -> Streaming's field-level merge.
+  - audit_log:
+      retrieval_days: 180
+  - telemetry:
+      audit_logs:
+        streaming:
+          disabled: true
   - messaging:
       whatsapp_usage_count_disabled: true
       custom_sms_provider_disabled: true
@@ -182,6 +192,12 @@ configs:
               period: 30s
               burst: 7
 result:
+  audit_log:
+    retrieval_days: 180
+  telemetry:
+    audit_logs:
+      streaming:
+        disabled: true
   test_mode:
     fixed_oob_otp:
       enabled: true

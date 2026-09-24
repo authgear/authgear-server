@@ -1,0 +1,107 @@
+name: An Admin API triggered event streams the same as a user-triggered one
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: 127.0.0.1:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+steps:
+  # Admin API's createUser, with sendPassword true, persists three
+  # entries: email.sent (the password notification), user.created, and
+  # admin_api.mutation.create_user.executed -- the mutation call itself is
+  # also audited. user.created and the mutation event are triggered_by
+  # admin_api; email.sent is always triggered_by user regardless of who
+  # asked for it, by that event's own design. Nothing in the producer or
+  # the encoder reads triggered_by, so this is the direct proof that
+  # streaming is not accidentally gated on how an entry was triggered.
+  - name: create_user
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation createUserMutation(
+          $identityDefinition: IdentityDefinitionLoginID!
+          $password: String
+          $sendPassword: Boolean
+          $setPasswordExpired: Boolean
+        ) {
+          createUser(
+            input: {
+              definition: { loginID: $identityDefinition }
+              password: $password
+              sendPassword: $sendPassword
+              setPasswordExpired: $setPasswordExpired
+            }
+          ) {
+            user {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "identityDefinition": { "key": "email", "value": "{{ .AppID }}@example.com" },
+          "password": "SuperSecret123",
+          "sendPassword": true,
+          "setPasswordExpired": true
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "createUser": {
+              "user": {
+                "id": "[[string]]"
+              }
+            }
+          },
+          "errors": null
+        }
+
+  - name: verify_persisted
+    action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+      ORDER BY created_at, id
+    audit_query_output:
+      rows: |
+        [
+          { "activity_type": "email.sent" },
+          { "activity_type": "user.created" },
+          { "activity_type": "admin_api.mutation.create_user.executed" }
+        ]
+
+  - name: wait_for_delivery
+    action: syslog_server_query
+    syslog_server_port: 5140
+    syslog_server_min_count: 3
+    syslog_server_output:
+      rows: |
+        [
+          {
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "email.sent"
+            }
+          },
+          {
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "user.created"
+            }
+          },
+          {
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "admin_api.mutation.create_user.executed"
+            }
+          }
+        ]

@@ -1,0 +1,87 @@
+name: Audit log streaming honours facility, app_name and structured_data_id
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: 127.0.0.1:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+            facility: user
+            app_name: e2e-app
+            structured_data_id: authgear@12345
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_username
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "streaming-user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "SuperSecret123"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # facility user (numeric code 1) + severity 6 (user.created is not one
+  # of the severity-4 activity types) -> PRI = 1*8 + 6 = 14.
+  # structured_data_id in the name@<private-enterprise-number> form is
+  # what the spec's Caveats recommend for receivers that enforce RFC 5424
+  # section 6.3.2.
+  - name: wait_for_delivery
+    action: syslog_server_query
+    syslog_server_port: 5140
+    syslog_server_min_count: 1
+    syslog_server_output:
+      rows: |
+        [
+          {
+            "pri": 14,
+            "facility": 1,
+            "severity": 6,
+            "app_name": "e2e-app",
+            "structured_data_id": "authgear@12345",
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "user.created"
+            }
+          }
+        ]

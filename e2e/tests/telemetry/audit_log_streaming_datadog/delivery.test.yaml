@@ -1,0 +1,120 @@
+name: A datadog stream delivers audit log entries as Datadog log objects
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: http://127.0.0.1:2626/[[.AppID]]/logs
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "streaming-datadog@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: signup_verify
+    action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_finish
+    action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "channels": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # Defaults everywhere -- no datadog object at all, proving the object is
+  # genuinely optional. email.sent (the OTP delivery) then user.created
+  # (signup completion) is the same deterministic two-entry sequence the
+  # syslog suite's batch_order.test.yaml pins.
+  - name: wait_for_delivery
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/logs"
+    hook_server_min_count: 2
+    hook_server_output:
+      rows: |
+        [
+          {
+            "message": "email.sent"
+          },
+          {
+            "ddsource": "authgear",
+            "service": "authgear",
+            "hostname": "{{ .AppID }}.authgeare2e.localhost",
+            "ddtags": "app_id:{{ .AppID }},activity_type:user.created",
+            "message": "user.created",
+            "status": "info",
+            "evt": {
+              "name": "user.created"
+            },
+            "usr": {
+              "id": "[[string]]"
+            },
+            "network": {
+              "client": {
+                "ip": "[[string]]"
+              }
+            },
+            "authgear": {
+              "event": {
+                "type": "user.created",
+                "context": {
+                  "app_id": "{{ .AppID }}"
+                }
+              }
+            },
+            "__request": {
+              "content_encoding": "gzip",
+              "headers": {
+                "Dd-Api-Key": "e2e-datadog-api-key"
+              }
+            }
+          }
+        ]

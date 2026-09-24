@@ -105,6 +105,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
+	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -694,9 +695,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -811,10 +820,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -1765,9 +1770,17 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -1882,10 +1895,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -2950,9 +2959,17 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -3066,10 +3083,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -4090,9 +4103,17 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -4608,9 +4629,17 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -5188,9 +5217,17 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -5305,10 +5342,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -6084,9 +6117,17 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -6201,10 +6242,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -7032,9 +7069,17 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -7172,10 +7217,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -8018,9 +8059,17 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -8134,10 +8183,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -9124,9 +9169,17 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -9259,10 +9312,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -10231,9 +10280,17 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -10366,10 +10423,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -11337,9 +11390,17 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -11900,9 +11961,17 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -12049,10 +12118,6 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -13124,9 +13189,17 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -13273,10 +13346,6 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -14355,9 +14424,17 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -14504,10 +14581,6 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -15617,9 +15690,17 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -15752,10 +15833,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -16724,9 +16801,17 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -16833,10 +16918,6 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -17865,9 +17946,17 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -18000,10 +18089,6 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -19010,9 +19095,17 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -19145,10 +19238,6 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -20151,9 +20240,17 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -20286,10 +20383,6 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -21307,9 +21400,17 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -21442,10 +21543,6 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -22435,9 +22532,17 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -22570,10 +22675,6 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -23590,9 +23691,17 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -23725,10 +23834,6 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -24744,9 +24849,17 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -24879,10 +24992,6 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -25898,9 +26007,17 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -26033,10 +26150,6 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -27041,9 +27154,17 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -27176,10 +27297,6 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -28204,9 +28321,17 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -28339,10 +28464,6 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -29358,9 +29479,17 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -29493,10 +29622,6 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -30513,9 +30638,17 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -30648,10 +30781,6 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -31677,9 +31806,17 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -31812,10 +31949,6 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -32831,9 +32964,17 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -32966,10 +33107,6 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -33977,9 +34114,17 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -34112,10 +34257,6 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -35153,9 +35294,17 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -35288,10 +35437,6 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -36298,9 +36443,17 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -36433,10 +36586,6 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -37447,9 +37596,17 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -37582,10 +37739,6 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -38590,9 +38743,17 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -38725,10 +38886,6 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -39729,9 +39886,17 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -39864,10 +40029,6 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -40848,9 +41009,17 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -40983,10 +41152,6 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -41963,9 +42128,17 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -42098,10 +42271,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -43183,9 +43352,17 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -43318,10 +43495,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -44284,9 +44457,17 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -44433,10 +44614,6 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -45508,9 +45685,17 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -45657,10 +45842,6 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -46746,9 +46927,17 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -46881,10 +47070,6 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -47877,9 +48062,17 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -48012,10 +48205,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -48933,9 +49122,17 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -49068,10 +49265,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -49975,9 +50168,17 @@ func newWebAppClientLogoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -50494,9 +50695,17 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -50629,10 +50838,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -51609,9 +51814,17 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -51744,10 +51957,6 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -52882,9 +53091,17 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -53031,10 +53248,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -53949,9 +54162,17 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -54098,10 +54319,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -54968,9 +55185,17 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -55117,10 +55342,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -56021,9 +56242,17 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -56170,10 +56399,6 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -57090,9 +57315,17 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -57239,10 +57472,6 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -58235,9 +58464,17 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -58384,10 +58621,6 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -59348,9 +59581,17 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -59497,10 +59738,6 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -60493,9 +60730,17 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -60662,10 +60907,6 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -61439,9 +61680,17 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -61608,10 +61857,6 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -62394,9 +62639,17 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -62543,10 +62796,6 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -63642,9 +63891,17 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -63791,10 +64048,6 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -64883,9 +65136,17 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -65032,10 +65293,6 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -66114,9 +66371,17 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -66263,10 +66528,6 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -67342,9 +67603,17 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -67491,10 +67760,6 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -68574,9 +68839,17 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -68723,10 +68996,6 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -69804,9 +70073,17 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -69953,10 +70230,6 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -71032,9 +71305,17 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -71181,10 +71462,6 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -72256,9 +72533,17 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -72405,10 +72690,6 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -73480,9 +73761,17 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -73629,10 +73918,6 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -74709,9 +74994,17 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -74858,10 +75151,6 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -75939,9 +76228,17 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -76088,10 +76385,6 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -77163,9 +77456,17 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -77312,10 +77613,6 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -78391,9 +78688,17 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -78540,10 +78845,6 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -79615,9 +79916,17 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -79764,10 +80073,6 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -80839,9 +81144,17 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -80988,10 +81301,6 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -82063,9 +82372,17 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -82212,10 +82529,6 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -83287,9 +83600,17 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -83436,10 +83757,6 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -84518,9 +84835,17 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -84667,10 +84992,6 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -85744,9 +86065,17 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -85893,10 +86222,6 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -86969,9 +87294,17 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -87118,10 +87451,6 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -88206,9 +88535,17 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -88341,10 +88678,6 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -89510,9 +89843,17 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -89659,10 +90000,6 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -91154,9 +91491,17 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -91303,10 +91648,6 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -92378,9 +92719,17 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -92527,10 +92876,6 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -93602,9 +93947,17 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -93751,10 +94104,6 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -94966,9 +95315,17 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -95115,10 +95472,6 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -96192,9 +96545,17 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -96341,10 +96702,6 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -97426,9 +97783,17 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -97543,10 +97908,6 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -98351,9 +98712,17 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -98468,10 +98837,6 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -99306,9 +99671,17 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -99423,10 +99796,6 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -100254,9 +100623,17 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -100371,10 +100748,6 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -101210,9 +101583,17 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -101345,10 +101726,6 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -102337,9 +102714,17 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -102472,10 +102857,6 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -103479,9 +103860,17 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -103614,10 +104003,6 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -104623,9 +105008,17 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -104758,10 +105151,6 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -105753,9 +106142,17 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -105888,10 +106285,6 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -106900,9 +107293,17 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -107035,10 +107436,6 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -108053,9 +108450,17 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -108188,10 +108593,6 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -109188,9 +109589,17 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -109323,10 +109732,6 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -110331,9 +110736,17 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -110466,10 +110879,6 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -111476,9 +111885,17 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -111611,10 +112028,6 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -112606,9 +113019,17 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -112741,10 +113162,6 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -113754,9 +114171,17 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -113889,10 +114314,6 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -114889,9 +115310,17 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -115024,10 +115453,6 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -116036,9 +116461,17 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -116171,10 +116604,6 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -117131,9 +117560,17 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -117300,10 +117737,6 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -118274,9 +118707,17 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -118443,10 +118884,6 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -119420,9 +119857,17 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -119589,10 +120034,6 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -120587,9 +121028,17 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -120722,10 +121171,6 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -122419,9 +122864,17 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -122535,10 +122988,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -123313,9 +123762,17 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -123448,10 +123905,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -124431,9 +124884,17 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
@@ -124548,10 +125009,6 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -125404,9 +125861,17 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -125539,10 +126004,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	pool := rootProvider.RedisPool
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -126374,9 +126835,17 @@ func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -126861,9 +127330,17 @@ func newAccountManagementRateLimitMiddleware(p *deps.RequestProvider) httproute.
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)

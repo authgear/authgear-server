@@ -157,6 +157,13 @@ func (m *Manager) ApplyUpdates0(ctx context.Context, appID string, updates []Upd
 	// It is because the portal updates the resources, and then
 	// update authgear.yaml in 2 consecutive calls.
 	// If we cleans up unconditionally, we cannot save new Deno hooks.
+	//
+	// Orphaned secrets (telemetry.audit_logs.streams.tls and .datadog) are
+	// not swept here: pruning them is opt-in, via
+	// config.TelemetryAuditLogStreamSecretsUpdateInstruction, the same way
+	// removing an OAuth client's secret is -- see that instruction's own
+	// doc comment for why an automatic sweep on every authgear.yaml save
+	// was replaced with this.
 	for _, update := range updates {
 		if update.Path == configsource.AuthgearYAML {
 			filesToDelete, err := m.cleanupOrphanedResources(newManager, cfg)

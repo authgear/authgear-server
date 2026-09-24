@@ -17,6 +17,7 @@ var ConfigDeps = wire.NewSet(
 		"Localization",
 		"Messaging",
 		"Search",
+		"Telemetry",
 		"Authentication",
 		"Session",
 		"OAuth",
@@ -146,6 +147,8 @@ var secretDeps = wire.NewSet(
 	ProvideSAMLIdpSigningMaterials,
 	ProvideSAMLSpSigningMaterials,
 	ProvideSSOOAuthDemoCredentials,
+	ProvideTelemetryAuditLogStreamTLSMaterials,
+	ProvideTelemetryAuditLogStreamDatadogCredentials,
 )
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
@@ -279,5 +282,15 @@ func ProvideSAMLIdpSigningMaterials(c *config.SecretConfig) *config.SAMLIdpSigni
 
 func ProvideSAMLSpSigningMaterials(c *config.SecretConfig) *config.SAMLSpSigningMaterials {
 	s, _ := c.LookupData(config.SAMLSpSigningMaterialsKey).(*config.SAMLSpSigningMaterials)
+	return s
+}
+
+func ProvideTelemetryAuditLogStreamTLSMaterials(c *config.SecretConfig) *config.TelemetryAuditLogStreamTLSMaterials {
+	s, _ := c.LookupData(config.TelemetryAuditLogStreamTLSMaterialsKey).(*config.TelemetryAuditLogStreamTLSMaterials)
+	return s
+}
+
+func ProvideTelemetryAuditLogStreamDatadogCredentials(c *config.SecretConfig) *config.TelemetryAuditLogStreamDatadogCredentials {
+	s, _ := c.LookupData(config.TelemetryAuditLogStreamDatadogCredentialsKey).(*config.TelemetryAuditLogStreamDatadogCredentials)
 	return s
 }
