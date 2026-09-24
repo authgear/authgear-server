@@ -54,3 +54,50 @@ func TestParseDynamicClientsSourceArg(t *testing.T) {
 		})
 	})
 }
+
+func TestParseDynamicClientsClientIDsArg(t *testing.T) {
+	Convey("ParseDynamicClientsClientIDsArg", t, func() {
+		Convey("an absent clientIDs means no filter", func() {
+			clientIDs, err := graphql.ParseDynamicClientsClientIDsArg(map[string]any{})
+			So(err, ShouldBeNil)
+			So(clientIDs, ShouldBeNil)
+		})
+
+		Convey("an explicit null means no filter", func() {
+			clientIDs, err := graphql.ParseDynamicClientsClientIDsArg(map[string]any{
+				"clientIDs": nil,
+			})
+			So(err, ShouldBeNil)
+			So(clientIDs, ShouldBeNil)
+		})
+
+		Convey("an empty list is a filter that matches nothing", func() {
+			clientIDs, err := graphql.ParseDynamicClientsClientIDsArg(map[string]any{
+				"clientIDs": []any{},
+			})
+			So(err, ShouldBeNil)
+			So(clientIDs, ShouldNotBeNil)
+			So(clientIDs, ShouldBeEmpty)
+		})
+
+		Convey("a list filters by those client IDs", func() {
+			clientIDs, err := graphql.ParseDynamicClientsClientIDsArg(map[string]any{
+				"clientIDs": []any{"a", "https://example.com/client.json"},
+			})
+			So(err, ShouldBeNil)
+			So(clientIDs, ShouldResemble, []string{"a", "https://example.com/client.json"})
+		})
+
+		Convey("more than the limit is rejected", func() {
+			arr := make([]any, graphql.MaxDynamicClientsClientIDs+1)
+			for i := range arr {
+				arr[i] = "c"
+			}
+			clientIDs, err := graphql.ParseDynamicClientsClientIDsArg(map[string]any{
+				"clientIDs": arr,
+			})
+			So(clientIDs, ShouldBeNil)
+			So(err, ShouldBeError, graphql.ErrDynamicClientsTooManyClientIDs)
+		})
+	})
+}

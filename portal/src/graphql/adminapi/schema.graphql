@@ -1947,6 +1947,11 @@ type Query {
     """"""
     before: String
 
+    """
+    Restrict the listing, and its totalCount, to clients with these client IDs. Omit for every dynamic client; an empty list matches none. At most 1000 IDs, and a page can then hold up to 1000 clients, so one request returns every match.
+    """
+    clientIDs: [String!]
+
     """"""
     first: Int
 

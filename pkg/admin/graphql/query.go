@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/graphql-go/graphql"
@@ -502,18 +503,30 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					Type:        oauthClientSourceType,
 					Description: "Restrict the listing, and its totalCount, to clients from this source. Omit for every dynamic client. STATIC is rejected with an error: a statically configured client lives in authgear.yaml and never appears in this listing, so filtering by it cannot describe anything.",
 				},
+				"clientIDs": &graphql.ArgumentConfig{
+					Type:        graphql.NewList(graphql.NewNonNull(graphql.String)),
+					Description: fmt.Sprintf("Restrict the listing, and its totalCount, to clients with these client IDs. Omit for every dynamic client; an empty list matches none. At most %d IDs, and a page can then hold up to %d clients, so one request returns every match.", MaxDynamicClientsClientIDs, MaxDynamicClientsClientIDs),
+				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (any, error) {
 				ctx := p.Context
 				gqlCtx := GQLContext(ctx)
-				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
 				source, err := ParseDynamicClientsSourceArg(p.Args)
 				if err != nil {
 					return nil, err
 				}
+				clientIDs, err := ParseDynamicClientsClientIDsArg(p.Args)
+				if err != nil {
+					return nil, err
+				}
 
-				refs, result, err := gqlCtx.DCRFacade.ListClients(ctx, pageArgs, source)
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+				if clientIDs != nil {
+					pageArgs = graphqlutil.NewPageArgsWithMaxPageSize(relay.NewConnectionArguments(p.Args), MaxDynamicClientsClientIDs)
+				}
+
+				refs, result, err := gqlCtx.DCRFacade.ListClients(ctx, pageArgs, source, clientIDs)
 				if err != nil {
 					return nil, err
 				}
