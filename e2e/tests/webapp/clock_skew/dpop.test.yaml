@@ -1,0 +1,61 @@
+name: Login and signup pages check the device clock when dpop_jkt is sent
+# The clock comparison runs in the browser, so this covers what the server
+# renders for it, and the page the browser is sent to.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+steps:
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+      x_page: login
+      dpop_jkt: "{{ generateDPoPJKT }}"
+    http_output:
+      http_status: 200
+      redirect_path: /login
+      html_xpath_exists:
+        - /html/body//div[@data-controller='clock-skew']
+        - /html/body//form//input[@name='x_login_id']
+      html_text_contains:
+        - data-clock-skew-max-ahead-value="300000"
+        - data-clock-skew-max-behind-value="300000"
+        - data-clock-skew-redirect-url-value="/authflow/v2/clock_skew"
+
+  - name: get_signup_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/signup
+    http_output:
+      http_status: 200
+      redirect_path: /signup
+      html_xpath_exists:
+        - /html/body//div[@data-controller='clock-skew']
+
+  - name: get_clock_skew_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/authflow/v2/clock_skew
+    http_output:
+      http_status: 200
+      html_xpath_exists:
+        - /html/body//a[@href='/login']
+      html_text_contains:
+        - Incorrect Device Time

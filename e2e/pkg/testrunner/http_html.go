@@ -40,6 +40,17 @@ func validateHTTPHTML(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, ste
 		}
 	}
 
+	for _, unexpectedText := range httpOutput.HTMLTextNotContains {
+		renderedText, templateOk := renderTemplateString(t, cmd, prevSteps, unexpectedText)
+		if !templateOk {
+			return false
+		}
+		if bytes.Contains(body, []byte(renderedText)) {
+			t.Errorf("unexpected html text found in '%s': %q", step.Name, renderedText)
+			ok = false
+		}
+	}
+
 	if len(httpOutput.HTMLXPathExists) == 0 {
 		return ok
 	}
