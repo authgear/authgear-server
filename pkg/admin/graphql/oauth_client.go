@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graphql-go/graphql"
 
@@ -47,6 +48,33 @@ func ParseDynamicClientsSourceArg(args map[string]any) (*model.OAuthClientSource
 		return nil, ErrDynamicClientsSourceStatic
 	}
 	return &source, nil
+}
+
+// MaxDynamicClientsClientIDs bounds the clientIDs argument of the
+// dynamicClients query. It is also that query's page size limit while the
+// argument is set, so one page always holds every match.
+const MaxDynamicClientsClientIDs = 1000
+
+var ErrDynamicClientsTooManyClientIDs = apierrors.NewInvalid(fmt.Sprintf("clientIDs: at most %d client IDs", MaxDynamicClientsClientIDs))
+
+// ParseDynamicClientsClientIDsArg reads the optional "clientIDs" argument of
+// the dynamicClients query. Absent or null means no filter (nil); an empty
+// list is a filter that matches nothing (non-nil, empty).
+func ParseDynamicClientsClientIDsArg(args map[string]any) ([]string, error) {
+	arr, ok := args["clientIDs"].([]any)
+	if !ok {
+		return nil, nil
+	}
+	if len(arr) > MaxDynamicClientsClientIDs {
+		return nil, ErrDynamicClientsTooManyClientIDs
+	}
+	clientIDs := make([]string, 0, len(arr))
+	for _, v := range arr {
+		if s, ok := v.(string); ok {
+			clientIDs = append(clientIDs, s)
+		}
+	}
+	return clientIDs, nil
 }
 
 var oauthClientKindType = graphql.NewEnum(graphql.EnumConfig{

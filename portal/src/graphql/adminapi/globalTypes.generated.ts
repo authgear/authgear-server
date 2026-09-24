@@ -1568,6 +1568,7 @@ export type QueryAuditLogsArgs = {
 export type QueryDynamicClientsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
+  clientIDs?: InputMaybe<Array<Scalars['String']['input']>>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
   source?: InputMaybe<OAuthClientSource>;
