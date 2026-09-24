@@ -52,7 +52,7 @@ function displayNameForClient(
       return client.client.name;
     case "unknown":
       // The raw client ID rather than a dash: it identifies the grant even
-      // when neither list knows the client any more.
+      // when neither list knows the client.
       return clientID;
   }
 }
