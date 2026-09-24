@@ -2,8 +2,14 @@ query dynamicClientsQuery(
   $first: Int
   $after: String
   $source: OAuthClientSource
+  $clientIDs: [String!]
 ) {
-  dynamicClients(first: $first, after: $after, source: $source) {
+  dynamicClients(
+    first: $first
+    after: $after
+    source: $source
+    clientIDs: $clientIDs
+  ) {
     edges {
       node {
         id

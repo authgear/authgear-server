@@ -126,12 +126,6 @@ import {
 import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
 import { ProfilePictureDialog } from "./ProfilePictureDialog";
 
-// The dynamic client count is bounded by the project's optional
-// oauth_client_dcr usage quota (docs/specs/dcr.md, Client Limit), typically
-// tens of clients. One page of this size covers any realistic project; a
-// client beyond it falls back to its raw client ID in the tables below.
-const DYNAMIC_CLIENTS_PAGE_SIZE = 1000;
-
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
   data: UserQueryNodeFragment;
@@ -367,45 +361,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     return appConfig.oauth?.clients ?? [];
   }, [appConfig]);
 
-  // Dynamic clients (DCR-registered or CIMD-resolved) are not in
-  // authgear.yaml, so the sessions and authorizations tables cannot name them
-  // from oauthClientConfig. Fetch the project's dynamic clients once, keyed by
-  // client ID. This is best-effort: while loading or on error the tables fall
-  // back to the raw client ID, which still identifies the row, so neither
-  // state blocks the screen.
-  const { data: dynamicClientsData } = useDynamicClientsQueryQuery({
-    variables: { first: DYNAMIC_CLIENTS_PAGE_SIZE },
-    fetchPolicy: "cache-first",
-  });
-  const dynamicClients: DynamicClients = useMemo(() => {
-    const clients = new Map<string, DynamicClientListItem>();
-    for (const edge of dynamicClientsData?.dynamicClients?.edges ?? []) {
-      const node = edge?.node;
-      if (node == null) {
-        continue;
-      }
-      clients.set(node.clientID, {
-        id: node.id,
-        clientID: node.clientID,
-        clientName: node.clientName ?? null,
-        name: node.name,
-        kind: node.kind,
-        source: node.source,
-        registeredAt: node.registeredAt ?? null,
-        lastFetchedAt: node.lastFetchedAt ?? null,
-        applicationType: node.applicationType ?? null,
-        redirectURIs: [...node.redirectURIs],
-        grantTypes: [...node.grantTypes],
-        responseTypes: [...node.responseTypes],
-        logoURI: node.logoURI ?? null,
-        clientURI: node.clientURI ?? null,
-        tosURI: node.tosURI ?? null,
-        policyURI: node.policyURI ?? null,
-      });
-    }
-    return clients;
-  }, [dynamicClientsData]);
-
   const onChangeStandardAttributes = useCallback(
     (attrs: StandardAttributesState) => {
       setState((state) => {
@@ -472,6 +427,58 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     }
     return realAuthorizations;
   }, [data.authorizations, data.id, oauthClientConfig]);
+
+  // Dynamic clients (DCR-registered or CIMD-resolved) are not in
+  // authgear.yaml, so the sessions and authorizations tables cannot name them
+  // from oauthClientConfig. Fetch just the ones these rows reference. This is
+  // best-effort: while loading or on error the tables fall back to the raw
+  // client ID, which still identifies the row.
+  const dynamicClientIDs = useMemo(() => {
+    const staticClientIDs = new Set(oauthClientConfig.map((c) => c.client_id));
+    const ids = new Set<string>();
+    for (const clientID of [
+      ...sessions.map((s) => s.clientID),
+      ...authorizations.map((a) => a.clientID),
+    ]) {
+      if (clientID != null && !staticClientIDs.has(clientID)) {
+        ids.add(clientID);
+      }
+    }
+    return [...ids].sort();
+  }, [authorizations, oauthClientConfig, sessions]);
+  const { data: dynamicClientsData } = useDynamicClientsQueryQuery({
+    variables: { clientIDs: dynamicClientIDs },
+    skip: dynamicClientIDs.length === 0,
+    fetchPolicy: "cache-first",
+  });
+  const dynamicClients: DynamicClients = useMemo(() => {
+    const clients = new Map<string, DynamicClientListItem>();
+    for (const edge of dynamicClientsData?.dynamicClients?.edges ?? []) {
+      const node = edge?.node;
+      if (node == null) {
+        continue;
+      }
+      clients.set(node.clientID, {
+        id: node.id,
+        clientID: node.clientID,
+        clientName: node.clientName ?? null,
+        name: node.name,
+        kind: node.kind,
+        source: node.source,
+        registeredAt: node.registeredAt ?? null,
+        lastFetchedAt: node.lastFetchedAt ?? null,
+        applicationType: node.applicationType ?? null,
+        redirectURIs: [...node.redirectURIs],
+        grantTypes: [...node.grantTypes],
+        responseTypes: [...node.responseTypes],
+        logoURI: node.logoURI ?? null,
+        clientURI: node.clientURI ?? null,
+        tosURI: node.tosURI ?? null,
+        policyURI: node.policyURI ?? null,
+      });
+    }
+    return clients;
+  }, [dynamicClientsData]);
 
   const profileImageEditable = useMemo(() => {
     const ptr = jsonPointerToString(["picture"]);

@@ -7,6 +7,7 @@ export type DynamicClientsQueryQueryVariables = Types.Exact<{
   first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   after?: Types.InputMaybe<Types.Scalars['String']['input']>;
   source?: Types.InputMaybe<Types.OAuthClientSource>;
+  clientIDs?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
 }>;
 
 
@@ -14,8 +15,13 @@ export type DynamicClientsQueryQuery = { __typename?: 'Query', dynamicClients?: 
 
 
 export const DynamicClientsQueryDocument = gql`
-    query dynamicClientsQuery($first: Int, $after: String, $source: OAuthClientSource) {
-  dynamicClients(first: $first, after: $after, source: $source) {
+    query dynamicClientsQuery($first: Int, $after: String, $source: OAuthClientSource, $clientIDs: [String!]) {
+  dynamicClients(
+    first: $first
+    after: $after
+    source: $source
+    clientIDs: $clientIDs
+  ) {
     edges {
       node {
         id
@@ -60,6 +66,7 @@ export const DynamicClientsQueryDocument = gql`
  *      first: // value for 'first'
  *      after: // value for 'after'
  *      source: // value for 'source'
+ *      clientIDs: // value for 'clientIDs'
  *   },
  * });
  */
