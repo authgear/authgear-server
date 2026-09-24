@@ -31,6 +31,7 @@ type SecretConfigUpdateInstruction struct {
 	SAMLIdpSigningSecretsUpdateInstruction            *SAMLIdpSigningSecretsUpdateInstruction            `json:"samlIdpSigningSecrets,omitempty"`
 	SAMLSpSigningSecretsUpdateInstruction             *SAMLSpSigningSecretsUpdateInstruction             `json:"samlSpSigningSecrets,omitempty"`
 	SMSProviderSecretsUpdateInstruction               *SMSProviderSecretsUpdateInstruction               `json:"smsProviderSecrets,omitempty"`
+	TelemetryAuditLogStreamSecretsUpdateInstruction   *TelemetryAuditLogStreamSecretsUpdateInstruction   `json:"telemetryAuditLogStreamSecrets,omitempty"`
 }
 
 func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
@@ -88,6 +89,13 @@ func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructi
 
 	if i.SMSProviderSecretsUpdateInstruction != nil {
 		newConfig, err = i.SMSProviderSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if i.TelemetryAuditLogStreamSecretsUpdateInstruction != nil {
+		newConfig, err = i.TelemetryAuditLogStreamSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -987,6 +995,108 @@ func (i *SMSProviderSecretsUpdateInstruction) set(currentConfig *SecretConfig) (
 	return out, nil
 }
 
+type TelemetryAuditLogStreamSecretsUpdateInstructionCleanupData struct {
+	// KeepStreamNames is the full set of telemetry.audit_logs.streams
+	// names configured after this save. Every item of
+	// telemetry.audit_logs.streams.tls and
+	// telemetry.audit_logs.streams.datadog whose stream_name is not in
+	// this set is removed.
+	KeepStreamNames []string `json:"keepStreamNames,omitempty"`
+}
+
+type TelemetryAuditLogStreamSecretsUpdateInstruction struct {
+	Action SecretUpdateInstructionAction `json:"action,omitempty"`
+
+	CleanupData *TelemetryAuditLogStreamSecretsUpdateInstructionCleanupData `json:"cleanupData,omitempty"`
+}
+
+func (i *TelemetryAuditLogStreamSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
+	switch i.Action {
+	case SecretUpdateInstructionActionCleanup:
+		return i.cleanup(currentConfig)
+	default:
+		return nil, fmt.Errorf("config: unexpected action for TelemetryAuditLogStreamSecretsUpdateInstruction: %s", i.Action)
+	}
+}
+
+// cleanup prunes both telemetry.audit_logs.streams.tls and
+// telemetry.audit_logs.streams.datadog, in one instruction, because both
+// are keyed by the same stream_name and become orphaned by the same
+// event -- a stream leaving telemetry.audit_logs.streams. The caller
+// (whoever is saving that change) sends this instruction alongside it;
+// nothing prunes these secrets on its own the way the old
+// scan-authgear.yaml-on-every-save sweep did, mirroring
+// OAuthClientSecretsUpdateInstruction's cleanup, which is equally opt-in.
+func (i *TelemetryAuditLogStreamSecretsUpdateInstruction) cleanup(currentConfig *SecretConfig) (*SecretConfig, error) {
+	if i.CleanupData == nil || i.CleanupData.KeepStreamNames == nil {
+		return nil, fmt.Errorf("config: missing keepStreamNames for TelemetryAuditLogStreamSecretsUpdateInstruction")
+	}
+
+	out := &SecretConfig{}
+	out.Secrets = make([]SecretItem, len(currentConfig.Secrets))
+	copy(out.Secrets, currentConfig.Secrets)
+
+	keep := setutil.NewSetFromSlice(i.CleanupData.KeepStreamNames, setutil.Identity[string])
+
+	if err := pruneTelemetryAuditLogStreamSecretItems(out, TelemetryAuditLogStreamTLSMaterialsKey, keep,
+		func(item TelemetryAuditLogStreamTLSMaterialsItem) string { return item.StreamName }); err != nil {
+		return nil, err
+	}
+	if err := pruneTelemetryAuditLogStreamSecretItems(out, TelemetryAuditLogStreamDatadogCredentialsKey, keep,
+		func(item TelemetryAuditLogStreamDatadogCredentialsItem) string { return item.StreamName }); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+// pruneTelemetryAuditLogStreamSecretItems removes every item of the
+// secret at key whose stream name is not in keep, rewriting or dropping
+// the secret entry in secretConfig. It decodes item.RawData directly,
+// rather than the already-parsed item.Data, for the same reason
+// OAuthClientSecretsUpdateInstruction.decodeOAuthClientCredentials does:
+// item.Data has been through config.SetFieldDefaults, which
+// materializes every nil struct pointer, and re-marshaling that can
+// produce a value this type's own parser then rejects.
+func pruneTelemetryAuditLogStreamSecretItems[T any](
+	secretConfig *SecretConfig,
+	key SecretKey,
+	keep map[string]struct{},
+	streamNameOf func(T) string,
+) error {
+	idx, item, found := secretConfig.Lookup(key)
+	if !found {
+		return nil
+	}
+
+	var items []T
+	if err := json.Unmarshal(item.RawData, &items); err != nil {
+		return err
+	}
+
+	var filtered []T
+	for _, it := range items {
+		if _, ok := keep[streamNameOf(it)]; ok {
+			filtered = append(filtered, it)
+		}
+	}
+
+	if len(filtered) == 0 {
+		secretConfig.Secrets = append(secretConfig.Secrets[:idx], secretConfig.Secrets[idx+1:]...)
+		return nil
+	}
+
+	jsonData, err := json.Marshal(filtered)
+	if err != nil {
+		return err
+	}
+	secretConfig.Secrets[idx] = SecretItem{
+		Key:     key,
+		RawData: json.RawMessage(jsonData),
+	}
+	return nil
+}
+
 var _ SecretConfigUpdateInstructionInterface = &SecretConfigUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthSSOProviderCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SMTPServerCredentialsUpdateInstruction{}
@@ -996,3 +1106,4 @@ var _ SecretConfigUpdateInstructionInterface = &BotProtectionProviderCredentials
 var _ SecretConfigUpdateInstructionInterface = &SAMLIdpSigningSecretsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SAMLSpSigningSecretsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SMSProviderSecretsUpdateInstruction{}
+var _ SecretConfigUpdateInstructionInterface = &TelemetryAuditLogStreamSecretsUpdateInstruction{}

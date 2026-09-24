@@ -2,7 +2,6 @@ package appresource
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -14,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
@@ -159,6 +157,13 @@ func (m *Manager) ApplyUpdates0(ctx context.Context, appID string, updates []Upd
 	// It is because the portal updates the resources, and then
 	// update authgear.yaml in 2 consecutive calls.
 	// If we cleans up unconditionally, we cannot save new Deno hooks.
+	//
+	// Orphaned secrets (telemetry.audit_logs.streams.tls and .datadog) are
+	// not swept here: pruning them is opt-in, via
+	// config.TelemetryAuditLogStreamSecretsUpdateInstruction, the same way
+	// removing an OAuth client's secret is -- see that instruction's own
+	// doc comment for why an automatic sweep on every authgear.yaml save
+	// was replaced with this.
 	for _, update := range updates {
 		if update.Path == configsource.AuthgearYAML {
 			filesToDelete, err := m.cleanupOrphanedResources(newManager, cfg)
@@ -168,14 +173,6 @@ func (m *Manager) ApplyUpdates0(ctx context.Context, appID string, updates []Upd
 
 			if len(filesToDelete) > 0 {
 				files = append(files, filesToDelete...)
-			}
-
-			secretFile, err := m.cleanupOrphanedSecrets(ctx, newManager, cfg)
-			if err != nil {
-				return nil, err
-			}
-			if secretFile != nil {
-				files = append(files, secretFile)
 			}
 		}
 	}
@@ -242,99 +239,6 @@ func (m *Manager) cleanupOrphanedResources(manager *resource.Manager, cfg *confi
 	}
 
 	return filesToDelete, nil
-}
-
-// cleanupOrphanedSecrets prunes telemetry.audit_logs.streams.tls items whose
-// stream_name no longer matches a stream in authgear.yaml. It is not an
-// error for such an item to exist -- config.SecretConfig.Validate tolerates
-// it -- but a save is the moment the project's own state stops needing it.
-func (m *Manager) cleanupOrphanedSecrets(ctx context.Context, manager *resource.Manager, cfg *config.Config) (*resource.ResourceFile, error) {
-	keep := make(map[string]struct{})
-	if cfg.AppConfig.Telemetry != nil && cfg.AppConfig.Telemetry.AuditLogs != nil {
-		for _, stream := range cfg.AppConfig.Telemetry.AuditLogs.Streams {
-			keep[stream.Name] = struct{}{}
-		}
-	}
-
-	var location *resource.Location
-	for _, fs := range manager.Filesystems() {
-		if fs.GetFsLevel() == resource.FsLevelApp {
-			l := resource.Location{Fs: fs, Path: configsource.AuthgearSecretYAML}
-			location = &l
-		}
-	}
-	if location == nil {
-		return nil, nil
-	}
-
-	data, err := resource.ReadLocation(*location)
-	if os.IsNotExist(err) {
-		return nil, nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	// Use the non-validating parser: the document being pruned may be one
-	// that a validating parse would reject, e.g. because of the very
-	// orphan this function is about to remove.
-	secretConfig, err := config.ParsePartialSecret(ctx, data)
-	if err != nil {
-		return nil, err
-	}
-
-	idx, item, found := secretConfig.Lookup(config.TelemetryAuditLogStreamTLSMaterialsKey)
-	if !found {
-		return nil, nil
-	}
-
-	// Decode item.RawData directly, rather than using item.Data. item.Data
-	// has been through config.SetFieldDefaults, which -- exactly like it
-	// does for AppConfig -- materializes every nil struct pointer,
-	// including ClientCertificate and its nested Key *JWK when
-	// client_certificate was absent from the document. JWK.MarshalJSON
-	// panics on that materialized-but-empty value, so re-marshaling
-	// item.Data here would panic for exactly the certificate_authority-only
-	// items the spec expects to be common. item.RawData is untouched by
-	// SetFieldDefaults and re-marshals safely.
-	var materials config.TelemetryAuditLogStreamTLSMaterials
-	if err := json.Unmarshal(item.RawData, &materials); err != nil {
-		return nil, err
-	}
-
-	var filtered config.TelemetryAuditLogStreamTLSMaterials
-	for _, material := range materials {
-		if _, ok := keep[material.StreamName]; ok {
-			filtered = append(filtered, material)
-		}
-	}
-
-	// Nothing was orphaned; do not rewrite the file.
-	if len(filtered) == len(materials) {
-		return nil, nil
-	}
-
-	if len(filtered) == 0 {
-		secretConfig.Secrets = append(secretConfig.Secrets[:idx], secretConfig.Secrets[idx+1:]...)
-	} else {
-		jsonData, err := json.Marshal(filtered)
-		if err != nil {
-			return nil, err
-		}
-		secretConfig.Secrets[idx] = config.SecretItem{
-			Key:     config.TelemetryAuditLogStreamTLSMaterialsKey,
-			RawData: json.RawMessage(jsonData),
-		}
-	}
-
-	updatedYAML, err := yaml.Marshal(secretConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resource.ResourceFile{
-		Location: *location,
-		Data:     updatedYAML,
-	}, nil
 }
 
 func (m *Manager) getFromAppFs(newAppFs resource.LeveledAferoFs, location resource.Location) (*resource.ResourceFile, error) {
