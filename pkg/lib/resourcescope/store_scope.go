@@ -323,6 +323,19 @@ func (s *Store) ListScopesByResourceID(ctx context.Context, resourceID string) (
 	return s.queryScopes(ctx, q)
 }
 
+// ListScopesByNames returns every scope of the project whose name is in
+// names, across all resources. An authorization record stores scope names
+// without the resource they came from, so this is how a stored grant is
+// mapped back to configured scopes for display. Two resources may define the
+// same scope name; the caller decides how to present such collisions.
+func (s *Store) ListScopesByNames(ctx context.Context, names []string) ([]*Scope, error) {
+	if len(names) == 0 {
+		return nil, nil
+	}
+	q := s.selectScopeQuery("s").Where("s.scope = ANY (?)", pq.Array(names))
+	return s.queryScopes(ctx, q)
+}
+
 func (s *Store) GetScopesByResourceIDAndScopes(ctx context.Context, resourceID string, scopes []string) (map[string]*Scope, error) {
 	q := s.selectScopeQuery("s").Where("s.resource_id = ? AND s.scope = ANY (?)", resourceID, pq.Array(scopes))
 	results, err := s.queryScopes(ctx, q)

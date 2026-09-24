@@ -5,6 +5,7 @@ import {
   SmtpSecret,
   SmtpSecretUpdateInstructionsInput,
 } from "./graphql/portal/globalTypes.generated";
+import { AuthorizationScopeKind } from "./graphql/adminapi/globalTypes.generated";
 
 // type aliases in JSON schema
 export type DurationString = string;
@@ -1277,11 +1278,24 @@ export interface Session {
   clientID?: string | null;
 }
 
+export interface AuthorizationScope {
+  scope: string;
+  kind: AuthorizationScopeKind;
+  description?: string | null;
+  resource?: {
+    id: string;
+    name?: string | null;
+    resourceURI: string;
+  } | null;
+}
+
 export interface Authorization {
   id: string;
   clientID: string;
   createdAt: string;
+  updatedAt: string;
   scopes: string[];
+  resolvedScopes: AuthorizationScope[];
 }
 
 export interface TutorialStatusData {

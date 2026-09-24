@@ -125,6 +125,14 @@ For more targets, browse the root `Makefile` and `portal/package.json` / `authui
 - Keep comments short. Explain *why*, not *what*, and match the comment density of the surrounding file. One or two lines is usually enough; a block longer than the code it introduces is too long. Do not restate the diff, narrate each statement, or write paragraph-length rationale in code or migrations — that belongs in the commit message or PR description.
 - Reuse skills for repeatable workflows.
 - If you change code, run the narrowest relevant test or build first, then broaden only if the change crosses package boundaries.
+- Never silently drop an error, in Go or TypeScript. Pick one of three on purpose:
+  - **The request should fail:** return the error.
+  - **The request should carry on:** log it (`logger.WithError(err).Warn(ctx, ...)`, as in `pkg/lib/authn/authenticator/password/provider.go`) and continue.
+  - **An error is expected:** match that one error (`errors.Is(err, ErrFooNotFound)`) and let every other error through. A bare `if err != nil { return nil }` is none of these.
+
+  Inside a database transaction, "log and continue" does not work: in Postgres a failed statement aborts the transaction, so every later query and the commit fail too. Either return the error, or run the optional query in its own transaction outside the main one.
+- Never hard-code a string literal that is already defined as a constant. Use the constant (`oauth.ScopeOpenID`, not `"openid"`). The same goes for sets: before writing a list or map of known values, look for the existing one or its helper (`oauth.AllowedScopes` / `oauth.IsResourceScope`). A hand-copied list goes stale silently: the `identityScopes` map in the Authorized Apps handler missed three scopes that `AllowedScopes` had.
+- A client (portal, AuthUI) fetches only the data it needs, filtered on the server. Do not list a whole collection to pick out a few items client-side. If the API cannot filter that way, propose the API change instead of working around it — see the `update-portal-ui` skill.
 
 ## Breaking changes
 
@@ -152,7 +160,7 @@ Use existing repo skills instead of one-off instructions when they fit:
 - `update-deps`
 - `new-siteadmin-api`
 - `review-pr` — **mandatory before marking any code change complete** (see Verification below), also usable on demand for "review this PR/branch"
-- `update-portal-ui` — **use this before adding or editing any portal UI page** (link components, i18n inline links, FluentUI Text pitfalls, hardcoded/untranslated text)
+- `update-portal-ui` — **use this before adding or editing any portal UI page** (link components, i18n inline links, FluentUI Text pitfalls, hardcoded/untranslated text, querying only the data a screen needs)
 - `update-email-templates` — **use this before editing any email template, translation string, or email subject line** (`*.gotemplate`, `messages/translation.json`, `translation.json` subjects)
 - `update-feature-config` — **use this before adding or changing any `pkg/lib/config/feature_*.go` field or `Merge` implementation** (field-level merge is a hard requirement, plus required test coverage in `merge_feature.yaml`)
 - `write-e2e-test` — **includes patterns for testing feature variants and actual functionality. Use this before writing, editing, or running e2e tests** (see "Common Patterns" section)

@@ -11,6 +11,7 @@ import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";
 import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutation";
 import ErrorDialog from "../../error/ErrorDialog";
 import { OAuthClientConfig, Session } from "../../types";
+import type { DynamicClients } from "./UserDetailsAuthorization";
 import Link from "../../Link";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { Callout } from "../../components/v2/Callout/Callout";
@@ -73,6 +74,7 @@ interface SessionItemViewModel {
 interface Props {
   sessions: Session[];
   oauthClients: OAuthClientConfig[];
+  dynamicClients: DynamicClients;
 }
 
 const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
@@ -80,7 +82,7 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
 ) {
   const { locale, renderToString } = useContext(Context);
   const { appID, userID } = useParams() as { appID: string; userID: string };
-  const { sessions, oauthClients } = props;
+  const { sessions, oauthClients, dynamicClients } = props;
 
   const {
     revokeSession,
@@ -216,6 +218,7 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
                             </Link>
                           </Tooltip>
                         ) : (
+                          dynamicClients.get(item.clientID)?.name ??
                           item.clientID
                         )}
                       </div>

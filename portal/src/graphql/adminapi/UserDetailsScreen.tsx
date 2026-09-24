@@ -19,7 +19,12 @@ import UserProfileForm, {
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
-import UserDetailsAuthorization from "./UserDetailsAuthorization";
+import UserDetailsAuthorization, {
+  DynamicClients,
+} from "./UserDetailsAuthorization";
+import { useDynamicClientsQueryQuery } from "./query/dynamicClientsQuery.generated";
+import { AuthorizationScopeKind } from "./globalTypes.generated";
+import { DynamicClientListItem } from "../../components/dynamic-clients/DynamicClientList";
 
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
 import { SimpleFormModel } from "../../hook/useSimpleForm";
@@ -99,17 +104,41 @@ function buildUIPreviewAuthorizations(
       id: "fake-authorization-1",
       clientID,
       createdAt: "2024-11-12T03:20:00.000Z",
+      updatedAt: "2024-11-12T03:20:00.000Z",
       scopes: [
         "openid",
         "offline_access",
         "https://authgear.com/scopes/full-userinfo",
+        "read:orders",
+      ],
+      resolvedScopes: [
+        { scope: "openid", kind: AuthorizationScopeKind.Project },
+        { scope: "offline_access", kind: AuthorizationScopeKind.Project },
+        {
+          scope: "https://authgear.com/scopes/full-userinfo",
+          kind: AuthorizationScopeKind.Project,
+        },
+        {
+          scope: "read:orders",
+          kind: AuthorizationScopeKind.Resource,
+          description: "Read orders and their line items",
+          resource: {
+            id: "fake-resource-1",
+            name: "Orders API",
+            resourceURI: "https://api.example.com/orders",
+          },
+        },
       ],
     },
     {
       id: "fake-authorization-2",
       clientID: secondClientID,
       createdAt: "2025-01-18T09:05:00.000Z",
+      updatedAt: "2025-01-18T09:05:00.000Z",
       scopes: ["openid"],
+      resolvedScopes: [
+        { scope: "openid", kind: AuthorizationScopeKind.Project },
+      ],
     },
   ];
 }
@@ -422,6 +451,58 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     return realAuthorizations;
   }, [data.authorizations, data.id, oauthClientConfig]);
 
+  // Dynamic clients (DCR-registered or CIMD-resolved) are not in
+  // authgear.yaml, so the sessions and authorizations tables cannot name them
+  // from oauthClientConfig. Fetch just the ones these rows reference. This is
+  // best-effort: while loading or on error the tables fall back to the raw
+  // client ID, which still identifies the row.
+  const dynamicClientIDs = useMemo(() => {
+    const staticClientIDs = new Set(oauthClientConfig.map((c) => c.client_id));
+    const ids = new Set<string>();
+    for (const clientID of [
+      ...sessions.map((s) => s.clientID),
+      ...authorizations.map((a) => a.clientID),
+    ]) {
+      if (clientID != null && !staticClientIDs.has(clientID)) {
+        ids.add(clientID);
+      }
+    }
+    return [...ids].sort();
+  }, [authorizations, oauthClientConfig, sessions]);
+  const { data: dynamicClientsData } = useDynamicClientsQueryQuery({
+    variables: { clientIDs: dynamicClientIDs },
+    skip: dynamicClientIDs.length === 0,
+    fetchPolicy: "cache-first",
+  });
+  const dynamicClients: DynamicClients = useMemo(() => {
+    const clients = new Map<string, DynamicClientListItem>();
+    for (const edge of dynamicClientsData?.dynamicClients?.edges ?? []) {
+      const node = edge?.node;
+      if (node == null) {
+        continue;
+      }
+      clients.set(node.clientID, {
+        id: node.id,
+        clientID: node.clientID,
+        clientName: node.clientName ?? null,
+        name: node.name,
+        kind: node.kind,
+        source: node.source,
+        registeredAt: node.registeredAt ?? null,
+        lastFetchedAt: node.lastFetchedAt ?? null,
+        applicationType: node.applicationType ?? null,
+        redirectURIs: [...node.redirectURIs],
+        grantTypes: [...node.grantTypes],
+        responseTypes: [...node.responseTypes],
+        logoURI: node.logoURI ?? null,
+        clientURI: node.clientURI ?? null,
+        tosURI: node.tosURI ?? null,
+        policyURI: node.policyURI ?? null,
+      });
+    }
+    return clients;
+  }, [dynamicClientsData]);
+
   const profileImageEditable = useMemo(() => {
     const ptr = jsonPointerToString(["picture"]);
     const level = standardAttributeAccessControl[ptr];
@@ -610,10 +691,12 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             <UserDetailsSession
               sessions={sessions}
               oauthClients={oauthClientConfig}
+              dynamicClients={dynamicClients}
             />
             <UserDetailsAuthorization
               authorizations={authorizations}
               oauthClientConfig={oauthClientConfig}
+              dynamicClients={dynamicClients}
             />
           </div>
         ) : null}

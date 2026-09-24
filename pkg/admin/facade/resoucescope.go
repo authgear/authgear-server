@@ -28,6 +28,7 @@ type ResourceScopeQueries interface {
 	GetScope(ctx context.Context, resourceURI string, scope string) (*model.Scope, error)
 	ListScopes(ctx context.Context, resourceID string, options *resourcescope.ListScopeOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListScopeResult, error)
 	ListResources(ctx context.Context, options *resourcescope.ListResourcesOptions, pageArgs graphqlutil.PageArgs) (*resourcescope.ListResourceResult, error)
+	ListScopesByNames(ctx context.Context, names []string) ([]*model.Scope, error)
 }
 
 type ResourceScopeFacade struct {
@@ -65,6 +66,10 @@ func (f *ResourceScopeFacade) DeleteScope(ctx context.Context, resourceURI strin
 
 func (f *ResourceScopeFacade) GetScope(ctx context.Context, resourceURI string, scope string) (*model.Scope, error) {
 	return f.ResourceScopeQueries.GetScope(ctx, resourceURI, scope)
+}
+
+func (f *ResourceScopeFacade) ListScopesByNames(ctx context.Context, names []string) ([]*model.Scope, error) {
+	return f.ResourceScopeQueries.ListScopesByNames(ctx, names)
 }
 
 func (f *ResourceScopeFacade) ListScopes(ctx context.Context, resourceID string, options *resourcescope.ListScopeOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {

@@ -310,11 +310,15 @@ type storeListClientResult struct {
 // source restricts the page AND the total count to that source, so a
 // filtered listing's totalCount still describes the filtered set -- the
 // portal reads it to show a per-source count, so a source-less count would
-// make the pagination and the count disagree.
-func (s *Store) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *Source) (*storeListClientResult, error) {
+// make the pagination and the count disagree. A non-nil clientIDs restricts
+// both the same way; an empty non-nil clientIDs matches no client.
+func (s *Store) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *Source, clientIDs []string) (*storeListClientResult, error) {
 	q := s.selectClientQuery().OrderBy("created_at DESC")
 	if source != nil {
 		q = q.Where("source = ?", string(*source))
+	}
+	if clientIDs != nil {
+		q = q.Where("client_id = ANY (?)", pq.Array(clientIDs))
 	}
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)
@@ -327,7 +331,7 @@ func (s *Store) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, 
 		return nil, err
 	}
 
-	totalCount, err := s.countClients(ctx, source)
+	totalCount, err := s.countClients(ctx, source, clientIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -339,10 +343,13 @@ func (s *Store) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, 
 	}, nil
 }
 
-func (s *Store) countClients(ctx context.Context, source *Source) (uint64, error) {
+func (s *Store) countClients(ctx context.Context, source *Source, clientIDs []string) (uint64, error) {
 	q := s.SQLBuilder.Select("COUNT(*)").From(s.SQLBuilder.TableName("_auth_oauth_client"))
 	if source != nil {
 		q = q.Where("source = ?", string(*source))
+	}
+	if clientIDs != nil {
+		q = q.Where("client_id = ANY (?)", pq.Array(clientIDs))
 	}
 
 	var count uint64

@@ -237,6 +237,7 @@ type ResourceScopeFacade interface {
 	AddScopesToClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 	RemoveScopesFromClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
 	ReplaceScopesOfClientID(ctx context.Context, resourceURI, clientID string, scopes []string) ([]*apimodel.Scope, error)
+	ListScopesByNames(ctx context.Context, names []string) ([]*apimodel.Scope, error)
 }
 
 type DCRFacade interface {
@@ -244,7 +245,7 @@ type DCRFacade interface {
 	RevokeInitialAccessToken(ctx context.Context, id string) (*apimodel.OAuthInitialAccessToken, error)
 	ListInitialAccessTokens(ctx context.Context) ([]*apimodel.OAuthInitialAccessToken, error)
 
-	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *apimodel.OAuthClientSource) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *apimodel.OAuthClientSource, clientIDs []string) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	DeleteClient(ctx context.Context, clientID string) (*apimodel.OAuthClient, error)
 }
 
