@@ -1,0 +1,131 @@
+name: Register a passkey and then sign in with it
+# The first end-to-end coverage of a real passkey ceremony. The other passkey
+# test only exercises the upsell prompt and skips creation, so nothing until now
+# has submitted a credential or checked that the server verifies one.
+#
+# generatePasskeyAttestation and generatePasskeyAssertion stand in for the
+# browser and the authenticator. The origin is passed explicitly rather than
+# observed, which is what makes the last step below possible.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - passkey
+      primary_authenticators:
+      - password
+      - passkey
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: username
+            steps:
+            - name: authenticate_primary_username
+              type: authenticate
+              one_of:
+              - authentication: primary_password
+          # A passkey both identifies and authenticates, so it has no nested
+          # steps of its own.
+          - identification: passkey
+        - type: check_account_status
+        - type: terminate_other_sessions
+        - type: prompt_create_passkey
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # --- Register a passkey, by way of the upsell after a password login -------
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: upsell
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "prompt_create_passkey",
+            "data": {
+              "creation_options": "[[object]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "creation_response": {{ generatePasskeyAttestation .steps.upsell.result.action.data.creation_options (printf "http://%s.authgeare2e.localhost:4000" .AppID) }}
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # --- Sign in with it, with no password ------------------------------------
+  - name: identify
+    action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": "[[array]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "passkey",
+        "assertion_response": {{ generatePasskeyAssertion (index .steps.identify.result.action.data.options 1).request_options (printf "http://%s.authgeare2e.localhost:4000" .AppID) }}
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
