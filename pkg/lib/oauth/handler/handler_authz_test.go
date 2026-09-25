@@ -469,13 +469,13 @@ func TestAuthorizationHandler(t *testing.T) {
 						"prompt":                "none",
 					}
 					authorization := &oauth.Authorization{
-						ID:        "authz-id",
-						AppID:     string(appID),
-						ClientID:  "client-id",
-						UserID:    "user-id",
-						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						Scopes:    []string{"openid"},
+						ID:                "authz-id",
+						AppID:             string(appID),
+						ClientID:          "client-id",
+						UserID:            "user-id",
+						CreatedAt:         time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt:         time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						ScopesByResources: map[string][]string{oauth.AuthorizationProjectScopesKey: {"openid"}},
 					}
 					uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
 						gomock.Any(),
@@ -488,6 +488,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						gomock.Any(),
 						"client-id",
 						"user-id",
+						"",
 						[]string{"openid"},
 					).Times(1).Return(authorization, nil)
 
@@ -515,18 +516,19 @@ func TestAuthorizationHandler(t *testing.T) {
 
 				Convey("reuse existing authorization implicitly", func() {
 					authorization := &oauth.Authorization{
-						ID:        "authz-id",
-						AppID:     string(appID),
-						ClientID:  "client-id",
-						UserID:    "user-id",
-						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						Scopes:    []string{"openid", "offline_access"},
+						ID:                "authz-id",
+						AppID:             string(appID),
+						ClientID:          "client-id",
+						UserID:            "user-id",
+						CreatedAt:         time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt:         time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						ScopesByResources: map[string][]string{oauth.AuthorizationProjectScopesKey: {"openid", "offline_access"}},
 					}
 					authzService.EXPECT().CheckAndGrant(
 						gomock.Any(),
 						"client-id",
 						"user-id",
+						"",
 						[]string{"openid", "offline_access"},
 					).Times(1).Return(authorization, nil)
 					req := protocol.AuthorizationRequest{
@@ -616,13 +618,13 @@ func TestAuthorizationHandler(t *testing.T) {
 
 				Convey("create new authorization implicitly", func() {
 					authorization := &oauth.Authorization{
-						ID:        "authz-id",
-						AppID:     string(appID),
-						ClientID:  "client-id",
-						UserID:    "user-id",
-						CreatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						Scopes:    []string{"openid"},
+						ID:                "authz-id",
+						AppID:             string(appID),
+						ClientID:          "client-id",
+						UserID:            "user-id",
+						CreatedAt:         time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt:         time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						ScopesByResources: map[string][]string{oauth.AuthorizationProjectScopesKey: {"openid"}},
 					}
 					req := protocol.AuthorizationRequest{
 						"client_id":     "client-id",
@@ -635,6 +637,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						gomock.Any(),
 						"client-id",
 						"user-id",
+						"",
 						[]string{"openid"},
 					).Times(1).Return(authorization, nil)
 					uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(

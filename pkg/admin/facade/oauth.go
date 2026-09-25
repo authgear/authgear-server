@@ -18,6 +18,7 @@ type OAuthAuthorizationService interface {
 		ctx context.Context,
 		clientID string,
 		userID string,
+		resourceID string,
 		scopes []string,
 	) (*oauth.Authorization, error)
 }
@@ -85,6 +86,7 @@ func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID
 		ctx,
 		clientID,
 		userID,
+		"",
 		scopes,
 	)
 	if err != nil {

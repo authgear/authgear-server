@@ -226,7 +226,7 @@ func (h *AuthflowV2SettingsAuthorizedAppsHandler) authorizationViewModel(ctx con
 		ClientID:      authz.ClientID,
 		ClientName:    clientName,
 		ClientLogoURI: logoURI,
-		Scope:         authz.Scopes,
+		Scope:         authz.AllScopes(),
 		CreatedAt:     authz.CreatedAt,
 	}
 }
@@ -276,13 +276,13 @@ func (h *AuthflowV2SettingsAuthorizedAppsHandler) GetAuthorizationData(ctx conte
 	if err != nil {
 		return nil, err
 	}
-	descriptions, err := h.scopeDescriptions(ctx, authz.Scopes)
+	descriptions, err := h.scopeDescriptions(ctx, authz.AllScopes())
 	if err != nil {
 		return nil, err
 	}
 
 	vm := h.authorizationViewModel(ctx, authz)
-	vm.Permissions = resourcePermissions(authz.Scopes, descriptions)
+	vm.Permissions = resourcePermissions(authz.AllScopes(), descriptions)
 	viewmodels.Embed(data, SettingsAuthorizedAppViewModel{Authorization: vm})
 
 	return data, nil

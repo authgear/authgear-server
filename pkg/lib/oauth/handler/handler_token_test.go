@@ -601,10 +601,10 @@ func TestTokenHandler(t *testing.T) {
 					Return(&oidc.UIInfo{}, nil, nil)
 
 				authz := &oauth.Authorization{
-					ID:       "authz-id",
-					ClientID: "app-id",
-					UserID:   "user-id",
-					Scopes:   []string{"some_scope"},
+					ID:                "authz-id",
+					ClientID:          "app-id",
+					UserID:            "user-id",
+					ScopesByResources: map[string][]string{oauth.AuthorizationProjectScopesKey: {"some_scope"}},
 				}
 				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(authz, nil)
 
@@ -711,7 +711,10 @@ func TestTokenHandler(t *testing.T) {
 					ID:       "authz-id",
 					ClientID: "app-id",
 					UserID:   "user-id",
-					Scopes:   []string{"openid", "read:orders"},
+					ScopesByResources: map[string][]string{
+						oauth.AuthorizationProjectScopesKey: {"openid"},
+						"resource-id":                       {"read:orders"},
+					},
 				}
 				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(authz, nil)
 
@@ -783,7 +786,10 @@ func TestTokenHandler(t *testing.T) {
 					ID:       "authz-id",
 					ClientID: "app-id",
 					UserID:   "user-id",
-					Scopes:   []string{"openid", "read:orders"},
+					ScopesByResources: map[string][]string{
+						oauth.AuthorizationProjectScopesKey: {"openid"},
+						"resource-id":                       {"read:orders"},
+					},
 				}
 				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(authz, nil)
 
@@ -889,7 +895,10 @@ func TestTokenHandler(t *testing.T) {
 					ID:       "authz-id",
 					ClientID: "app-id",
 					UserID:   "user-id",
-					Scopes:   []string{"openid", "read:orders"},
+					ScopesByResources: map[string][]string{
+						oauth.AuthorizationProjectScopesKey: {"openid"},
+						"resource-id":                       {"read:orders"},
+					},
 				}
 				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(authz, nil)
 
@@ -988,10 +997,10 @@ func TestTokenHandler(t *testing.T) {
 					AnyTimes().Return(&oidc.UIInfo{}, nil, nil)
 
 				authorizations.EXPECT().GetByID(gomock.Any(), "authz-id").Return(&oauth.Authorization{
-					ID:       "authz-id",
-					ClientID: "app-id",
-					UserID:   "user-id",
-					Scopes:   []string{"some_scope"},
+					ID:                "authz-id",
+					ClientID:          "app-id",
+					UserID:            "user-id",
+					ScopesByResources: map[string][]string{oauth.AuthorizationProjectScopesKey: {"some_scope"}},
 				}, nil)
 
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
@@ -1196,11 +1205,11 @@ func TestTokenHandler(t *testing.T) {
 				Times(1)
 
 			testAuthz := &oauth.Authorization{
-				ClientID: clientID1,
-				UserID:   testUserId,
-				Scopes:   testScopes,
+				ClientID:          clientID1,
+				UserID:            testUserId,
+				ScopesByResources: map[string][]string{oauth.AuthorizationProjectScopesKey: testScopes},
 			}
-			authorizations.EXPECT().CheckAndGrant(gomock.Any(), clientID1, testUserId, gomock.InAnyOrder(testScopes)).
+			authorizations.EXPECT().CheckAndGrant(gomock.Any(), clientID1, testUserId, "", gomock.InAnyOrder(testScopes)).
 				AnyTimes().
 				Return(testAuthz, nil)
 

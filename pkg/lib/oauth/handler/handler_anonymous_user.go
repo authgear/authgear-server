@@ -222,6 +222,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		ctx,
 		client.ClientID,
 		info.UserID,
+		"",
 		scopes,
 	)
 	if err != nil {
@@ -342,7 +343,7 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 			return
 		}
 		// Ensure client is authorized with full user access (i.e. first-party client)
-		if !authz.IsAuthorized([]string{oauth.FullAccessScope}) {
+		if !authz.IsAuthorized("", []string{oauth.FullAccessScope}) {
 			err = apierrors.NewForbidden("the client is not authorized to have full user access")
 			return
 		}

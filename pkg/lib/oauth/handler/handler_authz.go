@@ -104,12 +104,14 @@ type AuthorizationService interface {
 		ctx context.Context,
 		clientID string,
 		userID string,
+		resourceID string,
 		scopes []string,
 	) (*oauth.Authorization, error)
 	Check(
 		ctx context.Context,
 		clientID string,
 		userID string,
+		resourceID string,
 		scopes []string,
 	) (*oauth.Authorization, error)
 }
@@ -540,7 +542,7 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
-	_, allowedResourceScopes, err := h.validateResource(ctx, client, r)
+	resourceID, allowedResourceScopes, err := h.validateResource(ctx, client, r)
 	if err != nil {
 		return nil, err
 	}
@@ -651,6 +653,7 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 		Client:               client,
 		RedirectURI:          redirectURI,
 		AuthorizationRequest: r,
+		ResourceID:           resourceID,
 		SessionType:          sessionType,
 		SessionID:            sessionID,
 		AuthenticationInfo:   authenticationInfo,
@@ -822,12 +825,14 @@ type FinishAuthorizationOptions struct {
 	Client               *config.OAuthClientConfig
 	RedirectURI          *url.URL
 	AuthorizationRequest protocol.AuthorizationRequest
-	SessionType          session.Type
-	SessionID            string
-	AuthenticationInfo   authenticationinfo.T
-	IDTokenHintSID       string
-	Cookies              []*http.Cookie
-	GrantAuthz           bool
+	// ResourceID is empty when no resource is requested.
+	ResourceID         string
+	SessionType        session.Type
+	SessionID          string
+	AuthenticationInfo authenticationinfo.T
+	IDTokenHintSID     string
+	Cookies            []*http.Cookie
+	GrantAuthz         bool
 }
 
 func (h *AuthorizationHandler) finishAuthorization(
@@ -841,6 +846,7 @@ func (h *AuthorizationHandler) finishAuthorization(
 			ctx,
 			opts.AuthorizationRequest.ClientID(),
 			opts.AuthenticationInfo.UserID,
+			opts.ResourceID,
 			opts.AuthorizationRequest.Scope(),
 		)
 	} else {
@@ -848,6 +854,7 @@ func (h *AuthorizationHandler) finishAuthorization(
 			ctx,
 			opts.AuthorizationRequest.ClientID(),
 			opts.AuthenticationInfo.UserID,
+			opts.ResourceID,
 			opts.AuthorizationRequest.Scope(),
 		)
 	}
@@ -915,7 +922,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	_, allowedResourceScopes, err := h.validateResource(
+	resourceID, allowedResourceScopes, err := h.validateResource(
 		ctx,
 		opts.ConsentRequest.Client,
 		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
@@ -968,6 +975,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 			Client:               opts.ConsentRequest.Client,
 			RedirectURI:          opts.ConsentRequest.RedirectURI,
 			AuthorizationRequest: opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
+			ResourceID:           resourceID,
 			SessionType:          sessionType,
 			SessionID:            sessionID,
 			AuthenticationInfo:   opts.ConsentRequest.AuthInfoEntry.T,

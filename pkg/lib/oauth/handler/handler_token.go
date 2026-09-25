@@ -980,7 +980,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		scopes = requestedScopes
 	}
 
-	authz, err := h.Authorizations.CheckAndGrant(ctx, client.ClientID, offlineGrant.GetUserID(), scopes)
+	authz, err := h.Authorizations.CheckAndGrant(ctx, client.ClientID, offlineGrant.GetUserID(), "", scopes)
 	if err != nil {
 		return nil, err
 	}
@@ -1127,6 +1127,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		ctx,
 		client.ClientID,
 		info.UserID,
+		"",
 		scopes,
 	)
 	if err != nil {
@@ -1407,6 +1408,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		ctx,
 		client.ClientID,
 		info.UserID,
+		"",
 		scopes,
 	)
 	if err != nil {
@@ -1598,6 +1600,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		ctx,
 		client.ClientID,
 		originalOfflineGrant.GetUserID(),
+		"",
 		scopes,
 	)
 	if err != nil {
@@ -1611,7 +1614,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	// FIXME(tung): It seems nonce is not needed in app2app because native apps are not using it?
 	artificialAuthorizationRequest := make(protocol.AuthorizationRequest)
 	artificialAuthorizationRequest["client_id"] = client.ClientID
-	artificialAuthorizationRequest["scope"] = strings.Join(authz.Scopes, " ")
+	artificialAuthorizationRequest["scope"] = strings.Join(authz.AllScopes(), " ")
 	artificialAuthorizationRequest["code_challenge"] = r.CodeChallenge()
 	if originalOfflineGrant.SSOEnabled {
 		artificialAuthorizationRequest["x_sso_enabled"] = "true"
@@ -2108,7 +2111,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 			ClientID:                 client.ClientID,
 			SID:                      oauth.EncodeSID(offlineGrantSession.OfflineGrant),
 			AuthenticationInfo:       offlineGrantSession.GetAuthenticationInfo(),
-			ClientLike:               oauth.ClientClientLike(client, authz.Scopes),
+			ClientLike:               oauth.ClientClientLike(client, authz.ProjectScopes()),
 			DeviceSecretHash:         offlineGrant.DeviceSecretHash,
 			UserBlockingEventContext: eventUserCtx,
 		})
@@ -2149,7 +2152,7 @@ func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken st
 	}
 
 	// Ensure client is authorized with full user access (i.e. first-party client)
-	if !authz.IsAuthorized([]string{oauth.FullAccessScope}) {
+	if !authz.IsAuthorized("", []string{oauth.FullAccessScope}) {
 		return "", nil, protocol.NewError("access_denied", "the client is not authorized to have full user access")
 	}
 

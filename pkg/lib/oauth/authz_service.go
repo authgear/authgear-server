@@ -84,16 +84,20 @@ func (s *AuthorizationService) Delete(ctx context.Context, a *Authorization) err
 	return s.Store.Delete(ctx, a)
 }
 
+// CheckAndGrant grants scopes, with resource scopes granted on resourceID.
+// resourceID is empty when no resource is requested, and then resource scopes
+// are ignored.
 func (s *AuthorizationService) CheckAndGrant(
 	ctx context.Context,
 	clientID string,
 	userID string,
+	resourceID string,
 	scopes []string,
 ) (*Authorization, error) {
 	timestamp := s.Clock.NowUTC()
 
 	authz, err := s.Store.Get(ctx, userID, clientID)
-	if err == nil && authz.IsAuthorized(scopes) {
+	if err == nil && authz.IsAuthorized(resourceID, scopes) {
 		return authz, nil
 	} else if err != nil && !errors.Is(err, ErrAuthorizationNotFound) {
 		return nil, err
@@ -109,14 +113,14 @@ func (s *AuthorizationService) CheckAndGrant(
 			UserID:    userID,
 			CreatedAt: timestamp,
 			UpdatedAt: timestamp,
-			Scopes:    scopes,
 		}
+		authz = authz.WithScopesAdded(resourceID, scopes)
 		err = s.Store.Create(ctx, authz)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		authz = authz.WithScopesAdded(scopes)
+		authz = authz.WithScopesAdded(resourceID, scopes)
 		authz.UpdatedAt = timestamp
 		err = s.Store.UpdateScopes(ctx, authz)
 		if err != nil {
@@ -131,6 +135,7 @@ func (s *AuthorizationService) Check(
 	ctx context.Context,
 	clientID string,
 	userID string,
+	resourceID string,
 	scopes []string,
 ) (*Authorization, error) {
 	authz, err := s.Store.Get(ctx, userID, clientID)
@@ -139,7 +144,7 @@ func (s *AuthorizationService) Check(
 		return nil, err
 	}
 
-	if !authz.IsAuthorized(scopes) {
+	if !authz.IsAuthorized(resourceID, scopes) {
 		return nil, ErrAuthorizationScopesNotGranted
 	}
 

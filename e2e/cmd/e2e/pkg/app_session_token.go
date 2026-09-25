@@ -103,7 +103,7 @@ func (c *End2End) GenerateAppSessionToken(ctx context.Context, appID string, ref
 			return fmt.Errorf("failed to get authorization: %w", err)
 		}
 
-		if !authz.IsAuthorized([]string{oauth.FullAccessScope}) {
+		if !authz.IsAuthorized("", []string{oauth.FullAccessScope}) {
 			return fmt.Errorf("authorization does not include full-access scope")
 		}
 
