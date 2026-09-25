@@ -42,24 +42,24 @@ func allowedResourceScopes(
 	svc ResourceAccessPolicyService,
 	client *config.OAuthClientConfig,
 	resourceURI string,
-) ([]string, error) {
+) (*resourcescope.Resource, []string, error) {
 	resource, err := svc.GetResourceByURI(ctx, resourceURI, client)
 	if err != nil {
 		if errors.Is(err, resourcescope.ErrResourceNotFound) {
-			return nil, errResourceNotAvailable()
+			return nil, nil, errResourceNotAvailable()
 		}
-		return nil, err
+		return nil, nil, err
 	}
 
 	scopes, err := svc.ListScopesByResourceID(ctx, resource.ID, client)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	allowed := make([]string, len(scopes))
 	for i, s := range scopes {
 		allowed[i] = s.Scope
 	}
-	return allowed, nil
+	return resource, allowed, nil
 }
 
 // resourceScopesForIssuance re-reads the access policy and returns granted
@@ -77,7 +77,7 @@ func (h *TokenHandler) resourceScopesForIssuance(
 	if resourceURI == "" {
 		return granted, nil
 	}
-	stillAllowed, err := allowedResourceScopes(ctx, h.ResourceAccessPolicyService, client, resourceURI)
+	_, stillAllowed, err := allowedResourceScopes(ctx, h.ResourceAccessPolicyService, client, resourceURI)
 	if err != nil {
 		return nil, err
 	}

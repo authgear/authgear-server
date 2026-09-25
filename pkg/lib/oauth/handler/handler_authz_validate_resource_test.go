@@ -77,14 +77,14 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 
 		Convey("no resource requested returns nil, nil", func() {
 			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
-			scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{})
+			_, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{})
 			So(err, ShouldBeNil)
 			So(scopes, ShouldBeNil)
 		})
 
 		Convey("resource prefixed by the project endpoint is invalid_target", func() {
 			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
-			scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+			_, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://app.authgear.example.com/oauth2/userinfo",
 			})
 			So(scopes, ShouldBeNil)
@@ -113,10 +113,11 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 					},
 				},
 			}
-			scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+			resourceID, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://api.example.com/orders",
 			})
 			So(err, ShouldBeNil)
+			So(resourceID, ShouldEqual, "resource-id")
 			So(scopes, ShouldResemble, []string{"read:orders", "write:orders"})
 		})
 
@@ -128,7 +129,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 					err: resourcescope.ErrResourceNotFound,
 				},
 			}
-			scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+			_, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://api.example.com/secret",
 			})
 			So(scopes, ShouldBeNil)
@@ -143,7 +144,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 					resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: "https://api.example.com/orders"},
 				},
 			}
-			scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+			_, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://api.example.com/orders",
 			})
 			So(scopes, ShouldBeNil)
@@ -198,7 +199,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 						},
 					},
 				}
-				scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
+				_, scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
 					"resource": "https://api.example.com/orders",
 				})
 				So(err, ShouldBeNil)
@@ -222,7 +223,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 							},
 						},
 					}
-					scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
+					_, scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
 						"resource": "https://api.example.com/orders",
 					})
 					So(scopes, ShouldBeNil)

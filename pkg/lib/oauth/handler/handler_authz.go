@@ -188,19 +188,20 @@ type AuthorizationHandler struct {
 // called both inside a transaction (doHandleRequestWithTx) and outside one
 // (doHandleConsentRequest, which must not render the consent screen inside
 // a write transaction).
-func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (allowedScopes []string, err error) {
+func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (resourceID string, allowedScopes []string, err error) {
 	resourceURI := r.Resource()
 	if resourceURI == "" {
-		return nil, nil
+		return "", nil, nil
 	}
 	if strings.HasPrefix(resourceURI, h.IDTokenIssuer.Iss()) {
-		return nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
+		return "", nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
 	}
 
+	var resource *resourcescope.Resource
 	var allowed []string
 	read := func(ctx context.Context) error {
 		var err error
-		allowed, err = allowedResourceScopes(ctx, h.ResourceScopeService, client, resourceURI)
+		resource, allowed, err = allowedResourceScopes(ctx, h.ResourceScopeService, client, resourceURI)
 		return err
 	}
 	if h.Database.IsInTx(ctx) {
@@ -209,9 +210,9 @@ func (h *AuthorizationHandler) validateResource(ctx context.Context, client *con
 		err = h.Database.ReadOnly(ctx, read)
 	}
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	return allowed, nil
+	return resource.ID, allowed, nil
 }
 
 // resourceScopeDisplayNames looks up the human-readable display text (the
@@ -539,7 +540,7 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
-	allowedResourceScopes, err := h.validateResource(ctx, client, r)
+	_, allowedResourceScopes, err := h.validateResource(ctx, client, r)
 	if err != nil {
 		return nil, err
 	}
@@ -914,7 +915,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	allowedResourceScopes, err := h.validateResource(
+	_, allowedResourceScopes, err := h.validateResource(
 		ctx,
 		opts.ConsentRequest.Client,
 		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
