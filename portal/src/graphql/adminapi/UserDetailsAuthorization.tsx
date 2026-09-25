@@ -82,17 +82,20 @@ function isPermissionScope(scope: string): boolean {
   return !PROTOCOL_SCOPES.has(scope) && scope !== FULL_USERINFO_SCOPE;
 }
 
-// The distinct names of authorizedPermissionScopes. A name granted on two
-// resources appears once, so this can be shorter -- the row counts names, the
-// dialog groups by resource.
-function permissionScopes(scopes: AuthorizedScope[]): string[] {
-  return [...new Set(authorizedPermissionScopes(scopes).map((s) => s.scope))];
-}
-
+// The permissions to show, each with the resource it is granted on. A name
+// granted on two resources appears once per resource, because those are two
+// different permissions; the row and the details dialog both count in this
+// unit so their totals agree.
 function authorizedPermissionScopes(
   scopes: AuthorizedScope[]
 ): AuthorizedScope[] {
   return scopes.filter((s) => isPermissionScope(s.scope));
+}
+
+// A scope name is unique only within one resource, so the name alone is not a
+// stable React key.
+function scopeEntryKey(authorized: AuthorizedScope): string {
+  return `${authorized.scope}\u0000${authorized.resource?.id ?? ""}`;
 }
 
 interface RemoveConfirmationDialogProps {
@@ -199,7 +202,6 @@ const UserDetailsAuthorization: React.VFC<Props> =
             clientName: displayNameForClient(client, authz.clientID),
             client,
             hasFullUserInfo: hasFullUserInfoAccess(authz.authorizedScopes),
-            permissionScopes: permissionScopes(authz.authorizedScopes),
             authorizedPermissionScopes: authorizedPermissionScopes(
               authz.authorizedScopes
             ),
@@ -302,26 +304,26 @@ const UserDetailsAuthorization: React.VFC<Props> =
                     </div>
                     <div className={styles.scopeColumn}>
                       {item.details.hasFullUserInfo ||
-                      item.details.permissionScopes.length > 0 ? (
+                      item.details.authorizedPermissionScopes.length > 0 ? (
                         <div className={styles.scopeList}>
                           {item.details.hasFullUserInfo ? (
                             <Text size="2">
                               <FormattedMessage id="UserDetails.authorization.scopes.full-userinfo" />
                             </Text>
                           ) : null}
-                          {item.details.permissionScopes
+                          {item.details.authorizedPermissionScopes
                             .slice(0, VISIBLE_SCOPE_BADGES)
-                            .map((scope) => (
+                            .map((authorized) => (
                               <Badge
-                                key={scope}
+                                key={scopeEntryKey(authorized)}
                                 color="gray"
                                 radius="small"
                                 className={styles.scopeBadge}
                               >
-                                {scope}
+                                {authorized.scope}
                               </Badge>
                             ))}
-                          {item.details.permissionScopes.length >
+                          {item.details.authorizedPermissionScopes.length >
                           VISIBLE_SCOPE_BADGES ? (
                             <Badge
                               color="gray"
@@ -332,8 +334,8 @@ const UserDetailsAuthorization: React.VFC<Props> =
                                 id="UserDetails.authorization.scopes.more"
                                 values={{
                                   count:
-                                    item.details.permissionScopes.length -
-                                    VISIBLE_SCOPE_BADGES,
+                                    item.details.authorizedPermissionScopes
+                                      .length - VISIBLE_SCOPE_BADGES,
                                 }}
                               />
                             </Badge>
