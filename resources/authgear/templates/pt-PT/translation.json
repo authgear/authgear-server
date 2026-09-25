@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "Atualizar",
   "v2.page.change-password.expiry.subtitle": "Hora de mudar sua senha.",
   "v2.page.change-password.expiry.title": "Senha Expirada",
-  "v2.page.clock-skew.default.return-button-label": "Voltar ao Início de Sessão",
   "v2.page.clock-skew.default.subtitle": "A data e a hora do seu dispositivo parecem estar incorretas. Ative a data e hora automáticas nas definições do seu dispositivo e tente novamente.",
   "v2.page.clock-skew.default.title": "Hora do dispositivo incorreta",
   "v2.page.consent.default.client-hostname-desc": "Esta aplicação está publicada em <b>{hostname}</b>. O Authgear não verificou a sua identidade além deste domínio.",

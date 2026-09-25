@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "更新",
   "v2.page.change-password.expiry.subtitle": "是时候更改您的密码了。",
   "v2.page.change-password.expiry.title": "密码已过期",
-  "v2.page.clock-skew.default.return-button-label": "返回登录",
   "v2.page.clock-skew.default.subtitle": "你的设备日期和时间似乎不正确。请在设备设置中开启自动设置日期和时间，然后重试。",
   "v2.page.clock-skew.default.title": "设备时间不正确",
   "v2.page.consent.default.client-hostname-desc": "此应用发布于 <b>{hostname}</b>。Authgear 尚未验证其在此域名之外的身份。",

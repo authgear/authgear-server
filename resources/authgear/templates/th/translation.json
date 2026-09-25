@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "อัปเดต",
   "v2.page.change-password.expiry.subtitle": "ถึงเวลาเปลี่ยนรหัสผ่านของคุณแล้ว",
   "v2.page.change-password.expiry.title": "รหัสผ่านหมดอายุ",
-  "v2.page.clock-skew.default.return-button-label": "กลับไปที่หน้าเข้าสู่ระบบ",
   "v2.page.clock-skew.default.subtitle": "วันที่และเวลาบนอุปกรณ์ของคุณดูเหมือนจะไม่ถูกต้อง โปรดเปิดการตั้งวันที่และเวลาอัตโนมัติในการตั้งค่าอุปกรณ์ของคุณ แล้วลองอีกครั้ง",
   "v2.page.clock-skew.default.title": "เวลาของอุปกรณ์ไม่ถูกต้อง",
   "v2.page.consent.default.client-hostname-desc": "แอปนี้เผยแพร่ที่ <b>{hostname}</b> Authgear ยังไม่ได้ตรวจสอบตัวตนนอกเหนือจากโดเมนนี้",

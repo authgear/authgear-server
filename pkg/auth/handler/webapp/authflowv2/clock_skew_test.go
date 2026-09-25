@@ -63,8 +63,9 @@ func TestClockSkewTemplates(t *testing.T) {
 	Convey("clock skew page", t, func() {
 		html := renderClockSkewPage(t, false)
 		So(html, ShouldContainSubstring, "Incorrect Device Time")
-		So(html, ShouldContainSubstring, `href="/login"`)
-		So(html, ShouldContainSubstring, "Back to Login")
+		So(html, ShouldContainSubstring, "Turn on automatic date and time")
+		So(html, ShouldNotContainSubstring, "<a ")
+		So(html, ShouldNotContainSubstring, "<button")
 	})
 
 	Convey("clock skew check is rendered only when DPoP is enabled", t, func() {

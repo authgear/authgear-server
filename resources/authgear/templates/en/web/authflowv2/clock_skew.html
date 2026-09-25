@@ -1,22 +1,10 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
-
-  <div class="screen-icon-layout flex-1-0-auto">
-    <i class="material-icons screen-icon">update</i>
-    <header class="screen-title-description">
-      <h1 class="screen-title">
-        {{ include "v2.page.clock-skew.default.title" nil }}
-      </h1>
-      <h2 class="screen-description">
-        {{ include "v2.page.clock-skew.default.subtitle" nil }}
-      </h2>
-    </header>
-  <div></div>
-
-  <footer>
-    <a class="primary-btn w-full" href="/login" data-turbo="false">
-      {{ include "v2.page.clock-skew.default.return-button-label" nil }}
-    </a>
-  </footer>
-  </div>
+  {{ template "authflowv2/__error_page_layout.html"
+    (dict
+      "Icon" "update"
+      "Title" (include "v2.page.clock-skew.default.title" nil)
+      "ErrorMessage" (include "v2.page.clock-skew.default.subtitle" nil)
+    )
+  }}
 {{ end }}

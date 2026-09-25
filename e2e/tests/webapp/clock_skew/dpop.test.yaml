@@ -55,7 +55,5 @@ steps:
     http_request_url: http://127.0.0.1:4000/authflow/v2/clock_skew
     http_output:
       http_status: 200
-      html_xpath_exists:
-        - /html/body//a[@href='/login']
       html_text_contains:
         - Incorrect Device Time

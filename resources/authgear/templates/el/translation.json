@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "Ενημέρωση",
   "v2.page.change-password.expiry.subtitle": "Ήρθε η ώρα να αλλάξετε τον κωδικό σας.",
   "v2.page.change-password.expiry.title": "Ο Κωδικός Πρόσβασης Έληξε",
-  "v2.page.clock-skew.default.return-button-label": "Επιστροφή στην Είσοδο",
   "v2.page.clock-skew.default.subtitle": "Η ημερομηνία και η ώρα της συσκευής σας φαίνεται να είναι λανθασμένες. Ενεργοποιήστε την αυτόματη ημερομηνία και ώρα στις ρυθμίσεις της συσκευής σας και, στη συνέχεια, δοκιμάστε ξανά.",
   "v2.page.clock-skew.default.title": "Λανθασμένη ώρα συσκευής",
   "v2.page.consent.default.client-hostname-desc": "Αυτή η εφαρμογή είναι δημοσιευμένη στο <b>{hostname}</b>. Το Authgear δεν έχει επαληθεύσει την ταυτότητά της πέρα από αυτόν τον τομέα.",

@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "I-update",
   "v2.page.change-password.expiry.subtitle": "Panahon na para baguhin ang iyong password.",
   "v2.page.change-password.expiry.title": "Nag-expire ang Password",
-  "v2.page.clock-skew.default.return-button-label": "Bumalik sa Login",
   "v2.page.clock-skew.default.subtitle": "Mukhang mali ang petsa at oras sa iyong device. I-on ang awtomatikong petsa at oras sa mga setting ng iyong device, pagkatapos ay subukang muli.",
   "v2.page.clock-skew.default.title": "Maling Oras ng Device",
   "v2.page.consent.default.client-hostname-desc": "Ang app na ito ay nai-publish sa <b>{hostname}</b>. Hindi pa na-verify ng Authgear ang pagkakakilanlan nito lampas sa domain na ito.",

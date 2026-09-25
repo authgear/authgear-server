@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "Aktualizuj",
   "v2.page.change-password.expiry.subtitle": "Czas zmienić hasło.",
   "v2.page.change-password.expiry.title": "Hasło wygasło",
-  "v2.page.clock-skew.default.return-button-label": "Powrót do logowania",
   "v2.page.clock-skew.default.subtitle": "Data i godzina na Twoim urządzeniu wydają się nieprawidłowe. Włącz automatyczne ustawianie daty i godziny w ustawieniach urządzenia, a następnie spróbuj ponownie.",
   "v2.page.clock-skew.default.title": "Nieprawidłowy czas urządzenia",
   "v2.page.consent.default.client-hostname-desc": "Ta aplikacja jest opublikowana pod adresem <b>{hostname}</b>. Authgear nie zweryfikował jej tożsamości poza tą domeną.",

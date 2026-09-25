@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "Aktualisieren",
   "v2.page.change-password.expiry.subtitle": "Es ist Zeit, Ihr Passwort zu ändern.",
   "v2.page.change-password.expiry.title": "Passwort abgelaufen",
-  "v2.page.clock-skew.default.return-button-label": "Zurück zur Anmeldung",
   "v2.page.clock-skew.default.subtitle": "Datum und Uhrzeit auf Ihrem Gerät scheinen falsch zu sein. Aktivieren Sie in den Geräteeinstellungen die automatische Einstellung von Datum und Uhrzeit und versuchen Sie es dann erneut.",
   "v2.page.clock-skew.default.title": "Falsche Gerätezeit",
   "v2.page.consent.default.client-hostname-desc": "Diese App ist unter <b>{hostname}</b> veröffentlicht. Authgear hat ihre Identität über diese Domain hinaus nicht verifiziert.",

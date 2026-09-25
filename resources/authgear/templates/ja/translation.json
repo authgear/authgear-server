@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "更新",
   "v2.page.change-password.expiry.subtitle": "パスワードを変更する時期です。",
   "v2.page.change-password.expiry.title": "パスワードの有効期限",
-  "v2.page.clock-skew.default.return-button-label": "ログイン画面に戻る",
   "v2.page.clock-skew.default.subtitle": "お使いのデバイスの日付と時刻が正しくないようです。デバイスの設定で日付と時刻の自動設定をオンにしてから、もう一度お試しください。",
   "v2.page.clock-skew.default.title": "デバイスの時刻が正しくありません",
   "v2.page.consent.default.client-hostname-desc": "このアプリは <b>{hostname}</b> で公開されています。Authgear はこのドメインを超えた身元の確認は行っていません。",

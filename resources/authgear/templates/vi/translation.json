@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "Cập Nhật",
   "v2.page.change-password.expiry.subtitle": "Đã đến lúc thay đổi mật khẩu của bạn.",
   "v2.page.change-password.expiry.title": "Mật Khẩu Đã Hết Hạn",
-  "v2.page.clock-skew.default.return-button-label": "Quay lại Đăng nhập",
   "v2.page.clock-skew.default.subtitle": "Ngày và giờ trên thiết bị của bạn có vẻ không chính xác. Hãy bật chế độ ngày và giờ tự động trong phần cài đặt thiết bị, sau đó thử lại.",
   "v2.page.clock-skew.default.title": "Thời gian thiết bị không chính xác",
   "v2.page.consent.default.client-hostname-desc": "Ứng dụng này được xuất bản tại <b>{hostname}</b>. Authgear chưa xác minh danh tính của ứng dụng ngoài tên miền này.",

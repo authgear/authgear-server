@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "Aggiorna",
   "v2.page.change-password.expiry.subtitle": "È ora di cambiare la tua password.",
   "v2.page.change-password.expiry.title": "Password scaduta",
-  "v2.page.clock-skew.default.return-button-label": "Torna al Login",
   "v2.page.clock-skew.default.subtitle": "La data e l''ora del tuo dispositivo sembrano errate. Attiva la data e l''ora automatiche nelle impostazioni del dispositivo, quindi riprova.",
   "v2.page.clock-skew.default.title": "Ora del dispositivo errata",
   "v2.page.consent.default.client-hostname-desc": "Questa app è pubblicata su <b>{hostname}</b>. Authgear non ha verificato la sua identità al di là di questo dominio.",

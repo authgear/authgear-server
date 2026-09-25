@@ -572,7 +572,6 @@
   "v2.page.change-password.default.update-button-label": "변경",
   "v2.page.change-password.expiry.subtitle": "비밀번호를 변경해야 합니다.",
   "v2.page.change-password.expiry.title": "비밀번호 만료",
-  "v2.page.clock-skew.default.return-button-label": "로그인으로 돌아가기",
   "v2.page.clock-skew.default.subtitle": "기기의 날짜와 시간이 올바르지 않은 것 같습니다. 기기 설정에서 날짜 및 시간 자동 설정을 켠 후 다시 시도하세요.",
   "v2.page.clock-skew.default.title": "기기 시간이 올바르지 않음",
   "v2.page.consent.default.client-hostname-desc": "이 앱은 <b>{hostname}</b>에 게시되어 있습니다. Authgear는 이 도메인 이외의 신원을 확인하지 않았습니다.",
