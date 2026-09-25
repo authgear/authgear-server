@@ -110,18 +110,18 @@ require (
 	go.opentelemetry.io/contrib/bridges/otelslog v0.14.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.62.0
-	go.opentelemetry.io/otel v1.44.0
+	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.19.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.43.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.43.0
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.43.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.43.0
 	go.opentelemetry.io/otel/log v0.19.0
-	go.opentelemetry.io/otel/metric v1.44.0
-	go.opentelemetry.io/otel/sdk v1.44.0
+	go.opentelemetry.io/otel/metric v1.45.0
+	go.opentelemetry.io/otel/sdk v1.45.0
 	go.opentelemetry.io/otel/sdk/log v0.19.0
-	go.opentelemetry.io/otel/sdk/metric v1.44.0
-	go.opentelemetry.io/otel/trace v1.44.0
+	go.opentelemetry.io/otel/sdk/metric v1.45.0
+	go.opentelemetry.io/otel/trace v1.45.0
 	go.yaml.in/yaml/v2 v2.4.2
 	go.yaml.in/yaml/v3 v3.0.4
 )
@@ -237,7 +237,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.12.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-openapi/jsonpointer v0.23.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
