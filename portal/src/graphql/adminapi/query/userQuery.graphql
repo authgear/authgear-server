@@ -96,7 +96,15 @@ fragment UserQueryNode on User {
       node {
         id
         clientID
-        scopes
+        authorizedScopes {
+          scope
+          description
+          resource {
+            id
+            name
+            resourceURI
+          }
+        }
         createdAt
         updatedAt
       }

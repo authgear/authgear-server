@@ -104,10 +104,19 @@ function buildUIPreviewAuthorizations(
       clientID,
       createdAt: "2024-11-12T03:20:00.000Z",
       updatedAt: "2024-11-12T03:20:00.000Z",
-      scopes: [
-        "openid",
-        "offline_access",
-        "https://authgear.com/scopes/full-userinfo",
+      authorizedScopes: [
+        { scope: "openid" },
+        { scope: "offline_access" },
+        { scope: "https://authgear.com/scopes/full-userinfo" },
+        {
+          scope: "read:orders",
+          description: "Read orders and their line items",
+          resource: {
+            id: "fake-resource-1",
+            name: "Orders API",
+            resourceURI: "https://api.example.com/orders",
+          },
+        },
       ],
     },
     {
@@ -115,7 +124,7 @@ function buildUIPreviewAuthorizations(
       clientID: secondClientID,
       createdAt: "2025-01-18T09:05:00.000Z",
       updatedAt: "2025-01-18T09:05:00.000Z",
-      scopes: ["openid"],
+      authorizedScopes: [{ scope: "openid" }],
     },
   ];
 }

@@ -7,7 +7,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsAuthorization.module.css";
 import ErrorDialog from "../../error/ErrorDialog";
-import { Authorization, OAuthClientConfig } from "../../types";
+import { Authorization, AuthorizedScope, OAuthClientConfig } from "../../types";
 import { useDeleteAuthorizationMutation } from "./mutations/deleteAuthorizationMutation";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { Callout } from "../../components/v2/Callout/Callout";
@@ -70,16 +70,29 @@ const PROTOCOL_SCOPES: ReadonlySet<string> = new Set([
   "offline_access",
 ]);
 
-function hasFullUserInfoAccess(scopes: string[]): boolean {
-  return scopes.includes(FULL_USERINFO_SCOPE);
+function hasFullUserInfoAccess(scopes: AuthorizedScope[]): boolean {
+  return scopes.some(
+    (s) => s.resource == null && s.scope === FULL_USERINFO_SCOPE
+  );
 }
 
-// The scopes worth showing as permissions: everything except the protocol
-// scopes and the full-userinfo scope, which gets its own label.
-function permissionScopes(scopes: string[]): string[] {
-  return scopes.filter(
-    (scope) => !PROTOCOL_SCOPES.has(scope) && scope !== FULL_USERINFO_SCOPE
-  );
+// Whether a granted scope is worth showing as a permission: everything except
+// the protocol scopes and the full-userinfo scope, which gets its own label.
+function isPermissionScope(scope: string): boolean {
+  return !PROTOCOL_SCOPES.has(scope) && scope !== FULL_USERINFO_SCOPE;
+}
+
+// The distinct names of authorizedPermissionScopes. A name granted on two
+// resources appears once, so this can be shorter -- the row counts names, the
+// dialog groups by resource.
+function permissionScopes(scopes: AuthorizedScope[]): string[] {
+  return [...new Set(authorizedPermissionScopes(scopes).map((s) => s.scope))];
+}
+
+function authorizedPermissionScopes(
+  scopes: AuthorizedScope[]
+): AuthorizedScope[] {
+  return scopes.filter((s) => isPermissionScope(s.scope));
 }
 
 interface RemoveConfirmationDialogProps {
@@ -185,8 +198,11 @@ const UserDetailsAuthorization: React.VFC<Props> =
             authorization: authz,
             clientName: displayNameForClient(client, authz.clientID),
             client,
-            hasFullUserInfo: hasFullUserInfoAccess(authz.scopes),
-            permissionScopes: permissionScopes(authz.scopes),
+            hasFullUserInfo: hasFullUserInfoAccess(authz.authorizedScopes),
+            permissionScopes: permissionScopes(authz.authorizedScopes),
+            authorizedPermissionScopes: authorizedPermissionScopes(
+              authz.authorizedScopes
+            ),
           },
           createdAt: formatDatetime(locale, authz.createdAt) ?? "",
           remove: () => {

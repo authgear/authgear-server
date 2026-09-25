@@ -1,9 +1,55 @@
-.fields {
-  @apply flex flex-col gap-3;
+.sections {
+  @apply flex flex-col;
 }
 
-.field {
-  @apply flex flex-col gap-0.5;
+/* A rule between sections, rather than around each one: the dialog edge already
+   bounds the first and last. */
+.section + .section {
+  @apply border-t border-solid;
+  border-color: var(--gray-a5);
+  @apply mt-4 pt-4;
+}
+
+.sectionTitle {
+  @apply uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-11);
+}
+
+.sectionBody {
+  @apply flex flex-col gap-2 mt-2;
+}
+
+.row {
+  @apply grid items-baseline gap-x-4 gap-y-0.5;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+}
+
+/* Below the narrow breakpoint the label column would squeeze the value into a
+   few characters, so the row stacks instead. */
+@media (max-width: 30rem) {
+  .row {
+    @apply block;
+  }
+}
+
+.rowLabel {
+  @apply min-w-0;
+}
+
+.rowValue {
+  @apply min-w-0;
+}
+
+.scopeGroups {
+  @apply flex flex-col gap-2;
+}
+
+/* The border is what makes a resource read as nested inside Permissions; its
+   name is deliberately no heavier than a field value. */
+.scopeGroup {
+  @apply flex flex-col gap-1 rounded-md border border-solid p-3;
+  border-color: var(--gray-a5);
 }
 
 .scopeList {
