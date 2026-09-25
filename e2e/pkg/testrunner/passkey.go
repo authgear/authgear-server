@@ -37,29 +37,47 @@ const (
 	passkeySignCount = 0
 )
 
+type passkeyCredential struct {
+	key          *ecdsa.PrivateKey
+	credentialID []byte
+}
+
+// Credentials are held per relying party, as a real authenticator holds them.
+//
+// One per process would be wrong in two ways: credential IDs are unique across
+// the whole database rather than per app, so two tests registering in parallel
+// would collide, and an authenticator that handed the same credential to every
+// site is not what is being modelled.
 var (
-	passkeyOnce         sync.Once
-	passkeyKey          *ecdsa.PrivateKey
-	passkeyCredentialID []byte
+	passkeyMutex       sync.Mutex
+	passkeyCredentials = map[string]passkeyCredential{}
 )
 
-// getPasskeyKey returns the process-wide credential. Registration and the
-// assertions that follow it have to share one key pair, since the server stores
-// the public key at registration and verifies against it afterwards.
-func getPasskeyKey() (*ecdsa.PrivateKey, []byte) {
-	passkeyOnce.Do(func() {
-		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-		if err != nil {
-			panic(err)
-		}
-		passkeyKey = key
+// getPasskeyCredential returns the credential for an rpID, creating it on first
+// use. Registration and the assertions that follow it share one key pair, since
+// the server stores the public key at registration and verifies against it.
+func getPasskeyCredential(rpID string) passkeyCredential {
+	passkeyMutex.Lock()
+	defer passkeyMutex.Unlock()
 
-		passkeyCredentialID = make([]byte, 32)
-		if _, err := rand.Read(passkeyCredentialID); err != nil {
-			panic(err)
-		}
-	})
-	return passkeyKey, passkeyCredentialID
+	if existing, ok := passkeyCredentials[rpID]; ok {
+		return existing
+	}
+
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		panic(err)
+	}
+
+	credentialID := make([]byte, 32)
+	if _, err := rand.Read(credentialID); err != nil {
+		panic(err)
+	}
+
+	created := passkeyCredential{key: key, credentialID: credentialID}
+	passkeyCredentials[rpID] = created
+
+	return created
 }
 
 // coseKey encodes the public key as a COSE_Key, which is what goes inside
@@ -101,17 +119,17 @@ func authenticatorData(rpID string, includeCredential bool) ([]byte, error) {
 		return data, nil
 	}
 
-	key, credentialID := getPasskeyKey()
+	credential := getPasskeyCredential(rpID)
 
 	// AAGUID is all zeroes, which is what a platform authenticator reports.
 	data = append(data, make([]byte, 16)...)
 
 	credentialIDLength := make([]byte, 2)
-	binary.BigEndian.PutUint16(credentialIDLength, uint16(len(credentialID)))
+	binary.BigEndian.PutUint16(credentialIDLength, uint16(len(credential.credentialID)))
 	data = append(data, credentialIDLength...)
-	data = append(data, credentialID...)
+	data = append(data, credential.credentialID...)
 
-	publicKey, err := coseKey(&key.PublicKey)
+	publicKey, err := coseKey(&credential.key.PublicKey)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +215,7 @@ func GeneratePasskeyAttestation(options any, origin string) (string, error) {
 		return "", err
 	}
 
-	_, credentialID := getPasskeyKey()
+	credentialID := getPasskeyCredential(rpID).credentialID
 	response, err := json.Marshal(map[string]any{
 		"id":    b64(credentialID),
 		"rawId": b64(credentialID),
@@ -246,15 +264,15 @@ func GeneratePasskeyAssertion(options any, origin string) (string, error) {
 	// even though the authenticator never sees it.
 	signed := sha256.Sum256(append(append([]byte{}, authData...), clientDataHash[:]...))
 
-	key, credentialID := getPasskeyKey()
-	signature, err := ecdsa.SignASN1(rand.Reader, key, signed[:])
+	credential := getPasskeyCredential(rpID)
+	signature, err := ecdsa.SignASN1(rand.Reader, credential.key, signed[:])
 	if err != nil {
 		return "", err
 	}
 
 	response, err := json.Marshal(map[string]any{
-		"id":    b64(credentialID),
-		"rawId": b64(credentialID),
+		"id":    b64(credential.credentialID),
+		"rawId": b64(credential.credentialID),
 		"type":  "public-key",
 		"response": map[string]any{
 			"clientDataJSON":    b64(clientData),
