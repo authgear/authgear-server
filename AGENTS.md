@@ -133,6 +133,7 @@ For more targets, browse the root `Makefile` and `portal/package.json` / `authui
   Inside a database transaction, "log and continue" does not work: in Postgres a failed statement aborts the transaction, so every later query and the commit fail too. Either return the error, or run the optional query in its own transaction outside the main one.
 - Never hard-code a string literal that is already defined as a constant. Use the constant (`oauth.ScopeOpenID`, not `"openid"`). The same goes for sets: before writing a list or map of known values, look for the existing one or its helper (`oauth.AllowedScopes` / `oauth.IsResourceScope`). A hand-copied list goes stale silently: the `identityScopes` map in the Authorized Apps handler missed three scopes that `AllowedScopes` had.
 - A client (portal, AuthUI) fetches only the data it needs, filtered on the server. Do not list a whole collection to pick out a few items client-side. If the API cannot filter that way, propose the API change instead of working around it — see the `update-portal-ui` skill.
+- In the Admin API (`pkg/admin/graphql/`), a GraphQL type's source is a `pkg/api/model` struct. Load a related entity in that field's own resolver through a `gqlCtx` loader (`gqlCtx.Resources.Load(ctx, id).Value`), so loads batch across a list. Do not resolve it up front into a package-local struct: `AuthorizedScope` resolves `resource` and `description` from `model.AuthorizedScope.ResourceID`, not from a local struct carrying them.
 
 ## Breaking changes
 
