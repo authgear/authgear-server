@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -58,11 +59,12 @@ type SettingsAuthorizedAppsClientLogoEndpoint interface {
 	ClientLogoURL(clientID string) *url.URL
 }
 
-// SettingsAuthorizedAppsScopeStore resolves the scope names stored on an
-// authorization back to the project's configured scopes, for their
+// SettingsAuthorizedAppsScopeStore resolves the scopes granted on an
+// authorization to the project's resources and scopes, for their
 // descriptions.
 type SettingsAuthorizedAppsScopeStore interface {
-	ListScopesByNames(ctx context.Context, names []string) ([]*resourcescope.Scope, error)
+	GetManyResources(ctx context.Context, ids []string) ([]*resourcescope.Resource, error)
+	ListScopesByResourceIDs(ctx context.Context, resourceIDs []string, scopes []string) ([]*resourcescope.Scope, error)
 }
 
 // AuthorizationPermission is one granted resource scope as shown to the end
@@ -81,10 +83,11 @@ type Authorization struct {
 	ClientName    string
 	ClientLogoURI string
 	Scope         []string
-	// Permissions are the granted resource scopes (oauth.IsResourceScope), in
-	// the order they were granted; set on the detail page only. Project-level
-	// scopes are not in this list: the template renders the identity ones
-	// (profile, email, phone, address, full-userinfo) from its own strings.
+	// Scope holds the project-level scopes only.
+	// Permissions are the scopes granted on resources that still exist; set on
+	// the detail page only. Project-level scopes are not in this list: the
+	// template renders the identity ones (profile, email, phone, address,
+	// full-userinfo) from its own strings.
 	Permissions []AuthorizationPermission
 	CreatedAt   time.Time
 }
@@ -109,53 +112,67 @@ type AuthflowV2SettingsAuthorizedAppsHandler struct {
 	ScopeStore          SettingsAuthorizedAppsScopeStore
 }
 
-// resourcePermissions maps the resource scopes on granted (in grant order)
-// to their display text. A name defined by more than one resource keeps the
-// first description found: the grant does not record which resource it was
-// for.
-func resourcePermissions(granted []string, descriptions map[string]string) []AuthorizationPermission {
+type resourceScopeKey struct {
+	ResourceID string
+	Scope      string
+}
+
+// resourcePermissions maps the scopes granted on the resources in existing to
+// their display text, grouped by resource. A scope granted on a deleted
+// resource is left out, as the Admin API does.
+func resourcePermissions(authz *oauth.Authorization, existing map[string]struct{}, descriptions map[resourceScopeKey]string) []AuthorizationPermission {
 	var permissions []AuthorizationPermission
-	for _, s := range granted {
-		if !oauth.IsResourceScope(s) {
+	for _, id := range authz.ResourceIDs() {
+		if _, ok := existing[id]; !ok {
 			continue
 		}
-		displayText := s
-		if d, ok := descriptions[s]; ok && d != "" {
-			displayText = d
+		for _, s := range authz.ScopesByResources[id] {
+			displayText := s
+			if d, ok := descriptions[resourceScopeKey{ResourceID: id, Scope: s}]; ok && d != "" {
+				displayText = d
+			}
+			permissions = append(permissions, AuthorizationPermission{Scope: s, DisplayText: displayText})
 		}
-		permissions = append(permissions, AuthorizationPermission{Scope: s, DisplayText: displayText})
 	}
 	return permissions
 }
 
-// scopeDescriptions returns Description keyed by scope name for the resource
-// scopes in granted. A scope that no longer exists has no entry, and is shown
-// by its raw name.
-func (h *AuthflowV2SettingsAuthorizedAppsHandler) scopeDescriptions(ctx context.Context, granted []string) (map[string]string, error) {
+// resolveResourceScopes returns the resources of authz that still exist, and
+// the configured Description of each scope granted on them.
+func (h *AuthflowV2SettingsAuthorizedAppsHandler) resolveResourceScopes(ctx context.Context, authz *oauth.Authorization) (map[string]struct{}, map[resourceScopeKey]string, error) {
+	ids := authz.ResourceIDs()
+	if len(ids) == 0 {
+		return nil, nil, nil
+	}
 	var names []string
-	for _, s := range granted {
-		if oauth.IsResourceScope(s) {
-			names = append(names, s)
+	for _, id := range ids {
+		for _, s := range authz.ScopesByResources[id] {
+			if !slices.Contains(names, s) {
+				names = append(names, s)
+			}
 		}
 	}
-	if len(names) == 0 {
-		return nil, nil
-	}
-	scopes, err := h.ScopeStore.ListScopesByNames(ctx, names)
+
+	resources, err := h.ScopeStore.GetManyResources(ctx, ids)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	descriptions := make(map[string]string, len(scopes))
+	existing := make(map[string]struct{}, len(resources))
+	for _, r := range resources {
+		existing[r.ID] = struct{}{}
+	}
+
+	scopes, err := h.ScopeStore.ListScopesByResourceIDs(ctx, ids, names)
+	if err != nil {
+		return nil, nil, err
+	}
+	descriptions := make(map[resourceScopeKey]string, len(scopes))
 	for _, sc := range scopes {
-		if sc.Description == nil || *sc.Description == "" {
-			continue
+		if sc.Description != nil {
+			descriptions[resourceScopeKey{ResourceID: sc.ResourceID, Scope: sc.Scope}] = *sc.Description
 		}
-		if _, exists := descriptions[sc.Scope]; exists {
-			continue
-		}
-		descriptions[sc.Scope] = *sc.Description
 	}
-	return descriptions, nil
+	return existing, descriptions, nil
 }
 
 func (h *AuthflowV2SettingsAuthorizedAppsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]any, error) {
@@ -226,7 +243,7 @@ func (h *AuthflowV2SettingsAuthorizedAppsHandler) authorizationViewModel(ctx con
 		ClientID:      authz.ClientID,
 		ClientName:    clientName,
 		ClientLogoURI: logoURI,
-		Scope:         authz.AllScopes(),
+		Scope:         authz.ProjectScopes(),
 		CreatedAt:     authz.CreatedAt,
 	}
 }
@@ -276,13 +293,13 @@ func (h *AuthflowV2SettingsAuthorizedAppsHandler) GetAuthorizationData(ctx conte
 	if err != nil {
 		return nil, err
 	}
-	descriptions, err := h.scopeDescriptions(ctx, authz.AllScopes())
+	existing, descriptions, err := h.resolveResourceScopes(ctx, authz)
 	if err != nil {
 		return nil, err
 	}
 
 	vm := h.authorizationViewModel(ctx, authz)
-	vm.Permissions = resourcePermissions(authz.AllScopes(), descriptions)
+	vm.Permissions = resourcePermissions(authz, existing, descriptions)
 	viewmodels.Embed(data, SettingsAuthorizedAppViewModel{Authorization: vm})
 
 	return data, nil
