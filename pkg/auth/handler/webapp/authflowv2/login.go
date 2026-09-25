@@ -92,6 +92,7 @@ func (h *AuthflowV2LoginHandler) GetData(w http.ResponseWriter, r *http.Request,
 	viewmodels.Embed(data, authflowViewModel)
 	viewmodels.Embed(data, v2viewmodels.NewOAuthErrorViewModel(baseViewModel.RawError))
 	viewmodels.Embed(data, NewAuthflowLoginViewModel(allowLoginOnly))
+	viewmodels.Embed(data, v2viewmodels.NewClockSkewViewModel(s.DPoPEnabled, h.BaseViewModel.Clock.NowUTC()))
 	return data, nil
 }
 

@@ -1,0 +1,38 @@
+name: Login and signup pages do not check the device clock without dpop_jkt
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/login?{{ .steps.oauth_setup.result.query }}
+    http_output:
+      http_status: 200
+      redirect_path: /login
+      html_xpath_exists:
+        - /html/body//form//input[@name='x_login_id']
+      html_text_not_contains:
+        - data-controller="clock-skew"
+
+  - name: get_signup_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/signup
+    http_output:
+      http_status: 200
+      redirect_path: /signup
+      html_text_not_contains:
+        - data-controller="clock-skew"

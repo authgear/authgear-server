@@ -1396,7 +1396,7 @@ func validateHTTPOutput(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, s
 			ok = false
 		}
 	}
-	if len(httpOutput.HTMLXPathExists) > 0 || len(httpOutput.HTMLTextContains) > 0 {
+	if len(httpOutput.HTMLXPathExists) > 0 || len(httpOutput.HTMLTextContains) > 0 || len(httpOutput.HTMLTextNotContains) > 0 {
 		if !validateHTTPHTML(t, cmd, prevSteps, step, httpOutput, response) {
 			ok = false
 		}

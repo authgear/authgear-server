@@ -38,6 +38,7 @@ type SessionOptions struct {
 	SuppressIDPSessionCookie bool
 	OAuthProviderAlias       string
 	LoginHint                string
+	DPoPEnabled              bool
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
@@ -56,6 +57,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		SuppressIDPSessionCookie:   s.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         s.OAuthProviderAlias,
 		LoginHint:                  s.LoginHint,
+		DPoPEnabled:                s.DPoPEnabled,
 	}
 }
 
@@ -111,6 +113,9 @@ type Session struct {
 	// LoginHint is the OIDC login_hint parameter.
 	LoginHint string `json:"login_hint,omitempty"`
 
+	// DPoPEnabled indicates dpop_jkt is present in the authorization request.
+	DPoPEnabled bool `json:"dpop_enabled,omitempty"`
+
 	// The settings action associated with this session
 	// Empty if it is not a settings action
 	SettingsActionID string `json:"settings_action_id,omitempty"`
@@ -145,6 +150,7 @@ func NewSession(options SessionOptions) *Session {
 		OAuthProviderAlias:         options.OAuthProviderAlias,
 		LoginHint:                  options.LoginHint,
 		SettingsActionID:           options.SettingsActionID,
+		DPoPEnabled:                options.DPoPEnabled,
 	}
 	maps.Copy(s.Extra, options.Extra)
 	return s

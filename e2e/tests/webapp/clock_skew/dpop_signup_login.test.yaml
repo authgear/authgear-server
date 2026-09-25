@@ -1,0 +1,38 @@
+name: Combined signup and login page checks the device clock when dpop_jkt is sent
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: email
+          type: email
+    ui:
+      signup_login_flow_enabled: true
+steps:
+  - name: get_login_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      scope: "openid offline_access https://authgear.com/scopes/full-access"
+      x_sso_enabled: "false"
+      x_page: login
+      dpop_jkt: "{{ generateDPoPJKT }}"
+    http_output:
+      http_status: 200
+      redirect_path: /login
+      html_xpath_exists:
+        - /html/body//div[@data-controller='clock-skew']
+      html_text_contains:
+        - Sign up or Log in to
+        - data-clock-skew-redirect-url-value="/authflow/v2/clock_skew"

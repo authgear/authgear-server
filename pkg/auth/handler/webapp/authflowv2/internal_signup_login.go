@@ -95,6 +95,7 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetData(
 		UIVariant:        options.UIVariant,
 	}
 	viewmodels.Embed(data, signupViewModel)
+	viewmodels.Embed(data, v2viewmodels.NewClockSkewViewModel(s.DPoPEnabled, h.BaseViewModel.Clock.NowUTC()))
 
 	return data, nil
 }

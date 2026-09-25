@@ -11,6 +11,7 @@
     <div class="widget-content">
       {{ template "page-content" . }}
       {{ template "authflowv2/__lockout.html" . }}
+      {{ template "authflowv2/__clock_skew_check.html" . }}
       {{ template "authflowv2/__watermark.html" . }}
       {{ template "authflowv2/__bot_protection_dialog.html" . }}
     </div>
