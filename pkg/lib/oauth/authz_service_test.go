@@ -2,12 +2,14 @@ package oauth_test
 
 import (
 	"context"
+	"slices"
 	"testing"
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -44,6 +46,20 @@ func (s *stubAuthorizationStore) UpdateScopes(ctx context.Context, a *oauth.Auth
 
 var _ oauth.AuthorizationStore = &stubAuthorizationStore{}
 
+type stubAuthorizationResourceStore struct {
+	existing []string
+}
+
+func (s *stubAuthorizationResourceStore) GetManyResources(ctx context.Context, ids []string) ([]*resourcescope.Resource, error) {
+	var resources []*resourcescope.Resource
+	for _, id := range ids {
+		if slices.Contains(s.existing, id) {
+			resources = append(resources, &resourcescope.Resource{ID: id})
+		}
+	}
+	return resources, nil
+}
+
 func TestAuthorizationServiceCheckAndGrant(t *testing.T) {
 	Convey("AuthorizationService.CheckAndGrant", t, func() {
 		ctx := context.Background()
@@ -52,12 +68,14 @@ func TestAuthorizationServiceCheckAndGrant(t *testing.T) {
 				{ID: "authz", ScopesByResources: map[string][]string{
 					oauth.AuthorizationProjectScopesKey: {"openid"},
 					"r1":                                {"read:orders"},
+					"deleted":                           {"read:orders"},
 				}},
 			},
 		}
 		svc := &oauth.AuthorizationService{
-			Store: store,
-			Clock: clock.NewMockClockAtTime(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)),
+			Store:     store,
+			Clock:     clock.NewMockClockAtTime(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)),
+			Resources: &stubAuthorizationResourceStore{existing: []string{"r1", "r2"}},
 		}
 
 		Convey("does not update an authorization that already grants the scopes", func() {
@@ -66,7 +84,7 @@ func TestAuthorizationServiceCheckAndGrant(t *testing.T) {
 			So(store.updated, ShouldBeNil)
 		})
 
-		Convey("grants a name already granted on another resource", func() {
+		Convey("grants a name already granted on another resource, and drops deleted resources", func() {
 			authz, err := svc.CheckAndGrant(ctx, "client", "user", "r2", []string{"openid", "read:orders"})
 			So(err, ShouldBeNil)
 			So(store.updated, ShouldEqual, authz)

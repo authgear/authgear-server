@@ -1313,6 +1313,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
+		Resources:           resourcescopeStore,
 	}
 	authorizationFacade := &facade2.AuthorizationFacade{
 		Authorizations: authorizationService,

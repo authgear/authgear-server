@@ -89,6 +89,17 @@ func (z Authorization) ResourceIDs() []string {
 	return ids
 }
 
+func (z Authorization) WithResourcesRemoved(resourceIDs []string) *Authorization {
+	newScopesByResources := make(map[string][]string, len(z.ScopesByResources))
+	for key, ss := range z.ScopesByResources {
+		if !slices.Contains(resourceIDs, key) {
+			newScopesByResources[key] = ss
+		}
+	}
+	z.ScopesByResources = newScopesByResources
+	return &z
+}
+
 func (z Authorization) ProjectScopes() []string {
 	return z.ScopesByResources[AuthorizationProjectScopesKey]
 }

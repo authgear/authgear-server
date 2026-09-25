@@ -417,6 +417,7 @@ var CommonDependencySet = wire.NewSet(
 		resourcescope.DependencySet,
 		wire.Bind(new(handler.TokenHandlerClientResourceScopeService), new(*resourcescope.ClientResourceScopeService)),
 		wire.Bind(new(handler.ResourceAccessPolicyService), new(*resourcescope.AccessPolicyService)),
+		wire.Bind(new(oauth.AuthorizationResourceStore), new(*resourcescope.Store)),
 	),
 
 	wire.NewSet(

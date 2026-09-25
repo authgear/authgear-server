@@ -54,6 +54,18 @@ func TestAuthorization(t *testing.T) {
 			})
 		})
 
+		Convey("WithResourcesRemoved", func() {
+			authz := &oauth.Authorization{ScopesByResources: map[string][]string{
+				oauth.AuthorizationProjectScopesKey: {"openid"},
+				"r1":                                {"read:orders"},
+				"r2":                                {"read:orders"},
+			}}
+			So(authz.WithResourcesRemoved([]string{"r1"}).ScopesByResources, ShouldResemble, map[string][]string{
+				oauth.AuthorizationProjectScopesKey: {"openid"},
+				"r2":                                {"read:orders"},
+			})
+		})
+
 		Convey("AllScopes", func() {
 			authz := &oauth.Authorization{ScopesByResources: map[string][]string{
 				"r2":                                {"read:orders", "write:orders"},

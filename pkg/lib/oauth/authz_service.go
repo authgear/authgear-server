@@ -3,8 +3,10 @@ package oauth
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -15,6 +17,10 @@ type OfflineGrantSessionManager interface {
 	Delete(ctx context.Context, session session.ListableSession) error
 }
 
+type AuthorizationResourceStore interface {
+	GetManyResources(ctx context.Context, ids []string) ([]*resourcescope.Resource, error)
+}
+
 type AuthorizationService struct {
 	AppID               config.AppID
 	Store               AuthorizationStore
@@ -22,6 +28,7 @@ type AuthorizationService struct {
 	OAuthSessionManager OfflineGrantSessionManager
 	OfflineGrantService *OfflineGrantService
 	OfflineGrantStore   OfflineGrantStore
+	Resources           AuthorizationResourceStore
 }
 
 func (s *AuthorizationService) GetByID(ctx context.Context, id string) (*Authorization, error) {
@@ -120,6 +127,10 @@ func (s *AuthorizationService) CheckAndGrant(
 			return nil, err
 		}
 	} else {
+		authz, err = s.withDeletedResourcesRemoved(ctx, authz)
+		if err != nil {
+			return nil, err
+		}
 		authz = authz.WithScopesAdded(resourceID, scopes)
 		authz.UpdatedAt = timestamp
 		err = s.Store.UpdateScopes(ctx, authz)
@@ -129,6 +140,27 @@ func (s *AuthorizationService) CheckAndGrant(
 	}
 
 	return authz, nil
+}
+
+// withDeletedResourcesRemoved drops the scopes granted on resources that no
+// longer exist, so that they do not accumulate across updates.
+func (s *AuthorizationService) withDeletedResourcesRemoved(ctx context.Context, authz *Authorization) (*Authorization, error) {
+	ids := authz.ResourceIDs()
+	if len(ids) == 0 {
+		return authz, nil
+	}
+	resources, err := s.Resources.GetManyResources(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	var deleted []string
+	for _, id := range ids {
+		exists := slices.ContainsFunc(resources, func(r *resourcescope.Resource) bool { return r.ID == id })
+		if !exists {
+			deleted = append(deleted, id)
+		}
+	}
+	return authz.WithResourcesRemoved(deleted), nil
 }
 
 func (s *AuthorizationService) Check(

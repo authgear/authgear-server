@@ -1214,6 +1214,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -1221,6 +1226,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
+		Resources:           resourcescopeStore,
 	}
 	appSessionTokenService := &oauth.AppSessionTokenService{
 		AppSessions:         redisStore,
@@ -1277,11 +1283,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		BaseURL:                   endpointsEndpoints,
 		Events:                    eventService,
 		UserBlockingEventContexts: userBlockingEventContextProvider,
-	}
-	resourcescopeStore := &resourcescope.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	accessPolicyService := &resourcescope.AccessPolicyService{
 		Store: resourcescopeStore,
@@ -2289,6 +2290,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	uiService := &authenticationinfo.UIService{
 		EndpointsProvider: endpointsEndpoints,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -2296,6 +2302,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
+		Resources:           resourcescopeStore,
 	}
 	appSessionTokenService := &oauth.AppSessionTokenService{
 		AppSessions:         redisStore,
@@ -2352,11 +2359,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		BaseURL:                   endpointsEndpoints,
 		Events:                    eventService,
 		UserBlockingEventContexts: userBlockingEventContextProvider,
-	}
-	resourcescopeStore := &resourcescope.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	accessPolicyService := &resourcescope.AccessPolicyService{
 		Store: resourcescopeStore,
@@ -2615,6 +2617,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		MeterService:    meterService,
 		OfflineGrants:   store,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -2622,6 +2629,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   store,
+		Resources:           resourcescopeStore,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	authenticationConfig := appConfig.Authentication
@@ -3408,11 +3416,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		PreAuthenticatedURLTokens: store,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
-	}
-	resourcescopeStore := &resourcescope.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
 		Store: resourcescopeStore,
@@ -7715,6 +7718,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		MeterService:    meterService,
 		OfflineGrants:   store,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -7722,6 +7730,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   store,
+		Resources:           resourcescopeStore,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	authenticationConfig := appConfig.Authentication
@@ -8508,11 +8517,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		PreAuthenticatedURLTokens: store,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
-	}
-	resourcescopeStore := &resourcescope.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
 		Store: resourcescopeStore,
@@ -9805,6 +9809,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -9812,6 +9821,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
+		Resources:           resourcescopeStore,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	facadeIdentityFacade := &facade.IdentityFacade{
@@ -10916,6 +10926,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -10923,6 +10938,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
+		Resources:           resourcescopeStore,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	facadeIdentityFacade := &facade.IdentityFacade{
@@ -37166,6 +37182,11 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -37173,11 +37194,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
-	}
-	resourcescopeStore := &resourcescope.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
+		Resources:           resourcescopeStore,
 	}
 	authflowV2SettingsAuthorizedAppsHandler := &authflowv2.AuthflowV2SettingsAuthorizedAppsHandler{
 		Database:            handle,
@@ -38321,6 +38338,11 @@ func newWebAppAuthflowV2SettingsAuthorizedAppHandler(p *deps.RequestProvider) ht
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -38328,11 +38350,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppHandler(p *deps.RequestProvider) ht
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
-	}
-	resourcescopeStore := &resourcescope.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
+		Resources:           resourcescopeStore,
 	}
 	authflowV2SettingsAuthorizedAppsHandler := authflowv2.AuthflowV2SettingsAuthorizedAppsHandler{
 		Database:            handle,
@@ -53697,6 +53715,11 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
 	}
+	resourcescopeStore := &resourcescope.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	authorizationService := &oauth.AuthorizationService{
 		AppID:               appID,
 		Store:               authorizationStore,
@@ -53704,6 +53727,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 		OfflineGrantService: oauthOfflineGrantService,
 		OfflineGrantStore:   redisStore,
+		Resources:           resourcescopeStore,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	facadeIdentityFacade := &facade.IdentityFacade{
@@ -53740,11 +53764,6 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		PreAuthenticatedURLTokens: redisStore,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
-	}
-	resourcescopeStore := &resourcescope.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
 		Store: resourcescopeStore,
