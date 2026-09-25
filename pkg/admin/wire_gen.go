@@ -822,6 +822,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	resourceLoader := loader.NewResourceLoader(resourcescopeQueries)
 	resourceClientLoader := loader.NewResourceClientLoader(resourcescopeQueries)
 	scopeLoader := loader.NewScopeLoader(resourcescopeQueries)
+	resourceScopeLoader := loader.NewResourceScopeLoader(resourcescopeQueries)
 	dcrStore := &dcr.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1426,6 +1427,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resources:             resourceLoader,
 		ResourceClients:       resourceClientLoader,
 		Scopes:                scopeLoader,
+		ResourceScopes:        resourceScopeLoader,
 		InitialAccessTokens:   initialAccessTokenLoader,
 		DynamicClients:        dynamicClientLoader,
 		UserFacade:            facadeUserFacade,

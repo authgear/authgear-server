@@ -336,6 +336,16 @@ func (s *Store) ListScopesByNames(ctx context.Context, names []string) ([]*Scope
 	return s.queryScopes(ctx, q)
 }
 
+// ListScopesByResourceIDs returns the scopes named in scopes that belong to
+// any of resourceIDs.
+func (s *Store) ListScopesByResourceIDs(ctx context.Context, resourceIDs []string, scopes []string) ([]*Scope, error) {
+	if len(resourceIDs) == 0 || len(scopes) == 0 {
+		return nil, nil
+	}
+	q := s.selectScopeQuery("s").Where("s.resource_id = ANY (?) AND s.scope = ANY (?)", pq.Array(resourceIDs), pq.Array(scopes))
+	return s.queryScopes(ctx, q)
+}
+
 func (s *Store) GetScopesByResourceIDAndScopes(ctx context.Context, resourceID string, scopes []string) (map[string]*Scope, error) {
 	q := s.selectScopeQuery("s").Where("s.resource_id = ? AND s.scope = ANY (?)", resourceID, pq.Array(scopes))
 	results, err := s.queryScopes(ctx, q)

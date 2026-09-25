@@ -5,6 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 )
 
@@ -73,6 +74,25 @@ func TestAuthorization(t *testing.T) {
 				"r1":                                {"read:orders"},
 			}}
 			So(authz.AllScopes(), ShouldResemble, []string{"openid", "read:orders", "write:orders"})
+		})
+
+		Convey("ToAPIModel", func() {
+			authz := &oauth.Authorization{ScopesByResources: map[string][]string{
+				"r2":                                {"read:orders"},
+				oauth.AuthorizationProjectScopesKey: {"openid"},
+				"r1":                                {"read:orders"},
+			}}
+			m := authz.ToAPIModel()
+			So(m.Scopes, ShouldResemble, []string{"openid"})
+			So(m.AuthorizedScopes, ShouldResemble, []model.AuthorizedScope{
+				{Scope: "openid"},
+				{ResourceID: "r1", Scope: "read:orders"},
+				{ResourceID: "r2", Scope: "read:orders"},
+			})
+
+			m = (&oauth.Authorization{}).ToAPIModel()
+			So(m.Scopes, ShouldResemble, []string{})
+			So(m.AuthorizedScopes, ShouldResemble, []model.AuthorizedScope{})
 		})
 	})
 }

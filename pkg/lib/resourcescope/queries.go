@@ -103,6 +103,20 @@ func (q *Queries) GetManyScopes(ctx context.Context, ids []string) ([]*model.Sco
 	return scopeModels, nil
 }
 
+func (q *Queries) ListScopesByResourceIDs(ctx context.Context, resourceIDs []string, scopes []string) ([]*model.Scope, error) {
+	storeScopes, err := q.Store.ListScopesByResourceIDs(ctx, resourceIDs, scopes)
+	if err != nil {
+		return nil, err
+	}
+
+	scopeModels := make([]*model.Scope, len(storeScopes))
+	for i, s := range storeScopes {
+		scopeModels[i] = s.ToModel()
+	}
+
+	return scopeModels, nil
+}
+
 func (q *Queries) GetManyResourceClientIDs(ctx context.Context, resourceIDs []string) (map[string][]string, error) {
 	return q.Store.ListClientIDsByResourceIDs(ctx, resourceIDs)
 }

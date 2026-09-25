@@ -123,13 +123,29 @@ func (z Authorization) AllScopes() []string {
 }
 
 func (z Authorization) ToAPIModel() *model.Authorization {
+	authorizedScopes := []model.AuthorizedScope{}
+	for _, s := range z.ProjectScopes() {
+		authorizedScopes = append(authorizedScopes, model.AuthorizedScope{Scope: s})
+	}
+	for _, id := range z.ResourceIDs() {
+		for _, s := range z.ScopesByResources[id] {
+			authorizedScopes = append(authorizedScopes, model.AuthorizedScope{ResourceID: id, Scope: s})
+		}
+	}
+
+	scopes := z.ProjectScopes()
+	if scopes == nil {
+		scopes = []string{}
+	}
+
 	return &model.Authorization{
 		Meta: model.Meta{
 			ID:        z.ID,
 			CreatedAt: z.CreatedAt,
 			UpdatedAt: z.UpdatedAt,
 		},
-		ClientID: z.ClientID,
-		Scopes:   z.AllScopes(),
+		ClientID:         z.ClientID,
+		Scopes:           scopes,
+		AuthorizedScopes: authorizedScopes,
 	}
 }

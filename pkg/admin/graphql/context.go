@@ -62,6 +62,10 @@ type ScopeLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
+type ResourceScopeLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type InitialAccessTokenLoader interface {
 	graphqlutil.DataLoaderInterface
 }
@@ -266,6 +270,7 @@ type Context struct {
 	Resources           ResourceLoader
 	ResourceClients     ResourceClientLoader
 	Scopes              ScopeLoader
+	ResourceScopes      ResourceScopeLoader
 	InitialAccessTokens InitialAccessTokenLoader
 	DynamicClients      DynamicClientLoader
 

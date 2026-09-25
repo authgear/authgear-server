@@ -448,11 +448,17 @@ export enum AuthenticatorType {
 
 export type Authorization = Entity & Node & {
   __typename?: 'Authorization';
+  /** The granted scopes. Excludes scopes granted on a Resource that has been deleted. */
+  authorizedScopes: Array<AuthorizedScope>;
   clientID: Scalars['String']['output'];
   /** The creation time of entity */
   createdAt: Scalars['DateTime']['output'];
   /** The ID of an object */
   id: Scalars['ID']['output'];
+  /**
+   * The granted project-level scopes. Excludes Resource Scopes.
+   * @deprecated Use authorizedScopes.
+   */
   scopes: Array<Scalars['String']['output']>;
   /** The update time of entity */
   updatedAt: Scalars['DateTime']['output'];
@@ -476,6 +482,15 @@ export type AuthorizationEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<Authorization>;
+};
+
+export type AuthorizedScope = {
+  __typename?: 'AuthorizedScope';
+  /** The Scope's description. Null for a project-level scope. */
+  description?: Maybe<Scalars['String']['output']>;
+  /** The Resource the scope is granted on. Null for a project-level scope. */
+  resource?: Maybe<Resource>;
+  scope: Scalars['String']['output'];
 };
 
 export type Claim = {

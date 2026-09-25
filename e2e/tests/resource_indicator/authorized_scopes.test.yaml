@@ -1,0 +1,353 @@
+name: Admin API Authorization.authorizedScopes lists each scope with the Resource it is granted on
+# e2ethirdparty is used because user.authorizations lists third-party
+# clients only. The authorization is recorded when consent is approved. read:orders is defined by two Resources, each with its own description. The
+# deprecated scopes field returns project-level scopes only.
+before:
+  - type: user_import
+    user_import: users.json
+  - type: custom_sql
+    custom_sql:
+      path: authorized_scopes.sql
+steps:
+  - name: orders_login_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2ethirdparty
+    oauth_setup_scope:
+      - openid
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: orders_login_create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.orders_login_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: orders_login_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: orders_login_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: orders_login_approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.orders_login_authenticate.result.action.data.finish_redirect_uri }}"
+
+
+  - name: inventory_login_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2ethirdparty
+    oauth_setup_scope:
+      - openid
+      - read:orders
+    oauth_setup_resource: https://api.example.com/inventory
+
+  - name: inventory_login_create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.inventory_login_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: inventory_login_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: inventory_login_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: inventory_login_approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.inventory_login_authenticate.result.action.data.finish_redirect_uri }}"
+
+
+  - name: authorized_scopes
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey: "username", loginIDValue: "e2e_login") {
+            authorizations {
+              edges {
+                node {
+                  scopes
+                  authorizedScopes {
+                    scope
+                    description
+                    resource {
+                      resourceURI
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": {
+              "authorizations": {
+                "edges": [
+                  {
+                    "node": {
+                      "scopes": ["openid"],
+                      "authorizedScopes": [
+                        {
+                          "scope": "openid",
+                          "description": null,
+                          "resource": null
+                        },
+                        {
+                          "scope": "read:orders",
+                          "description": "Read your orders",
+                          "resource": {
+                            "resourceURI": "https://api.example.com/orders"
+                          }
+                        },
+                        {
+                          "scope": "read:orders",
+                          "description": "Read your stock",
+                          "resource": {
+                            "resourceURI": "https://api.example.com/inventory"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "errors": null
+        }
+
+  - name: delete_inventory
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          deleteResource(input: { resourceURI: "https://api.example.com/inventory" }) {
+            ok
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "deleteResource": { "ok": true } },
+          "errors": null
+        }
+
+  # A scope granted on a deleted Resource is not returned.
+  - name: authorized_scopes_after_delete
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          getUserByLoginID(loginIDKey: "username", loginIDValue: "e2e_login") {
+            authorizations {
+              edges {
+                node {
+                  scopes
+                  authorizedScopes {
+                    scope
+                    description
+                    resource {
+                      resourceURI
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "getUserByLoginID": {
+              "authorizations": {
+                "edges": [
+                  {
+                    "node": {
+                      "scopes": ["openid"],
+                      "authorizedScopes": [
+                        {
+                          "scope": "openid",
+                          "description": null,
+                          "resource": null
+                        },
+                        {
+                          "scope": "read:orders",
+                          "description": "Read your orders",
+                          "resource": {
+                            "resourceURI": "https://api.example.com/orders"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "errors": null
+        }
+
+  # Granting another scope updates the authorization, which drops the deleted
+  # Resource's grant.
+  - name: email_login_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2ethirdparty
+    oauth_setup_scope:
+      - openid
+      - email
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: email_login_create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.email_login_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: email_login_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: email_login_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: email_login_approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.email_login_authenticate.result.action.data.finish_redirect_uri }}"
+
+
+  - name: stored_after_update
+    action: query
+    query: |
+      SELECT scopes_by_resources AS stored
+      FROM _auth_oauth_authorization
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "stored": {
+              "authgear": ["openid", "email"],
+              "{{ .AppID }}-a-orders": ["read:orders"]
+            }
+          }
+        ]
