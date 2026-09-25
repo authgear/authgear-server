@@ -1596,11 +1596,25 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
 	}
 
+	// The scopes come from the original refresh token, so its resource scopes
+	// are granted on the resource that token is bound to. The lookup uses the
+	// original client, as refreshing that token would.
+	resourceID := ""
+	if offlineGrantSession.ResourceURI != "" {
+		resource, err := h.ResourceAccessPolicyService.GetResourceByURI(ctx, offlineGrantSession.ResourceURI, originalClient)
+		if errors.Is(err, resourcescope.ErrResourceNotFound) {
+			return nil, errResourceNotAvailable()
+		} else if err != nil {
+			return nil, err
+		}
+		resourceID = resource.ID
+	}
+
 	authz, err := h.Authorizations.CheckAndGrant(
 		ctx,
 		client.ClientID,
 		originalOfflineGrant.GetUserID(),
-		"",
+		resourceID,
 		scopes,
 	)
 	if err != nil {
