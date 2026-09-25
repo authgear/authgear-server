@@ -525,7 +525,7 @@ The developer **MUST** read `https://authgear.com/claims/scope_by_aud` to get th
 
 Originally we have a table `_auth_oauth_authorization` with unique index on `(app_id, user_id, client_id)`.This table models the authorization of `aud` being the authorization server itself.
 
-Now that we have introduced Resource, we need a new table `_auth_oauth_authorization_resource` with unique index on `(app_id, user_id, client_id, resource_id)`.
+Now that we have introduced Resource, an Authorization records its granted scopes per Resource. See [API Resources and Scopes — Authorization](./api-resource.md#authorization).
 
 In first-party client, consent is not asked and authorization is implicitly granted.
 
@@ -843,21 +843,7 @@ This means
 
 The `_auth_resource`, `_auth_resource_scope`, `_auth_client_resource`, and `_auth_client_resource_scope` tables are specified in [API Resources and Scopes — Data Model](./api-resource.md#data-model).
 
-The following table tracks user consent for a specific (client, resource) pair and is **not** part of the M2M MVP. It is included here for completeness:
-
-```sql
--- A sibling table of _auth_oauth_authorization, that takes resource_id into account.
--- NOT part of the MVP. Required when resource indicators are supported in the Authorization Code flow.
-CREATE TABLE _auth_oauth_authorization_resource (
-  id text PRIMARY KEY,
-  app_id text NOT NULL,
-  client_id text NOT NULL,
-  user_id text NOT NULL REFERENCES _auth_user(id),
-  resource_id text NOT NULL REFERENCES _auth_resource(id),
-  scope_id text NOT NULL REFERENCES _auth_resource_scope(id)
-);
-CREATE UNIQUE INDEX _auth_oauth_authorization_resource_unique ON _auth_oauth_authorization_resource USING btree (app_id, client_id, user_id, resource_id, scope_id);
-```
+How an Authorization records consent per Resource is specified in [API Resources and Scopes — Authorization](./api-resource.md#authorization).
 
 ### Changes in Admin API
 

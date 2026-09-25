@@ -17,6 +17,7 @@ Which mechanism grants a Resource depends on the **grant**, and the two partitio
 - [Access Policy](#access-policy)
 - [Client-Resource Association](#client-resource-association)
 - [Access Token Behavior](#access-token-behavior)
+- [Authorization](#authorization)
 - [Data Model](#data-model)
 - [Admin API](#admin-api)
 
@@ -169,6 +170,14 @@ The userinfo endpoint accepts tokens where `scope` contains OIDC scopes (e.g. `o
 When multiple `resource` values are requested (first-party clients only; **not yet implemented**, see [Access Token Audience Binding — Implementation Status](./access-token-audience-binding.md#implementation-status)), `aud` includes all requested resource URIs and a `scope_by_aud` claim maps which scopes apply to which audience. When scopes are ambiguous across resources, the token is downscoped to the intersection. See [M2M spec](./m2m.md) for details on downscoping.
 
 See [Access Token Audience Binding](./access-token-audience-binding.md) for the full specification of audience behavior.
+
+## Authorization
+
+An Authorization records what a user has granted a client, per Resource. A Resource Scope is granted for the Resource of the request that granted it, and a project-level scope (`openid`, `profile`, `offline_access`, ...) for the project itself. Because [Scopes are local to their Resource](#glossary), `read:orders` granted on one Resource does not authorize `read:orders` on another; a request for it prompts consent as any ungranted scope does.
+
+A grant for a Resource that has since been deleted is not returned by the Admin API.
+
+Authorizations created before per-Resource recording record scope names only. Each such name is granted on every Resource that defines it at migration time; a name no Resource defines is dropped.
 
 ## Data Model
 
@@ -485,5 +494,27 @@ input ReplaceScopesOfClientIDInput {
 
 type ReplaceScopesOfClientIDPayload {
   scopes: [Scope!]!
+}
+```
+
+### Authorization
+
+`Authorization` lists its granted scopes per Resource. See [Authorization](#authorization).
+
+```graphql
+extend type Authorization {
+  """The granted scopes. Excludes scopes granted on a Resource that has been deleted."""
+  authorizedScopes: [AuthorizedScope!]!
+
+  """The granted project-level scopes. Excludes Resource Scopes."""
+  scopes: [String!]! @deprecated(reason: "Use authorizedScopes.")
+}
+
+type AuthorizedScope {
+  """The Resource the scope is granted on. Null for a project-level scope."""
+  resource: Resource
+  scope: String!
+  """The Scope's description. Null for a project-level scope."""
+  description: String
 }
 ```

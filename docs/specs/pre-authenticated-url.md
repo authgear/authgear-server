@@ -8,6 +8,7 @@
   - [Token Exchange Request](#token-exchange-request)
   - [Token Exchange Response](#token-exchange-response)
 - [Exchanging for browser cookie of a session with the authorization endpoint](#exchanging-for-browser-cookie-of-a-session-with-the-authorization-endpoint)
+- [Resource Indicators](#resource-indicators)
 - [Client Metadata](#client-metadata)
 - [Security Considerations](#security-considerations)
   - [Binding Tokens To Device](#binding-tokens-to-device)
@@ -143,6 +144,12 @@ A web browser can open the authorization endpoint endpoint to exchange for a val
 - `state`: Optional. If provided, will be provided to the redirect_uri as a `state` query parameter.
 
 In the response, the authorize endpoint will redirect the user to `redirect_uri`, and set a browser cookie.
+
+## Resource Indicators
+
+Pre-Authenticated URL does not support [resource indicators](./access-token-audience-binding.md). The token exchange request takes no `resource`, and a Resource Scope cannot be requested in its `scope`.
+
+When `scope` is not requested, the tokens issued for the browser session carry every scope of the mobile app's session, Resource Scopes included. Neither the requesting client's Authorization nor a Resource's access policy limits them. They are not bound to a Resource, even when the mobile app's session is.
 
 ## Client Metadata
 
