@@ -161,7 +161,7 @@ Supported hook responses:
 
 #### user.profile.pre_update
 
-Occurs right before the update of user profile.
+Occurs right before the update of user profile, including when a form is submitted in an authentication flow. See [Profile Filling](./user-profile/profile-filling.md#validation-hook).
 
 ```json5
 {
@@ -175,6 +175,25 @@ Supported hook responses:
 
 - [is_allowed](./hook.md#blocking-events)
 - [mutations](./hook.md#blocking-event-mutations)
+- `reasons`: Optional. Allowed only when `is_allowed` is `false`. A list of typed reasons. Each item has a `type`; a response with an unknown `type` is invalid.
+
+| `type` | Other keys | Meaning |
+|---|---|---|
+| `invalid_profile_attribute` | `pointer`: a pointer among the updated attributes. `message`: a message for the end-user. | The value of that attribute is rejected. |
+
+```json
+{
+  "is_allowed": false,
+  "title": "Invalid profile",
+  "reasons": [
+    {
+      "type": "invalid_profile_attribute",
+      "pointer": "/x_employee_id",
+      "message": "This employee ID does not exist."
+    }
+  ]
+}
+```
 
 #### user.pre_schedule_deletion
 
