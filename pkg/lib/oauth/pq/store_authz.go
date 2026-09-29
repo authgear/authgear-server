@@ -108,16 +108,32 @@ func (s *AuthorizationStore) scanAuthz(scn db.Scanner) (*oauth.Authorization, er
 	return authz, nil
 }
 
-func marshalScopesByResources(authz *oauth.Authorization) ([]byte, error) {
+// marshalScopes also writes the project-level scopes to the legacy scopes
+// column, so it agrees with scopes_by_resources for anyone reading the table.
+func marshalScopes(authz *oauth.Authorization) (scopesBytes []byte, scopesByResourcesBytes []byte, err error) {
+	scopes := authz.ProjectScopes()
+	if scopes == nil {
+		scopes = []string{}
+	}
+	scopesBytes, err = json.Marshal(scopes)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	scopesByResources := authz.ScopesByResources
 	if scopesByResources == nil {
 		scopesByResources = map[string][]string{}
 	}
-	return json.Marshal(scopesByResources)
+	scopesByResourcesBytes, err = json.Marshal(scopesByResources)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return scopesBytes, scopesByResourcesBytes, nil
 }
 
 func (s *AuthorizationStore) Create(ctx context.Context, authz *oauth.Authorization) error {
-	scopesByResourcesBytes, err := marshalScopesByResources(authz)
+	scopesBytes, scopesByResourcesBytes, err := marshalScopes(authz)
 	if err != nil {
 		return err
 	}
@@ -130,6 +146,7 @@ func (s *AuthorizationStore) Create(ctx context.Context, authz *oauth.Authorizat
 			"user_id",
 			"created_at",
 			"updated_at",
+			"scopes",
 			"scopes_by_resources",
 		).
 		Values(
@@ -138,6 +155,7 @@ func (s *AuthorizationStore) Create(ctx context.Context, authz *oauth.Authorizat
 			authz.UserID,
 			authz.CreatedAt,
 			authz.UpdatedAt,
+			scopesBytes,
 			scopesByResourcesBytes,
 		)
 
@@ -176,7 +194,7 @@ func (s *AuthorizationStore) ResetAll(ctx context.Context, userID string) error 
 }
 
 func (s *AuthorizationStore) UpdateScopes(ctx context.Context, authz *oauth.Authorization) error {
-	scopesByResourcesBytes, err := marshalScopesByResources(authz)
+	scopesBytes, scopesByResourcesBytes, err := marshalScopes(authz)
 	if err != nil {
 		return err
 	}
@@ -184,6 +202,7 @@ func (s *AuthorizationStore) UpdateScopes(ctx context.Context, authz *oauth.Auth
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Set("updated_at", authz.UpdatedAt).
+		Set("scopes", scopesBytes).
 		Set("scopes_by_resources", scopesByResourcesBytes).
 		Where("id = ?", authz.ID)
 

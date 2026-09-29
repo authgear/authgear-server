@@ -1,7 +1,4 @@
 -- +migrate Up
--- The server no longer writes scopes. The column is kept for an older binary.
-ALTER TABLE _auth_oauth_authorization ALTER COLUMN scopes SET DEFAULT '[]'::jsonb;
-
 -- The default lets an older binary still running during rollout insert rows.
 ALTER TABLE _auth_oauth_authorization ADD COLUMN scopes_by_resources jsonb NOT NULL DEFAULT '{}'::jsonb;
 
@@ -33,6 +30,13 @@ UPDATE _auth_oauth_authorization a SET scopes_by_resources = COALESCE((
   ) g
 ), '{}'::jsonb);
 
+-- scopes keeps only the project-level scopes, as the server writes it.
+UPDATE _auth_oauth_authorization SET scopes = COALESCE(scopes_by_resources->'authgear', '[]'::jsonb);
+
 -- +migrate Down
+UPDATE _auth_oauth_authorization a SET scopes = COALESCE((
+  SELECT jsonb_agg(DISTINCT s.scope)
+  FROM jsonb_each(a.scopes_by_resources) AS e(key, value),
+  jsonb_array_elements_text(e.value) AS s(scope)
+), '[]'::jsonb);
 ALTER TABLE _auth_oauth_authorization DROP COLUMN scopes_by_resources;
-ALTER TABLE _auth_oauth_authorization ALTER COLUMN scopes DROP DEFAULT;

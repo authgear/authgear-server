@@ -38,17 +38,24 @@ func TestAuthorizationStoreScan(t *testing.T) {
 	})
 }
 
-func TestMarshalScopesByResources(t *testing.T) {
-	Convey("marshalScopesByResources writes an empty object for no scopes", t, func() {
-		b, err := marshalScopesByResources(&oauth.Authorization{ScopesByResources: map[string][]string{
-			oauth.AuthorizationProjectScopesKey: {"openid"},
-			"r1":                                {"read:orders"},
-		}})
-		So(err, ShouldBeNil)
-		So(string(b), ShouldEqual, `{"authgear":["openid"],"r1":["read:orders"]}`)
+func TestMarshalScopes(t *testing.T) {
+	Convey("marshalScopes", t, func() {
+		Convey("writes only project-level scopes to scopes", func() {
+			scopes, scopesByResources, err := marshalScopes(&oauth.Authorization{ScopesByResources: map[string][]string{
+				oauth.AuthorizationProjectScopesKey: {"openid"},
+				"r1":                                {"read:orders", "write:orders"},
+				"r2":                                {"read:orders"},
+			}})
+			So(err, ShouldBeNil)
+			So(string(scopes), ShouldEqual, `["openid"]`)
+			So(string(scopesByResources), ShouldEqual, `{"authgear":["openid"],"r1":["read:orders","write:orders"],"r2":["read:orders"]}`)
+		})
 
-		b, err = marshalScopesByResources(&oauth.Authorization{})
-		So(err, ShouldBeNil)
-		So(string(b), ShouldEqual, `{}`)
+		Convey("writes empty values for no scopes", func() {
+			scopes, scopesByResources, err := marshalScopes(&oauth.Authorization{})
+			So(err, ShouldBeNil)
+			So(string(scopes), ShouldEqual, `[]`)
+			So(string(scopesByResources), ShouldEqual, `{}`)
+		})
 	})
 }
