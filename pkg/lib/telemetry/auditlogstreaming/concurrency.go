@@ -1,6 +1,11 @@
 package auditlogstreaming
 
-import "sync"
+import (
+	"context"
+	"sync"
+
+	"github.com/authgear/authgear-server/pkg/util/panicutil"
+)
 
 // forEachBounded runs fn once per item in items, with at most maxConcurrent
 // calls running at a time, and blocks until every call has returned.
@@ -15,7 +20,12 @@ import "sync"
 // package holds for the whole tick (see runnable.go's WithMutexExpiry
 // call) can otherwise expire mid-tick and let a second replica start
 // draining concurrently.
-func forEachBounded[T any](items []T, maxConcurrent int, fn func(item T)) {
+//
+// A panic in fn is recovered and logged: fn runs on its own goroutine, so
+// backgroundjob.Runner's recover cannot catch it and it would otherwise
+// crash the whole process.
+func forEachBounded[T any](ctx context.Context, items []T, maxConcurrent int, fn func(item T)) {
+	logger := Logger.GetLogger(ctx)
 	sem := make(chan struct{}, maxConcurrent)
 	var wg sync.WaitGroup
 	for _, item := range items {
@@ -24,6 +34,11 @@ func forEachBounded[T any](items []T, maxConcurrent int, fn func(item T)) {
 		go func(item T) {
 			defer wg.Done()
 			defer func() { <-sem }()
+			defer func() {
+				if r := recover(); r != nil {
+					logger.WithError(panicutil.MakeError(r)).Error(ctx, "panic occurred in audit log streaming")
+				}
+			}()
 			fn(item)
 		}(item)
 	}

@@ -116,7 +116,7 @@ func (s *SenderImpl) Send(ctx context.Context, entries []QueuedEntry) {
 
 	logger := Logger.GetLogger(ctx)
 
-	forEachBounded(s.Streams, maxConcurrentStreamDeliveries, func(streamConfig *config.TelemetryAuditLogStreamConfig) {
+	forEachBounded(ctx, s.Streams, maxConcurrentStreamDeliveries, func(streamConfig *config.TelemetryAuditLogStreamConfig) {
 		s.sendToStream(ctx, logger, streamConfig, entries)
 	})
 }

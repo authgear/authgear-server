@@ -72,7 +72,7 @@ func (r *Runnable) drain(ctx context.Context, logger slogutil.NamedLogger) error
 		return err
 	}
 
-	forEachBounded(appIDs, maxConcurrentAppDrains, func(appID string) {
+	forEachBounded(ctx, appIDs, maxConcurrentAppDrains, func(appID string) {
 		r.drainApp(ctx, logger, appID)
 	})
 
