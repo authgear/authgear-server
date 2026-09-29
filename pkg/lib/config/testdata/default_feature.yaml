@@ -82,6 +82,10 @@ http:
   insecure_fetch_address_allowed: false
 audit_log:
   retrieval_days: -1
+telemetry:
+  audit_logs:
+    streaming:
+      disabled: false
 google_tag_manager:
   disabled: false
 rate_limit:

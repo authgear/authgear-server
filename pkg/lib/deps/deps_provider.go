@@ -39,6 +39,7 @@ var EnvConfigDeps = wire.NewSet(
 		"AllowedFrameAncestors",
 		"RedisConfig",
 		"DenoEndpoint",
+		"AuditLogStreamingInterval",
 		"RateLimits",
 		"SAML",
 		"AppHostSuffixes",

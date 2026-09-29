@@ -371,6 +371,9 @@ const (
 
 	SAMLIdpSigningMaterialsKey SecretKey = "saml.idp.signing"
 	SAMLSpSigningMaterialsKey  SecretKey = "saml.service_providers.signing"
+
+	// nolint: gosec
+	TelemetryAuditLogStreamTLSMaterialsKey SecretKey = "telemetry.audit_logs.streams.tls"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -419,6 +422,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredentials", func() SecretItemData { return &LDAPServerUserCredentials{} }},
 	SAMLIdpSigningMaterialsKey:                 {"SAMLIdpSigningMaterials", func() SecretItemData { return &SAMLIdpSigningMaterials{} }},
 	SAMLSpSigningMaterialsKey:                  {"SAMLSpSigningMaterials", func() SecretItemData { return &SAMLSpSigningMaterials{} }},
+	TelemetryAuditLogStreamTLSMaterialsKey:     {"TelemetryAuditLogStreamTLSMaterials", func() SecretItemData { return &TelemetryAuditLogStreamTLSMaterials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]any{

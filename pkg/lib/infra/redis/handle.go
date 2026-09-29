@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -10,6 +11,17 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
+
+// ErrMutexNotAcquired is returned by WithMutexExpiry specifically when the
+// mutex is already held elsewhere (redsync.ErrTaken / redsync.ErrNodeTaken)
+// -- contention a caller polling on an interval expects and should treat as
+// routine, not an error. It is deliberately not either of those two
+// concrete types so callers have one sentinel to check against regardless
+// of which fired. Any other failure (a Redis connectivity/auth error, for
+// example) is a real error and is returned as-is, uncollapsed, so it
+// reaches the caller's normal error handling instead of being
+// indistinguishable from routine contention.
+var ErrMutexNotAcquired = errors.New("redis: mutex not acquired")
 
 var HandleLogger = slogutil.NewLogger("redis-handle")
 
@@ -71,4 +83,77 @@ func (h *Handle) WithMutex(ctx context.Context, name string, do func() error) er
 		_, _ = mutex.UnlockContext(unlockCtx)
 	}()
 	return do()
+}
+
+// WithMutexExpiry is like WithMutex, but for a critical section whose
+// duration is not knowable in advance -- for example a batch delivery
+// across every app and stream in one tick -- so the caller picks the lock
+// expiry instead of the fixed 5s/5-tries NewMutex uses. It makes exactly
+// one attempt: a caller polling on an interval wants to skip a tick it
+// cannot get the lock for, not block waiting on it.
+func (h *Handle) WithMutexExpiry(ctx context.Context, name string, expiry time.Duration, do func() error) error {
+	redsyncInstance := h.pool.instance(&h.ConnectionOptions).Redsync
+	mutex := redsyncInstance.NewMutex(
+		name,
+		redsync.WithExpiry(expiry),
+		redsync.WithTries(1),
+	)
+	if err := mutex.LockContext(ctx); err != nil {
+		var errTaken *redsync.ErrTaken
+		var errNodeTaken *redsync.ErrNodeTaken
+		if errors.As(err, &errTaken) || errors.As(err, &errNodeTaken) {
+			return ErrMutexNotAcquired
+		}
+		return err
+	}
+	unlockCtx := context.WithoutCancel(ctx)
+	defer func() {
+		_, _ = mutex.UnlockContext(unlockCtx)
+	}()
+
+	// Renew the lock periodically while do() runs, so a critical section
+	// that legitimately takes a while (see this method's own doc comment)
+	// does not have its lock expire out from under it -- without this, a
+	// do() that overruns expiry would let a second caller acquire the
+	// same, now-expired, lock and run concurrently, which is exactly what
+	// this lock exists to prevent.
+	if expiry > 0 {
+		extendCtx, cancelExtend := context.WithCancel(ctx)
+		extendDone := make(chan struct{})
+		go func() {
+			defer close(extendDone)
+			h.extendMutexPeriodically(extendCtx, mutex, expiry)
+		}()
+		// Registered after the unlock defer, so LIFO runs this first:
+		// the extend goroutine is fully stopped before UnlockContext
+		// touches the same *redsync.Mutex, so the two never race on it.
+		defer func() {
+			cancelExtend()
+			<-extendDone
+		}()
+	}
+
+	return do()
+}
+
+// extendMutexPeriodically calls mutex.ExtendContext every expiry/2 until
+// ctx is canceled. expiry/2 leaves a full half of the expiry window as
+// margin -- even if one extend call is slow or its result is lost, the
+// next attempt still has time to land before the lock would actually
+// expire.
+func (h *Handle) extendMutexPeriodically(ctx context.Context, mutex *redsync.Mutex, expiry time.Duration) {
+	logger := HandleLogger.GetLogger(ctx)
+	ticker := time.NewTicker(expiry / 2)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if _, err := mutex.ExtendContext(ctx); err != nil {
+				logger.WithError(err).Error(ctx, "failed to extend mutex",
+					slog.String("name", mutex.Name()))
+			}
+		}
+	}
 }

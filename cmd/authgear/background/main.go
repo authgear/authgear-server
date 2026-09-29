@@ -43,6 +43,7 @@ func (c *Controller) Start(ctx context.Context) {
 		newAccountDeletionRunner(ctx, p, configSrcController),
 		newAccountAnonymizationRunner(ctx, p, configSrcController),
 		newAccountStatusRunner(ctx, p, configSrcController),
+		newAuditLogStreamingRunner(ctx, p, configSrcController),
 	}
 	backgroundjob.Main(ctx, runners)
 }

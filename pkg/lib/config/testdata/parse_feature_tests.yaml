@@ -377,3 +377,39 @@ config:
     rate_limits:
       mutation:
         unknown_key: foo
+---
+name: telemetry-audit-log-streaming-disabled
+error: null
+config:
+  telemetry:
+    audit_logs:
+      streaming:
+        disabled: true
+---
+name: telemetry-unknown-key
+error: |-
+  invalid feature config:
+  /telemetry/unknown_key: 
+config:
+  telemetry:
+    unknown_key: foo
+---
+name: telemetry-audit-logs-unknown-key
+error: |-
+  invalid feature config:
+  /telemetry/audit_logs/unknown_key: 
+config:
+  telemetry:
+    audit_logs:
+      unknown_key: foo
+---
+name: telemetry-audit-log-streaming-disabled-wrong-type
+error: |-
+  invalid feature config:
+  /telemetry/audit_logs/streaming/disabled: type
+    map[actual:[string] expected:[boolean]]
+config:
+  telemetry:
+    audit_logs:
+      streaming:
+        disabled: "yes"

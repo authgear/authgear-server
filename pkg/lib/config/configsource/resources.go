@@ -438,6 +438,16 @@ func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.A
 		}
 	}
 
+	if *fc.Telemetry.AuditLogs.Streaming.Disabled {
+		if len(appConfig.Telemetry.AuditLogs.Streams) > 0 {
+			validationCtx.Child(
+				"telemetry",
+				"audit_logs",
+				"streams",
+			).EmitErrorMessage("audit log streaming is disallowed")
+		}
+	}
+
 	return validationCtx.Error("features are limited by feature config")
 }
 

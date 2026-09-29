@@ -104,6 +104,10 @@ type EnvironmentConfig struct {
 
 	DenoEndpoint DenoEndpoint `envconfig:"DENO_ENDPOINT"`
 
+	// AuditLogStreamingInterval is how often the background worker
+	// delivers queued audit log entries.
+	AuditLogStreamingInterval DurationString `envconfig:"AUDIT_LOG_STREAMING_INTERVAL" default:"1m"`
+
 	RateLimits RateLimitsEnvironmentConfig `envconfig:"RATE_LIMITS"`
 
 	SAML SAMLEnvironmentConfig `envconfig:"SAML"`

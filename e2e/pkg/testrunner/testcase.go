@@ -461,6 +461,30 @@ func (tc *TestCase) executeStep(
 			Error:  nil,
 		}
 
+	case StepActionSyslogServerQuery:
+		rows, err := cmd.QuerySyslogServer(step.SyslogServerPort, step.SyslogServerMinCount)
+		if err != nil {
+			t.Errorf("failed to query syslog server: %v", err)
+			return nil, state, false
+		}
+		if step.SyslogServerOutput != nil {
+			renderedRows, ok := renderTemplateString(t, cmd, prevSteps, step.SyslogServerOutput.Rows)
+			if !ok {
+				return nil, state, false
+			}
+			renderedStep := step
+			syslogServerQueryOutput := QueryOutput{Rows: renderedRows}
+			renderedStep.QueryOutput = &syslogServerQueryOutput
+			ok = validateQueryResult(t, renderedStep, rows)
+			if !ok {
+				return nil, state, false
+			}
+		}
+		result = &StepResult{
+			Result: map[string]interface{}{"rows": rows},
+			Error:  nil,
+		}
+
 	case StepActionSAMLRequest:
 
 		if step.SAMLRequestSessionCookie != nil {

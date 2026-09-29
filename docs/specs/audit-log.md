@@ -19,6 +19,8 @@ Audit log records important user activities.
 
 For the definition of events, see [Event](./event.md)
 
+For streaming audit log entries to an external log collector, see [Audit Log Streaming](./audit-log-streaming.md)
+
 ## Storage Considerations
 
 To avoid further complicating the deployment requirements,

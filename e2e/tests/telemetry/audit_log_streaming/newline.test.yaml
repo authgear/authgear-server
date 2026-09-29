@@ -1,0 +1,88 @@
+name: Audit log streaming delivers an entry as RFC 5424 over TCP with newline framing
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: collector
+          type: syslog
+          transport: tcp
+          tcp:
+            address: 127.0.0.1:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_username
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "streaming-user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "SuperSecret123"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # HOSTNAME comes from the project's http.public_origin
+  # (http://{{ .AppID }}.authgeare2e.localhost:4000), with the port
+  # stripped -- not from the background worker's own hostname.
+  - name: wait_for_delivery
+    action: syslog_server_query
+    syslog_server_port: 5140
+    syslog_server_min_count: 1
+    syslog_server_output:
+      rows: |
+        [
+          {
+            "framing": "newline",
+            "facility": 16,
+            "severity": 6,
+            "version": 1,
+            "hostname": "{{ .AppID }}.authgeare2e.localhost",
+            "app_name": "authgear",
+            "procid": "-",
+            "msgid": "authgear-audit-log",
+            "structured_data_id": "authgear",
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "user.created",
+              "id": "[[string]]"
+            },
+            "message": "[[string]]"
+          }
+        ]

@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
@@ -101,6 +102,7 @@ var AuthgearDependencySet = wire.NewSet(
 	clock.DependencySet,
 	auditdb.DependencySet,
 	audit.DependencySet,
+	globalredis.DependencySet,
 
 	hook.DependencySet,
 	wire.Bind(new(hook.ResourceManager), new(*resource.Manager)),

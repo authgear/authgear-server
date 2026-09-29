@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
@@ -16,6 +17,10 @@ func newAuditSink(
 	app *model.App,
 	pool *db.Pool,
 	cfg *config.DatabaseEnvironmentConfig,
+	redisPool *redis.Pool,
+	redisCfg *config.RedisEnvironmentConfig,
+	globalRedisCredentials *config.GlobalRedisCredentialsEnvironmentConfig,
+	auditLogStreamingInterval config.DurationString,
 ) *audit.Sink {
 	panic(wire.Build(AuthgearDependencySet))
 }

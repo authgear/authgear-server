@@ -7,6 +7,21 @@ description: Draft or update detailed implementation plans for authgear-server s
 
 Write implementation plans as concrete engineering plans, not design notes.
 
+## Never assume — ask
+
+If anything needed to write the plan is unknown or uncertain — a behavioral
+decision the spec doesn't settle, which of two existing patterns to follow,
+an ambiguous naming/config choice, a tradeoff with no clearly-correct
+default — stop and ask the user. Do not guess and write the plan around the
+guess, and do not bury the uncertainty in an "open decisions" section for
+the user to notice later (the Requirements section below already forbids
+that). This applies even to small-seeming choices: a wrong assumption made
+early (e.g. which Redis instance to use, what a field defaults to, whether
+a check is save-time or runtime) propagates through every section of the
+plan and is expensive to unwind once implementation has started from it.
+Ask before writing the section that depends on the answer, not after the
+plan is done.
+
 ## Workflow
 
 1. Read the current spec, the existing plan, and the relevant code paths before writing the plan.
@@ -133,6 +148,21 @@ If dependency wiring changes, require generated wiring updates in the same commi
 - if e2e coverage is needed, include a dedicated e2e commit and list the cases that must be covered
 - **for unit tests**: Identify the test style (Convey BDD vs standard testing.T) by inspecting existing `*_test.go` files in the same package — use the add-go-test skill for guidance and always match the local style
 - **for e2e tests**: Use YAML-driven test format (not Go code) — use the write-e2e-test skill for patterns
+
+## Output Location
+
+Always write the plan to `docs/plans/{feature}/{date}-{part}-{name}.md`:
+
+- `{feature}` — a short kebab-case slug for the feature (its own directory, shared by every part of its plan).
+- `{date}` — `YYYY-MM-DD`, the date the plan is written.
+- `{part}` — a two-digit part number (`01`, `02`, ...) when the plan is split into parts (e.g. config, runtime, e2e); omit if the plan is a single file.
+- `{name}` — a short kebab-case slug for the part/plan itself.
+
+Example: a three-part plan for an "audit log streaming" feature written on
+2026-09-18 goes in `docs/plans/audit-log-streaming/2026-09-18-01-config.md`,
+`docs/plans/audit-log-streaming/2026-09-18-02-runtime.md`,
+`docs/plans/audit-log-streaming/2026-09-18-03-e2e.md`. Never write a plan to
+any other location (repo root, `docs/` directly, next to the spec, etc.).
 
 ## Output Shape
 

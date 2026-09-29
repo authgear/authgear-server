@@ -1,0 +1,98 @@
+name: Every configured stream receives every entry
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: newline_stream
+          type: syslog
+          transport: tcp
+          tcp:
+            address: 127.0.0.1:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+        - name: octet_stream
+          type: syslog
+          transport: tcp
+          tcp:
+            address: 127.0.0.1:5140
+          syslog:
+            format: rfc5424
+            framing: octet_counting
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_username
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "streaming-user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "SuperSecret123"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # Both streams point at the recorder's plaintext port, so the two
+  # entries recorded there are the same underlying event delivered twice,
+  # once per stream, each with its own configured framing. They must
+  # carry the same structured_data.id, which is what proves the two
+  # streams are independent encodings of one entry, not one delivery
+  # duplicated (or one stream silently not delivering at all).
+  - name: wait_for_delivery
+    action: syslog_server_query
+    syslog_server_port: 5140
+    syslog_server_min_count: 2
+    syslog_server_output:
+      rows: |
+        [
+          {
+            "framing": "newline",
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "user.created",
+              "id": "[[string]]"
+            }
+          },
+          {
+            "framing": "octet_counting",
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "user.created",
+              "id": "[[string]]"
+            }
+          }
+        ]

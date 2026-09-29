@@ -264,6 +264,7 @@ var _ = TestCaseSchema.Add("Step", `
 			"http_request",
 			"hook_server_query",
 			"smtp_log_query",
+			"syslog_server_query",
 			"oauth_setup",
 			"oauth_approve_consent",
 			"oauth_exchange_code",
@@ -313,6 +314,9 @@ var _ = TestCaseSchema.Add("Step", `
 		"smtp_log_subject": { "type": "string" },
 		"smtp_log_recipient": { "type": "string" },
 		"smtp_log_output": { "$ref": "#/$defs/QueryOutput" },
+		"syslog_server_port": { "type": "integer" },
+		"syslog_server_min_count": { "type": "integer" },
+		"syslog_server_output": { "$ref": "#/$defs/QueryOutput" },
 		"oauth_setup_client_id": { "type": "string" },
 		"oauth_setup_scope": {
 			"type": "array",
@@ -471,6 +475,19 @@ var _ = TestCaseSchema.Add("Step", `
 								"smtp_log_subject",
 								"smtp_log_recipient",
 								"smtp_log_output"
+							]
+					}
+				},
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "syslog_server_query" }
+							}
+					},
+					"then": {
+							"required": [
+								"syslog_server_port",
+								"syslog_server_output"
 							]
 					}
 				},
@@ -647,6 +664,11 @@ type Step struct {
 	SMTPLogRecipient string       `json:"smtp_log_recipient"`
 	SMTPLogOutput    *QueryOutput `json:"smtp_log_output"`
 
+	// `action` == "syslog_server_query"
+	SyslogServerPort     int          `json:"syslog_server_port"`
+	SyslogServerMinCount int          `json:"syslog_server_min_count"`
+	SyslogServerOutput   *QueryOutput `json:"syslog_server_output"`
+
 	// `action` == "oauth_setup"
 	OAuthSetupClientID          string   `json:"oauth_setup_client_id"`
 	OAuthSetupScope             []string `json:"oauth_setup_scope"`
@@ -719,6 +741,7 @@ const (
 	StepActionHTTPRequest              StepAction = "http_request"
 	StepActionHookServerQuery          StepAction = "hook_server_query"
 	StepActionSMTPLogQuery             StepAction = "smtp_log_query"
+	StepActionSyslogServerQuery        StepAction = "syslog_server_query"
 	StepActionOAuthSetup               StepAction = "oauth_setup"
 	StepActionOAuthApproveConsent      StepAction = "oauth_approve_consent"
 	StepActionOAuthExchangeCode        StepAction = "oauth_exchange_code"

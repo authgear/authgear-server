@@ -70,6 +70,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userinfo"
@@ -552,9 +553,15 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, configAppID, telemetryConfig, featureConfig, durationString)
 	auditSink := &audit.Sink{
 		Database: writeHandle,
 		Store:    writeStore,
+		Producer: producer,
 	}
 	searchConfig := appConfig.Search
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
@@ -702,8 +709,6 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
-	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
-	globalredisHandle := globalredis.NewHandle(redisPool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
 	messageStore := &whatsapp.MessageStore{
 		Redis:       globalredisHandle,
 		Credentials: whatsappCloudAPICredentials,
@@ -1059,3 +1064,29 @@ var (
 	_wireRandValue      = idpsession.Rand(rand.SecureRand)
 	_wireMaxTrialsValue = password.DefaultMaxTrials
 )
+
+func newAuditLogStreamingRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+	pool := p.RedisPool
+	environmentConfig := p.EnvironmentConfig
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	handle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	durationString := environmentConfig.AuditLogStreamingInterval
+	senderServiceFactory := &SenderServiceFactory{
+		BackgroundProvider: p,
+	}
+	runnableFactory := auditlogstreaming.NewRunnableFactory(handle, durationString, ctrl, senderServiceFactory)
+	runner := auditlogstreaming.NewRunner(ctx, runnableFactory, durationString)
+	return runner
+}
+
+func newSenderImpl(p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *auditlogstreaming.SenderImpl {
+	configConfig := appContext.Config
+	appConfig := configConfig.AppConfig
+	httpConfig := appConfig.HTTP
+	telemetryConfig := appConfig.Telemetry
+	secretConfig := configConfig.SecretConfig
+	telemetryAuditLogStreamTLSMaterials := deps.ProvideTelemetryAuditLogStreamTLSMaterials(secretConfig)
+	senderImpl := auditlogstreaming.NewSenderImpl(appID, httpConfig, telemetryConfig, telemetryAuditLogStreamTLSMaterials)
+	return senderImpl
+}
