@@ -18,6 +18,23 @@ func makeAppContext(ctx context.Context, cfgYAML []byte) context.Context {
 	return ctx
 }
 
+func TestFormatHTTPURL(t *testing.T) {
+	Convey("FormatHTTPURL", t, func() {
+		f := FormatHTTPURL{}.CheckFormat
+		So(f(context.Background(), 1), ShouldBeNil)
+
+		So(f(context.Background(), "https://http-intake.logs.datadoghq.com/api/v2/logs"), ShouldBeNil)
+		So(f(context.Background(), "https://opw.internal:8282/api/v2/logs"), ShouldBeNil)
+		So(f(context.Background(), "http://localhost:8126/api/v2/logs"), ShouldBeNil)
+
+		So(f(context.Background(), "ftp://x/"), ShouldBeError)
+		So(f(context.Background(), "authgeardeno:///x.ts"), ShouldBeError)
+		So(f(context.Background(), "https://"), ShouldBeError)
+		So(f(context.Background(), "/api/v2/logs"), ShouldBeError)
+		So(f(context.Background(), "https://user:pw@x/"), ShouldBeError)
+	})
+}
+
 func TestFormatPhone(t *testing.T) {
 
 	Convey("FormatPhone", t, func() {

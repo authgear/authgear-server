@@ -1,0 +1,104 @@
+name: A syslog stream and a datadog stream on the same project both receive every entry
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: syslog
+          type: syslog
+          transport: tcp
+          tcp:
+            address: 127.0.0.1:5140
+          syslog:
+            format: rfc5424
+            framing: newline
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: http://127.0.0.1:2626/[[.AppID]]/logs
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_username
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "streaming-datadog-syslog"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "SuperSecret123"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: wait_for_syslog
+    action: syslog_server_query
+    syslog_server_port: 5140
+    syslog_server_min_count: 1
+    syslog_server_output:
+      rows: |
+        [
+          {
+            "structured_data": {
+              "app_id": "{{ .AppID }}",
+              "activity_type": "user.created",
+              "id": "[[string]]"
+            }
+          }
+        ]
+
+  # Independent encodings, independent transports, one batch: this is UC3
+  # across two types, and it is the case that would catch the type switch
+  # (SenderImpl.sendToStream) sending both streams down one branch. The
+  # entry is the same underlying event delivered twice, once per stream,
+  # so the id the syslog structured data carries must equal the id the
+  # datadog log's verbatim event carries.
+  - name: wait_for_datadog
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/logs"
+    hook_server_min_count: 1
+    hook_server_output:
+      rows: |
+        [
+          {
+            "evt": { "name": "user.created" },
+            "authgear": {
+              "event": {
+                "id": "{{ index .prev.result.rows 0 "structured_data" "id" }}"
+              }
+            }
+          }
+        ]

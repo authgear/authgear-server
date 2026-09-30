@@ -144,6 +144,104 @@ func TestTelemetryAuditLogStreamTLSMaterials(t *testing.T) {
 	})
 }
 
+func TestTelemetryAuditLogStreamDatadogCredentials(t *testing.T) {
+	ctx := context.Background()
+
+	parseSecrets := func(dataYAML string) (*config.TelemetryAuditLogStreamDatadogCredentials, error) {
+		yaml := "secrets:\n- key: telemetry.audit_logs.streams.datadog\n  data:\n" + dataYAML
+		secretConfig, err := config.ParseSecret(ctx, []byte(yaml))
+		if err != nil {
+			return nil, err
+		}
+		credentials, _ := secretConfig.LookupData(config.TelemetryAuditLogStreamDatadogCredentialsKey).(*config.TelemetryAuditLogStreamDatadogCredentials)
+		return credentials, nil
+	}
+
+	Convey("TelemetryAuditLogStreamDatadogCredentials", t, func() {
+		Convey("a valid item parses", func() {
+			_, err := parseSecrets(`
+  - stream_name: datadog
+    api_key: "1234567890abcdef1234567890abcdef"
+`)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("missing api_key is rejected", func() {
+			_, err := parseSecrets(`
+  - stream_name: datadog
+`)
+			So(err, ShouldBeError)
+		})
+
+		Convey("missing stream_name is rejected", func() {
+			_, err := parseSecrets(`
+  - api_key: "1234567890abcdef1234567890abcdef"
+`)
+			So(err, ShouldBeError)
+		})
+
+		Convey("empty api_key is rejected", func() {
+			_, err := parseSecrets(`
+  - stream_name: datadog
+    api_key: ""
+`)
+			So(err, ShouldBeError)
+		})
+
+		Convey("unknown property is rejected", func() {
+			_, err := parseSecrets(`
+  - stream_name: datadog
+    api_key: "1234567890abcdef1234567890abcdef"
+    unknown: true
+`)
+			So(err, ShouldBeError)
+		})
+
+		Convey("Resolve returns the matching item", func() {
+			credentials, err := parseSecrets(`
+  - stream_name: datadog
+    api_key: "1234567890abcdef1234567890abcdef"
+`)
+			So(err, ShouldBeNil)
+			item, ok := credentials.Resolve("datadog")
+			So(ok, ShouldBeTrue)
+			So(item.APIKey, ShouldEqual, "1234567890abcdef1234567890abcdef")
+		})
+
+		Convey("Resolve returns false for an unknown name", func() {
+			credentials, err := parseSecrets(`
+  - stream_name: datadog
+    api_key: "1234567890abcdef1234567890abcdef"
+`)
+			So(err, ShouldBeNil)
+			_, ok := credentials.Resolve("unknown")
+			So(ok, ShouldBeFalse)
+		})
+
+		Convey("Resolve on a nil receiver returns false", func() {
+			var credentials *config.TelemetryAuditLogStreamDatadogCredentials
+			_, ok := credentials.Resolve("datadog")
+			So(ok, ShouldBeFalse)
+		})
+
+		Convey("SensitiveStrings returns every api_key", func() {
+			credentials, err := parseSecrets(`
+  - stream_name: datadog
+    api_key: "key-one"
+  - stream_name: datadog2
+    api_key: "key-two"
+`)
+			So(err, ShouldBeNil)
+			So(credentials.SensitiveStrings(), ShouldResemble, []string{"key-one", "key-two"})
+		})
+
+		Convey("SensitiveStrings on a nil receiver returns nil", func() {
+			var credentials *config.TelemetryAuditLogStreamDatadogCredentials
+			So(credentials.SensitiveStrings(), ShouldBeNil)
+		})
+	})
+}
+
 // escapeForYAML escapes a PEM block (which contains literal newlines) for
 // embedding inside a double-quoted YAML scalar.
 func escapeForYAML(s string) string {

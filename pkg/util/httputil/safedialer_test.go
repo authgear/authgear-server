@@ -2,6 +2,7 @@ package httputil_test
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"log/slog"
 	"net"
@@ -66,6 +67,63 @@ func TestNewSSRFSafeExternalClient(t *testing.T) {
 			defer resp.Body.Close()
 			So(resp.StatusCode, ShouldEqual, 200)
 			So(reached, ShouldBeTrue)
+		})
+	})
+}
+
+func TestNewSSRFSafeExternalClientRootCAs(t *testing.T) {
+	Convey("NewSSRFSafeExternalClient RootCAs", t, func() {
+		ctx := context.Background()
+
+		srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer srv.Close()
+
+		Convey("a client built with RootCAs containing the server's certificate completes the handshake", func() {
+			pool := x509.NewCertPool()
+			pool.AddCert(srv.Certificate())
+
+			client := httputil.NewSSRFSafeExternalClient(5*time.Second, httputil.SSRFSafeExternalClientOptions{
+				AllowNonPublicAddresses: true,
+				RootCAs:                 pool,
+			})
+
+			req, err := http.NewRequestWithContext(ctx, "GET", srv.URL, nil)
+			So(err, ShouldBeNil)
+
+			resp, err := client.Do(req)
+			So(err, ShouldBeNil)
+			defer resp.Body.Close()
+			So(resp.StatusCode, ShouldEqual, 200)
+		})
+
+		Convey("a client built without RootCAs fails the handshake", func() {
+			client := httputil.NewSSRFSafeExternalClient(5*time.Second, httputil.SSRFSafeExternalClientOptions{
+				AllowNonPublicAddresses: true,
+			})
+
+			req, err := http.NewRequestWithContext(ctx, "GET", srv.URL, nil)
+			So(err, ShouldBeNil)
+
+			_, err = client.Do(req)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("AllowNonPublicAddresses: false still refuses a loopback address even when RootCAs is set", func() {
+			pool := x509.NewCertPool()
+			pool.AddCert(srv.Certificate())
+
+			client := httputil.NewSSRFSafeExternalClient(5*time.Second, httputil.SSRFSafeExternalClientOptions{
+				RootCAs: pool,
+			})
+
+			req, err := http.NewRequestWithContext(ctx, "GET", srv.URL, nil)
+			So(err, ShouldBeNil)
+
+			_, err = client.Do(req)
+			So(err, ShouldNotBeNil)
+			So(errors.Is(err, httputil.ErrBlockedAddress), ShouldBeTrue)
 		})
 	})
 }

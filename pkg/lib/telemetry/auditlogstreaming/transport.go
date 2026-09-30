@@ -30,9 +30,9 @@ var (
 // entries' worth of frames rather than scaling with the whole batch.
 const maxEntriesPerWrite = 100
 
-// dial opens the connection for a stream: plaintext TCP, or TLS when the
-// stream enables it.
-func dial(ctx context.Context, s *ResolvedStream) (net.Conn, error) {
+// dial opens the connection for a stream's tcp transport: plaintext TCP,
+// or TLS when the stream enables it.
+func dial(ctx context.Context, s *ResolvedTCP) (net.Conn, error) {
 	dialCtx, cancel := context.WithTimeout(ctx, dialTimeout)
 	defer cancel()
 
@@ -94,6 +94,9 @@ type SenderImpl struct {
 	Hostname string
 	Streams  []*config.TelemetryAuditLogStreamConfig
 	TLS      *config.TelemetryAuditLogStreamTLSMaterials
+
+	DatadogCredentials   *config.TelemetryAuditLogStreamDatadogCredentials
+	DatadogClientFactory DatadogClientFactory
 }
 
 var _ Sender = &SenderImpl{}
@@ -127,7 +130,7 @@ func (s *SenderImpl) sendToStream(
 	streamConfig *config.TelemetryAuditLogStreamConfig,
 	entries []QueuedEntry,
 ) {
-	resolved, err := resolveStream(s.AppID, streamConfig, s.TLS)
+	resolved, err := resolveStream(s.AppID, streamConfig, s.TLS, s.DatadogCredentials)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to resolve audit log stream",
 			slog.String("app_id", s.AppID),
@@ -135,7 +138,28 @@ func (s *SenderImpl) sendToStream(
 		return
 	}
 
-	conn, err := dial(ctx, resolved)
+	switch streamConfig.Type {
+	case config.TelemetryAuditLogStreamTypeSyslog:
+		s.sendSyslogTCP(ctx, logger, streamConfig, resolved, entries)
+	case config.TelemetryAuditLogStreamTypeDatadog:
+		s.sendDatadogHTTP(ctx, logger, resolved, entries)
+	default:
+		logger.Error(ctx, "unknown audit log stream type",
+			slog.String("app_id", s.AppID),
+			slog.String("stream", streamConfig.Name),
+			slog.String("type", string(streamConfig.Type)))
+	}
+}
+
+// sendSyslogTCP delivers entries to one syslog/tcp stream.
+func (s *SenderImpl) sendSyslogTCP(
+	ctx context.Context,
+	logger slogutil.NamedLogger,
+	streamConfig *config.TelemetryAuditLogStreamConfig,
+	resolved *ResolvedStream,
+	entries []QueuedEntry,
+) {
+	conn, err := dial(ctx, resolved.TCP)
 	if err != nil {
 		logger.WithError(err).Error(ctx, "failed to dial audit log stream",
 			slog.String("app_id", s.AppID),
@@ -161,7 +185,7 @@ func (s *SenderImpl) sendToStream(
 
 		buf.Reset()
 		for _, entry := range entries[start:end] {
-			frame := Frame(resolved.Syslog.Framing, EncodeRFC5424(&resolved.Syslog, s.Hostname, entry.Event, entry.Raw))
+			frame := Frame(resolved.Syslog.Framing, EncodeRFC5424(resolved.Syslog, s.Hostname, entry.Event, entry.Raw))
 			buf.Write(frame)
 		}
 

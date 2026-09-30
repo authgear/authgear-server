@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -281,6 +282,61 @@ func TestSenderImplSend(t *testing.T) {
 			l.Close()
 			got := <-lines
 			So(got, ShouldBeEmpty)
+		})
+
+		Convey("a project with one syslog stream and one datadog stream delivers to both", func() {
+			l, err := net.Listen("tcp", "127.0.0.1:0")
+			So(err, ShouldBeNil)
+			defer l.Close()
+			lines := readLines(t, l)
+
+			syslogStream := newTestStreamConfig("collector", false)
+			syslogStream.TCP.Address = l.Addr().String()
+
+			rec := &datadogRecorder{}
+			srv := httptest.NewServer(rec.handler())
+			defer srv.Close()
+			datadogStream := newTestDatadogStreamConfig("datadog", nil, srv.URL+"/api/v2/logs")
+
+			credentials := &config.TelemetryAuditLogStreamDatadogCredentials{
+				{StreamName: "datadog", APIKey: "test-api-key"},
+			}
+
+			sender := &SenderImpl{
+				AppID:                "app",
+				Hostname:             "app.example.com",
+				Streams:              []*config.TelemetryAuditLogStreamConfig{syslogStream, datadogStream},
+				DatadogCredentials:   credentials,
+				DatadogClientFactory: &stubDatadogClientFactory{client: srv.Client()},
+			}
+			sender.Send(t.Context(), []QueuedEntry{newTestEntry("one")})
+
+			got := <-lines
+			So(got, ShouldHaveLength, 1)
+			So(rec.count(), ShouldEqual, 1)
+		})
+
+		Convey("a stream whose type is unknown is skipped with an error log and does not stop the other streams", func() {
+			l, err := net.Listen("tcp", "127.0.0.1:0")
+			So(err, ShouldBeNil)
+			defer l.Close()
+			lines := readLines(t, l)
+
+			good := newTestStreamConfig("good", false)
+			good.TCP.Address = l.Addr().String()
+
+			unknown := newTestStreamConfig("unknown", false)
+			unknown.Type = "carrier-pigeon"
+
+			sender := &SenderImpl{
+				AppID:    "app",
+				Hostname: "app.example.com",
+				Streams:  []*config.TelemetryAuditLogStreamConfig{unknown, good},
+			}
+			sender.Send(t.Context(), []QueuedEntry{newTestEntry("one")})
+
+			got := <-lines
+			So(got, ShouldHaveLength, 1)
 		})
 
 		Convey("a listener that accepts and then stalls: the write deadline fires and the batch is dropped", func() {

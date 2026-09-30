@@ -1,0 +1,97 @@
+name: A datadog batch is delivered in the order the entries occurred
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    telemetry:
+      audit_logs:
+        streams:
+        - name: datadog
+          type: datadog
+          transport: http
+          http:
+            endpoint: http://127.0.0.1:2626/[[.AppID]]/logs
+steps:
+  - name: signup_identify
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: signup_email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "streaming-datadog-order@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: signup_verify
+    action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: signup_finish
+    action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "channels": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # email.sent (the OTP delivery, during the verify step) occurs before
+  # user.created (signup completion). Positional matching is itself the
+  # order assertion, mirroring audit_log_streaming/batch_order.test.yaml,
+  # which pins the same two in the same order for the syslog type.
+  #
+  # __request.index is deliberately not asserted here: the two entries
+  # usually land in one drain tick and so one request (index 0 on both),
+  # but whether they do is a race against the 1s drain interval, not a
+  # guarantee -- an entry enqueued just after a tick's drain has already
+  # started waits for the next one. Asserting a specific index would make
+  # this test flaky rather than proving anything about ordering.
+  - name: wait_for_delivery
+    action: hook_server_query
+    hook_server_path: "{{ .AppID }}/logs"
+    hook_server_min_count: 2
+    hook_server_output:
+      rows: |
+        [
+          {
+            "message": "email.sent"
+          },
+          {
+            "message": "user.created"
+          }
+        ]

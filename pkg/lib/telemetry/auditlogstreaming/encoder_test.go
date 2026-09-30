@@ -107,6 +107,11 @@ func TestEncodeRFC5424(t *testing.T) {
 			So(string(got), ShouldContainSubstring, " 2021-01-01T00:00:00Z ")
 		})
 
+		Convey("an empty hostname is written as the RFC 5424 NILVALUE -", func() {
+			got := EncodeRFC5424(baseSyslog, "", baseEvent(), msg)
+			So(string(got), ShouldStartWith, "<134>1 2026-07-27T10:42:36Z - authgear ")
+		})
+
 		Convey("MSG is byte-identical to the supplied msg and is not BOM-prefixed", func() {
 			got := EncodeRFC5424(baseSyslog, "host", baseEvent(), msg)
 			So(string(got), ShouldEndWith, string(msg))

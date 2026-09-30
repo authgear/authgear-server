@@ -44,14 +44,21 @@ var SenderDependencySet = wire.NewSet(
 func NewSenderImpl(
 	appID string,
 	httpConfig *config.HTTPConfig,
+	httpFeatureConfig *config.HTTPFeatureConfig,
 	telemetryConfig *config.TelemetryConfig,
-	tls *config.TelemetryAuditLogStreamTLSMaterials,
+	tlsMaterials *config.TelemetryAuditLogStreamTLSMaterials,
+	datadogCredentials *config.TelemetryAuditLogStreamDatadogCredentials,
 ) *SenderImpl {
 	return &SenderImpl{
-		AppID:    appID,
-		Hostname: ResolveHostname(httpConfig.PublicOrigin),
-		Streams:  telemetryConfig.AuditLogs.Streams,
-		TLS:      tls,
+		AppID:              appID,
+		Hostname:           ResolveHostname(httpConfig.PublicOrigin),
+		Streams:            telemetryConfig.AuditLogs.Streams,
+		TLS:                tlsMaterials,
+		DatadogCredentials: datadogCredentials,
+		DatadogClientFactory: &SSRFSafeDatadogClientFactory{
+			AllowNonPublicAddresses: httpFeatureConfig.IsInsecureFetchAddressAllowed(),
+			AllowedHosts:            httpFeatureConfig.GetInsecureFetchAddressAllowedHosts(),
+		},
 	}
 }
 
