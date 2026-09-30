@@ -4,7 +4,7 @@ on: [push, delete]
 
 jobs:
   mirror:
-    if: ${{ github.repository == 'authgear/authgear-server' }}
+    if: ${{ github.repository == 'authgear/authgear-server' && !startsWith(github.ref, 'refs/heads/dependabot/') }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -29,6 +29,8 @@ jobs:
         # Print the output of git show-ref for debugging purpose.
         git show-ref
         git remote add mirror git@github.com:oursky/authgear-server.git
+        # Do not mirror dependabot branches. Dropping the local refs also lets --prune remove them from the mirror.
+        git for-each-ref --format='delete %(refname)' refs/remotes/origin/dependabot/ | git update-ref --stdin
         # This expansion includes refs/remotes/origin/HEAD:refs/heads/HEAD
         # That would create a branch named HEAD in the mirror repository.
         # I tried to use the following command to exclude HEAD
