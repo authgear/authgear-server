@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 type TranslationService interface {
@@ -20,6 +21,54 @@ type ConfigService struct {
 	Request            *http.Request
 	TrustProxy         config.TrustProxy
 	TranslationService TranslationService
+	OAuthConfig        *config.OAuthConfig
+}
+
+// makeRPOrigins returns every origin from which a ceremony for this project may
+// legitimately be performed.
+//
+// The public origin is always included: a request can only reach a handler on
+// that host, because PublicOriginMiddleware redirects anything else.
+//
+// A Custom UI is the exception. It is served from the customer's own origin and
+// drives the Authentication Flow API cross-origin, so the ceremony happens there
+// and the browser reports that origin rather than ours. Its origin is taken from
+// x_custom_ui_uri, the same field the CORS allowlist is derived from, so one
+// declaration covers both.
+//
+// Deliberately not included: http.allowed_origins, redirect_uris and
+// x_pre_authenticated_url_allowed_origins. Those say an origin may call the API
+// or receive a callback; neither means it may present credentials for a user.
+func (s *ConfigService) makeRPOrigins(publicOrigin url.URL) []string {
+	publicOriginString := publicOrigin.String()
+	origins := []string{publicOriginString}
+
+	if s.OAuthConfig == nil {
+		return origins
+	}
+
+	seen := map[string]struct{}{publicOriginString: {}}
+	for _, client := range s.OAuthConfig.Clients {
+		if client.CustomUIURI == "" {
+			continue
+		}
+		u, err := url.Parse(client.CustomUIURI)
+		if err != nil {
+			// Unparseable values are rejected by the config schema's "uri"
+			// format; skip rather than fail the ceremony.
+			continue
+		}
+		// x_custom_ui_uri is a full URI. Reduce it to scheme and host, keeping
+		// any port, since a port is part of an origin.
+		origin := urlutil.ExtractOrigin(u).String()
+		if _, ok := seen[origin]; ok {
+			continue
+		}
+		seen[origin] = struct{}{}
+		origins = append(origins, origin)
+	}
+
+	return origins
 }
 
 func (s *ConfigService) MakeConfig(ctx context.Context) (*Config, error) {
@@ -38,8 +87,8 @@ func (s *ConfigService) MakeConfig(ctx context.Context) (*Config, error) {
 
 		// The RPID must be a domain only.
 		RPID: origin.Hostname(),
-		// Origin must be the actual origin as observed by the browser.
-		RPOrigin: origin.String(),
+		// Origins must be the actual origins as observed by the browser.
+		RPOrigins: s.makeRPOrigins(origin),
 
 		AttestationPreference: protocol.PreferDirectAttestation,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{

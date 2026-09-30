@@ -1,0 +1,154 @@
+name: A registered Custom UI origin may perform a passkey ceremony
+# The app ID is fixed because the Custom UI's origin has to be written out in
+# the config override, which is not templated, and it must sit on the same host
+# as the public origin for a browser to permit the relying party ID claim.
+app_id: e2e-pk-customui-v2
+# A Custom UI is served from the customer's own origin and drives the
+# Authentication Flow API cross-origin, so the ceremony happens there and the
+# browser reports that origin rather than the public origin. Verification
+# compares origins exactly, so without the Custom UI's origin on the list the
+# ceremony succeeds on the device and is then rejected here — leaving the user
+# with a credential the server never stored.
+#
+# The Custom UI below is on the same host as the public origin but a different
+# port. A port is part of an origin but not part of the relying party ID, so a
+# real browser would permit the claim and report the differing origin, which is
+# exactly the case this covers.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - passkey
+      primary_authenticators:
+      - password
+      - passkey
+    oauth:
+      clients:
+      - access_token_lifetime_seconds: 1800
+        client_id: e2e
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: custom-ui-app
+        redirect_uris:
+        - http://localhost:4000
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: spa
+        x_custom_ui_uri: http://e2e-pk-customui-v2.authgeare2e.localhost:5000/login
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: username
+            steps:
+            - name: authenticate_primary_username
+              type: authenticate
+              one_of:
+              - authentication: primary_password
+          - identification: passkey
+        - type: check_account_status
+        - type: terminate_other_sessions
+        - type: prompt_create_passkey
+before:
+  # Makes the test repeatable against a live environment — see the file.
+  - type: custom_sql
+    custom_sql:
+      path: reset_passkeys.sql
+  - type: user_import
+    user_import: users.json
+steps:
+  # --- Register, with the ceremony performed at the Custom UI's origin -------
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: upsell
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "prompt_create_passkey",
+            "data": {
+              "creation_options": "[[object]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "creation_response": {{ generatePasskeyAttestation .steps.upsell.result.action.data.creation_options "http://e2e-pk-customui-v2.authgeare2e.localhost:5000" }}
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # --- Sign in with it, again from the Custom UI's origin --------------------
+  - name: identify
+    action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "passkey",
+        "assertion_response": {{ generatePasskeyAssertion (index .steps.identify.result.action.data.options 1).request_options "http://e2e-pk-customui-v2.authgeare2e.localhost:5000" }}
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

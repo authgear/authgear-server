@@ -14,6 +14,7 @@
     + [Allow the user to remove their password](#allow-the-user-to-remove-their-password)
     + [Ensure passkey support for syncing cross-platform authenticator](#ensure-passkey-support-for-syncing-cross-platform-authenticator)
   * [Configuration](#configuration)
+  * [Where a ceremony may run](#where-a-ceremony-may-run)
   * [Implementation Details](#implementation-details)
     + [Credential ID](#credential-id)
     + [PublicKeyCredentialCreationOptions](#publickeycredentialcreationoptions)
@@ -180,6 +181,14 @@ authentication:
 ```
 
 - `authentication.identities` and `authentication.primary_authenticators` : `passkey` is added. They have to be present or absent at the same time. If `passkey` comes before other primary authenticators, the user is prompted to set up a passkey first. If `passkey` is present in `authentication.identities`, then `login_id` MUST also be present.
+
+## Where a ceremony may run
+
+The page performing a ceremony must satisfy both of these.
+
+**It may claim the Relying Party ID.** The Relying Party ID is the host of `http.public_origin`. A page may only claim its own domain or a registrable domain suffix of it, so with Authgear at `auth.example.com`, a page at `ui.auth.example.com` qualifies and one at `ui-b.example.com` does not. The browser refuses before any request is made.
+
+**Its origin is accepted.** Origins are compared exactly; a differing port is a differing origin. The public origin is always accepted, and a Custom UI's origin is accepted once registered as that client's `x_custom_ui_uri`. An unregistered origin is rejected only after the ceremony completes, leaving a credential on the device that was never stored.
 
 ## Implementation Details
 

@@ -1047,6 +1047,20 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return jwtStr
 	}
+	templateFuncMap["generatePasskeyAttestation"] = func(options any, origin string) string {
+		response, err := GeneratePasskeyAttestation(options, origin)
+		if err != nil {
+			panic(err)
+		}
+		return response
+	}
+	templateFuncMap["generatePasskeyAssertion"] = func(options any, origin string) string {
+		response, err := GeneratePasskeyAssertion(options, origin)
+		if err != nil {
+			panic(err)
+		}
+		return response
+	}
 	templateFuncMap["nodeID"] = func(nodeType string, uuid string) string {
 		return relay.ToGlobalID(nodeType, uuid)
 	}
