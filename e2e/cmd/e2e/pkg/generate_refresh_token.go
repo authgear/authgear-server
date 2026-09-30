@@ -92,15 +92,14 @@ func (c *End2End) GenerateRefreshToken(ctx context.Context, appID, userID, clien
 					authz = existing
 					return nil
 				}
-				authz = &oauth.Authorization{
+				authz = (&oauth.Authorization{
 					ID:        uuid.New(),
 					AppID:     string(appIDCfg),
 					ClientID:  clientID,
 					UserID:    userID,
 					CreatedAt: now,
 					UpdatedAt: now,
-					Scopes:    scopes,
-				}
+				}).WithScopesAdded("", scopes)
 				return authzStore.Create(ctx, authz)
 			})
 		}

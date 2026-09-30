@@ -215,6 +215,35 @@ Two details that travel with the immediate-enable path:
   was saved, so "The changes have been saved" is false whenever anything else is still
   pending.
 
+## Query only the data the screen needs
+
+Fetch exactly the records the screen renders, filtered on the server. Never list a whole
+collection (`first: 1000`) and then pick the few you need out of it on the client.
+
+- **The server caps page size, and the cap is silent.** Admin API connections cap
+  `first` at 100 unless the resolver raises it (`graphqlutil.NewPageArgs`). A larger
+  `first` is quietly reduced, and whatever lies past the cap is simply missing.
+- **Past the cap, the fallback is a false answer.** The user details screen once listed
+  every dynamic client to name the rows of its sessions table. In projects with more than
+  100 clients, some rows fell back to raw client IDs, and nothing on screen said the list
+  was incomplete.
+- **It costs every page load,** even for a user with no matching rows.
+
+The right shape is a query keyed by what the screen already holds: the IDs on its rows,
+passed as a filter argument (e.g. `dynamicClients(clientIDs: [...])`). Skip the query
+when there is nothing to look up.
+
+**If the API has no such filter, do not work around it.** Stop and propose the API
+change to the implementer — a filter argument, or a field on the parent type — and
+design it with the `api-design` skill. None of these is a fix:
+
+- a page size raised to "surely enough"
+- paging through the whole collection
+- a comment explaining why the cap is fine in practice
+
+A screen showing a genuinely paginated list (an admin browsing all clients) is a
+different case: it pages, and it shows `totalCount`.
+
 ## User-facing copy must match enforced behaviour
 
 Precision about *who* a permission covers is a correctness question, not a style one.
@@ -303,6 +332,8 @@ Before submitting a portal UI change:
 - [ ] Every config-backed input passes `parentJSONPointer` + `fieldName` so schema errors land on the field.
 - [ ] Feature on/off toggles defer to Save in both directions — or, if enabling must be immediate, a comment names the control that acts before the save, the disable direction is still dirty-only, and no control calls `saveWith`.
 - [ ] Any immediate save goes through `saveOnly` (which keeps pending edits) rather than `saveWith` (which commits the whole form), the switch reads the pending value while the cards it gates read the saved one, and the toast names the setting written rather than claiming the page was saved.
+- [ ] Every query fetches only the records the screen renders, filtered on the server. No `first: <large>` listing followed by picking items out on the client. Where the API cannot filter that way, an API change was proposed instead of a workaround.
+- [ ] No query result's `error` is dropped. The screen either shows it, or shows a neutral state that does not claim anything the missing data would have decided (not "none", not "does not exist").
 - [ ] Copy naming who a permission covers was checked against the enforcing code, and sibling strings making the same claim were grepped and fixed together.
 - [ ] A setting with create and edit surfaces shares one message id rather than near-duplicate keys.
 - [ ] Every i18n key whose last reference this change removed is deleted from `locale-data/en.json` — found by diffing the orphan set at the merge base against `HEAD`, and each one checked against the dynamic-key families before deleting.

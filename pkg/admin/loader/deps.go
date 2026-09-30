@@ -12,6 +12,7 @@ var DependencySet = wire.NewSet(
 	NewResourceLoader,
 	NewResourceClientLoader,
 	NewScopeLoader,
+	NewResourceScopeLoader,
 	NewInitialAccessTokenLoader,
 	NewDynamicClientLoader,
 )

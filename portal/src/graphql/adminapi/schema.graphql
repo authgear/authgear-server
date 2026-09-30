@@ -802,6 +802,11 @@ enum AuthenticatorType {
 
 """"""
 type Authorization implements Entity & Node {
+  """
+  The granted scopes. Excludes scopes granted on a Resource that has been deleted.
+  """
+  authorizedScopes: [AuthorizedScope!]!
+
   """"""
   clientID: String!
 
@@ -811,8 +816,8 @@ type Authorization implements Entity & Node {
   """The ID of an object"""
   id: ID!
 
-  """"""
-  scopes: [String!]!
+  """The granted project-level scopes. Excludes Resource Scopes."""
+  scopes: [String!]! @deprecated(reason: "Use authorizedScopes.")
 
   """The update time of entity"""
   updatedAt: DateTime!
@@ -837,6 +842,18 @@ type AuthorizationEdge {
 
   """The item at the end of the edge"""
   node: Authorization
+}
+
+""""""
+type AuthorizedScope {
+  """The Scope's description. Null for a project-level scope."""
+  description: String
+
+  """The Resource the scope is granted on. Null for a project-level scope."""
+  resource: Resource
+
+  """"""
+  scope: String!
 }
 
 """"""
@@ -1946,6 +1963,11 @@ type Query {
 
     """"""
     before: String
+
+    """
+    Restrict the listing, and its totalCount, to clients with these client IDs. Omit for every dynamic client; an empty list matches none. At most 1000 IDs, and a page can then hold up to 1000 clients, so one request returns every match.
+    """
+    clientIDs: [String!]
 
     """"""
     first: Int

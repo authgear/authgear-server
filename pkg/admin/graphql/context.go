@@ -62,6 +62,10 @@ type ScopeLoader interface {
 	graphqlutil.DataLoaderInterface
 }
 
+type ResourceScopeLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
 type InitialAccessTokenLoader interface {
 	graphqlutil.DataLoaderInterface
 }
@@ -244,7 +248,7 @@ type DCRFacade interface {
 	RevokeInitialAccessToken(ctx context.Context, id string) (*apimodel.OAuthInitialAccessToken, error)
 	ListInitialAccessTokens(ctx context.Context) ([]*apimodel.OAuthInitialAccessToken, error)
 
-	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *apimodel.OAuthClientSource) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *apimodel.OAuthClientSource, clientIDs []string) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	DeleteClient(ctx context.Context, clientID string) (*apimodel.OAuthClient, error)
 }
 
@@ -266,6 +270,7 @@ type Context struct {
 	Resources           ResourceLoader
 	ResourceClients     ResourceClientLoader
 	Scopes              ScopeLoader
+	ResourceScopes      ResourceScopeLoader
 	InitialAccessTokens InitialAccessTokenLoader
 	DynamicClients      DynamicClientLoader
 

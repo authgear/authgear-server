@@ -1,0 +1,135 @@
+name: dynamicClients clientIDs restricts the listing and its totalCount to those client IDs
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+steps:
+  - name: register_a
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "Client A",
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  - name: register_b
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "Client B",
+        "redirect_uris": ["https://example.com/callback"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  # An ID that matches no client is simply not in the result.
+  - name: filter_by_one_client_id
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query ($clientIDs: [String!]) {
+          dynamicClients(clientIDs: $clientIDs) {
+            totalCount
+            edges {
+              node {
+                clientID
+                clientName
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "clientIDs": [
+            "{{ .steps.register_a.result.http_json_body.client_id }}",
+            "not-a-client"
+          ]
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 1,
+              "edges": [
+                {
+                  "node": {
+                    "clientID": "{{ .steps.register_a.result.http_json_body.client_id }}",
+                    "clientName": "Client A"
+                  }
+                }
+              ]
+            }
+          },
+          "errors": null
+        }
+
+  - name: empty_client_ids_match_none
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients(clientIDs: []) {
+            totalCount
+            edges {
+              node {
+                clientID
+              }
+            }
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 0,
+              "edges": []
+            }
+          },
+          "errors": null
+        }
+
+  - name: omitted_client_ids_list_all
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query {
+          dynamicClients {
+            totalCount
+          }
+        }
+      variables: |
+        {}
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "dynamicClients": {
+              "totalCount": 2
+            }
+          },
+          "errors": null
+        }

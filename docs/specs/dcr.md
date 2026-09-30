@@ -639,6 +639,17 @@ extend type Query {
     after: String
     last: Int
     before: String
+    """
+    Restrict the listing, and its totalCount, to clients from this source.
+    STATIC is rejected with an error.
+    """
+    source: OAuthClientSource
+    """
+    Restrict the listing, and its totalCount, to clients with these client IDs.
+    An empty list matches none. At most 1000 IDs; while set, a page can hold up
+    to 1000 clients, so one request returns every match.
+    """
+    clientIDs: [String!]
   ): OAuthClientConnection!
 }
 

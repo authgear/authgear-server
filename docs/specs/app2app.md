@@ -14,6 +14,7 @@
   - [Server-side](#biometric-server-side)
   - [iOS](#biometric-ios)
   - [Android](#biometric-android)
+- [Resource Indicators](#resource-indicators)
 - [Related Readings](#related-readings)
 
 ## Abstract
@@ -384,6 +385,14 @@ Same as iOS, with platform specific biometric authentication options in `Biometr
 #### Relationship with `x_app2app_insecure_device_key_binding_enabled`
 
 When using biometric app2app, `x_app2app_insecure_device_key_binding_enabled` has no effect.
+
+## Resource Indicators
+
+App2app does not support [resource indicators](./access-token-audience-binding.md) yet. It currently behaves as follows:
+
+- The authorization code is not bound to a Resource, so the tokens exchanged for it are not either, even when the refresh token presented is. `resource` cannot be added at the code exchange or on refresh; either fails with `invalid_target`.
+- The code carries every scope the requesting client's Authorization grants, Resource Scopes included.
+- When the refresh token presented is bound to a Resource, its Resource Scopes are recorded on the requesting client's Authorization for that Resource. The request fails with `invalid_target` if that Resource no longer exists, or its access policy no longer admits the client the refresh token was issued to.
 
 ## Related Readings
 

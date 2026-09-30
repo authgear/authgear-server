@@ -396,33 +396,33 @@ func (m *MockAuthorizationService) EXPECT() *MockAuthorizationServiceMockRecorde
 }
 
 // Check mocks base method.
-func (m *MockAuthorizationService) Check(ctx context.Context, clientID, userID string, scopes []string) (*oauth.Authorization, error) {
+func (m *MockAuthorizationService) Check(ctx context.Context, clientID, userID, resourceID string, scopes []string) (*oauth.Authorization, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Check", ctx, clientID, userID, scopes)
+	ret := m.ctrl.Call(m, "Check", ctx, clientID, userID, resourceID, scopes)
 	ret0, _ := ret[0].(*oauth.Authorization)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Check indicates an expected call of Check.
-func (mr *MockAuthorizationServiceMockRecorder) Check(ctx, clientID, userID, scopes interface{}) *gomock.Call {
+func (mr *MockAuthorizationServiceMockRecorder) Check(ctx, clientID, userID, resourceID, scopes interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockAuthorizationService)(nil).Check), ctx, clientID, userID, scopes)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockAuthorizationService)(nil).Check), ctx, clientID, userID, resourceID, scopes)
 }
 
 // CheckAndGrant mocks base method.
-func (m *MockAuthorizationService) CheckAndGrant(ctx context.Context, clientID, userID string, scopes []string) (*oauth.Authorization, error) {
+func (m *MockAuthorizationService) CheckAndGrant(ctx context.Context, clientID, userID, resourceID string, scopes []string) (*oauth.Authorization, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckAndGrant", ctx, clientID, userID, scopes)
+	ret := m.ctrl.Call(m, "CheckAndGrant", ctx, clientID, userID, resourceID, scopes)
 	ret0, _ := ret[0].(*oauth.Authorization)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CheckAndGrant indicates an expected call of CheckAndGrant.
-func (mr *MockAuthorizationServiceMockRecorder) CheckAndGrant(ctx, clientID, userID, scopes interface{}) *gomock.Call {
+func (mr *MockAuthorizationServiceMockRecorder) CheckAndGrant(ctx, clientID, userID, resourceID, scopes interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAndGrant", reflect.TypeOf((*MockAuthorizationService)(nil).CheckAndGrant), ctx, clientID, userID, scopes)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAndGrant", reflect.TypeOf((*MockAuthorizationService)(nil).CheckAndGrant), ctx, clientID, userID, resourceID, scopes)
 }
 
 // GetByID mocks base method.

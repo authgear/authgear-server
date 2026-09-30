@@ -31,6 +31,8 @@ Two parts of this specification are described in full below but are **not implem
 
 Everything else in this document is implemented as written.
 
+App2app and Pre-Authenticated URL do not support resource indicators; see [App-to-App authentication — Resource Indicators](./app2app.md#resource-indicators) and [Pre-Authenticated URL — Resource Indicators](./pre-authenticated-url.md#resource-indicators).
+
 ## Glossary
 
 **Resource** — a protected API or service identified by an `https://` URI (e.g. `https://api.example.com/orders`). Resources are pre-registered in the portal, each carrying an `access_policy` object with one key per client category that declares which categories may request it. See [API Resources and Scopes](./api-resource.md).

@@ -1,0 +1,347 @@
+name: A scope granted on one Resource does not skip consent for the same scope on another
+# Scopes are local to their Resource, so read:orders on orders and read:orders
+# on inventory are different permissions. A dynamic third-party client is
+# shown consent for any scope it has not been granted.
+authgear.yaml:
+  override: |
+    oauth:
+      dynamic_client_registration:
+        enabled: true
+        initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: orders
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: orders_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: inventory
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/inventory",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: inventory_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/inventory",
+            scope: "read:orders",
+            accessPolicy: { allowDynamicThirdPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: register
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/register
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_name": "E2E dynamic third-party client",
+        "application_type": "native",
+        "redirect_uris": ["http://localhost:4000"]
+      }
+    http_output:
+      http_status: 201
+      json_body: |
+        {
+          "client_id": "[[string]]"
+        }
+
+  # Grant read:orders on orders.
+  - name: first_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: first_create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.first_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: first_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: first_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: first_consent
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.first_authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 200
+      html_xpath_exists:
+        - //button[@value='consent']
+
+  - name: first_approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.first_authenticate.result.action.data.finish_redirect_uri }}"
+
+  # The same scope on the same Resource is already granted: no consent.
+  - name: again_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - read:orders
+    oauth_setup_resource: https://api.example.com/orders
+
+  - name: again_create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.again_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: again_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: again_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: again_no_consent
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.again_authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      location_contains:
+        - http://localhost:4000
+        - code=
+
+  # The same name on inventory is a different permission: consent again.
+  - name: other_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - read:orders
+    oauth_setup_resource: https://api.example.com/inventory
+
+  - name: other_create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.other_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: other_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: other_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: other_consent
+    action: http_request
+    http_request_method: GET
+    http_request_url: "{{ .steps.other_authenticate.result.action.data.finish_redirect_uri }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 200
+      html_xpath_exists:
+        - //button[@value='consent']
+
+  - name: other_approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.other_authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: authorization
+    action: query
+    query: |
+      SELECT
+        a.scopes_by_resources->'authgear' AS project_scopes,
+        a.scopes_by_resources->o.id AS orders_scopes,
+        a.scopes_by_resources->i.id AS inventory_scopes
+      FROM _auth_oauth_authorization a
+      JOIN _auth_resource o ON o.app_id = a.app_id AND o.uri = 'https://api.example.com/orders'
+      JOIN _auth_resource i ON i.app_id = a.app_id AND i.uri = 'https://api.example.com/inventory'
+      WHERE a.app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "project_scopes": ["openid"],
+            "orders_scopes": ["read:orders"],
+            "inventory_scopes": ["read:orders"]
+          }
+        ]

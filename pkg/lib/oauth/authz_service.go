@@ -3,8 +3,10 @@ package oauth
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -15,6 +17,10 @@ type OfflineGrantSessionManager interface {
 	Delete(ctx context.Context, session session.ListableSession) error
 }
 
+type AuthorizationResourceStore interface {
+	GetManyResources(ctx context.Context, ids []string) ([]*resourcescope.Resource, error)
+}
+
 type AuthorizationService struct {
 	AppID               config.AppID
 	Store               AuthorizationStore
@@ -22,6 +28,7 @@ type AuthorizationService struct {
 	OAuthSessionManager OfflineGrantSessionManager
 	OfflineGrantService *OfflineGrantService
 	OfflineGrantStore   OfflineGrantStore
+	Resources           AuthorizationResourceStore
 }
 
 func (s *AuthorizationService) GetByID(ctx context.Context, id string) (*Authorization, error) {
@@ -84,16 +91,20 @@ func (s *AuthorizationService) Delete(ctx context.Context, a *Authorization) err
 	return s.Store.Delete(ctx, a)
 }
 
+// CheckAndGrant grants scopes, with resource scopes granted on resourceID.
+// resourceID is empty when no resource is requested, and then resource scopes
+// are ignored.
 func (s *AuthorizationService) CheckAndGrant(
 	ctx context.Context,
 	clientID string,
 	userID string,
+	resourceID string,
 	scopes []string,
 ) (*Authorization, error) {
 	timestamp := s.Clock.NowUTC()
 
 	authz, err := s.Store.Get(ctx, userID, clientID)
-	if err == nil && authz.IsAuthorized(scopes) {
+	if err == nil && authz.IsAuthorized(resourceID, scopes) {
 		return authz, nil
 	} else if err != nil && !errors.Is(err, ErrAuthorizationNotFound) {
 		return nil, err
@@ -109,14 +120,18 @@ func (s *AuthorizationService) CheckAndGrant(
 			UserID:    userID,
 			CreatedAt: timestamp,
 			UpdatedAt: timestamp,
-			Scopes:    scopes,
 		}
+		authz = authz.WithScopesAdded(resourceID, scopes)
 		err = s.Store.Create(ctx, authz)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		authz = authz.WithScopesAdded(scopes)
+		authz, err = s.withDeletedResourcesRemoved(ctx, authz)
+		if err != nil {
+			return nil, err
+		}
+		authz = authz.WithScopesAdded(resourceID, scopes)
 		authz.UpdatedAt = timestamp
 		err = s.Store.UpdateScopes(ctx, authz)
 		if err != nil {
@@ -127,10 +142,32 @@ func (s *AuthorizationService) CheckAndGrant(
 	return authz, nil
 }
 
+// withDeletedResourcesRemoved drops the scopes granted on resources that no
+// longer exist, so that they do not accumulate across updates.
+func (s *AuthorizationService) withDeletedResourcesRemoved(ctx context.Context, authz *Authorization) (*Authorization, error) {
+	ids := authz.ResourceIDs()
+	if len(ids) == 0 {
+		return authz, nil
+	}
+	resources, err := s.Resources.GetManyResources(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	var deleted []string
+	for _, id := range ids {
+		exists := slices.ContainsFunc(resources, func(r *resourcescope.Resource) bool { return r.ID == id })
+		if !exists {
+			deleted = append(deleted, id)
+		}
+	}
+	return authz.WithResourcesRemoved(deleted), nil
+}
+
 func (s *AuthorizationService) Check(
 	ctx context.Context,
 	clientID string,
 	userID string,
+	resourceID string,
 	scopes []string,
 ) (*Authorization, error) {
 	authz, err := s.Store.Get(ctx, userID, clientID)
@@ -139,7 +176,7 @@ func (s *AuthorizationService) Check(
 		return nil, err
 	}
 
-	if !authz.IsAuthorized(scopes) {
+	if !authz.IsAuthorized(resourceID, scopes) {
 		return nil, ErrAuthorizationScopesNotGranted
 	}
 

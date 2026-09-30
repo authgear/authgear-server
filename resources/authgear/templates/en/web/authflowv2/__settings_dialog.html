@@ -56,9 +56,11 @@
       <h1 class="dialog-title">
         {{ $.Title }}
       </h1>
-      <p class="dialog-description">
-        {{ $.Description }}
-      </p>
+      {{ if $.Description }}
+        <p class="dialog-description">
+          {{ $.Description }}
+        </p>
+      {{ end }}
     </div>
     <div class="flex flex-col gap-y-4">
       {{ $.FormContent }}

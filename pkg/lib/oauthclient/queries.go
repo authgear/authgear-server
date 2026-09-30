@@ -43,8 +43,8 @@ func (q *Queries) GetManyClientModels(ctx context.Context, ids []string) ([]*mod
 	return models, nil
 }
 
-func (q *Queries) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *model.OAuthClientSource) (*ListClientResult, error) {
-	storeResult, err := q.Store.ListClients(ctx, pageArgs, source)
+func (q *Queries) ListClients(ctx context.Context, pageArgs graphqlutil.PageArgs, source *model.OAuthClientSource, clientIDs []string) (*ListClientResult, error) {
+	storeResult, err := q.Store.ListClients(ctx, pageArgs, source, clientIDs)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,125 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+    (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/authorized-apps")
+        "Title" $.Authorization.ClientName
+        "Context" .
+    )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+{{ $authz := .Authorization }}
+{{ $hasFullUserInfoScope := has "https://authgear.com/scopes/full-userinfo" $authz.Scope }}
+{{ $hasAccountScopes := or
+  $hasFullUserInfoScope
+  (has "profile" $authz.Scope)
+  (has "email" $authz.Scope)
+  (has "phone" $authz.Scope)
+  (has "address" $authz.Scope) }}
+{{ $hasAppScopes := $authz.Permissions }}
+{{ $isSignInOnly := not (or $hasAccountScopes $hasAppScopes) }}
+{{ $removeDialogID := "remove-authorization-dialog" }}
+
+{{/* settings-content bounds and centres the column on tablet and up, as the
+     edit-email and change-password forms do. */}}
+<div class="settings-content flex flex-col gap-y-6">
+  {{/* Only when there is a list to introduce: a sign-in-only grant says the
+       opposite below, and the two together read as a contradiction. */}}
+  {{ if not $isSignInOnly }}
+    <p class="settings-description text-center">
+      {{ include "v2.page.settings-authorized-app.default.description" nil }}
+    </p>
+  {{ end }}
+
+  {{/* What the app was granted, in the consent screen's two sections and
+       with its classes, so what the user agreed to and what they later review
+       read the same. Identity scopes come from the consent screen's
+       translated strings; resource scopes carry the description the project
+       configured, or the raw scope name when there is none. */}}
+  <div class="consent-scopes">
+    {{ if $isSignInOnly }}
+      <p>
+        {{ include "v2.page.settings-authorized-apps.default.permissions-sign-in-only" nil }}
+      </p>
+    {{ end }}
+    {{ if $hasAccountScopes }}
+      <div class="consent-scope-section">
+        <p class="consent-scope-section__label">
+          {{ include "v2.page.settings-authorized-apps.default.permissions-account-label" nil }}
+        </p>
+        <ul class="consent-scope-list">
+          {{ if $hasFullUserInfoScope }}
+            <li>{{ include "v2.page.consent.scopes.full-userinfo" nil }}</li>
+          {{ else }}
+            {{ if (has "profile" $authz.Scope) }}
+              <li>{{ include "v2.page.consent.scopes.profile" nil }}</li>
+            {{ end }}
+            {{ if (has "email" $authz.Scope) }}
+              <li>{{ include "v2.page.consent.scopes.email" nil }}</li>
+            {{ end }}
+            {{ if (has "phone" $authz.Scope) }}
+              <li>{{ include "v2.page.consent.scopes.phone" nil }}</li>
+            {{ end }}
+            {{ if (has "address" $authz.Scope) }}
+              <li>{{ include "v2.page.consent.scopes.address" nil }}</li>
+            {{ end }}
+          {{ end }}
+        </ul>
+      </div>
+    {{ end }}
+    {{ if $hasAppScopes }}
+      <div class="consent-scope-section">
+        <p class="consent-scope-section__label">
+          {{ if $hasAccountScopes }}
+            {{ include "v2.page.settings-authorized-apps.default.permissions-app-label" nil }}
+          {{ else }}
+            {{ include "v2.page.settings-authorized-apps.default.permissions-app-only-label" nil }}
+          {{ end }}
+        </p>
+        <ul class="consent-scope-list">
+          {{ range $authz.Permissions }}
+            <li>{{ .DisplayText }}</li>
+          {{ end }}
+        </ul>
+      </div>
+    {{ end }}
+  </div>
+
+  <p class="settings-description text-center">
+    {{ translate "v2.page.settings-authorized-apps.default.permissions-access-given-on" (dict "time" $authz.CreatedAt "rfc3339" (rfc3339 $authz.CreatedAt)) }}
+  </p>
+
+  <button
+    type="button"
+    class="settings-link-btn--destructive"
+    data-controller="dialog"
+    id="{{ $removeDialogID }}"
+    data-action="click->dialog#open"
+  >
+    {{ include "v2.page.settings-authorized-apps.default.remove-authorization-button-label" nil }}
+  </button>
+
+  {{ template "authflowv2/__settings_dialog.html" (dict
+    "Ctx" .
+    "DialogID" $removeDialogID
+    "Title" (include "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title" nil)
+    "Description" (include "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description" (dict "clientName" $authz.ClientName))
+    "Buttons" (list
+      (dict
+        "Type" "Destructive"
+        "Label" (include "v2.component.button.default.label-remove" nil)
+        "Value" "remove_authorization"
+        "Event" "authgear.button.remove_authorization"
+      )
+      (dict
+        "Type" "Cancel"
+        "Label" (include "v2.component.button.default.label-cancel" nil)
+      )
+    )
+  )}}
+</div>
+{{ end }}

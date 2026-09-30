@@ -2,19 +2,27 @@ package oauth_test
 
 import (
 	"context"
+	"slices"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type stubAuthorizationStore struct {
-	authzs []*oauth.Authorization
+	authzs  []*oauth.Authorization
+	updated *oauth.Authorization
 }
 
 func (s *stubAuthorizationStore) Get(ctx context.Context, userID, clientID string) (*oauth.Authorization, error) {
-	panic("not used by this test")
+	if len(s.authzs) == 0 {
+		return nil, oauth.ErrAuthorizationNotFound
+	}
+	return s.authzs[0], nil
 }
 func (s *stubAuthorizationStore) GetByID(ctx context.Context, id string) (*oauth.Authorization, error) {
 	panic("not used by this test")
@@ -32,10 +40,62 @@ func (s *stubAuthorizationStore) ResetAll(ctx context.Context, userID string) er
 	panic("not used by this test")
 }
 func (s *stubAuthorizationStore) UpdateScopes(ctx context.Context, a *oauth.Authorization) error {
-	panic("not used by this test")
+	s.updated = a
+	return nil
 }
 
 var _ oauth.AuthorizationStore = &stubAuthorizationStore{}
+
+type stubAuthorizationResourceStore struct {
+	existing []string
+}
+
+func (s *stubAuthorizationResourceStore) GetManyResources(ctx context.Context, ids []string) ([]*resourcescope.Resource, error) {
+	var resources []*resourcescope.Resource
+	for _, id := range ids {
+		if slices.Contains(s.existing, id) {
+			resources = append(resources, &resourcescope.Resource{ID: id})
+		}
+	}
+	return resources, nil
+}
+
+func TestAuthorizationServiceCheckAndGrant(t *testing.T) {
+	Convey("AuthorizationService.CheckAndGrant", t, func() {
+		ctx := context.Background()
+		store := &stubAuthorizationStore{
+			authzs: []*oauth.Authorization{
+				{ID: "authz", ScopesByResources: map[string][]string{
+					oauth.AuthorizationProjectScopesKey: {"openid"},
+					"r1":                                {"read:orders"},
+					"deleted":                           {"read:orders"},
+				}},
+			},
+		}
+		svc := &oauth.AuthorizationService{
+			Store:     store,
+			Clock:     clock.NewMockClockAtTime(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)),
+			Resources: &stubAuthorizationResourceStore{existing: []string{"r1", "r2"}},
+		}
+
+		Convey("does not update an authorization that already grants the scopes", func() {
+			_, err := svc.CheckAndGrant(ctx, "client", "user", "r1", []string{"openid", "read:orders"})
+			So(err, ShouldBeNil)
+			So(store.updated, ShouldBeNil)
+		})
+
+		Convey("grants a name already granted on another resource, and drops deleted resources", func() {
+			authz, err := svc.CheckAndGrant(ctx, "client", "user", "r2", []string{"openid", "read:orders"})
+			So(err, ShouldBeNil)
+			So(store.updated, ShouldEqual, authz)
+			So(authz.ScopesByResources, ShouldResemble, map[string][]string{
+				oauth.AuthorizationProjectScopesKey: {"openid"},
+				"r1":                                {"read:orders"},
+				"r2":                                {"read:orders"},
+			})
+		})
+	})
+}
 
 func TestAuthorizationServiceListByUser(t *testing.T) {
 	Convey("AuthorizationService.ListByUser", t, func() {

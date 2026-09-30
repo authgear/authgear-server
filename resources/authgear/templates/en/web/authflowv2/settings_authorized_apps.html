@@ -13,8 +13,6 @@
 
 {{ define "page-content" }}
 <div class="flex flex-col">
-  {{ $ctx := . }}
-
   {{ if not .Authorizations }}
     <p class="settings-description text-center pt-5">
       {{ include "v2.page.settings-authorized-apps.default.empty" nil }}
@@ -22,7 +20,6 @@
   {{ end }}
 
   {{ range .Authorizations }}
-    {{ $actionBtn := (include "__settings_authorization_item_remove_btn.html" (dict "DialogID" .ID)) }}
     {{ $materialIconName := "" }}
     {{ $customIcon := "" }}
     {{ if .ClientLogoURI }}
@@ -30,53 +27,24 @@
     {{ else }}
       {{ $materialIconName = "category" }}
     {{ end }}
-    {{ template "authflowv2/__settings_dialog.html" (dict
-      "Ctx" $ctx
-      "DialogID" .ID
-      "Title" (include "v2.page.settings-authorized-apps.default.remove-authorization-dialog-title" nil)
-      "Description" (include "v2.page.settings-authorized-apps.default.remove-authorization-dialog-description" (dict "clientName" .ClientName))
-      "FormContent" (include "__settings_authorization_dialog_remove_input.html" (dict "ID" .ID))
-      "Buttons" (list
-        (dict
-          "Type" "Destructive"
-          "Label" (include "v2.component.button.default.label-remove" nil)
-          "Value" "remove_authorization"
-          "Event" "authgear.button.remove_authorization"
-        )
-        (dict
-          "Type" "Cancel"
-          "Label" (include "v2.component.button.default.label-cancel" nil)
-        )
-      )
-    )}}
 
-    {{ template "authflowv2/__settings_item.html"
-      (dict
-        "Label" .ClientName
-        "WithArrow" false
-        "MaterialIconName" $materialIconName
-        "CustomIcon" $customIcon
-        "ActionButton" $actionBtn
-        "SupplementaryNote" (include "__settings_authorization_item_description" .)
-      )
-    }}
+    {{/* Each row opens the app's own page, which shows what it can access
+         and offers to remove it. Same link-wrapped row as the settings
+         index uses. */}}
+    <a href="{{ call $.MakeURL "/settings/authorized-apps/view" "q_authorization_id" .ID }}" class="contents">
+      {{ template "authflowv2/__settings_item.html"
+        (dict
+          "Label" .ClientName
+          "TruncateLabel" true
+          "WithArrow" true
+          "MaterialIconName" $materialIconName
+          "CustomIcon" $customIcon
+          "SupplementaryNote" (include "__settings_authorization_item_description" .)
+        )
+      }}
+    </a>
   {{ end }}
 </div>
-{{ end }}
-
-{{ define "__settings_authorization_dialog_remove_input.html" }}
-  <input type="hidden" name="x_authorization_id" value="{{ .ID }}">
-{{ end }}
-
-{{ define "__settings_authorization_item_remove_btn.html" }}
-<button
-  class="settings-item__icon--pale"
-  data-controller="dialog"
-  data-action="click->dialog#open"
-  id="{{ .DialogID }}"
->
-  <i class="material-icons">close</i>
-</button>
 {{ end }}
 
 {{ define "__settings_authorization_item_logo.html" }}
@@ -89,27 +57,10 @@
 >
 {{ end }}
 
+{{/* The row's note is only when access was given; what was granted is on
+     the app's own page. */}}
 {{ define "__settings_authorization_item_description" }}
-<div>
-  <p>
-    {{ $scopes := .Scope }}
-    {{ $descriptions := list }}
-    {{ if has "profile" $scopes }}
-      {{ $descriptions = append $descriptions (include "v2.page.consent.scopes.profile" nil) }}
-    {{ end }}
-    {{ if has "email" $scopes }}
-      {{ $descriptions = append $descriptions (include "v2.page.consent.scopes.email" nil) }}
-    {{ end }}
-    {{ if has "phone" $scopes }}
-      {{ $descriptions = append $descriptions (include "v2.page.consent.scopes.phone" nil) }}
-    {{ end }}
-    {{ if has "address" $scopes }}
-      {{ $descriptions = append $descriptions (include "v2.page.consent.scopes.address" nil) }}
-    {{ end }}
-    {{ join ", " $descriptions }}
-  </p>
-  <p>
-    {{ translate "v2.page.settings-authorized-apps.default.item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
-  </p>
-</div>
+<p>
+  {{ translate "v2.page.settings-authorized-apps.default.item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
+</p>
 {{ end }}

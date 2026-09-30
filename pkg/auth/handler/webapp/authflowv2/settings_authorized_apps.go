@@ -2,9 +2,10 @@ package authflowv2
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
-
+	"slices"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -14,9 +15,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/resourcescope"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -25,10 +26,25 @@ var TemplateWebSettingsV2AuthorizedAppsHTML = template.RegisterHTML(
 	handlerwebapp.SettingsComponents...,
 )
 
+var TemplateWebSettingsV2AuthorizedAppHTML = template.RegisterHTML(
+	"web/authflowv2/settings_authorized_app.html",
+	handlerwebapp.SettingsComponents...,
+)
+
+const authorizedAppsListPath = "/settings/authorized-apps"
+
 func ConfigureAuthflowV2SettingsAuthorizedAppsRoute(route httproute.Route) httproute.Route {
 	return route.
+		WithMethods("OPTIONS", "GET").
+		WithPathPattern(authorizedAppsListPath)
+}
+
+// The detail page of one authorization: what the app can access, and the
+// action to remove it. Reached from the list by q_authorization_id.
+func ConfigureAuthflowV2SettingsAuthorizedAppRoute(route httproute.Route) httproute.Route {
+	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/settings/authorized-apps")
+		WithPathPattern("/settings/authorized-apps/view")
 }
 
 type SettingsSessionsClientResolver interface {
@@ -43,17 +59,45 @@ type SettingsAuthorizedAppsClientLogoEndpoint interface {
 	ClientLogoURL(clientID string) *url.URL
 }
 
+// SettingsAuthorizedAppsScopeStore resolves the scopes granted on an
+// authorization to the project's resources and scopes, for their
+// descriptions.
+type SettingsAuthorizedAppsScopeStore interface {
+	GetManyResources(ctx context.Context, ids []string) ([]*resourcescope.Resource, error)
+	ListScopesByResourceIDs(ctx context.Context, resourceIDs []string, scopes []string) ([]*resourcescope.Scope, error)
+}
+
+// AuthorizationPermission is one granted resource scope as shown to the end
+// user. DisplayText is the scope's configured Description, or the raw scope
+// name when none is configured or the scope no longer exists, so a granted
+// permission is never silently omitted -- the same rule the consent screen
+// applies (see oauth/consent.go's ConsentScope).
+type AuthorizationPermission struct {
+	Scope       string
+	DisplayText string
+}
+
 type Authorization struct {
 	ID            string
 	ClientID      string
 	ClientName    string
 	ClientLogoURI string
 	Scope         []string
-	CreatedAt     time.Time
+	// Scope holds the project-level scopes only.
+	// Permissions are the scopes granted on resources that still exist; set on
+	// the detail page only. Project-level scopes are not in this list: the
+	// template renders the identity ones (profile, email, phone, address,
+	// full-userinfo) from its own strings.
+	Permissions []AuthorizationPermission
+	CreatedAt   time.Time
 }
 
 type SettingsAuthorizedAppsViewModel struct {
 	Authorizations []Authorization
+}
+
+type SettingsAuthorizedAppViewModel struct {
+	Authorization Authorization
 }
 
 type AuthflowV2SettingsAuthorizedAppsHandler struct {
@@ -65,6 +109,70 @@ type AuthflowV2SettingsAuthorizedAppsHandler struct {
 	Authorizations      SettingsAuthorizationService
 	OAuthClientResolver SettingsSessionsClientResolver
 	Endpoints           SettingsAuthorizedAppsClientLogoEndpoint
+	ScopeStore          SettingsAuthorizedAppsScopeStore
+}
+
+type resourceScopeKey struct {
+	ResourceID string
+	Scope      string
+}
+
+// resourcePermissions maps the scopes granted on the resources in existing to
+// their display text, grouped by resource. A scope granted on a deleted
+// resource is left out, as the Admin API does.
+func resourcePermissions(authz *oauth.Authorization, existing map[string]struct{}, descriptions map[resourceScopeKey]string) []AuthorizationPermission {
+	var permissions []AuthorizationPermission
+	for _, id := range authz.ResourceIDs() {
+		if _, ok := existing[id]; !ok {
+			continue
+		}
+		for _, s := range authz.ScopesByResources[id] {
+			displayText := s
+			if d, ok := descriptions[resourceScopeKey{ResourceID: id, Scope: s}]; ok && d != "" {
+				displayText = d
+			}
+			permissions = append(permissions, AuthorizationPermission{Scope: s, DisplayText: displayText})
+		}
+	}
+	return permissions
+}
+
+// resolveResourceScopes returns the resources of authz that still exist, and
+// the configured Description of each scope granted on them.
+func (h *AuthflowV2SettingsAuthorizedAppsHandler) resolveResourceScopes(ctx context.Context, authz *oauth.Authorization) (map[string]struct{}, map[resourceScopeKey]string, error) {
+	ids := authz.ResourceIDs()
+	if len(ids) == 0 {
+		return nil, nil, nil
+	}
+	var names []string
+	for _, id := range ids {
+		for _, s := range authz.ScopesByResources[id] {
+			if !slices.Contains(names, s) {
+				names = append(names, s)
+			}
+		}
+	}
+
+	resources, err := h.ScopeStore.GetManyResources(ctx, ids)
+	if err != nil {
+		return nil, nil, err
+	}
+	existing := make(map[string]struct{}, len(resources))
+	for _, r := range resources {
+		existing[r.ID] = struct{}{}
+	}
+
+	scopes, err := h.ScopeStore.ListScopesByResourceIDs(ctx, ids, names)
+	if err != nil {
+		return nil, nil, err
+	}
+	descriptions := make(map[resourceScopeKey]string, len(scopes))
+	for _, sc := range scopes {
+		if sc.Description != nil {
+			descriptions[resourceScopeKey{ResourceID: sc.ResourceID, Scope: sc.Scope}] = *sc.Description
+		}
+	}
+	return existing, descriptions, nil
 }
 
 func (h *AuthflowV2SettingsAuthorizedAppsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]any, error) {
@@ -90,45 +198,109 @@ func (h *AuthflowV2SettingsAuthorizedAppsHandler) GetData(ctx context.Context, r
 	}
 	authzs := []Authorization{}
 	for _, authz := range authorizations {
-		// One resolve per authorization, same as the filter just did --
-		// ResolveClient is cached, and the alternative (threading the
-		// resolved config out of the filter) would couple the filter to
-		// this caller's rendering needs.
-		//
-		// Client.Name, not Client.ClientName: the display-name fallback, so
-		// a dynamic client with no client_name shows "Client <clientID>"
-		// rather than blank. Same fix as consent.go's consentViewModelForClient.
-		clientName := authz.ClientID
-		logoURI := ""
-		if c := h.OAuthClientResolver.ResolveClient(ctx, authz.ClientID); c != nil {
-			clientName = c.Name
-			// Point the <img> at Authgear's own proxy instead of the
-			// client's server, so the end user's browser never contacts
-			// the client (spec § Privacy Considerations §9.2). Only for a
-			// dynamic client, matching oauth/consent.go's
-			// consentViewModelForClient -- a static client's logo is
-			// project-collaborator-configured and continues to render
-			// directly.
-			if c.LogoURI != "" && c.IsDynamicClient() {
-				logoURI = h.Endpoints.ClientLogoURL(c.ClientID).String()
-			} else {
-				logoURI = c.LogoURI
-			}
-		}
-		authzs = append(authzs, Authorization{
-			ID:            authz.ID,
-			ClientID:      authz.ClientID,
-			ClientName:    clientName,
-			ClientLogoURI: logoURI,
-			Scope:         authz.Scopes,
-			CreatedAt:     authz.CreatedAt,
-		})
+		authzs = append(authzs, h.authorizationViewModel(ctx, authz))
 	}
 
 	settingsAuthorizedAppsViewModel := SettingsAuthorizedAppsViewModel{
 		Authorizations: authzs,
 	}
 	viewmodels.Embed(data, settingsAuthorizedAppsViewModel)
+
+	return data, nil
+}
+
+// authorizationViewModel resolves the client behind an authorization for
+// display: its name and its logo (proxied for a dynamic client). Permissions
+// are left to the detail page, the only one that shows them.
+func (h *AuthflowV2SettingsAuthorizedAppsHandler) authorizationViewModel(ctx context.Context, authz *oauth.Authorization) Authorization {
+	// One resolve per authorization, same as the filter just did --
+	// ResolveClient is cached, and the alternative (threading the
+	// resolved config out of the filter) would couple the filter to
+	// this caller's rendering needs.
+	//
+	// Client.Name, not Client.ClientName: the display-name fallback, so
+	// a dynamic client with no client_name shows "Client <clientID>"
+	// rather than blank. Same fix as consent.go's consentViewModelForClient.
+	clientName := authz.ClientID
+	logoURI := ""
+	if c := h.OAuthClientResolver.ResolveClient(ctx, authz.ClientID); c != nil {
+		clientName = c.Name
+		// Point the <img> at Authgear's own proxy instead of the
+		// client's server, so the end user's browser never contacts
+		// the client (spec § Privacy Considerations §9.2). Only for a
+		// dynamic client, matching oauth/consent.go's
+		// consentViewModelForClient -- a static client's logo is
+		// project-collaborator-configured and continues to render
+		// directly.
+		if c.LogoURI != "" && c.IsDynamicClient() {
+			logoURI = h.Endpoints.ClientLogoURL(c.ClientID).String()
+		} else {
+			logoURI = c.LogoURI
+		}
+	}
+	return Authorization{
+		ID:            authz.ID,
+		ClientID:      authz.ClientID,
+		ClientName:    clientName,
+		ClientLogoURI: logoURI,
+		Scope:         authz.ProjectScopes(),
+		CreatedAt:     authz.CreatedAt,
+	}
+}
+
+// getAuthorizationForUser loads the authorization named by q_authorization_id
+// and checks it belongs to the signed-in user. Any other user's grant -- or a
+// first-party one, which this page does not list -- is reported as not found
+// rather than forbidden, so the page does not confirm that the id exists.
+func (h *AuthflowV2SettingsAuthorizedAppsHandler) getAuthorizationForUser(ctx context.Context, userID string, authorizationID string) (*oauth.Authorization, error) {
+	if authorizationID == "" {
+		return nil, apierrors.NewNotFound("authorization not found")
+	}
+	authz, err := h.Authorizations.GetByID(ctx, authorizationID)
+	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
+		return nil, apierrors.NewNotFound("authorization not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+	if authz.UserID != userID {
+		return nil, apierrors.NewNotFound("authorization not found")
+	}
+	// Same rule as the list's KeepThirdPartyAuthorizationFilter: a grant
+	// whose client no longer resolves, or which is first-party, is not part
+	// of this surface.
+	if !oauth.NewKeepThirdPartyAuthorizationFilter(h.OAuthClientResolver).Keep(ctx, authz) {
+		return nil, apierrors.NewNotFound("authorization not found")
+	}
+	return authz, nil
+}
+
+// GetAuthorizationData is the detail page's view model: one authorization.
+func (h *AuthflowV2SettingsAuthorizedAppsHandler) GetAuthorizationData(ctx context.Context, r *http.Request, rw http.ResponseWriter, authorizationID string) (map[string]any, error) {
+	data := map[string]any{}
+	userID := session.GetUserID(ctx)
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	viewmodels.Embed(data, baseViewModel)
+
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(ctx, *userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *settingsViewModel)
+
+	authz, err := h.getAuthorizationForUser(ctx, *userID, authorizationID)
+	if err != nil {
+		return nil, err
+	}
+	existing, descriptions, err := h.resolveResourceScopes(ctx, authz)
+	if err != nil {
+		return nil, err
+	}
+
+	vm := h.authorizationViewModel(ctx, authz)
+	vm.Permissions = resourcePermissions(authz, existing, descriptions)
+	viewmodels.Embed(data, SettingsAuthorizedAppViewModel{Authorization: vm})
 
 	return data, nil
 }
@@ -142,7 +314,6 @@ func (h *AuthflowV2SettingsAuthorizedAppsHandler) ServeHTTP(w http.ResponseWrite
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	currentSession := session.GetSession(r.Context())
-	redirectURI := httputil.HostRelative(r.URL).String()
 
 	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]any
@@ -158,31 +329,64 @@ func (h *AuthflowV2SettingsAuthorizedAppsHandler) ServeHTTP(w http.ResponseWrite
 
 		return nil
 	})
+}
+
+// AuthflowV2SettingsAuthorizedAppHandler serves one authorization's detail
+// page and its remove action. It shares the list handler's dependencies and
+// resolution helpers.
+type AuthflowV2SettingsAuthorizedAppHandler struct {
+	AuthflowV2SettingsAuthorizedAppsHandler
+}
+
+func (h *AuthflowV2SettingsAuthorizedAppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer ctrl.ServeWithoutDBTx(r.Context())
+
+	currentSession := session.GetSession(r.Context())
+	authorizationID := r.Form.Get("q_authorization_id")
+
+	ctrl.Get(func(ctx context.Context) error {
+		var data map[string]any
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetAuthorizationData(ctx, r, w, authorizationID)
+			return err
+		})
+		if apierrors.IsAPIErrorWithCondition(err, func(e *apierrors.APIError) bool {
+			return e.Name == apierrors.NotFound
+		}) {
+			// The usual way to reach a missing grant is the back button after
+			// removing the app. Return to the list rather than showing an
+			// error page for what the user just did on purpose.
+			http.Redirect(w, r, authorizedAppsListPath, http.StatusFound)
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebSettingsV2AuthorizedAppHTML, data)
+
+		return nil
+	})
 
 	ctrl.PostAction("remove_authorization", func(ctx context.Context) error {
-		authorizationID := r.Form.Get("x_authorization_id")
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			authz, err := h.Authorizations.GetByID(ctx, authorizationID)
+			authz, err := h.getAuthorizationForUser(ctx, currentSession.GetAuthenticationInfo().UserID, authorizationID)
 			if err != nil {
 				return err
 			}
-
-			if authz.UserID != currentSession.GetAuthenticationInfo().UserID {
-				return apierrors.NewForbidden("cannot remove authorization")
-			}
-
-			err = h.Authorizations.Delete(ctx, authz)
-			if err != nil {
-				return err
-			}
-
-			return nil
+			return h.Authorizations.Delete(ctx, authz)
 		})
 		if err != nil {
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: redirectURI}
+		// Back to the list: the page just removed is gone.
+		result := webapp.Result{RedirectURI: authorizedAppsListPath}
 		result.WriteResponse(w, r)
 		return nil
 	})

@@ -1277,11 +1277,23 @@ export interface Session {
   clientID?: string | null;
 }
 
+// resource is null for a project-level scope.
+export interface AuthorizedScope {
+  scope: string;
+  description?: string | null;
+  resource?: {
+    id: string;
+    name?: string | null;
+    resourceURI: string;
+  } | null;
+}
+
 export interface Authorization {
   id: string;
   clientID: string;
   createdAt: string;
-  scopes: string[];
+  updatedAt: string;
+  authorizedScopes: AuthorizedScope[];
 }
 
 export interface TutorialStatusData {

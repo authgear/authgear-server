@@ -50,6 +50,17 @@
   font-size: 14px;
   border-top: 1px solid var(--gray-a6);
   background-color: var(--gray-a2);
+  cursor: pointer;
+}
+
+.tableRow:hover {
+  background-color: var(--gray-a3);
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+.tableRow:focus-visible {
+  outline: 2px solid var(--focus-8);
+  outline-offset: -2px;
 }
 
 .clientColumn,
@@ -61,11 +72,38 @@
 }
 
 .clientColumn,
-.scopeColumn,
 .createdAtColumn {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The permission cell holds a wrapping row of scope badges, so it must not
+   clip to one line like the text cells. */
+.scopeList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.scopeBadge {
+  font-family: var(--code-font-family, monospace);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Inline-block so the tooltip anchors to the name, not the whole cell, and
+   the truncated name still shows an ellipsis. */
+.clientName {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
 }
 
 .actionColumn {

@@ -205,7 +205,7 @@ func (re *Resolver) resolveAppSessionCookie(ctx context.Context, r *http.Request
 		return nil, session.ErrInvalidSession
 	} else if err != nil {
 		return nil, err
-	} else if !authz.IsAuthorized([]string{FullAccessScope}) {
+	} else if !authz.IsAuthorized("", []string{FullAccessScope}) {
 		// App sessions must have full user access to be valid
 		return nil, session.ErrInvalidSession
 	}
