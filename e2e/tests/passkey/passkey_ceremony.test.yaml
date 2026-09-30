@@ -5,7 +5,8 @@ name: Register a passkey and then sign in with it
 #
 # generatePasskeyAttestation and generatePasskeyAssertion stand in for the
 # browser and the authenticator. The origin is passed explicitly rather than
-# observed, which is what makes the last step below possible.
+# observed, which is what lets a step below present an origin the server must
+# reject.
 authgear.yaml:
   override: |
     authentication:
@@ -114,6 +115,22 @@ steps:
               "options": "[[array]]"
             }
           }
+        }
+
+  # Same host, different port. The relying party ID still matches, so only the
+  # exact origin comparison can reject this.
+  - action: input
+    input: |
+      {
+        "identification": "passkey",
+        "assertion_response": {{ generatePasskeyAssertion (index .steps.identify.result.action.data.options 1).request_options (printf "http://%s.authgeare2e.localhost:5000" .AppID) }}
+      }
+    output:
+      error: |
+        {
+          "name": "Unauthorized",
+          "reason": "InvalidCredentials",
+          "code": 401
         }
 
   - action: input
