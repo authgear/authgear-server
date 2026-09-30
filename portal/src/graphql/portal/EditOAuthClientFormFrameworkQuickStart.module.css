@@ -15,7 +15,7 @@
   width: 48px;
   height: 48px;
   border-radius: 10px;
-  background: #eef4ff;
+  background: var(--accent-a3);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -25,7 +25,7 @@
 .frameworkIcon {
   font-size: 26px;
   line-height: 1;
-  color: #0969da;
+  color: var(--accent-11);
 }
 
 .frameworkText {
@@ -37,7 +37,7 @@
 }
 
 .helperText {
-  color: #57606a;
+  color: var(--gray-11);
   font-size: 13px;
 }
 
@@ -53,7 +53,7 @@
 .tutorialCard {
   padding: 20px;
   border-radius: 8px;
-  background: #eef4ff;
+  background: var(--accent-a3);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -67,11 +67,11 @@
 
 .tutorialIcon {
   font-size: 20px;
-  color: #0969da;
+  color: var(--accent-11);
 }
 
 .tutorialBody {
-  color: #24292f;
+  color: var(--gray-12);
   line-height: 1.5;
 }
 
@@ -82,16 +82,16 @@
   text-align: center;
   gap: 12px;
   padding: 48px 24px;
-  border: 1px dashed #d0d7de;
+  border: 1px dashed var(--gray-a6);
   border-radius: 12px;
-  background: #fafbfc;
+  background: var(--gray-a2);
 }
 
 .emptyIconWrap {
   width: 72px;
   height: 72px;
   border-radius: 16px;
-  background: #eef4ff;
+  background: var(--accent-a3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,7 +99,7 @@
 
 .emptyIcon {
   font-size: 36px;
-  color: #0969da;
+  color: var(--accent-11);
   line-height: 1;
 }
 
@@ -109,7 +109,7 @@
 }
 
 .emptyBody {
-  color: #57606a;
+  color: var(--gray-11);
   max-width: 420px;
 }
 
@@ -129,21 +129,21 @@
   line-height: 1.5;
   padding: 10px 12px;
   border-radius: 8px;
-  background: #f6f8fa;
-  border: 1px solid #d0d7de;
-  color: #57606a;
+  background: var(--gray-a2);
+  border: 1px solid var(--gray-a6);
+  color: var(--gray-11);
 }
 
 .snippetDescription {
-  color: #57606a;
+  color: var(--gray-11);
   margin-top: -16px;
 }
 
 .snippetCard {
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--gray-a6);
   border-radius: 8px;
   overflow: hidden;
-  background: #f6f8fa;
+  background: var(--gray-a2);
 }
 
 .snippetHeader {
@@ -151,14 +151,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: #eaeef2;
-  border-bottom: 1px solid #d0d7de;
+  background: var(--gray-a3);
+  border-bottom: 1px solid var(--gray-a6);
 }
 
 .snippetLanguage {
   font-size: 12px;
   font-weight: 600;
-  color: #57606a;
+  color: var(--gray-11);
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -174,7 +174,7 @@
   font-family: var(--code-font-family);
   font-size: 12.5px;
   line-height: 1.6;
-  color: #24292f;
+  color: var(--gray-12);
   overflow-x: auto;
   white-space: pre;
 }
@@ -186,7 +186,7 @@
 }
 
 .oidcDescription {
-  color: #57606a;
+  color: var(--gray-11);
   line-height: 1.5;
   margin-top: -8px;
 }
@@ -197,7 +197,7 @@
 }
 
 .stepBody {
-  color: #57606a;
+  color: var(--gray-11);
   line-height: 1.5;
   margin-bottom: 12px;
 }
@@ -211,7 +211,7 @@
 .inlineCode {
   font-family: var(--code-font-family);
   font-size: 12.5px;
-  background: #eff1f3;
+  background: var(--gray-a3);
   border-radius: 4px;
   padding: 1px 6px;
 }
@@ -250,13 +250,13 @@
 }
 
 .statusChipUnauthorized {
-  background: #fff4ce;
-  color: #8a6d00;
+  background: var(--amber-a3);
+  color: var(--amber-11);
 }
 
 .statusChipAuthorized {
-  background: #dff6dd;
-  color: #0e700e;
+  background: var(--green-a3);
+  color: var(--green-11);
 }
 
 .redirectManageLink {
@@ -265,10 +265,10 @@
 
 .envCard {
   position: relative;
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--gray-a6);
   border-radius: 8px;
   overflow: hidden;
-  background: #f6f8fa;
+  background: var(--gray-a2);
 }
 
 .envCopyWrap {
@@ -287,7 +287,7 @@
 .dialogCardIcon {
   font-size: 24px;
   line-height: 1;
-  color: #0969da;
+  color: var(--accent-11);
 }
 
 .dialogActions {

@@ -152,6 +152,33 @@
   border-bottom: 1px solid var(--gray-a6);
 }
 
+.drawerFooter {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--gray-a6);
+}
+
+.drawerFooterLabel {
+  font-size: var(--font-size-2);
+  color: var(--gray-11);
+}
+
+/* Plain wrapper rather than a class on the control itself: the breakpoint rule
+   would otherwise tie with Radix's own display rule on the segmented control
+   and depend on stylesheet order. */
+.headerAppearance {
+  display: flex;
+  align-items: center;
+}
+
+.headerAppearanceWithDrawer {
+  @apply mobile:hidden;
+}
+
 .drawerBody {
   flex: 1;
   min-height: 0;

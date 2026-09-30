@@ -1,5 +1,6 @@
 .card {
-  @apply flex min-w-0 flex-row items-start gap-8 rounded-lg border border-solid bg-white p-6;
+  @apply flex min-w-0 flex-row items-start gap-8 rounded-lg border border-solid p-6;
+  background-color: var(--color-panel-solid);
   border-color: var(--gray-5);
 
   @apply tablet:flex-col tablet:items-stretch tablet:gap-4;

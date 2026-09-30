@@ -43,7 +43,7 @@
 .inlineCode {
   font-family: var(--code-font-family);
   font-size: 12.5px;
-  background: #eff1f3;
+  background: var(--gray-a3);
   border-radius: 4px;
   padding: 1px 6px;
 }

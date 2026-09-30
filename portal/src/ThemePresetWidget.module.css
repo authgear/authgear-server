@@ -5,7 +5,7 @@
 }
 
 .preset {
-  border: 2px solid #cecece;
+  border: 2px solid var(--gray-a6);
   border-radius: 2px;
   display: flex;
   flex-direction: column;
@@ -14,7 +14,7 @@
 }
 
 .preset.selected {
-  border: 2px solid #176df3;
+  border: 2px solid var(--accent-9);
 }
 
 .preset.disabled {
@@ -44,7 +44,7 @@
 
 .customIcon {
   align-self: center;
-  color: #8a8886;
+  color: var(--gray-a9);
   margin: 8px;
   font-size: 26px;
 }

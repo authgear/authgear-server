@@ -224,3 +224,80 @@
     }
   }
 }
+
+/* Dark slate, "Contrast" scheme: a deep ground with markedly stronger
+   surface, border and text separation than Radix's stock dark slate, which
+   read as flat and low-contrast in the portal. Without this block the `:root`
+   light scale above would win on <html class="dark"> — same specificity as
+   `.dark`, declared later. */
+.dark,
+.dark-theme {
+  --slate-1: #0f1114;
+  --slate-2: #16181d;
+  --slate-3: #1e2128;
+  --slate-4: #252932;
+  --slate-5: #2d323c;
+  --slate-6: #373d48;
+  --slate-7: #4a5160;
+  --slate-8: #646d7e;
+  --slate-9: #77808f;
+  --slate-10: #8a93a2;
+  --slate-11: #c6ccd6;
+  --slate-12: #ffffff;
+
+  --slate-a1: #00000000;
+  --slate-a2: #c6c8ff0a;
+  --slate-a3: #bfcdff16;
+  --slate-a4: #bbcdff21;
+  --slate-a5: #bfd3ff2b;
+  --slate-a6: #c4d8ff38;
+  --slate-a7: #c5d7ff52;
+  --slate-a8: #cbddff73;
+  --slate-a9: #d6e5ff85;
+  --slate-a10: #dbe8ff9a;
+  --slate-a11: #edf4ffd3;
+  --slate-a12: #ffffffff;
+
+  --slate-contrast: #ffffff;
+  --slate-surface: #16181d80;
+  --slate-indicator: #77808f;
+  --slate-track: #77808f;
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+  @media (color-gamut: p3) {
+    .dark,
+    .dark-theme {
+      --slate-1: color(display-p3 0.0603 0.0664 0.0773);
+      --slate-2: color(display-p3 0.0877 0.0939 0.112);
+      --slate-3: color(display-p3 0.1198 0.129 0.1544);
+      --slate-4: color(display-p3 0.148 0.1603 0.193);
+      --slate-5: color(display-p3 0.1801 0.1955 0.2318);
+      --slate-6: color(display-p3 0.2201 0.2385 0.2785);
+      --slate-7: color(display-p3 0.2953 0.3168 0.3713);
+      --slate-8: color(display-p3 0.3987 0.4263 0.4881);
+      --slate-9: color(display-p3 0.4732 0.5008 0.5553);
+      --slate-10: color(display-p3 0.5477 0.5753 0.6298);
+      --slate-11: color(display-p3 0.7807 0.7992 0.8354);
+      --slate-12: color(display-p3 1 1 1);
+
+      --slate-a1: color(display-p3 0 0 0 / 0);
+      --slate-a2: color(display-p3 0.7779 0.7841 0.9831 / 0.039);
+      --slate-a3: color(display-p3 0.7591 0.8022 0.9838 / 0.086);
+      --slate-a4: color(display-p3 0.7465 0.8017 0.9836 / 0.129);
+      --slate-a5: color(display-p3 0.7637 0.825 0.9852 / 0.169);
+      --slate-a6: color(display-p3 0.7833 0.8446 0.9865 / 0.22);
+      --slate-a7: color(display-p3 0.7857 0.8409 0.9864 / 0.322);
+      --slate-a8: color(display-p3 0.8092 0.8644 0.9881 / 0.451);
+      --slate-a9: color(display-p3 0.8501 0.8962 0.9906 / 0.522);
+      --slate-a10: color(display-p3 0.8682 0.9082 0.9916 / 0.604);
+      --slate-a11: color(display-p3 0.9344 0.956 0.9958 / 0.827);
+      --slate-a12: color(display-p3 1 1 1 / 1);
+
+      --slate-contrast: #ffffff;
+      --slate-surface: color(display-p3 0.0877 0.0939 0.112 / 0.502);
+      --slate-indicator: color(display-p3 0.4732 0.5008 0.5553);
+      --slate-track: color(display-p3 0.4732 0.5008 0.5553);
+    }
+  }
+}

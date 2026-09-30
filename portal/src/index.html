@@ -11,6 +11,25 @@
     <!-- Parcel interprets absolute path in HTML as file path relative to project root. -->
     <!-- To undo this behavior, we installed parcel-resolver-ignore and configure it in package.json#parcelIgnore -->
     <script src="/api/osano.js"></script>
+    <script>
+      // Apply the saved appearance before first paint so the page does not
+      // flash light. Keep in sync with src/util/appearance.ts.
+      (function () {
+        var preference = null;
+        try {
+          preference = window.localStorage.getItem(
+            "authgear-portal-appearance"
+          );
+        } catch (e) {}
+        var dark =
+          preference === "dark" ||
+          (preference !== "light" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.add(
+          dark ? "dark-theme" : "light-theme"
+        );
+      })();
+    </script>
     <style>
       .osano-cm-widget {
         display: none;

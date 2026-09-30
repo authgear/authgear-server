@@ -10,7 +10,7 @@
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--gray-6);
   border-radius: 12px;
-  background-color: #fff;
+  background-color: var(--color-panel-solid);
   box-shadow: var(--shadow-5);
   box-sizing: border-box;
 }

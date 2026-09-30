@@ -1,0 +1,14 @@
+.root {
+  flex-shrink: 0;
+}
+
+/* Icon-only items: drop the text padding so each item is a square. */
+.root :global(.rt-SegmentedControlItemLabel) {
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}

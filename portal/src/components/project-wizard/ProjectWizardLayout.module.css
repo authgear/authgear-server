@@ -13,7 +13,9 @@
   @apply flex-1;
   @apply flex flex-col;
   @apply overflow-y-auto;
-  background-color: var(--accent-contrast);
+  /* Not --accent-contrast: that is the colour drawn ON the accent, so it is
+     white in either theme and left the form white with white text. */
+  background-color: var(--color-background);
 }
 
 .projectWizardLayout__leftFormContainer {

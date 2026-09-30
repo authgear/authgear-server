@@ -39,9 +39,14 @@ node_modules/
 resources/authgear/templates/en/web/**/__generated_asset.html
 resources/authgear/generated/*
 !resources/authgear/generated/.gitkeep
-resources/portal/static/
-!resources/portal/static/img/logo.png
-!resources/portal/static/img/logo-inverted.png
+# The portal frontend build is copied into resources/portal/static, but the
+# logos are source assets living alongside it. Re-including a file needs the
+# parent directories left un-excluded, hence the step-by-step form.
+resources/portal/static/*
+!resources/portal/static/img/
+resources/portal/static/img/*
+!resources/portal/static/img/logo.svg
+!resources/portal/static/img/logo-inverted.svg
 
 # generated code
 pkg/lib/webparcel/parcel_gen.go

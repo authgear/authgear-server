@@ -113,13 +113,15 @@
   width: 100%;
   height: 4px;
   overflow: hidden;
-  border-radius: var(--radius-full);
+  /* Not --radius-full: Radix only sets that to 9999px when the theme's radius
+     is "full", and ours is the default, so the bar came out square-ended. */
+  border-radius: 9999px;
   background-color: var(--gray-a4);
 }
 
 .progressBarFill {
   height: 100%;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   background-color: var(--accent-9);
 }
 

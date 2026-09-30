@@ -4,6 +4,8 @@ import { ChartOptions } from "chart.js";
 import { DateTime } from "luxon";
 import { Context } from "../../intl";
 import { FraudProtectionOverviewQueryQuery } from "../../graphql/adminapi/query/fraudProtectionOverviewQuery.generated";
+import { readThemeToken } from "../../util/themeTokens";
+import { useThemeColors } from "../../hook/useThemeColors";
 import styles from "./OverviewRequestsChart.module.css";
 
 type TimeBucket =
@@ -114,16 +116,6 @@ function buildSlots(
   return buildHourlySlots(timeBuckets, rangeFrom, rangeTo);
 }
 
-function readCSSVar(name: string, fallback: string): string {
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(name)
-    .trim();
-  return value !== "" ? value : fallback;
-}
-
 interface ChartTokens {
   blocked: string;
   flagged: string;
@@ -140,17 +132,20 @@ interface ChartTokens {
 
 function cssTokens(): ChartTokens {
   return {
-    blocked: readCSSVar("--red-a6", "#fca5a5"),
-    flagged: readCSSVar("--amber-a6", "#fde68a"),
-    allowed: readCSSVar("--gray-a5", "#e5e5e5"),
-    grid: readCSSVar("--gray-a4", "#f3f2f1"),
-    border: readCSSVar("--gray-a5", "#edebe9"),
-    labelText: readCSSVar("--gray-11", "#605e5c"),
-    axisText: readCSSVar("--gray-a10", "#8a8886"),
-    titleText: readCSSVar("--gray-12", "#323130"),
-    bodyText: readCSSVar("--gray-11", "#605e5c"),
-    surface: readCSSVar("--color-panel-solid", "#ffffff"),
-    fontFamily: readCSSVar("--default-font-family", "system-ui, sans-serif"),
+    blocked: readThemeToken("--red-a6", "#fca5a5"),
+    flagged: readThemeToken("--amber-a6", "#fde68a"),
+    allowed: readThemeToken("--gray-a5", "#e5e5e5"),
+    grid: readThemeToken("--gray-a4", "#f3f2f1"),
+    border: readThemeToken("--gray-a5", "#edebe9"),
+    labelText: readThemeToken("--gray-11", "#605e5c"),
+    axisText: readThemeToken("--gray-a10", "#8a8886"),
+    titleText: readThemeToken("--gray-12", "#323130"),
+    bodyText: readThemeToken("--gray-11", "#605e5c"),
+    surface: readThemeToken("--color-panel-solid", "#ffffff"),
+    fontFamily: readThemeToken(
+      "--default-font-family",
+      "system-ui, sans-serif"
+    ),
   };
 }
 
@@ -163,10 +158,9 @@ const OverviewRequestsChart: React.VFC<OverviewRequestsChartProps> =
   }) {
     const { renderToString } = useContext(Context);
 
-    // Read Radix design tokens so the chart matches the current theme
-    // (light/dark) instead of hardcoding Fluent hex values. The overview
-    // tab unmounts when switching tabs, so this recomputes on each visit.
-    const chartColors = useMemo(() => cssTokens(), []);
+    // Radix design tokens, re-read when the appearance changes so the canvas
+    // follows the light/dark mode.
+    const chartColors = useThemeColors(cssTokens);
 
     const chartLabels = useMemo(
       () => ({

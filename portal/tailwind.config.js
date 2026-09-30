@@ -3,7 +3,7 @@ module.exports = {
     preflight: true,
   },
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
-  darkMode: "class",
+  darkMode: ["selector", ".dark-theme"],
   theme: {
     screens: {
       mobile: { max: "640px" },
