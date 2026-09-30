@@ -284,6 +284,12 @@
           },
           "type": "array"
         },
+        "html_text_not_contains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "html_xpath_exists": {
           "items": {
             "type": "string"

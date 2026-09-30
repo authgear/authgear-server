@@ -23,6 +23,7 @@ import { CustomSelectController } from "./authflowv2/customSelect";
 import { CountdownController } from "./countdown";
 import { TextFieldController } from "./authflowv2/text-field";
 import { OverlayController } from "./authflowv2/overlay";
+import { ClockSkewController } from "./authflowv2/clockSkew";
 import { CopyButtonController } from "./copy";
 import { AuthflowWebsocketController } from "./authflow_websocket";
 import { AuthflowPollingController } from "./authflow_polling";
@@ -118,6 +119,7 @@ Stimulus.register("image-picker", ImagePickerController);
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);
 Stimulus.register("overlay", OverlayController);
+Stimulus.register("clock-skew", ClockSkewController);
 Stimulus.register("loading", LoadingController);
 Stimulus.register("new-password-field", NewPasswordFieldController);
 

@@ -1,0 +1,12 @@
+{{- define "authflowv2/__clock_skew_check.html" -}}
+{{ if $.ClockSkewCheckEnabled }}
+  <div
+    hidden
+    data-controller="clock-skew"
+    data-clock-skew-server-time-value="{{ $.ServerTimeUnixMilli }}"
+    data-clock-skew-max-ahead-value="{{ $.ClockSkewMaxAheadMilli }}"
+    data-clock-skew-max-behind-value="{{ $.ClockSkewMaxBehindMilli }}"
+    data-clock-skew-redirect-url-value="/authflow/v2/clock_skew"
+  ></div>
+{{ end }}
+{{ end }}

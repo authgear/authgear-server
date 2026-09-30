@@ -79,6 +79,7 @@ const (
 
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
+	AuthflowV2RouteClockSkew       = "/authflow/v2/clock_skew"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
 	// nolint:gosec
 	AuthflowV2RouteOAuthProviderMissingCredentials = "/authflow/v2/oauth_provider_missing_credential"

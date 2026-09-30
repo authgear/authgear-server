@@ -56,6 +56,8 @@ type UIInfo struct {
 	LoginHint string
 	// IDTokenHint is the OIDC id_token_hint parameter.
 	IDTokenHint string
+	// DPoPEnabled is whether dpop_jkt is present.
+	DPoPEnabled bool
 }
 
 func (i *UIInfo) ToUIParam() uiparam.T {
@@ -225,6 +227,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 		UILocales:                  req.UILocalesRaw(),
 		LoginHint:                  loginIDHint,
 		IDTokenHint:                idTokenHint,
+		DPoPEnabled:                req.DPoPJKT() != "",
 	}
 	byProduct := &UIInfoByProduct{
 		IDToken:        idToken,

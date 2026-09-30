@@ -144,6 +144,7 @@ func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, o
 			OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
 			LoginHint:                  uiInfo.LoginHint,
 			SettingsActionID:           entry.T.SettingsActionID,
+			DPoPEnabled:                uiInfo.DPoPEnabled,
 		}
 
 		otelauthgear.SetClientID(ctx, uiInfo.ClientID)
