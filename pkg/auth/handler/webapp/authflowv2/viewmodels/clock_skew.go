@@ -9,7 +9,8 @@ import (
 type ClockSkewViewModel struct {
 	ClockSkewCheckEnabled bool
 	ServerTimeUnixMilli   int64
-	// ClockSkewMaxAheadMilli and ClockSkewMaxBehindMilli mirror the DPoP proof iat validation in pkg/lib/dpop.
+	// Mirror dpop.Provider.validateProofJWT: a clock ahead is bounded by the
+	// acceptable iat skew, a clock behind by the max proof age.
 	ClockSkewMaxAheadMilli  int64
 	ClockSkewMaxBehindMilli int64
 }
