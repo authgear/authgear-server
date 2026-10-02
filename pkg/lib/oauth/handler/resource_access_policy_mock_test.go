@@ -51,6 +51,22 @@ func (mr *MockResourceAccessPolicyServiceMockRecorder) GetResourceByURI(ctx, uri
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResourceByURI", reflect.TypeOf((*MockResourceAccessPolicyService)(nil).GetResourceByURI), ctx, uri, client)
 }
 
+// ListAllAndAllowedScopesByResourceID mocks base method.
+func (m *MockResourceAccessPolicyService) ListAllAndAllowedScopesByResourceID(ctx context.Context, resourceID string, client model.ClientCategoryClassifier) ([]*resourcescope.Scope, []*resourcescope.Scope, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAllAndAllowedScopesByResourceID", ctx, resourceID, client)
+	ret0, _ := ret[0].([]*resourcescope.Scope)
+	ret1, _ := ret[1].([]*resourcescope.Scope)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ListAllAndAllowedScopesByResourceID indicates an expected call of ListAllAndAllowedScopesByResourceID.
+func (mr *MockResourceAccessPolicyServiceMockRecorder) ListAllAndAllowedScopesByResourceID(ctx, resourceID, client interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllAndAllowedScopesByResourceID", reflect.TypeOf((*MockResourceAccessPolicyService)(nil).ListAllAndAllowedScopesByResourceID), ctx, resourceID, client)
+}
+
 // ListScopesByResourceID mocks base method.
 func (m *MockResourceAccessPolicyService) ListScopesByResourceID(ctx context.Context, resourceID string, client model.ClientCategoryClassifier) ([]*resourcescope.Scope, error) {
 	m.ctrl.T.Helper()
