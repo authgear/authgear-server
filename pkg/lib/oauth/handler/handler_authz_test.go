@@ -451,6 +451,29 @@ func TestAuthorizationHandler(t *testing.T) {
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
+			Convey("drops a scope the client is not granted instead of rejecting the request", func() {
+				req := protocol.AuthorizationRequest{
+					"client_id":             "client-id",
+					"response_type":         "code",
+					"scope":                 "openid device_sso https://authgear.com/scopes/pre-authenticated-url",
+					"code_challenge_method": "S256",
+					"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+				}
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+					gomock.Any(),
+					mockedClient,
+					req,
+				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
+				uiURLBuilder.EXPECT().BuildAuthenticationURL(mockedClient, req, gomock.Any()).Times(1).Return(&url.URL{
+					Scheme: "https",
+					Host:   "auth",
+					Path:   "/authenticate",
+				}, nil)
+				ctx := context.Background()
+				resp := handle(ctx, req)
+				So(resp.Result().StatusCode, ShouldEqual, 302)
+				So(oauthSessionService.Entry.T.AuthorizationRequest.Scope(), ShouldResemble, []string{"openid"})
+			})
 			Convey("return authorization code", func() {
 				ctx := sessiontest.NewMockSession().
 					SetUserID("user-id").

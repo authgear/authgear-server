@@ -3,6 +3,7 @@ package protocol
 import (
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/settingsaction"
@@ -112,6 +113,10 @@ func (r AuthorizationRequest) SettingsActionQuery() (url.Values, error) {
 }
 func (r AuthorizationRequest) PreAuthenticatedURLToken() string {
 	return r["x_pre_authenticated_url_token"]
+}
+
+func (r AuthorizationRequest) SetScope(scopes []string) {
+	r["scope"] = strings.Join(scopes, " ")
 }
 
 type AuthorizationResponse map[string]string

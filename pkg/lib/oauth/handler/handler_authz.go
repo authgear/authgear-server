@@ -190,20 +190,20 @@ type AuthorizationHandler struct {
 // called both inside a transaction (doHandleRequestWithTx) and outside one
 // (doHandleConsentRequest, which must not render the consent screen inside
 // a write transaction).
-func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (resourceID string, allowedScopes []string, err error) {
+func (h *AuthorizationHandler) validateResource(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (resourceID string, knownScopes []string, grantedScopes []string, err error) {
 	resourceURI := r.Resource()
 	if resourceURI == "" {
-		return "", nil, nil
+		return "", nil, nil, nil
 	}
 	if strings.HasPrefix(resourceURI, h.IDTokenIssuer.Iss()) {
-		return "", nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
+		return "", nil, nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
 	}
 
 	var resource *resourcescope.Resource
-	var allowed []string
+	var known, allowed []string
 	read := func(ctx context.Context) error {
 		var err error
-		resource, allowed, err = allowedResourceScopes(ctx, h.ResourceScopeService, client, resourceURI)
+		resource, known, allowed, err = resourceScopes(ctx, h.ResourceScopeService, client, resourceURI)
 		return err
 	}
 	if h.Database.IsInTx(ctx) {
@@ -212,9 +212,20 @@ func (h *AuthorizationHandler) validateResource(ctx context.Context, client *con
 		err = h.Database.ReadOnly(ctx, read)
 	}
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
-	return resource.ID, allowed, nil
+	return resource.ID, known, allowed, nil
+}
+
+// narrowScopes validates r's scopes, then replaces them with the ones the
+// client is granted, so everything downstream reads the granted set.
+// See docs/specs/oidc.md § Scope Validation.
+func narrowScopes(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, knownResourceScopes []string, grantedResourceScopes []string) error {
+	if err := oauth.ValidateScopesByClientConfig(r.Scope(), knownResourceScopes); err != nil {
+		return err
+	}
+	r.SetScope(oauth.GrantedScopes(client, r.Scope(), grantedResourceScopes))
+	return nil
 }
 
 // resourceScopeDisplayNames looks up the human-readable display text (the
@@ -542,11 +553,11 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
 ) (httputil.Result, error) {
-	resourceID, allowedResourceScopes, err := h.validateResource(ctx, client, r)
+	resourceID, knownResourceScopes, grantedResourceScopes, err := h.validateResource(ctx, client, r)
 	if err != nil {
 		return nil, err
 	}
-	if err := oauth.ValidateScopesByClientConfig(client, r.Scope(), allowedResourceScopes); err != nil {
+	if err := narrowScopes(client, r, knownResourceScopes, grantedResourceScopes); err != nil {
 		return nil, err
 	}
 
@@ -922,7 +933,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	resourceID, allowedResourceScopes, err := h.validateResource(
+	resourceID, knownResourceScopes, grantedResourceScopes, err := h.validateResource(
 		ctx,
 		opts.ConsentRequest.Client,
 		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
@@ -931,10 +942,12 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	err = oauth.ValidateScopesByClientConfig(
+	// Narrow again: the access policy may have changed since /oauth2/authorize.
+	err = narrowScopes(
 		opts.ConsentRequest.Client,
-		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest.Scope(),
-		allowedResourceScopes,
+		opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
+		knownResourceScopes,
+		grantedResourceScopes,
 	)
 	if err != nil {
 		return nil, err
