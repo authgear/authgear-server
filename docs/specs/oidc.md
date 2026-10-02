@@ -135,10 +135,13 @@ Two things the exception does not cover:
 
 - `openid`: It is required by the OIDC spec
 - `offline_access`: It is required to issue refresh token.
-- `https://authgear.com/scopes/full-access`: Full access scope allows access to privileged user operations. Only [first-party public clients](#first-party-public-clients) can request this scope.
+- `https://authgear.com/scopes/full-access`: Full access scope allows access to privileged user operations.
 - `https://authgear.com/scopes/full-userinfo`: Returns the complete userinfo in the id_token or through the userinfo endpoint.
+- `device_sso` and `https://authgear.com/scopes/pre-authenticated-url`: See [Pre-Authenticated URL](./pre-authenticated-url.md).
 
 When `scope` is unspecified, `scope` has no default values.
+
+Which clients are granted each scope, and what happens to a scope a client is not granted, is in [Scope Validation](#scope-validation).
 
 ### response_type
 
@@ -267,7 +270,7 @@ See [M2M](./m2m.md#changes-in-oauth-20-implementation)
 
 ### scope
 
-See [M2M](./m2m.md#changes-in-oauth-20-implementation)
+See [M2M](./m2m.md#changes-in-oauth-20-implementation) and [Scope Validation](#scope-validation).
 
 ## Token Response
 
@@ -283,6 +286,47 @@ Present only if authorized scopes contain `offline_access`.
 
 It is always present.
 It is the actual scope granted to the client on `aud` on behalf of `sub`.
+It may be narrower than the requested scope; see [Scope Validation](#scope-validation).
+
+## Scope Validation
+
+A requested scope that Authgear does not know fails the request. A known scope the client is not granted is dropped, and the request continues with the remaining scopes ([RFC 6749 §3.3](https://www.rfc-editor.org/rfc/rfc6749#section-3.3)).
+
+| Requested scope | Result |
+|---|---|
+| Neither a [built-in scope](#built-in-scopes) nor a Scope of the Resource named by `resource` | `invalid_scope` |
+| A built-in scope the client is not granted | Dropped |
+| A Scope of the Resource named by `resource` that the client is not granted | Dropped |
+
+A Scope of a Resource is unknown when `resource` is omitted or names a different Resource. Whether a client is granted a Resource's Scope is decided by the [access policy](./api-resource.md#two-level-check) for `authorization_code` and `refresh_token`, and by the [Client-Resource Association](./api-resource.md#client-resource-association) for `client_credentials`.
+
+The rule applies wherever `scope` creates a grant:
+
+- `/oauth2/authorize`
+- `/oauth2/token` with `client_credentials`, `urn:authgear:params:oauth:grant-type:biometric-request`, or `urn:ietf:params:oauth:grant-type:token-exchange` for a [pre-authenticated URL](./pre-authenticated-url.md)
+
+Dropping a scope has the same effect as not requesting it:
+
+- The consent screen lists only the scopes that remain.
+- Without `offline_access`, no refresh token is issued.
+- A request that requires a scope still fails when that scope is dropped, with the same error as when it is not requested.
+
+These still fail with `invalid_scope`, because they are malformed requests rather than scopes the client lacks:
+
+- `openid` is not requested, on any request other than `client_credentials`.
+- `https://authgear.com/scopes/pre-authenticated-url` is requested without `device_sso`.
+- A token request asks for a scope outside the grant it exchanges ([RFC 6749 §6](https://www.rfc-editor.org/rfc/rfc6749#section-6)).
+
+### Built-in scopes
+
+| Scope | Granted to |
+|---|---|
+| `openid`, `profile`, `email`, `phone`, `address`, `offline_access` | Every client except `m2m` |
+| `https://authgear.com/scopes/full-access` | `spa`, `native`, and `traditional_webapp` clients, and clients without `x_application_type` |
+| `https://authgear.com/scopes/full-userinfo` | First-party clients except `m2m` |
+| `device_sso`, `https://authgear.com/scopes/pre-authenticated-url` | Clients with `x_pre_authenticated_url_enabled: true` |
+
+An `m2m` client is granted no built-in scope.
 
 ## RP-Initiated Logout
 
@@ -585,7 +629,7 @@ The ID token will appear in the query of the URL in reauthentication.
 
 First-party confidential clients have `client_secret`. During code exchange, `client_secret` must be present.
 
-First-party confidential clients have NO access to privileged user operations, and CANNOT request the special scope value `https://authgear.com/scopes/full-access`.
+First-party confidential clients have NO access to privileged user operations, and are never granted the special scope value `https://authgear.com/scopes/full-access` (see [Scope Validation](#scope-validation)).
 
 ### Third-Party clients
 

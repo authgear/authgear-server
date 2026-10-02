@@ -244,7 +244,7 @@ scope=read:orders
 - Check if `grant_type` is supported, and it is `client_credentials`.
 - Authenticate the client by checking `client_id` and `client_secret`.
 - Validate `resource` refers to an existing Resource, and the Resource is associated with `client_id`.
-- Validate `scope` and check if it refers to the valid values as defined in `resource`, and is associated with `client_id`.
+- Validate `scope` as described in [Scope Validation](./oidc.md#scope-validation): a value that is not a Scope of `resource` is an error, and a Scope not associated with `client_id` is dropped.
 
 `https://auth.myapp.com` will return an `access_token` like this:
 
@@ -937,7 +937,7 @@ Payload
 - `invalid_grant`: When `grant_type` is invalid. Actually if the grant_type is, for example, `refresh_token`, the entire different flow is run.
 - `invalid_client`: When `client_id` is invalid, or `client_secret` is invalid.
 - `invalid_resource`: When `resource` is invalid, or it is not granted to `client_id`.
-- `invalid_scope`: When `scope` is invalid with respect to the combination of `client_id` and `resource`. That is, the requested scope of `resource` is not granted to `client_id`.
+- `invalid_scope`: When `scope` includes a value that is not a Scope of `resource`. A Scope of `resource` not granted to `client_id` is dropped instead; see [Scope Validation](./oidc.md#scope-validation).
 
 ### Changes in SDKs
 
