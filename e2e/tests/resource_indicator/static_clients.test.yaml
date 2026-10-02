@@ -135,10 +135,9 @@ steps:
 
 ---
 
-name: Static first-party client requesting a Scope without its own access policy key gets invalid_scope
+name: Static first-party client requesting a Scope without its own access policy key has the Scope dropped
 # The two-level check: the Resource admits the client's category, but the
-# Scope does not -- this must fail at /oauth2/authorize, before any code
-# is issued, not silently drop the scope.
+# Scope does not -- the request succeeds and the token omits the Scope.
 before:
   - type: user_import
     user_import: users.json
@@ -184,7 +183,106 @@ steps:
           "errors": null
         }
 
-  - name: authorize_with_disabled_scope
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2e
+    oauth_setup_scope:
+      - openid
+      - read:partial
+    oauth_setup_resource: https://api.example.com/partial
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: e2e
+    output:
+      result: |
+        {
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "aud": ["https://api.example.com/partial"],
+            "scope": "openid"
+          }
+        }
+
+---
+
+name: Static first-party client requesting a scope the Resource does not define gets invalid_scope
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/partial",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: authorize_with_unknown_scope
     action: http_request
     http_request_method: GET
     http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
@@ -192,7 +290,7 @@ steps:
       client_id: e2e
       response_type: code
       redirect_uri: http://localhost:4000
-      scope: "openid read:partial"
+      scope: "openid read:missing"
       resource: https://api.example.com/partial
       code_challenge_method: S256
       code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
