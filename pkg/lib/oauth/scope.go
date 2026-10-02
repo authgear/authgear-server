@@ -216,60 +216,68 @@ func ScopeAllowsClaim(scope string, claimName string) bool {
 	}
 }
 
-func ValidateScopes(scopes []string, allowedScopes []string) error {
+// ValidateScopes returns invalid_scope for the first scope not in knownScopes.
+func ValidateScopes(scopes []string, knownScopes []string) error {
 	for _, s := range scopes {
-		if !IsScopeAllowed(s, allowedScopes) {
-			return protocol.NewError("invalid_scope", fmt.Sprintf("specified scope is not allowed: %s", s))
+		if !IsScopeAllowed(s, knownScopes) {
+			return protocol.NewError("invalid_scope", fmt.Sprintf("unknown scope: %s", s))
 		}
 	}
 	return nil
 }
 
-// ValidateScopesByClientConfig validates scopes against the client's
-// allowed scopes. allowedResourceScopes is nil when no resource= was
-// requested; when non-empty, it is the resource-specific scope list of the
-// resource bound to this request (see docs/plans/dcr/2026-08-17-04-resource-access-policy.md
-// §5.2), additionally allowed on top of the normal AllowedScopes set. A
-// resource-specific scope requested without a matching resource is rejected
-// as invalid_scope by the ValidateScopes call below, since it is absent
-// from both lists.
-func ValidateScopesByClientConfig(client *config.OAuthClientConfig, scopes []string, allowedResourceScopes []string) error {
-	allowOfflineAccess := slices.Contains(GetAllowedGrantTypes(client), RefreshTokenGrantType)
-	hasOIDC := false
-	hasDeviceSSO := false
-	allowedScopes := AllowedScopes
-	if len(allowedResourceScopes) > 0 {
-		allowedScopes = append(slices.Clone(AllowedScopes), allowedResourceScopes...)
+// ValidateScopesByClientConfig rejects unknown scopes and malformed scope
+// combinations. knownResourceScopes is every scope of the requested
+// resource, or nil when no resource= was requested. Whether the client is
+// granted each scope is decided by GrantedScopes.
+func ValidateScopesByClientConfig(scopes []string, knownResourceScopes []string) error {
+	knownScopes := AllowedScopes
+	if len(knownResourceScopes) > 0 {
+		knownScopes = append(slices.Clone(AllowedScopes), knownResourceScopes...)
 	}
-	if err := ValidateScopes(scopes, allowedScopes); err != nil {
+	if err := ValidateScopes(scopes, knownScopes); err != nil {
 		return err
 	}
-	for _, s := range scopes {
-		if s == OfflineAccess && !allowOfflineAccess {
-			return protocol.NewError("invalid_scope", "offline access is not allowed for this client")
-		}
-		if s == FullAccessScope && !client.HasFullAccessScope() {
-			return protocol.NewError("invalid_scope", "full access is not allowed for this client")
-		}
-		if s == "openid" {
-			hasOIDC = true
-		}
-		if s == DeviceSSOScope {
-			hasDeviceSSO = true
-		}
-		// TODO(tung): Validate if device_sso is allowed by client config
-		if s == DeviceSSOScope && !client.PreAuthenticatedURLEnabled {
-			return protocol.NewError("invalid_scope", "device_sso is not allowed for this client")
-		}
-		if s == PreAuthenticatedURLScope && !hasDeviceSSO {
-			return protocol.NewError("invalid_scope", "device_sso must be requested when using pre-authenticated url")
-		}
-		if s == PreAuthenticatedURLScope && !client.PreAuthenticatedURLEnabled {
-			return protocol.NewError("invalid_scope", "pre-authenticated url is not allowed for this client")
-		}
+	if slices.Contains(scopes, PreAuthenticatedURLScope) && !slices.Contains(scopes, DeviceSSOScope) {
+		return protocol.NewError("invalid_scope", "device_sso must be requested when using pre-authenticated url")
 	}
-	if !hasOIDC {
+	if !slices.Contains(scopes, ScopeOpenID) {
 		return protocol.NewError("invalid_scope", "must request 'openid' scope")
 	}
 	return nil
+}
+
+// GrantedScopes returns scopes without those the client is not granted.
+// grantedResourceScopes is the scopes of the requested resource opened to
+// the client. See docs/specs/oidc.md § Scope Validation.
+func GrantedScopes(client *config.OAuthClientConfig, scopes []string, grantedResourceScopes []string) []string {
+	var granted []string
+	for _, s := range scopes {
+		if IsResourceScope(s) {
+			if slices.Contains(grantedResourceScopes, s) {
+				granted = append(granted, s)
+			}
+		} else if isBuiltinScopeGranted(client, s) {
+			granted = append(granted, s)
+		}
+	}
+	return granted
+}
+
+func isBuiltinScopeGranted(client *config.OAuthClientConfig, scope string) bool {
+	if client.ApplicationType == config.OAuthClientApplicationTypeM2M {
+		return false
+	}
+	switch scope {
+	case OfflineAccess:
+		return slices.Contains(GetAllowedGrantTypes(client), RefreshTokenGrantType)
+	case FullAccessScope:
+		return client.HasFullAccessScope()
+	case FullUserInfoScope:
+		return client.IsFirstParty()
+	case DeviceSSOScope, PreAuthenticatedURLScope:
+		return client.PreAuthenticatedURLEnabled
+	default:
+		return true
+	}
 }

@@ -1,6 +1,6 @@
 # API Resources and Scopes
 
-API Resources represent protected external services identified by HTTPS URIs. Together with their Scopes, they are the mechanism by which Authgear binds access tokens to specific audiences and controls what permissions a client may request.
+API Resources represent protected external services identified by HTTPS URIs. Together with their Scopes, they are the mechanism by which Authgear binds access tokens to specific audiences and controls what permissions a client is granted.
 
 Resources are shared across multiple features:
 
@@ -27,7 +27,7 @@ Which mechanism grants a Resource depends on the **grant**, and the two partitio
 
 **Scope** — a permission value defined on a Resource (e.g. `read:orders`). Scopes are local to their Resource; `read:orders` on `https://onlinestore.myapp.com` is a different permission from `read:orders` on `https://inventory.myapp.com`.
 
-**Client-Resource Association** — an explicit link between an OAuth client and a Resource, together with a subset of the Resource's Scopes that the client may request. Required by, and available only to, clients using the `client_credentials` grant.
+**Client-Resource Association** — an explicit link between an OAuth client and a Resource, together with a subset of the Resource's Scopes that the client is granted. Required by, and available only to, clients using the `client_credentials` grant.
 
 ## Resource URI Requirements
 
@@ -94,7 +94,7 @@ No client type is subject to both rules: `client_credentials` is `m2m`-only, and
 A client is permitted to request a scope only when **the same key** is `true` on both the Resource and the Scope:
 
 - **Resource level** — when `true` for the client's category, a client of that category may name the Resource URI in the `resource` parameter.
-- **Scope level** — when `true` for the client's category, a client of that category may request that scope. When `false` (the default), the scope is unrequestable even if the parent Resource allows the category.
+- **Scope level** — when `true` for the client's category, a client of that category is granted that scope. When `false` (the default), the scope is never granted, even if the parent Resource allows the category; requesting it drops it from the grant (see [Scope Validation](./oidc.md#scope-validation)).
 
 This allows fine-grained control: a Resource may expose `read:orders` to dynamic third-party clients while keeping `delete:orders` restricted, and may expose a further scope to first-party clients only.
 
@@ -136,7 +136,7 @@ Clients using `client_credentials` require explicit associations:
 2. The admin grants specific Scopes from that Resource to the client.
 3. The client may then request tokens using `resource=<uri>` and (optionally) `scope=<scopes>`.
 
-If a client requests a Resource it is not associated with, the server returns `invalid_target`. If a client requests a Scope not in its grant, the server returns `invalid_scope`. If no `scope` is specified, all scopes in the client's association are granted.
+If a client requests a Resource it is not associated with, the server returns `invalid_target`. A requested Scope of the Resource that is not in the association is dropped; see [Scope Validation](./oidc.md#scope-validation). If no `scope` is specified, all scopes in the client's association are granted.
 
 An association is consulted only by `client_credentials`. The `authorization_code` and `refresh_token` grants are governed by [`access_policy`](#access-policy) alone — see [Relationship to Client-Resource Association](#relationship-to-client-resource-association).
 

@@ -10,30 +10,98 @@ import (
 
 func TestValidateScopesByClientConfig(t *testing.T) {
 	Convey("ValidateScopesByClientConfig", t, func() {
-		client := &config.OAuthClientConfig{
-			ClientID:                       "client",
+		Convey("openid alone with nil knownResourceScopes is valid", func() {
+			err := ValidateScopesByClientConfig([]string{"openid"}, nil)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("every built-in scope is known, whoever the client is", func() {
+			err := ValidateScopesByClientConfig(AllowedScopes, nil)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("an unknown scope is invalid_scope", func() {
+			err := ValidateScopesByClientConfig([]string{"openid", "foobar"}, nil)
+			So(err, ShouldBeError, "unknown scope: foobar")
+		})
+
+		Convey("a resource-specific scope in knownResourceScopes is valid", func() {
+			err := ValidateScopesByClientConfig([]string{"openid", "read:orders"}, []string{"read:orders"})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("a resource-specific scope with no resource requested is invalid_scope", func() {
+			err := ValidateScopesByClientConfig([]string{"openid", "read:orders"}, nil)
+			So(err, ShouldBeError, "unknown scope: read:orders")
+		})
+
+		Convey("a resource-specific scope not defined by the requested resource is invalid_scope", func() {
+			err := ValidateScopesByClientConfig([]string{"openid", "read:orders"}, []string{"read:inventory"})
+			So(err, ShouldBeError, "unknown scope: read:orders")
+		})
+
+		Convey("missing openid is invalid_scope", func() {
+			err := ValidateScopesByClientConfig([]string{"profile"}, nil)
+			So(err, ShouldBeError, "must request 'openid' scope")
+		})
+
+		Convey("pre-authenticated-url without device_sso is invalid_scope", func() {
+			err := ValidateScopesByClientConfig([]string{"openid", PreAuthenticatedURLScope}, nil)
+			So(err, ShouldBeError, "device_sso must be requested when using pre-authenticated url")
+		})
+	})
+}
+
+func TestGrantedScopes(t *testing.T) {
+	Convey("GrantedScopes", t, func() {
+		spa := &config.OAuthClientConfig{
 			ApplicationType:                config.OAuthClientApplicationTypeSPA,
 			GrantTypes_do_not_use_directly: []string{"authorization_code", "refresh_token"},
 		}
 
-		Convey("baseline: openid alone with nil allowedResourceScopes is unchanged", func() {
-			err := ValidateScopesByClientConfig(client, []string{"openid"}, nil)
-			So(err, ShouldBeNil)
+		Convey("keeps every scope the client is granted, in request order", func() {
+			scopes := []string{"profile", "openid", OfflineAccess, FullAccessScope, FullUserInfoScope}
+			So(GrantedScopes(spa, scopes, nil), ShouldResemble, scopes)
 		})
 
-		Convey("a resource-specific scope matching allowedResourceScopes is allowed", func() {
-			err := ValidateScopesByClientConfig(client, []string{"openid", "read:orders"}, []string{"read:orders"})
-			So(err, ShouldBeNil)
+		Convey("keeps offline_access without refresh_token in grant_types, since it is always allowed", func() {
+			client := &config.OAuthClientConfig{ApplicationType: config.OAuthClientApplicationTypeSPA}
+			So(GrantedScopes(client, []string{"openid", OfflineAccess}, nil), ShouldResemble, []string{"openid", OfflineAccess})
 		})
 
-		Convey("a resource-specific scope with no matching resource (nil allowedResourceScopes) is invalid_scope", func() {
-			err := ValidateScopesByClientConfig(client, []string{"openid", "read:orders"}, nil)
-			So(err, ShouldBeError, "specified scope is not allowed: read:orders")
+		Convey("drops full-access for a confidential client", func() {
+			client := &config.OAuthClientConfig{ApplicationType: config.OAuthClientApplicationTypeConfidential}
+			So(GrantedScopes(client, []string{"openid", FullAccessScope}, nil), ShouldResemble, []string{"openid"})
 		})
 
-		Convey("a resource-specific scope not in the resource's own scope list is invalid_scope", func() {
-			err := ValidateScopesByClientConfig(client, []string{"openid", "read:orders"}, []string{"read:inventory"})
-			So(err, ShouldBeError, "specified scope is not allowed: read:orders")
+		Convey("drops full-access and full-userinfo for third-party clients", func() {
+			for _, typ := range []config.OAuthClientApplicationType{
+				config.OAuthClientApplicationTypeThirdPartyApp,
+				config.OAuthClientApplicationTypeDynamicThirdParty,
+			} {
+				client := &config.OAuthClientConfig{ApplicationType: typ}
+				So(GrantedScopes(client, []string{"openid", "email", FullAccessScope, FullUserInfoScope}, nil), ShouldResemble, []string{"openid", "email"})
+			}
+		})
+
+		Convey("drops device_sso and pre-authenticated-url unless pre-authenticated URL is enabled", func() {
+			scopes := []string{"openid", DeviceSSOScope, PreAuthenticatedURLScope}
+			So(GrantedScopes(spa, scopes, nil), ShouldResemble, []string{"openid"})
+
+			enabled := &config.OAuthClientConfig{
+				ApplicationType:            config.OAuthClientApplicationTypeSPA,
+				PreAuthenticatedURLEnabled: true,
+			}
+			So(GrantedScopes(enabled, scopes, nil), ShouldResemble, scopes)
+		})
+
+		Convey("drops every built-in scope for an m2m client", func() {
+			client := &config.OAuthClientConfig{ApplicationType: config.OAuthClientApplicationTypeM2M}
+			So(GrantedScopes(client, []string{"openid", "profile", "read:orders"}, []string{"read:orders"}), ShouldResemble, []string{"read:orders"})
+		})
+
+		Convey("keeps a resource-specific scope only when granted", func() {
+			So(GrantedScopes(spa, []string{"openid", "read:orders", "delete:orders"}, []string{"read:orders"}), ShouldResemble, []string{"openid", "read:orders"})
 		})
 	})
 }

@@ -56,7 +56,9 @@ The consent screen is **not** shown if there is an existing valid authorization 
 
 ## Scopes
 
-| Scope | Allowed | Notes |
+A scope marked **No** is dropped from the grant rather than rejected; see [Scope Validation](./oidc.md#scope-validation).
+
+| Scope | Granted | Notes |
 |---|---|---|
 | `openid` | Yes | Required |
 | `profile` | Yes | |

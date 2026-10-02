@@ -906,6 +906,21 @@ func (mr *MockTokenHandlerClientResourceScopeServiceMockRecorder) GetClientResou
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClientResourceScopes", reflect.TypeOf((*MockTokenHandlerClientResourceScopeService)(nil).GetClientResourceScopes), ctx, clientID, resourceID)
 }
 
+// ListResourceScopes mocks base method.
+func (m *MockTokenHandlerClientResourceScopeService) ListResourceScopes(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListResourceScopes", ctx, resourceID)
+	ret0, _ := ret[0].([]*resourcescope.Scope)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListResourceScopes indicates an expected call of ListResourceScopes.
+func (mr *MockTokenHandlerClientResourceScopeServiceMockRecorder) ListResourceScopes(ctx, resourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListResourceScopes", reflect.TypeOf((*MockTokenHandlerClientResourceScopeService)(nil).ListResourceScopes), ctx, resourceID)
+}
+
 // MockTokenHandlerAppDatabase is a mock of TokenHandlerAppDatabase interface.
 type MockTokenHandlerAppDatabase struct {
 	ctrl     *gomock.Controller
