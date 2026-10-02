@@ -107,7 +107,7 @@ steps:
       SELECT activity_type
       FROM _audit_log
       WHERE app_id = '{{ .AppID }}'
-      ORDER BY created_at, id
+      ORDER BY activity_type
     audit_query_output:
       rows: |
         [
