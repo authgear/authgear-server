@@ -62,7 +62,7 @@
     "@hotwired/turbo": "8.0.23",
     "@sentry/browser": "^10.25.0",
     "@tabler/icons": "^1.119.0",
-    "axios": "^1.18.0",
+    "axios": "^1.20.0",
     "cldr-localenames-full": "^47.0.0",
     "cropperjs": "^1.6.2",
     "intl-tel-input": "18.5.3",
