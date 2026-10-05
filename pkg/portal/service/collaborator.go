@@ -480,8 +480,20 @@ func (s *CollaboratorService) SendInvitation(
 	if err != nil {
 		return nil, err
 	}
+	normalizer, err := s.emailNormalizer(ctx)
+	if err != nil {
+		return nil, err
+	}
+	normalizedInviteeEmail, err := normalizer.Normalize(inviteeEmail)
+	if err != nil {
+		return nil, err
+	}
 	for _, i := range invitations {
-		if i.InviteeEmail == inviteeEmail {
+		normalized, err := normalizer.Normalize(i.InviteeEmail)
+		if err != nil {
+			return nil, err
+		}
+		if normalized == normalizedInviteeEmail {
 			return nil, ErrCollaboratorInvitationDuplicate
 		}
 	}
