@@ -84,9 +84,7 @@ The origin an Android app reports is accepted as specified in [webauthn.md](./we
 
 AuthUI offers no passkey autofill in an Android WebView, because the WebView does not support it; the passkey button is used instead.
 
-In an Android WebView, AuthUI hides every passkey option when `PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()` resolves to `false`, which is what the WebView reports when it cannot perform a ceremony, for example without the required Google Play services. The options are signing in with a passkey, signing up with a passkey, adding a passkey in settings, and the prompt to create a passkey after signing in, which is skipped. Other browsers keep today's behaviour, because a `false` there still allows a security key or a passkey on another device.
-
-A Custom UI in a WebView follows [Where a ceremony may run](./webauthn.md#where-a-ceremony-may-run), as it does in a browser, and needs no listing beyond `x_native_apps`: the operating system checks the app against the Relying Party ID, not against the Custom UI's host. The rule above for hiding passkey options applies to AuthUI only; a Custom UI shown in an Android WebView should apply the same check.
+A Custom UI in a WebView follows [Where a ceremony may run](./webauthn.md#where-a-ceremony-may-run), as it does in a browser, and needs no listing beyond `x_native_apps`: the operating system checks the app against the Relying Party ID, not against the Custom UI's host.
 
 The SDK does not switch to a Custom Tab when passkeys are unavailable. The user signs in with another method, and an app that prefers Custom Tabs chooses `CustomTabsUIImplementation`.
 
@@ -95,10 +93,13 @@ The SDK does not switch to a Custom Tab when passkeys are unavailable. The user 
 - iOS requires iOS 16.
 - Android requires an Android System WebView that supports WebAuthn. It updates through Google Play.
 - Android requires Google Play services 24.07 or newer, on every Android version, because the WebView checks for it before any ceremony ([Chromium source](https://chromium.googlesource.com/chromium/src/+/HEAD/components/webauthn/android/java/src/org/chromium/components/webauthn/GmsCoreUtils.java)). On a device without it, passkeys are unavailable in the WebView; other sign-in methods are unaffected.
+- Where the WebView cannot perform a ceremony, AuthUI still shows its passkey options, and using one fails with an error. This is today's behaviour in every Android WebView.
 - Changing `http.public_origin` changes the Relying Party ID, which makes existing passkeys unusable. This is existing behaviour. The association files follow the new public origin without further configuration.
 - Removing an app from `x_native_apps` takes effect at once on Android, because its origin is no longer accepted. On iOS the server cannot tell which app performed a ceremony, so the removal takes effect only when devices fetch the updated `apple-app-site-association`.
 - Apple fetches `apple-app-site-association` through its own CDN, so a change can take time to reach devices. During development, the app can append `?mode=developer` to the entitlement to fetch it directly.
 
 ## Future works
+
+**Hide passkey options where the WebView cannot use them.** In an Android WebView, `PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()` resolves to `false` when the WebView cannot perform a ceremony, for example without the required Google Play services. AuthUI could hide its passkey options in that case instead of letting them fail.
 
 **Native passkey.** Ceremonies performed by the app through the platform passkey APIs, without a WebView. It uses the same `x_native_apps`, and adds a Relying Party ID other than the host of `http.public_origin`.
