@@ -1,0 +1,165 @@
+name: A listed Android app's origin may perform a passkey ceremony
+# An Android app reports android:apk-key-hash:<hash of its signing certificate>
+# instead of a web origin. Each certificate in x_native_apps adds that origin to
+# the accepted origins; any other certificate's origin is rejected.
+#
+# 5TFyRO9isjATBOuJmgLnOSGGmeO_KPbYSJ9Mi4Dw4YQ is the hash of the listed
+# certificate E5:31:...:E1:84. i785YGGJMKRF89cJHnsbBQ-K_a8k6_HrLj0TiAn8eVk is
+# the hash of 8B:BF:...:79:59, which is not listed.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - passkey
+      primary_authenticators:
+      - password
+      - passkey
+    oauth:
+      clients:
+      - access_token_lifetime_seconds: 1800
+        client_id: e2e
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: native-app
+        redirect_uris:
+        - http://localhost:4000
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: native
+        x_native_apps:
+        - platform: android
+          package_name: com.example.app
+          sha256_cert_fingerprints:
+          - "E5:31:72:44:EF:62:B2:30:13:04:EB:89:9A:02:E7:39:21:86:99:E3:BF:28:F6:D8:48:9F:4C:8B:80:F0:E1:84"
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: username
+            steps:
+            - name: authenticate_primary_username
+              type: authenticate
+              one_of:
+              - authentication: primary_password
+          - identification: passkey
+        - type: check_account_status
+        - type: terminate_other_sessions
+        - type: prompt_create_passkey
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # --- Register a passkey at the public origin, by way of the upsell --------
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: upsell
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "prompt_create_passkey",
+            "data": {
+              "creation_options": "[[object]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "creation_response": {{ generatePasskeyAttestation .steps.upsell.result.action.data.creation_options (printf "http://%s.authgeare2e.localhost:4000" .AppID) }}
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # --- Sign in from an Android app ------------------------------------------
+  - name: identify
+    action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": "[[array]]"
+            }
+          }
+        }
+
+  # An app signed with a certificate that is not listed.
+  - action: input
+    input: |
+      {
+        "identification": "passkey",
+        "assertion_response": {{ generatePasskeyAssertion (index .steps.identify.result.action.data.options 1).request_options "android:apk-key-hash:i785YGGJMKRF89cJHnsbBQ-K_a8k6_HrLj0TiAn8eVk" }}
+      }
+    output:
+      error: |
+        {
+          "name": "Unauthorized",
+          "reason": "InvalidCredentials",
+          "code": 401
+        }
+
+  # The listed app.
+  - action: input
+    input: |
+      {
+        "identification": "passkey",
+        "assertion_response": {{ generatePasskeyAssertion (index .steps.identify.result.action.data.options 1).request_options "android:apk-key-hash:5TFyRO9isjATBOuJmgLnOSGGmeO_KPbYSJ9Mi4Dw4YQ" }}
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

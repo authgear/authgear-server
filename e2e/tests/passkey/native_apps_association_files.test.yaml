@@ -1,0 +1,75 @@
+name: x_native_apps serves the passkey association files
+# Each client's x_native_apps is merged into the two association files served
+# at the public origin. An Android app needs both relations for a passkey
+# sign-in, so both are generated for every Android entry.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - passkey
+      primary_authenticators:
+      - password
+      - passkey
+    oauth:
+      clients:
+      - access_token_lifetime_seconds: 1800
+        client_id: e2e
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: native-app
+        redirect_uris:
+        - http://localhost:4000
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: native
+        x_native_apps:
+        - platform: ios
+          team_id: ABCDE12345
+          bundle_id: com.example.app
+        - platform: android
+          package_name: com.example.app
+          sha256_cert_fingerprints:
+          - "e5:31:72:44:ef:62:b2:30:13:04:eb:89:9a:02:e7:39:21:86:99:e3:bf:28:f6:d8:48:9f:4c:8b:80:f0:e1:84"
+steps:
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/apple-app-site-association
+    http_output:
+      http_status: 200
+      headers:
+        content-type: application/json
+      json_body: |
+        {
+          "webcredentials": {
+            "apps": ["ABCDE12345.com.example.app"]
+          }
+        }
+
+  # The fingerprint is configured in lower case and served in upper case.
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/assetlinks.json
+    http_output:
+      http_status: 200
+      headers:
+        content-type: application/json
+      json_body: |
+        [
+          {
+            "relation": [
+              "delegate_permission/common.handle_all_urls",
+              "delegate_permission/common.get_login_creds"
+            ],
+            "target": {
+              "namespace": "android_app",
+              "package_name": "com.example.app",
+              "sha256_cert_fingerprints": [
+                "E5:31:72:44:EF:62:B2:30:13:04:EB:89:9A:02:E7:39:21:86:99:E3:BF:28:F6:D8:48:9F:4C:8B:80:F0:E1:84"
+              ]
+            }
+          }
+        ]
