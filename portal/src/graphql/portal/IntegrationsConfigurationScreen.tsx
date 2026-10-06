@@ -6,7 +6,15 @@ import React, {
   useState,
 } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Button, Dialog, Flex, Heading, Select, Text } from "@radix-ui/themes";
+import {
+  Button,
+  Dialog,
+  Flex,
+  Heading,
+  Select,
+  Text,
+  VisuallyHidden,
+} from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
 import { produce } from "immer";
 import {
@@ -53,6 +61,7 @@ import {
   applyDatadogConnect,
   applyDatadogDelete,
   applyDatadogEdit,
+  datadogAppOrigin,
   findManagedDatadogStream,
   formValueToSite,
   remainingStreamNames,
@@ -63,8 +72,7 @@ import styles from "./IntegrationsConfigurationScreen.module.css";
 import gtmLogoURL from "../../images/gtm_logo.png";
 import datadogLogoURL from "../../images/datadog_logo.svg";
 
-const DATADOG_API_KEYS_URL =
-  "https://app.datadoghq.com/organization-settings/api-keys";
+const DATADOG_API_KEYS_PATH = "/organization-settings/api-keys";
 
 const MASKED_SECRET = "***************";
 
@@ -458,6 +466,7 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
     const [datadogApiKeyEditing, setDatadogApiKeyEditing] = useState(false);
     const datadogSiteSelectID = useId();
     const datadogApiKeyInputID = useId();
+    const datadogSiteOtherInputID = useId();
 
     // Revealing the key needs a reauth redirect, which unmounts this dialog.
     const [
@@ -665,6 +674,13 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
     );
 
     const isDatadogSiteOther = datadogDraft.siteOption === DATADOG_SITE_OTHER;
+    // Endpoint streams have no site; an empty Other value also falls back.
+    const datadogAPIKeysURL =
+      datadogAppOrigin(
+        datadogDraft.usesEndpoint
+          ? ""
+          : formValueToSite(datadogDraft.siteOption, datadogDraft.siteOther)
+      ) + DATADOG_API_KEYS_PATH;
 
     return (
       <ScreenLayoutScrollView>
@@ -853,15 +869,23 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
                       </Select.Root>
                     </FormField>
                     {isDatadogSiteOther ? (
-                      <TextField
-                        size="2"
-                        placeholder={renderToString(
-                          "IntegrationsConfigurationScreen.add-on.datadog.dialog.site.other.placeholder"
-                        )}
-                        value={datadogDraft.siteOther}
-                        onChange={onDatadogSiteOtherChange}
-                        error={localSiteOtherError ?? datadogSiteError}
-                      />
+                      <>
+                        <VisuallyHidden>
+                          <label htmlFor={datadogSiteOtherInputID}>
+                            <FormattedMessage id="IntegrationsConfigurationScreen.add-on.datadog.dialog.site.label" />
+                          </label>
+                        </VisuallyHidden>
+                        <TextField
+                          id={datadogSiteOtherInputID}
+                          size="2"
+                          placeholder={renderToString(
+                            "IntegrationsConfigurationScreen.add-on.datadog.dialog.site.other.placeholder"
+                          )}
+                          value={datadogDraft.siteOther}
+                          onChange={onDatadogSiteOtherChange}
+                          error={localSiteOtherError ?? datadogSiteError}
+                        />
+                      </>
                     ) : null}
                   </>
                 )}
@@ -879,7 +903,7 @@ const IntegrationsConfigurationContent: React.VFC<IntegrationsConfigurationConte
                       values={{
                         // eslint-disable-next-line react/no-unstable-nested-components
                         ExternalLink: (chunks: React.ReactNode) => (
-                          <ExternalLink href={DATADOG_API_KEYS_URL}>
+                          <ExternalLink href={datadogAPIKeysURL}>
                             {chunks}
                           </ExternalLink>
                         ),

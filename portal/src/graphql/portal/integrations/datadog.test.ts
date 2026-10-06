@@ -10,6 +10,9 @@ import {
   remainingStreamNames,
   siteToFormValue,
   DATADOG_SITE_OTHER,
+  DATADOG_SITE_OPTIONS,
+  DATADOG_DEFAULT_SITE,
+  datadogAppOrigin,
 } from "./datadog";
 
 const syslog = {
@@ -129,5 +132,40 @@ describe("datadog helpers", () => {
       "us2.ddog-gov.com"
     );
     expect(formValueToSite("datadoghq.eu", "ignored")).toBe("datadoghq.eu");
+  });
+});
+
+describe("datadogAppOrigin", () => {
+  it.each(DATADOG_SITE_OPTIONS.map((o) => [o.site]))(
+    "serves option site %s at its app origin",
+    (site) => {
+      const labels = site.split(".");
+      expect(datadogAppOrigin(site)).toBe(
+        labels.length === 2 ? `https://app.${site}` : `https://${site}`
+      );
+    }
+  );
+
+  it("maps known sites explicitly", () => {
+    expect(datadogAppOrigin("datadoghq.com")).toBe("https://app.datadoghq.com");
+    expect(datadogAppOrigin("datadoghq.eu")).toBe("https://app.datadoghq.eu");
+    expect(datadogAppOrigin("ddog-gov.com")).toBe("https://app.ddog-gov.com");
+    expect(datadogAppOrigin("us3.datadoghq.com")).toBe(
+      "https://us3.datadoghq.com"
+    );
+    expect(datadogAppOrigin("ap2.datadoghq.com")).toBe(
+      "https://ap2.datadoghq.com"
+    );
+    expect(datadogAppOrigin("us2.ddog-gov.com")).toBe(
+      "https://us2.ddog-gov.com"
+    );
+  });
+
+  it("falls back to the default site when empty or invalid", () => {
+    const fallback = datadogAppOrigin(DATADOG_DEFAULT_SITE);
+    expect(datadogAppOrigin("")).toBe(fallback);
+    expect(datadogAppOrigin("  ")).toBe(fallback);
+    expect(datadogAppOrigin("not a host")).toBe(fallback);
+    expect(datadogAppOrigin("localhost")).toBe(fallback);
   });
 });

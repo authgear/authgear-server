@@ -15,7 +15,7 @@ export interface DatadogSiteOption {
 }
 
 export const DATADOG_SITE_OPTIONS: DatadogSiteOption[] = [
-  { site: "datadoghq.com", label: "US1" },
+  { site: DATADOG_DEFAULT_SITE, label: "US1" },
   { site: "us3.datadoghq.com", label: "US3" },
   { site: "us5.datadoghq.com", label: "US5" },
   { site: "datadoghq.eu", label: "EU1" },
@@ -62,6 +62,20 @@ export function siteToFormValue(site: string | undefined): {
 
 export function formValueToSite(option: string, other: string): string {
   return option === DATADOG_SITE_OTHER ? other.trim() : option;
+}
+
+const DATADOG_HOST_PATTERN = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
+
+// Datadog serves a bare two-label site at app.<site> and a regional site at
+// <site> itself. Orgs live on one site, so the link must follow the site.
+export function datadogAppOrigin(site: string): string {
+  let host = site.trim().toLowerCase();
+  if (!DATADOG_HOST_PATTERN.test(host)) {
+    host = DATADOG_DEFAULT_SITE;
+  }
+  return host.split(".").length === 2
+    ? `https://app.${host}`
+    : `https://${host}`;
 }
 
 export function applyDatadogConnect(
