@@ -197,6 +197,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"policy_uri": { "type": "string", "format": "uri" },
 		"tos_uri": { "type": "string", "format": "uri" },
 		"x_custom_ui_uri": { "type": "string", "format": "uri" },
+		"x_native_apps": { "type": "array", "items": { "$ref": "#/$defs/OAuthClientNativeAppConfig" } },
 		"x_app2app_enabled": { "type": "boolean" },
 		"x_app2app_insecure_device_key_binding_enabled": { "type": "boolean" },
 		"x_dpop_disabled": { "type": "boolean" },
@@ -277,36 +278,106 @@ var _ = Schema.Add("OAuthClientConfig", `
 }
 `)
 
+var _ = Schema.Add("OAuthClientNativeAppConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"platform": { "type": "string", "enum": ["ios", "android"] },
+		"team_id": { "type": "string", "pattern": "^[A-Z0-9]{10}$" },
+		"bundle_id": { "type": "string", "minLength": 1 },
+		"package_name": { "type": "string", "minLength": 1 },
+		"sha256_cert_fingerprints": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "type": "string", "pattern": "^([0-9A-Fa-f]{2}:){31}[0-9A-Fa-f]{2}$" }
+		}
+	},
+	"required": ["platform"],
+	"allOf": [
+		{
+			"if": {
+				"properties": { "platform": { "const": "ios" } },
+				"required": ["platform"]
+			},
+			"then": {
+				"required": ["team_id", "bundle_id"],
+				"not": {
+					"anyOf": [
+						{ "required": ["package_name"] },
+						{ "required": ["sha256_cert_fingerprints"] }
+					]
+				}
+			}
+		},
+		{
+			"if": {
+				"properties": { "platform": { "const": "android" } },
+				"required": ["platform"]
+			},
+			"then": {
+				"required": ["package_name", "sha256_cert_fingerprints"],
+				"not": {
+					"anyOf": [
+						{ "required": ["team_id"] },
+						{ "required": ["bundle_id"] }
+					]
+				}
+			}
+		}
+	]
+}
+`)
+
+// OAuthClientNativeAppPlatform is the platform of an entry in x_native_apps.
+type OAuthClientNativeAppPlatform string
+
+const (
+	OAuthClientNativeAppPlatformIOS     OAuthClientNativeAppPlatform = "ios"
+	OAuthClientNativeAppPlatformAndroid OAuthClientNativeAppPlatform = "android"
+)
+
+// OAuthClientNativeAppConfig identifies a mobile app that may perform passkey
+// ceremonies for the project. See docs/specs/passkey-webview.md.
+type OAuthClientNativeAppConfig struct {
+	Platform               OAuthClientNativeAppPlatform `json:"platform"`
+	TeamID                 string                       `json:"team_id,omitempty"`
+	BundleID               string                       `json:"bundle_id,omitempty"`
+	PackageName            string                       `json:"package_name,omitempty"`
+	SHA256CertFingerprints []string                     `json:"sha256_cert_fingerprints,omitempty"`
+}
+
 type OAuthClientConfig struct {
 	ClientID  string `json:"client_id,omitempty"`
 	ClientURI string `json:"client_uri,omitempty"`
 	// client_name is for 3rd party app only. Use `name` for display name
-	ClientName                             string                       `json:"client_name,omitempty"`
-	Name                                   string                       `json:"name,omitempty"`
-	ApplicationType                        OAuthClientApplicationType   `json:"x_application_type,omitempty"`
-	Framework                              string                       `json:"x_framework,omitempty"`
-	MaxConcurrentSession                   int                          `json:"x_max_concurrent_session,omitempty"`
-	RedirectURIs                           []string                     `json:"redirect_uris,omitempty"`
-	GrantTypes_do_not_use_directly         []string                     `json:"grant_types,omitempty"`
-	ResponseTypes                          []string                     `json:"response_types,omitempty"`
-	PostLogoutRedirectURIs                 []string                     `json:"post_logout_redirect_uris,omitempty"`
-	AccessTokenLifetime                    DurationSeconds              `json:"access_token_lifetime_seconds,omitempty"`
-	RefreshTokenLifetime                   DurationSeconds              `json:"refresh_token_lifetime_seconds,omitempty"`
-	RefreshTokenIdleTimeoutEnabled         *bool                        `json:"refresh_token_idle_timeout_enabled,omitempty"`
-	RefreshTokenIdleTimeout                DurationSeconds              `json:"refresh_token_idle_timeout_seconds,omitempty"`
-	RefreshTokenRotationEnabled            bool                         `json:"refresh_token_rotation_enabled,omitempty"`
-	IssueJWTAccessToken                    bool                         `json:"issue_jwt_access_token,omitempty"`
-	PolicyURI                              string                       `json:"policy_uri,omitempty"`
-	TOSURI                                 string                       `json:"tos_uri,omitempty"`
-	CustomUIURI                            string                       `json:"x_custom_ui_uri,omitempty"`
-	App2appEnabled                         bool                         `json:"x_app2app_enabled,omitempty"`
-	App2appInsecureDeviceKeyBindingEnabled bool                         `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
-	DPoPDisabled                           bool                         `json:"x_dpop_disabled,omitempty"`
-	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist `json:"x_authentication_flow_allowlist,omitempty"`
-	PreAuthenticatedURLEnabled             bool                         `json:"x_pre_authenticated_url_enabled,omitempty"`
-	PreAuthenticatedURLAllowedOrigins      []string                     `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
-	LogoURI                                string                       `json:"logo_uri,omitempty"`
-	ReplaceProjectLogoWithLogoURI          bool                         `json:"x_replace_project_logo_with_logo_uri,omitempty"`
+	ClientName                             string                        `json:"client_name,omitempty"`
+	Name                                   string                        `json:"name,omitempty"`
+	ApplicationType                        OAuthClientApplicationType    `json:"x_application_type,omitempty"`
+	Framework                              string                        `json:"x_framework,omitempty"`
+	MaxConcurrentSession                   int                           `json:"x_max_concurrent_session,omitempty"`
+	RedirectURIs                           []string                      `json:"redirect_uris,omitempty"`
+	GrantTypes_do_not_use_directly         []string                      `json:"grant_types,omitempty"`
+	ResponseTypes                          []string                      `json:"response_types,omitempty"`
+	PostLogoutRedirectURIs                 []string                      `json:"post_logout_redirect_uris,omitempty"`
+	AccessTokenLifetime                    DurationSeconds               `json:"access_token_lifetime_seconds,omitempty"`
+	RefreshTokenLifetime                   DurationSeconds               `json:"refresh_token_lifetime_seconds,omitempty"`
+	RefreshTokenIdleTimeoutEnabled         *bool                         `json:"refresh_token_idle_timeout_enabled,omitempty"`
+	RefreshTokenIdleTimeout                DurationSeconds               `json:"refresh_token_idle_timeout_seconds,omitempty"`
+	RefreshTokenRotationEnabled            bool                          `json:"refresh_token_rotation_enabled,omitempty"`
+	IssueJWTAccessToken                    bool                          `json:"issue_jwt_access_token,omitempty"`
+	PolicyURI                              string                        `json:"policy_uri,omitempty"`
+	TOSURI                                 string                        `json:"tos_uri,omitempty"`
+	CustomUIURI                            string                        `json:"x_custom_ui_uri,omitempty"`
+	NativeApps                             []*OAuthClientNativeAppConfig `json:"x_native_apps,omitempty"`
+	App2appEnabled                         bool                          `json:"x_app2app_enabled,omitempty"`
+	App2appInsecureDeviceKeyBindingEnabled bool                          `json:"x_app2app_insecure_device_key_binding_enabled,omitempty"`
+	DPoPDisabled                           bool                          `json:"x_dpop_disabled,omitempty"`
+	AuthenticationFlowAllowlist            *AuthenticationFlowAllowlist  `json:"x_authentication_flow_allowlist,omitempty"`
+	PreAuthenticatedURLEnabled             bool                          `json:"x_pre_authenticated_url_enabled,omitempty"`
+	PreAuthenticatedURLAllowedOrigins      []string                      `json:"x_pre_authenticated_url_allowed_origins,omitempty"`
+	LogoURI                                string                        `json:"logo_uri,omitempty"`
+	ReplaceProjectLogoWithLogoURI          bool                          `json:"x_replace_project_logo_with_logo_uri,omitempty"`
 
 	// IsDynamic is set only by oauthclient.Client.ToClientConfig when
 	// synthesizing this struct for a DCR/CIMD-resolved client -- never part
