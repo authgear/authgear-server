@@ -1004,19 +1004,80 @@ type TelemetryAuditLogStreamSecretsUpdateInstructionCleanupData struct {
 	KeepStreamNames []string `json:"keepStreamNames,omitempty"`
 }
 
+type TelemetryAuditLogStreamSecretsUpdateInstructionDatadogItem struct {
+	StreamName string `json:"streamName,omitempty"`
+	APIKey     string `json:"apiKey,omitempty"`
+}
+
+type TelemetryAuditLogStreamSecretsUpdateInstructionSetData struct {
+	Datadog []TelemetryAuditLogStreamSecretsUpdateInstructionDatadogItem `json:"datadog,omitempty"`
+}
+
 type TelemetryAuditLogStreamSecretsUpdateInstruction struct {
 	Action SecretUpdateInstructionAction `json:"action,omitempty"`
 
+	SetData     *TelemetryAuditLogStreamSecretsUpdateInstructionSetData     `json:"setData,omitempty"`
 	CleanupData *TelemetryAuditLogStreamSecretsUpdateInstructionCleanupData `json:"cleanupData,omitempty"`
 }
 
 func (i *TelemetryAuditLogStreamSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
 	switch i.Action {
+	case SecretUpdateInstructionActionSet:
+		return i.set(currentConfig)
 	case SecretUpdateInstructionActionCleanup:
 		return i.cleanup(currentConfig)
 	default:
 		return nil, fmt.Errorf("config: unexpected action for TelemetryAuditLogStreamSecretsUpdateInstruction: %s", i.Action)
 	}
+}
+
+// set adds or replaces the datadog key of each named stream, leaving
+// keys of other streams and the tls secret untouched.
+func (i *TelemetryAuditLogStreamSecretsUpdateInstruction) set(currentConfig *SecretConfig) (*SecretConfig, error) {
+	if i.SetData == nil {
+		return nil, fmt.Errorf("config: missing setData for TelemetryAuditLogStreamSecretsUpdateInstruction")
+	}
+
+	out := &SecretConfig{}
+	out.Secrets = make([]SecretItem, len(currentConfig.Secrets))
+	copy(out.Secrets, currentConfig.Secrets)
+
+	var items []TelemetryAuditLogStreamDatadogCredentialsItem
+	idx, existing, found := out.Lookup(TelemetryAuditLogStreamDatadogCredentialsKey)
+	if found {
+		// RawData, not Data, for the reason given on pruneTelemetryAuditLogStreamSecretItems.
+		if err := json.Unmarshal(existing.RawData, &items); err != nil {
+			return nil, err
+		}
+	}
+
+	for _, d := range i.SetData.Datadog {
+		replaced := false
+		for j := range items {
+			if items[j].StreamName == d.StreamName {
+				items[j].APIKey = d.APIKey
+				replaced = true
+			}
+		}
+		if !replaced {
+			items = append(items, TelemetryAuditLogStreamDatadogCredentialsItem{
+				StreamName: d.StreamName,
+				APIKey:     d.APIKey,
+			})
+		}
+	}
+
+	data, err := json.Marshal(items)
+	if err != nil {
+		return nil, err
+	}
+	newItem := SecretItem{Key: TelemetryAuditLogStreamDatadogCredentialsKey, RawData: json.RawMessage(data)}
+	if found {
+		out.Secrets[idx] = newItem
+	} else {
+		out.Secrets = append(out.Secrets, newItem)
+	}
+	return out, nil
 }
 
 // cleanup prunes both telemetry.audit_logs.streams.tls and
