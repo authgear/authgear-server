@@ -1,0 +1,92 @@
+name: userinfo resolves the token's own user (resolver user-match guard allows legit tokens)
+# Guards the resolver backstop (grant.UserID must equal the bound session's
+# user) against false positives: an ordinary token issued by a normal login
+# must still resolve, and /oauth2/userinfo must report that same user -- not an
+# error, and not anyone else.
+steps:
+  - name: user_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2e
+    oauth_setup_scope:
+      - openid
+      - offline_access
+
+  - name: user_create_signup
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default",
+        "url_query": "{{ .steps.user_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: user_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "legit_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: user_set_password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: user_exchange
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.user_oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.user_set_password.result.action.data.finish_redirect_uri }}"
+    output:
+      result: |
+        {
+          "access_token": "[[string]]",
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+
+  - name: userinfo_resolves_same_user
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/userinfo
+    http_request_follow_redirects: false
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.user_exchange.result.access_token }}"
+    http_output:
+      http_status: 200
+      # userinfo must resolve to the one user in this test (legit_user), proving
+      # the resolver's user-match guard allows a legitimately issued token. The
+      # sub is non-deterministic, so pin identity via preferred_username.
+      json_body: |
+        {
+          "sub": "[[string]]",
+          "preferred_username": "legit_user"
+        }
