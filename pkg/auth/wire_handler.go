@@ -13,6 +13,7 @@ import (
 	handlersaml "github.com/authgear/authgear-server/pkg/auth/handler/saml"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
+	handlerwellknown "github.com/authgear/authgear-server/pkg/auth/handler/wellknown"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -98,6 +99,20 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handleroauth.MetadataHandler)),
+	))
+}
+
+func newAppleAppSiteAssociationHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwellknown.AppleAppSiteAssociationHandler)),
+	))
+}
+
+func newAssetLinksHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwellknown.AssetLinksHandler)),
 	))
 }
 

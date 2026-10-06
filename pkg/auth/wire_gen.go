@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/handler/wellknown"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/latte/proofofphonenumberverification"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
@@ -4822,6 +4823,30 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 		Providers: v,
 	}
 	return metadataHandler
+}
+
+func newAppleAppSiteAssociationHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
+	appleAppSiteAssociationHandler := &wellknown.AppleAppSiteAssociationHandler{
+		OAuthConfig: oAuthConfig,
+	}
+	return appleAppSiteAssociationHandler
+}
+
+func newAssetLinksHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
+	assetLinksHandler := &wellknown.AssetLinksHandler{
+		OAuthConfig: oAuthConfig,
+	}
+	return assetLinksHandler
 }
 
 func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
