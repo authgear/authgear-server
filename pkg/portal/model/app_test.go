@@ -23,15 +23,26 @@ secrets:
 `))
 		So(err, ShouldBeNil)
 
-		out, err := NewSecretConfig(cfg, []config.SecretKey{config.TelemetryAuditLogStreamDatadogCredentialsKey}, time.Now())
-		So(err, ShouldBeNil)
-		So(out.TelemetryAuditLogStreamSecrets, ShouldResemble, &TelemetryAuditLogStreamSecrets{
-			Datadog: []TelemetryAuditLogStreamDatadogSecret{{StreamName: "datadog"}},
+		Convey("masks the API key without a visit token", func() {
+			out, err := NewSecretConfig(cfg, []config.SecretKey{}, time.Now())
+			So(err, ShouldBeNil)
+			So(out.TelemetryAuditLogStreamSecrets, ShouldResemble, &TelemetryAuditLogStreamSecrets{
+				Datadog: []TelemetryAuditLogStreamDatadogSecret{{StreamName: "datadog"}},
+			})
+
+			b, err := json.Marshal(out)
+			So(err, ShouldBeNil)
+			So(string(b), ShouldNotContainSubstring, "super-secret-key")
 		})
 
-		b, err := json.Marshal(out)
-		So(err, ShouldBeNil)
-		So(string(b), ShouldNotContainSubstring, "super-secret-key")
+		Convey("reveals the API key when unmasked", func() {
+			out, err := NewSecretConfig(cfg, []config.SecretKey{config.TelemetryAuditLogStreamDatadogCredentialsKey}, time.Now())
+			So(err, ShouldBeNil)
+			So(out.TelemetryAuditLogStreamSecrets.Datadog, ShouldHaveLength, 1)
+			So(out.TelemetryAuditLogStreamSecrets.Datadog[0].StreamName, ShouldEqual, "datadog")
+			So(out.TelemetryAuditLogStreamSecrets.Datadog[0].APIKey, ShouldNotBeNil)
+			So(*out.TelemetryAuditLogStreamSecrets.Datadog[0].APIKey, ShouldEqual, "super-secret-key")
+		})
 	})
 
 	Convey("NewPortalFeatureConfig passes telemetry through", t, func() {

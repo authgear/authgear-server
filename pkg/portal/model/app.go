@@ -160,7 +160,8 @@ type SMSProviderSecrets struct {
 }
 
 type TelemetryAuditLogStreamDatadogSecret struct {
-	StreamName string `json:"streamName,omitempty"`
+	StreamName string  `json:"streamName,omitempty"`
+	APIKey     *string `json:"apiKey,omitempty"`
 }
 
 type TelemetryAuditLogStreamSecrets struct {
@@ -366,11 +367,16 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 	}
 	out.SMSProviderSecrets = smsProviderSecrets
 
-	// The API key is write-only through the portal; only the stream names are exposed.
 	if creds, ok := secretConfig.LookupData(config.TelemetryAuditLogStreamDatadogCredentialsKey).(*config.TelemetryAuditLogStreamDatadogCredentials); ok {
+		_, unmask := unmaskedSecretsSet[config.TelemetryAuditLogStreamDatadogCredentialsKey]
 		secrets := &TelemetryAuditLogStreamSecrets{}
 		for _, item := range *creds {
-			secrets.Datadog = append(secrets.Datadog, TelemetryAuditLogStreamDatadogSecret{StreamName: item.StreamName})
+			secret := TelemetryAuditLogStreamDatadogSecret{StreamName: item.StreamName}
+			if unmask {
+				apiKey := item.APIKey
+				secret.APIKey = &apiKey
+			}
+			secrets.Datadog = append(secrets.Datadog, secret)
 		}
 		out.TelemetryAuditLogStreamSecrets = secrets
 	}

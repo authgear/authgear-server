@@ -179,6 +179,9 @@ enum AppSecretKey {
   SMTP_SECRET
 
   """"""
+  TELEMETRY_AUDIT_LOG_STREAM_SECRETS
+
+  """"""
   WEBHOOK_SECRET
 }
 
@@ -1295,6 +1298,9 @@ type SubscriptionUsageItem {
 
 """"""
 type TelemetryAuditLogStreamDatadogSecret {
+  """"""
+  apiKey: String
+
   """"""
   streamName: String!
 }

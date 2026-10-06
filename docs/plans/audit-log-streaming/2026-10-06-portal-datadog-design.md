@@ -48,10 +48,16 @@ type TelemetryAuditLogStreamSecrets {
 
 type TelemetryAuditLogStreamDatadogSecret {
   streamName: String!
+  apiKey: String
+}
+
+enum AppSecretKey {
+  # existing values ...
+  TELEMETRY_AUDIT_LOG_STREAM_SECRETS
 }
 ```
 
-The API key is never returned. The portal only needs to know that a key exists for the managed stream.
+`apiKey` is `null` unless the query carries a secret visit token for `TELEMETRY_AUDIT_LOG_STREAM_SECRETS`, which requires reauthentication, the same as `BOT_PROTECTION_PROVIDER_SECRET`. The token reveals the datadog API keys only, never the tls key.
 
 ### Write: `SecretConfigUpdateInstructionsInput`
 
@@ -97,8 +103,8 @@ Every flow is **one** app update that carries both the `authgear.yaml` change an
 | Action | `authgear.yaml` | Secret instruction |
 |---|---|---|
 | Connect | Append the managed stream. | `set` with `{streamName, apiKey}`. |
-| Edit, API key left blank | Update `datadog.site`. | None. |
-| Edit, new API key entered | Update `datadog.site`. | `set` with the new key. |
+| Edit, API key unchanged | Update `datadog.site`. | None. |
+| Edit, API key changed | Update `datadog.site`. | `set` with the new key. |
 | Delete | Remove the managed stream. | `cleanup` with the names of every remaining stream. |
 
 ## UI
@@ -108,16 +114,16 @@ Every flow is **one** app update that carries both the `authgear.yaml` change an
 **Dialog**, the same structure as the GTM dialog:
 
 - **Site:** a dropdown of US1 `datadoghq.com` (the default), US3 `us3.datadoghq.com`, US5 `us5.datadoghq.com`, EU1 `datadoghq.eu`, AP1 `ap1.datadoghq.com`, AP2 `ap2.datadoghq.com`, UK1 `uk1.datadoghq.com`, US1-FED `ddog-gov.com`, and **Other**. Choosing Other reveals a text field for any site parameter. A stored site not in the list opens as Other with that value filled in.
-- **API key:** a password field.
-  - **On Connect:** required.
-  - **On Edit:** empty, with the hint "Leave blank to keep the current key".
+- **API key:** a text field.
+  - **On Connect:** empty and required.
+  - **On Edit:** read-only, with an Edit button. After reauthentication it shows the current key; before, a masked value. Edit on a masked key reauthenticates first, then reopens the dialog with the unsaved site choice kept and the key revealed. Once unlocked, the key is required.
   - **Help text:** this must be an API key, not an application key, with a link to Datadog's API keys page.
 - **Note:** "Logs appear in Datadog within about a minute." A wrong key or site is only detected when logs are delivered, never when saving.
 - **Buttons:** Delete (only when connected), Cancel, Save.
 
 **Validation:**
 
-- **In the browser:** API key required on Connect; Other site non-empty after trimming.
+- **In the browser:** API key non-blank on Connect and on Edit; Other site non-empty after trimming.
 - **From the server:** errors on `/telemetry/audit_logs/streams/<i>/datadog/site` show on the site field. Any other error shows at the top of the dialog.
 
 The screen moves from `useAppConfigForm` to `useAppSecretConfigForm`. GTM behaviour does not change.
@@ -125,7 +131,7 @@ The screen moves from `useAppConfigForm` to `useAppSecretConfigForm`. GTM behavi
 ## Testing
 
 - **Config tests:** cases for the `set` action in `pkg/lib/config/testdata/secret_update_instruction.yaml`: add, replace, other streams untouched, tls untouched, and `cleanup` with `keepStreamNames: []`.
-- **Portal model tests:** `SecretConfig` lists datadog stream names and never includes `api_key`.
+- **Portal model tests:** `SecretConfig` lists datadog stream names, and includes the API key only when unmasked.
 - **Generated files:** regenerated with `make export-schemas` and portal `npm run gentype`.
 - **Portal checks:** `npm run typecheck` and `make -C portal lint`.
 - **e2e:** no new test. Delivery is already covered by `e2e/tests/audit_log_streaming_datadog`.

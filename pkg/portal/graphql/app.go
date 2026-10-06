@@ -114,6 +114,7 @@ var telemetryAuditLogStreamDatadogSecret = graphql.NewObject(graphql.ObjectConfi
 	Name: "TelemetryAuditLogStreamDatadogSecret",
 	Fields: graphql.Fields{
 		"streamName": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+		"apiKey":     &graphql.Field{Type: graphql.String},
 	},
 })
 
@@ -260,17 +261,15 @@ var smsProviderSecret = graphql.NewObject(graphql.ObjectConfig{
 type AppSecretKey string
 
 const (
-	AppSecretKeyOauthSSOProviderClientSecrets AppSecretKey = "oauthSSOProviderClientSecrets" // nolint:gosec
-	AppSecretKeyWebhookSecret                 AppSecretKey = "webhookSecret"
-	AppSecretKeyAdminAPISecrets               AppSecretKey = "adminAPISecrets"
-	AppSecretKeySmtpSecret                    AppSecretKey = "smtpSecret"
-	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets" // nolint:gosec
-	AppSecretKeyBotProtectionProviderSecret   AppSecretKey = "botProtectionProviderSecret"
-	AppSecretKeySAMLIdpSigningSecrets         AppSecretKey = "samlIdpSigningSecrets" // nolint:gosec
-	AppSecretKeySAMLSpSigningSecrets          AppSecretKey = "samlSpSigningSecrets"  // nolint:gosec
-	AppSecretKeySMSProviderSecrets            AppSecretKey = "smsProviderSecrets"    // nolint:gosec
-
-	// Not in the appSecretKey enum: nothing here can be revealed.
+	AppSecretKeyOauthSSOProviderClientSecrets  AppSecretKey = "oauthSSOProviderClientSecrets" // nolint:gosec
+	AppSecretKeyWebhookSecret                  AppSecretKey = "webhookSecret"
+	AppSecretKeyAdminAPISecrets                AppSecretKey = "adminAPISecrets"
+	AppSecretKeySmtpSecret                     AppSecretKey = "smtpSecret"
+	AppSecretKeyOauthClientSecrets             AppSecretKey = "oauthClientSecrets" // nolint:gosec
+	AppSecretKeyBotProtectionProviderSecret    AppSecretKey = "botProtectionProviderSecret"
+	AppSecretKeySAMLIdpSigningSecrets          AppSecretKey = "samlIdpSigningSecrets"          // nolint:gosec
+	AppSecretKeySAMLSpSigningSecrets           AppSecretKey = "samlSpSigningSecrets"           // nolint:gosec
+	AppSecretKeySMSProviderSecrets             AppSecretKey = "smsProviderSecrets"             // nolint:gosec
 	AppSecretKeyTelemetryAuditLogStreamSecrets AppSecretKey = "telemetryAuditLogStreamSecrets" // nolint:gosec
 )
 
@@ -341,6 +340,9 @@ var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 		"SMS_PROVIDER_SECRETS": &graphql.EnumValueConfig{
 			Value: AppSecretKeySMSProviderSecrets,
 		},
+		"TELEMETRY_AUDIT_LOG_STREAM_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeyTelemetryAuditLogStreamSecrets,
+		},
 	},
 })
 
@@ -365,13 +367,14 @@ var oauthSSOProviderDemoSecretItem = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var secretKeyToConfigKeyMap map[AppSecretKey][]config.SecretKey = map[AppSecretKey][]config.SecretKey{
-	AppSecretKeyOauthSSOProviderClientSecrets: {config.OAuthSSOProviderCredentialsKey},
-	AppSecretKeyWebhookSecret:                 {config.WebhookKeyMaterialsKey},
-	AppSecretKeyAdminAPISecrets:               {config.AdminAPIAuthKeyKey},
-	AppSecretKeySmtpSecret:                    {config.SMTPServerCredentialsKey},
-	AppSecretKeyOauthClientSecrets:            {config.OAuthClientCredentialsKey},
-	AppSecretKeyBotProtectionProviderSecret:   {config.BotProtectionProviderCredentialsKey},
-	AppSecretKeySMSProviderSecrets:            {config.TwilioCredentialsKey, config.CustomSMSProviderConfigKey},
+	AppSecretKeyOauthSSOProviderClientSecrets:  {config.OAuthSSOProviderCredentialsKey},
+	AppSecretKeyWebhookSecret:                  {config.WebhookKeyMaterialsKey},
+	AppSecretKeyAdminAPISecrets:                {config.AdminAPIAuthKeyKey},
+	AppSecretKeySmtpSecret:                     {config.SMTPServerCredentialsKey},
+	AppSecretKeyOauthClientSecrets:             {config.OAuthClientCredentialsKey},
+	AppSecretKeyBotProtectionProviderSecret:    {config.BotProtectionProviderCredentialsKey},
+	AppSecretKeySMSProviderSecrets:             {config.TwilioCredentialsKey, config.CustomSMSProviderConfigKey},
+	AppSecretKeyTelemetryAuditLogStreamSecrets: {config.TelemetryAuditLogStreamDatadogCredentialsKey},
 }
 
 const typeApp = "App"
