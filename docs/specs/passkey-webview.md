@@ -25,9 +25,11 @@ The Relying Party ID is unchanged: it is the host of `http.public_origin`.
 ## Configuration
 
 ```yaml
-identity:
-  passkey:
-    native_apps:
+oauth:
+  clients:
+  - client_id: example-app
+    x_application_type: native
+    x_native_apps:
     - platform: ios
       team_id: ABCDE12345
       bundle_id: com.example.app
@@ -37,7 +39,7 @@ identity:
       - "8B:BF:39:60:61:89:30:A4:45:F3:D7:09:1E:7B:1B:05:0F:8A:FD:AF:24:EB:F1:EB:2E:3D:13:88:09:FC:79:59"
 ```
 
-`identity.passkey.native_apps` lists the mobile apps allowed to perform passkey ceremonies for the project. When absent, no app is listed and no association file is served.
+`x_native_apps` lists a client's mobile apps that are allowed to perform passkey ceremonies for the project. When no client has it, no association file is served.
 
 | Field | Meaning | Required |
 |---|---|---|
@@ -48,18 +50,18 @@ identity:
 | `sha256_cert_fingerprints` | The SHA-256 fingerprint of every certificate the app is signed with, as 32 colon-separated hex bytes, compared case-insensitively | For `android`, at least one |
 
 - An entry takes only the fields of its platform.
-- Two entries may not name the same app: the same `bundle_id` for `ios`, or the same `package_name` for `android`.
+- An app may be listed only once across all clients: the same `bundle_id` for `ios`, or the same `package_name` for `android`, may not appear twice.
 - List every certificate the app is distributed with: the release certificate, and the Play App Signing certificate, which is the one on a user's device when the app is installed from Google Play. A build whose certificate is absent cannot sign in with a passkey.
 - List a debug certificate only in a project used for development. A debug keystore is stored unencrypted with a well-known password, so anyone who obtains it can sign an app that passes as the listed one.
-- The list is project-level, not per OAuth client, because the association files are project-level. A listed app may perform ceremonies regardless of the OAuth client it signs in with.
+- The association files merge the entries of every client. Listing an app on a client does not restrict the app to that client: a listed app may perform ceremonies whichever OAuth client it signs in with.
 
 Listing an app trusts it with the project's sign-ins. An app controls whatever it shows in its WebView, including AuthUI, and a listed app can also request the user's passkeys. List only apps the project controls.
 
-`native_apps` has no effect while `passkey` is not in `authentication.identities`: no association file is served, and no app origin is accepted.
+`x_native_apps` has no effect while `passkey` is not in `authentication.identities`: no association file is served, and no app origin is accepted.
 
 ## Association files
 
-Authgear serves both files at the host of `http.public_origin`, generated from `native_apps`.
+Authgear serves both files at the host of `http.public_origin`, generated from every client's `x_native_apps`.
 
 | Path | Served when | Content |
 |---|---|---|
@@ -84,7 +86,7 @@ AuthUI offers no passkey autofill in an Android WebView, because the WebView doe
 
 In an Android WebView, AuthUI hides every passkey option when `PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()` resolves to `false`, which is what the WebView reports when it cannot perform a ceremony, for example without the required Google Play services. The options are signing in with a passkey, signing up with a passkey, adding a passkey in settings, and the prompt to create a passkey after signing in, which is skipped. Other browsers keep today's behaviour, because a `false` there still allows a security key or a passkey on another device.
 
-A Custom UI in a WebView follows [Where a ceremony may run](./webauthn.md#where-a-ceremony-may-run), as it does in a browser, and needs no listing beyond `native_apps`: the operating system checks the app against the Relying Party ID, not against the Custom UI's host. The rule above for hiding passkey options applies to AuthUI only; a Custom UI shown in an Android WebView should apply the same check.
+A Custom UI in a WebView follows [Where a ceremony may run](./webauthn.md#where-a-ceremony-may-run), as it does in a browser, and needs no listing beyond `x_native_apps`: the operating system checks the app against the Relying Party ID, not against the Custom UI's host. The rule above for hiding passkey options applies to AuthUI only; a Custom UI shown in an Android WebView should apply the same check.
 
 The SDK does not switch to a Custom Tab when passkeys are unavailable. The user signs in with another method, and an app that prefers Custom Tabs chooses `CustomTabsUIImplementation`.
 
@@ -94,9 +96,9 @@ The SDK does not switch to a Custom Tab when passkeys are unavailable. The user 
 - Android requires an Android System WebView that supports WebAuthn. It updates through Google Play.
 - Android requires Google Play services 24.07 or newer, on every Android version, because the WebView checks for it before any ceremony ([Chromium source](https://chromium.googlesource.com/chromium/src/+/HEAD/components/webauthn/android/java/src/org/chromium/components/webauthn/GmsCoreUtils.java)). On a device without it, passkeys are unavailable in the WebView; other sign-in methods are unaffected.
 - Changing `http.public_origin` changes the Relying Party ID, which makes existing passkeys unusable. This is existing behaviour. The association files follow the new public origin without further configuration.
-- Removing an app from `native_apps` takes effect at once on Android, because its origin is no longer accepted. On iOS the server cannot tell which app performed a ceremony, so the removal takes effect only when devices fetch the updated `apple-app-site-association`.
+- Removing an app from `x_native_apps` takes effect at once on Android, because its origin is no longer accepted. On iOS the server cannot tell which app performed a ceremony, so the removal takes effect only when devices fetch the updated `apple-app-site-association`.
 - Apple fetches `apple-app-site-association` through its own CDN, so a change can take time to reach devices. During development, the app can append `?mode=developer` to the entitlement to fetch it directly.
 
 ## Future works
 
-**Native passkey.** Ceremonies performed by the app through the platform passkey APIs, without a WebView. It uses the same `identity.passkey.native_apps`, and adds a Relying Party ID other than the host of `http.public_origin`.
+**Native passkey.** Ceremonies performed by the app through the platform passkey APIs, without a WebView. It uses the same `x_native_apps`, and adds a Relying Party ID other than the host of `http.public_origin`.
