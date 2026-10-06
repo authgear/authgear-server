@@ -939,6 +939,7 @@ export interface PortalAPISecretConfig {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
   adminAPISecrets?: AdminAPISecret[] | null;
+  telemetryAuditLogStreamSecrets?: TelemetryAuditLogStreamSecrets | null;
   smtpSecret?: SmtpSecret | null;
   oauthClientSecrets?: OAuthClientSecret[] | null;
   botProtectionProviderSecret?: BotProtectionProviderSecret | null;
