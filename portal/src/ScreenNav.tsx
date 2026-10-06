@@ -33,6 +33,8 @@ import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfi
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import styles from "./ScreenNav.module.css";
 import { useCapture } from "./gtm_v2";
+import { PortalAPIFeatureConfig } from "./types";
+import { isIntegrationsAvailable } from "./util/integrations";
 
 type NavIconComponent = typeof RocketIcon;
 
@@ -143,9 +145,9 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
 
   const app =
     queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
-  const showIntegrations =
-    (app?.effectiveFeatureConfig.google_tag_manager?.disabled ?? false) ===
-    false;
+  const showIntegrations = isIntegrationsAvailable(
+    (app?.effectiveFeatureConfig as PortalAPIFeatureConfig | undefined) ?? null
+  );
 
   const { isAuthgearOnce, auditLogEnabled, analyticEnabled } =
     useSystemConfig();
