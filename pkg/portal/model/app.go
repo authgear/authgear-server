@@ -25,6 +25,7 @@ type PortalFeatureConfig struct {
 	Messaging        *PortalMessagingFeatureConfig         `json:"messaging,omitempty"`
 	Collaborator     *config.CollaboratorFeatureConfig     `json:"collaborator,omitempty"`
 	FraudProtection  *config.FraudProtectionFeatureConfig  `json:"fraud_protection,omitempty"`
+	Telemetry        *config.TelemetryFeatureConfig        `json:"telemetry,omitempty"`
 }
 
 // PortalMessagingFeatureConfig exposes only the messaging feature flags
@@ -51,6 +52,7 @@ func NewPortalFeatureConfig(c *config.FeatureConfig) *PortalFeatureConfig {
 		GoogleTagManager: c.GoogleTagManager,
 		Collaborator:     c.Collaborator,
 		FraudProtection:  c.FraudProtection,
+		Telemetry:        c.Telemetry,
 	}
 	if c.Messaging != nil {
 		out.Messaging = &PortalMessagingFeatureConfig{
@@ -157,6 +159,14 @@ type SMSProviderSecrets struct {
 	CustomSMSProviderCredentials *SMSProviderCustomSMSProviderConfigs `json:"customSMSProviderCredentials,omitempty"`
 }
 
+type TelemetryAuditLogStreamDatadogSecret struct {
+	StreamName string `json:"streamName,omitempty"`
+}
+
+type TelemetryAuditLogStreamSecrets struct {
+	Datadog []TelemetryAuditLogStreamDatadogSecret `json:"datadog,omitempty"`
+}
+
 type SecretConfig struct {
 	OAuthSSOProviderClientSecrets []OAuthSSOProviderClientSecret `json:"oauthSSOProviderClientSecrets,omitempty"`
 	WebhookSecret                 *WebhookSecret                 `json:"webhookSecret,omitempty"`
@@ -167,6 +177,8 @@ type SecretConfig struct {
 	SAMLIdpSigningSecrets         *SAMLIdpSigningSecrets         `json:"samlIdpSigningSecrets,omitempty"`
 	SAMLSpSigningSecrets          []SAMLSpSigningSecrets         `json:"samlSpSigningSecrets,omitempty"`
 	SMSProviderSecrets            *SMSProviderSecrets            `json:"smsProviderSecrets,omitempty"`
+
+	TelemetryAuditLogStreamSecrets *TelemetryAuditLogStreamSecrets `json:"telemetryAuditLogStreamSecrets,omitempty"`
 }
 
 type EffectiveSecretConfig struct {
@@ -353,6 +365,15 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 		}
 	}
 	out.SMSProviderSecrets = smsProviderSecrets
+
+	// The API key is write-only through the portal; only the stream names are exposed.
+	if creds, ok := secretConfig.LookupData(config.TelemetryAuditLogStreamDatadogCredentialsKey).(*config.TelemetryAuditLogStreamDatadogCredentials); ok {
+		secrets := &TelemetryAuditLogStreamSecrets{}
+		for _, item := range *creds {
+			secrets.Datadog = append(secrets.Datadog, TelemetryAuditLogStreamDatadogSecret{StreamName: item.StreamName})
+		}
+		out.TelemetryAuditLogStreamSecrets = secrets
+	}
 
 	return out, nil
 }

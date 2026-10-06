@@ -110,6 +110,22 @@ var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var telemetryAuditLogStreamDatadogSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name: "TelemetryAuditLogStreamDatadogSecret",
+	Fields: graphql.Fields{
+		"streamName": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+	},
+})
+
+var telemetryAuditLogStreamSecrets = graphql.NewObject(graphql.ObjectConfig{
+	Name: "TelemetryAuditLogStreamSecrets",
+	Fields: graphql.Fields{
+		"datadog": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(telemetryAuditLogStreamDatadogSecret)),
+		},
+	},
+})
+
 var botProtectionProviderSecret = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "BotProtectionProviderSecret",
 	Description: "Bot protection provider secret",
@@ -253,6 +269,9 @@ const (
 	AppSecretKeySAMLIdpSigningSecrets         AppSecretKey = "samlIdpSigningSecrets" // nolint:gosec
 	AppSecretKeySAMLSpSigningSecrets          AppSecretKey = "samlSpSigningSecrets"  // nolint:gosec
 	AppSecretKeySMSProviderSecrets            AppSecretKey = "smsProviderSecrets"    // nolint:gosec
+
+	// Not in the appSecretKey enum: nothing here can be revealed.
+	AppSecretKeyTelemetryAuditLogStreamSecrets AppSecretKey = "telemetryAuditLogStreamSecrets" // nolint:gosec
 )
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
@@ -285,6 +304,9 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		},
 		string(AppSecretKeySMSProviderSecrets): &graphql.Field{
 			Type: smsProviderSecret,
+		},
+		string(AppSecretKeyTelemetryAuditLogStreamSecrets): &graphql.Field{
+			Type: telemetryAuditLogStreamSecrets,
 		},
 	},
 })

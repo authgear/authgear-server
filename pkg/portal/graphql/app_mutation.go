@@ -315,6 +315,41 @@ var botProtectionProviderSecretUpdateInstructionsInput = graphql.NewInputObject(
 	},
 })
 
+var telemetryAuditLogStreamDatadogSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "TelemetryAuditLogStreamDatadogSecretInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"streamName": &graphql.InputObjectFieldConfig{Type: graphql.NewNonNull(graphql.String)},
+		"apiKey":     &graphql.InputObjectFieldConfig{Type: graphql.NewNonNull(graphql.String)},
+	},
+})
+
+var telemetryAuditLogStreamSecretsSetDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "TelemetryAuditLogStreamSecretsSetDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"datadog": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(telemetryAuditLogStreamDatadogSecretInput))),
+		},
+	},
+})
+
+var telemetryAuditLogStreamSecretsCleanupDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "TelemetryAuditLogStreamSecretsCleanupDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"keepStreamNames": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
+		},
+	},
+})
+
+var telemetryAuditLogStreamSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "TelemetryAuditLogStreamSecretsUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action":      &graphql.InputObjectFieldConfig{Type: graphql.NewNonNull(graphql.String)},
+		"setData":     &graphql.InputObjectFieldConfig{Type: telemetryAuditLogStreamSecretsSetDataInput},
+		"cleanupData": &graphql.InputObjectFieldConfig{Type: telemetryAuditLogStreamSecretsCleanupDataInput},
+	},
+})
+
 var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SecretConfigUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -332,6 +367,9 @@ var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputOb
 		},
 		"botProtectionProviderSecret": &graphql.InputObjectFieldConfig{
 			Type: botProtectionProviderSecretUpdateInstructionsInput,
+		},
+		"telemetryAuditLogStreamSecrets": &graphql.InputObjectFieldConfig{
+			Type: telemetryAuditLogStreamSecretsUpdateInstructionsInput,
 		},
 		"samlIdpSigningSecrets": &graphql.InputObjectFieldConfig{
 			Type: samlIdpSigningSecretsUpdateInstructionsInput,
