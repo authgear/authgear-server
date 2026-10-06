@@ -131,6 +131,14 @@ All fields are guaranteed that only backward-compatible changes would be made.
 
 - [user.pre_create](#userpre_create)
 - [user.profile.pre_update](#userprofilepre_update)
+- [user.pre_schedule_deletion](#userpre_schedule_deletion)
+- [user.pre_schedule_anonymization](#userpre_schedule_anonymization)
+- [authentication.pre_initialize](#authenticationpre_initialize)
+- [authentication.post_identified](#authenticationpost_identified)
+- [authentication.pre_authenticated](#authenticationpre_authenticated)
+- [authentication.form.post_submitted](#authenticationformpost_submitted)
+- [oidc.jwt.pre_create](#oidcjwtpre_create)
+- [oidc.id_token.pre_create](#oidcid_tokenpre_create)
 
 Blocking event Hooks can perform mutations. See [Blocking Event Mutations](./hook.md#blocking-event-mutations).
 
@@ -1537,7 +1545,9 @@ flowchart TD
         CreateAuthenticator --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
         AuthenticationPreAuthenticated --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Enforce AMR Constraints)"]
         CreateAuthenticatorAdaptive --> ViewRecoveryCode[View Recovery Code]
-        ViewRecoveryCode --> PromptCreatePasskey[Prompt Create Passkey]
+        ViewRecoveryCode --> FillForm["Fill Form<br>(user_profile.forms.signup)"]
+        FillForm --> AuthenticationFormPostSubmitted[authentication.form.post_submitted]
+        AuthenticationFormPostSubmitted --> PromptCreatePasskey[Prompt Create Passkey]
         PromptCreatePasskey --> UserPreCreate[user.pre_create]
         UserPreCreate --> CreateUser[Create User]
         CreateUser --> UserCreated[user.created]
@@ -1556,8 +1566,8 @@ flowchart TD
     classDef blockingEvent fill:#ADD8E6,color:#000000
     classDef processNode fill:#dddddd,color:#000000
     class BotProtectionVerificationFailed,UserCreated event
-    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,UserPreCreate,OIDCJWTPreCreate blockingEvent
-    class Start,BotProtection,Identify,Verify,CreateAuthenticator,ViewRecoveryCode,PromptCreatePasskey,CreateAuthenticatorAdaptive,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
+    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,AuthenticationFormPostSubmitted,UserPreCreate,OIDCJWTPreCreate blockingEvent
+    class Start,BotProtection,Identify,Verify,CreateAuthenticator,ViewRecoveryCode,FillForm,PromptCreatePasskey,CreateAuthenticatorAdaptive,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
 ```
 
 ### Login
@@ -1586,8 +1596,14 @@ flowchart TD
         ChangePassword --> CheckAccountStatus[Check Account Status]
         CheckAccountStatus -- "Blocked" --> AuthenticationBlocked[authentication.blocked]
         CheckAccountStatus -- "Success" --> TerminateOtherSessions[Terminate Other Sessions]
-        TerminateOtherSessions --> PromptCreatePasskey[Prompt Create Passkey]
-        PromptCreatePasskey --> UserAuthenticated[user.authenticated]
+        TerminateOtherSessions --> FillForm["Fill Form<br>(user_profile.forms.login)"]
+        FillForm --> AuthenticationFormPostSubmitted[authentication.form.post_submitted]
+        AuthenticationFormPostSubmitted --> PromptCreatePasskey[Prompt Create Passkey]
+        PromptCreatePasskey -- "A form was submitted" --> UserProfilePreUpdate[user.profile.pre_update]
+        UserProfilePreUpdate --> UpdateProfile[Update Profile]
+        UpdateProfile --> UserProfileUpdated[user.profile.updated]
+        UserProfileUpdated --> UserAuthenticated[user.authenticated]
+        PromptCreatePasskey -- "No form was submitted" --> UserAuthenticated
         UserAuthenticated --> FinishLogin([Finish])
     end
 
@@ -1602,7 +1618,7 @@ flowchart TD
     classDef event fill:#98FB98,color:#000000
     classDef blockingEvent fill:#ADD8E6,color:#000000
     classDef processNode fill:#dddddd,color:#000000
-    class BotProtectionVerificationFailed,AuthenticationIdentityLoginIDFailed,PrimaryAuthFailed,SecondaryAuthFailed,AuthenticationBlocked,UserAuthenticated event
-    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,OIDCJWTPreCreate blockingEvent
-    class Start,BotProtection,Identify,AuthenticatePrimary,AuthenticateSecondary,ChangePassword,CheckAccountStatus,TerminateOtherSessions,PromptCreatePasskey,AuthenticateAdaptive,ExchangeCode,IssueTokens,FinishLogin processNode
+    class BotProtectionVerificationFailed,AuthenticationIdentityLoginIDFailed,PrimaryAuthFailed,SecondaryAuthFailed,AuthenticationBlocked,UserAuthenticated,UserProfileUpdated event
+    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,AuthenticationFormPostSubmitted,UserProfilePreUpdate,OIDCJWTPreCreate blockingEvent
+    class Start,BotProtection,Identify,AuthenticatePrimary,AuthenticateSecondary,ChangePassword,CheckAccountStatus,TerminateOtherSessions,FillForm,UpdateProfile,PromptCreatePasskey,AuthenticateAdaptive,ExchangeCode,IssueTokens,FinishLogin processNode
 ```
