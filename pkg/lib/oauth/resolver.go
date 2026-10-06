@@ -150,6 +150,18 @@ func (re *Resolver) resolveAccessToken(ctx context.Context, token string) (sessi
 		panic("oauth: resolving unknown grant session kind")
 	}
 
+	// The access token authenticates as grant.UserID (its JWT sub). If the
+	// session it is bound to belongs to someone else, the binding is forged or
+	// corrupt -- never resolve as that other user. This is the structural
+	// backstop for the id_token_hint cross-user binding: no matter how a grant
+	// came to point at a mismatched session, every consumer that resolves a
+	// token (userinfo, /resolve, session-authenticated endpoints) goes through
+	// here. The guard skips grants created before UserID was recorded; those
+	// age out within the access-token lifetime.
+	if grant.UserID != "" && authSession.GetAuthenticationInfo().UserID != grant.UserID {
+		return nil, session.ErrInvalidSession
+	}
+
 	return authSession, nil
 }
 
