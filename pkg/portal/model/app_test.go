@@ -57,11 +57,11 @@ secrets:
 
 	Convey("empty keepStreamNames survives the mutation's JSON round trip", t, func() {
 		// graphql-go coerces a list input [] into []interface{}{}.
-		input := map[string]interface{}{
-			"telemetryAuditLogStreamSecrets": map[string]interface{}{
+		input := map[string]any{
+			"telemetryAuditLogStreamSecrets": map[string]any{
 				"action": "cleanup",
-				"cleanupData": map[string]interface{}{
-					"keepStreamNames": []interface{}{},
+				"cleanupData": map[string]any{
+					"keepStreamNames": []any{},
 				},
 			},
 		}
