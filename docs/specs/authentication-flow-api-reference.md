@@ -1362,7 +1362,7 @@ A field absent from the input is treated as empty, and its stored value is clear
 
 If a value fails validation, the error is `ValidationFailed`, and the flow stays in this step.
 
-If a hook rejects the input, the error is `HookDisallowed`, and the flow stays in this step. Each entry of `info.reasons` may carry `reasons`, a list of `{ "type": "invalid_form_field", "key", "message" }` to show under the matching fields. See [Validation hook](./user-profile/profile-filling.md#validation-hook).
+If a hook on [authentication.form.post_submitted](./event.md#authenticationformpost_submitted) rejects the input, the error is `HookDisallowed`, and the flow stays in this step. Each entry of `info.reasons` may carry `reasons`, a list of `{ "type": "invalid_form_field", "key", "message" }` to show under the matching fields. See [Validation hook](./user-profile/profile-filling.md#validation-hook).
 
 ## type: login; action.type: identify
 

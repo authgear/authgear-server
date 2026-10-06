@@ -12,6 +12,7 @@
       - [authentication.pre_initialize](#authenticationpre_initialize)
       - [authentication.post_identified](#authenticationpost_identified)
       - [authentication.pre_authenticated](#authenticationpre_authenticated)
+      - [authentication.form.post_submitted](#authenticationformpost_submitted)
       - [oidc.jwt.pre_create](#oidcjwtpre_create)
       - [oidc.id_token.pre_create](#oidcid_tokenpre_create)
     + [Non-blocking Events](#non-blocking-events)
@@ -153,6 +154,7 @@ Occurs right before the user creation. User can be created by user signup, user 
 ```
 
 - `oauth.state`: OAuth state if the signup is triggered through authorize endpoint with state parameter.
+- `user`: In a signup flow, it includes the attributes the end-user filled in forms.
 
 Supported hook responses:
 
@@ -161,7 +163,7 @@ Supported hook responses:
 
 #### user.profile.pre_update
 
-Occurs right before the update of user profile, including when a form is submitted in an authentication flow. See [Profile Filling](./user-profile/profile-filling.md#validation-hook).
+Occurs right before the update of user profile. In a login or promote flow, it occurs once when the flow finishes, if the end-user submitted a form; it does not occur when each form is submitted. See [Profile Filling](./user-profile/profile-filling.md#validation-hook).
 
 ```json5
 {
@@ -175,25 +177,6 @@ Supported hook responses:
 
 - [is_allowed](./hook.md#blocking-events)
 - [mutations](./hook.md#blocking-event-mutations)
-- `reasons`: Optional. Allowed only when `is_allowed` is `false`. A list of typed reasons. Each item has a `type`; a response with an unknown `type` is invalid.
-
-| `type` | Other keys | Meaning |
-|---|---|---|
-| `invalid_profile_attribute` | `pointer`: a pointer among the updated attributes. `message`: a message for the end-user. | The value of that attribute is rejected. |
-
-```json
-{
-  "is_allowed": false,
-  "title": "Invalid profile",
-  "reasons": [
-    {
-      "type": "invalid_profile_attribute",
-      "pointer": "/x_employee_id",
-      "message": "This employee ID does not exist."
-    }
-  ]
-}
-```
 
 #### user.pre_schedule_deletion
 
@@ -481,6 +464,72 @@ authentication_flows:
 
 After `authentication.pre_authenticated` is triggered, `amr` constraints in the hook response will be enforced by additional `authenticate` steps, if needed.
 
+#### authentication.form.post_submitted
+
+Occurs right after the end-user submits a [form](./glossary.md#form) in an authentication flow, before the flow accepts it. Nothing is stored yet; the attributes are stored when the flow finishes. See [Profile Filling](./user-profile/profile-filling.md#validation-hook).
+
+Fields in payload:
+- `authentication_context`: An [`AuthenticationContext`](./event_models.md#authenticationcontext) object.
+- `user`: The user with every attribute submitted so far in this flow applied, in the same shape as the `user` of [user.profile.pre_update](#userprofilepre_update). In a signup flow, it is the user to be created.
+- `fields`: One item per field of the submitted form, in the form's order.
+  - `field`: The field. As in the [form object](./user-profile/profile-filling.md#form-object), it has exactly one key, which names the kind of field.
+    - `user_profile`:
+      - `pointer`: The attribute's pointer.
+  - `value`: The submitted value, or `null` if the field is empty.
+
+```json5
+{
+  "payload": {
+    "authentication_context": { /* ... */ },
+    "user": { /* ... */ },
+    "fields": [
+      {
+        "field": {
+          "user_profile": {
+            "pointer": "/x_employee_id"
+          }
+        },
+        "value": "E99999"
+      }
+    ]
+  }
+}
+```
+
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- `reasons`: Optional. Allowed only when `is_allowed` is `false`. A list of typed reasons. Each item has a `type`; a response with an unknown `type` is invalid.
+
+| `type` | Other keys | Meaning |
+|---|---|---|
+| `invalid_form_field` | `field`: a field of the submitted form, in the shape of `field` in `payload.fields`. `message`: a message for the end-user. | The value of that field is rejected. |
+
+```json
+{
+  "is_allowed": false,
+  "title": "Employee not found",
+  "reasons": [
+    {
+      "type": "invalid_form_field",
+      "field": {
+        "user_profile": {
+          "pointer": "/x_employee_id"
+        }
+      },
+      "message": "This employee ID does not exist."
+    }
+  ]
+}
+```
+
+If a hook rejects the form, the flow stays in the `fill_form` step.
+
+`authentication.form.post_submitted` will be triggered in the following flow types:
+- signup
+- promote
+- login
+
 #### oidc.jwt.pre_create
 
 Occurs right before the access token is issued.
@@ -583,7 +632,7 @@ Occurs after a new user is created. User can be created by user signup, user sig
 
 #### user.profile.updated
 
-Occurs when the user profile is updated.
+Occurs when the user profile is updated. In a login or promote flow, it occurs once when the flow finishes, if the end-user submitted a form. A signup flow fires [user.created](#usercreated) instead.
 
 ```json5
 {

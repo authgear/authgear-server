@@ -277,7 +277,7 @@ Sending the input without `/family_name` fails with `ValidationFailed`, and the 
 
 - Portal: User Management > the user > Profile > Personal Information.
 - Settings page: the end-user can edit both names under Profile.
-- Webhook `user.profile.updated`, with `payload.user.standard_attributes.given_name` set to `"John"`.
+- Webhook `user.created`, with `payload.user.standard_attributes.given_name` set to `"John"`.
 
 ### UC2. Ask existing users for a newly needed attribute
 
@@ -409,7 +409,7 @@ Two consecutive `fill_form` actions, each with its own `state_token`. Submitting
 
 ### UC4. Validate input against an external system
 
-An employee portal collects an employee ID. The format is checked by an [attribute constraint](#attribute-constraints). Whether the ID exists is checked by a [validation hook](#validation-hook) that calls the HR system.
+An employee portal collects an employee ID. The format is checked by an [attribute constraint](#attribute-constraints). Whether the ID exists is checked by a [validation hook](#validation-hook) that calls the HR system. The hook reads `payload.user.custom_attributes.x_employee_id`, which both events carry.
 
 **Configuration**
 
@@ -433,6 +433,8 @@ user_profile:
               required: true
 hook:
   blocking_handlers:
+    - event: authentication.form.post_submitted
+      url: https://hr-check.example.com/hook
     - event: user.profile.pre_update
       url: https://hr-check.example.com/hook
 ```
@@ -450,8 +452,12 @@ The translation `custom-attribute-pattern-error-/x_employee_id` is set to "Forma
     "title": "找不到員工",
     "reasons": [
       {
-        "type": "invalid_profile_attribute",
-        "pointer": "/x_employee_id",
+        "type": "invalid_form_field",
+        "field": {
+          "user_profile": {
+            "pointer": "/x_employee_id"
+          }
+        },
         "message": "這個員工編號不存在。"
       }
     ]
@@ -495,7 +501,7 @@ In both cases the flow stays in the step, and the same `state_token` can be used
 **Where the attribute appears**
 
 - User Info endpoint: `"custom_attributes": { "x_employee_id": "E10234" }`.
-- If an admin later sets `E99999` through the Admin API, the same hook fires with `context.triggered_by: admin_api`, and the mutation fails with `HookDisallowed`. There, the hook's `reasons` are returned unchanged.
+- If an admin later sets `E99999` through the Admin API, the hook receives `user.profile.pre_update` with `context.triggered_by: admin_api`, and the mutation fails with `HookDisallowed`.
 
 ### UC5. Different applications need different attributes
 
@@ -823,7 +829,7 @@ A Custom UI receives the same translated label, links included, in the field's `
 
 - User Info endpoint: `"custom_attributes": { "x_accepted_terms_2026_01": true, "x_marketing_consent": false }`.
 - Portal: User Management > the user > Profile > Custom Attributes, read-only because `portal_ui` is `readonly`.
-- Webhook `user.profile.updated`. A backend that must keep proof of consent stores `context.timestamp` and the attribute value from this event, because Authgear keeps the current value only.
+- Webhook `user.created`. A backend that must keep proof of consent stores `context.timestamp` and the attribute value from this event, because Authgear keeps the current value only.
 - Settings page: the end-user can uncheck either box. Unchecking the terms box does not delete the account; if `user_profile.forms.login` also has the form, as in [UC9](#uc9-accept-updated-terms-at-login), they are asked again at their next login.
 
 ### UC9. Accept updated terms at login
@@ -1092,24 +1098,26 @@ Auth UI shows a failed constraint's message under the field.
 
 ### Validation hook
 
-The blocking event [user.profile.pre_update](../event.md#userprofilepre_update) fires on every attribute write, including submission of a form. The payload contains the user with the submitted attributes applied.
+A flow stores the filled attributes only when it finishes, so two blocking events apply:
 
-To reject specific attributes, the hook returns [`reasons`](../event.md#userprofilepre_update) of type `invalid_profile_attribute`. See [UC4](#uc4-validate-input-against-an-external-system) for an example. The hook localizes its messages using `context.language`; Authgear displays them unchanged.
+| When                                        | Event |
+| ------------------------------------------- | ----- |
+| A form is submitted                         | [authentication.form.post_submitted](../event.md#authenticationformpost_submitted) |
+| The flow finishes and stores the attributes | [user.pre_create](../event.md#userpre_create) in a signup flow; [user.profile.pre_update](../event.md#userprofilepre_update) in a login or promote flow |
 
-Each entry of `info.reasons` of the resulting `HookDisallowed` error carries the hook's `title` and `reason`, when present, and its `reasons`:
+Both payloads contain the user with the submitted attributes applied. Only a rejection on form submission can be shown under the fields, so per-attribute checks belong there. A rejection when the flow finishes fails the last input of the flow, and the end-user cannot correct the form.
 
-| Where                                              | `reasons` items                                                                                                                              |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Authflow API, when a form is submitted            | Each `invalid_profile_attribute` becomes `{ "type": "invalid_form_field", "key", "message" }`, where `key` is the key of the matching field. |
-| Admin API and the settings page                    | As returned by the hook.                                                                                                                     |
+To reject specific fields of a submitted form, the hook returns [`reasons`](../event.md#authenticationformpost_submitted) of type `invalid_form_field`. See [UC4](#uc4-validate-input-against-an-external-system) for an example. In the Authflow API, the `HookDisallowed` error carries them in the `reasons` of the hook's entry in `info.reasons`, each as `{ "type": "invalid_form_field", "key", "message" }`, where `key` is the key of the matching field.
+
+The hook localizes its `title`, `reason`, and messages using `context.language`; Authgear displays them unchanged.
 
 ### Where validation applies
 
-| Write path              | Attribute constraints | `user.profile.pre_update`                              | `required`   |
-| ----------------------- | --------------------- | ------------------------------------------------------ | ------------ |
-| `fill_form` in any flow | ✅                    | ✅                                                     | Per step     |
-| Settings page           | ✅                    | ✅                                                     | Not enforced |
-| Admin API and portal    | ✅                    | ✅ (`context.triggered_by` is `admin_api` or `portal`) | Not enforced |
+| Write path              | Attribute constraints | Validation hook | `required`   |
+| ----------------------- | --------------------- | --------------- | ------------ |
+| `fill_form` in any flow | ✅                    | `authentication.form.post_submitted` when the form is submitted; `user.pre_create` or `user.profile.pre_update` when the flow finishes. See [Validation hook](#validation-hook). | Per step     |
+| Settings page           | ✅                    | `user.profile.pre_update` | Not enforced |
+| Admin API and portal    | ✅                    | `user.profile.pre_update`, with `context.triggered_by` set to `admin_api` or `portal` | Not enforced |
 
 ## Reading the filled attributes
 
@@ -1120,7 +1128,7 @@ Filled attributes are stored like any other attribute write. Other components re
 | The application, with the user's access token | [User Info endpoint](./design.md#user-info-endpoint). Standard attributes are at the root; custom attributes are under `custom_attributes`.                                   | The attribute's `bearer` access control is not `hidden`. |
 | A backend server, per request                 | JWT access token claims added by a hook on [oidc.jwt.pre_create](../event.md#oidcjwtpre_create). The payload's `user` includes `standard_attributes` and `custom_attributes`. | The project uses JWT access tokens.                      |
 | A backend server, on demand                   | Admin API `User.standardAttributes` and `User.customAttributes`.                                                                                                              | None. The Admin API sees every attribute.                |
-| A backend server, on change                   | Non-blocking event [user.profile.updated](../event.md#userprofileupdated), which fires after every `fill_form` submission.                                                    | A webhook or Deno hook subscribes to it.                 |
+| A backend server, on change                   | Non-blocking event [user.created](../event.md#usercreated) after a signup flow, or [user.profile.updated](../event.md#userprofileupdated) after a login or promote flow with a submitted form.                                                 | A webhook or Deno hook subscribes to it.                 |
 
 The ID token contains no attributes; see [ID Token](./design.md#id-token). The [resolver endpoint](../api-resolver.md) headers contain no attributes.
 
@@ -1137,7 +1145,7 @@ A backend must not assume a user has an attribute because a flow requires it. Se
 ## Backward compatibility
 
 - Without `user_profile.forms`, the default flows are unchanged.
-- `user.profile.pre_update` and `user.profile.updated` now also fire when a form is submitted. A hook that rejects every update with `triggered_by: user` now also blocks the form.
+- `user.profile.pre_update` and `user.profile.updated` now also fire when a login or promote flow in which the end-user submitted a form finishes. A hook that rejects every update with `triggered_by: user` now also blocks those flows.
 
 ## Future works
 
