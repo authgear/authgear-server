@@ -57,17 +57,6 @@ Listing an app trusts it with the project's sign-ins. An app controls whatever i
 
 `native_apps` has no effect while `passkey` is not in `authentication.identities`: no association file is served, and no app origin is accepted.
 
-The feature is off by default and is enabled in the feature config:
-
-```yaml
-identity:
-  passkey:
-    native_apps:
-      disabled: false
-```
-
-While it is disabled, a project cannot add `native_apps`, and an existing `native_apps` has no effect.
-
 ## Association files
 
 Authgear serves both files at the host of `http.public_origin`, generated from `native_apps`.
