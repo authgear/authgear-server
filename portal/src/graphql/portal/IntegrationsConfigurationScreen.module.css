@@ -149,3 +149,14 @@
   white-space: normal;
   color: var(--gray-11);
 }
+
+.apiKeyInputRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--space-3);
+  align-items: center;
+}
+
+.apiKeyInput {
+  min-width: 0;
+}

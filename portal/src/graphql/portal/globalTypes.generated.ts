@@ -143,6 +143,7 @@ export enum AppSecretKey {
   SamlSpSigningSecrets = 'SAML_SP_SIGNING_SECRETS',
   SmsProviderSecrets = 'SMS_PROVIDER_SECRETS',
   SmtpSecret = 'SMTP_SECRET',
+  TelemetryAuditLogStreamSecrets = 'TELEMETRY_AUDIT_LOG_STREAM_SECRETS',
   WebhookSecret = 'WEBHOOK_SECRET'
 }
 
@@ -989,6 +990,7 @@ export type SubscriptionUsageItem = {
 
 export type TelemetryAuditLogStreamDatadogSecret = {
   __typename?: 'TelemetryAuditLogStreamDatadogSecret';
+  apiKey?: Maybe<Scalars['String']['output']>;
   streamName: Scalars['String']['output'];
 };
 

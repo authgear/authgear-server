@@ -828,7 +828,7 @@ export interface TelemetryFeatureConfig {
 }
 
 export interface TelemetryAuditLogStreamSecrets {
-  datadog?: { streamName: string }[] | null;
+  datadog?: { streamName: string; apiKey?: string | null }[] | null;
 }
 
 export interface TelemetryAuditLogStreamSecretsUpdateInstruction {
