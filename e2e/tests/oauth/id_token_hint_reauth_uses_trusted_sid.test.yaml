@@ -1,0 +1,179 @@
+name: reauth with id_token_hint records the trusted sid and reuses the hinted session
+# Proves the positive half of the trusted-sid design. The reauth is requested
+# WITHOUT offline_access (the SDK scope: openid + full-access), so token issuance
+# takes the `else if code.IDTokenHintSID != ""` branch: it binds to the offline
+# grant named by id_token_hint instead of minting a new one. We assert:
+#   1. user.reauthenticated fires against the hinted offline grant (the reauth
+#      block consumed the trusted sid), and
+#   2. the issued ID token's sid is UNCHANGED from login's -- i.e. the tokens
+#      bind to the same session, and no new offline grant was created.
+# If the sid were not set (e.g. the reauth-node action were removed), neither
+# would hold: the reauth block would be skipped and a fresh grant minted.
+steps:
+  # --- Login: create the user + an offline grant, capture its ID token ---
+  # oauth_setup's default scope includes offline_access + full-access, so an
+  # offline grant is created, it is reauth-eligible (canUseIntentReauthenticate),
+  # and the ID token's sid names it.
+  - name: login_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2e
+
+  - name: login_create_signup
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default",
+        "url_query": "{{ .steps.login_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: login_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "reauth_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: login_set_password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: login_exchange
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.login_oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.login_set_password.result.action.data.finish_redirect_uri }}"
+    output:
+      result: |
+        {
+          "raw_id_token": "[[string]]",
+          "id_token": {
+            "sid": "[[string]]"
+          }
+        }
+
+  # --- Reauth: authorize with prompt=login + id_token_hint for the same user,
+  #     WITHOUT offline_access (the SDK scope). ---
+  - name: reauth_authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      response_type: code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_challenge_method: S256
+      code_challenge: oYOJKHUn_D5yfQYeqgfNrd2ONiwp-JQFULMXJBcbQfc
+      scope: "openid https://authgear.com/scopes/full-access"
+      prompt: login
+      id_token_hint: "{{ .steps.login_exchange.result.raw_id_token }}"
+    http_output:
+      http_status: 302
+
+  # The reauth flow auto-identifies the user from the id_token in the OAuth
+  # session, so creating it lands directly on the authenticate step.
+  - name: reauth_create
+    action: create
+    input: |
+      {
+        "type": "reauth",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.reauth_authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: reauth_authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: reauth_exchange
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "2c4MydslyIc65_2vGStzSm9oatRF_nXBg3OsyAG5ulQ"
+    oauth_exchange_code_redirect_uri: "{{ .steps.reauth_authenticate.result.action.data.finish_redirect_uri }}"
+    output:
+      result: |
+        {
+          "raw_id_token": "[[string]]",
+          "id_token": {
+            "sid": "[[string]]"
+          }
+        }
+
+  # The ID token's sid is UNCHANGED from login: without offline_access, the token
+  # bound to the existing hinted offline grant, so no new offline grant was
+  # created and the session is reused.
+  - name: assert_sid_unchanged
+    action: query
+    query: |
+      SELECT ('{{ .steps.reauth_exchange.result.id_token.sid }}' = '{{ .steps.login_exchange.result.id_token.sid }}') AS sid_unchanged
+    query_output:
+      rows: |
+        [
+          { "sid_unchanged": true }
+        ]
+
+  # The trusted sid was set by NodeDidReauthenticate and consumed at the token
+  # endpoint, so the hinted offline grant was reauthenticated.
+  - name: verify_reauthenticated_event
+    action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'user.reauthenticated'
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.reauthenticated"
+          }
+        ]
