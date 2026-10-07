@@ -1645,7 +1645,6 @@ func (h *TokenHandler) handleApp2AppRequest(
 		SessionType:          sessionType,
 		SessionID:            originalIDPSessionID,
 		AuthenticationInfo:   info,
-		IDTokenHintSID:       "",
 		RedirectURI:          redirectURI.String(),
 		AuthorizationRequest: artificialAuthorizationRequest,
 		// App2app does not support DPoP

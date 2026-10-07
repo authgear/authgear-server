@@ -28,6 +28,7 @@ type Session struct {
 	IDToken                         string                           `json:"id_token,omitempty"`
 	SuppressIDPSessionCookie        bool                             `json:"suppress_idp_session_cookie,omitempty"`
 	UserIDHint                      string                           `json:"user_id_hint,omitempty"`
+	IDTokenHintSID                  string                           `json:"id_token_hint_sid,omitempty"`
 	LoginHint                       string                           `json:"login_hint,omitempty"`
 
 	// SMSOTPSentCountByPhone tracks how many SMS OTPs were sent per phone number in this flow.
@@ -58,6 +59,7 @@ type SessionOptions struct {
 	IDToken                         string
 	SuppressIDPSessionCookie        bool
 	UserIDHint                      string
+	IDTokenHintSID                  string
 	LoginHint                       string
 }
 
@@ -78,6 +80,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		out.IDToken = s.IDToken
 		out.SuppressIDPSessionCookie = s.SuppressIDPSessionCookie
 		out.UserIDHint = s.UserIDHint
+		out.IDTokenHintSID = s.IDTokenHintSID
 		out.LoginHint = s.LoginHint
 	}
 	if o != nil {
@@ -118,6 +121,7 @@ func NewSession(opts *SessionOptions) *Session {
 		IDToken:                         opts.IDToken,
 		SuppressIDPSessionCookie:        opts.SuppressIDPSessionCookie,
 		UserIDHint:                      opts.UserIDHint,
+		IDTokenHintSID:                  opts.IDTokenHintSID,
 		LoginHint:                       opts.LoginHint,
 	}
 }
@@ -159,6 +163,7 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) context.C
 	ctx = context.WithValue(ctx, contextKeyIDToken, s.IDToken)
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyUserIDHint, s.UserIDHint)
+	ctx = context.WithValue(ctx, contextKeyIDTokenHintSID, s.IDTokenHintSID)
 	ctx = context.WithValue(ctx, contextKeyLoginHint, s.LoginHint)
 
 	ctx = context.WithValue(ctx, contextKeyFlowID, s.FlowID)

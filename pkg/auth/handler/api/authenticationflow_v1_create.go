@@ -190,6 +190,7 @@ func (h *AuthenticationFlowV1CreateHandler) makeSessionOptionsFromOAuth(ctx cont
 		IDToken:                  uiInfo.IDTokenHint,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		UserIDHint:               uiInfo.UserIDHint,
+		IDTokenHintSID:           uiInfo.IDTokenHintSID,
 		LoginHint:                uiInfo.LoginHint,
 	}
 

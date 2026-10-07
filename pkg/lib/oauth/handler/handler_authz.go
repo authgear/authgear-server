@@ -644,6 +644,11 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 	}
 
 	authenticationInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
+	// The check above guarantees resolvedSession's user matches the hint, so the
+	// hinted sid belongs to this user. Record it as the trusted sid on the
+	// authentication info; token issuance reads it from here, never from the
+	// OAuth session.
+	authenticationInfo.IDTokenHintSID = idTokenHintSID
 	autoGrantAuthz := client.IsFirstParty()
 
 	sessionType := resolvedSession.SessionType()
@@ -657,7 +662,6 @@ func (h *AuthorizationHandler) doHandleRequestWithTx(
 		SessionType:          sessionType,
 		SessionID:            sessionID,
 		AuthenticationInfo:   authenticationInfo,
-		IDTokenHintSID:       idTokenHintSID,
 		Cookies:              nil,
 		GrantAuthz:           autoGrantAuthz,
 	})
@@ -830,7 +834,6 @@ type FinishAuthorizationOptions struct {
 	SessionType        session.Type
 	SessionID          string
 	AuthenticationInfo authenticationinfo.T
-	IDTokenHintSID     string
 	Cookies            []*http.Cookie
 	GrantAuthz         bool
 }
@@ -873,7 +876,6 @@ func (h *AuthorizationHandler) finishAuthorization(
 				SessionType:          opts.SessionType,
 				SessionID:            opts.SessionID,
 				AuthenticationInfo:   opts.AuthenticationInfo,
-				IDTokenHintSID:       opts.IDTokenHintSID,
 				RedirectURI:          opts.RedirectURI.String(),
 				AuthorizationRequest: opts.AuthorizationRequest,
 				DPoPJKT:              opts.AuthorizationRequest.DPoPJKT(),
@@ -953,7 +955,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 			userID,
 		)
 	default:
-		uiInfo, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(
+		uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(
 			ctx,
 			opts.ConsentRequest.Client,
 			opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
@@ -961,7 +963,6 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		if err != nil {
 			return nil, err
 		}
-		idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
 		// When id_token_hint is present, the consenting user must be the user it
 		// identifies (docs/specs/oidc.md § id_token_hint). The prompt=none path
@@ -973,12 +974,18 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 			return nil, protocol.NewError("invalid_request", "id_token_hint does not identify the authenticated user")
 		}
 
+		// The trusted sid, if any, was already recorded on AuthenticationInfo by
+		// the reauth flow (NodeDidReauthenticate) -- the only flow that may
+		// continue the hinted session. We pass it through unchanged; consent does
+		// not derive the sid from the OAuth session.
+		authenticationInfo := opts.ConsentRequest.AuthInfoEntry.T
+
 		sessionID := ""
 		var sessionType session.Type = ""
 
-		if opts.ConsentRequest.AuthInfoEntry.T.AuthenticatedBySessionID != "" {
-			sessionID = opts.ConsentRequest.AuthInfoEntry.T.AuthenticatedBySessionID
-			sessionType = session.Type(opts.ConsentRequest.AuthInfoEntry.T.AuthenticatedBySessionType)
+		if authenticationInfo.AuthenticatedBySessionID != "" {
+			sessionID = authenticationInfo.AuthenticatedBySessionID
+			sessionType = session.Type(authenticationInfo.AuthenticatedBySessionType)
 		}
 
 		return h.finishAuthorization(ctx, FinishAuthorizationOptions{
@@ -988,8 +995,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 			ResourceID:           resourceID,
 			SessionType:          sessionType,
 			SessionID:            sessionID,
-			AuthenticationInfo:   opts.ConsentRequest.AuthInfoEntry.T,
-			IDTokenHintSID:       idTokenHintSID,
+			AuthenticationInfo:   authenticationInfo,
 			Cookies:              []*http.Cookie{},
 			GrantAuthz:           opts.GrantAuthz,
 		})
