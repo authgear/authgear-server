@@ -61,6 +61,7 @@ func (s *AccessGrantService) PrepareUserAccessGrant(
 	accessGrant := &AccessGrant{
 		AppID:                   string(s.AppID),
 		AuthorizationID:         options.AuthorizationID,
+		UserID:                  options.AuthenticationInfo.UserID,
 		SessionID:               options.SessionLike.SessionID(),
 		SessionKind:             GrantSessionKindFromSessionType(options.SessionLike.SessionType()),
 		CreatedAt:               now,

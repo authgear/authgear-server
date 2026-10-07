@@ -1,0 +1,139 @@
+name: id_token_hint naming another user makes signup fail immediately (cross-user token confusion)
+# Reproduces the fixed vulnerability: a self-registered attacker holding a
+# victim's ID token must not obtain a token that resolves as the victim.
+#
+# Victim logs in and we capture their real OAuth ID token (its sid names the
+# victim's offline grant). The attacker then starts /oauth2/authorize with that
+# ID token as id_token_hint but WITHOUT offline_access, and tries to sign up as a
+# brand new user via the authflow API (the AuthUI hides signup when a hint is
+# present, but the API does not). The signup flow must fail immediately with
+# MismatchedUser -- no user is created, so there is no token to confuse and
+# nothing reaches the consent/token endpoint.
+steps:
+  # --- Victim: sign up and obtain a real OAuth ID token (sid = offline grant) ---
+  - name: victim_oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2e
+    oauth_setup_scope:
+      - openid
+      - offline_access
+
+  - name: victim_create_signup
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default",
+        "url_query": "{{ .steps.victim_oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: victim_identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "victim_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - name: victim_set_password
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: victim_exchange
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.victim_oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.victim_set_password.result.action.data.finish_redirect_uri }}"
+    output:
+      result: |
+        {
+          "raw_id_token": "[[string]]",
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+
+  # --- Attacker: authorize with the victim's id_token_hint, no offline_access ---
+  - name: attacker_clear_cookies
+    action: clear_cookies
+
+  - name: attacker_authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/oauth2/authorize
+    http_request_follow_redirects: false
+    http_request_query:
+      response_type: code
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      code_challenge_method: S256
+      code_challenge: oYOJKHUn_D5yfQYeqgfNrd2ONiwp-JQFULMXJBcbQfc
+      scope: openid
+      id_token_hint: "{{ .steps.victim_exchange.result.raw_id_token }}"
+    http_output:
+      http_status: 302
+
+  # The attacker tries to start a signup flow bound to this OAuth session, which
+  # carries an id_token_hint for another user. IntentSignupFlow must reject it
+  # immediately -- a signup can never satisfy a hint that names an existing user.
+  - name: attacker_create_signup_rejected
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default",
+        "url_query": "{{ (urlParse .steps.attacker_authorize.result.http_response_headers.location).query }}"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "InvariantViolated",
+          "message": "mismatched user",
+          "code": 400,
+          "info": {
+            "FlowType": "signup",
+            "cause": {
+              "kind": "MismatchedUser"
+            }
+          }
+        }
+
+  # AuthUI must not even let the end-user reach signup when a hint is present:
+  # GET /signup on an OAuth session carrying a UserIDHint redirects to /login
+  # (the login page also hides the signup link via AllowLoginOnly).
+  - name: attacker_signup_page_redirects_to_login
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/signup?{{ (urlParse .steps.attacker_authorize.result.http_response_headers.location).query }}"
+    http_request_follow_redirects: true
+    http_output:
+      http_status: 200
+      redirect_path: /login

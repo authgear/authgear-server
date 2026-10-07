@@ -1763,6 +1763,47 @@ func (h *TokenHandler) issueOfflineGrant(
 	return offlineGrant, tokenHash, nil
 }
 
+// verifyIDTokenHintSessionUser rejects the request when the session named by
+// an id_token_hint does not belong to expectedUserID. It is a no-op when no
+// hint session is present. See docs/specs/oidc.md § id_token_hint: the
+// end-user is guaranteed to be authenticated as the user indicated by the hint.
+func (h *TokenHandler) verifyIDTokenHintSessionUser(ctx context.Context, idTokenHintSID string, expectedUserID string) error {
+	if idTokenHintSID == "" {
+		return nil
+	}
+	typ, sessionID, ok := oauth.DecodeSID(idTokenHintSID)
+	if !ok {
+		return nil
+	}
+
+	var hintUserID string
+	switch typ {
+	case session.TypeOfflineGrant:
+		offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(ctx, sessionID)
+		if errors.Is(err, oauth.ErrGrantNotFound) {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		hintUserID = offlineGrant.GetUserID()
+	case session.TypeIdentityProvider:
+		idpSession, err := h.IDPSessions.Get(ctx, sessionID)
+		if errors.Is(err, idpsession.ErrSessionNotFound) {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		hintUserID = idpSession.GetUserID()
+	default:
+		return nil
+	}
+
+	if hintUserID != expectedUserID {
+		return protocol.NewError("invalid_request", "id_token_hint does not identify the authenticated user")
+	}
+	return nil
+}
+
 // nolint: gocognit
 func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	ctx context.Context,
@@ -1813,6 +1854,15 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	}
 
 	info := code.AuthenticationInfo
+
+	// When the code carries an id_token_hint session, it must belong to the
+	// user who authenticated this flow. Otherwise the reauth block below would
+	// mutate another user's session and the access token would be bound to it.
+	// The interactive consent path is guarded at authorize time too; this
+	// re-check also covers the prompt=none path and makes issuance self-contained.
+	if err := h.verifyIDTokenHintSessionUser(ctx, code.IDTokenHintSID, info.UserID); err != nil {
+		return nil, err
+	}
 
 	var app2appDevicePublicKey jwk.Key = nil
 	if app2appDeviceKeyJWT != "" && client.App2appEnabled {

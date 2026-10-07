@@ -953,7 +953,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 			userID,
 		)
 	default:
-		_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(
+		uiInfo, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(
 			ctx,
 			opts.ConsentRequest.Client,
 			opts.ConsentRequest.OAuthSessionEntry.T.AuthorizationRequest,
@@ -962,6 +962,16 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 			return nil, err
 		}
 		idTokenHintSID := uiInfoByProduct.IDTokenHintSID
+
+		// When id_token_hint is present, the consenting user must be the user it
+		// identifies (docs/specs/oidc.md § id_token_hint). The prompt=none path
+		// enforces this; the interactive path reaches finishAuthorization here,
+		// so enforce it before a code is issued. Without this, a user could
+		// authenticate (e.g. sign up) as themselves while the hint named another
+		// user, and the resulting token would bind to the hinted session.
+		if uiInfo.UserIDHint != "" && opts.ConsentRequest.AuthInfoEntry.T.UserID != uiInfo.UserIDHint {
+			return nil, protocol.NewError("invalid_request", "id_token_hint does not identify the authenticated user")
+		}
 
 		sessionID := ""
 		var sessionType session.Type = ""

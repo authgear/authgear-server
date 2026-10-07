@@ -3,10 +3,17 @@ package oauth
 import "time"
 
 type AccessGrant struct {
-	AppID           string           `json:"app_id"`
-	AuthorizationID string           `json:"authz_id"`
-	SessionID       string           `json:"session_id"`
-	SessionKind     GrantSessionKind `json:"session_kind"`
+	AppID           string `json:"app_id"`
+	AuthorizationID string `json:"authz_id"`
+	// UserID is the user this access token authenticates as -- the user who
+	// authenticated the flow that issued it (the JWT "sub"). It is recorded
+	// here so resolution can verify the bound session still belongs to this
+	// same user; SessionID alone does not pin the user, which let a token
+	// bound to another user's session (via id_token_hint) resolve as that
+	// other user. Empty on grants created before this field existed.
+	UserID      string           `json:"user_id"`
+	SessionID   string           `json:"session_id"`
+	SessionKind GrantSessionKind `json:"session_kind"`
 
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at"`
