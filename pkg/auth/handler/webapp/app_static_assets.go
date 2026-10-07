@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	aferomem "github.com/spf13/afero/mem"
@@ -60,8 +61,15 @@ type handlerFs struct {
 func (f *handlerFs) Open(name string) (http.File, error) {
 	ctx := f.ctx
 
+	// The resource manager can resolve any app resource, e.g. authgear.yaml,
+	// so never open anything outside the static assets directory.
+	cleaned := path.Clean("/" + name)
+	if !strings.HasPrefix(cleaned, "/"+web.AppAssetsURLDirname+"/") {
+		return nil, os.ErrNotExist
+	}
+
 	// ResourceManager.Resolve does not expect a leading slash.
-	p := strings.TrimPrefix(name, "/")
+	p := strings.TrimPrefix(cleaned, "/")
 
 	filePath, hashInPath, ok := filepathutil.ParseHashedPath(p)
 	if !ok {

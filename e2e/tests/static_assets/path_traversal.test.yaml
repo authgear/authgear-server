@@ -1,0 +1,29 @@
+name: Static assets endpoint does not serve files outside the static directory
+steps:
+  - name: serve_static_asset
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/static/csrf-ios-instruction.340684fcff3818a3ffa0aa34c177b0fb.png
+    http_output:
+      http_status: 200
+
+  - name: traverse_to_project_config
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/static/..%2fauthgear.deadbeef.yaml
+    http_output:
+      http_status: 404
+
+  - name: traverse_to_project_config_with_md5
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/static/..%2fauthgear.00000000000000000000000000000000.yaml
+    http_output:
+      http_status: 404
+
+  - name: traverse_to_secret_config
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/static/..%2fauthgear.secrets.deadbeef.yaml
+    http_output:
+      http_status: 404
