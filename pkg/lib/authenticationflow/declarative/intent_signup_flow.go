@@ -7,6 +7,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -76,6 +77,16 @@ func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *authflow.Depend
 func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
 	if deps.Config.Authentication.PublicSignupDisabled {
 		return nil, ErrNoPublicSignup
+	}
+
+	// A signup flow can never satisfy an id_token_hint: the hint guarantees the
+	// end-user is authenticated as the existing user it names, while signup
+	// creates a different, new user. Fail immediately rather than create that
+	// user and have the consent/token endpoint reject it afterwards. Covers
+	// both a direct signup flow and the signup branch of signup_login, which
+	// instantiates this same intent.
+	if authflow.GetUserIDHint(ctx) != "" {
+		return nil, api.ErrMismatchedUser
 	}
 
 	switch {
