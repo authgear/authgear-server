@@ -94,14 +94,11 @@ func (f *handlerFs) Open(name string) (http.File, error) {
 	}
 
 	bytes := result.([]byte)
-	if !web.LookLikeAHash(hashInPath) {
-		// check the hash
-		// md5 is used to compute the hash in the filename for caching purpose only
-		// nolint:gosec
-		dataHash := md5.Sum(bytes)
-		if fmt.Sprintf("%x", dataHash) != hashInPath {
-			return nil, os.ErrNotExist
-		}
+	// md5 is used to compute the hash in the filename for caching purpose only
+	// nolint:gosec
+	dataHash := md5.Sum(bytes)
+	if fmt.Sprintf("%x", dataHash) != hashInPath {
+		return nil, os.ErrNotExist
 	}
 
 	data := aferomem.CreateFile(p)

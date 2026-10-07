@@ -64,6 +64,19 @@ func TestAppStaticAssetsHandler(t *testing.T) {
 			So(rw.Body.String(), ShouldEqual, string(css))
 		})
 
+		Convey("does not serve a static asset whose hash does not match its content", func() {
+			for _, target := range []string{
+				"/static/authgear-light-theme.deadbeef.css",
+				"/static/authgear-light-theme.00000000000000000000000000000000.css",
+				"/static/authgear-light-theme.x.css",
+				"/static/authgear-light-theme.css",
+			} {
+				rw := serve(target)
+				So(rw.Code, ShouldEqual, http.StatusNotFound)
+				So(rw.Body.Len(), ShouldEqual, 0)
+			}
+		})
+
 		Convey("does not serve files outside the static directory", func() {
 			for _, target := range []string{
 				"/static/..%2fauthgear.deadbeef.yaml",
