@@ -57,8 +57,6 @@ oauth:
 
 Listing an app trusts it with the project's sign-ins. An app controls whatever it shows in its WebView, including AuthUI, and a listed app can also request the user's passkeys. List only apps the project controls.
 
-`x_native_apps` has no effect while `passkey` is not in `authentication.identities`: no association file is served, and no app origin is accepted.
-
 ## Association files
 
 Authgear serves both files at the host of `http.public_origin`, generated from every client's `x_native_apps`.
