@@ -48,7 +48,7 @@
 
 User profile consists of standard attributes, custom attributes and roles.
 
-`user_profile.forms` adds forms that collect attributes to the default flows. See [Profile Filling](./profile-filling.md#default-flows).
+Forms in custom authentication flows collect attributes. See [Profile Filling](./profile-filling.md).
 
 ## Standard attributes
 

@@ -16,6 +16,7 @@
       - [Bot protection input; type: cloudflare](#bot-protection-input-type-cloudflare)
       - [Bot protection input; type: recaptchav2](#bot-protection-input-type-recaptchav2)
       - [Bot protection error](#bot-protection-error)
+    + [Form in identification options](#form-in-identification-options)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
@@ -335,6 +336,44 @@ When you submit an input without performing Captcha challenge, you will receive 
   }
 }
 ```
+
+### Form in identification options
+
+In signup and promote flows, an `email`, `phone`, or `username` option may contain the key `form`, which is the same as `form` in [fill_form_data](#fill_form_data):
+
+```json
+{
+  "identification": "username",
+  "form": {
+    "name": "names",
+    "fields": [
+      {
+        "key": "/given_name",
+        "type": "string",
+        "label": "Given name",
+        "required": true
+      }
+    ]
+  }
+}
+```
+
+Render the fields together with the login ID input. The input of that option takes `fields`, with the same meaning and rules as the input of [fill_form](#type-signup-actiontype-fill_form):
+
+```json
+{
+  "identification": "username",
+  "login_id": "johndoe",
+  "fields": [
+    {
+      "key": "/given_name",
+      "value": "John"
+    }
+  ]
+}
+```
+
+The errors are those of the login ID and those of [fill_form](#type-signup-actiontype-fill_form). On any error, the flow stays in this step. See [Forms in the identify step](./user-profile/profile-filling.md#forms-in-the-identify-step).
 
 ### identification: email
 
@@ -1313,33 +1352,35 @@ When you are in this step of this flow, you will see a response like the followi
       "type": "fill_form",
       "data": {
         "type": "fill_form_data",
-        "fields": [
-          {
-            "key": "/given_name",
-            "type": "string",
-            "label": "Given name",
-            "required": true,
-            "value": "John",
-            "constraints": { "max_length": 50 }
-          },
-          {
-            "key": "/x_plan",
-            "type": "enum",
-            "label": "Plan",
-            "required": false,
-            "options": [
-              { "value": "free", "label": "Free" },
-              { "value": "pro", "label": "Pro" }
-            ]
-          }
-        ]
+        "form": {
+          "fields": [
+            {
+              "key": "/given_name",
+              "type": "string",
+              "label": "Given name",
+              "required": true,
+              "value": "John",
+              "constraints": { "max_length": 50 }
+            },
+            {
+              "key": "/x_plan",
+              "type": "enum",
+              "label": "Plan",
+              "required": false,
+              "options": [
+                { "value": "free", "label": "Free" },
+                { "value": "pro", "label": "Pro" }
+              ]
+            }
+          ]
+        }
       }
     }
   }
 }
 ```
 
-Render one input for each item of `data.fields`, in order. See [fill_form_data](#fill_form_data). When and why this step appears is specified in [Profile Filling](./user-profile/profile-filling.md#the-fill_form-step).
+Render one input for each item of `data.form.fields`, in order. See [fill_form_data](#fill_form_data). When and why this step appears is specified in [Profile Filling](./user-profile/profile-filling.md#the-fill_form-step).
 
 The corresponding input is
 
@@ -1355,10 +1396,10 @@ The corresponding input is
 ```
 
 - `fields`: One item per field the end-user filled.
-  - `key`: The `key` of a field in `data.fields`.
+  - `key`: The `key` of a field in `data.form.fields`.
   - `value`: A value of the field's `type`.
 
-A field absent from the input is treated as empty, and its stored value is cleared. Every field with `required: true` must be present and filled. A `key` not in `data.fields` is rejected.
+A field absent from the input is treated as empty, and its stored value is cleared. Every field with `required: true` must be present and filled. A `key` not in `data.form.fields` is rejected.
 
 If a value fails validation, the error is `ValidationFailed`, and the flow stays in this step.
 
@@ -1366,7 +1407,7 @@ If a hook on [authentication.form.post_submitted](./event.md#authenticationformp
 
 ## type: login; action.type: identify
 
-See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `login`.
+See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `login`, and options have no [form](#form-in-identification-options).
 
 ### identification: id_token
 
@@ -1917,7 +1958,7 @@ See [type: signup; action.type: fill_form](#type-signup-actiontype-fill_form). T
 
 ## type: signup_login; action.type: identify
 
-See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `signup_login`.
+See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `signup_login`, and options have no [form](#form-in-identification-options).
 
 `select_account` is also available here — see [identification: select_account](#identification-select_account).
 
@@ -2182,16 +2223,17 @@ The data contains recovery codes of the user.
 
 The data describes the fields of a form, so the frontend can render it without knowing where the values are stored.
 
-- `form_name`: The form's `name`. Absent when the form has none. It is unrelated to `result.name`, the name of the flow. A Custom UI can use it to choose its own title and description for the page.
-- `fields`: The fields to render, in order. Each field has:
-  - `key`: Identifies the field in the input. Treat it as an opaque string.
-  - `type`: The kind of value and input. See the table below.
-  - `label`: The field label, localized for the request. It may contain `<a href>` links when `type` is `boolean`.
-  - `required`: Whether the field must be filled to submit the form.
-  - `value`: The current value. Absent when there is none.
-  - `options`: Present when `type` is `enum`. A list of `{ "value", "label" }`, with localized labels.
-  - `suggestions`: Optional. Values to offer for a `string` field; other values are also accepted.
-  - `constraints`: Optional. Any of `min_length`, `max_length`, `allowed_characters`, `pattern`, and `pattern_message` for `string`; `minimum` and `maximum` for `integer` and `number`. `pattern_message` is the localized message to show when `pattern` fails, present when the developer provides one.
+- `form`: The form to render.
+  - `name`: The form's `name`. Absent when the form has none. It is unrelated to `result.name`, the name of the flow. A Custom UI can use it to choose its own title and description for the page.
+  - `fields`: The fields to render, in order. Each field has:
+    - `key`: Identifies the field in the input. Treat it as an opaque string.
+    - `type`: The kind of value and input. See the table below.
+    - `label`: The field label, localized for the request. It may contain `<a href>` links when `type` is `boolean`.
+    - `required`: Whether the field must be filled to submit the form.
+    - `value`: The current value. Absent when there is none.
+    - `options`: Present when `type` is `enum`. A list of `{ "value", "label" }`, with localized labels.
+    - `suggestions`: Optional. Values to offer for a `string` field; other values are also accepted.
+    - `constraints`: Optional. Any of `min_length`, `max_length`, `allowed_characters`, `pattern`, and `pattern_message` for `string`; `minimum` and `maximum` for `integer` and `number`. `pattern_message` is the localized message to show when `pattern` fails, present when the developer provides one.
 
 | `type` | `value` | Suggested input |
 |---|---|---|

@@ -479,27 +479,32 @@ Occurs right after the end-user submits a [form](./glossary.md#form) in an authe
 Fields in payload:
 - `authentication_context`: An [`AuthenticationContext`](./event_models.md#authenticationcontext) object.
 - `user`: The user with every attribute submitted so far in this flow applied, in the same shape as the `user` of [user.profile.pre_update](#userprofilepre_update). In a signup flow, it is the user to be created.
-- `fields`: One item per field of the submitted form, in the form's order.
-  - `field`: The field. As in the [form object](./user-profile/profile-filling.md#form-object), it has exactly one key, which names the kind of field.
-    - `user_profile`:
-      - `pointer`: The attribute's pointer.
-  - `value`: The submitted value, or `null` if the field is empty.
+- `form`: The submitted form. Its keys follow the [form object](./user-profile/profile-filling.md#form-object).
+  - `name`: The form's `name`. Absent when the form has none.
+  - `fields`: One item per field of the form, in the form's order.
+    - `field`: The field. As in the form object, it has exactly one key, which names the kind of field.
+      - `user_profile`:
+        - `pointer`: The attribute's pointer.
+    - `value`: The submitted value, or `null` if the field is empty.
 
 ```json5
 {
   "payload": {
     "authentication_context": { /* ... */ },
     "user": { /* ... */ },
-    "fields": [
-      {
-        "field": {
-          "user_profile": {
-            "pointer": "/x_employee_id"
-          }
-        },
-        "value": "E99999"
-      }
-    ]
+    "form": {
+      "name": "employee",
+      "fields": [
+        {
+          "field": {
+            "user_profile": {
+              "pointer": "/x_employee_id"
+            }
+          },
+          "value": "E99999"
+        }
+      ]
+    }
   }
 }
 ```
@@ -511,7 +516,7 @@ Supported hook responses:
 
 | `type` | Other keys | Meaning |
 |---|---|---|
-| `invalid_form_field` | `field`: a field of the submitted form, in the shape of `field` in `payload.fields`. `message`: a message for the end-user. | The value of that field is rejected. |
+| `invalid_form_field` | `field`: a field of the submitted form, in the shape of `field` in `payload.form.fields`. `message`: a message for the end-user. | The value of that field is rejected. |
 
 ```json
 {
@@ -531,7 +536,7 @@ Supported hook responses:
 }
 ```
 
-If a hook rejects the form, the flow stays in the `fill_form` step.
+If a hook rejects the form, the flow stays in the step that shows the form.
 
 `authentication.form.post_submitted` will be triggered in the following flow types:
 - signup
@@ -1545,7 +1550,7 @@ flowchart TD
         CreateAuthenticator --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
         AuthenticationPreAuthenticated --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Enforce AMR Constraints)"]
         CreateAuthenticatorAdaptive --> ViewRecoveryCode[View Recovery Code]
-        ViewRecoveryCode --> FillForm["Fill Form<br>(user_profile.forms.signup)"]
+        ViewRecoveryCode --> FillForm["Fill Form<br>(custom flows only)"]
         FillForm --> AuthenticationFormPostSubmitted[authentication.form.post_submitted]
         AuthenticationFormPostSubmitted --> PromptCreatePasskey[Prompt Create Passkey]
         PromptCreatePasskey --> UserPreCreate[user.pre_create]
@@ -1596,7 +1601,7 @@ flowchart TD
         ChangePassword --> CheckAccountStatus[Check Account Status]
         CheckAccountStatus -- "Blocked" --> AuthenticationBlocked[authentication.blocked]
         CheckAccountStatus -- "Success" --> TerminateOtherSessions[Terminate Other Sessions]
-        TerminateOtherSessions --> FillForm["Fill Form<br>(user_profile.forms.login)"]
+        TerminateOtherSessions --> FillForm["Fill Form<br>(custom flows only)"]
         FillForm --> AuthenticationFormPostSubmitted[authentication.form.post_submitted]
         AuthenticationFormPostSubmitted --> PromptCreatePasskey[Prompt Create Passkey]
         PromptCreatePasskey -- "A form was submitted" --> UserProfilePreUpdate[user.profile.pre_update]
