@@ -20,7 +20,16 @@ type AuthflowV2SignupHandler struct {
 }
 
 func (h *AuthflowV2SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if h.AuthenticationConfig.PublicSignupDisabled {
+	// Signup is not available when the authorization pinned a specific user via
+	// id_token_hint (UserIDHint): the only valid outcome is authenticating as
+	// that user. The login page already hides the signup link in this case
+	// (AllowLoginOnly); this also covers direct navigation and stale links, and
+	// avoids starting a signup flow that IntentSignupFlow would immediately
+	// reject.
+	s := webapp.GetSession(r.Context())
+	userIDHintPresent := s != nil && s.UserIDHint != ""
+
+	if h.AuthenticationConfig.PublicSignupDisabled || userIDHintPresent {
 		path := "/login"
 		u := webapp.MakeRelativeURL(path, webapp.PreserveQuery(r.URL.Query()))
 		// #nosec G710 -- webapp.MakeRelativeURL only ever sets Path and RawQuery, never Scheme/Host, so u is always relative to the current origin.
