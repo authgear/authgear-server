@@ -1,0 +1,22 @@
+name: Static assets endpoint serves an asset only when the hash in the path matches its content
+steps:
+  - name: serve_with_content_hash
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/static/csrf-ios-instruction.340684fcff3818a3ffa0aa34c177b0fb.png
+    http_output:
+      http_status: 200
+
+  - name: reject_8_character_hash
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/static/csrf-ios-instruction.deadbeef.png
+    http_output:
+      http_status: 404
+
+  - name: reject_wrong_md5
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/static/csrf-ios-instruction.00000000000000000000000000000000.png
+    http_output:
+      http_status: 404
