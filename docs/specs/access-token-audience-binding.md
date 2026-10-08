@@ -120,7 +120,7 @@ The project endpoint is **not** included. See [How It Works](#how-it-works) for 
 
 ### With Resource Indicator
 
-When `resource` is specified at `/oauth2/authorize`, Authgear determines the client's [category](./api-resource.md#client-categories) and permits access only if both the Resource and every requested Scope have that category's `access_policy` key set to `true`. Otherwise `invalid_target`.
+When `resource` is specified at `/oauth2/authorize`, Authgear determines the client's [category](./api-resource.md#client-categories) and permits access only if the Resource has that category's `access_policy` key set to `true`. Otherwise `invalid_target`. A requested Scope without that key set to `true` is dropped; see [Scope Validation](./oidc.md#scope-validation).
 
 The check is per-category and literal: a static third-party client is not covered by `allow_dynamic_third_party_client_access`, and a dynamic first-party client is not covered by `allow_static_first_party_client_access`.
 
@@ -152,7 +152,7 @@ GET /oauth2/authorize
 - `resource` is optional.
   - First-party client, omitted: issues a JWT with `aud = [<project_endpoint>]`.
   - Third-party client, omitted: issues an opaque access token.
-- Each `resource` value must refer to a Resource the client is permitted to access: the Resource and every requested Scope must both set the `access_policy` key for the client's [category](./api-resource.md#client-categories). Otherwise `invalid_target` is returned.
+- Each `resource` value must refer to a Resource that sets the `access_policy` key for the client's [category](./api-resource.md#client-categories). Otherwise `invalid_target` is returned. Requested Scopes are checked as described in [Scope Validation](./oidc.md#scope-validation).
 - Resource URIs must not be prefixed by the Authgear project endpoint.
 - The granted resources are bound to the authorization code and stored server-side.
 
@@ -262,8 +262,7 @@ Error response format differs by endpoint:
 | `resource` URI is prefixed by the Authgear project endpoint | `invalid_target` |
 | The Resource does not set the `access_policy` key for the client's category | `invalid_target` |
 | Client is an M2M client (M2M clients cannot use `/oauth2/authorize` at all) | `unauthorized_client` |
-| `scope` includes a resource-specific scope but no matching `resource` was requested | `invalid_scope` |
-| Requested scope is not permitted for the client on that resource | `invalid_scope` |
+| `scope` includes a value that is neither a built-in scope nor a Scope of the requested Resource ([Scope Validation](./oidc.md#scope-validation)) | `invalid_scope` |
 
 ### Token endpoint errors
 

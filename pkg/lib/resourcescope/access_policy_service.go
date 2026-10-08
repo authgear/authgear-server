@@ -31,15 +31,24 @@ func (s *AccessPolicyService) GetResourceByURI(ctx context.Context, uri string, 
 // ListScopesByResourceID returns resourceID's scopes that its access policy
 // currently opens to client.
 func (s *AccessPolicyService) ListScopesByResourceID(ctx context.Context, resourceID string, client model.ClientCategoryClassifier) ([]*Scope, error) {
-	scopes, err := s.Store.ListScopesByResourceID(ctx, resourceID)
+	_, allowed, err := s.ListAllAndAllowedScopesByResourceID(ctx, resourceID, client)
 	if err != nil {
 		return nil, err
 	}
-	var allowed []*Scope
-	for _, sc := range scopes {
+	return allowed, nil
+}
+
+// ListAllAndAllowedScopesByResourceID returns every scope of resourceID,
+// and the subset its access policy currently opens to client.
+func (s *AccessPolicyService) ListAllAndAllowedScopesByResourceID(ctx context.Context, resourceID string, client model.ClientCategoryClassifier) (all []*Scope, allowed []*Scope, err error) {
+	all, err = s.Store.ListScopesByResourceID(ctx, resourceID)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, sc := range all {
 		if sc.AccessPolicy.AllowsClient(client) {
 			allowed = append(allowed, sc)
 		}
 	}
-	return allowed, nil
+	return all, allowed, nil
 }

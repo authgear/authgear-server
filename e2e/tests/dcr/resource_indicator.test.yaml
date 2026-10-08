@@ -467,13 +467,19 @@ steps:
 
 ---
 
-name: DCR third-party client requesting a scope without the access policy enabled gets invalid_scope
+name: DCR third-party client requesting scopes it is not granted has them dropped
+# read:partial is not opened to dynamic third-party clients by its access
+# policy, and full-userinfo is first-party only. Both are dropped; the
+# request still succeeds.
 authgear.yaml:
   override: |
     oauth:
       dynamic_client_registration:
         enabled: true
         initial_access_token_required: false
+before:
+  - type: user_import
+    user_import: users.json
 steps:
   - name: create_resource
     action: admin_api_graphql
@@ -535,23 +541,82 @@ steps:
           "client_id": "[[string]]"
         }
 
-  - name: authorize_with_disabled_scope
-    action: http_request
-    http_request_method: GET
-    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
-    http_request_query:
-      client_id: "{{ .steps.register.result.http_json_body.client_id }}"
-      response_type: code
-      redirect_uri: http://localhost:4000
-      scope: "openid read:partial"
-      resource: https://api.example.com/partial
-      code_challenge_method: S256
-      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
-    http_request_follow_redirects: false
-    http_output:
-      http_status: 303
-      location_contains:
-        - "error=invalid_scope"
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    oauth_setup_scope:
+      - openid
+      - read:partial
+      - https://authgear.com/scopes/full-userinfo
+    oauth_setup_resource: https://api.example.com/partial
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: approve_consent
+    action: oauth_approve_consent
+    oauth_approve_consent_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.approve_consent.result.redirect_uri }}"
+    oauth_exchange_code_client_id: "{{ .steps.register.result.http_json_body.client_id }}"
+    output:
+      result: |
+        {
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "aud": ["https://api.example.com/partial"],
+            "scope": "openid"
+          }
+        }
 
 ---
 

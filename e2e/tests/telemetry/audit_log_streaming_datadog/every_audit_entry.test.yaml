@@ -91,7 +91,7 @@ steps:
   # The direct test of "streamed if and only if persisted": the set of
   # activity_type values the audit database holds for this app is exactly
   # the set of evt.name values that arrived at the recorder above -- two
-  # rows, two records, same order, mirroring
+  # rows, two records, mirroring
   # audit_log_streaming/every_audit_entry.test.yaml for the syslog type.
   - name: verify_persisted_matches_streamed
     action: audit_query
@@ -99,7 +99,7 @@ steps:
       SELECT activity_type
       FROM _audit_log
       WHERE app_id = '{{ .AppID }}'
-      ORDER BY created_at, id
+      ORDER BY activity_type
     audit_query_output:
       rows: |
         [

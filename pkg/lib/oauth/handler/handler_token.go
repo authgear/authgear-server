@@ -196,6 +196,7 @@ func (s SimpleSessionLike) SessionType() session.Type {
 type TokenHandlerClientResourceScopeService interface {
 	GetClientResourceByURI(ctx context.Context, clientID string, uri string) (*resourcescope.Resource, error)
 	GetClientResourceScopes(ctx context.Context, clientID string, resourceID string) ([]*resourcescope.Scope, error)
+	ListResourceScopes(ctx context.Context, resourceID string) ([]*resourcescope.Scope, error)
 }
 
 type TokenHandlerAppDatabase interface {
@@ -973,11 +974,11 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		if !offlineGrant.HasAllScopes(offlineGrant.InitialClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
-		err = oauth.ValidateScopesByClientConfig(client, requestedScopes, nil)
+		err = oauth.ValidateScopesByClientConfig(requestedScopes, nil)
 		if err != nil {
 			return nil, err
 		}
-		scopes = requestedScopes
+		scopes = oauth.GrantedScopes(client, requestedScopes, nil)
 	}
 
 	authz, err := h.Authorizations.CheckAndGrant(ctx, client.ClientID, offlineGrant.GetUserID(), "", scopes)
@@ -1393,11 +1394,11 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
-		err := oauth.ValidateScopesByClientConfig(client, requestedScopes, nil)
+		err := oauth.ValidateScopesByClientConfig(requestedScopes, nil)
 		if err != nil {
 			return nil, err
 		}
-		scopes = requestedScopes
+		scopes = oauth.GrantedScopes(client, requestedScopes, nil)
 	}
 
 	if !oauth.ContainsAllScopes(scopes, []string{oauth.OfflineAccess, oauth.FullAccessScope}) {
@@ -2415,10 +2416,16 @@ func (h *TokenHandler) handleClientCredentials(
 	allowedScopeStrs := slice.Map(allowedScopes, func(s *resourcescope.Scope) string { return s.Scope })
 	// scope is optional
 	if len(r.Scope()) > 0 {
-		if err := oauth.ValidateScopes(r.Scope(), allowedScopeStrs); err != nil {
+		allResourceScopes, err := h.ClientResourceScopeService.ListResourceScopes(ctx, resource.ID)
+		if err != nil {
 			return nil, err
 		}
-		scopes = r.Scope()
+		knownScopes := append(slices.Clone(oauth.AllowedScopes), slice.Map(allResourceScopes, func(s *resourcescope.Scope) string { return s.Scope })...)
+		if err := oauth.ValidateScopes(r.Scope(), knownScopes); err != nil {
+			return nil, err
+		}
+		// Built-in scopes are never associated, so they are dropped too.
+		scopes = slice.Filter(r.Scope(), func(s string) bool { return slices.Contains(allowedScopeStrs, s) })
 	} else {
 		scopes = allowedScopeStrs
 	}

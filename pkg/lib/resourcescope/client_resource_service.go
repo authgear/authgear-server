@@ -28,3 +28,9 @@ func (s *ClientResourceScopeService) GetClientResourceScopes(ctx context.Context
 	}
 	return scopes, nil
 }
+
+// ListResourceScopes returns every scope of resourceID, whether or not it is
+// associated with any client.
+func (s *ClientResourceScopeService) ListResourceScopes(ctx context.Context, resourceID string) ([]*Scope, error) {
+	return s.Store.ListScopesByResourceID(ctx, resourceID)
+}

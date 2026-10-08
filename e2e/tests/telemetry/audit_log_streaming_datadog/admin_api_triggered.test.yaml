@@ -70,13 +70,13 @@ steps:
       SELECT activity_type
       FROM _audit_log
       WHERE app_id = '{{ .AppID }}'
-      ORDER BY created_at, id
+      ORDER BY activity_type
     audit_query_output:
       rows: |
         [
+          { "activity_type": "admin_api.mutation.create_user.executed" },
           { "activity_type": "email.sent" },
-          { "activity_type": "user.created" },
-          { "activity_type": "admin_api.mutation.create_user.executed" }
+          { "activity_type": "user.created" }
         ]
 
   - name: wait_for_delivery

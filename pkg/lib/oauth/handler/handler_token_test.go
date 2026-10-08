@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -419,8 +420,8 @@ func TestTokenHandler(t *testing.T) {
 							AllowStaticFirstPartyClientAccess: true,
 						},
 					}, nil)
-				resourceAccessPolicyService.EXPECT().ListScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
-					Return(nil, nil) // read:orders access_policy cleared, filtered out by the service
+				resourceAccessPolicyService.EXPECT().ListAllAndAllowedScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
+					Return(nil, nil, nil) // read:orders access_policy cleared, filtered out by the service
 
 				var capturedScopes []string
 				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -497,10 +498,11 @@ func TestTokenHandler(t *testing.T) {
 							AllowStaticFirstPartyClientAccess: true,
 						},
 					}, nil)
-				resourceAccessPolicyService.EXPECT().ListScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
-					Return([]*resourcescope.Scope{
-						{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}},
-					}, nil)
+				readOrders := []*resourcescope.Scope{
+					{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}},
+				}
+				resourceAccessPolicyService.EXPECT().ListAllAndAllowedScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
+					Return(readOrders, readOrders, nil)
 
 				var capturedScopes []string
 				tokenService.EXPECT().PrepareUserAccessGrantByRefreshToken(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -806,8 +808,8 @@ func TestTokenHandler(t *testing.T) {
 							AllowStaticFirstPartyClientAccess: true,
 						},
 					}, nil)
-				resourceAccessPolicyService.EXPECT().ListScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
-					Return(nil, nil) // read:orders access_policy cleared, filtered out by the service
+				resourceAccessPolicyService.EXPECT().ListAllAndAllowedScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
+					Return(nil, nil, nil) // read:orders access_policy cleared, filtered out by the service
 
 				issuedOfflineGrant := &oauth.OfflineGrant{
 					ID:    "offline-grant-id",
@@ -913,10 +915,11 @@ func TestTokenHandler(t *testing.T) {
 							AllowStaticFirstPartyClientAccess: true,
 						},
 					}, nil)
-				resourceAccessPolicyService.EXPECT().ListScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
-					Return([]*resourcescope.Scope{
-						{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}},
-					}, nil)
+				readOrders := []*resourcescope.Scope{
+					{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}},
+				}
+				resourceAccessPolicyService.EXPECT().ListAllAndAllowedScopesByResourceID(gomock.Any(), "resource-id", gomock.Any()).
+					Return(readOrders, readOrders, nil)
 
 				issuedOfflineGrant := &oauth.OfflineGrant{
 					ID:    "offline-grant-id",
@@ -1398,6 +1401,7 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
+				clientResourceScopeService.EXPECT().ListResourceScopes(gomock.Any(), resourceID).Return(allowedScopes, nil)
 
 				accessToken := "access-token-123"
 				tokenService.EXPECT().IssueClientCredentialsAccessToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
@@ -1431,6 +1435,68 @@ func TestTokenHandler(t *testing.T) {
 				So(body["scope"], ShouldEqual, "read")
 			})
 
+			Convey("drops built-in scopes and resource scopes not associated with the client", func() {
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenPerIP,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenGeneralPerIP,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenGeneral,
+					Arguments:      []string{"1.2.3.4"},
+					Period:         time.Minute,
+					Burst:          120,
+					Enabled:        true,
+				}).Return(nil, nil)
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenClientCredentialsPerClient,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenClientCredentialsPerClient,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenClientCredentials,
+					Arguments:      []string{clientID},
+					Period:         time.Minute,
+					Burst:          5,
+					Enabled:        true,
+				}).Return(nil, nil)
+				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
+					Name:           ratelimit.OAuthTokenClientCredentialsPerProject,
+					RateLimitName:  ratelimit.RateLimitOAuthTokenClientCredentialsPerProject,
+					RateLimitGroup: ratelimit.RateLimitGroupOAuthTokenClientCredentials,
+					Period:         time.Minute,
+					Burst:          20,
+					Enabled:        true,
+				}).Return(nil, nil)
+				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
+				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
+				clientResourceScopeService.EXPECT().ListResourceScopes(gomock.Any(), resourceID).Return(append(
+					slices.Clone(allowedScopes),
+					&resourcescope.Scope{ID: "scope-id-3", ResourceID: resourceID, Scope: "delete"},
+				), nil)
+
+				tokenService.EXPECT().IssueClientCredentialsAccessToken(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+					func(ctx context.Context, opts handler.ClientCredentialsAccessTokenOptions, resp protocol.TokenResponse) error {
+						resp.AccessToken("access-token-123")
+						resp.TokenType("Bearer")
+						resp.ExpiresIn(3600)
+						resp.Scope(strings.Join(opts.Scopes, " "))
+						return nil
+					},
+				)
+
+				req, _ := http.NewRequest("POST", "/token", nil)
+				r := protocol.TokenRequest{
+					"grant_type":    []string{"client_credentials"},
+					"client_id":     []string{clientID},
+					"client_secret": []string{"supersecret"},
+					"resource":      []string{resourceURI},
+					"scope":         []string{"openid read delete"},
+				}
+				ctx := context.Background()
+				resp := handle(ctx, req, r)
+
+				So(resp.Result().StatusCode, ShouldEqual, 200)
+				var body map[string]any
+				err := json.Unmarshal(resp.Body.Bytes(), &body)
+				So(err, ShouldBeNil)
+				So(body["scope"], ShouldEqual, "read")
+			})
+
 			Convey("request for invalid scopes", func() {
 				rateLimiter.EXPECT().Allow(gomock.Any(), ratelimit.BucketSpec{
 					Name:           ratelimit.OAuthTokenPerIP,
@@ -1460,6 +1526,7 @@ func TestTokenHandler(t *testing.T) {
 				}).Return(nil, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceByURI(gomock.Any(), clientID, resourceURI).Return(resource, nil)
 				clientResourceScopeService.EXPECT().GetClientResourceScopes(gomock.Any(), clientID, resourceID).Return(allowedScopes, nil)
+				clientResourceScopeService.EXPECT().ListResourceScopes(gomock.Any(), resourceID).Return(allowedScopes, nil)
 
 				req, _ := http.NewRequest("POST", "/token", nil)
 				r := protocol.TokenRequest{
@@ -1477,7 +1544,7 @@ func TestTokenHandler(t *testing.T) {
 				err := json.Unmarshal(resp.Body.Bytes(), &body)
 				So(err, ShouldBeNil)
 				So(body["error"], ShouldEqual, "invalid_scope")
-				So(body["error_description"], ShouldEqual, "specified scope is not allowed: admin")
+				So(body["error_description"], ShouldEqual, "unknown scope: admin")
 			})
 
 			Convey("request for invalid resource", func() {

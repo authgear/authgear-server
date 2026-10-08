@@ -45,13 +45,18 @@ func (s *stubResourceScopeService) GetResourceByURI(ctx context.Context, uri str
 }
 
 func (s *stubResourceScopeService) ListScopesByResourceID(ctx context.Context, resourceID string, client model.ClientCategoryClassifier) ([]*resourcescope.Scope, error) {
+	_, allowed, err := s.ListAllAndAllowedScopesByResourceID(ctx, resourceID, client)
+	return allowed, err
+}
+
+func (s *stubResourceScopeService) ListAllAndAllowedScopesByResourceID(ctx context.Context, resourceID string, client model.ClientCategoryClassifier) ([]*resourcescope.Scope, []*resourcescope.Scope, error) {
 	var allowed []*resourcescope.Scope
 	for _, sc := range s.scopes {
 		if sc.AccessPolicy.AllowsClient(client) {
 			allowed = append(allowed, sc)
 		}
 	}
-	return allowed, nil
+	return s.scopes, allowed, nil
 }
 
 func TestAuthorizationHandlerValidateResource(t *testing.T) {
@@ -77,21 +82,21 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 
 		Convey("no resource requested returns nil, nil", func() {
 			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
-			_, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{})
+			_, _, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{})
 			So(err, ShouldBeNil)
 			So(scopes, ShouldBeNil)
 		})
 
 		Convey("resource prefixed by the project endpoint is invalid_target", func() {
 			h := &AuthorizationHandler{IDTokenIssuer: stubIDTokenIssuer{}}
-			_, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+			_, _, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://app.authgear.example.com/oauth2/userinfo",
 			})
 			So(scopes, ShouldBeNil)
 			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint"))
 		})
 
-		Convey("dynamic third-party client with a policy-enabled resource returns its allowed scopes", func() {
+		Convey("dynamic third-party client with a policy-enabled resource returns all and allowed scopes", func() {
 			h := &AuthorizationHandler{
 				IDTokenIssuer: stubIDTokenIssuer{},
 				Database:      &db.MockHandle{},
@@ -106,19 +111,20 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 					scopes: []*resourcescope.Scope{
 						{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowDynamicThirdPartyClientAccess: true}},
 						{Scope: "write:orders", AccessPolicy: model.AccessPolicy{AllowDynamicThirdPartyClientAccess: true}},
-						// Not returned: the Resource allows the category but
-						// this Scope does not -- the spec's two-level check,
-						// both must be true.
+						// Known but not granted: the Resource allows the
+						// category but this Scope does not -- the spec's
+						// two-level check, both must be true.
 						{Scope: "delete:orders"},
 					},
 				},
 			}
-			resourceID, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+			resourceID, known, granted, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://api.example.com/orders",
 			})
 			So(err, ShouldBeNil)
 			So(resourceID, ShouldEqual, "resource-id")
-			So(scopes, ShouldResemble, []string{"read:orders", "write:orders"})
+			So(known, ShouldResemble, []string{"read:orders", "write:orders", "delete:orders"})
+			So(granted, ShouldResemble, []string{"read:orders", "write:orders"})
 		})
 
 		Convey("dynamic third-party client with a resource not found is invalid_target", func() {
@@ -129,7 +135,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 					err: resourcescope.ErrResourceNotFound,
 				},
 			}
-			_, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+			_, _, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://api.example.com/secret",
 			})
 			So(scopes, ShouldBeNil)
@@ -144,7 +150,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 					resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: "https://api.example.com/orders"},
 				},
 			}
-			_, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
+			_, _, scopes, err := h.validateResource(context.Background(), dynamicThirdPartyClient, protocol.AuthorizationRequest{
 				"resource": "https://api.example.com/orders",
 			})
 			So(scopes, ShouldBeNil)
@@ -199,7 +205,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 						},
 					},
 				}
-				_, scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
+				_, _, scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
 					"resource": "https://api.example.com/orders",
 				})
 				So(err, ShouldBeNil)
@@ -223,7 +229,7 @@ func TestAuthorizationHandlerValidateResource(t *testing.T) {
 							},
 						},
 					}
-					_, scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
+					_, _, scopes, err := h.validateResource(context.Background(), cat.client, protocol.AuthorizationRequest{
 						"resource": "https://api.example.com/orders",
 					})
 					So(scopes, ShouldBeNil)
