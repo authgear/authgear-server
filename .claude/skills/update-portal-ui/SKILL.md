@@ -73,25 +73,25 @@ the first is how this rule gets passed while being violated:
 
 - `Link` from `react-router-dom`
 - `ReactRouterLink` from `portal/src/ReactRouterLink.tsx` — a *local* file, so it
-  looks like a portal component, but it returns `<a {...rest} href={href} …>`
-  with no FluentUI wrapper
+  looks like a portal component, but it returns a bare `<a>`
 
 Tailwind preflight ships `a{color:inherit;text-decoration:inherit}`, so a bare
 `<a>` inherits the surrounding colour and loses its underline: it renders as
 ordinary body text with no affordance that it is clickable. `portal/src/Link.tsx`
-and `ExternalLink.tsx` wrap FluentUI's `FluentLink`, which keeps its own styling.
+and `ExternalLink.tsx` render Radix `Link` with `color="indigo"`, which keeps
+the link colored even inside Radix `Text`.
 
 The test is what the component renders, not where it is imported from. If in
 doubt, open it and look for a bare `<a>`.
 
 ### Why this matters: the WidgetDescription / Text trap
 
-`WidgetDescription` wraps its children in a FluentUI `Text` component. FluentUI's `Text` overrides the colour of plain `<a>` tags to match surrounding text, making links invisible as links.
+`WidgetDescription` renders Radix `Text` (`portal/src/WidgetDescription.tsx`). Radix `Text` remaps the accent scale, which turns a link gray, and Tailwind preflight already strips the underline from a bare `<a>`.
 
-- `portal/src/Link.tsx` and `portal/src/ExternalLink.tsx` both wrap FluentUI's `FluentLink`, which keeps its own link styling even inside `Text`. ✓
-- `react-router-dom`'s `Link` renders a bare `<a>` — styling is stripped inside `Text`. ✗
+- `portal/src/Link.tsx` and `portal/src/ExternalLink.tsx` both render Radix `Link` with `color="indigo"`, so the link stays link-colored inside `Text`. ✓
+- `react-router-dom`'s `Link` renders a bare `<a>`. ✗
 
-**Rule:** Whenever a link appears inside `WidgetDescription`, `Text` (FluentUI), or any component that internally wraps FluentUI `Text`, use `Link` or `ExternalLink` from `portal/src`, not from `react-router-dom`.
+**Rule:** Whenever a link appears inside `WidgetDescription`, Radix `Text`, or any component that renders Radix `Text`, use `Link` or `ExternalLink` from `portal/src`, not from `react-router-dom`.
 
 ### Inline links inside FormattedMessage (i18n)
 
@@ -121,23 +121,24 @@ To embed a clickable link inside a translated string:
 
 ### Passing rich content to callbacks that accept descriptions
 
-Some components (e.g. FluentUI `ChoiceGroup` via `onRenderLabel`) accept a label-render callback. If the description contains a link, the callback must accept `React.ReactNode`, not `string`:
+If a callback renders a description that can contain a link, type the argument as `React.ReactNode`, not `string`:
 
 ```tsx
-// Correct — accepts ReactNode so JSX can be passed
-const onRenderLabel = useCallback((description: React.ReactNode) => {
-  return (option?: IChoiceGroupOption) => (
-    <div>
-      <Text>{option?.text}</Text>
-      <Text>{description}</Text>
-    </div>
-  );
-}, []);
+function renderDescription(description: React.ReactNode): React.ReactElement {
+  return <Text as="p">{description}</Text>;
+}
 
-// Then pass FormattedMessage directly — no cast needed
-onRenderLabel(
-  <FormattedMessage id="..." values={{ reactRouterLink: ... }} />
-)
+renderDescription(
+  <FormattedMessage
+    id="..."
+    values={{
+      // eslint-disable-next-line react/no-unstable-nested-components
+      docLink: (chunks: React.ReactNode) => (
+        <ExternalLink href="https://docs.authgear.com/...">{chunks}</ExternalLink>
+      ),
+    }}
+  />
+);
 ```
 
 **Never** cast JSX to string with `as any as string` — the link will not render correctly.
@@ -325,7 +326,7 @@ Before submitting a portal UI change:
 - [ ] No hardcoded user-facing string literals anywhere in the diff, including non-JSX config objects (chart library `label`/legend/tooltip config, form option lists, etc.) — all go through `renderToString`/`FormattedMessage`.
 - [ ] Every `Intl.DisplayNames`/`Intl.NumberFormat`/`Intl.DateTimeFormat`/luxon `toFormat`/`toLocaleString` call that produces user-visible text uses the active portal locale, not a hardcoded or default locale.
 - [ ] Every message id is a static literal, greppable from `en.json` to its render site — no id synthesised by concatenation or template literal. Where a varying key was unavoidable, it uses a lookup table of literals, or the new prefix is recorded in the dynamic-key list.
-- [ ] Links inside `WidgetDescription` or FluentUI `Text` use `Link` or `ExternalLink` from `portal/src` — not `react-router-dom`'s `Link` and not `portal/src/ReactRouterLink`, both of which render a bare `<a>`.
+- [ ] Links inside `WidgetDescription` or Radix `Text` use `Link` or `ExternalLink` from `portal/src` — not `react-router-dom`'s `Link` and not `portal/src/ReactRouterLink`, both of which render a bare `<a>`.
 - [ ] Inline links in `FormattedMessage` `values` use `Link` or `ExternalLink` from `portal/src`.
 - [ ] Callbacks that may receive rich content (links, JSX) are typed `React.ReactNode`, not `string`.
 - [ ] No local constant restates a server-side config default; placeholders and fallbacks come from `form.effectiveConfig`.

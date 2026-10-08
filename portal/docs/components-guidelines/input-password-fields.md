@@ -7,7 +7,7 @@ Use dedicated password input patterns for secrets and credential-like values.
 | Pattern | Component | Import path | Use when |
 |---|---|---|---|
 | Password entry with reveal behavior | `PasswordField` | `../../PasswordField` | Users enter or update passwords/secrets in forms |
-| Basic masked field in existing forms | `TextField` with `type="password"` | `../../TextField` | A password-like field is required in a simple form flow |
+| Basic masked field in existing forms | `TextField` with `type="password"` | `portal/src/components/v2/TextField/TextField.tsx` | A password-like field is required in a simple form flow |
 
 ## Rules
 
