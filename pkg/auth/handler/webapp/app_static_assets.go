@@ -28,7 +28,6 @@ func ConfigureAppStaticAssetsRoute(route httproute.Route) httproute.Route {
 
 type ResourceManager interface {
 	Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error)
-	Resolve(path string) (resource.Descriptor, bool)
 }
 
 type AppStaticAssetsHandler struct {
@@ -68,7 +67,7 @@ func (f *handlerFs) Open(name string) (http.File, error) {
 		return nil, os.ErrNotExist
 	}
 
-	// ResourceManager.Resolve does not expect a leading slash.
+	// Resource paths do not have a leading slash.
 	p := strings.TrimPrefix(cleaned, "/")
 
 	filePath, hashInPath, ok := filepathutil.ParseHashedPath(p)
@@ -76,8 +75,7 @@ func (f *handlerFs) Open(name string) (http.File, error) {
 		return nil, os.ErrNotExist
 	}
 
-	// Fallback ResourceManager
-	desc, ok := f.handler.Resources.Resolve(filePath)
+	desc, ok := resolveStaticAsset(filePath)
 	if !ok {
 		return nil, os.ErrNotExist
 	}
@@ -105,6 +103,16 @@ func (f *handlerFs) Open(name string) (http.File, error) {
 	file := aferomem.NewFileHandle(data)
 	_, _ = file.Write(bytes)
 	return aferomem.NewReadOnlyFileHandle(data), nil
+}
+
+// resolveStaticAsset matches only the known static assets, not every app resource.
+func resolveStaticAsset(p string) (resource.Descriptor, bool) {
+	for _, desc := range web.StaticAssetResources {
+		if _, ok := desc.MatchResource(p); ok {
+			return desc, true
+		}
+	}
+	return nil, false
 }
 
 var _ http.FileSystem = &handlerFs{}
