@@ -74,7 +74,7 @@ const baseAccountStatus: AccountStatus = {
 };
 
 const meta = {
-  title: "components/v1/Dialog/AccountStatusDialog",
+  title: "portal/Users/AccountStatusDialog",
   component: AccountStatusDialog,
   tags: ["autodocs"],
   decorators: [

@@ -10,7 +10,7 @@ import {
 import styles from "./LoginMethodConfigurationScreen.module.css";
 
 const meta = {
-  title: "components/v1/LoginMethodChooser",
+  title: "portal/LoginMethods/LoginMethodChooser",
   tags: ["autodocs"],
   decorators: [
     (Story) => (
