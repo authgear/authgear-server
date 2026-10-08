@@ -1,10 +1,10 @@
 import React, { useContext, useMemo } from "react";
 import { Text } from "@radix-ui/themes";
 import { Context as MessageContext, FormattedMessage } from "../../intl";
-import { Badge } from "../v2/Badge/Badge";
 import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import { InitialAccessTokenType } from "../../graphql/adminapi/globalTypes.generated";
 import { formatDatetime } from "../../util/formatDatetime";
+import { ClientKindBadge } from "./ClientKindBadge";
 import styles from "./InitialAccessTokenList.module.css";
 
 export interface InitialAccessTokenListItem {
@@ -60,23 +60,9 @@ export function InitialAccessTokenList({
       {rows.map(({ token, createdAt, expiresAt }) => (
         <div key={token.id} className={styles.row}>
           <div>
-            {token.type === InitialAccessTokenType.FirstParty ? (
-              <Badge
-                size="1"
-                variant="warning"
-                text={
-                  <FormattedMessage id="InitialAccessTokenList.type.first-party" />
-                }
-              />
-            ) : (
-              <Badge
-                size="1"
-                variant="neutral"
-                text={
-                  <FormattedMessage id="InitialAccessTokenList.type.third-party" />
-                }
-              />
-            )}
+            <ClientKindBadge
+              firstParty={token.type === InitialAccessTokenType.FirstParty}
+            />
           </div>
           <Text size="2" className="truncate">
             {createdAt}

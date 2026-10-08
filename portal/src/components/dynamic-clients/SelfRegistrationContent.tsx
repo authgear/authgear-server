@@ -17,6 +17,7 @@ import { ConfirmationDialog } from "../v2/ConfirmationDialog/ConfirmationDialog"
 import { SaveFunctionBar } from "../v2/SaveFunctionBar/SaveFunctionBar";
 import { useCalloutToast } from "../v2/Callout/Callout";
 import { InitialAccessTokenSection } from "./InitialAccessTokenSection";
+import { ClientKindComparison } from "./ClientKindComparison";
 import { useDynamicClientsQueryQuery } from "../../graphql/adminapi/query/dynamicClientsQuery.generated";
 import { OAuthClientSource } from "../../graphql/adminapi/globalTypes.generated";
 import styles from "./SelfRegistrationContent.module.css";
@@ -383,6 +384,8 @@ export const SelfRegistrationContent: React.VFC<SelfRegistrationContentProps> =
               />
             </SettingsSectionCard>
           ) : null}
+
+          <ClientKindComparison />
 
           {savedRegistrationEnabled ? (
             <SettingsSectionCard

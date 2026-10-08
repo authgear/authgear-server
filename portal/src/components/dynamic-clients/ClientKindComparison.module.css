@@ -1,0 +1,12 @@
+.table {
+  --card-table-min-width: 32rem;
+}
+
+.colLabel {
+  flex: 0 0 9rem;
+}
+
+.colKind {
+  @apply min-w-0;
+  flex: 1 1 0;
+}
