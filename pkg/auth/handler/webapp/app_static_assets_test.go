@@ -11,19 +11,11 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 type stubAppStaticAssetsResourceManager struct {
 	files map[string][]byte
-}
-
-func (m *stubAppStaticAssetsResourceManager) Resolve(path string) (resource.Descriptor, bool) {
-	if _, ok := m.files[path]; !ok {
-		return nil, false
-	}
-	return web.AuthgearLightThemeCSS, true
 }
 
 func (m *stubAppStaticAssetsResourceManager) Read(ctx context.Context, desc resource.Descriptor, view resource.View) (any, error) {
@@ -37,14 +29,24 @@ func (m *stubAppStaticAssetsResourceManager) Read(ctx context.Context, desc reso
 
 func TestAppStaticAssetsHandler(t *testing.T) {
 	Convey("AppStaticAssetsHandler", t, func() {
+		hashOf := func(b []byte) string {
+			// nolint:gosec
+			return fmt.Sprintf("%x", md5.Sum(b))
+		}
+
 		css := []byte("body {}")
-		// nolint:gosec
-		cssHash := fmt.Sprintf("%x", md5.Sum(css))
+		cssHash := hashOf(css)
+		logo := []byte("logo")
+		unknownImage := []byte("unknown image")
+		unknownText := []byte("unknown text")
 
 		h := &AppStaticAssetsHandler{
 			Resources: &stubAppStaticAssetsResourceManager{
 				files: map[string][]byte{
 					"static/authgear-light-theme.css": css,
+					"static/en/app_logo.png":          logo,
+					"static/unknown.png":              unknownImage,
+					"static/unknown.txt":              unknownText,
 					"authgear.yaml":                   []byte("id: accounts\n"),
 					"deno/hook.ts":                    []byte("export default {}\n"),
 				},
@@ -62,6 +64,23 @@ func TestAppStaticAssetsHandler(t *testing.T) {
 			rw := serve("/static/authgear-light-theme." + cssHash + ".css")
 			So(rw.Code, ShouldEqual, http.StatusOK)
 			So(rw.Body.String(), ShouldEqual, string(css))
+		})
+
+		Convey("serves a localized static asset with its content hash", func() {
+			rw := serve("/static/en/app_logo." + hashOf(logo) + ".png")
+			So(rw.Code, ShouldEqual, http.StatusOK)
+			So(rw.Body.String(), ShouldEqual, string(logo))
+		})
+
+		Convey("does not serve a file that is not a known static asset", func() {
+			for _, target := range []string{
+				"/static/unknown." + hashOf(unknownImage) + ".png",
+				"/static/unknown." + hashOf(unknownText) + ".txt",
+			} {
+				rw := serve(target)
+				So(rw.Code, ShouldEqual, http.StatusNotFound)
+				So(rw.Body.Len(), ShouldEqual, 0)
+			}
 		})
 
 		Convey("does not serve a static asset whose hash does not match its content", func() {
