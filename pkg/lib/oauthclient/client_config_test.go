@@ -104,6 +104,10 @@ func TestClientToClientConfigCIMD(t *testing.T) {
 			So(cfg.IsCIMDClient(), ShouldBeTrue)
 		})
 
+		Convey("does not issue JWT access tokens", func() {
+			So(cfg.IssueJWTAccessToken, ShouldBeFalse)
+		})
+
 		Convey("lifetimes come from client_config, not default_client_config", func() {
 			So(cfg.AccessTokenLifetime, ShouldEqual, config.DurationSeconds(1800))
 			So(cfg.RefreshTokenLifetime, ShouldEqual, config.DurationSeconds(2592000))
@@ -125,5 +129,34 @@ func TestClientToClientConfigCIMD(t *testing.T) {
 		cfg := &config.OAuthClientConfig{ClientID: "https://example.com/client"}
 		So(cfg.IsCIMDClient(), ShouldBeFalse)
 		So(cfg.IsDynamicClient(), ShouldBeFalse)
+	})
+}
+
+func TestClientToClientConfigIssueJWTAccessToken(t *testing.T) {
+	Convey("Client.ToClientConfig IssueJWTAccessToken follows Kind", t, func() {
+		newClient := func(kind model.OAuthClientKind, appType string) *oauthclient.Client {
+			return &oauthclient.Client{
+				ID:              "row-id",
+				ClientID:        "dcrc_test",
+				Source:          model.OAuthClientSourceDCR,
+				Kind:            kind,
+				ApplicationType: appType,
+				RedirectURIs:    []string{"https://example.com/callback"},
+				GrantTypes:      []string{"authorization_code", "refresh_token"},
+				ResponseTypes:   []string{"code"},
+			}
+		}
+
+		Convey("first-party web: true", func() {
+			So(newClient(model.OAuthClientKindFirstParty, "web").ToClientConfig(nil).IssueJWTAccessToken, ShouldBeTrue)
+		})
+
+		Convey("first-party native: true", func() {
+			So(newClient(model.OAuthClientKindFirstParty, "native").ToClientConfig(nil).IssueJWTAccessToken, ShouldBeTrue)
+		})
+
+		Convey("third-party: false", func() {
+			So(newClient(model.OAuthClientKindThirdParty, "web").ToClientConfig(nil).IssueJWTAccessToken, ShouldBeFalse)
+		})
 	})
 }

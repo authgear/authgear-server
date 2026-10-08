@@ -78,6 +78,7 @@ func TestClientToModel(t *testing.T) {
 
 			So(m.Name, ShouldEqual, "Client dcrc_test")
 			So(m.ClientName, ShouldBeNil)
+			So(m.IssueJWTAccessToken, ShouldBeTrue)
 		})
 
 		Convey("CIMD source has nil RegisteredAt", func() {
