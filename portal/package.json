@@ -37,6 +37,7 @@
     "@graphql-codegen/typescript-react-apollo": "^4.4.1",
     "@jest/globals": "^30.2.0",
     "@oursky/eslint-plugin": "^17.0.0",
+    "@oursky/storybook-addon-comments": "file:vendor/storybook-addon-comments",
     "@oursky/stylelint-oursky": "^6.0.0",
     "@savvywombat/tailwindcss-grid-areas": "^3.1.0",
     "@storybook/addon-docs": "^10.4.4",

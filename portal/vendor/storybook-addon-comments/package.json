@@ -1,0 +1,39 @@
+{
+  "name": "@oursky/storybook-addon-comments",
+  "version": "0.2.0",
+  "description": "Storybook panel addon for per-story comments backed by a comments HTTP API.",
+  "keywords": [
+    "storybook-addon",
+    "comments"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oursky/storybook-addon-comments.git"
+  },
+  "homepage": "https://github.com/oursky/storybook-addon-comments",
+  "bugs": {
+    "url": "https://github.com/oursky/storybook-addon-comments/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./preset.js",
+    "./manager": "./src/manager.tsx",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "preset.js",
+    "src"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "storybook": "^10.0.0"
+  },
+  "storybook": {
+    "displayName": "Comments",
+    "supportedFrameworks": [
+      "react"
+    ]
+  }
+}

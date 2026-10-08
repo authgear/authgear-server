@@ -3,6 +3,7 @@
 Storybook is used to develop and preview Portal UI components in isolation.
 
 - Run locally: `npm run storybook` (inside `portal/`).
+- Comments panel: `@oursky/storybook-addon-comments`, vendored at `portal/vendor/storybook-addon-comments`. Local Storybook has no comments API, so the panel errors until Storybook is served in front of one (`/api/comments`).
 - Config: `portal/.storybook/main.ts`, `portal/.storybook/preview.tsx`.
 - Stories are discovered via the glob `../src/**/*.stories.@(js|jsx|mjs|ts|tsx)`.
 
