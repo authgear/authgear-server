@@ -15,6 +15,7 @@ import (
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -72,6 +73,7 @@ type CollaboratorService struct {
 	Endpoints      CollaboratorServiceEndpointsProvider
 	TemplateEngine *template.Engine
 	AdminAPI       CollaboratorServiceAdminAPIService
+	AuthgearConfig *portalconfig.AuthgearConfig
 
 	AppConfigs CollaboratorAppConfigService
 }
@@ -478,8 +480,20 @@ func (s *CollaboratorService) SendInvitation(
 	if err != nil {
 		return nil, err
 	}
+	normalizer, err := s.emailNormalizer(ctx)
+	if err != nil {
+		return nil, err
+	}
+	normalizedInviteeEmail, err := normalizer.Normalize(inviteeEmail)
+	if err != nil {
+		return nil, err
+	}
 	for _, i := range invitations {
-		if i.InviteeEmail == inviteeEmail {
+		normalized, err := normalizer.Normalize(i.InviteeEmail)
+		if err != nil {
+			return nil, err
+		}
+		if normalized == normalizedInviteeEmail {
 			return nil, ErrCollaboratorInvitationDuplicate
 		}
 	}
@@ -813,11 +827,41 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 		}
 	}
 
-	if email != i.InviteeEmail {
+	if email == "" {
+		return ErrCollaboratorInvitationInvalidEmail
+	}
+
+	normalizer, err := s.emailNormalizer(ctx)
+	if err != nil {
+		return err
+	}
+	normalizedEmail, err := normalizer.Normalize(email)
+	if err != nil {
+		return err
+	}
+	normalizedInviteeEmail, err := normalizer.Normalize(i.InviteeEmail)
+	if err != nil {
+		return err
+	}
+
+	if normalizedEmail != normalizedInviteeEmail {
 		return ErrCollaboratorInvitationInvalidEmail
 	}
 
 	return nil
+}
+
+// emailNormalizer follows the email login ID config of the project that portal users sign in to.
+func (s *CollaboratorService) emailNormalizer(ctx context.Context) (*loginid.EmailNormalizer, error) {
+	var emailConfig *config.LoginIDEmailConfig
+	err := s.AppConfigs.ResolveContext(ctx, s.AuthgearConfig.AppID, func(ctx context.Context, appCtx *config.AppContext) error {
+		emailConfig = appCtx.Config.AppConfig.Identity.LoginID.Types.Email
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &loginid.EmailNormalizer{Config: emailConfig}, nil
 }
 
 // checkInviteeExistenceByEmail calls HTTP request.
