@@ -73,6 +73,12 @@ type Service struct {
 }
 
 func (s *Service) FetchSubscriptionPlans(ctx context.Context) (subscriptionPlans []*model.SubscriptionPlan, err error) {
+	// No plan can be subscribed to without Stripe. Report none rather than
+	// fail, so billing screens still show what does not depend on Stripe.
+	if !s.StripeConfig.IsConfigured() {
+		return []*model.SubscriptionPlan{}, nil
+	}
+
 	item := redisutil.Item{
 		Key:        RedisCacheKeySubscriptionPlans,
 		Expiration: duration.PerHour,
