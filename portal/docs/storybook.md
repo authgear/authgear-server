@@ -92,3 +92,9 @@ If a provider ends up being needed by most screen stories, promote it to `.story
 3. Add decorators only for contexts that screen needs (`MemoryRouter`, and `SystemConfigContext` when the screen calls `useSystemConfig()`).
 4. Wrap in a sized container if the component is width-sensitive.
 5. Add stories for each meaningful variant, not just the default.
+
+## Deploy to Skyrocket
+
+`portal/skyrocket.yaml` is a separate Skyrocket project, `authgear-portal-storybook`. It does not deploy the Authgear server. Run `skyrocket deploy` from `portal/`, with no `--env public`. The internal URL is `https://authgear-portal-storybook.oursky.dev`.
+
+nginx serves the static Storybook build and proxies `/api/` to the comments API. Postgres comes from `SKYROCKET_POSTGRES_URL`. Commit before deploying: Skyrocket rolls pods only when the image tag `git-<HEAD>` changes.

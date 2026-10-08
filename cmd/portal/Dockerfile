@@ -19,6 +19,8 @@ FROM --platform=$BUILDPLATFORM node:24.16.0-bookworm AS authgear-portal-stage-1
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
 COPY ./portal/package.json ./portal/package-lock.json ./
+# file: dependency. npm ci fails if this tree is missing.
+COPY ./portal/vendor/storybook-addon-comments ./vendor/storybook-addon-comments
 # Copy the scripts
 COPY ./portal/scripts/. ./scripts/.
 RUN npm ci
