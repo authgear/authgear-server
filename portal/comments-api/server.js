@@ -229,6 +229,13 @@ function createHandler({ query, state }) {
   };
 }
 
+function watchPool(pool) {
+  // An idle client error with no listener exits the process.
+  pool.on("error", (err) => {
+    console.error("idle postgres client error", err);
+  });
+}
+
 function start() {
   const state = { postgres: false, schemaReady: false };
   let query = async () => {
@@ -246,6 +253,7 @@ function start() {
       return;
     }
     const pool = new Pool({ connectionString: rewritePostgresUrl(raw) });
+    watchPool(pool);
     query = (text, params) => pool.query(text, params);
     const migrate = async () => {
       try {
@@ -270,6 +278,7 @@ module.exports = {
   rewritePostgresUrl,
   mapComment,
   createHandler,
+  watchPool,
   start,
 };
 

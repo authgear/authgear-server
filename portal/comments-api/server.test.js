@@ -1,7 +1,8 @@
 const http = require("http");
+const { EventEmitter } = require("events");
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { createHandler, mapComment, rewritePostgresUrl } = require("./server");
+const { createHandler, mapComment, rewritePostgresUrl, watchPool } = require("./server");
 
 function listen(handler) {
   const server = http.createServer((req, res) => {
@@ -32,6 +33,12 @@ function request(port, method, path, body) {
     req.end();
   });
 }
+
+test("an idle pool error does not exit the process", () => {
+  const pool = new EventEmitter();
+  watchPool(pool);
+  assert.doesNotThrow(() => pool.emit("error", new Error("connection terminated")));
+});
 
 test("rewrites only the sslmode query parameter", () => {
   assert.equal(
