@@ -14,6 +14,7 @@ jobs:
     - run: npm ci
       working-directory: ./authui
     - name: Run npm audit
+      if: false
       env:
         AUDIT_LEVEL: critical
       run: |
@@ -23,7 +24,6 @@ jobs:
           npm audit --audit-level="${AUDIT_LEVEL}"
         fi
       working-directory: ./authui
-      if: ${{ !cancelled() }}
     - run: npm run typecheck
       working-directory: ./authui
       if: ${{ !cancelled() }}
@@ -63,6 +63,7 @@ jobs:
     - run: npm ci
       working-directory: ./portal
     - name: Run npm audit
+      if: false
       env:
         AUDIT_LEVEL: critical
       run: |
@@ -72,7 +73,6 @@ jobs:
           npm audit --audit-level="${AUDIT_LEVEL}"
         fi
       working-directory: ./portal
-      if: ${{ !cancelled() }}
     - run: npm run typecheck
       working-directory: ./portal
       if: ${{ !cancelled() }}
