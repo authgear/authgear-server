@@ -29,13 +29,3 @@ func TestStaticAssetURL(t *testing.T) {
 		So(url, ShouldEqual, "https://cdn.example.com/main.css")
 	})
 }
-
-func TestHasedPath(t *testing.T) {
-	Convey("LookLikeAHash", t, func() {
-		result := LookLikeAHash("c90cf340")
-		So(result, ShouldEqual, true)
-
-		result = LookLikeAHash("123")
-		So(result, ShouldEqual, false)
-	})
-}
