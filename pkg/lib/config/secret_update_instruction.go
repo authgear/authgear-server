@@ -1067,6 +1067,7 @@ func (i *TelemetryAuditLogStreamSecretsUpdateInstruction) set(currentConfig *Sec
 		}
 	}
 
+	// #nosec G117 -- Secret config updates intentionally serialize Datadog API keys into secret storage.
 	data, err := json.Marshal(items)
 	if err != nil {
 		return nil, err
