@@ -1,0 +1,201 @@
+name: String constraints of standard and custom attributes (UC4, UC7)
+extra_files_directory: ./var_translations
+authgear.yaml:
+  override: |
+    user_profile:
+      standard_attributes:
+        validation:
+        - pointer: /given_name
+          min_length: 3
+          max_length: 10
+          allowed_characters: [letters]
+      custom_attributes:
+        attributes:
+        - id: "0000"
+          pointer: /x_employee_id
+          type: string
+          pattern: "^E[0-9]{5}$"
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+        - type: fill_form
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+            - user_profile:
+                pointer: /x_employee_id
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_form_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "e2e_password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form",
+            "data": {
+              "form": {
+                "fields": [
+                  {
+                    "key": "/given_name",
+                    "label": "Given name",
+                    "constraints": {
+                      "min_length": 3,
+                      "max_length": 10,
+                      "allowed_characters": ["letters"]
+                    }
+                  },
+                  {
+                    "key": "/x_employee_id",
+                    "label": "Employee ID",
+                    "constraints": {
+                      "pattern": "^E[0-9]{5}$",
+                      "pattern_message": "Start with E, then 5 digits"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  - name: pattern
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/x_employee_id", "value": "12345" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed",
+          "info": {
+            "causes": [
+              {
+                "kind": "pattern",
+                "location": "/fields/0/value"
+              }
+            ]
+          }
+        }
+
+  - name: allowed_characters
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "Ace!" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed",
+          "info": {
+            "causes": [
+              {
+                "kind": "allowedCharacters",
+                "location": "/fields/0/value"
+              }
+            ]
+          }
+        }
+
+  - name: min_length
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "Ac" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed",
+          "info": {
+            "causes": [
+              {
+                "kind": "minLength",
+                "location": "/fields/0/value"
+              }
+            ]
+          }
+        }
+
+  - name: valid
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "Alice" },
+          { "key": "/x_employee_id", "value": "E12345" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - action: query
+    query: |
+      SELECT standard_attributes->>'given_name' AS given_name, custom_attributes->>'0000' AS employee_id
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "given_name": "Alice",
+            "employee_id": "E12345"
+          }
+        ]

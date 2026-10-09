@@ -1,0 +1,138 @@
+name: Signup with a fill_form page via webapp
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: username
+          type: username
+    user_profile:
+      custom_attributes:
+        attributes:
+        - id: "0000"
+          pointer: /x_terms
+          type: boolean
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+        - type: fill_form
+          form:
+            name: names
+            fields:
+            - user_profile:
+                pointer: /given_name
+                required: true
+            - user_profile:
+                pointer: /family_name
+                required: true
+            - user_profile:
+                pointer: /x_terms
+                required: true
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+  - name: get_signup_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/signup?{{ .steps.oauth_setup.result.query }}&q_login_id_key=username&q_login_id_input_type=text
+    http_output:
+      http_status: 200
+      redirect_path: /signup
+  - name: submit_signup_id
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_signup_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      q_login_id_key: username
+      q_login_id: webapp_form_user
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/create_password
+  - name: submit_password
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_signup_id.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_password: password
+      x_confirm_password: password
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/fill_form
+      html_xpath_exists:
+        - /html/body//form//button[@name='x_action'][@value='submit']
+      html_text_contains:
+        - name="/given_name"
+        - name="/family_name"
+        - name="/x_terms"
+        - Complete your profile
+        - Please provide the following information
+  - name: submit_empty_form
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_password.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_action: submit
+      "/x_terms": "false"
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/fill_form
+      html_text_contains:
+        - name="/given_name"
+        - This field is required
+  - name: submit_form
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_empty_form.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_action: submit
+      "/given_name": John
+      "/family_name": Doe
+      "/x_terms": "true"
+    http_output:
+      http_status: 302
+  - name: finish_flow
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.submit_form.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+  - action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
+  - action: query
+    query: |
+      SELECT standard_attributes->>'given_name' AS given_name, standard_attributes->>'family_name' AS family_name, custom_attributes->'0000' AS terms
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          { "given_name": "John", "family_name": "Doe", "terms": true }
+        ]

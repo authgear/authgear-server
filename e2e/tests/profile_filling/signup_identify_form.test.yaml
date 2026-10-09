@@ -1,0 +1,172 @@
+name: Signup with a form in the identify step, rejected by the form hook (UC2)
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: authentication.form.post_submitted
+        url: authgeardeno:///deno/formrejectall.ts
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            form:
+              name: names
+              fields:
+              - user_profile:
+                  pointer: /given_name
+                  required: true
+              - user_profile:
+                  pointer: /family_name
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+          - identification: email
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                {
+                  "identification": "username",
+                  "form": {
+                    "name": "names",
+                    "fields": [
+                      {
+                        "key": "/given_name",
+                        "type": "string",
+                        "label": "Given name",
+                        "required": true
+                      },
+                      {
+                        "key": "/family_name",
+                        "type": "string",
+                        "label": "Family name",
+                        "required": false
+                      }
+                    ]
+                  }
+                },
+                {
+                  "identification": "email",
+                  "form": "[[never]]"
+                }
+              ]
+            }
+          }
+        }
+
+  - name: fields_on_a_branch_without_a_form
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "form_user@example.com",
+        "fields": [
+          { "key": "/given_name", "value": "John" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed"
+        }
+
+  - name: missing_required_field
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_new_user"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed"
+        }
+
+  - name: unavailable_login_id_does_not_call_the_form_hook
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_existing",
+        "fields": [
+          { "key": "/given_name", "value": "John" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "InvariantViolated",
+          "info": {
+            "cause": {
+              "kind": "DuplicatedIdentity"
+            }
+          }
+        }
+
+  - name: rejected_by_the_form_hook
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_new_user",
+        "fields": [
+          { "key": "/given_name", "value": "John" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "HookDisallowed",
+          "info": {
+            "event_type": "authentication.form.post_submitted",
+            "reasons": [
+              {
+                "title": "Rejected",
+                "reason": "Always rejected"
+              }
+            ]
+          }
+        }
+
+  - name: the_flow_stays_in_identify
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "form_user@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }

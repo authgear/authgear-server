@@ -1,0 +1,232 @@
+name: Account linking into an existing user skips the signup forms, but the login flow forms still apply
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - oauth
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      oauth:
+        - alias: google
+          action: login_and_link
+          oauth_claim:
+            pointer: "/email"
+          user_profile:
+            pointer: "/email"
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              one_of:
+              - identification: username
+                steps:
+                  - type: fill_form
+                    form:
+                      fields:
+                      - user_profile:
+                          pointer: /given_name
+                  - type: identify
+                    one_of:
+                      - identification: oauth
+      login_flows:
+        - name: f1
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: oauth
+            - identification: email
+              steps:
+              - type: authenticate
+                one_of:
+                - authentication: primary_password
+          - type: fill_form
+            form:
+              fields:
+              - user_profile:
+                  pointer: /family_name
+before:
+  - type: user_import
+    user_import: account_linking_users.json
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "test1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form"
+          }
+        }
+
+  - name: the_form_is_submitted_before_linking
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "Submitted" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "oauth",
+        "alias": "google",
+        "redirect_uri": "http://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "query": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "query": "{{ .prev.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "identification": "oauth",
+            "data": {
+              "type": "account_linking_identification_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "12341234"
+      }
+    output:
+      result: |
+        {
+          "type": "login",
+          "action": {
+            "type": "fill_form",
+            "data": {
+              "form": {
+                "fields": [
+                  {
+                    "key": "/family_name",
+                    "value": "[[never]]"
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  # The form of the login flow is effective, as the flow now continues as the existing user.
+  - action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/family_name", "value": "FromLoginForm" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: only_the_existing_user_remains_with_the_login_form_applied
+    action: query
+    query: |
+      SELECT standard_attributes->>'given_name' AS given_name, standard_attributes->>'family_name' AS family_name
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "given_name": "Existing",
+            "family_name": "FromLoginForm"
+          }
+        ]
+
+  # Only the login form counts. The skipped signup form does not dispatch an event of its own.
+  - name: one_profile_update_and_no_user_created
+    action: audit_query
+    audit_query: |
+      SELECT activity_type, count(*) AS count
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('user.created', 'user.profile.updated')
+      GROUP BY activity_type
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.profile.updated",
+            "count": "1"
+          }
+        ]

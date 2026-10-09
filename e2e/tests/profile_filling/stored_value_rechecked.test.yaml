@@ -1,0 +1,110 @@
+name: A stored value that no longer meets the constraints must be corrected or cleared (UC4)
+authgear.yaml:
+  override: |
+    user_profile:
+      standard_attributes:
+        validation:
+        - pointer: /given_name
+          min_length: 3
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+        - type: fill_form
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+before:
+  - type: custom_sql
+    custom_sql:
+      path: stored_violating_user.sql
+steps:
+  - action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_stored"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form",
+            "data": {
+              "form": {
+                "fields": [
+                  {
+                    "key": "/given_name",
+                    "value": "A",
+                    "constraints": { "min_length": 3 }
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  - name: submitting_the_stored_value_fails
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "A" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed",
+          "info": {
+            "causes": [
+              {
+                "kind": "minLength",
+                "location": "/fields/0/value"
+              }
+            ]
+          }
+        }
+
+  - name: an_optional_field_can_be_cleared
+    action: input
+    input: |
+      {
+        "fields": []
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - action: query
+    query: |
+      SELECT standard_attributes ? 'given_name' AS has_given_name
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          { "has_given_name": false }
+        ]
