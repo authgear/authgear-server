@@ -204,6 +204,3 @@ func TestNewFillFormDataForm(t *testing.T) {
 		})
 	})
 }
-
-//go:fix inline
-func floatPtr(f float64) *float64 { return new(f) }
