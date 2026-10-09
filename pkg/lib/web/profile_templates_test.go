@@ -146,9 +146,7 @@ func TestFormFieldsTemplate(t *testing.T) {
 				"Options": nil, "Suggestions": nil, "Constraints": nil,
 				"Error": nil, "MissingRequired": false, "HookMessage": "",
 			}
-			for k, v := range extra {
-				f[k] = v
-			}
+			maps.Copy(f, extra)
 			return f
 		}
 		renderForm := func(form map[string]any) string {

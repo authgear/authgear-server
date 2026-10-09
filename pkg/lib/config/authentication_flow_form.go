@@ -1,6 +1,7 @@
 package config
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
@@ -132,15 +133,8 @@ func isFillableUserProfilePointer(up *UserProfileConfig, pointer string) bool {
 }
 
 func isStandardAttributePointer(pointer string) bool {
-	for _, p := range defaultReadwriteStandardAttributesPointers {
-		if p == pointer {
-			return true
-		}
+	if slices.Contains(defaultReadwriteStandardAttributesPointers, pointer) {
+		return true
 	}
-	for _, p := range defaultHiddenStandardAttributesPointers {
-		if p == pointer {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(defaultHiddenStandardAttributesPointers, pointer)
 }

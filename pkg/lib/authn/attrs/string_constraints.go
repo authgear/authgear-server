@@ -2,6 +2,7 @@ package attrs
 
 import (
 	"regexp"
+	"slices"
 	"unicode"
 	"unicode/utf8"
 
@@ -61,13 +62,7 @@ func allCharactersAllowed(allowed []config.AllowedCharacters, value string, mult
 		if !ok {
 			return false
 		}
-		found := false
-		for _, a := range allowed {
-			if a == kind {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(allowed, kind)
 		if !found {
 			return false
 		}

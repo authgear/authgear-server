@@ -4,6 +4,7 @@ import (
 	htmltemplate "html/template"
 	"math"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -131,12 +132,7 @@ func HookFieldMessages(apiErr *apierrors.APIError, keys []string) (byKey map[str
 }
 
 func contains(l []string, s string) bool {
-	for _, x := range l {
-		if x == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(l, s)
 }
 
 type FormFieldViewModel struct {

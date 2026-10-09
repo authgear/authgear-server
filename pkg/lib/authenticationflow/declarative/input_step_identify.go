@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"encoding/json"
+	"slices"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -177,12 +178,7 @@ func (i *InputSchemaStepIdentify) setForm(b validation.SchemaBuilder, identifica
 		return false
 	}
 	b.Properties().Property("fields", buildFormFieldsSchema(i.Config, form))
-	for _, f := range form.Fields {
-		if formFieldRequired(f) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(form.Fields, formFieldRequired)
 }
 
 func (i *InputSchemaStepIdentify) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {

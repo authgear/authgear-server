@@ -37,7 +37,7 @@ func TestNewFillFormDataForm(t *testing.T) {
 			},
 			&config.CustomAttributesAttributeConfig{
 				ID: "5", Pointer: "/x_score", Type: config.CustomAttributeTypeNumber,
-				Minimum: floatPtr(0), Maximum: floatPtr(10),
+				Minimum: new(float64(0)), Maximum: new(float64(10)),
 			},
 		)
 		translations := fakeTranslationService{}
@@ -205,4 +205,5 @@ func TestNewFillFormDataForm(t *testing.T) {
 	})
 }
 
-func floatPtr(f float64) *float64 { return &f }
+//go:fix inline
+func floatPtr(f float64) *float64 { return new(f) }
