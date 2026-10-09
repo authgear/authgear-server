@@ -1,0 +1,195 @@
+part: AuthenticationFlowSignupFlow
+name: form-on-identify-step-rejected
+error: |-
+  invalid value:
+  /steps/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+    one_of:
+    - identification: email
+
+---
+part: AuthenticationFlowSignupFlow
+name: form-on-authenticate-branch-rejected
+error: |-
+  invalid value:
+  /steps/0/one_of/0/steps/0/one_of/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      steps:
+      - type: create_authenticator
+        one_of:
+        - authentication: primary_password
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+
+---
+part: AuthenticationFlowLoginFlow
+name: form-on-identify-step-rejected
+error: |-
+  invalid value:
+  /steps/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+    one_of:
+    - identification: email
+
+---
+part: AuthenticationFlowLoginFlow
+name: form-on-identify-branch-rejected
+error: |-
+  invalid value:
+  /steps/0/one_of/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      form:
+        fields:
+        - user_profile:
+            pointer: /given_name
+
+---
+part: AuthenticationFlowLoginFlow
+name: form-on-authenticate-branch-rejected
+error: |-
+  invalid value:
+  /steps/0/one_of/0: not
+value:
+  name: id
+  steps:
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+      form:
+        fields:
+        - user_profile:
+            pointer: /given_name
+
+---
+part: AuthenticationFlowSignupLoginFlow
+name: form-on-identify-step-rejected
+error: |-
+  invalid value:
+  /steps/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+    one_of:
+    - identification: email
+      signup_flow: a
+      login_flow: b
+
+---
+part: AuthenticationFlowSignupLoginFlow
+name: form-on-identify-branch-rejected
+error: |-
+  invalid value:
+  /steps/0/one_of/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      signup_flow: a
+      login_flow: b
+      form:
+        fields:
+        - user_profile:
+            pointer: /given_name
+
+---
+part: AuthenticationFlowReauthFlow
+name: form-on-step-rejected
+error: |-
+  invalid value:
+  /steps/0: not
+value:
+  name: id
+  steps:
+  - type: authenticate
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+    one_of:
+    - authentication: primary_password
+
+---
+part: AuthenticationFlowReauthFlow
+name: form-on-branch-rejected
+error: |-
+  invalid value:
+  /steps/0/one_of/0: not
+value:
+  name: id
+  steps:
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+      form:
+        fields:
+        - user_profile:
+            pointer: /given_name
+
+---
+part: AuthenticationFlowAccountRecoveryFlow
+name: form-on-step-rejected
+error: |-
+  invalid value:
+  /steps/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+    one_of:
+    - identification: email
+      on_failure: ignore
+
+---
+part: AuthenticationFlowAccountRecoveryFlow
+name: form-on-branch-rejected
+error: |-
+  invalid value:
+  /steps/0/one_of/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      on_failure: ignore
+      form:
+        fields:
+        - user_profile:
+            pointer: /given_name

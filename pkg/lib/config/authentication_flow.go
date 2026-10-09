@@ -91,6 +91,17 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"if": {
 				"required": ["type"],
 				"properties": {
+					"type": { "const": "fill_form" }
+				}
+			},
+			"else": {
+				"not": { "required": ["form"] }
+			}
+		},
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
 					"type": { "const": "identify" }
 				}
 			},
@@ -185,6 +196,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowIdentify", `
 var _ = Schema.Add("AuthenticationFlowSignupFlowAuthenticate", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["authentication"],
 	"properties": {
 		"authentication": {
@@ -262,6 +274,17 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 			"if": {
 				"required": ["type"],
 				"properties": {
+					"type": { "const": "fill_form" }
+				}
+			},
+			"else": {
+				"not": { "required": ["form"] }
+			}
+		},
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
 					"type": { "const": "identify" }
 				}
 			},
@@ -314,6 +337,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 var _ = Schema.Add("AuthenticationFlowLoginFlowIdentify", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["identification"],
 	"properties": {
 		"identification": {
@@ -341,6 +365,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowIdentify", `
 var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["authentication"],
 	"properties": {
 		"authentication": {
@@ -386,6 +411,7 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlow", `
 var _ = Schema.Add("AuthenticationFlowSignupLoginFlowStep", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["type"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
@@ -419,6 +445,7 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowStep", `
 var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["identification"],
 	"properties": {
 		"identification": {
@@ -475,6 +502,7 @@ var _ = Schema.Add("AuthenticationFlowReauthFlow", `
 var _ = Schema.Add("AuthenticationFlowReauthFlowStep", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["type"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
@@ -528,6 +556,7 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowStep", `
 var _ = Schema.Add("AuthenticationFlowReauthFlowIdentify", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["identification"],
 	"properties": {
 		"identification": {
@@ -547,6 +576,7 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowIdentify", `
 var _ = Schema.Add("AuthenticationFlowReauthFlowAuthenticate", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["authentication"],
 	"properties": {
 		"authentication": {
@@ -589,6 +619,7 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlow", `
 var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowStep", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["type"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
@@ -646,6 +677,7 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowStep", `
 var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowOneOf", `
 {
 	"type": "object",
+	"not": { "required": ["form"] },
 	"required": ["identification"],
 	"properties": {
 		"identification": { "$ref": "#/$defs/AuthenticationFlowAccountRecoveryIdentification" },
@@ -758,11 +790,13 @@ type AuthenticationFlowObjectFlowBranch interface {
 type AuthenticationFlowStepType string
 
 const (
-	AuthenticationFlowStepTypeIdentify                  AuthenticationFlowStepType = "identify"
-	AuthenticationFlowStepTypeAuthenticate              AuthenticationFlowStepType = "authenticate"
-	AuthenticationFlowStepTypeCreateAuthenticator       AuthenticationFlowStepType = "create_authenticator"
-	AuthenticationFlowStepTypeVerify                    AuthenticationFlowStepType = "verify"
+	AuthenticationFlowStepTypeIdentify            AuthenticationFlowStepType = "identify"
+	AuthenticationFlowStepTypeAuthenticate        AuthenticationFlowStepType = "authenticate"
+	AuthenticationFlowStepTypeCreateAuthenticator AuthenticationFlowStepType = "create_authenticator"
+	AuthenticationFlowStepTypeVerify              AuthenticationFlowStepType = "verify"
+	// Deprecated: Use AuthenticationFlowStepTypeFillForm.
 	AuthenticationFlowStepTypeFillInUserProfile         AuthenticationFlowStepType = "fill_in_user_profile"
+	AuthenticationFlowStepTypeFillForm                  AuthenticationFlowStepType = "fill_form"
 	AuthenticationFlowStepTypeViewRecoveryCode          AuthenticationFlowStepType = "view_recovery_code"
 	AuthenticationFlowStepTypePromptCreatePasskey       AuthenticationFlowStepType = "prompt_create_passkey"
 	AuthenticationFlowStepTypeTerminateOtherSessions    AuthenticationFlowStepType = "terminate_other_sessions"
@@ -808,7 +842,9 @@ const (
 	AuthenticationFlowSignupFlowStepTypeIdentify            = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeIdentify)
 	AuthenticationFlowSignupFlowStepTypeCreateAuthenticator = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeCreateAuthenticator)
 	AuthenticationFlowSignupFlowStepTypeVerify              = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeVerify)
+	// Deprecated: Use AuthenticationFlowSignupFlowStepTypeFillForm.
 	AuthenticationFlowSignupFlowStepTypeFillInUserProfile   = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeFillInUserProfile)
+	AuthenticationFlowSignupFlowStepTypeFillForm            = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeFillForm)
 	AuthenticationFlowSignupFlowStepTypeViewRecoveryCode    = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeViewRecoveryCode)
 	AuthenticationFlowSignupFlowStepTypePromptCreatePasskey = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
 )
@@ -822,12 +858,17 @@ type AuthenticationFlowSignupFlowStep struct {
 	// TargetStep is relevant when Type is verify.
 	TargetStep string `json:"target_step,omitempty"`
 	// UserProfile is relevant when Type is fill_in_user_profile.
+	//
+	// Deprecated: Use Form with the fill_form step.
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
+	// Form is relevant when Type is fill_form.
+	Form *AuthenticationFlowForm `json:"form,omitempty"`
 }
 
 var (
 	_ AuthenticationFlowObjectFlowStep                  = &AuthenticationFlowSignupFlowStep{}
 	_ AuthenticationFlowObjectSignupFlowOrLoginFlowStep = &AuthenticationFlowSignupFlowStep{}
+	_ AuthenticationFlowObjectFormProvider              = &AuthenticationFlowSignupFlowStep{}
 )
 
 func (s *AuthenticationFlowSignupFlowStep) IsFlowObject()   {}
@@ -837,6 +878,8 @@ func (s *AuthenticationFlowSignupFlowStep) GetType() AuthenticationFlowStepType 
 }
 
 func (s *AuthenticationFlowSignupFlowStep) GetTargetStepName() string { return s.TargetStep }
+
+func (s *AuthenticationFlowSignupFlowStep) GetForm() *AuthenticationFlowForm { return s.Form }
 
 func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
@@ -968,6 +1011,7 @@ const (
 	AuthenticationFlowLoginFlowStepTypeTerminateOtherSessions = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeTerminateOtherSessions)
 	AuthenticationFlowLoginFlowStepTypeChangePassword         = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeChangePassword)
 	AuthenticationFlowLoginFlowStepTypePromptCreatePasskey    = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
+	AuthenticationFlowLoginFlowStepTypeFillForm               = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeFillForm)
 )
 
 type AuthenticationFlowLoginFlowStep struct {
@@ -982,11 +1026,15 @@ type AuthenticationFlowLoginFlowStep struct {
 
 	// TargetStep is relevant when Type is change_password.
 	TargetStep string `json:"target_step,omitempty"`
+
+	// Form is relevant when Type is fill_form.
+	Form *AuthenticationFlowForm `json:"form,omitempty"`
 }
 
 var (
 	_ AuthenticationFlowObjectFlowStep                  = &AuthenticationFlowLoginFlowStep{}
 	_ AuthenticationFlowObjectSignupFlowOrLoginFlowStep = &AuthenticationFlowLoginFlowStep{}
+	_ AuthenticationFlowObjectFormProvider              = &AuthenticationFlowLoginFlowStep{}
 )
 
 func (s *AuthenticationFlowLoginFlowStep) IsFlowObject()   {}
@@ -996,6 +1044,8 @@ func (s *AuthenticationFlowLoginFlowStep) GetType() AuthenticationFlowStepType {
 }
 
 func (s *AuthenticationFlowLoginFlowStep) GetTargetStepName() string { return s.TargetStep }
+
+func (s *AuthenticationFlowLoginFlowStep) GetForm() *AuthenticationFlowForm { return s.Form }
 
 func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {

@@ -151,10 +151,14 @@ func (c *AppConfig) Validate(ctx context.Context, validationCtx *validation.Cont
 	// Validation 10: validate authentication flow
 	c.validateAuthenticationFlow(validationCtx)
 
-	// Validation 11: validate saml configs
+	// Validation 11: validate forms in authentication flows.
+	// It must not depend on ui.authentication_flow.
+	validateAuthenticationFlowForms(validationCtx, c)
+
+	// Validation 12: validate saml configs
 	c.validateSAML(validationCtx)
 
-	// Validation 12: audit log stream names must be unique.
+	// Validation 13: audit log stream names must be unique.
 	c.validateTelemetryAuditLogStreamNames(validationCtx)
 
 	// Validation 13: an app is listed in x_native_apps at most once across all clients.
