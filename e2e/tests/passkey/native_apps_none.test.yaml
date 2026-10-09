@@ -1,0 +1,23 @@
+name: Without x_native_apps, no passkey association file is served
+# No client lists an app, so neither association file exists.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - passkey
+      primary_authenticators:
+      - password
+      - passkey
+steps:
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/apple-app-site-association
+    http_output:
+      http_status: 404
+
+  - action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/.well-known/assetlinks.json
+    http_output:
+      http_status: 404

@@ -10,7 +10,10 @@ type Config struct {
 	// Verification compares the reported origin against these exactly, so an
 	// origin that is missing here is rejected even when the browser considered
 	// the ceremony legitimate.
-	RPOrigins                   []string
+	RPOrigins []string
+	// AndroidPackageNames maps each android:apk-key-hash origin in RPOrigins to
+	// the package names listed with that certificate in x_native_apps.
+	AndroidPackageNames         map[string][]string
 	RPDisplayName               string
 	AttestationPreference       protocol.ConveyancePreference
 	AuthenticatorSelection      protocol.AuthenticatorSelection

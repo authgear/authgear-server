@@ -2462,3 +2462,279 @@ config:
         - name: mystream
           type: datadog
           transport: http
+---
+name: oauth-client-native-apps-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: ios
+            team_id: ABCDE12345
+            bundle_id: com.example.app
+          - platform: android
+            package_name: com.example.app
+            sha256_cert_fingerprints:
+              - "8B:BF:39:60:61:89:30:A4:45:F3:D7:09:1E:7B:1B:05:0F:8A:FD:AF:24:EB:F1:EB:2E:3D:13:88:09:FC:79:59"
+---
+name: oauth-client-native-apps-valid-two-clients
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: ios
+            team_id: ABCDE12345
+            bundle_id: com.example.app
+      - name: Test Client
+        client_id: b
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: android
+            package_name: com.example.app
+            sha256_cert_fingerprints:
+              - "8B:BF:39:60:61:89:30:A4:45:F3:D7:09:1E:7B:1B:05:0F:8A:FD:AF:24:EB:F1:EB:2E:3D:13:88:09:FC:79:59"
+---
+name: oauth-client-native-apps-lowercase-fingerprint
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: android
+            package_name: com.example.app
+            sha256_cert_fingerprints:
+              - "8b:bf:39:60:61:89:30:a4:45:f3:d7:09:1e:7b:1b:05:0f:8a:fd:af:24:eb:f1:eb:2e:3d:13:88:09:fc:79:59"
+---
+name: oauth-client-native-apps-missing-platform
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/0: required
+    map[actual:[bundle_id team_id] expected:[platform] missing:[platform]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - team_id: ABCDE12345
+            bundle_id: com.example.app
+---
+name: oauth-client-native-apps-unknown-platform
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/0/platform: enum
+    map[actual:windows expected:[ios android]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: windows
+            team_id: ABCDE12345
+            bundle_id: com.example.app
+---
+name: oauth-client-native-apps-ios-missing-team-id
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/0: required
+    map[actual:[bundle_id platform] expected:[bundle_id team_id] missing:[team_id]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: ios
+            bundle_id: com.example.app
+---
+name: oauth-client-native-apps-ios-invalid-team-id
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/0/team_id: pattern
+    map[actual:abc expected:^[A-Z0-9]{10}$]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: ios
+            team_id: abc
+            bundle_id: com.example.app
+---
+name: oauth-client-native-apps-ios-with-package-name
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/0: not
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: ios
+            team_id: ABCDE12345
+            bundle_id: com.example.app
+            package_name: com.example.app
+---
+name: oauth-client-native-apps-android-with-team-id
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/0: not
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: android
+            package_name: com.example.app
+            sha256_cert_fingerprints:
+              - "8B:BF:39:60:61:89:30:A4:45:F3:D7:09:1E:7B:1B:05:0F:8A:FD:AF:24:EB:F1:EB:2E:3D:13:88:09:FC:79:59"
+            team_id: ABCDE12345
+---
+name: oauth-client-native-apps-android-empty-fingerprints
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/0/sha256_cert_fingerprints: minItems
+    map[actual:0 expected:1]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: android
+            package_name: com.example.app
+            sha256_cert_fingerprints: []
+---
+name: oauth-client-native-apps-android-invalid-fingerprint
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/0/sha256_cert_fingerprints/0: pattern
+    map[actual:8B:BF expected:^([0-9A-Fa-f]{2}:){31}[0-9A-Fa-f]{2}$]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: android
+            package_name: com.example.app
+            sha256_cert_fingerprints:
+              - "8B:BF"
+---
+name: oauth-client-native-apps-duplicated-bundle-id
+error: |-
+  invalid configuration:
+  /oauth/clients/1/x_native_apps/0/bundle_id: duplicated bundle_id in x_native_apps
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: ios
+            team_id: ABCDE12345
+            bundle_id: com.example.app
+      - name: Test Client
+        client_id: b
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: ios
+            team_id: ABCDE12345
+            bundle_id: com.example.app
+---
+name: oauth-client-native-apps-duplicated-package-name
+error: |-
+  invalid configuration:
+  /oauth/clients/0/x_native_apps/1/package_name: duplicated package_name in x_native_apps
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: a
+        redirect_uris:
+          - "https://example.com"
+        x_native_apps:
+          - platform: android
+            package_name: com.example.app
+            sha256_cert_fingerprints:
+              - "8B:BF:39:60:61:89:30:A4:45:F3:D7:09:1E:7B:1B:05:0F:8A:FD:AF:24:EB:F1:EB:2E:3D:13:88:09:FC:79:59"
+          - platform: android
+            package_name: com.example.app
+            sha256_cert_fingerprints:
+              - "8B:BF:39:60:61:89:30:A4:45:F3:D7:09:1E:7B:1B:05:0F:8A:FD:AF:24:EB:F1:EB:2E:3D:13:88:09:FC:79:59"

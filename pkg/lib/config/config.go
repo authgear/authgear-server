@@ -155,6 +155,9 @@ func (c *AppConfig) Validate(ctx context.Context, validationCtx *validation.Cont
 
 	// Validation 12: audit log stream names must be unique.
 	c.validateTelemetryAuditLogStreamNames(validationCtx)
+
+	// Validation 13: an app is listed in x_native_apps at most once across all clients.
+	c.validateOAuthClientNativeApps(validationCtx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -172,6 +175,30 @@ func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
 				d.RefreshTokenLifetime < d.AccessTokenLifetime {
 				ctx.Child("oauth", "dynamic_client_registration", "default_client_config", "refresh_token_lifetime_seconds").
 					EmitErrorMessage("refresh token lifetime must be greater than or equal to access token lifetime")
+			}
+		}
+	}
+}
+
+func (c *AppConfig) validateOAuthClientNativeApps(ctx *validation.Context) {
+	bundleIDs := map[string]struct{}{}
+	packageNames := map[string]struct{}{}
+	for i, client := range c.OAuth.Clients {
+		for j, app := range client.NativeApps {
+			appCtx := ctx.Child("oauth", "clients", strconv.Itoa(i), "x_native_apps", strconv.Itoa(j))
+			switch app.Platform {
+			case OAuthClientNativeAppPlatformIOS:
+				if _, ok := bundleIDs[app.BundleID]; ok {
+					appCtx.Child("bundle_id").EmitErrorMessage("duplicated bundle_id in x_native_apps")
+					continue
+				}
+				bundleIDs[app.BundleID] = struct{}{}
+			case OAuthClientNativeAppPlatformAndroid:
+				if _, ok := packageNames[app.PackageName]; ok {
+					appCtx.Child("package_name").EmitErrorMessage("duplicated package_name in x_native_apps")
+					continue
+				}
+				packageNames[app.PackageName] = struct{}{}
 			}
 		}
 	}

@@ -39,12 +39,16 @@ type ConfigService struct {
 // Deliberately not included: http.allowed_origins, redirect_uris and
 // x_pre_authenticated_url_allowed_origins. Those say an origin may call the API
 // or receive a callback; neither means it may present credentials for a user.
-func (s *ConfigService) makeRPOrigins(publicOrigin url.URL) []string {
+//
+// An Android app listed in x_native_apps reports android:apk-key-hash:<hash>
+// instead of a web origin, so each listed certificate adds one. The returned
+// map records which package names were listed with each such origin.
+func (s *ConfigService) makeRPOrigins(publicOrigin url.URL) ([]string, map[string][]string) {
 	publicOriginString := publicOrigin.String()
 	origins := []string{publicOriginString}
 
 	if s.OAuthConfig == nil {
-		return origins
+		return origins, nil
 	}
 
 	seen := map[string]struct{}{publicOriginString: {}}
@@ -68,6 +72,34 @@ func (s *ConfigService) makeRPOrigins(publicOrigin url.URL) []string {
 		origins = append(origins, origin)
 	}
 
+	androidPackageNames := map[string][]string{}
+	origins = s.appendAndroidOrigins(origins, seen, androidPackageNames)
+
+	return origins, androidPackageNames
+}
+
+// appendAndroidOrigins appends the android:apk-key-hash origin of every listed
+// Android certificate, and records its package names in androidPackageNames.
+func (s *ConfigService) appendAndroidOrigins(origins []string, seen map[string]struct{}, androidPackageNames map[string][]string) []string {
+	for _, app := range EffectiveNativeApps(s.OAuthConfig) {
+		if app.Platform != config.OAuthClientNativeAppPlatformAndroid {
+			continue
+		}
+		for _, fingerprint := range app.SHA256CertFingerprints {
+			origin, err := AndroidOrigin(fingerprint)
+			if err != nil {
+				// Malformed fingerprints are rejected by the config schema;
+				// skip rather than fail the ceremony.
+				continue
+			}
+			androidPackageNames[origin] = append(androidPackageNames[origin], app.PackageName)
+			if _, ok := seen[origin]; ok {
+				continue
+			}
+			seen[origin] = struct{}{}
+			origins = append(origins, origin)
+		}
+	}
 	return origins
 }
 
@@ -82,13 +114,16 @@ func (s *ConfigService) MakeConfig(ctx context.Context) (*Config, error) {
 		return nil, err
 	}
 
+	rpOrigins, androidPackageNames := s.makeRPOrigins(origin)
+
 	return &Config{
 		RPDisplayName: appName,
 
 		// The RPID must be a domain only.
 		RPID: origin.Hostname(),
 		// Origins must be the actual origins as observed by the browser.
-		RPOrigins: s.makeRPOrigins(origin),
+		RPOrigins:           rpOrigins,
+		AndroidPackageNames: androidPackageNames,
 
 		AttestationPreference: protocol.PreferDirectAttestation,
 		AuthenticatorSelection: protocol.AuthenticatorSelection{

@@ -9,6 +9,7 @@ import (
 	samlhandler "github.com/authgear/authgear-server/pkg/auth/handler/saml"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	webapphandlerauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
+	wellknownhandler "github.com/authgear/authgear-server/pkg/auth/handler/wellknown"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -461,6 +462,8 @@ func NewRouter(ctx context.Context, p *deps.RootProvider, configSource *configso
 
 	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
 	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(wellknownhandler.ConfigureAppleAppSiteAssociationRoute(oauthStaticRoute), p.Handler(newAppleAppSiteAssociationHandler))
+	router.Add(wellknownhandler.ConfigureAssetLinksRoute(oauthStaticRoute), p.Handler(newAssetLinksHandler))
 	router.Add(oauthhandler.ConfigureJWKSRoute(oauthStaticRoute), p.Handler(newOAuthJWKSHandler))
 
 	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthAuthzAPIRoute), p.Handler(newOAuthAuthorizeHandler))

@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"slices"
+	"strings"
 
 	"github.com/go-webauthn/webauthn/protocol"
 
@@ -64,6 +67,11 @@ func (s *Service) PeekAttestationResponse(ctx context.Context, attestationRespon
 		nil,
 		credParams,
 	)
+	if err != nil {
+		return
+	}
+
+	err = checkAndroidPackageName(config, parsed.Response.CollectedClientData.Origin, parsed.Raw.AttestationResponse.ClientDataJSON)
 	if err != nil {
 		return
 	}
@@ -179,6 +187,11 @@ func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse [
 		return
 	}
 
+	err = checkAndroidPackageName(config, parsedAssertion.Response.CollectedClientData.Origin, parsedAssertion.Raw.AssertionResponse.ClientDataJSON)
+	if err != nil {
+		return
+	}
+
 	signCount = int64(parsedAssertion.Response.AuthenticatorData.Counter)
 	return
 }
@@ -201,4 +214,34 @@ func (s *Service) ConsumeAssertionResponse(ctx context.Context, assertionRespons
 	}
 
 	return
+}
+
+// checkAndroidPackageName returns nil unless origin is an android:apk-key-hash
+// origin and clientDataJSON reports a package name not listed with it.
+//
+// The origin identifies only the signing certificate, so every app signed with
+// it maps to the same origin. go-webauthn does not expose androidPackageName,
+// so it is read from the raw clientDataJSON. A ceremony that does not report it
+// is accepted once its origin is. See docs/specs/webauthn.md.
+func checkAndroidPackageName(config *Config, origin string, clientDataJSON []byte) error {
+	if !strings.HasPrefix(origin, androidOriginPrefix) {
+		return nil
+	}
+
+	var clientData struct {
+		AndroidPackageName string `json:"androidPackageName"`
+	}
+	err := json.Unmarshal(clientDataJSON, &clientData)
+	if err != nil {
+		return protocol.ErrVerification.WithDetails("invalid clientDataJSON")
+	}
+
+	if clientData.AndroidPackageName == "" {
+		return nil
+	}
+
+	if !slices.Contains(config.AndroidPackageNames[origin], clientData.AndroidPackageName) {
+		return protocol.ErrVerification.WithDetails("androidPackageName is not listed for this origin")
+	}
+	return nil
 }

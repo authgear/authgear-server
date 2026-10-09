@@ -13,6 +13,7 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	handlerwellknown "github.com/authgear/authgear-server/pkg/auth/handler/wellknown"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -155,6 +156,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.SettingsSubRoutesMiddlewareIdentityService), new(*facade.IdentityFacade)),
 
 	handleroauth.DependencySet,
+	handlerwellknown.DependencySet,
 	wire.Bind(new(handleroauth.ProtocolAuthorizeHandler), new(*oauthhandler.AuthorizationHandler)),
 	wire.Bind(new(handleroauth.ProtocolConsentHandler), new(*oauthhandler.AuthorizationHandler)),
 	wire.Bind(new(handleroauth.ProtocolTokenHandler), new(*oauthhandler.TokenHandler)),
