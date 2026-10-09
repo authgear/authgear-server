@@ -111,8 +111,9 @@ func (s *Sink) DeliverBlockingEvent(ctx context.Context, e *event.Event) error {
 			return newErrorOperationDisallowed(
 				string(e.Type),
 				[]OperationDisallowedItem{{
-					Title:  resp.Title,
-					Reason: resp.Reason,
+					Title:   resp.Title,
+					Reason:  resp.Reason,
+					Reasons: toOperationDisallowedReasons(resp.Reasons),
 				}},
 			)
 		}

@@ -322,5 +322,74 @@ func TestBlockingHookResponse(t *testing.T) {
 				}
 			}`)
 		})
+
+		Convey(string(AuthenticationFormPostSubmitted), func() {
+			pass("is_allowed true", AuthenticationFormPostSubmitted, `{
+				"is_allowed": true
+			}`)
+
+			pass("is_allowed false", AuthenticationFormPostSubmitted, `{
+				"is_allowed": false,
+				"title": "Invalid",
+				"reason": "Invalid"
+			}`)
+
+			pass("reasons supported", AuthenticationFormPostSubmitted, `{
+				"is_allowed": false,
+				"reasons": [
+					{
+						"type": "invalid_form_field",
+						"field": { "user_profile": { "pointer": "/x_employee_id" } },
+						"message": "Unknown employee"
+					}
+				]
+			}`)
+
+			fail("unknown reason type", AuthenticationFormPostSubmitted, `{
+				"is_allowed": false,
+				"reasons": [
+					{
+						"type": "unknown",
+						"field": { "user_profile": { "pointer": "/x_employee_id" } },
+						"message": "Unknown employee"
+					}
+				]
+			}`)
+
+			fail("reason without field", AuthenticationFormPostSubmitted, `{
+				"is_allowed": false,
+				"reasons": [
+					{ "type": "invalid_form_field", "message": "Unknown employee" }
+				]
+			}`)
+
+			fail("mutations not supported", AuthenticationFormPostSubmitted, `{
+				"is_allowed": true,
+				"mutations": {}
+			}`)
+
+			fail("constraints not supported", AuthenticationFormPostSubmitted, `{
+				"is_allowed": true,
+				"constraints": { "amr": ["mfa"] }
+			}`)
+
+			fail("reasons not supported when allowed", AuthenticationFormPostSubmitted, `{
+				"is_allowed": true,
+				"reasons": []
+			}`)
+		})
+
+		Convey("reasons are rejected by other events", func() {
+			fail("user.profile.pre_update", UserProfilePreUpdate, `{
+				"is_allowed": false,
+				"reasons": [
+					{
+						"type": "invalid_form_field",
+						"field": { "user_profile": { "pointer": "/x_employee_id" } },
+						"message": "Unknown employee"
+					}
+				]
+			}`)
+		})
 	})
 }
