@@ -81,6 +81,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 				"create_authenticator",
 				"verify",
 				"fill_in_user_profile",
+				"fill_form",
 				"view_recovery_code",
 				"prompt_create_passkey"
 			]
@@ -92,6 +93,12 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 				"required": ["type"],
 				"properties": {
 					"type": { "const": "fill_form" }
+				}
+			},
+			"then": {
+				"required": ["form"],
+				"properties": {
+					"form": { "$ref": "#/$defs/AuthenticationFlowForm" }
 				}
 			},
 			"else": {
@@ -164,6 +171,49 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			}
 		}
 	]
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowForm", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["fields"],
+	"properties": {
+		"name": {
+			"type": "string",
+			"pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+			"not": { "const": "default" }
+		},
+		"fields": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/AuthenticationFlowFormField" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowFormField", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"minProperties": 1,
+	"maxProperties": 1,
+	"properties": {
+		"user_profile": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["pointer"],
+			"properties": {
+				"pointer": {
+					"type": "string",
+					"format": "json-pointer"
+				},
+				"required": { "type": "boolean" }
+			}
+		}
+	}
 }
 `)
 
@@ -265,7 +315,8 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 				"check_account_status",
 				"terminate_other_sessions",
 				"change_password",
-				"prompt_create_passkey"
+				"prompt_create_passkey",
+				"fill_form"
 			]
 		}
 	},
@@ -275,6 +326,12 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 				"required": ["type"],
 				"properties": {
 					"type": { "const": "fill_form" }
+				}
+			},
+			"then": {
+				"required": ["form"],
+				"properties": {
+					"form": { "$ref": "#/$defs/AuthenticationFlowForm" }
 				}
 			},
 			"else": {

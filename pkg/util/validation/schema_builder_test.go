@@ -42,6 +42,23 @@ func TestSchemaBuilder(t *testing.T) {
 `)
 		})
 
+		Convey("anyOf", func() {
+			b := SchemaBuilder{}.Type(TypeObject).AnyOf(
+				SchemaBuilder{}.Required("a"),
+				SchemaBuilder{}.Required("b"),
+			)
+
+			test(b, `
+{
+    "type": "object",
+    "anyOf": [
+        { "required": ["a"] },
+        { "required": ["b"] }
+    ]
+}
+`)
+		})
+
 		Convey("type required properties const oneOf", func() {
 			b := SchemaBuilder{}.Type(TypeObject)
 

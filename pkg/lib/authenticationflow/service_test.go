@@ -452,3 +452,78 @@ func TestServiceContext(t *testing.T) {
 		})
 	})
 }
+
+type schemaWithFlowActionType struct {
+	root config.AuthenticationFlowObject
+}
+
+func (s *schemaWithFlowActionType) GetJSONPointer() jsonpointer.T {
+	return jsonpointer.T{"steps", "0", "one_of", "0"}
+}
+func (s *schemaWithFlowActionType) GetFlowRootObject() config.AuthenticationFlowObject {
+	return s.root
+}
+func (s *schemaWithFlowActionType) SchemaBuilder() validation.SchemaBuilder {
+	return validation.SchemaBuilder{}
+}
+func (s *schemaWithFlowActionType) MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error) {
+	return nil, nil
+}
+func (s *schemaWithFlowActionType) FlowActionType() FlowActionType {
+	return FlowActionType(config.AuthenticationFlowStepTypeFillForm)
+}
+
+type intentWithFlowActionTypeSchema struct {
+	schema InputSchema
+}
+
+func (*intentWithFlowActionTypeSchema) Kind() string { return "intentWithFlowActionTypeSchema" }
+func (i *intentWithFlowActionTypeSchema) CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error) {
+	return i.schema, nil
+}
+func (i *intentWithFlowActionTypeSchema) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (ReactToResult, error) {
+	return nil, ErrIncompatibleInput
+}
+
+func TestServiceGetFlowAction(t *testing.T) {
+	Convey("Service.getFlowAction", t, func() {
+		ctx := context.Background()
+		service := &Service{Deps: &Dependencies{}}
+		session := &Session{}
+
+		root := &config.AuthenticationFlowSignupFlow{
+			Steps: []*config.AuthenticationFlowSignupFlowStep{
+				{
+					Type: config.AuthenticationFlowSignupFlowStepTypeIdentify,
+					OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
+						{Identification: "email"},
+					},
+				},
+			},
+		}
+
+		Convey("uses the action type of the schema, not the one of the JSON pointer", func() {
+			flow := NewFlow("flow-id", &intentWithFlowActionTypeSchema{schema: &schemaWithFlowActionType{root: root}})
+			action, err := service.getFlowAction(ctx, session, flow)
+			So(err, ShouldBeNil)
+			So(action.Type, ShouldEqual, FlowActionType("fill_form"))
+		})
+
+		Convey("a schema without it uses the JSON pointer", func() {
+			flow := NewFlow("flow-id", &intentWithFlowActionTypeSchema{schema: &schemaWithoutFlowActionType{
+				schemaWithFlowActionType: schemaWithFlowActionType{root: root},
+			}})
+			action, err := service.getFlowAction(ctx, session, flow)
+			So(err, ShouldBeNil)
+			So(action.Type, ShouldEqual, FlowActionType("identify"))
+			So(string(action.Identification), ShouldEqual, "email")
+		})
+	})
+}
+
+// schemaWithoutFlowActionType hides FlowActionType of the embedded schema.
+type schemaWithoutFlowActionType struct {
+	schemaWithFlowActionType
+}
+
+func (s *schemaWithoutFlowActionType) FlowActionType() {}

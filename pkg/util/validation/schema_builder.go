@@ -159,6 +159,11 @@ func (b SchemaBuilder) OneOf(builders ...SchemaBuilder) SchemaBuilder {
 	return b
 }
 
+func (b SchemaBuilder) AnyOf(builders ...SchemaBuilder) SchemaBuilder {
+	b["anyOf"] = builders
+	return b
+}
+
 func (b SchemaBuilder) AllOf(builders ...SchemaBuilder) SchemaBuilder {
 	b["allOf"] = builders
 	return b

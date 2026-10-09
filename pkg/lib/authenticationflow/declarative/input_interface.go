@@ -127,6 +127,10 @@ type inputFillInUserProfile interface {
 	GetAttributes() []attrs.T
 }
 
+type inputFillForm interface {
+	GetFormFields() []FormFieldInput
+}
+
 type inputConfirmTerminateOtherSessions interface {
 	ConfirmTerminateOtherSessions()
 }

@@ -81,6 +81,39 @@ func GetFlowID(ctx context.Context) string {
 	return ctx.Value(contextKeyFlowID).(string)
 }
 
+type contextKeyTypeFormInputConsumption struct{}
+
+var contextKeyFormInputConsumption = contextKeyTypeFormInputConsumption{}
+
+type formInputConsumption struct{ consumed bool }
+
+// WithFormInputConsumption installs a per-request marker.
+// Session.MakeContext does it, and every entry of Service makes its context with it,
+// so callers do not have to.
+//
+// Accept offers the same raw input to every input reactor it reaches,
+// and the loop runs Accept again with the same input after ErrPauseAndRetryAccept.
+// Without the marker, a raw input such as {"fields": []} would be taken by every consecutive form.
+func WithFormInputConsumption(ctx context.Context) context.Context {
+	return context.WithValue(ctx, contextKeyFormInputConsumption, &formInputConsumption{})
+}
+
+// MarkFormInputConsumed records that a form consumed the request's raw input.
+func MarkFormInputConsumed(ctx context.Context) {
+	getFormInputConsumption(ctx).consumed = true
+}
+
+// IsFormInputConsumed reports whether a form already consumed the request's raw input.
+func IsFormInputConsumed(ctx context.Context) bool {
+	return getFormInputConsumption(ctx).consumed
+}
+
+// getFormInputConsumption panics when the marker is missing, like the other getters here.
+// Silently treating it as not consumed would disable the guard.
+func getFormInputConsumption(ctx context.Context) *formInputConsumption {
+	return ctx.Value(contextKeyFormInputConsumption).(*formInputConsumption)
+}
+
 type contextKeyTypeSession struct{}
 
 var contextKeySession = contextKeyTypeSession{}

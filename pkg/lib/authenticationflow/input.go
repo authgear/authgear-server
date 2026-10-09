@@ -37,6 +37,13 @@ type InputSchema interface {
 	MakeInput(ctx context.Context, rawMessage json.RawMessage) (Input, error)
 }
 
+// InputSchemaWithFlowActionType reports the action type of a schema whose JSON pointer is not a step of that type.
+// For example, a form of an identify branch is shown as a fill_form action.
+type InputSchemaWithFlowActionType interface {
+	InputSchema
+	FlowActionType() FlowActionType
+}
+
 // Input is a marker to signify some struct is an Input.
 type Input interface {
 	Input()

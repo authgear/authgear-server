@@ -126,6 +126,14 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 
 			return nil
 		}),
+		// user.profile.pre_update comes before user.authenticated.
+		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
+			userID, err := i.userID(flows)
+			if err != nil {
+				return err
+			}
+			return dispatchUserProfileUpdateIfFormFilled(ctx, deps, flows, userID)
+		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			// FIXME(authflow): determine isAdminAPI
 			isAdminAPI := false

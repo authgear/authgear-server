@@ -193,3 +193,231 @@ value:
         fields:
         - user_profile:
             pointer: /given_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-valid
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+  - type: fill_form
+    form:
+      name: names
+      fields:
+      - user_profile:
+          pointer: /given_name
+          required: true
+      - user_profile:
+          pointer: /x_newsletter
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-nested-in-branch
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      steps:
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /given_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-requires-form
+error: |-
+  invalid value:
+  /steps/0: required
+    map[actual:[type] expected:[form] missing:[form]]
+value:
+  name: id
+  steps:
+  - type: fill_form
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-empty-fields
+error: |-
+  invalid value:
+  /steps/0/form/fields: minItems
+    map[actual:0 expected:1]
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      fields: []
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-field-with-two-kinds
+error: |-
+  invalid value:
+  /steps/0/form/fields/0: maxProperties
+    map[actual:2 expected:1]
+  /steps/0/form/fields/0/other: 
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+        other:
+          pointer: /family_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-field-without-kind
+error: |-
+  invalid value:
+  /steps/0/form/fields/0: minProperties
+    map[actual:0 expected:1]
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      fields:
+      - {}
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-name-default-rejected
+error: |-
+  invalid value:
+  /steps/0/form/name: not
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      name: default
+      fields:
+      - user_profile:
+          pointer: /given_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-name-pattern
+error: |-
+  invalid value:
+  /steps/0/form/name: pattern
+    map[actual:1-names expected:^[a-zA-Z_][a-zA-Z0-9_]*$]
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      name: 1-names
+      fields:
+      - user_profile:
+          pointer: /given_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-unknown-key-in-form
+error: |-
+  invalid value:
+  /steps/0/form/foo: 
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      foo: bar
+      fields:
+      - user_profile:
+          pointer: /given_name
+
+---
+part: AuthenticationFlowLoginFlow
+name: fill-form-valid
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+
+---
+part: AuthenticationFlowLoginFlow
+name: fill-form-requires-form
+error: |-
+  invalid value:
+  /steps/0: required
+    map[actual:[type] expected:[form] missing:[form]]
+value:
+  name: id
+  steps:
+  - type: fill_form
+
+---
+part: AuthenticationFlowReauthFlow
+name: fill-form-not-supported
+error: |-
+  invalid value:
+  /steps/0: not
+  /steps/0/type: enum
+    map[actual:fill_form expected:[identify authenticate]]
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+
+---
+part: AuthenticationFlowAccountRecoveryFlow
+name: fill-form-not-supported
+error: |-
+  invalid value:
+  /steps/0: not
+  /steps/0/type: enum
+    map[actual:fill_form expected:[identify select_destination verify_account_recovery_code reset_password]]
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+
+---
+part: AuthenticationFlowSignupLoginFlow
+name: fill-form-not-supported
+error: |-
+  invalid value:
+  /steps/0: not
+  /steps/0/type: enum
+    map[actual:fill_form expected:[identify]]
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name

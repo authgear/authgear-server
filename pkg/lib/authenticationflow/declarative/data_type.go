@@ -17,6 +17,7 @@ const (
 	DataTypeAccountRecoverySelectDestinationData DataType = "account_recovery_select_destination_data"
 	DataTypeAccountRecoveryVerifyCodeData        DataType = "account_recovery_verify_code_data"
 	DataTypeAccountLinkingIdentificationData     DataType = "account_linking_identification_data"
+	DataTypeFillFormData                         DataType = "fill_form_data"
 )
 
 type TypedData struct {
