@@ -45,6 +45,7 @@
           `
         )
     }}
+    {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/address/region")) }}
 
     {{ template "authflowv2/__settings_text_input.html"
         (dict
@@ -56,6 +57,7 @@
           `
         )
     }}
+    {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/address/postal_code")) }}
 
     {{ template "authflowv2/__settings_text_input.html"
         (dict
@@ -67,6 +69,7 @@
           `
         )
     }}
+    {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/address/locality")) }}
 
     {{ template "authflowv2/__settings_text_input.html"
         (dict
@@ -78,6 +81,7 @@
           `
         )
     }}
+    {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/address/street_address")) }}
   </div>
 
   <button

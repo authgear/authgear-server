@@ -27,6 +27,8 @@ type CustomAttribute struct {
 	Minimum        *float64
 	Maximum        *float64
 	Enum           []CustomAttributeEnum
+
+	StringConstraints *config.StringConstraints
 }
 
 type CustomAttributeEnum struct {
@@ -75,6 +77,9 @@ type SettingsProfileViewModel struct {
 	AddressCountry       string
 
 	CustomAttributes []CustomAttribute
+
+	// StandardAttributeStringConstraints is keyed by pointer.
+	StandardAttributeStringConstraints map[string]*config.StringConstraints
 
 	EmailIdentityIDs    []string
 	UsernameIdentityIDs []string
@@ -235,6 +240,8 @@ func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID strin
 				Minimum:        c.Minimum,
 				Maximum:        c.Maximum,
 				Enum:           enum,
+
+				StringConstraints: c.StringConstraints(),
 			})
 		}
 	}
@@ -247,6 +254,13 @@ func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID strin
 			}
 		}
 		return nil
+	}
+
+	stdAttrsConstraints := map[string]*config.StringConstraints{}
+	for _, v := range m.UserProfileConfig.StandardAttributes.Validation {
+		if cons := v.StringConstraints(); cons != nil {
+			stdAttrsConstraints[v.Pointer] = cons
+		}
 	}
 
 	viewModel := &SettingsProfileViewModel{
@@ -290,6 +304,8 @@ func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID strin
 		AddressCountry:       addressStr(stdattrs.Country),
 
 		CustomAttributes: customAttrs,
+
+		StandardAttributeStringConstraints: stdAttrsConstraints,
 
 		EmailIdentityIDs:    emailIdentityIDs,
 		UsernameIdentityIDs: usernameIdentityIDs,

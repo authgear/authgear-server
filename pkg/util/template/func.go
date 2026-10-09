@@ -12,6 +12,7 @@ import (
 
 	"github.com/Masterminds/sprig"
 
+	"github.com/authgear/authgear-server/pkg/util/htmlutil"
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
 )
 
@@ -40,7 +41,31 @@ func makeTemplateFuncMap() map[string]any {
 	templateFuncMap["isNil"] = IsNil
 	templateFuncMap["showAttributeValue"] = ShowAttributeValue
 	templateFuncMap["htmlattr"] = HTMLAttr
+	templateFuncMap["sanitizeLinksHTML"] = SanitizeLinksHTML
+	templateFuncMap["linksToText"] = LinksToText
 	return templateFuncMap
+}
+
+// SanitizeLinksHTML keeps http(s) links in s and escapes the rest.
+// s must come from RenderText, not translate, because translate wraps the text in a <span>.
+func SanitizeLinksHTML(s any) template.HTML {
+	return htmlutil.SanitizeLinksHTML(stringOf(s))
+}
+
+// LinksToText removes the tags in s.
+func LinksToText(s any) string {
+	return htmlutil.LinksToText(stringOf(s))
+}
+
+func stringOf(s any) string {
+	switch s := s.(type) {
+	case template.HTML:
+		return string(s)
+	case string:
+		return s
+	default:
+		return fmt.Sprint(s)
+	}
 }
 
 func RFC3339(date any) any {

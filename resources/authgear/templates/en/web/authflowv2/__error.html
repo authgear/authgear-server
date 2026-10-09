@@ -107,6 +107,31 @@
           <span>
             {{ include "v2.error.max-length" (dict "expected" .details.expected) }}
           </span>
+        {{ else if (eq .kind "minLength") }}
+          <span>
+            {{ include "v2.error.min-length" (dict "expected" .details.expected) }}
+          </span>
+        {{ else if (eq .kind "allowedCharacters") }}
+          <span>
+            {{ include "v2.error.allowed-characters"
+              (dict "kinds" (include "authflowv2/__allowed_characters_kinds.html" .details.expected))
+            }}
+          </span>
+        {{ else if (eq .kind "pattern") }}
+          {{/* The location is /fields/{i}/value on Auth UI forms, so the caller passes the attribute pointer. */}}
+          {{ $pointer := .location }}
+          {{ if $.PatternPointer }}{{ $pointer = $.PatternPointer }}{{ end }}
+          {{ $custom_key := printf "custom-attribute-pattern-error-%s" $pointer }}
+          {{ $standard_key := printf "standard-attribute-pattern-error-%s" $pointer }}
+          <span>
+            {{ if (and $.Translations ($.Translations.HasKey $custom_key)) }}
+              {{ include $custom_key nil }}
+            {{ else if (and $.Translations ($.Translations.HasKey $standard_key)) }}
+              {{ include $standard_key nil }}
+            {{ else }}
+              {{ include "v2.error.pattern" nil }}
+            {{ end }}
+          </span>
         {{ else if (eq .kind "blocked") }}
           {{ if (eq .details.reason "EmailDomainAllowlist") }}
             <span>{{ include "v2.error.email-not-allowed" nil }}</span>

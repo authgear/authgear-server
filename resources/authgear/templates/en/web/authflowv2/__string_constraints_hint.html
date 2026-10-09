@@ -1,0 +1,44 @@
+{{/* Example usage
+  {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" $constraints) }}
+*/}}
+
+{{ define "authflowv2/__string_constraints_hint.html" }}
+  {{ $c := $.Constraints }}
+  {{ if $c }}
+    {{ $hasMin := false }}
+    {{ if $c.MinLength }}{{ if gt (int $c.MinLength) 0 }}{{ $hasMin = true }}{{ end }}{{ end }}
+    {{ $hasMax := not (isNil $c.MaxLength) }}
+    {{ if or $hasMin $hasMax }}
+      {{ $min := 0 }}
+      {{ if $hasMin }}{{ $min = (int $c.MinLength) }}{{ end }}
+      {{ $max := 0 }}
+      {{ if $hasMax }}{{ $max = (int $c.MaxLength) }}{{ end }}
+      <span class="body-text--md">
+        {{ translate "v2.component.string-constraints-hint.default.length"
+          (dict
+            "hasMin" (ternary "true" "false" $hasMin)
+            "hasMax" (ternary "true" "false" $hasMax)
+            "min" $min
+            "max" $max
+          )
+        }}
+      </span>
+    {{ end }}
+    {{ if $c.AllowedCharacters }}
+      <span class="body-text--md">
+        {{ translate "v2.component.string-constraints-hint.default.allowed-characters"
+          (dict "kinds" (include "authflowv2/__allowed_characters_kinds.html" $c.AllowedCharacters))
+        }}
+      </span>
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+{{/* The input is a list of kinds: letters, digits, spaces or symbols. */}}
+{{ define "authflowv2/__allowed_characters_kinds.html" }}
+  {{- $kinds := list -}}
+  {{- range $ -}}
+    {{- $kinds = append $kinds (include (printf "v2.component.allowed-characters.default.kind-%s" .) nil) -}}
+  {{- end -}}
+  {{- join (toString (include "v2.component.allowed-characters.default.separator" nil)) $kinds -}}
+{{ end }}
