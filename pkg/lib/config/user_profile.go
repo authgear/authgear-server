@@ -236,7 +236,8 @@ var _ = Schema.Add("CustomAttributesAttributeConfig", `
 				"phone_number",
 				"email",
 				"url",
-				"country_code"
+				"country_code",
+				"boolean"
 			]
 		},
 		"access_control": { "$ref": "#/$defs/UserProfileAttributesAccessControl" }
@@ -398,6 +399,8 @@ func (c *CustomAttributesAttributeConfig) ToSchemaBuilder() (builder validation.
 	case CustomAttributeTypeCountryCode:
 		builder.Type(validation.TypeString)
 		builder.Format("iso3166-1-alpha-2")
+	case CustomAttributeTypeBoolean:
+		builder.Type(validation.TypeBoolean)
 	default:
 		err = fmt.Errorf("unknown type: %v", c.Type)
 	}
@@ -423,6 +426,8 @@ func (c *CustomAttributesAttributeConfig) ParseString(strRepr string) (any, erro
 		return strRepr, nil
 	case CustomAttributeTypeCountryCode:
 		return strRepr, nil
+	case CustomAttributeTypeBoolean:
+		return strconv.ParseBool(strRepr)
 	default:
 		panic(fmt.Errorf("unknown custom attribute type: %v", c.Type))
 	}
@@ -439,6 +444,7 @@ const (
 	CustomAttributeTypeEmail       CustomAttributeType = "email"
 	CustomAttributeTypeURL         CustomAttributeType = "url"
 	CustomAttributeTypeCountryCode CustomAttributeType = "country_code"
+	CustomAttributeTypeBoolean     CustomAttributeType = "boolean"
 )
 
 type StandardAttributesConfig struct {

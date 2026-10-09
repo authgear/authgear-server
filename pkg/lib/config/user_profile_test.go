@@ -158,6 +158,12 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 			"type":   "string",
 			"format": "iso3166-1-alpha-2",
 		})
+
+		test(&CustomAttributesAttributeConfig{
+			Type: CustomAttributeTypeBoolean,
+		}, map[string]any{
+			"type": "boolean",
+		})
 	})
 
 	Convey("ParseString", t, func() {
@@ -178,5 +184,11 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		test(CustomAttributeTypeEmail, "user@example.com", "user@example.com")
 		test(CustomAttributeTypeURL, "https://example.com", "https://example.com")
 		test(CustomAttributeTypeCountryCode, "HK", "HK")
+		test(CustomAttributeTypeBoolean, "true", true)
+		test(CustomAttributeTypeBoolean, "false", false)
+
+		c := &CustomAttributesAttributeConfig{Type: CustomAttributeTypeBoolean}
+		_, err := c.ParseString("yes")
+		So(err, ShouldNotBeNil)
 	})
 }

@@ -248,3 +248,12 @@ value:
   id: "0000"
   pointer: /alpha2
   type: country_code
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-boolean
+error: null
+value:
+  id: "0000"
+  pointer: /accepted_terms
+  type: boolean
