@@ -179,6 +179,9 @@ enum AppSecretKey {
   SMTP_SECRET
 
   """"""
+  TELEMETRY_AUDIT_LOG_STREAM_SECRETS
+
+  """"""
   WEBHOOK_SECRET
 }
 
@@ -1068,6 +1071,9 @@ type SecretConfig {
   smtpSecret: SMTPSecret
 
   """"""
+  telemetryAuditLogStreamSecrets: TelemetryAuditLogStreamSecrets
+
+  """"""
   webhookSecret: WebhookSecret
 }
 
@@ -1096,6 +1102,9 @@ input SecretConfigUpdateInstructionsInput {
 
   """"""
   smtpSecret: SmtpSecretUpdateInstructionsInput
+
+  """"""
+  telemetryAuditLogStreamSecrets: TelemetryAuditLogStreamSecretsUpdateInstructionsInput
 }
 
 """"""
@@ -1285,6 +1294,54 @@ type SubscriptionUsageItem {
 
   """"""
   whatsappRegion: UsageWhatsappRegion!
+}
+
+""""""
+type TelemetryAuditLogStreamDatadogSecret {
+  """"""
+  apiKey: String
+
+  """"""
+  streamName: String!
+}
+
+""""""
+input TelemetryAuditLogStreamDatadogSecretInput {
+  """"""
+  apiKey: String!
+
+  """"""
+  streamName: String!
+}
+
+""""""
+type TelemetryAuditLogStreamSecrets {
+  """"""
+  datadog: [TelemetryAuditLogStreamDatadogSecret!]
+}
+
+""""""
+input TelemetryAuditLogStreamSecretsCleanupDataInput {
+  """"""
+  keepStreamNames: [String!]!
+}
+
+""""""
+input TelemetryAuditLogStreamSecretsSetDataInput {
+  """"""
+  datadog: [TelemetryAuditLogStreamDatadogSecretInput!]!
+}
+
+""""""
+input TelemetryAuditLogStreamSecretsUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  cleanupData: TelemetryAuditLogStreamSecretsCleanupDataInput
+
+  """"""
+  setData: TelemetryAuditLogStreamSecretsSetDataInput
 }
 
 """"""

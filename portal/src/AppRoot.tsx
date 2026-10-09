@@ -19,6 +19,7 @@ import RequireAPIResource from "./RequireAPIResource";
 import RequireRole from "./RequireRole";
 import RequireGroup from "./RequireGroup";
 import { PortalAPIFeatureConfig } from "./types";
+import { isIntegrationsAvailable } from "./util/integrations";
 
 // Feature-config predicates for the route-level RequireAppFeature guards. Each
 // returns whether the project may access the gated section. Kept module-level so
@@ -28,8 +29,6 @@ const isApp2AppAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
 const isFraudProtectionAvailable = (
   fc: PortalAPIFeatureConfig | null
 ): boolean => fc?.fraud_protection?.is_modifiable ?? false;
-const isIntegrationsAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
-  (fc?.google_tag_manager?.disabled ?? false) === false;
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(

@@ -110,6 +110,23 @@ var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var telemetryAuditLogStreamDatadogSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name: "TelemetryAuditLogStreamDatadogSecret",
+	Fields: graphql.Fields{
+		"streamName": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+		"apiKey":     &graphql.Field{Type: graphql.String},
+	},
+})
+
+var telemetryAuditLogStreamSecrets = graphql.NewObject(graphql.ObjectConfig{
+	Name: "TelemetryAuditLogStreamSecrets",
+	Fields: graphql.Fields{
+		"datadog": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(telemetryAuditLogStreamDatadogSecret)),
+		},
+	},
+})
+
 var botProtectionProviderSecret = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "BotProtectionProviderSecret",
 	Description: "Bot protection provider secret",
@@ -244,15 +261,16 @@ var smsProviderSecret = graphql.NewObject(graphql.ObjectConfig{
 type AppSecretKey string
 
 const (
-	AppSecretKeyOauthSSOProviderClientSecrets AppSecretKey = "oauthSSOProviderClientSecrets" // nolint:gosec
-	AppSecretKeyWebhookSecret                 AppSecretKey = "webhookSecret"
-	AppSecretKeyAdminAPISecrets               AppSecretKey = "adminAPISecrets"
-	AppSecretKeySmtpSecret                    AppSecretKey = "smtpSecret"
-	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets" // nolint:gosec
-	AppSecretKeyBotProtectionProviderSecret   AppSecretKey = "botProtectionProviderSecret"
-	AppSecretKeySAMLIdpSigningSecrets         AppSecretKey = "samlIdpSigningSecrets" // nolint:gosec
-	AppSecretKeySAMLSpSigningSecrets          AppSecretKey = "samlSpSigningSecrets"  // nolint:gosec
-	AppSecretKeySMSProviderSecrets            AppSecretKey = "smsProviderSecrets"    // nolint:gosec
+	AppSecretKeyOauthSSOProviderClientSecrets  AppSecretKey = "oauthSSOProviderClientSecrets" // nolint:gosec
+	AppSecretKeyWebhookSecret                  AppSecretKey = "webhookSecret"
+	AppSecretKeyAdminAPISecrets                AppSecretKey = "adminAPISecrets"
+	AppSecretKeySmtpSecret                     AppSecretKey = "smtpSecret"
+	AppSecretKeyOauthClientSecrets             AppSecretKey = "oauthClientSecrets" // nolint:gosec
+	AppSecretKeyBotProtectionProviderSecret    AppSecretKey = "botProtectionProviderSecret"
+	AppSecretKeySAMLIdpSigningSecrets          AppSecretKey = "samlIdpSigningSecrets"          // nolint:gosec
+	AppSecretKeySAMLSpSigningSecrets           AppSecretKey = "samlSpSigningSecrets"           // nolint:gosec
+	AppSecretKeySMSProviderSecrets             AppSecretKey = "smsProviderSecrets"             // nolint:gosec
+	AppSecretKeyTelemetryAuditLogStreamSecrets AppSecretKey = "telemetryAuditLogStreamSecrets" // nolint:gosec
 )
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
@@ -285,6 +303,9 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		},
 		string(AppSecretKeySMSProviderSecrets): &graphql.Field{
 			Type: smsProviderSecret,
+		},
+		string(AppSecretKeyTelemetryAuditLogStreamSecrets): &graphql.Field{
+			Type: telemetryAuditLogStreamSecrets,
 		},
 	},
 })
@@ -319,6 +340,9 @@ var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 		"SMS_PROVIDER_SECRETS": &graphql.EnumValueConfig{
 			Value: AppSecretKeySMSProviderSecrets,
 		},
+		"TELEMETRY_AUDIT_LOG_STREAM_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeyTelemetryAuditLogStreamSecrets,
+		},
 	},
 })
 
@@ -343,13 +367,14 @@ var oauthSSOProviderDemoSecretItem = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var secretKeyToConfigKeyMap map[AppSecretKey][]config.SecretKey = map[AppSecretKey][]config.SecretKey{
-	AppSecretKeyOauthSSOProviderClientSecrets: {config.OAuthSSOProviderCredentialsKey},
-	AppSecretKeyWebhookSecret:                 {config.WebhookKeyMaterialsKey},
-	AppSecretKeyAdminAPISecrets:               {config.AdminAPIAuthKeyKey},
-	AppSecretKeySmtpSecret:                    {config.SMTPServerCredentialsKey},
-	AppSecretKeyOauthClientSecrets:            {config.OAuthClientCredentialsKey},
-	AppSecretKeyBotProtectionProviderSecret:   {config.BotProtectionProviderCredentialsKey},
-	AppSecretKeySMSProviderSecrets:            {config.TwilioCredentialsKey, config.CustomSMSProviderConfigKey},
+	AppSecretKeyOauthSSOProviderClientSecrets:  {config.OAuthSSOProviderCredentialsKey},
+	AppSecretKeyWebhookSecret:                  {config.WebhookKeyMaterialsKey},
+	AppSecretKeyAdminAPISecrets:                {config.AdminAPIAuthKeyKey},
+	AppSecretKeySmtpSecret:                     {config.SMTPServerCredentialsKey},
+	AppSecretKeyOauthClientSecrets:             {config.OAuthClientCredentialsKey},
+	AppSecretKeyBotProtectionProviderSecret:    {config.BotProtectionProviderCredentialsKey},
+	AppSecretKeySMSProviderSecrets:             {config.TwilioCredentialsKey, config.CustomSMSProviderConfigKey},
+	AppSecretKeyTelemetryAuditLogStreamSecrets: {config.TelemetryAuditLogStreamDatadogCredentialsKey},
 }
 
 const typeApp = "App"

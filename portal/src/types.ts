@@ -793,9 +793,54 @@ export interface IPFilterSource {
   geo_location_codes?: string[];
 }
 
+export interface TelemetryAuditLogStreamDatadogConfig {
+  site?: string;
+  service?: string;
+  source?: string;
+  tags?: Record<string, string>;
+}
+
+export interface TelemetryAuditLogStreamHTTPConfig {
+  endpoint?: string;
+}
+
+// Only the fields the portal reads or writes are typed; anything else
+// on a stream is kept by spreading the original object.
+export interface TelemetryAuditLogStreamConfig {
+  name: string;
+  type: "syslog" | "datadog";
+  transport: "tcp" | "http";
+  datadog?: TelemetryAuditLogStreamDatadogConfig;
+  http?: TelemetryAuditLogStreamHTTPConfig;
+  [key: string]: unknown;
+}
+
+export interface TelemetryAuditLogsConfig {
+  streams?: TelemetryAuditLogStreamConfig[];
+}
+
+export interface TelemetryConfig {
+  audit_logs?: TelemetryAuditLogsConfig;
+}
+
+export interface TelemetryFeatureConfig {
+  audit_logs?: { streaming?: { disabled?: boolean } };
+}
+
+export interface TelemetryAuditLogStreamSecrets {
+  datadog?: { streamName: string; apiKey?: string | null }[] | null;
+}
+
+export interface TelemetryAuditLogStreamSecretsUpdateInstruction {
+  action: "set" | "cleanup";
+  setData?: { datadog: { streamName: string; apiKey: string }[] } | null;
+  cleanupData?: { keepStreamNames: string[] } | null;
+}
+
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   id: string;
+  telemetry?: TelemetryConfig;
   http?: HTTPConfig;
   identity?: IdentityConfig;
   authenticator?: AuthenticatorConfig;
@@ -894,6 +939,7 @@ export interface PortalAPISecretConfig {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
   adminAPISecrets?: AdminAPISecret[] | null;
+  telemetryAuditLogStreamSecrets?: TelemetryAuditLogStreamSecrets | null;
   smtpSecret?: SmtpSecret | null;
   oauthClientSecrets?: OAuthClientSecret[] | null;
   botProtectionProviderSecret?: BotProtectionProviderSecret | null;
@@ -991,6 +1037,7 @@ export interface PortalAPISecretConfigUpdateInstruction {
   samlIdpSigningSecrets?: SAMLIdpSigningSecretsUpdateInstruction | null;
   samlSpSigningSecrets?: SAMLSpSigningSecretsUpdateInstruction | null;
   smsProviderSecrets?: SMSProviderSecretsUpdateInstructions | null;
+  telemetryAuditLogStreamSecrets?: TelemetryAuditLogStreamSecretsUpdateInstruction | null;
 }
 
 export interface PortalAPIApp {
@@ -1001,6 +1048,7 @@ export interface PortalAPIApp {
 }
 
 export interface PortalAPIFeatureConfig {
+  telemetry?: TelemetryFeatureConfig;
   identity?: IdentityFeatureConfig;
   authentication?: AuthenticationFeatureConfig;
   authenticator?: AuthenticatorFeatureConfig;

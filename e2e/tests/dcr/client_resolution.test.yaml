@@ -818,6 +818,12 @@ steps:
           }
         }
 
+  # The email is sent in a detached goroutine, so email.sent lands after the
+  # request returns.
+  - name: wait for email delivery
+    action: sleep
+    sleep_for: 2s
+
   - name: verify_email_sent
     action: audit_query
     audit_query: |
