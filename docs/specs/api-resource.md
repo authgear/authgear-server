@@ -62,8 +62,8 @@ A client's category is the pair *(how it was registered, first-party or third-pa
 |---|---|---|
 | Static first-party | `allow_static_first_party_client_access` | `spa`, `traditional_webapp`, `native` and `confidential` clients declared in `authgear.yaml` |
 | Static third-party | `allow_static_third_party_client_access` | `third_party_app` clients declared in `authgear.yaml` (a deprecated client type — see [Third-Party Client spec](./third-party-client.md)) |
-| Dynamic first-party | `allow_dynamic_first_party_client_access` | Clients DCR-registered with a first-party Initial Access Token, and CIMD-resolved clients whose kind is first-party |
-| Dynamic third-party | `allow_dynamic_third_party_client_access` | Clients DCR-registered with a third-party Initial Access Token, and CIMD-resolved third-party clients |
+| Dynamic first-party | `allow_dynamic_first_party_client_access` | Clients DCR-registered with a first-party Initial Access Token |
+| Dynamic third-party | `allow_dynamic_third_party_client_access` | Clients DCR-registered with a third-party Initial Access Token or none, and all CIMD-resolved clients |
 
 Each key is literal: `allow_dynamic_third_party_client_access` never covers a static third-party client, and `allow_static_first_party_client_access` never covers a dynamic one. The keys are independent — setting one has no effect on the others.
 
@@ -304,7 +304,7 @@ type AccessPolicy {
 
   """
   When true, any dynamically registered first-party client (DCR-registered
-  with a first-party Initial Access Token, or CIMD-resolved as first-party)
+  with a first-party Initial Access Token)
   may access this Resource or Scope without a per-client association.
   """
   allowDynamicFirstPartyClientAccess: Boolean!
