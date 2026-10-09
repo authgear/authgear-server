@@ -6,12 +6,16 @@ import (
 	"sort"
 	"time"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/slice"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type ClaimStore interface {
@@ -125,6 +129,11 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role acce
 		return err
 	}
 
+	err = s.validateStringConstraints(rawUser.StandardAttributes, stdAttrs)
+	if err != nil {
+		return err
+	}
+
 	accessControl := s.UserProfileConfig.StandardAttributes.GetAccessControl()
 	err = stdattrs.T(rawUser.StandardAttributes).CheckWrite(
 		accessControl,
@@ -193,6 +202,33 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role acce
 	}
 
 	return nil
+}
+
+// validateStringConstraints checks changed values only,
+// so narrowing a constraint affects future writes only.
+func (s *ServiceNoEvent) validateStringConstraints(original map[string]any, incoming map[string]any) error {
+	vctx := &validation.Context{}
+	for _, v := range s.UserProfileConfig.StandardAttributes.Validation {
+		ptr := jsonpointer.MustParse(v.Pointer)
+		newValue, ok := stringAt(ptr, incoming)
+		if !ok || newValue == "" {
+			continue
+		}
+		if oldValue, ok := stringAt(ptr, original); ok && oldValue == newValue {
+			continue
+		}
+		attrs.ValidateStringConstraints(vctx.Child(ptr...), v.StringConstraints(), newValue, attrs.IsMultilineStandardAttribute(v.Pointer))
+	}
+	return vctx.Error("invalid standard attributes")
+}
+
+func stringAt(ptr jsonpointer.T, m map[string]any) (string, bool) {
+	v, err := ptr.Traverse(m)
+	if err != nil {
+		return "", false
+	}
+	str, ok := v.(string)
+	return str, ok
 }
 
 // Batch implementation of DeriveStandardAttributes
