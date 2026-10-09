@@ -14,6 +14,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowV2EnterOOBOTPHandler), "*"),
 	wire.Struct(new(AuthflowV2SetupOOBOTPHandler), "*"),
 	wire.Struct(new(AuthflowV2ViewRecoveryCodeHandler), "*"),
+	wire.Struct(new(AuthflowV2FillFormHandler), "*"),
 	wire.Struct(new(AuthflowV2ErrorHandler), "*"),
 	wire.Struct(new(AuthflowV2NoAuthenticatorHandler), "*"),
 	wire.Struct(new(AuthflowV2OAuthProviderMissingCredentialsHandler), "*"),

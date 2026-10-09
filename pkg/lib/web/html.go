@@ -65,6 +65,7 @@ var TemplateWebAuthflowV2LocaleInputHTML = template.RegisterHTML("web/authflowv2
 var TemplateWebAuthflowV2TimezoneInput = template.RegisterHTML("web/authflowv2/__timezone_input.html")
 var TemplateWebAuthflowV2CountryInput = template.RegisterHTML("web/authflowv2/__country_input.html")
 var TemplateWebAuthflowV2SelectInput = template.RegisterHTML("web/authflowv2/__select_input.html")
+var TemplateWebAuthflowV2FormFieldsHTML = template.RegisterHTML("web/authflowv2/__form_fields.html")
 var TemplateWebAuthflowV2StringConstraintsHintHTML = template.RegisterHTML("web/authflowv2/__string_constraints_hint.html")
 
 var TemplateWebDirectAccessDisableV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__direct_access_disable_page_frame.html")
@@ -118,6 +119,7 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2CountryInput,
 	TemplateWebAuthflowV2SelectInput,
 	TemplateWebAuthflowV2StringConstraintsHintHTML,
+	TemplateWebAuthflowV2FormFieldsHTML,
 }
 
 var ComponentsHTML []*template.HTML

@@ -3,6 +3,7 @@ package web_test
 import (
 	"context"
 	"encoding/json"
+	htmltemplate "html/template"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -103,6 +104,95 @@ func TestProfileTemplates(t *testing.T) {
 			out := render(nil)
 			So(out, ShouldContainSubstring, `I accept the <a href="https://example.com/t" target="_blank" rel="noopener noreferrer">Terms</a>&lt;script&gt;x&lt;/script&gt;`)
 			So(out, ShouldContainSubstring, "|TEXT:I accept the Termsx")
+		})
+	})
+}
+
+var formFieldsTestPage = template.RegisterHTML("web/authflowv2/__form_fields_test_page.html", web.ComponentsHTML...)
+
+func TestFormFieldsTemplate(t *testing.T) {
+	Convey("__form_fields.html", t, func() {
+		builtin := afero.NewBasePathFs(afero.NewOsFs(), "../../../resources/authgear")
+		overlay := afero.NewMemMapFs()
+		_ = overlay.MkdirAll("templates/en/web/authflowv2", 0777)
+		_ = afero.WriteFile(overlay, "templates/en/web/authflowv2/__form_fields_test_page.html", []byte(
+			`{{ template "authflowv2/__form_fields.html" (merge (dict "Form" $.Form) $) }}`), 0666)
+		manager := resource.NewManager(resource.DefaultRegistry, []resource.Fs{
+			resource.LeveledAferoFs{Fs: afero.NewCopyOnWriteFs(builtin, overlay), FsLevel: resource.FsLevelBuiltin},
+		})
+		engine := &template.Engine{Resolver: &template.Resolver{
+			Resources: manager, DefaultLanguageTag: "en", SupportedLanguageTags: []string{"en"},
+		}}
+		ctx := context.Background()
+		tr, err := engine.Translation(ctx, []string{"en"})
+		So(err, ShouldBeNil)
+
+		field := func(key string, typ string, extra map[string]any) map[string]any {
+			f := map[string]any{
+				"Key": key, "Type": typ, "Label": "L " + key, "Required": false,
+				"Value": nil, "Checked": false, "Address": map[string]string{},
+				"Options": nil, "Suggestions": nil, "Constraints": nil,
+				"Error": nil, "MissingRequired": false, "HookMessage": "",
+			}
+			for k, v := range extra {
+				f[k] = v
+			}
+			return f
+		}
+		render := func(fields ...map[string]any) string {
+			out, err := engine.Render(ctx, formFieldsTestPage, []string{"en"}, map[string]any{
+				"Translations": tr,
+				"Form": map[string]any{
+					"Fields":    fields,
+					"Timezones": nil,
+					"Alpha2":    []string{"HK"},
+				},
+			})
+			So(err, ShouldBeNil)
+			return out.String
+		}
+
+		Convey("every type renders", func() {
+			two := 2
+			out := render(
+				field("/given_name", "string", map[string]any{"Required": true, "Value": "John", "Suggestions": []string{"a"},
+					"Constraints": &config.StringConstraints{MinLength: &two}}),
+				field("/x_email", "email", nil),
+				field("/website", "url", nil),
+				field("/x_age", "integer", nil),
+				field("/x_score", "number", nil),
+				field("/x_phone", "phone_number", nil),
+				field("/birthdate", "date", nil),
+				field("/x_plan", "enum", map[string]any{"Options": []map[string]any{{"Value": "free", "Label": "Free"}}}),
+				field("/x_country", "country_code", nil),
+				field("/zoneinfo", "timezone", nil),
+				field("/address", "address", map[string]any{"Address": map[string]string{"locality": "London"}}),
+				field("/x_terms", "boolean", map[string]any{"Checked": true, "Required": true, "LabelHTML": htmltemplate.HTML(`I accept <a href="https://example.com">Terms</a>`)}),
+			)
+			So(out, ShouldContainSubstring, `name="/given_name"`)
+			So(out, ShouldContainSubstring, `value="John"`)
+			So(out, ShouldContainSubstring, "Enter at least 2 characters")
+			So(out, ShouldContainSubstring, `name="/address/locality" value="London"`)
+			So(out, ShouldContainSubstring, `name="/x_terms"`)
+			So(out, ShouldContainSubstring, `<a href="https://example.com">Terms</a>`)
+			So(out, ShouldContainSubstring, `checked`)
+			So(out, ShouldContainSubstring, `value="false"`)
+		})
+
+		Convey("errors", func() {
+			out := render(
+				field("/a", "string", map[string]any{"HookMessage": "From the hook"}),
+				field("/b", "string", map[string]any{"MissingRequired": true, "Required": true}),
+				field("/c", "string", map[string]any{"Error": map[string]any{
+					"reason": "ValidationFailed",
+					"info": map[string]any{"causes": []any{
+						map[string]any{"location": "/fields/0/value", "kind": "minLength", "details": map[string]any{"expected": 2, "actual": 1}},
+					}},
+				}}),
+			)
+			So(out, ShouldContainSubstring, "From the hook")
+			So(out, ShouldContainSubstring, "This field is required")
+			So(out, ShouldContainSubstring, "greater than or equal to 2 characters")
 		})
 	})
 }

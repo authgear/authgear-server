@@ -70,7 +70,9 @@ type BaseViewModel struct {
 	PinnedPhoneCountryCodeJSON  string
 	GeoIPCountryCode            string
 	FormJSON                    string
-	BrandPageURI                string
+	// RestoredForm is the form of the failed request. It is not exposed to templates.
+	RestoredForm url.Values `json:"-"`
+	BrandPageURI string
 	// ClientURI is the home page of the client.
 	ClientURI             string
 	ClientName            string
@@ -141,6 +143,7 @@ func (m *BaseViewModel) SetError(ctx context.Context, err error) {
 }
 
 func (m *BaseViewModel) SetFormJSON(form url.Values) {
+	m.RestoredForm = form
 	simpleMap := make(map[string]string)
 	for key := range form {
 		simpleMap[key] = form.Get(key)

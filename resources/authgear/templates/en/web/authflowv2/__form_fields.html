@@ -1,0 +1,165 @@
+{{/* Example usage
+  {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $.Form) $) }}
+  The root context is needed by __error.html.
+*/}}
+
+{{ define "authflowv2/__form_fields.html" }}
+  {{ $form := $.Form }}
+  {{ $timezones := $form.Timezones }}
+  {{ $alpha2 := $form.Alpha2 }}
+
+  {{ range $form.Fields }}
+    {{ $field := . }}
+    {{ $has_error := or $field.HookMessage $field.MissingRequired $field.Error }}
+    <div class="flex flex-col gap-y-2">
+      {{ if (eq $field.Type "boolean") }}
+        <div class="flex flex-row items-start gap-x-2.5">
+          <div class="checkbox mt-0.5">
+            <input
+              id="form-field-{{ $field.Key }}"
+              type="checkbox"
+              name="{{ $field.Key }}"
+              value="true"
+              {{ if $field.Checked }}checked{{ end }}
+              {{ if $field.Required }}required{{ end }}
+            />
+            <label class="checkbox__label" for="form-field-{{ $field.Key }}">
+              <span class="checkbox__icon material-icons">check</span>
+            </label>
+          </div>
+          <label class="body-text--md" for="form-field-{{ $field.Key }}">
+            {{ $field.LabelHTML }}{{ if $field.Required }}<span aria-hidden="true"> {{ include "v2.component.form-field.default.required-marker" nil }}</span>{{ end }}
+          </label>
+          {{/* An unchecked checkbox is not submitted, so the hidden input submits false. */}}
+          <input type="hidden" name="{{ $field.Key }}" value="false">
+        </div>
+      {{ else }}
+        <span class="body-text--md">
+          {{ $field.Label }}{{ if $field.Required }}<span aria-hidden="true"> {{ include "v2.component.form-field.default.required-marker" nil }}</span>{{ end }}
+        </span>
+
+        {{ if (eq $field.Type "string") }}
+          <input
+            type="text"
+            class="block input w-full {{ if $has_error }}input--error{{ end }}"
+            name="{{ $field.Key }}"
+            value="{{ showAttributeValue $field.Value }}"
+            {{ if $field.Suggestions }}list="form-field-suggestions-{{ $field.Key }}"{{ end }}
+            {{ if $field.Required }}required{{ end }}
+          >
+          {{ if $field.Suggestions }}
+            <datalist id="form-field-suggestions-{{ $field.Key }}">
+              {{ range $field.Suggestions }}<option value="{{ . }}">{{ end }}
+            </datalist>
+          {{ end }}
+        {{ else if (eq $field.Type "email") }}
+          <input
+            type="text"
+            inputmode="email"
+            autocapitalize="none"
+            class="block input w-full {{ if $has_error }}input--error{{ end }}"
+            name="{{ $field.Key }}"
+            value="{{ showAttributeValue $field.Value }}"
+            {{ if $field.Required }}required{{ end }}
+          >
+        {{ else if (eq $field.Type "url") }}
+          <input
+            type="url"
+            inputmode="url"
+            autocapitalize="none"
+            class="block input w-full {{ if $has_error }}input--error{{ end }}"
+            name="{{ $field.Key }}"
+            value="{{ showAttributeValue $field.Value }}"
+            {{ if $field.Required }}required{{ end }}
+          >
+        {{ else if (or (eq $field.Type "integer") (eq $field.Type "number")) }}
+          <input
+            type="text"
+            inputmode="{{ if (eq $field.Type "integer") }}numeric{{ else }}decimal{{ end }}"
+            class="block input w-full {{ if $has_error }}input--error{{ end }}"
+            name="{{ $field.Key }}"
+            value="{{ showAttributeValue $field.Value }}"
+            {{ if $field.Required }}required{{ end }}
+          >
+        {{ else if (eq $field.Type "phone_number") }}
+          {{ template "authflowv2/__phone_input.html"
+            (dict
+              "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
+              "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
+              "IsError" $has_error
+              "InputName" $field.Key
+              "Value" (showAttributeValue $field.Value)
+            )
+          }}
+        {{ else if (eq $field.Type "date") }}
+          {{ template "authflowv2/__date_input.html"
+            (dict
+              "Name" $field.Key
+              "Value" (showAttributeValue $field.Value)
+              "InputAttrs" (ternary "required" "" $field.Required)
+            )
+          }}
+        {{ else if (eq $field.Type "enum") }}
+          {{ $options := (list) }}
+          {{ range $field.Options }}
+            {{ $options = append $options (dict "value" .Value "label" .Label "triggerLabel" .Label) }}
+          {{ end }}
+          {{ template "authflowv2/__select_input.html"
+            (dict
+              "Name" $field.Key
+              "Value" (showAttributeValue $field.Value)
+              "Options" $options
+            )
+          }}
+        {{ else if (eq $field.Type "country_code") }}
+          {{ template "authflowv2/__country_input.html"
+            (dict
+              "Alpha2" $alpha2
+              "Name" $field.Key
+              "Value" (showAttributeValue $field.Value)
+            )
+          }}
+        {{ else if (eq $field.Type "timezone") }}
+          {{ template "authflowv2/__timezone_input.html"
+            (dict
+              "Timezones" $timezones
+              "Name" $field.Key
+              "Value" (showAttributeValue $field.Value)
+            )
+          }}
+        {{ else if (eq $field.Type "address") }}
+          {{ $address := $field.Address }}
+          <input type="text" class="block input w-full" name="{{ $field.Key }}/street_address" value="{{ index $address "street_address" }}"
+            placeholder="{{ include "v2.page.settings-profile-edit-address.default.street-label" nil }}">
+          <input type="text" class="block input w-full" name="{{ $field.Key }}/locality" value="{{ index $address "locality" }}"
+            placeholder="{{ include "v2.page.settings-profile-edit-address.default.locality-label" nil }}">
+          <input type="text" class="block input w-full" name="{{ $field.Key }}/region" value="{{ index $address "region" }}"
+            placeholder="{{ include "v2.page.settings-profile-edit-address.default.region-label" nil }}">
+          <input type="text" class="block input w-full" name="{{ $field.Key }}/postal_code" value="{{ index $address "postal_code" }}"
+            placeholder="{{ include "v2.page.settings-profile-edit-address.default.postal-code-label" nil }}">
+          {{ template "authflowv2/__country_input.html"
+            (dict
+              "Alpha2" $alpha2
+              "Name" (printf "%s/country" $field.Key)
+              "Value" (index $field.Address "country")
+            )
+          }}
+        {{ end }}
+      {{ end }}
+
+      {{ if $field.Constraints }}
+        {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" $field.Constraints) }}
+      {{ end }}
+
+      {{ if $field.HookMessage }}
+        <p class="input__error-message">{{ $field.HookMessage }}</p>
+      {{ else if $field.MissingRequired }}
+        <p class="input__error-message">{{ include "v2.component.form-field.default.required-error" nil }}</p>
+      {{ else if $field.Error }}
+        <p class="input__error-message">
+          {{ include "authflowv2/__error.html" (merge (dict "Error" $field.Error "PatternPointer" $field.Key) $) }}
+        </p>
+      {{ end }}
+    </div>
+  {{ end }}
+{{ end }}

@@ -613,6 +613,13 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 	))
 }
 
+func newWebAppAuthflowV2FillFormHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2FillFormHandler)),
+	))
+}
+
 func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
