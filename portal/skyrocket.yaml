@@ -1,0 +1,14 @@
+name: authgear-portal-storybook
+services:
+  - name: default
+    port: 80
+    public: true
+    dockerfile: Dockerfile
+  - name: api
+    port: 8080
+    public: true
+    dockerfile: comments-api/Dockerfile
+    context: comments-api
+resources:
+  postgresql:
+    enable: true

@@ -4,7 +4,7 @@ Use `Toggle` for boolean feature switches (enable/disable a behavior).
 
 ## Rules
 
-- `Toggle` is for boolean state only. If users choose one option from multiple choices, use radio button components (`ChoiceGroup` / `RadioCards`) instead.
+- `Toggle` (`portal/src/components/v2/Toggle/Toggle.tsx`) is for boolean state only. If users choose one option from multiple choices, use `RadioCards`, `IconRadioCards`, or Radix `RadioGroup` instead.
 - Multiple toggles can appear in one section when each maps to a different boolean config.
 - For dependent toggles, encode parent-child behavior explicitly:
   - If child setting is not meaningful when parent is off, hide or disable the child toggle.

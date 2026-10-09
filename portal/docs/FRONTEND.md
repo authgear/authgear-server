@@ -6,12 +6,13 @@ React 18 SPA under `portal/src/`. Built with Vite, served from `portal/dist/`.
 
 - React 18 + React Router v5 (`react-router-dom`)
 - Apollo Client — two instances (Portal API, Admin API)
-- FluentUI v8 (`@fluentui/react`) — dominant component library
+- Radix Themes (`@radix-ui/themes`) and `@radix-ui/react-icons` — primitives
+- `portal/src/components/v2/` — design-system wrappers around those primitives (buttons, fields, callouts, dialogs)
 - Tailwind CSS v3 + CSS Modules (`*.module.css`) — styling
 - react-intl — i18n (`FormattedMessage`, `renderToString`)
 - Monaco Editor — config / template editor
 - Chart.js — analytics widgets
-- Storybook 9 — component preview (see `portal/docs/storybook.md`)
+- Storybook 10 — component preview (see `portal/docs/storybook.md`)
 - GraphQL Codegen — typed queries/mutations
 
 ## Build
@@ -29,7 +30,7 @@ npm run storybook    # Storybook on :6006
 
 ```
 portal/src/
-  index.tsx                 # Entry: icon init, ChartJS, Monaco, render <ReactApp/>
+  index.tsx                 # Entry: icon fonts, ChartJS, Monaco, render <ReactApp/>
   ReactApp.tsx              # Top-level providers + router
   AppRoot.tsx               # Per-tenant routes; Admin API Apollo client
   ScreenLayout.tsx          # Chrome: sidebar + content
@@ -56,22 +57,22 @@ portal/src/
     saml/
     sms-provider/
     users/
-  hook/                     # Reusable hooks (useCopyFeedback, ...)
+  hook/                     # Reusable hooks (useAppConfigForm, ...)
   util/                     # Pure helpers
   locale-data/              # i18n JSON per locale
 ```
 
-v1 components often live at the root of `src/` (e.g. `TextField.tsx`, `TextFieldWithCopyButton.tsx`, `FormTextField.tsx`). v2 components live under `src/components/v2/<Name>/` with their own folder.
+New reusable UI goes in `src/components/v2/<Name>/`, one folder per component, with the story co-located. Screen-specific UI stays next to the screen (`src/graphql/portal/`, `src/graphql/adminapi/`, `src/components/<feature>/`). `components/v1` is not a directory.
 
 ## Providers (top-down)
 
 Mounted in `ReactApp.tsx` / `AppRoot.tsx`:
 
-1. `SystemConfigContext.Provider` — system config + FluentUI themes.
-2. `IntlProvider` (via `AppLocaleProvider`) — react-intl messages for the active locale.
-3. FluentUI `ThemeProvider` — colours/typography from system config.
-4. Portal `ApolloProvider` — Portal API client.
-5. Admin API `ApolloProvider` — created inside `AppRoot`, scoped to the tenant in the URL.
+1. `AppLocaleProvider` — react-intl messages (`src/components/common/AppLocaleProvider.tsx`).
+2. Portal `ApolloProvider` — Portal API client.
+3. `SystemConfigContext.Provider` — system config from `/api/system-config`. No theme object.
+4. Inside `PortalRoot`: v2 `ThemeProvider` (`src/components/v2/ThemeProvider/ThemeProvider.tsx`), which renders Radix `<Theme accentColor="indigo" grayColor="slate" className="contents">`.
+5. Admin API `ApolloProvider` — created in `AppRoot`, scoped to the tenant in the URL.
 6. React Router (`BrowserRouter`, `Routes`).
 
 Anything that calls `useSystemConfig()`, `useIntl()`, `useQuery()`, `useMutation()`, or `useParams()` depends on these. Storybook reproduces them selectively — see `portal/docs/storybook.md`.
@@ -101,11 +102,11 @@ const { data, loading, error } = useAppAndSecretConfigQuery({
 
 ## Styling conventions
 
-- Prefer FluentUI primitives (`Text`, `PrimaryButton`, `TextField`, `Dropdown`, `Dialog`, `DetailsList`, …) for v1 screens. See the `update-portal-ui` skill for pitfalls (e.g. `Text` + inline links, link components).
-- For v2 screens, use components from `src/components/v2/`.
-- Tailwind (v3) handles one-off utilities (`flex`, spacing, widths, colours) — no JIT config tricks required.
+- New UI uses `src/components/v2/`. Import `Button`, `Text`, `Dialog`, or `Select` from `@radix-ui/themes` only when no v2 wrapper exists for that control. See the `update-portal-ui` skill for link and i18n pitfalls.
+- Tailwind (v3) handles one-off utilities (`flex`, spacing, widths) — no JIT config tricks required.
 - CSS Modules (`Foo.module.css`) for component-scoped styles; imported as `styles.xxx`.
-- Do **not** mix CSS Modules with `!important` to override FluentUI — extend the component's theme or pass `styles` props.
+- Do not set a literal hex or `white`. Use the Radix tokens in the Colour tokens section.
+- Do not fight Radix with `!important`. Pass Radix props (`variant`, `color`, `size`) or a token.
 
 ### Colour tokens
 
@@ -147,14 +148,14 @@ express the difference — the sidebar's accent wash is the current example.
 - `FormContainer` / `FormContainerBase` — standard form shell with save bar, unsaved-changes blocker, error surfacing.
 - `useFormField` / form state hooks — immer-backed drafts against the original GraphQL data.
 - `BlockerDialog` — unsaved-changes prompt on navigation.
-- Validation surfaces through `FormErrorMessageBar` / `FormErrorMessageText`.
+- Validation surfaces through `FormErrorMessageBar`.
 
 ## Common utilities
 
-- `useCopyFeedback` — copy-to-clipboard with FluentUI callout feedback; used by `TextFieldWithCopyButton`.
+- `CopyIconButton` (`src/components/v2/CopyIconButton/CopyIconButton.tsx`) — copy-to-clipboard via `copyToClipboard` in `src/util/clipboard.ts`.
 - `ExternalLink` — `<a target="_blank" rel="noopener">` with the correct icon.
 - `ErrorBoundSuspense` / `FlavoredErrorBoundSuspense` — error + suspense wrapping for lazy routes.
-- `useSystemConfig()` — throws if not under `SystemConfigContext.Provider`; Storybook stories for v1 components must provide this (see `portal/docs/storybook.md`).
+- `useSystemConfig()` — throws if not under `SystemConfigContext.Provider`. Any Storybook story whose component calls it must provide `SystemConfigContext` (see `portal/docs/storybook.md`).
 
 ## Authentication
 

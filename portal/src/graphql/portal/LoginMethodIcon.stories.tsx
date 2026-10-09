@@ -8,7 +8,7 @@ import {
 import styles from "./LoginMethodConfigurationScreen.module.css";
 
 const meta = {
-  title: "components/v1/LoginMethodChooser/LoginMethodIcon",
+  title: "portal/LoginMethods/LoginMethodIcon",
   tags: ["autodocs"],
   decorators: [
     (Story) => (

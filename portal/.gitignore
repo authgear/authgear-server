@@ -1,5 +1,6 @@
 node_modules/
 dist/*
+storybook-static/
 !dist/.gitkeep
 .parcel-cache/
 parcel-bundle-reports/
