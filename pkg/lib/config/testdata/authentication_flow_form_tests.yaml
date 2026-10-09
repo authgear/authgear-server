@@ -1,58 +1,3 @@
-part: AuthenticationFlowSignupFlow
-name: form-on-identify-step-rejected
-error: |-
-  invalid value:
-  /steps/0: not
-value:
-  name: id
-  steps:
-  - type: identify
-    form:
-      fields:
-      - user_profile:
-          pointer: /given_name
-    one_of:
-    - identification: email
-
----
-part: AuthenticationFlowSignupFlow
-name: form-on-authenticate-branch-rejected
-error: |-
-  invalid value:
-  /steps/0/one_of/0/steps/0/one_of/0: not
-value:
-  name: id
-  steps:
-  - type: identify
-    one_of:
-    - identification: email
-      steps:
-      - type: create_authenticator
-        one_of:
-        - authentication: primary_password
-          form:
-            fields:
-            - user_profile:
-                pointer: /given_name
-
----
-part: AuthenticationFlowLoginFlow
-name: form-on-identify-step-rejected
-error: |-
-  invalid value:
-  /steps/0: not
-value:
-  name: id
-  steps:
-  - type: identify
-    form:
-      fields:
-      - user_profile:
-          pointer: /given_name
-    one_of:
-    - identification: email
-
----
 part: AuthenticationFlowLoginFlow
 name: form-on-identify-branch-rejected
 error: |-
@@ -64,131 +9,6 @@ value:
   - type: identify
     one_of:
     - identification: email
-      form:
-        fields:
-        - user_profile:
-            pointer: /given_name
-
----
-part: AuthenticationFlowLoginFlow
-name: form-on-authenticate-branch-rejected
-error: |-
-  invalid value:
-  /steps/0/one_of/0: not
-value:
-  name: id
-  steps:
-  - type: authenticate
-    one_of:
-    - authentication: primary_password
-      form:
-        fields:
-        - user_profile:
-            pointer: /given_name
-
----
-part: AuthenticationFlowSignupLoginFlow
-name: form-on-identify-step-rejected
-error: |-
-  invalid value:
-  /steps/0: not
-value:
-  name: id
-  steps:
-  - type: identify
-    form:
-      fields:
-      - user_profile:
-          pointer: /given_name
-    one_of:
-    - identification: email
-      signup_flow: a
-      login_flow: b
-
----
-part: AuthenticationFlowSignupLoginFlow
-name: form-on-identify-branch-rejected
-error: |-
-  invalid value:
-  /steps/0/one_of/0: not
-value:
-  name: id
-  steps:
-  - type: identify
-    one_of:
-    - identification: email
-      signup_flow: a
-      login_flow: b
-      form:
-        fields:
-        - user_profile:
-            pointer: /given_name
-
----
-part: AuthenticationFlowReauthFlow
-name: form-on-step-rejected
-error: |-
-  invalid value:
-  /steps/0: not
-value:
-  name: id
-  steps:
-  - type: authenticate
-    form:
-      fields:
-      - user_profile:
-          pointer: /given_name
-    one_of:
-    - authentication: primary_password
-
----
-part: AuthenticationFlowReauthFlow
-name: form-on-branch-rejected
-error: |-
-  invalid value:
-  /steps/0/one_of/0: not
-value:
-  name: id
-  steps:
-  - type: authenticate
-    one_of:
-    - authentication: primary_password
-      form:
-        fields:
-        - user_profile:
-            pointer: /given_name
-
----
-part: AuthenticationFlowAccountRecoveryFlow
-name: form-on-step-rejected
-error: |-
-  invalid value:
-  /steps/0: not
-value:
-  name: id
-  steps:
-  - type: identify
-    form:
-      fields:
-      - user_profile:
-          pointer: /given_name
-    one_of:
-    - identification: email
-      on_failure: ignore
-
----
-part: AuthenticationFlowAccountRecoveryFlow
-name: form-on-branch-rejected
-error: |-
-  invalid value:
-  /steps/0/one_of/0: not
-value:
-  name: id
-  steps:
-  - type: identify
-    one_of:
-    - identification: email
-      on_failure: ignore
       form:
         fields:
         - user_profile:
@@ -278,21 +98,6 @@ value:
 
 ---
 part: AuthenticationFlowSignupFlow
-name: fill-form-field-without-kind
-error: |-
-  invalid value:
-  /steps/0/form/fields/0: minProperties
-    map[actual:0 expected:1]
-value:
-  name: id
-  steps:
-  - type: fill_form
-    form:
-      fields:
-      - {}
-
----
-part: AuthenticationFlowSignupFlow
 name: fill-form-name-default-rejected
 error: |-
   invalid value:
@@ -303,39 +108,6 @@ value:
   - type: fill_form
     form:
       name: default
-      fields:
-      - user_profile:
-          pointer: /given_name
-
----
-part: AuthenticationFlowSignupFlow
-name: fill-form-name-pattern
-error: |-
-  invalid value:
-  /steps/0/form/name: pattern
-    map[actual:1-names expected:^[a-zA-Z_][a-zA-Z0-9_]*$]
-value:
-  name: id
-  steps:
-  - type: fill_form
-    form:
-      name: 1-names
-      fields:
-      - user_profile:
-          pointer: /given_name
-
----
-part: AuthenticationFlowSignupFlow
-name: fill-form-unknown-key-in-form
-error: |-
-  invalid value:
-  /steps/0/form/foo: 
-value:
-  name: id
-  steps:
-  - type: fill_form
-    form:
-      foo: bar
       fields:
       - user_profile:
           pointer: /given_name
@@ -372,52 +144,42 @@ value:
   - type: fill_form
 
 ---
-part: AuthenticationFlowReauthFlow
-name: fill-form-not-supported
-error: |-
-  invalid value:
-  /steps/0: not
-  /steps/0/type: enum
-    map[actual:fill_form expected:[identify authenticate]]
+part: AuthenticationFlowSignupFlow
+name: identify-form-valid
+error: null
 value:
   name: id
   steps:
-  - type: fill_form
-    form:
-      fields:
-      - user_profile:
-          pointer: /given_name
+  - type: identify
+    one_of:
+    - identification: username
+      form:
+        name: names
+        fields:
+        - user_profile:
+            pointer: /given_name
+            required: true
+    - identification: email
+    - identification: phone
+      form:
+        fields:
+        - user_profile:
+            pointer: /family_name
 
 ---
-part: AuthenticationFlowAccountRecoveryFlow
-name: fill-form-not-supported
+part: AuthenticationFlowSignupFlow
+name: identify-form-on-oauth-rejected
 error: |-
   invalid value:
-  /steps/0: not
-  /steps/0/type: enum
-    map[actual:fill_form expected:[identify select_destination verify_account_recovery_code reset_password]]
+  /steps/0/one_of/0/identification: enum
+    map[actual:oauth expected:[email phone username]]
 value:
   name: id
   steps:
-  - type: fill_form
-    form:
-      fields:
-      - user_profile:
-          pointer: /given_name
-
----
-part: AuthenticationFlowSignupLoginFlow
-name: fill-form-not-supported
-error: |-
-  invalid value:
-  /steps/0: not
-  /steps/0/type: enum
-    map[actual:fill_form expected:[identify]]
-value:
-  name: id
-  steps:
-  - type: fill_form
-    form:
-      fields:
-      - user_profile:
-          pointer: /given_name
+  - type: identify
+    one_of:
+    - identification: oauth
+      form:
+        fields:
+        - user_profile:
+            pointer: /given_name

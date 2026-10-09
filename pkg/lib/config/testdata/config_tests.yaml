@@ -3157,3 +3157,92 @@ config:
           fields:
           - user_profile:
               pointer: /email
+
+---
+name: identify-form-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: username
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+                required: true
+
+---
+name: identify-form-not-fillable
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/0/one_of/0/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+          form:
+            fields:
+            - user_profile:
+                pointer: /email
+
+---
+name: identify-form-duplicated-pointer
+error: |-
+  invalid configuration:
+  /authentication_flow/promote_flows/0/steps/0/one_of/0/form/fields/1/user_profile/pointer: duplicated pointer
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    promote_flows:
+    - name: custom_promote_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: username
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+            - user_profile:
+                pointer: /given_name
+
+---
+name: identify-form-in-branch-of-non-identify-step-validated
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/0/one_of/0/steps/0/one_of/0/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+          steps:
+          - type: identify
+            one_of:
+            - identification: username
+              form:
+                fields:
+                - user_profile:
+                    pointer: /x_unknown

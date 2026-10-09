@@ -1,9 +1,12 @@
 package declarative
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -205,4 +208,52 @@ func formFieldsToAttrs(cfg *config.AppConfig, form *config.AuthenticationFlowFor
 		panic(fmt.Errorf("config validation should have ensured there are no unknown attributes"))
 	}
 	return std, custom
+}
+
+// identifyBranchForms returns the forms of the branches of an identify step, keyed by identification.
+// It is never nil, so that a schema built from it knows forms are supported.
+func identifyBranchForms(step *config.AuthenticationFlowSignupFlowStep) map[model.AuthenticationFlowIdentification]*config.AuthenticationFlowForm {
+	forms := map[model.AuthenticationFlowIdentification]*config.AuthenticationFlowForm{}
+	for _, branch := range step.OneOf {
+		if branch.Form != nil {
+			forms[branch.Identification] = branch.Form
+		}
+	}
+	return forms
+}
+
+// identificationOptionsWithForms returns a copy of options with Form filled.
+// The persisted options are never mutated, because the form carries the current values of the user.
+func identificationOptionsWithForms(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	options []IdentificationOption,
+	step *config.AuthenticationFlowSignupFlowStep,
+	userID string,
+) ([]IdentificationOption, error) {
+	forms := identifyBranchForms(step)
+	if len(forms) == 0 {
+		return options, nil
+	}
+
+	// FIXME(authflow): support other role?
+	user, err := deps.Users.Get(ctx, userID, config.RoleEndUser)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]IdentificationOption, len(options))
+	copy(out, options)
+	for i := range out {
+		form, ok := forms[out[i].Identification]
+		if !ok {
+			continue
+		}
+		dataForm, err := NewFillFormDataForm(ctx, deps, form, user)
+		if err != nil {
+			return nil, err
+		}
+		out[i].Form = &dataForm
+	}
+	return out, nil
 }

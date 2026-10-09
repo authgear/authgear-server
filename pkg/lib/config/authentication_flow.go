@@ -234,12 +234,25 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowIdentify", `
 			]
 		},
 		"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" },
+		"form": { "$ref": "#/$defs/AuthenticationFlowForm" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
 		},
 		"account_linking": { "$ref": "#/$defs/AuthenticationFlowAccountLinking" }
-	}
+	},
+	"allOf": [
+		{
+			"if": {
+				"required": ["form"]
+			},
+			"then": {
+				"properties": {
+					"identification": { "enum": ["email", "phone", "username"] }
+				}
+			}
+		}
+	]
 }
 `)
 
@@ -919,7 +932,7 @@ type AuthenticationFlowSignupFlowStep struct {
 	// Deprecated: Use Form with the fill_form step.
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
 	// Form is relevant when Type is fill_form.
-	Form *AuthenticationFlowForm `json:"form,omitempty"`
+	Form *AuthenticationFlowForm `json:"form,omitempty" nullable:"true"`
 }
 
 var (
@@ -973,6 +986,8 @@ type AuthenticationFlowSignupFlowOneOf struct {
 	Identification model.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	// AccountLinking is specific to identify.
 	AccountLinking *AuthenticationFlowAccountLinking `json:"account_linking,omitempty"`
+	// Form is specific to identify, with email, phone or username.
+	Form *AuthenticationFlowForm `json:"form,omitempty" nullable:"true"`
 
 	// Authentication is specific to authenticate.
 	Authentication model.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
@@ -993,6 +1008,7 @@ var (
 	_ AuthenticationFlowObjectAccountLinkingConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
 	_ AuthenticationFlowObjectBotProtectionConfigProvider  = &AuthenticationFlowSignupFlowOneOf{}
 	_ AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf   = &AuthenticationFlowSignupFlowOneOf{}
+	_ AuthenticationFlowObjectFormProvider                 = &AuthenticationFlowSignupFlowOneOf{}
 )
 
 func (f *AuthenticationFlowSignupFlowOneOf) IsFlowObject() {}
@@ -1031,6 +1047,10 @@ func (f *AuthenticationFlowSignupFlowOneOf) GetAccountLinkingConfig() *Authentic
 
 func (f *AuthenticationFlowSignupFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
 	return f.BotProtection
+}
+
+func (f *AuthenticationFlowSignupFlowOneOf) GetForm() *AuthenticationFlowForm {
+	return f.Form
 }
 
 type AuthenticationFlowSignupFlowUserProfile struct {
@@ -1085,7 +1105,7 @@ type AuthenticationFlowLoginFlowStep struct {
 	TargetStep string `json:"target_step,omitempty"`
 
 	// Form is relevant when Type is fill_form.
-	Form *AuthenticationFlowForm `json:"form,omitempty"`
+	Form *AuthenticationFlowForm `json:"form,omitempty" nullable:"true"`
 }
 
 var (

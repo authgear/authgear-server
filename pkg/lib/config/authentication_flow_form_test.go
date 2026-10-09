@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -162,5 +163,37 @@ func TestValidateFormsInSteps(t *testing.T) {
 				"/steps/1/form/fields/2/user_profile/pointer",
 			})
 		})
+	})
+}
+
+func TestParseAuthenticationFlowForm(t *testing.T) {
+	Convey("a form is nil when it is not configured", t, func() {
+		// Parse allocates every nil pointer to a struct unless it is tagged nullable.
+		cfg, err := Parse(context.Background(), []byte(`
+id: test
+http:
+  public_origin: http://test
+authentication_flow:
+  signup_flows:
+  - name: custom
+    steps:
+    - type: identify
+      one_of:
+      - identification: username
+        form:
+          fields:
+          - user_profile:
+              pointer: /given_name
+      - identification: email
+    - type: view_recovery_code
+`))
+		So(err, ShouldBeNil)
+
+		step := cfg.AuthenticationFlow.SignupFlows[0].Steps[0]
+		So(step.Form, ShouldBeNil)
+		So(step.OneOf[0].Form, ShouldNotBeNil)
+		So(step.OneOf[0].Form.Fields[0].UserProfile.Pointer, ShouldEqual, "/given_name")
+		So(step.OneOf[1].Form, ShouldBeNil)
+		So(cfg.AuthenticationFlow.SignupFlows[0].Steps[1].Form, ShouldBeNil)
 	})
 }

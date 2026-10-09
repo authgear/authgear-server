@@ -1,7 +1,9 @@
 package declarative
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -9,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func TestInputSchemaStepIdentify(t *testing.T) {
@@ -363,5 +366,110 @@ func TestInputSchemaStepIdentifySelectAccount(t *testing.T) {
     ]
 }
 `)
+	})
+}
+
+func TestInputSchemaStepIdentifyForms(t *testing.T) {
+	Convey("InputSchemaStepIdentify with forms", t, func() {
+		cfg := newTestFormConfig()
+		requiredForm := newTestForm(userProfileField("/given_name", true))
+		optionalForm := newTestForm(userProfileField("/nickname", false))
+
+		// Several options per identification, as OAuth expands to one option per provider.
+		s := &InputSchemaStepIdentify{
+			Config: cfg,
+			Options: []IdentificationOption{
+				{Identification: model.AuthenticationFlowIdentificationUsername},
+				{Identification: model.AuthenticationFlowIdentificationEmail},
+				{Identification: model.AuthenticationFlowIdentificationPhone},
+				{Identification: model.AuthenticationFlowIdentificationOAuth, Alias: "google"},
+				{Identification: model.AuthenticationFlowIdentificationOAuth, Alias: "github"},
+			},
+			Forms: map[model.AuthenticationFlowIdentification]*config.AuthenticationFlowForm{
+				model.AuthenticationFlowIdentificationUsername: requiredForm,
+				model.AuthenticationFlowIdentificationPhone:    optionalForm,
+			},
+		}
+
+		parse := func(raw string) (*InputStepIdentify, error) {
+			input, err := s.MakeInput(context.Background(), json.RawMessage(raw))
+			if err != nil {
+				return nil, err
+			}
+			return input.(*InputStepIdentify), nil
+		}
+
+		Convey("fields are accepted on the branch with a form", func() {
+			input, err := parse(`{
+				"identification": "username",
+				"login_id": "johndoe",
+				"fields": [{"key": "/given_name", "value": "John"}]
+			}`)
+			So(err, ShouldBeNil)
+			fields, submitted := input.GetIdentifyFormFields()
+			So(submitted, ShouldBeTrue)
+			So(fields, ShouldResemble, []FormFieldInput{{Key: "/given_name", Value: "John"}})
+		})
+
+		Convey("required fields are required", func() {
+			_, err := parse(`{"identification": "username", "login_id": "johndoe"}`)
+			So(err, ShouldNotBeNil)
+			_, err = parse(`{"identification": "username", "login_id": "johndoe", "fields": []}`)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("optional fields may be omitted", func() {
+			input, err := parse(`{"identification": "phone", "login_id": "+85298765432"}`)
+			So(err, ShouldBeNil)
+			fields, submitted := input.GetIdentifyFormFields()
+			So(fields, ShouldBeEmpty)
+			So(submitted, ShouldBeTrue)
+		})
+
+		Convey("fields are rejected on a branch without a form", func() {
+			_, err := parse(`{
+				"identification": "email",
+				"login_id": "john@example.com",
+				"fields": [{"key": "/given_name", "value": "John"}]
+			}`)
+			So(err, ShouldNotBeNil)
+			// Rejected on every option that has no form, whatever the identification.
+			_, err = parse(`{
+				"identification": "oauth",
+				"alias": "github",
+				"redirect_uri": "https://example.com/callback",
+				"fields": []
+			}`)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("the fields of another branch are rejected", func() {
+			_, err := parse(`{
+				"identification": "phone",
+				"login_id": "+85298765432",
+				"fields": [{"key": "/given_name", "value": "John"}]
+			}`)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("constraints are validated", func() {
+			_, err := parse(`{
+				"identification": "username",
+				"login_id": "johndoe",
+				"fields": [{"key": "/given_name", "value": "J"}]
+			}`)
+			So(err, ShouldNotBeNil)
+			var aErr *validation.AggregatedError
+			So(errors.As(err, &aErr), ShouldBeTrue)
+			So(aErr.Errors[0].Keyword, ShouldEqual, "minLength")
+			So(aErr.Errors[0].Location, ShouldEqual, "/fields/0/value")
+		})
+
+		Convey("a schema without forms is not changed", func() {
+			s.Forms = nil
+			input, err := parse(`{"identification": "email", "login_id": "john@example.com"}`)
+			So(err, ShouldBeNil)
+			So(input.Fields, ShouldBeEmpty)
+		})
 	})
 }

@@ -15,7 +15,7 @@ type AuthenticationFlowForm struct {
 
 // AuthenticationFlowFormField has exactly one non-nil member.
 type AuthenticationFlowFormField struct {
-	UserProfile *AuthenticationFlowFormFieldUserProfile `json:"user_profile,omitempty"`
+	UserProfile *AuthenticationFlowFormFieldUserProfile `json:"user_profile,omitempty" nullable:"true"`
 }
 
 type AuthenticationFlowFormFieldUserProfile struct {
@@ -76,6 +76,9 @@ func validateFormsInSteps(ctx *validation.Context, up *UserProfileConfig, steps 
 func validateFormsInBranches(ctx *validation.Context, up *UserProfileConfig, branches []AuthenticationFlowObject, identified bool) {
 	for j, b := range branches {
 		branchCtx := ctx.Child("one_of", strconv.Itoa(j))
+		if fp, ok := b.(AuthenticationFlowObjectFormProvider); ok && fp.GetForm() != nil {
+			validateForm(branchCtx.Child("form"), up, fp.GetForm())
+		}
 		if so, ok := b.(AuthenticationFlowStepsObject); ok {
 			validateFormsInSteps(branchCtx.Child("steps"), up, so.GetSteps(), identified)
 		}

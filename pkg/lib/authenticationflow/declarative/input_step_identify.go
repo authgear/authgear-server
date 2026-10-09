@@ -21,6 +21,13 @@ type InputSchemaStepIdentify struct {
 	ShouldBypassBotProtection bool
 	BotProtectionCfg          *config.BotProtectionConfig
 	IsExternalJWTAllowed      bool
+
+	// Forms is keyed by identification. It is non-nil only where a branch can have a form,
+	// which is in signup and promote flows. Only email, phone and username can have forms.
+	// Options cannot be used to look a form up by branch,
+	// because OAuth expands to one option per provider, and LDAP to one per server.
+	Forms  map[model.AuthenticationFlowIdentification]*config.AuthenticationFlowForm
+	Config *config.AppConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaStepIdentify{}
@@ -60,6 +67,9 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 		}
 
 		setRequiredAndAppendOneOf := func() {
+			if i.setForm(b, option.Identification) {
+				required = append(required, "fields")
+			}
 			b.Required(required...)
 			oneOf = append(oneOf, b)
 		}
@@ -154,11 +164,43 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 	return b
 }
 
+// setForm adds the fields of the form of the identification to the schema b of an option.
+// It reports whether fields is required.
+func (i *InputSchemaStepIdentify) setForm(b validation.SchemaBuilder, identification model.AuthenticationFlowIdentification) (required bool) {
+	if i.Forms == nil {
+		return false
+	}
+	form := i.Forms[identification]
+	if form == nil {
+		// Reject fields rather than silently ignore them.
+		b.Not(validation.SchemaBuilder{}.Required("fields"))
+		return false
+	}
+	b.Properties().Property("fields", buildFormFieldsSchema(i.Config, form))
+	for _, f := range form.Fields {
+		if formFieldRequired(f) {
+			return true
+		}
+	}
+	return false
+}
+
 func (i *InputSchemaStepIdentify) MakeInput(ctx context.Context, rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputStepIdentify
 	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(ctx, rawMessage, &input)
 	if err != nil {
 		return nil, err
+	}
+	// Inputs made by code, such as synthetic inputs, leave it false.
+	input.IsFieldsSubmitted = true
+
+	if i.Forms[input.Identification] != nil {
+		vctx := &validation.Context{}
+		validateFormFields(vctx, i.Config, input.Fields)
+		err = vctx.Error("invalid form")
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &input, nil
 }
@@ -182,6 +224,11 @@ type InputStepIdentify struct {
 	Password   string `json:"password"`
 
 	Index int `json:"index,omitempty"`
+
+	// Fields is specific to the email, phone and username options that have a form.
+	Fields []FormFieldInput `json:"fields,omitempty"`
+	// IsFieldsSubmitted is true when the input was parsed from a request, whether or not it has fields.
+	IsFieldsSubmitted bool `json:"-"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -193,6 +240,7 @@ var _ inputTakeOAuthAuthorizationRequest = &InputStepIdentify{}
 var _ inputTakeBotProtection = &InputStepIdentify{}
 var _ inputTakeLDAP = &InputStepIdentify{}
 var _ inputTakeIdentificationOptionIndex = &InputStepIdentify{}
+var _ inputIdentifyFormFields = &InputStepIdentify{}
 
 func (*InputStepIdentify) Input() {}
 
@@ -256,4 +304,8 @@ func (i *InputStepIdentify) GetPassword() string {
 
 func (i *InputStepIdentify) GetIdentificationOptionIndex() int {
 	return i.Index
+}
+
+func (i *InputStepIdentify) GetIdentifyFormFields() (fields []FormFieldInput, submitted bool) {
+	return i.Fields, i.IsFieldsSubmitted
 }

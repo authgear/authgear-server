@@ -62,6 +62,10 @@ type IdentificationOption struct {
 	// data, since the flow itself deliberately does not implement that
 	// filtering (see NewIdentificationOptionsSelectAccount).
 	UserID string `json:"user_id,omitempty"`
+
+	// Form is specific to email, phone and username in signup and promote flows.
+	// It is filled in OutputData only, never in the persisted options.
+	Form *FillFormDataForm `json:"form,omitempty"`
 }
 
 func NewIdentificationOptionIDToken(flows authflow.Flows, i model.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
