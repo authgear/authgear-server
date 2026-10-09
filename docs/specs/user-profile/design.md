@@ -1,5 +1,6 @@
 * [User profile](#user-profile)
   * [Standard attributes](#standard-attributes)
+    * [Standard attribute labels](#standard-attribute-labels)
   * [Standard attributes population](#standard-attributes-population)
   * [List of standard attributes subject to population](#list-of-standard-attributes-subject-to-population)
     * [Single\-line string standard attributes](#single-line-string-standard-attributes)
@@ -54,6 +55,10 @@ Forms in custom authentication flows collect attributes. See [Profile Filling](.
 
 Standard attributes are [OIDC standard claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims).
 All standard attributes are optional.
+
+### Standard attribute labels
+
+The label of a standard attribute can be localized with the translation key `standard-attribute-label-{pointer}`. For example, the key of `/given_name` is `standard-attribute-label-/given_name`. Authgear provides a label for every standard attribute, such as "Given name".
 
 ## Standard attributes population
 

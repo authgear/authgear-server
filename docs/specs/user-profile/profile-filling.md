@@ -162,7 +162,7 @@ A form in an `identify` step has no page of its own, so its title and descriptio
 
 These keys are used by Auth UI. The Authflow API returns the form's `name`, as `form.name`, instead of the text, so a Custom UI shows its own title and description; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
 
-Fields use the existing translation keys of their attributes. Labels and `enum` option labels are defined in [Defining custom attributes](./design.md#defining-custom-attributes) and [Custom Attribute type enum](./design.md#custom-attribute-type-enum). The message for a failed `pattern` is defined in [String constraints](./design.md#string-constraints).
+Fields use the translation keys of their attributes. Labels are defined in [Standard attribute labels](./design.md#standard-attribute-labels) and [Defining custom attributes](./design.md#defining-custom-attributes); `enum` option labels in [Custom Attribute type enum](./design.md#custom-attribute-type-enum). The message for a failed `pattern` is defined in [String constraints](./design.md#string-constraints).
 
 The hook response and the Authflow API are not configuration; see [Validation hook](#validation-hook) and [the API reference](../authentication-flow-api-reference.md#type-signup-actiontype-fill_form).
 
@@ -944,7 +944,7 @@ In the Authflow API, the field's `key` is its pointer, and its `type` is:
 | Custom attribute of type `string`, `integer`, `number`, `enum`, `phone_number`, `email`, `url`, or `boolean` | The same name                                               |
 | Custom attribute of type [`alpha2`](./design.md#custom-attribute-type-alpha2)                                | `country_code`                                              |
 
-The `label` and `enum` option labels use the attribute's existing [translations](#translations). `constraints` are the attribute's [string constraints](./design.md#string-constraints) or its `minimum` and `maximum`.
+The `label` and `enum` option labels use the attribute's [translations](#translations). `constraints` are the attribute's [string constraints](./design.md#string-constraints) or its `minimum` and `maximum`.
 
 #### Fillable attributes
 
@@ -991,7 +991,7 @@ A config is rejected when a form:
 
 A config is also rejected when:
 
-- a `fill_form` step can be reached, on any path through its flow, before the end-user is identified in a signup or promote flow, or before the end-user is authenticated in a login flow. Otherwise the form could write to the profile of a user who has not proven who they are, and the [validation hook](#validation-hook) would receive a user without identities.
+- a `fill_form` step can be reached, on any path through its flow, before the end-user is identified. Otherwise a login flow would have no user to fill, and the [validation hook](#validation-hook) would receive a user without identities.
 - an `identify` branch has a `form` and its `identification` is not `email`, `phone`, or `username`, or its flow is not a signup or promote flow. See [Forms in the identify step](#forms-in-the-identify-step).
 
 A change to access control that makes an attribute used by any form non-fillable is also rejected.
@@ -1056,7 +1056,7 @@ The hook localizes its `title`, `reason`, and messages using `context.language`;
 | --------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | A form in any flow                            | ✅                    | `authentication.form.post_submitted` when the form is submitted; `user.pre_create` or `user.profile.pre_update` when the flow finishes. See [Validation hook](#validation-hook). | Per form     |
 | Settings page                                 | ✅                    | `user.profile.pre_update`                                                                                                                                         | Not enforced |
-| Admin API and portal                          | ✅                    | `user.profile.pre_update`, with `context.triggered_by` set to `admin_api` or `portal`                                                                             | Not enforced |
+| Admin API and portal                          | ✅                    | `user.profile.pre_update`, with `context.triggered_by` set to `admin_api`                                                                                          | Not enforced |
 
 ## Reading the filled attributes
 
@@ -1077,7 +1077,7 @@ A backend must not assume a user has an attribute because a flow requires it. Se
 
 - Each `fill_form` step is one page. The page shows the form's [title and description](#translations), then its fields in order.
 - A form in an `identify` step is shown below the login ID input, without its title and description. When the step has several branches with forms, each branch's input shows its own fields.
-- Each field's input follows its `type`; see [user_profile field](#user_profile-field) and [fill_form_data](../authentication-flow-api-reference.md#fill_form_data). Labels use the attribute's existing [translations](#translations).
+- Each field's input follows its `type`; see [user_profile field](#user_profile-field) and [fill_form_data](../authentication-flow-api-reference.md#fill_form_data). Labels use the attribute's [translations](#translations).
 - Required fields are marked. The page cannot be submitted until they are filled.
 - A page whose fields are all optional can be submitted with every field empty.
 - Constraint errors and the hook's rejected attributes are shown under their field. The hook's `title` and `reason`, when present, are shown above the form.
