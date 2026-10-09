@@ -5,10 +5,12 @@ import (
 	"math"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
@@ -300,4 +302,63 @@ func withoutFieldsCause(unknown any) any {
 	}
 	info["causes"] = rest
 	return errMap
+}
+
+// IdentificationOptionForm returns the form of the option of the identification, or nil.
+func IdentificationOptionForm(screen *webapp.AuthflowScreenWithFlowResponse, identification string) *declarative.FillFormDataForm {
+	data, ok := screen.StateTokenFlowResponse.Action.Data.(declarative.IdentificationData)
+	if !ok {
+		return nil
+	}
+	for _, option := range data.Options {
+		if string(option.Identification) == identification && option.Form != nil {
+			return option.Form
+		}
+	}
+	return nil
+}
+
+// isFormError reports whether an error of the identify page belongs to its form, not to the login ID.
+func isFormError(apiErr *apierrors.APIError) bool {
+	if apiErr == nil {
+		return false
+	}
+	switch apiErr.Reason {
+	case "HookDisallowed":
+		return apiErr.Info_ReadOnly["event_type"] == "authentication.form.post_submitted"
+	case "ValidationFailed":
+		causes, _ := apiErr.Info_ReadOnly["causes"].([]any)
+		if len(causes) == 0 {
+			return false
+		}
+		for _, c := range causes {
+			cause, _ := c.(map[string]any)
+			location, _ := cause["location"].(string)
+			if location != "/fields" && !strings.HasPrefix(location, "/fields/") {
+				return false
+			}
+		}
+		return true
+	}
+	return false
+}
+
+// IdentifyFormViewModels builds the forms of the options of the identify step, keyed by identification.
+func IdentifyFormViewModels(screen *webapp.AuthflowScreenWithFlowResponse, base *viewmodels.BaseViewModel) (map[string]FormViewModel, error) {
+	out := map[string]FormViewModel{}
+	data, ok := screen.StateTokenFlowResponse.Action.Data.(declarative.IdentificationData)
+	if !ok {
+		return out, nil
+	}
+	for _, option := range data.Options {
+		if option.Form == nil {
+			continue
+		}
+		vm, err := NewFormViewModel(*option.Form, base)
+		if err != nil {
+			return nil, err
+		}
+		out[string(option.Identification)] = vm
+	}
+	return out, nil
 }

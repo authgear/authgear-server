@@ -69,6 +69,10 @@ type AuthflowV2SignupServeOptions struct {
 type AuthflowV2SignupViewModel struct {
 	CanSwitchToLogin bool
 	UIVariant        AuthflowV2SignupUIVariant
+	// FormsByIdentification is the forms of the identify options, to show under the login ID input.
+	FormsByIdentification map[string]FormViewModel
+	// IsFormError is true when the error belongs to the form, not to the login ID.
+	IsFormError bool
 }
 
 func (h *InternalAuthflowV2SignupLoginHandler) getAuthflowViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request) viewmodels.AuthflowViewModel {
@@ -90,9 +94,15 @@ func (h *InternalAuthflowV2SignupLoginHandler) GetData(
 	viewmodels.Embed(data, authflowViewModel)
 	viewmodels.Embed(data, v2viewmodels.NewOAuthErrorViewModel(baseViewModel.RawError))
 
+	forms, err := IdentifyFormViewModels(screen, &baseViewModel)
+	if err != nil {
+		return nil, err
+	}
 	signupViewModel := AuthflowV2SignupViewModel{
-		CanSwitchToLogin: options.CanSwitchToLogin,
-		UIVariant:        options.UIVariant,
+		CanSwitchToLogin:      options.CanSwitchToLogin,
+		UIVariant:             options.UIVariant,
+		FormsByIdentification: forms,
+		IsFormError:           isFormError(baseViewModel.RawError),
 	}
 	viewmodels.Embed(data, signupViewModel)
 	viewmodels.Embed(data, v2viewmodels.NewClockSkewViewModel(s.DPoPEnabled, h.BaseViewModel.Clock.NowUTC()))
@@ -174,6 +184,9 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 		input := map[string]any{
 			"identification": identification,
 			"login_id":       loginID,
+		}
+		if form := IdentificationOptionForm(screen, identification); form != nil {
+			input["fields"] = BuildFormFieldsInput(r.Form, *form).Fields
 		}
 
 		err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)

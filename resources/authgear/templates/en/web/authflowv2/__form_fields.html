@@ -3,6 +3,15 @@
   The root context is needed by __error.html.
 */}}
 
+{{/* The error of a form that is not about one of its fields, and the hook messages for keys that are not in the form.
+  Each part is its own element, so that a message is escaped and the error stays HTML.
+  {{ include "authflowv2/__form_error_message.html" (merge (dict "Form" $.Form) $) }}
+*/}}
+{{ define "authflowv2/__form_error_message.html" }}
+  {{- if $.Form.UnknownError }}{{ include "authflowv2/__error.html" (merge (dict "Error" $.Form.UnknownError) $) }}{{ end }}
+  {{- range $.Form.HookUnmatchedMessages }}<span>{{ . }}</span>{{ end -}}
+{{ end }}
+
 {{ define "authflowv2/__form_fields.html" }}
   {{ $form := $.Form }}
   {{ $timezones := $form.Timezones }}
@@ -11,7 +20,9 @@
   {{ range $form.Fields }}
     {{ $field := . }}
     {{ $has_error := or $field.HookMessage $field.MissingRequired $field.Error }}
-    <div class="flex flex-col gap-y-2">
+    {{ $label_id := printf "form-field-label-%s" $field.Key }}
+    {{/* The group names composite inputs, such as a select or an address. */}}
+    <div class="flex flex-col gap-y-2" {{ if ne $field.Type "boolean" }}role="group" aria-labelledby="{{ $label_id }}"{{ end }}>
       {{ if (eq $field.Type "boolean") }}
         <div class="flex flex-row items-start gap-x-2.5">
           <div class="checkbox mt-0.5">
@@ -34,7 +45,7 @@
           <input type="hidden" name="{{ $field.Key }}" value="false">
         </div>
       {{ else }}
-        <span class="body-text--md">
+        <span class="body-text--md" id="{{ $label_id }}">
           {{ $field.Label }}{{ if $field.Required }}<span aria-hidden="true"> {{ include "v2.component.form-field.default.required-marker" nil }}</span>{{ end }}
         </span>
 
@@ -43,6 +54,7 @@
             type="text"
             class="block input w-full {{ if $has_error }}input--error{{ end }}"
             name="{{ $field.Key }}"
+            aria-labelledby="{{ $label_id }}"
             value="{{ showAttributeValue $field.Value }}"
             {{ if $field.Suggestions }}list="form-field-suggestions-{{ $field.Key }}"{{ end }}
             {{ if $field.Required }}required{{ end }}
@@ -59,6 +71,7 @@
             autocapitalize="none"
             class="block input w-full {{ if $has_error }}input--error{{ end }}"
             name="{{ $field.Key }}"
+            aria-labelledby="{{ $label_id }}"
             value="{{ showAttributeValue $field.Value }}"
             {{ if $field.Required }}required{{ end }}
           >
@@ -69,6 +82,7 @@
             autocapitalize="none"
             class="block input w-full {{ if $has_error }}input--error{{ end }}"
             name="{{ $field.Key }}"
+            aria-labelledby="{{ $label_id }}"
             value="{{ showAttributeValue $field.Value }}"
             {{ if $field.Required }}required{{ end }}
           >
@@ -78,6 +92,7 @@
             inputmode="{{ if (eq $field.Type "integer") }}numeric{{ else }}decimal{{ end }}"
             class="block input w-full {{ if $has_error }}input--error{{ end }}"
             name="{{ $field.Key }}"
+            aria-labelledby="{{ $label_id }}"
             value="{{ showAttributeValue $field.Value }}"
             {{ if $field.Required }}required{{ end }}
           >
@@ -89,6 +104,7 @@
               "IsError" $has_error
               "InputName" $field.Key
               "Value" (showAttributeValue $field.Value)
+              "PhoneInputAttrs" (printf `aria-labelledby="%s"` $label_id)
             )
           }}
         {{ else if (eq $field.Type "date") }}
@@ -96,7 +112,7 @@
             (dict
               "Name" $field.Key
               "Value" (showAttributeValue $field.Value)
-              "InputAttrs" (ternary "required" "" $field.Required)
+              "InputAttrs" (printf `aria-labelledby="%s" %s` $label_id (ternary "required" "" $field.Required))
             )
           }}
         {{ else if (eq $field.Type "enum") }}
@@ -130,13 +146,13 @@
         {{ else if (eq $field.Type "address") }}
           {{ $address := $field.Address }}
           <input type="text" class="block input w-full" name="{{ $field.Key }}/street_address" value="{{ index $address "street_address" }}"
-            placeholder="{{ include "v2.page.settings-profile-edit-address.default.street-label" nil }}">
+            placeholder="{{ include "v2.page.settings-profile-edit-address.default.street-label" nil }}" aria-label="{{ include "v2.page.settings-profile-edit-address.default.street-label" nil }}">
           <input type="text" class="block input w-full" name="{{ $field.Key }}/locality" value="{{ index $address "locality" }}"
-            placeholder="{{ include "v2.page.settings-profile-edit-address.default.locality-label" nil }}">
+            placeholder="{{ include "v2.page.settings-profile-edit-address.default.locality-label" nil }}" aria-label="{{ include "v2.page.settings-profile-edit-address.default.locality-label" nil }}">
           <input type="text" class="block input w-full" name="{{ $field.Key }}/region" value="{{ index $address "region" }}"
-            placeholder="{{ include "v2.page.settings-profile-edit-address.default.region-label" nil }}">
+            placeholder="{{ include "v2.page.settings-profile-edit-address.default.region-label" nil }}" aria-label="{{ include "v2.page.settings-profile-edit-address.default.region-label" nil }}">
           <input type="text" class="block input w-full" name="{{ $field.Key }}/postal_code" value="{{ index $address "postal_code" }}"
-            placeholder="{{ include "v2.page.settings-profile-edit-address.default.postal-code-label" nil }}">
+            placeholder="{{ include "v2.page.settings-profile-edit-address.default.postal-code-label" nil }}" aria-label="{{ include "v2.page.settings-profile-edit-address.default.postal-code-label" nil }}">
           {{ template "authflowv2/__country_input.html"
             (dict
               "Alpha2" $alpha2

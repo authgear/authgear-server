@@ -258,3 +258,22 @@ func TestNewFormViewModel(t *testing.T) {
 		})
 	})
 }
+
+func TestIsFormError(t *testing.T) {
+	Convey("isFormError", t, func() {
+		So(isFormError(nil), ShouldBeFalse)
+		So(isFormError(validationError(map[string]any{"location": "/fields/0/value"}, map[string]any{"location": "/fields"})), ShouldBeTrue)
+		So(isFormError(validationError(map[string]any{"location": "/fields/0/value"}, map[string]any{"location": "/login_id"})), ShouldBeFalse)
+		So(isFormError(validationError(map[string]any{"location": "/fieldsX"})), ShouldBeFalse)
+		formHook := roundTrip(&apierrors.APIError{
+			Kind:          apierrors.Kind{Name: "Forbidden", Reason: "HookDisallowed"},
+			Info_ReadOnly: map[string]any{"event_type": "authentication.form.post_submitted"},
+		})
+		So(isFormError(formHook), ShouldBeTrue)
+		otherHook := roundTrip(&apierrors.APIError{
+			Kind:          apierrors.Kind{Name: "Forbidden", Reason: "HookDisallowed"},
+			Info_ReadOnly: map[string]any{"event_type": "authentication.post_identified"},
+		})
+		So(isFormError(otherHook), ShouldBeFalse)
+	})
+}

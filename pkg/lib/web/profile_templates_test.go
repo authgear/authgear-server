@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	htmltemplate "html/template"
+	"maps"
+	"strings"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -116,7 +118,17 @@ func TestFormFieldsTemplate(t *testing.T) {
 		overlay := afero.NewMemMapFs()
 		_ = overlay.MkdirAll("templates/en/web/authflowv2", 0777)
 		_ = afero.WriteFile(overlay, "templates/en/web/authflowv2/__form_fields_test_page.html", []byte(
-			`{{ template "authflowv2/__form_fields.html" (merge (dict "Form" $.Form) $) }}`), 0666)
+			`{{ template "authflowv2/__alert_message.html" (dict "Type" "error" "Message" (include "authflowv2/__form_error_message.html" (merge (dict "Form" $.Form) $))) }}`+
+				`|FIELDS:{{ template "authflowv2/__form_fields.html" (merge (dict "Form" $.Form) $) }}`), 0666)
+		orig, err := afero.ReadFile(builtin, "templates/en/translation.json")
+		So(err, ShouldBeNil)
+		var translations map[string]string
+		So(json.Unmarshal(orig, &translations), ShouldBeNil)
+		translations["standard-attribute-pattern-error-/address/postal_code"] = "Postal code format"
+		translations["custom-attribute-pattern-error-/x_employee_id"] = "Employee ID format"
+		merged, err := json.Marshal(translations)
+		So(err, ShouldBeNil)
+		_ = afero.WriteFile(overlay, "templates/en/translation.json", merged, 0666)
 		manager := resource.NewManager(resource.DefaultRegistry, []resource.Fs{
 			resource.LeveledAferoFs{Fs: afero.NewCopyOnWriteFs(builtin, overlay), FsLevel: resource.FsLevelBuiltin},
 		})
@@ -139,17 +151,20 @@ func TestFormFieldsTemplate(t *testing.T) {
 			}
 			return f
 		}
-		render := func(fields ...map[string]any) string {
+		renderForm := func(form map[string]any) string {
 			out, err := engine.Render(ctx, formFieldsTestPage, []string{"en"}, map[string]any{
 				"Translations": tr,
-				"Form": map[string]any{
-					"Fields":    fields,
-					"Timezones": nil,
-					"Alpha2":    []string{"HK"},
-				},
+				"Form":         form,
 			})
 			So(err, ShouldBeNil)
 			return out.String
+		}
+		render := func(fields ...map[string]any) string {
+			return renderForm(map[string]any{
+				"Fields":    fields,
+				"Timezones": nil,
+				"Alpha2":    []string{"HK"},
+			})
 		}
 
 		Convey("every type renders", func() {
@@ -177,6 +192,15 @@ func TestFormFieldsTemplate(t *testing.T) {
 			So(out, ShouldContainSubstring, `<a href="https://example.com">Terms</a>`)
 			So(out, ShouldContainSubstring, `checked`)
 			So(out, ShouldContainSubstring, `value="false"`)
+
+			// Every input has an accessible name.
+			So(out, ShouldContainSubstring, `id="form-field-label-/given_name"`)
+			So(out, ShouldContainSubstring, `name="/given_name"
+            aria-labelledby="form-field-label-/given_name"`)
+			So(out, ShouldContainSubstring, `aria-labelledby="form-field-label-/x_phone"`)
+			So(out, ShouldContainSubstring, `aria-labelledby="form-field-label-/birthdate"`)
+			So(out, ShouldContainSubstring, `role="group" aria-labelledby="form-field-label-/x_plan"`)
+			So(out, ShouldContainSubstring, `aria-label="Postal code"`)
 		})
 
 		Convey("errors", func() {
@@ -193,6 +217,42 @@ func TestFormFieldsTemplate(t *testing.T) {
 			So(out, ShouldContainSubstring, "From the hook")
 			So(out, ShouldContainSubstring, "This field is required")
 			So(out, ShouldContainSubstring, "greater than or equal to 2 characters")
+		})
+
+		Convey("the form error keeps the hook error as HTML and escapes unmatched messages", func() {
+			out := renderForm(map[string]any{
+				"Fields": nil,
+				"UnknownError": map[string]any{
+					"reason": "HookDisallowed",
+					"info":   map[string]any{"reasons": []any{map[string]any{"title": "Hook title", "reason": "Hook reason"}}},
+				},
+				"HookUnmatchedMessages": []string{"<b>Bad other</b>"},
+			})
+			// The visible message, not the data-error-message attribute, where escaping is expected.
+			_, message, found := strings.Cut(out, `data-alert-message-target="message">`)
+			So(found, ShouldBeTrue)
+			So(message, ShouldContainSubstring, "Hook title")
+			So(message, ShouldContainSubstring, "<br />")
+			So(message, ShouldContainSubstring, "<span>&lt;b&gt;Bad other&lt;/b&gt;</span>")
+			So(message, ShouldNotContainSubstring, "&lt;span&gt;")
+			So(message, ShouldNotContainSubstring, "&lt;br")
+		})
+
+		Convey("pattern errors use the message of the attribute or sub-attribute", func() {
+			patternError := func(location string) map[string]any {
+				return map[string]any{
+					"reason": "ValidationFailed",
+					"info": map[string]any{"causes": []any{
+						map[string]any{"location": location, "kind": "pattern", "details": map[string]any{}},
+					}},
+				}
+			}
+			out := render(
+				field("/x_employee_id", "string", map[string]any{"Error": patternError("/fields/0/value")}),
+				field("/address", "address", map[string]any{"Error": patternError("/fields/1/value/postal_code")}),
+			)
+			So(out, ShouldContainSubstring, "Employee ID format")
+			So(out, ShouldContainSubstring, "Postal code format")
 		})
 	})
 }
