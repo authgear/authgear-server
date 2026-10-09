@@ -20,6 +20,7 @@ export type ValidationFailedErrorInfoCause =
   | MaximumErrorCause
   | MinLengthErrorCause
   | MaxLengthErrorCause
+  | AllowedCharactersErrorCause
   | BlockedErrorCause
   | NoPrimaryAuthenticatorErrorCause
   | NoSecondaryAuthenticatorErrorCause;
@@ -102,6 +103,14 @@ export interface MaxLengthErrorCause {
   details: {
     actual: number;
     expected: number;
+  };
+}
+
+export interface AllowedCharactersErrorCause {
+  location: string;
+  kind: "allowedCharacters";
+  details: {
+    expected: string[];
   };
 }
 

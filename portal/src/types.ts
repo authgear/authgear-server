@@ -717,6 +717,7 @@ export const customAttributeTypes = [
   "email",
   "url",
   "country_code",
+  "boolean",
 ] as const;
 export type CustomAttributeType = (typeof customAttributeTypes)[number];
 export function isCustomAttributeType(v: unknown): v is CustomAttributeType {

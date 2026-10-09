@@ -96,6 +96,7 @@ const errorCauseMessageIDs = {
   maximum: "errors.validation.maximum",
   minLength: "errors.validation.minLength",
   maxLength: "errors.validation.maxLength",
+  allowedCharacters: "errors.validation.allowedCharacters",
   blocked: "errors.validation.blocked",
   noPrimaryAuthenticator: "errors.validation.noPrimaryAuthenticator",
   noSecondaryAuthenticator: "errors.validation.noSecondaryAuthenticator",

@@ -306,6 +306,9 @@ function makeCustomAttributesFromState(
       case "country_code":
         out[fieldName] = value;
         break;
+      case "boolean":
+        out[fieldName] = value === "true";
+        break;
     }
   }
 

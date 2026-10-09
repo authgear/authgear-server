@@ -254,6 +254,15 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
       [draft, onChangeDraft]
     );
 
+    // Boolean attributes are not offered when creating, but an existing one keeps its type shown.
+    const selectableTypes = useMemo(
+      () =>
+        customAttributeTypes.filter(
+          (key) => key !== "boolean" || draft.type === "boolean"
+        ),
+      [draft.type]
+    );
+
     const onChangeType = useCallback(
       (value: string) => {
         if (!isCustomAttributeType(value)) {
@@ -312,7 +321,7 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
             >
               <Select.Trigger variant="surface" />
               <Select.Content>
-                {customAttributeTypes.map((key) => (
+                {selectableTypes.map((key) => (
                   <Select.Item key={key} value={key}>
                     {renderToString("custom-attribute-type." + key)}
                   </Select.Item>
