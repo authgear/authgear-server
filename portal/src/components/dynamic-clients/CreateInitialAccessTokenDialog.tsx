@@ -6,6 +6,7 @@ import { SecondaryButton } from "../v2/Button/SecondaryButton/SecondaryButton";
 import { Callout } from "../v2/Callout/Callout";
 import { TextField } from "../v2/TextField/TextField";
 import { InitialAccessTokenType } from "../../graphql/adminapi/globalTypes.generated";
+import { ClientKindBadge } from "./ClientKindBadge";
 import styles from "./CreateInitialAccessTokenDialog.module.css";
 
 const PRESET_EXPIRES_IN_OPTIONS = [3600, 86400, 604800, 2592000] as const;
@@ -192,9 +193,12 @@ export function CreateInitialAccessTokenDialog({
                       className={styles.radioItem}
                     />
                     <div className={styles.radioContent}>
-                      <Text as="span" size="2">
-                        <FormattedMessage id="CreateInitialAccessTokenDialog.type.third-party.title" />
-                      </Text>
+                      <Flex gap="2" align="center" wrap="wrap">
+                        <Text as="span" size="2" weight="medium">
+                          <FormattedMessage id="CreateInitialAccessTokenDialog.type.third-party.title" />
+                        </Text>
+                        <ClientKindBadge firstParty={false} />
+                      </Flex>
                       <Text as="p" size="1" color="gray">
                         <FormattedMessage id="CreateInitialAccessTokenDialog.type.third-party.description" />
                       </Text>
@@ -208,9 +212,12 @@ export function CreateInitialAccessTokenDialog({
                       className={styles.radioItem}
                     />
                     <div className={styles.radioContent}>
-                      <Text as="span" size="2">
-                        <FormattedMessage id="CreateInitialAccessTokenDialog.type.first-party.title" />
-                      </Text>
+                      <Flex gap="2" align="center" wrap="wrap">
+                        <Text as="span" size="2" weight="medium">
+                          <FormattedMessage id="CreateInitialAccessTokenDialog.type.first-party.title" />
+                        </Text>
+                        <ClientKindBadge firstParty={true} />
+                      </Flex>
                       <Text as="p" size="1" color="gray">
                         <FormattedMessage id="CreateInitialAccessTokenDialog.type.first-party.description" />
                       </Text>
