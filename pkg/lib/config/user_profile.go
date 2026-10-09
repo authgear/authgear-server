@@ -42,7 +42,45 @@ var _ = Schema.Add("StandardAttributesConfig", `
 		"access_control": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/StandardAttributesAccessControlConfig" }
+		},
+		"validation": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/StandardAttributesValidationConfig" }
 		}
+	}
+}
+`)
+
+var _ = Schema.Add("StandardAttributesValidationConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["pointer"],
+	"properties": {
+		"pointer": {
+			"type": "string",
+			"enum": [
+				"/name",
+				"/given_name",
+				"/family_name",
+				"/middle_name",
+				"/nickname",
+				"/address/formatted",
+				"/address/street_address",
+				"/address/locality",
+				"/address/region",
+				"/address/postal_code"
+			]
+		},
+		"min_length": { "type": "integer", "minimum": 0 },
+		"max_length": { "type": "integer", "minimum": 1 },
+		"allowed_characters": {
+			"type": "array",
+			"minItems": 1,
+			"uniqueItems": true,
+			"items": { "type": "string", "enum": ["letters", "digits", "spaces", "symbols"] }
+		},
+		"pattern": { "type": "string", "format": "x_re2_regex" }
 	}
 }
 `)
@@ -296,6 +334,34 @@ var _ = Schema.Add("CustomAttributesAttributeConfig", `
 		},
 		{
 			"if": {
+				"properties": { "type": { "const": "string" } }
+			},
+			"then": {
+				"properties": {
+					"min_length": { "type": "integer", "minimum": 0 },
+					"max_length": { "type": "integer", "minimum": 1 },
+					"allowed_characters": {
+						"type": "array",
+						"minItems": 1,
+						"uniqueItems": true,
+						"items": { "type": "string", "enum": ["letters", "digits", "spaces", "symbols"] }
+					},
+					"pattern": { "type": "string", "format": "x_re2_regex" }
+				}
+			},
+			"else": {
+				"not": {
+					"anyOf": [
+						{ "required": ["min_length"] },
+						{ "required": ["max_length"] },
+						{ "required": ["allowed_characters"] },
+						{ "required": ["pattern"] }
+					]
+				}
+			}
+		},
+		{
+			"if": {
 				"properties": {
 					"type": {
 						"not": {
@@ -344,6 +410,19 @@ type CustomAttributesAttributeConfig struct {
 	Minimum       *float64                            `json:"minimum,omitempty"`
 	Maximum       *float64                            `json:"maximum,omitempty"`
 	Enum          []string                            `json:"enum,omitempty"`
+
+	MinLength         *int                `json:"min_length,omitempty"`
+	MaxLength         *int                `json:"max_length,omitempty"`
+	AllowedCharacters []AllowedCharacters `json:"allowed_characters,omitempty"`
+	Pattern           string              `json:"pattern,omitempty"`
+}
+
+// StringConstraints returns nil unless Type is string and at least one constraint is set.
+func (c *CustomAttributesAttributeConfig) StringConstraints() *StringConstraints {
+	if c.Type != CustomAttributeTypeString {
+		return nil
+	}
+	return newStringConstraints(c.MinLength, c.MaxLength, c.AllowedCharacters, c.Pattern)
 }
 
 func (c *CustomAttributesAttributeConfig) SetDefaults() {
@@ -447,9 +526,61 @@ const (
 	CustomAttributeTypeBoolean     CustomAttributeType = "boolean"
 )
 
+type AllowedCharacters string
+
+const (
+	AllowedCharactersLetters AllowedCharacters = "letters"
+	AllowedCharactersDigits  AllowedCharacters = "digits"
+	AllowedCharactersSpaces  AllowedCharacters = "spaces"
+	AllowedCharactersSymbols AllowedCharacters = "symbols"
+)
+
+// StringConstraints is the resolved view shared by custom and standard attributes.
+type StringConstraints struct {
+	MinLength         *int
+	MaxLength         *int
+	AllowedCharacters []AllowedCharacters
+	Pattern           string
+}
+
+func newStringConstraints(minLength *int, maxLength *int, allowed []AllowedCharacters, pattern string) *StringConstraints {
+	if minLength == nil && maxLength == nil && len(allowed) == 0 && pattern == "" {
+		return nil
+	}
+	return &StringConstraints{
+		MinLength:         minLength,
+		MaxLength:         maxLength,
+		AllowedCharacters: allowed,
+		Pattern:           pattern,
+	}
+}
+
 type StandardAttributesConfig struct {
 	Population    *StandardAttributesPopulationConfig      `json:"population,omitempty"`
 	AccessControl []*StandardAttributesAccessControlConfig `json:"access_control,omitempty"`
+	Validation    []*StandardAttributesValidationConfig    `json:"validation,omitempty"`
+}
+
+type StandardAttributesValidationConfig struct {
+	Pointer           string              `json:"pointer,omitempty"`
+	MinLength         *int                `json:"min_length,omitempty"`
+	MaxLength         *int                `json:"max_length,omitempty"`
+	AllowedCharacters []AllowedCharacters `json:"allowed_characters,omitempty"`
+	Pattern           string              `json:"pattern,omitempty"`
+}
+
+func (c *StandardAttributesValidationConfig) StringConstraints() *StringConstraints {
+	return newStringConstraints(c.MinLength, c.MaxLength, c.AllowedCharacters, c.Pattern)
+}
+
+// GetStringConstraints returns nil when the pointer has no entry.
+func (c *StandardAttributesConfig) GetStringConstraints(pointer string) *StringConstraints {
+	for _, v := range c.Validation {
+		if v.Pointer == pointer {
+			return v.StringConstraints()
+		}
+	}
+	return nil
 }
 
 func (c *StandardAttributesConfig) SetDefaults() {

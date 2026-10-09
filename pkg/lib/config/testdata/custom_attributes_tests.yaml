@@ -257,3 +257,69 @@ value:
   id: "0000"
   pointer: /accepted_terms
   type: boolean
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-string-constraints
+error: null
+value:
+  id: "0000"
+  pointer: /employee_id
+  type: string
+  min_length: 6
+  max_length: 6
+  allowed_characters:
+    - letters
+    - digits
+  pattern: "^E[0-9]{5}$"
+
+---
+part: CustomAttributesAttributeConfig
+name: invalid-string-constraints-allowed-characters-unknown
+error: |-
+  invalid value:
+  /allowed_characters/0: enum
+    map[actual:emoji expected:[letters digits spaces symbols]]
+value:
+  id: "0000"
+  pointer: /employee_id
+  type: string
+  allowed_characters:
+    - emoji
+
+---
+part: CustomAttributesAttributeConfig
+name: invalid-string-constraints-pattern
+error: |-
+  invalid value:
+  /pattern: format
+    map[Code:missing closing ) Expr:( format:x_re2_regex]
+value:
+  id: "0000"
+  pointer: /employee_id
+  type: string
+  pattern: "("
+
+---
+part: CustomAttributesAttributeConfig
+name: string-constraints-rejected-on-integer
+error: |-
+  invalid value:
+  <root>: not
+value:
+  id: "0000"
+  pointer: /age
+  type: integer
+  min_length: 1
+
+---
+part: CustomAttributesAttributeConfig
+name: string-constraints-rejected-on-boolean
+error: |-
+  invalid value:
+  <root>: not
+value:
+  id: "0000"
+  pointer: /accepted_terms
+  type: boolean
+  pattern: "x"

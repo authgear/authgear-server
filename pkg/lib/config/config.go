@@ -143,6 +143,7 @@ func (c *AppConfig) Validate(ctx context.Context, validationCtx *validation.Cont
 
 	// Validation 8: validate custom attribute
 	c.validateCustomAttribute(validationCtx)
+	c.validateStandardAttributesValidation(validationCtx)
 
 	// Validation 9: validate lockout configs
 	c.validateLockout(validationCtx)
@@ -376,6 +377,50 @@ func (c *AppConfig) validateCustomAttribute(ctx *validation.Context) {
 					"actual":  *customAttributeConfig.Minimum,
 				})
 			}
+		}
+
+		if customAttributeConfig.MinLength != nil &&
+			customAttributeConfig.MaxLength != nil &&
+			*customAttributeConfig.MinLength > *customAttributeConfig.MaxLength {
+			ctx.Child(
+				"user_profile",
+				"custom_attributes",
+				"attributes",
+				strconv.Itoa(i),
+				"min_length",
+			).EmitError("maxLength", map[string]any{
+				"expected": *customAttributeConfig.MaxLength,
+				"actual":   *customAttributeConfig.MinLength,
+			})
+		}
+	}
+}
+
+func (c *AppConfig) validateStandardAttributesValidation(ctx *validation.Context) {
+	seen := map[string]struct{}{}
+	for i, v := range c.UserProfile.StandardAttributes.Validation {
+		if _, ok := seen[v.Pointer]; ok {
+			ctx.Child(
+				"user_profile",
+				"standard_attributes",
+				"validation",
+				strconv.Itoa(i),
+				"pointer",
+			).EmitError("duplicated", nil)
+		}
+		seen[v.Pointer] = struct{}{}
+
+		if v.MinLength != nil && v.MaxLength != nil && *v.MinLength > *v.MaxLength {
+			ctx.Child(
+				"user_profile",
+				"standard_attributes",
+				"validation",
+				strconv.Itoa(i),
+				"min_length",
+			).EmitError("maxLength", map[string]any{
+				"expected": *v.MaxLength,
+				"actual":   *v.MinLength,
+			})
 		}
 	}
 }

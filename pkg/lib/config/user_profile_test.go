@@ -191,4 +191,23 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		_, err := c.ParseString("yes")
 		So(err, ShouldNotBeNil)
 	})
+
+	Convey("StringConstraints", t, func() {
+		two := 2
+		Convey("custom attribute", func() {
+			So((&CustomAttributesAttributeConfig{Type: CustomAttributeTypeString}).StringConstraints(), ShouldBeNil)
+			So((&CustomAttributesAttributeConfig{Type: CustomAttributeTypeInteger, MinLength: &two}).StringConstraints(), ShouldBeNil)
+			c := (&CustomAttributesAttributeConfig{Type: CustomAttributeTypeString, MinLength: &two}).StringConstraints()
+			So(*c.MinLength, ShouldEqual, 2)
+		})
+		Convey("standard attribute", func() {
+			c := &StandardAttributesConfig{
+				Validation: []*StandardAttributesValidationConfig{
+					{Pointer: "/given_name", Pattern: "^a"},
+				},
+			}
+			So(c.GetStringConstraints("/given_name").Pattern, ShouldEqual, "^a")
+			So(c.GetStringConstraints("/name"), ShouldBeNil)
+		})
+	})
 }
