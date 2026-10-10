@@ -26,7 +26,6 @@ type CreateCodeGrantOptions struct {
 	SessionType          session.Type
 	SessionID            string
 	AuthenticationInfo   authenticationinfo.T
-	IDTokenHintSID       string
 	RedirectURI          string
 	AuthorizationRequest protocol.AuthorizationRequest
 	DPoPJKT              string
@@ -40,7 +39,10 @@ func (s *CodeGrantService) CreateCodeGrant(ctx context.Context, opts *CreateCode
 		AppID:              string(s.AppID),
 		AuthorizationID:    opts.Authorization.ID,
 		AuthenticationInfo: opts.AuthenticationInfo,
-		IDTokenHintSID:     opts.IDTokenHintSID,
+		// Populated from the trusted sid on the authentication info -- never from
+		// the OAuth session directly. Empty unless a verified id_token_hint named
+		// this user's session (set in the authorize/consent handlers).
+		IDTokenHintSID: opts.AuthenticationInfo.IDTokenHintSID,
 
 		CreatedAt: s.Clock.NowUTC(),
 		ExpireAt:  s.Clock.NowUTC().Add(CodeGrantValidDuration),

@@ -38,6 +38,15 @@ func NewNodeDidReauthenticate(ctx context.Context, deps *authflow.Dependencies, 
 		AMR:             amr,
 		IdentitySpecs:   identitySpecs,
 	}
+
+	// The user has now been reauthenticated. Only when the reauthenticated user
+	// is the one named by id_token_hint may the issued tokens continue the hinted
+	// session, so record that sid as trusted here -- and only here. Other flows
+	// (signup, promote, plain login) have no NodeDidReauthenticate, so they never
+	// set it. This explicit check is the validity gate immediately before the set.
+	if authflow.GetUserIDHint(ctx) == n.UserID {
+		authnInfo.IDTokenHintSID = authflow.GetIDTokenHintSID(ctx)
+	}
 	authnInfoEntry := authenticationinfo.NewEntry(authnInfo,
 		authflow.GetOAuthSessionID(ctx),
 		authflow.GetSAMLSessionID(ctx),
