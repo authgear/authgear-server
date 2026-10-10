@@ -111,7 +111,7 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 - A flow has one or more `steps`.
 - A step MAY optionally have an `id`.
 - A step must have a `type`.
-- A `type` step is specific to the kind of the flow. For example, only SignupFlow has the `type: user_profile` step.
+- A `type` step is specific to the kind of the flow. For example, only SignupFlow has the `type: verify` step.
 - Some steps allow branching. Those steps have `one_of`.
 - The branch of a step MAY optionally have zero or more `steps`.
 
@@ -153,17 +153,22 @@ signup_flows:
     target_step: setup_phone_2fa
   # Generate and show the recovery code.
   - type: recovery_code
-  - type: user_profile
-    user_profile:
-    - pointer: /given_name
-      required: true
-    - pointer: /family_name
-      required: true
-  # Collect custom attributes.
-  - type: user_profile
-    user_profile:
-    - pointer: /x_age
-      required: true
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+          required: true
+      - user_profile:
+          pointer: /family_name
+          required: true
+  # Collect custom attributes on a second page.
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /x_age
+          required: true
 ```
 
 ### type: login
@@ -635,7 +640,7 @@ Example of a successful response.
 - `result.state_token`: The token that refers to a particular state of an Authentication Flow. You must keep this for the next request. This token changes every time you give an input to the flow. As a result, you can back-track by associating the token with your application navigation backstack very easily.
 - `result.type`: The type of the flow. Valid values are `signup`, `login`, `signup_login`, `reauth`, and `account_recovery`.
 - `result.name`: The name of the flow. Use the special value `default` to refer to the Builtin flows.
-- `result.action.type`: The action to be taken. Valid values are `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`, and `finished`.
+- `result.action.type`: The action to be taken. Valid values are `identify`, `authenticate`, `verify`, `fill_form`, `recovery_code`, `change_password`, and `prompt_create_passkey`, and `finished`.
 - `result.action.identification`: The taken branch in this action. It is only present when `result.action.type=identify`. Valid values are `email`, `phone`, and `username`.
 - `result.action.authentication`: The taken branch in this action. It is only present when `result.action.type=authenticate`. Valid values are `primary_password`, `primary_oob_otp_email`, `primary_oob_otp_sms`, `secondary_password`, `secondary_totp`, `secondary_oob_otp_email`, `secondary_oob_otp_sms`, `recovery_code`.
 - `result.action.data`: The data associated with the current step of the Authentication Flow. For example, if the flow is currently waiting for the User to enter a OTP, then the data contains information like resend cooldown. For list of possible values in action data, please read [the action data section](#action-data).

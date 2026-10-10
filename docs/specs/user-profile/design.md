@@ -25,6 +25,8 @@
       * [Custom Attribute type email](#custom-attribute-type-email)
       * [Custom Attribute type url](#custom-attribute-type-url)
       * [Custom Attribute type alpha2](#custom-attribute-type-alpha2)
+      * [Custom Attribute type boolean](#custom-attribute-type-boolean)
+  * [String constraints](#string-constraints)
   * [Roles](#roles)
   * [Access control](#access-control)
     * [The end\-user](#the-end-user)
@@ -45,6 +47,8 @@
 # User profile
 
 User profile consists of standard attributes, custom attributes and roles.
+
+Forms in custom authentication flows collect attributes. See [Profile Filling](./profile-filling.md).
 
 ## Standard attributes
 
@@ -253,6 +257,8 @@ For example, the default label of `/job_title` is `Job Title`.
 The custom attribute is of type string.
 The UI control of it is a text field.
 
+Optionally, the developer can set [string constraints](#string-constraints).
+
 #### Custom Attribute type `integer`
 
 The custom attribute is of type integer.
@@ -338,6 +344,86 @@ The UI control of it is a text field with validation.
 `alpha2` is a string, and the value must be one of the ISO 3166-1 alpha-2 codes.
 
 The UI control of it is a dropdown.
+
+#### Custom Attribute type `boolean`
+
+`boolean` is `true` or `false`.
+
+The UI control of it is a checkbox. An unchecked checkbox writes `false`.
+
+The label of a `boolean` custom attribute may contain `<a href="...">` links, for example to link to a terms of service. Only `https:` and `http:` links are kept; any other markup is escaped. Links in the label open in a new tab.
+
+## String constraints
+
+String constraints restrict the values of these attributes:
+
+- custom attributes of [type `string`](#custom-attribute-type-string);
+- [single-line](#single-line-string-standard-attributes) and [multi-line](#multi-line-string-standard-attributes) string standard attributes.
+
+| Key | Meaning |
+|---|---|
+| `min_length` | The minimum number of characters. |
+| `max_length` | The maximum number of characters. |
+| `allowed_characters` | The kinds of characters allowed. See below. Without it, every kind is allowed. |
+| `pattern` | An RE2 regular expression the value must match. It is not anchored implicitly. |
+
+Characters are counted as Unicode code points, so some emoji count as more than one character.
+
+`allowed_characters` lists one or more of:
+
+| Value | Characters |
+|---|---|
+| `letters` | Letters of any language, including accented letters and Chinese, Japanese, and Korean characters. |
+| `digits` | `0` to `9`. |
+| `spaces` | The space character. |
+| `symbols` | Every other printable character, such as `-`, `_`, `.`, `@`, `'`, and emoji. |
+
+Characters outside these kinds, such as tabs and control characters, are always rejected when `allowed_characters` is set. Line breaks are allowed in multi-line string standard attributes.
+
+To allow only the English alphabet, use `pattern: "^[A-Za-z]*$"`.
+
+Custom attributes set the constraints on the attribute:
+
+```yaml
+user_profile:
+  custom_attributes:
+    attributes:
+    - id: "0005"
+      pointer: /x_display_id
+      type: string
+      min_length: 3
+      max_length: 20
+      allowed_characters: [letters, digits]
+```
+
+Standard attributes set them in `standard_attributes.validation`:
+
+```yaml
+user_profile:
+  standard_attributes:
+    validation:
+    - pointer: /given_name
+      max_length: 50
+      allowed_characters: [letters, spaces, symbols]
+```
+
+Rules:
+
+- A value must satisfy every constraint.
+- Empty values are not checked. Whether empty is accepted is up to the writer; for example, see [required](./profile-filling.md#meaning-of-required).
+- Constraints are checked on every write: authentication flows, the settings page, the portal, and the Admin API.
+- As with `minimum` and `maximum`, narrowing a constraint affects future writes only.
+
+Authgear provides a localized message for each failed constraint, such as "Enter at least 3 characters." or "Use only letters and digits." The settings page and Auth UI also show the constraints as a hint under the field before the end-user types.
+
+A `pattern` has no meaningful built-in message, so the developer provides one with a translation key named like `custom-attribute-label-{pointer}`:
+
+| Attribute | Key | Example |
+|---|---|---|
+| Custom attribute | `custom-attribute-pattern-error-{pointer}` | `custom-attribute-pattern-error-/x_employee_id` |
+| Standard attribute | `standard-attribute-pattern-error-{pointer}` | `standard-attribute-pattern-error-/given_name` |
+
+Without the translation, a generic message is shown.
 
 ## Roles
 
