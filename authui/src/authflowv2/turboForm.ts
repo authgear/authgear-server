@@ -43,7 +43,8 @@ export class TurboFormController extends Controller {
     const params = new URLSearchParams();
     formData.forEach((value, name) => {
       if (typeof value === "string") {
-        params.set(name, value);
+        // append keeps both values of a checkbox and its hidden false; the server reads the first.
+        params.append(name, value);
       } else {
         console.error("ignoring non-string value: ", name);
       }
