@@ -43,9 +43,7 @@
       data-controller="turbo-form"
       data-action="submit->turbo-form#submitForm"
     >
-      <div class="flex flex-col gap-y-5">
-        {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $form) $) }}
-      </div>
+      {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $form) $) }}
 
       <button
         class="primary-btn w-full"

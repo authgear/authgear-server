@@ -195,7 +195,7 @@ func TestFormFieldsTemplate(t *testing.T) {
 			// Every input has an accessible name.
 			So(out, ShouldContainSubstring, `id="form-field-label-/given_name"`)
 			So(out, ShouldContainSubstring, `name="/given_name"
-            aria-labelledby="form-field-label-/given_name"`)
+              aria-labelledby="form-field-label-/given_name"`)
 			So(out, ShouldContainSubstring, `aria-labelledby="form-field-label-/x_phone"`)
 			So(out, ShouldContainSubstring, `aria-labelledby="form-field-label-/birthdate"`)
 			So(out, ShouldContainSubstring, `role="group" aria-labelledby="form-field-label-/x_plan"`)
@@ -205,6 +205,18 @@ func TestFormFieldsTemplate(t *testing.T) {
 			So(out, ShouldContainSubstring, `data-controller="select-input"`)
 			So(out, ShouldNotContainSubstring, "<datalist")
 			So(out, ShouldContainSubstring, `value="other"`)
+		})
+
+		Convey("the fields are in a container, with a class for the form name", func() {
+			So(render(field("/a", "string", nil)), ShouldContainSubstring, `<div class="form__container">`)
+
+			out := renderForm(map[string]any{
+				"Name":      "employee",
+				"Fields":    []map[string]any{field("/a", "string", nil)},
+				"Timezones": nil,
+				"Alpha2":    []string{"HK"},
+			})
+			So(out, ShouldContainSubstring, `<div class="form__container form__container--employee">`)
 		})
 
 		Convey("InlineLabels shows text-like labels as placeholders", func() {
