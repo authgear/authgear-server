@@ -975,6 +975,8 @@ A form is shown every time the flow reaches it, in every flow type. A form in a 
 
 The form includes every field, optional and already-filled ones included. Filled fields show their current value, including values [populated](./design.md#standard-attributes-population) by an earlier `identify` step; see [UC6](#uc6-confirm-attributes-populated-from-an-oauth-provider). A current value is checked against the current constraints on submission like any other, so a value that no longer meets them must be corrected, or cleared if the field is optional, before the form can be submitted.
 
+A `fill_form` step in a login flow that comes after `identify` but before `authenticate` is allowed. The risk is the flow writer's to weigh: anyone who enters a user's login ID sees that user's current values of the form's attributes without authenticating, and can trigger [authentication.form.post_submitted](../event.md#authenticationformpost_submitted) for that user. The values are stored only if the flow finishes, which still requires authentication. To show a form only to an authenticated user, put it after the `authenticate` step.
+
 When a signup flow continues as an existing user through [account linking](../account-linking.md), its forms are skipped, because the flow no longer sets up a new user.
 
 ### Pagination
