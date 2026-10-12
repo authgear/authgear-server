@@ -37,13 +37,15 @@
     </div>
 
     <form
-      class="flex flex-col gap-4"
+      class="flex flex-col gap-y-8"
       method="post"
       novalidate
       data-controller="turbo-form"
       data-action="submit->turbo-form#submitForm"
     >
-      {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $form) $) }}
+      <div class="flex flex-col gap-y-5">
+        {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $form) $) }}
+      </div>
 
       <button
         class="primary-btn w-full"

@@ -168,8 +168,9 @@ func TestFormFieldsTemplate(t *testing.T) {
 		Convey("every type renders", func() {
 			two := 2
 			out := render(
-				field("/given_name", "string", map[string]any{"Required": true, "Value": "John", "Suggestions": []string{"a"},
+				field("/given_name", "string", map[string]any{"Required": true, "Value": "John",
 					"Constraints": &config.StringConstraints{MinLength: &two}}),
+				field("/gender", "string", map[string]any{"Value": "other", "Suggestions": []string{"male", "female"}}),
 				field("/x_email", "email", nil),
 				field("/website", "url", nil),
 				field("/x_age", "integer", nil),
@@ -199,6 +200,27 @@ func TestFormFieldsTemplate(t *testing.T) {
 			So(out, ShouldContainSubstring, `aria-labelledby="form-field-label-/birthdate"`)
 			So(out, ShouldContainSubstring, `role="group" aria-labelledby="form-field-label-/x_plan"`)
 			So(out, ShouldContainSubstring, `aria-label="Postal code"`)
+
+			// Suggestions use the select input and keep a value outside them.
+			So(out, ShouldContainSubstring, `data-controller="select-input"`)
+			So(out, ShouldNotContainSubstring, "<datalist")
+			So(out, ShouldContainSubstring, `value="other"`)
+		})
+
+		Convey("InlineLabels shows text-like labels as placeholders", func() {
+			out, err := engine.Render(ctx, formFieldsTestPage, []string{"en"}, map[string]any{
+				"Translations": tr,
+				"InlineLabels": true,
+				"Form": map[string]any{"Fields": []map[string]any{
+					field("/given_name", "string", map[string]any{"Required": true}),
+					field("/birthdate", "date", nil),
+				}, "Timezones": nil, "Alpha2": []string{"HK"}},
+			})
+			So(err, ShouldBeNil)
+			So(out.String, ShouldContainSubstring, `placeholder="L /given_name *"`)
+			So(out.String, ShouldContainSubstring, `aria-label="L /given_name"`)
+			So(out.String, ShouldNotContainSubstring, `id="form-field-label-/given_name"`)
+			So(out.String, ShouldContainSubstring, `id="form-field-label-/birthdate"`)
 		})
 
 		Convey("errors", func() {

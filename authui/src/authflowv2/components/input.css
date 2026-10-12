@@ -91,6 +91,16 @@
   font-weight: var(--input__error-message-font-weight);
 }
 
+/* A label sits right above its input, so it is always start-aligned, unlike
+   .body-text--md, which follows the project's alignment-content setting. */
+.input__label {
+  @apply body-text--md text-start;
+}
+
+:root[alignment-content] .input__label {
+  @apply text-start;
+}
+
 .input.input__password {
   @apply ltr:pr-[var(--input\_\_password-padding-end)] rtl:pl-[var(--input\_\_password-padding-end)];
 }

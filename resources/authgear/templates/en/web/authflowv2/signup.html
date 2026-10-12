@@ -221,7 +221,9 @@
       {{ end }}
 
       {{ if $login_form.Fields }}
-        {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $login_form) $) }}
+        <div class="flex flex-col gap-y-5 py-2">
+          {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $login_form "InlineLabels" true) $) }}
+        </div>
       {{ end }}
 
       <button

@@ -4,6 +4,8 @@
 
 {{ define "authflowv2/__string_constraints_hint.html" }}
   {{ $c := $.Constraints }}
+  {{ $class := "body-text--md" }}
+  {{ if $.Class }}{{ $class = $.Class }}{{ end }}
   {{ if $c }}
     {{ $hasMin := false }}
     {{ if $c.MinLength }}{{ if gt (int $c.MinLength) 0 }}{{ $hasMin = true }}{{ end }}{{ end }}
@@ -13,7 +15,7 @@
       {{ if $hasMin }}{{ $min = (int $c.MinLength) }}{{ end }}
       {{ $max := 0 }}
       {{ if $hasMax }}{{ $max = (int $c.MaxLength) }}{{ end }}
-      <span class="body-text--md">
+      <span class="{{ $class }}">
         {{ translate "v2.component.string-constraints-hint.default.length"
           (dict
             "hasMin" (ternary "true" "false" $hasMin)
@@ -25,7 +27,7 @@
       </span>
     {{ end }}
     {{ if $c.AllowedCharacters }}
-      <span class="body-text--md">
+      <span class="{{ $class }}">
         {{ translate "v2.component.string-constraints-hint.default.allowed-characters"
           (dict "kinds" (include "authflowv2/__allowed_characters_kinds.html" $c.AllowedCharacters))
         }}
