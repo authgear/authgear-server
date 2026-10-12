@@ -628,6 +628,16 @@ function OAuthClientSettingsForm({
   onClientConfigChange,
   clientSecretHook,
 }: OAuthClientSettingsFormProps): React.ReactElement {
+  const clientIndex = state.clients.findIndex(
+    (c) => c.client_id === client.client_id
+  );
+  const otherClientsNativeApps = useMemo(
+    () =>
+      state.clients
+        .filter((c) => c.client_id !== client.client_id)
+        .flatMap((c) => c.x_native_apps ?? []),
+    [state.clients, client.client_id]
+  );
   return (
     <div
       className={cn(styles.widget, styles.widgetColumn, styles["widget--wide"])}
@@ -637,6 +647,8 @@ function OAuthClientSettingsForm({
         clientConfig={client}
         customUIEnabled={customUIEnabled}
         app2appEnabled={app2appEnabled}
+        clientIndex={clientIndex}
+        otherClientsNativeApps={otherClientsNativeApps}
         onClientConfigChange={onClientConfigChange}
         clientSecretHook={clientSecretHook}
       />

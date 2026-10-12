@@ -21,6 +21,7 @@ import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/Seco
 import {
   ApplicationType,
   OAuthClientConfig,
+  OAuthClientNativeAppConfig,
   OAuthClientSecretKey,
 } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
@@ -32,6 +33,8 @@ import {
   DeleteClientSecretConfirmationDialog,
   DeleteClientSecretConfirmationDialogData,
 } from "../../components/applications/DeleteClientSecretConfirmationDialog";
+import { NativeAppsSettingsCard } from "../../components/applications/NativeAppsSettingsCard";
+import { nativeAppPlatformsForFramework } from "../../util/nativeApps";
 import { LocationState } from "./EditOAuthClientScreen";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
 import { formatSeconds } from "../../util/formatDuration";
@@ -47,6 +50,9 @@ interface EditOAuthClientFormProps {
   clientConfig: OAuthClientConfig;
   customUIEnabled: boolean;
   app2appEnabled: boolean;
+  // The index of this client in oauth.clients, for binding server errors.
+  clientIndex: number;
+  otherClientsNativeApps: OAuthClientNativeAppConfig[];
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   clientSecretHook: ClientSecretsHook;
 }
@@ -163,6 +169,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       publicOrigin,
       customUIEnabled,
       app2appEnabled,
+      clientIndex,
+      otherClientsNativeApps,
       onClientConfigChange,
       clientSecretHook,
     } = props;
@@ -550,6 +558,17 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
 
     const showApp2AppSettings =
       clientConfig.x_application_type === "native" && app2appEnabled;
+
+    const showNativeAppsSettings = clientConfig.x_application_type === "native";
+
+    const onNativeAppsChange = useCallback(
+      (apps: OAuthClientNativeAppConfig[] | undefined) => {
+        onClientConfigChange(
+          updateClientConfig(clientConfig, "x_native_apps", apps)
+        );
+      },
+      [clientConfig, onClientConfigChange]
+    );
 
     const showConsentScreenSettings = useMemo(
       () => clientConfig.x_application_type === "third_party_app",
@@ -1177,6 +1196,18 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               />
             </HelpText>
           </SettingsSectionCard>
+        ) : null}
+        {showNativeAppsSettings ? (
+          <NativeAppsSettingsCard
+            className={className}
+            contentClassName={CONTENT_CLASSNAME}
+            publicOrigin={publicOrigin}
+            clientIndex={clientIndex}
+            platforms={nativeAppPlatformsForFramework(clientConfig.x_framework)}
+            apps={clientConfig.x_native_apps ?? []}
+            otherClientsApps={otherClientsNativeApps}
+            onAppsChange={onNativeAppsChange}
+          />
         ) : null}
         <DeleteClientSecretConfirmationDialog
           data={deleteClientSecretDialogData}
