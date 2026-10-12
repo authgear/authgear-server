@@ -383,7 +383,7 @@ Characters are counted as Unicode code points, so some emoji count as more than 
 | `spaces` | The space character. |
 | `symbols` | Every other printable character, such as `-`, `_`, `.`, `@`, `'`, and emoji. |
 
-Characters outside these kinds, such as tabs and control characters, are always rejected when `allowed_characters` is set. Line breaks are allowed in multi-line string standard attributes.
+A combining mark, such as an accent or an emoji variation selector, and a zero width joiner (U+200D) or zero width non-joiner (U+200C) are of the kind of the character before it, so decomposed accented letters, words such as Persian ones, and emoji such as ❤️ and 👨‍👩‍👧 are accepted. A keycap emoji such as 1️⃣ is therefore a digit. Characters outside these kinds, such as tabs and control characters, are always rejected when `allowed_characters` is set. Line breaks are allowed in multi-line string standard attributes.
 
 To allow only the English alphabet, use `pattern: "^[A-Za-z]*$"`.
 
