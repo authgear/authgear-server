@@ -227,6 +227,39 @@ func TestNewFormViewModel(t *testing.T) {
 			So(vm.UnknownError, ShouldBeNil)
 		})
 
+		Convey("causes at /fields/<i>/key mark the missing required fields and no submitted field", func() {
+			// With /given_name submitted and /family_name missing, the validator reports a cause per submitted field.
+			base := &viewmodels.BaseViewModel{
+				RawError: validationError(map[string]any{"location": "/fields/0/key", "kind": "const", "details": map[string]any{"expected": "/family_name", "actual": "/given_name"}},
+					map[string]any{"location": "/fields/0/value", "kind": "minLength", "details": map[string]any{"expected": 1, "actual": 0}}),
+			}
+			base.RestoredForm = url.Values{"/given_name": {"John"}}
+			vm, err := NewFormViewModel(form, base)
+			So(err, ShouldBeNil)
+			So(vm.Fields[0].Error, ShouldBeNil)
+			So(vm.Fields[0].MissingRequired, ShouldBeFalse)
+			So(vm.Fields[1].MissingRequired, ShouldBeTrue)
+			So(vm.UnknownError, ShouldBeNil)
+		})
+
+		Convey("an unchecked required checkbox is flagged by the /fields/<i>/key causes, with no error on the filled field", func() {
+			form := formData(
+				f("/given_name", declarative.FillFormFieldTypeString, true),
+				f("/x_terms", declarative.FillFormFieldTypeBoolean, true),
+			)
+			base := &viewmodels.BaseViewModel{
+				RawError: validationError(map[string]any{"location": "/fields/0/key", "kind": "const", "details": map[string]any{"expected": "/x_terms", "actual": "/given_name"}},
+					map[string]any{"location": "/fields/0/value", "kind": "const", "details": map[string]any{"expected": true, "actual": "John"}},
+					map[string]any{"location": "/fields/1/value", "kind": "const", "details": map[string]any{"expected": true, "actual": false}}),
+			}
+			base.RestoredForm = url.Values{"/given_name": {"John"}, "/x_terms": {"false"}}
+			vm, err := NewFormViewModel(form, base)
+			So(err, ShouldBeNil)
+			So(vm.Fields[0].Error, ShouldBeNil)
+			So(vm.Fields[0].MissingRequired, ShouldBeFalse)
+			So(vm.Fields[1].MissingRequired, ShouldBeTrue)
+		})
+
 		Convey("an unchecked required checkbox is a missing required field", func() {
 			form := formData(
 				f("/x_terms", declarative.FillFormFieldTypeBoolean, true),

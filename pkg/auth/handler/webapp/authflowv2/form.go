@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	htmltemplate "html/template"
+	"maps"
 	"math"
 	"net/url"
 	"slices"
@@ -185,14 +186,16 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 	}
 	vm.Timezones = timezones
 
+	rawErr := normalizeMissingRequiredCauses(base.RawError)
+
 	var fieldErrors map[string]any
-	if base.RawError != nil {
+	if rawErr != nil {
 		locations := FormErrorLocations(form, input.Keys)
 		resolveInput := template.ResolveErrorRawInput{}
 		for key, locs := range locations {
 			resolveInput[key] = map[string]any{"by_location": locs}
 		}
-		fieldErrors = template.ResolveError(base.RawError, resolveInput)
+		fieldErrors = template.ResolveError(rawErr, resolveInput)
 		vm.UnknownError = withoutFieldsCause(fieldErrors["unknown"])
 	}
 
@@ -200,9 +203,9 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 	for _, f := range form.Fields {
 		allKeys = append(allKeys, f.Key)
 	}
-	hookByKey, hookUnmatched := HookFieldMessages(base.RawError, allKeys)
+	hookByKey, hookUnmatched := HookFieldMessages(rawErr, allKeys)
 	vm.HookUnmatchedMessages = hookUnmatched
-	hasMissingRequiredCause := hasFieldsCause(fieldErrors["unknown"], base)
+	hasMissingRequiredCause := hasFieldsCause(rawErr)
 
 	for _, f := range form.Fields {
 		fvm := FormFieldViewModel{
@@ -218,11 +221,6 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 			HookMessage: hookByKey[f.Key],
 		}
 		fvm.MissingRequired = hasMissingRequiredCause && f.Required && !contains(input.Keys, f.Key)
-		// An unchecked checkbox submits false, which fails as a value rather than as a missing field.
-		if f.Type == declarative.FillFormFieldTypeBoolean && f.Required && fvm.Error != nil {
-			fvm.MissingRequired = true
-		}
-
 		if restored != nil {
 			switch f.Type {
 			case declarative.FillFormFieldTypeBoolean:
@@ -239,6 +237,10 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 		switch f.Type {
 		case declarative.FillFormFieldTypeBoolean:
 			fvm.Checked, _ = fvm.Value.(bool)
+			// An unchecked checkbox submits false, which is missing as a value, or as a required field.
+			if f.Required && !fvm.Checked && (hasMissingRequiredCause || fvm.Error != nil) {
+				fvm.MissingRequired = true
+			}
 			fvm.LabelHTML = htmltemplate.HTML(f.Label) // nolint:gosec
 		case declarative.FillFormFieldTypeAddress:
 			fvm.Address = map[string]string{}
@@ -259,13 +261,66 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 	return vm, nil
 }
 
+// normalizeMissingRequiredCauses folds the causes of a missing required field into one cause at /fields.
+// The validator reports it at /fields when no field is submitted. When other fields are submitted,
+// it reports the key and the value of each of them, as it checks each against the required field.
+// A submitted field with a key cause has none of its own value errors reported, because of that.
+func normalizeMissingRequiredCauses(apiErr *apierrors.APIError) *apierrors.APIError {
+	if apiErr == nil || apiErr.Reason != "ValidationFailed" {
+		return apiErr
+	}
+	causes, _ := apiErr.Info_ReadOnly["causes"].([]any)
+
+	checkedAgainstRequired := map[string]struct{}{}
+	for _, c := range causes {
+		cause, _ := c.(map[string]any)
+		location, _ := cause["location"].(string)
+		if index, rest, ok := splitFieldLocation(location); ok && rest == "key" {
+			checkedAgainstRequired[index] = struct{}{}
+		}
+	}
+	if len(checkedAgainstRequired) == 0 {
+		return apiErr
+	}
+
+	var kept []any
+	for _, c := range causes {
+		cause, _ := c.(map[string]any)
+		location, _ := cause["location"].(string)
+		if index, _, ok := splitFieldLocation(location); ok {
+			if _, noise := checkedAgainstRequired[index]; noise {
+				continue
+			}
+		}
+		kept = append(kept, c)
+	}
+	kept = append(kept, map[string]any{"location": "/fields", "kind": "contains"})
+	info := apierrors.Details{}
+	maps.Copy(info, apiErr.Info_ReadOnly)
+	info["causes"] = kept
+	return apiErr.CloneWithInfo(info)
+}
+
+// splitFieldLocation splits /fields/<index>/<rest> into the index and rest.
+func splitFieldLocation(location string) (index string, rest string, ok bool) {
+	after, found := strings.CutPrefix(location, "/fields/")
+	if !found {
+		return "", "", false
+	}
+	index, rest, _ = strings.Cut(after, "/")
+	if _, err := strconv.Atoi(index); err != nil {
+		return "", "", false
+	}
+	return index, rest, true
+}
+
 // hasFieldsCause reports whether the error has a ValidationFailed cause at /fields,
 // which is where a missing required field is reported.
-func hasFieldsCause(unknown any, base *viewmodels.BaseViewModel) bool {
-	if base.RawError == nil || base.RawError.Reason != "ValidationFailed" {
+func hasFieldsCause(apiErr *apierrors.APIError) bool {
+	if apiErr == nil || apiErr.Reason != "ValidationFailed" {
 		return false
 	}
-	causes, _ := base.RawError.Info_ReadOnly["causes"].([]any)
+	causes, _ := apiErr.Info_ReadOnly["causes"].([]any)
 	for _, c := range causes {
 		cause, _ := c.(map[string]any)
 		if cause["location"] == "/fields" {
