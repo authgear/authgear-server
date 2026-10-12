@@ -220,7 +220,6 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 			Error:       fieldErrors[f.Key],
 			HookMessage: hookByKey[f.Key],
 		}
-		fvm.MissingRequired = hasMissingRequiredCause && f.Required && !contains(input.Keys, f.Key)
 		if restored != nil {
 			switch f.Type {
 			case declarative.FillFormFieldTypeBoolean:
@@ -237,10 +236,6 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 		switch f.Type {
 		case declarative.FillFormFieldTypeBoolean:
 			fvm.Checked, _ = fvm.Value.(bool)
-			// An unchecked checkbox submits false, which is missing as a value, or as a required field.
-			if f.Required && !fvm.Checked && (hasMissingRequiredCause || fvm.Error != nil) {
-				fvm.MissingRequired = true
-			}
 			fvm.LabelHTML = htmltemplate.HTML(f.Label) // nolint:gosec
 		case declarative.FillFormFieldTypeAddress:
 			fvm.Address = map[string]string{}
@@ -255,10 +250,23 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 			}
 		}
 
+		fvm.MissingRequired = isMissingRequired(f.Type, fvm, hasMissingRequiredCause, contains(input.Keys, f.Key))
 		vm.Fields = append(vm.Fields, fvm)
 	}
 
 	return vm, nil
+}
+
+// isMissingRequired reports whether a required field is missing.
+// An unchecked checkbox is always submitted as false, so it is reported as a missing field or as an invalid value.
+func isMissingRequired(fieldType declarative.FillFormFieldType, fvm FormFieldViewModel, hasMissingRequiredCause bool, submitted bool) bool {
+	if !fvm.Required {
+		return false
+	}
+	if fieldType == declarative.FillFormFieldTypeBoolean {
+		return !fvm.Checked && (hasMissingRequiredCause || fvm.Error != nil)
+	}
+	return hasMissingRequiredCause && !submitted
 }
 
 // normalizeMissingRequiredCauses folds the causes of a missing required field into one cause at /fields.
