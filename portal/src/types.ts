@@ -584,6 +584,24 @@ export const applicationFrameworks = [
 ] as const;
 export type Framework = (typeof applicationFrameworks)[number];
 
+export type OAuthClientNativeAppPlatform = "ios" | "android";
+
+export interface OAuthClientNativeAppConfigIOS {
+  platform: "ios";
+  team_id: string;
+  bundle_id: string;
+}
+
+export interface OAuthClientNativeAppConfigAndroid {
+  platform: "android";
+  package_name: string;
+  sha256_cert_fingerprints: string[];
+}
+
+export type OAuthClientNativeAppConfig =
+  | OAuthClientNativeAppConfigIOS
+  | OAuthClientNativeAppConfigAndroid;
+
 // OAuthConfig
 export interface OAuthClientConfig {
   name?: string;
@@ -607,6 +625,7 @@ export interface OAuthClientConfig {
   policy_uri?: string;
   tos_uri?: string;
   x_custom_ui_uri?: string;
+  x_native_apps?: OAuthClientNativeAppConfig[];
   x_app2app_enabled?: boolean;
   x_app2app_insecure_device_key_binding_enabled?: boolean;
 }
