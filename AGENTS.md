@@ -145,6 +145,11 @@ For more targets, browse the root `Makefile` and `portal/package.json` / `authui
 - stricter validation of existing config or requests
 - a behaviour change a deployment could be relying on
 
+"Works today" means it uses only what Authgear officially supports. These do **not** belong there:
+
+- A config key, value, or request input that was never supported, even when a permissive schema accepted and ignored it. It is not expected to exist, so rejecting it or giving it a meaning breaks nothing.
+- A risk only during a mixed-version rollout or a rollback, when the upgrade needs no manual step. Mention it in the commit message or PR description instead.
+
 Rules:
 
 - Add the entry under `## [Unreleased]`, **in the same commit as the change itself** — not as a follow-up.
