@@ -16,6 +16,7 @@ import { useAppListQuery } from "./query/appListQuery";
 import { useViewerQuery } from "./query/viewerQuery";
 import { AppListItem, Viewer } from "./globalTypes.generated";
 import { isProjectQuotaReached } from "../../util/projectQuota";
+import { makeHelpDeskURL } from "../../util/helpDesk";
 import styles from "./AppsScreen.module.css";
 import { useCapture } from "../../gtm_v2";
 import { toTypedID } from "../../util/graphql";
@@ -67,6 +68,11 @@ function ProjectQuotaMessageBar(
   if (!reached) {
     return null;
   }
+  const helpDeskURL = makeHelpDeskURL({
+    purpose: "project-limit",
+    email: viewer?.email,
+    fullName: viewer?.formattedName,
+  });
   return (
     <div className={styles.quota}>
       <Callout
@@ -78,9 +84,7 @@ function ProjectQuotaMessageBar(
             values={{
               // eslint-disable-next-line react/no-unstable-nested-components
               externalLink: (chunks: React.ReactNode) => (
-                <ExternalLink href="https://go.authgear.com/portal-support">
-                  {chunks}
-                </ExternalLink>
+                <ExternalLink href={helpDeskURL}>{chunks}</ExternalLink>
               ),
             }}
           />
