@@ -11,7 +11,7 @@ describe("makeHelpDeskURL", () => {
         fullName: "Chan Tai Man",
       })
     ).toEqual(
-      "https://www.authgear.com/help-desk/?project=myapp&email=user%2B1%40example.com&name=Chan+Tai+Man&purpose=sms-otp"
+      "https://go.authgear.com/portal-support?project=myapp&email=user%2B1%40example.com&name=Chan+Tai+Man&purpose=sms-otp"
     );
   });
 
@@ -24,7 +24,7 @@ describe("makeHelpDeskURL", () => {
         fullName: "",
       })
     ).toEqual(
-      "https://www.authgear.com/help-desk/?email=user%40example.com&purpose=project-limit"
+      "https://go.authgear.com/portal-support?email=user%40example.com&purpose=project-limit"
     );
   });
 });

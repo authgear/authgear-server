@@ -1,4 +1,5 @@
-const HELP_DESK_URL = "https://www.authgear.com/help-desk/";
+// Short.io redirect to the help desk; it forwards the query string.
+const HELP_DESK_URL = "https://go.authgear.com/portal-support";
 
 export type HelpDeskPurpose =
   | "project-limit"
