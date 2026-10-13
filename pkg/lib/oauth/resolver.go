@@ -15,6 +15,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+//go:generate go tool mockgen -source=resolver.go -destination=resolver_mock_test.go -package oauth
+
 type ResolverSessionProvider interface {
 	AccessWithID(ctx context.Context, id string, accessEvent access.Event) (*idpsession.IDPSession, error)
 }

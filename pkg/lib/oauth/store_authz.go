@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+//go:generate go tool mockgen -source=store_authz.go -destination=store_authz_mock_test.go -package oauth
+
 type AuthorizationStore interface {
 	Get(ctx context.Context, userID, clientID string) (*Authorization, error)
 	GetByID(ctx context.Context, id string) (*Authorization, error)

@@ -40,6 +40,10 @@ type UIInfo struct {
 	UILocales string
 	// UserIDHint is for reauthentication.
 	UserIDHint string
+	// IDTokenHintSID is the sid of the session named by id_token_hint. It is
+	// threaded into the authentication flow so that the reauth flow can record
+	// it as the trusted sid once it has reauthenticated UserIDHint.
+	IDTokenHintSID string
 	// CanUseIntentReauthenticate is for reauthentication.
 	CanUseIntentReauthenticate bool
 	// State is the state parameter
@@ -218,6 +222,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 		RedirectURI:                redirectURI.String(),
 		Prompt:                     prompt,
 		UserIDHint:                 userIDHint,
+		IDTokenHintSID:             idTokenHintSID,
 		CanUseIntentReauthenticate: canUseIntentReauthenticate,
 		State:                      req.State(),
 		XState:                     req.XState(),

@@ -34,6 +34,14 @@ type T struct {
 	AuthenticatedBySessionType string
 	AuthenticatedBySessionID   string
 
+	// IDTokenHintSID is the sid of the session named by a verified id_token_hint
+	// -- the session that tokens issued from this authentication may bind to.
+	// It is the TRUSTED sid: it is only ever set after confirming the hinted
+	// session belongs to UserID, so downstream token issuance can consume it
+	// without re-deriving it from the (untrusted) OAuth session. Empty when no
+	// hint was given or the hint did not identify the authenticated user.
+	IDTokenHintSID string `json:"id_token_hint_sid,omitempty"`
+
 	IdentitySpecs []*identity.Spec `json:"identity_specs,omitzero"`
 }
 
