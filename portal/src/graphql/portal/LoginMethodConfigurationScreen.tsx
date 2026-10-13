@@ -1444,6 +1444,18 @@ const AUTHENTICATION_BUTTON_ICON: Record<LoginMethodSecondLevelOption, string> =
     password: "forms",
   };
 
+const PHONE_OTP_MODE_TITLE_IDS: Record<AuthenticatorPhoneOTPMode, string> = {
+  sms: "AuthenticatorPhoneOTPMode.sms",
+  whatsapp_sms: "AuthenticatorPhoneOTPMode.whatsapp_sms",
+  whatsapp: "AuthenticatorPhoneOTPMode.whatsapp",
+};
+
+const PHONE_OTP_MODE_ICONS: Record<AuthenticatorPhoneOTPMode, string> = {
+  sms: "message",
+  whatsapp_sms: "messages",
+  whatsapp: "brand-whatsapp",
+};
+
 function buildLoginMethodFirstLevelButtons(opts: {
   phoneLoginIDDisabled: boolean;
   firstLevelOption: LoginMethodFirstLevelOption | null;
@@ -2960,14 +2972,33 @@ function VerificationSettings(props: VerificationSettingsProps) {
     [setState]
   );
 
-  const phoneOTPModes = useMemo(
+  const phoneOTPModes = useMemo<
+    IconRadioCardOption<AuthenticatorPhoneOTPMode>[]
+  >(
     () =>
-      AuthenticatorPhoneOTPMode_list.map((mode) => ({
-        key: mode,
-        text: renderToString("AuthenticatorPhoneOTPMode." + mode),
-        disabled:
-          isAuthgearOnce && AuthenticatorPhoneOTPMode_includesWhatsapp(mode),
-      })),
+      AuthenticatorPhoneOTPMode_list.map((mode) => {
+        const unavailable =
+          isAuthgearOnce && AuthenticatorPhoneOTPMode_includesWhatsapp(mode);
+        return {
+          value: mode,
+          icon: (
+            <i
+              className={cn(
+                styles.authenticationButtonIcon,
+                "ti",
+                `ti-${PHONE_OTP_MODE_ICONS[mode]}`
+              )}
+            ></i>
+          ),
+          title: renderToString(PHONE_OTP_MODE_TITLE_IDS[mode]),
+          disabled: unavailable,
+          tooltip: unavailable
+            ? renderToString(
+                "AuthenticatorPhoneOTPMode.whatsapp.unavailable--authgearonce"
+              )
+            : undefined,
+        };
+      }),
     [isAuthgearOnce, renderToString]
   );
   const onChangePhoneOTPMode = useCallback(
@@ -3183,6 +3214,23 @@ function VerificationSettings(props: VerificationSettingsProps) {
             <FormattedMessage id="LoginMethodConfigurationScreen.verification.phone.cardDescription" />
           }
         >
+          <FormField
+            size="2"
+            labelSize="2"
+            labelSpace="1"
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
+            )}
+          >
+            <IconRadioCards
+              size="2"
+              value={authenticatorOOBSMSConfig.phone_otp_mode ?? null}
+              onValueChange={onChangePhoneOTPMode}
+              options={phoneOTPModes}
+              itemMinWidth={160}
+              itemFillSpaces={true}
+            />
+          </FormField>
           <Toggle
             textWeight="medium"
             checked={verificationClaims?.phone_number?.required ?? true}
@@ -3210,36 +3258,6 @@ function VerificationSettings(props: VerificationSettingsProps) {
             value={smsOTPCooldownPeriodSeconds?.toFixed(0) ?? ""}
             onChange={onChangePhoneSMSResendCooldown}
           />
-          <FormField
-            size="2"
-            labelSize="2"
-            labelSpace="1"
-            label={renderToString(
-              "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
-            )}
-          >
-            <Select.Root
-              value={authenticatorOOBSMSConfig.phone_otp_mode}
-              onValueChange={onChangePhoneOTPMode}
-              size="2"
-            >
-              <Select.Trigger
-                variant="surface"
-                className={styles.selectTrigger}
-              />
-              <Select.Content>
-                {phoneOTPModes.map((opt) => (
-                  <Select.Item
-                    key={opt.key}
-                    value={opt.key}
-                    disabled={opt.disabled}
-                  >
-                    {opt.text}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
-          </FormField>
           {showSMSLimitSetting ? (
             <TextField
               size="2"
