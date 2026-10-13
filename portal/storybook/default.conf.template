@@ -1,0 +1,13 @@
+server {
+  listen 80;
+
+  # envsubst blanks $host and $uri, so this file does not use them.
+  location /api/ {
+    proxy_pass ${SKYROCKET_API_URL}/;
+  }
+
+  location / {
+    root /usr/share/nginx/html;
+    index index.html;
+  }
+}

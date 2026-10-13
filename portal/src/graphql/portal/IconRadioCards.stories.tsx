@@ -16,7 +16,7 @@ import styles from "./LoginMethodConfigurationScreen.module.css";
  * `LoginMethodAuthenticationSection` / `IconRadioCards`.
  */
 const meta = {
-  title: "components/v1/IconRadioCards",
+  title: "portal/LoginMethods/AuthenticationSection",
   tags: ["autodocs"],
   decorators: [
     (Story) => (

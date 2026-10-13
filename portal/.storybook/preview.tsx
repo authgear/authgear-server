@@ -4,6 +4,7 @@ import { ThemeProvider } from "../src/components/v2/ThemeProvider/ThemeProvider"
 import { AppLocaleProvider } from "../src/components/common/AppLocaleProvider";
 import { parseAppearance, setAppearance } from "../src/util/appearance";
 import "../src/index.css";
+import "./preview.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 /** Tabler icon font for `<i className="ti ti-…">` (e.g. login method configuration). */
 import "@tabler/icons/iconfont/tabler-icons.min.css";

@@ -13,14 +13,15 @@ The Portal backend also brokers authentication against the Authgear server itsel
 **Frontend (`portal/src/`)**
 - React 18 + React Router v5 (`react-router-dom`)
 - Apollo Client — two clients, one per GraphQL endpoint (`makeClient` for Admin API, `usePortalClient` for Portal API)
-- FluentUI v8 (`@fluentui/react`) — primary component library (buttons, dialogs, inputs, layout)
+- Radix Themes (`@radix-ui/themes`) and `@radix-ui/react-icons` — primitives
+- `src/components/v2/` — design-system wrappers (buttons, fields, callouts, dialogs)
 - Tailwind CSS v3 — utility styling, alongside CSS Modules (`*.module.css`)
 - react-intl — i18n; messages under `portal/src/locale-data/`
 - Monaco Editor — embedded code editor (templates, JSON config)
 - Chart.js — analytics widgets
 - Vite — build tool; outputs to `portal/dist/`
 - GraphQL Codegen — typed operations from `.graphql` files into `*.generated.ts`
-- Storybook 9 — component preview (see `portal/docs/storybook.md`)
+- Storybook 10 — component preview (see `portal/docs/storybook.md`)
 
 **Backend (`cmd/portal/`, `pkg/portal/`)**
 - Go HTTP server
@@ -30,7 +31,7 @@ The Portal backend also brokers authentication against the Authgear server itsel
 ## Key files and folders
 
 **Frontend**
-- `src/index.tsx` — entry: `initializeIcons`, ChartJS registration, Monaco worker wiring, immer `setAutoFreeze(false)`, render `<ReactApp />`
+- `src/index.tsx` — entry: icon font CSS, ChartJS registration, Monaco worker wiring, immer `setAutoFreeze(false)`, render `<ReactApp />`
 - `src/ReactApp.tsx` — top-level providers (System config, locale, Apollo, routing)
 - `src/AppRoot.tsx` — routes for a specific app (tenant); wires Admin API Apollo client scoped to the app ID in the URL
 - `src/ScreenLayout.tsx`, `src/ScreenNav.tsx` — chrome around each screen (sidebar, top bar)
@@ -39,9 +40,9 @@ The Portal backend also brokers authentication against the Authgear server itsel
 - `src/graphql/portal/` — Portal API: schema, queries, mutations, screens (e.g. `AdminAPIConfigurationScreen.tsx`)
 - `src/graphql/adminapi/` — Admin API: schema, queries, mutations, screens
 - `src/components/` — shared UI by area (`applications`, `audit-log`, `users`, `v2`, …)
-- `src/components/v2/` — new design-system components; own folder per component with `.stories.tsx`
+- `src/components/v2/` — design-system components; own folder per component with `.stories.tsx`
 - `src/locale-data/` — translation JSON per locale
-- `src/hook/` — reusable hooks (e.g. `useCopyFeedback`)
+- `src/hook/` — reusable hooks (e.g. `useAppConfigForm`)
 - `src/util/` — pure helpers
 
 **Backend**
@@ -76,8 +77,8 @@ Top-level routes in `ReactApp.tsx` → per-app routes in `AppRoot.tsx`. Screens 
 ## Configuration and theming
 
 - System config (feature flags, branding, available languages, embedded Authgear config for admin login) loads once and lives in `SystemConfigContext`.
-- FluentUI themes are computed from system config via `createTheme(...)` in `src/system-config.ts` and exposed as `themes.main`, `themes.inverted`, `themes.destructive`, `themes.actionButton`, `themes.verifyButton`, `themes.defaultButton`.
-- v2 components use a separate `ThemeProvider` under `src/components/v2/ThemeProvider/` providing CSS variables for the new design system.
+- Portal chrome color comes from the v2 `ThemeProvider` (Radix `Theme` in `src/components/v2/ThemeProvider/`) and from CSS variables set by `src/util/appearance.ts` (`light-theme` / `dark-theme` on `<html>`).
+- AuthUI brand shades are a separate path. `deriveColors()` in `src/util/theme.ts` calls `src/util/shades.ts`. The Design screen and project wizard persist that result as a brand button's hover and active color. It is not the portal's own theme.
 
 ## i18n
 

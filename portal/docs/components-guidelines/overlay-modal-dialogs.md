@@ -6,28 +6,27 @@ Use modal dialogs for blocking decisions that require explicit user action befor
 
 | Pattern | Component | Import path | Use when |
 |---|---|---|---|
-| Generic confirm/cancel modal | `Dialog` (FluentUI) | `@fluentui/react` | A simple one-off dialog with project-specific content |
-| Shared destructive confirmation | `DeleteConfirmationDialog` | `../../components/common/DeleteConfirmationDialog` | Confirm deletion/removal with consistent destructive UX |
-| Navigation blocking confirmation | `BlockerDialog` / `NavigationBlockerDialog` | `../../BlockerDialog`, `../../NavigationBlockerDialog` | User may lose unsaved changes or leave an in-progress flow |
-| Re-auth confirmation dialog | `ReauthDialog` | `../../components/common/ReauthDialog` | Sensitive actions require re-authentication before continuing |
-| Dialog visibility/loading store | `useConfirmationDialog` | `../../hook/useConfirmationDialog` | A feature needs lightweight show/dismiss/confirm-loading state |
+| Confirm / cancel | `ConfirmationDialog` | `portal/src/components/v2/ConfirmationDialog/ConfirmationDialog.tsx` | The user must confirm or cancel before continuing |
+| Shared destructive confirmation | `DeleteConfirmationDialog` | `portal/src/components/common/DeleteConfirmationDialog.tsx` | Confirm deletion or removal. It renders `ConfirmationDialog` |
+| Navigation blocking confirmation | `BlockerDialog` | `portal/src/BlockerDialog.tsx` | The user may lose unsaved changes |
+| Route-leave confirmation | `NavigationBlockerDialog` | `portal/src/NavigationBlockerDialog.tsx` | Browser or in-app navigation would leave an in-progress flow |
+| Dialog visibility/loading store | `useConfirmationDialog` | `portal/src/hook/useConfirmationDialog.tsx` | A feature needs lightweight show/dismiss/confirm-loading state |
+| One-off dialog that is not confirm/cancel | `Dialog` | `@radix-ui/themes` | The content does not fit `ConfirmationDialog` |
 
 ## Rules
 
-- Use dialogs only for blocking interactions. Use inline message bars or field errors for non-blocking feedback.
-- Provide clear title, concise body text, and explicit primary/secondary actions.
-- For destructive flows, use destructive theming and action wording (`delete`, `remove`, `confirm`) that matches the consequence.
-- Keep all user-facing strings in i18n (`FormattedMessage` / `renderToString`) including title, body, and actions.
-- Control visibility explicitly (`hidden` + `onDismiss`) and always define what dismiss means for state cleanup.
-- During async confirm flows, disable confirm/cancel actions (or show loading state) to prevent duplicate submissions.
-- Reuse shared wrappers (`DeleteConfirmationDialog`, `BlockerDialog`, `ReauthDialog`) when pattern matches instead of re-building dialog skeletons.
-- For route-leave protection, prefer `NavigationBlockerDialog` pattern so browser navigation and hash/pivot transitions behave consistently.
+- Use dialogs only for blocking interactions. Use `Callout` or field errors for non-blocking feedback.
+- Provide a clear title, concise body text, and explicit primary and secondary actions.
+- For destructive flows, set `confirmColor="red"` and use action wording (`delete`, `remove`, `confirm`) that matches the consequence.
+- Keep all user-facing strings in i18n (`FormattedMessage` / `renderToString`), including title, body, and actions.
+- `ConfirmationDialog` is controlled with `open` and `onOpenChange`. Cancel side effects go in `onCancel` or `onOpenChange(false)`. Escape and overlay dismissal call `onOpenChange(false)` and do not call `onCancel`.
+- During async confirm flows, pass `loading` so confirm and cancel cannot submit twice.
+- Reuse `DeleteConfirmationDialog`, `BlockerDialog`, and `NavigationBlockerDialog` when the pattern matches.
+- For route-leave protection, use `NavigationBlockerDialog` so browser navigation and in-app transitions share one dialog.
 
 ## Existing references
 
-- `portal/src/components/common/DeleteConfirmationDialog.tsx` shared destructive confirm dialog.
-- `portal/src/BlockerDialog.tsx` shared blocking confirmation layout and actions.
-- `portal/src/NavigationBlockerDialog.tsx` route-change blocker with dialog.
-- `portal/src/components/common/ReauthDialog.tsx` shared re-auth dialog pattern.
-- `portal/src/hook/useConfirmationDialog.tsx` reusable visible/loading dialog state helper.
-- `portal/src/components/saml/EditSAMLCertificateForm.tsx` feature dialog for certificate removal.
+- `portal/src/components/common/DeleteConfirmationDialog.tsx` wraps `ConfirmationDialog` with `confirmColor="red"`.
+- `portal/src/BlockerDialog.tsx` is the unsaved-changes dialog.
+- `portal/src/NavigationBlockerDialog.tsx` blocks route changes.
+- `portal/src/hook/useConfirmationDialog.tsx` holds visible/loading dialog state.

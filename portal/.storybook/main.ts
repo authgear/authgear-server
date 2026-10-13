@@ -22,6 +22,7 @@ const config: StorybookConfig = {
     getAbsolutePath("@chromatic-com/storybook"),
     getAbsolutePath("@storybook/addon-vitest"),
     getAbsolutePath("storybook-addon-pseudo-states"),
+    getAbsolutePath("@oursky/storybook-addon-comments"),
   ],
   framework: {
     name: getAbsolutePath("@storybook/react-vite"),

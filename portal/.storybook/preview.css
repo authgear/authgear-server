@@ -1,0 +1,7 @@
+/* index.css locks document scroll for the portal app shell. The Storybook
+   iframe needs that scroll for docs pages and tall stories. */
+html,
+body {
+  height: auto;
+  overflow: auto;
+}

@@ -1,23 +1,23 @@
 # Radio button
 
-Use radio-button-style controls for single-choice settings so users can clearly see mutually exclusive options.
+Use a single-choice control when the options are mutually exclusive.
 
 ## Which component to use
 
 | Pattern | Component | Import path | Use when |
 |---|---|---|---|
-| Single choice in FluentUI-based forms | `ChoiceGroup` | `@fluentui/react` | Exactly one option can be selected at a time |
-| Single choice in v2 card-style UI | `RadioCards` | `../../components/v2/RadioCards/RadioCards` | Exactly one option can be selected at a time and card presentation fits the screen |
+| Card with title and subtitle | `RadioCards` | `portal/src/components/v2/RadioCards/RadioCards.tsx` | Exactly one option is selected and a card presentation fits |
+| Card with an icon | `IconRadioCards` | `portal/src/components/v2/IconRadioCards/IconRadioCards.tsx` | Exactly one option is selected and each option has an icon |
+| Compact single choice | `RadioGroup` | `@radix-ui/themes` | Exactly one option is selected and a compact list fits |
 
 ## Rules
 
-- For single-choice options, use a radio button component (`ChoiceGroup` / `RadioCards`) instead of checkbox groups, custom toggles, or ad-hoc clickable rows.
-- Keep option labels in i18n (`renderToString`/`FormattedMessage`) and avoid hard-coded text.
-- Use `ChoiceGroup` for FluentUI-based form screens; use `RadioCards` when card-style visual selection better matches the UI.
-- Keep `onChange` focused on updating the selected option only, and avoid unrelated side effects.
+- For single-choice options, use `RadioCards`, `IconRadioCards`, or `RadioGroup`. Do not fake single-choice with a checkbox group.
+- Keep option labels in i18n (`renderToString` / `FormattedMessage`) and avoid hard-coded text.
+- Keep `onChange` / `onValueChange` focused on the selected option.
 
 ## Existing references
 
-- `portal/src/graphql/portal/EndpointDirectAccessScreen.tsx` uses `ChoiceGroup` for mutually exclusive direct-access behavior options.
-- `portal/src/graphql/portal/CreateOAuthClientScreen.tsx` uses `ChoiceGroup` for single-choice configuration in FluentUI-based forms.
-- `portal/src/components/v2/RadioCards/RadioCards.stories.tsx` demonstrates card-style single-choice selection via `RadioCards`.
+- `portal/src/graphql/portal/LoginMethodConfigurationScreen.tsx` uses `IconRadioCards`.
+- `portal/src/graphql/portal/AnonymousUsersConfigurationScreen.tsx` uses `RadioGroup` for the promotion-conflict choice.
+- `portal/src/components/v2/RadioCards/RadioCards.stories.tsx` demonstrates card-style single-choice selection.

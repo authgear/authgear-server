@@ -6,39 +6,37 @@ Use the shared screen layout components so portal pages have consistent structur
 
 | Pattern | Component | Import path | Use when |
 |---|---|---|---|
-| Top-level page scroll container | `ScreenLayoutScrollView` | `../../ScreenLayoutScrollView` | A screen needs the standard scrollable body area under portal chrome |
-| Screen content container | `ScreenContent` | `../../ScreenContent` | A screen renders title/description/widgets in the standard content width |
-| Screen heading | `ScreenTitle` | `../../ScreenTitle` | The page needs a main H1 heading |
-| Screen intro text | `ScreenDescription` | `../../ScreenDescription` | The page needs a short explanatory paragraph under title |
-| Header/chrome area | `ScreenHeader` | `../../ScreenHeader` | Top-level pages need the shared portal header/navigation area |
-| Query-state gates | `ShowLoading`, `ShowError` | `../../ShowLoading`, `../../ShowError` | Async page data must render loading/error before main content |
+| Top-level page scroll container | `ScreenLayoutScrollView` | `portal/src/ScreenLayoutScrollView.tsx` | A screen needs the standard scrollable body area under portal chrome |
+| Screen content container | `ScreenContent` | `portal/src/ScreenContent.tsx` | A screen renders its sections in the standard content width |
+| Page heading | `Heading` | `@radix-ui/themes` | The page needs one `h1`. Use `as="h1"` |
+| Page intro text | `Text` | `@radix-ui/themes` | A short explanation under the heading (`as="p"`) |
+| Settings section | `SettingsSectionCard` | `portal/src/components/v2/SettingsSectionCard/SettingsSectionCard.tsx` | A titled block of settings |
+| Save bar | `SaveFunctionBar` | `portal/src/components/v2/SaveFunctionBar/SaveFunctionBar.tsx` | The screen edits config and needs save / discard |
+| Header/chrome area | `ScreenHeader` | `portal/src/ScreenHeader.tsx` | A top-level page needs the shared portal header |
+| Query-state gates | `ShowLoading`, `ShowError` | `portal/src/ShowLoading.tsx`, `portal/src/ShowError.tsx` | Async page data must render loading or error before main content |
 
 ## Rules
 
 - For data-driven screens, gate content with `ShowLoading` and `ShowError` before rendering `ScreenContent`.
-- Prefer this structure for most settings pages: `ScreenLayoutScrollView` -> `ScreenContent` -> (`NavBreadcrumb`) -> `ScreenTitle` -> `ScreenDescription` -> widgets/forms.
-- Use one `ScreenTitle` per screen content area; avoid multiple H1-level titles in a single page body.
-- Keep screen title/description strings in i18n (`FormattedMessage` / `renderToString`), not hard-coded text.
-- Use `ScreenContent` `layout` prop intentionally:
-- `auto-rows` (default) for form/widget pages.
-- `list` for list-heavy pages where items should flow with list spacing behavior.
-- If a page needs a special header block above content body, pass it via `ScreenContent` `header` prop instead of ad-hoc wrappers.
-- Reuse `ScreenHeader` at route/shell level; feature screens should focus on body content and avoid re-implementing page chrome.
+- A settings page is `ShowLoading` / `ShowError`, then `FormContainer`, then `ScreenContent`, a Radix `Heading`, `SettingsSectionCard` sections, and `SaveFunctionBar`. See `AnonymousUsersConfigurationScreen.tsx`.
+- Use one `h1` per screen content area.
+- Keep title, description, and labels in i18n (`FormattedMessage` / `renderToString`).
+- Use `ScreenContent`'s `layout` prop intentionally: `auto-rows` (default) for form pages, `list` for list-heavy pages.
+- If a page needs a block above the content body, pass it via `ScreenContent`'s `header` prop.
+- Reuse `ScreenHeader` at route/shell level. Feature screens should not re-implement page chrome.
 
 ## Width policy (narrow vs full-width)
 
-- Default to narrow content for settings/detail/editing flows. In practice this is the common 8-column content span on desktop (`grid-column: 1 / span 8`).
-- Use full-width content for list/table/dense overview pages where horizontal space improves scanability. In practice this is 12-column span plus list-style content layout (`ScreenContent layout="list"` + `grid-column: 1 / span 12`).
-- For drill-down flows, it is expected to go from full-width list to narrower detail editor (for example applications list -> application edit page).
-- Use split-width variants only when information architecture needs it (for example primary editing area plus side quick-start/help column).
-- Unless there is a strong UX reason, do not introduce custom width behavior outside these patterns.
+- Default to narrow content for settings, detail, and editing flows. In practice this is the common 8-column content span on desktop (`grid-column: 1 / span 8`).
+- Use full-width content for list, table, and dense overview pages. In practice this is a 12-column span plus `ScreenContent layout="list"`.
+- For drill-down flows, go from a full-width list to a narrower detail editor.
+- Use a split width only when the page needs a primary editing area plus a side column.
+- Do not introduce a custom width outside these patterns unless the layout cannot express it.
 
 ## Existing references
 
-- `portal/src/graphql/portal/GoogleTagManagerConfigurationScreen.tsx` uses `ShowLoading`/`ShowError` and `ScreenContent` with breadcrumb, title, and widget content.
-- `portal/src/graphql/portal/HookConfigurationScreen.tsx` uses `ScreenTitle` and `ScreenDescription` as standard screen heading structure.
-- `portal/src/graphql/portal/ApplicationsConfigurationScreen.tsx` uses full-width list layout (`ScreenContent layout="list"` with 12-column content widgets).
-- `portal/src/graphql/portal/EditOAuthClientScreen.tsx` uses narrower/split detail editing layout after entering a specific application.
-- `portal/src/graphql/portal/AppsScreen.tsx` uses `ScreenHeader` and `ScreenLayoutScrollView` for page shell + scrollable content.
-- `portal/src/graphql/portal/ProjectRootScreen.tsx` shows loading-only redirect flow with `ShowLoading`.
-- `portal/src/ScreenContent.tsx` defines shared container behavior and `layout` options (`list`, `auto-rows`).
+- `portal/src/graphql/portal/AnonymousUsersConfigurationScreen.tsx` is the settings-screen structure: `ShowLoading`, `ShowError`, `FormContainer`, `ScreenContent`, Radix `Heading`, `SettingsSectionCard`, `SaveFunctionBar`.
+- `portal/src/graphql/adminapi/UsersScreen.tsx` uses `ScreenContent layout="list"`.
+- `portal/src/graphql/portal/VerifyDomainScreen.tsx` uses `ScreenLayoutScrollView`.
+- `portal/src/graphql/portal/AppsScreen.tsx` uses `ScreenHeader`.
+- `portal/src/ScreenContent.tsx` defines `layout` (`list`, `auto-rows`) and the `header` prop.

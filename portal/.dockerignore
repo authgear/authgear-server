@@ -1,0 +1,6 @@
+node_modules
+dist
+storybook-static
+.stylelintcache
+coverage
+*.log
