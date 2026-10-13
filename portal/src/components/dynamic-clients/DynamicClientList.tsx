@@ -16,6 +16,7 @@ import { CardTable } from "../v2/CardTable/CardTable";
 import { CopyIconButton } from "../v2/CopyIconButton/CopyIconButton";
 import { Tooltip } from "../v2/Tooltip/Tooltip";
 import { formatDatetime } from "../../util/formatDatetime";
+import { ClientKindBadge } from "./ClientKindBadge";
 import styles from "./DynamicClientList.module.css";
 
 export interface DynamicClientListItem {
@@ -117,13 +118,9 @@ const ClientRow: React.VFC<ClientRowProps> = function ClientRow({
         </Text>
       </CardTable.Cell>
       <CardTable.Cell className={styles.colKind}>
-        <Text size="2">
-          {client.kind === OAuthClientKind.FirstParty ? (
-            <FormattedMessage id="DynamicClientList.kind.first-party" />
-          ) : (
-            <FormattedMessage id="DynamicClientList.kind.third-party" />
-          )}
-        </Text>
+        <ClientKindBadge
+          firstParty={client.kind === OAuthClientKind.FirstParty}
+        />
       </CardTable.Cell>
       <CardTable.Cell className={styles.colRegisteredAt}>
         <Text size="2">
