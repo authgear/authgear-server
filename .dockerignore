@@ -1,6 +1,8 @@
 **/.git
 **/tmp
 **/vendor
+# file: dependency of portal/package.json. npm ci fails without it.
+!portal/vendor
 **/dist
 **/node_modules
 **/.DS_Store
