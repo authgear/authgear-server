@@ -2,7 +2,7 @@ module github.com/authgear/authgear-server
 
 // go1.21 supports toolchain
 // See https://go.dev/doc/toolchain
-go 1.26.6
+go 1.26.9
 
 // The fork keeps the upstream module path, so it can only be pulled in via replace.
 replace github.com/iawaknahc/gomessageformat => github.com/oursky/gomessageformat v0.0.0-20260812135726-04797505aebe
@@ -44,10 +44,10 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/ua-parser/uap-go v0.0.0-20250326155420-f7f5a2f9f5bc
-	golang.org/x/crypto v0.56.0
-	golang.org/x/net v0.58.0
+	golang.org/x/crypto v0.57.0
+	golang.org/x/net v0.60.0
 	golang.org/x/oauth2 v0.36.0
-	golang.org/x/text v0.41.0
+	golang.org/x/text v0.42.0
 	google.golang.org/api v0.264.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -65,7 +65,7 @@ require (
 	github.com/stripe/stripe-go/v72 v72.122.0
 	github.com/tdewolff/parse/v2 v2.8.1
 	github.com/vimeo/go-magic v1.0.0
-	golang.org/x/term v0.45.0
+	golang.org/x/term v0.46.0
 )
 
 require (
@@ -303,9 +303,9 @@ require (
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/image v0.45.0 // indirect
-	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.49.0
 	google.golang.org/genproto v0.0.0-20260128011058-8636f8732409 // indirect

@@ -26,7 +26,14 @@
   },
   "overrides": {
     "lodash": "^4.18.1",
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "tailwindcss": {
+      "postcss-selector-parser": "^7.1.6"
+    },
+    "postcss-nested": {
+      "postcss-selector-parser": "^7.1.6"
+    },
+    "@graphql-tools/utils": "^12.0.3"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.2.1",
