@@ -143,11 +143,20 @@ function NativeAppRow({
   );
 }
 
-function CopyField({ label, value }: { label: string; value: string }) {
+function CopyField({
+  label,
+  hint,
+  value,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+}) {
   return (
     <TextField
       size="2"
       label={label}
+      hint={hint}
       value={value}
       readOnly={true}
       suffixPlain={true}
@@ -296,6 +305,7 @@ export function NativeAppsSettingsCard(
       {hasIOS ? (
         <CopyField
           label={renderToString("NativeAppsSettings.ios-entitlement.label")}
+          hint={renderToString("NativeAppsSettings.ios-entitlement.hint")}
           value={`webcredentials:${publicHost}`}
         />
       ) : null}
