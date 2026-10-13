@@ -12,4 +12,4 @@ RUN npm run build-storybook
 
 FROM nginx:1.27-alpine
 COPY --from=build /usr/src/app/storybook-static /usr/share/nginx/html
-COPY default.conf.template /etc/nginx/templates/default.conf.template
+COPY storybook/default.conf.template /etc/nginx/templates/default.conf.template

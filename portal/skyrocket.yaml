@@ -3,7 +3,7 @@ services:
   - name: default
     port: 80
     public: true
-    dockerfile: Dockerfile
+    dockerfile: storybook/Dockerfile
   - name: api
     port: 8080
     public: true
