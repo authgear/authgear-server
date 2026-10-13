@@ -117,7 +117,8 @@ type OAuthClient {
 
   """
   Whether the server issues JWT access tokens instead of opaque tokens.
-  Always true for M2M clients.
+  Always true for M2M clients and first-party DCR clients. Always false for
+  third-party DCR clients and CIMD clients.
   """
   issueJWTAccessToken: Boolean!
 
@@ -325,7 +326,7 @@ The resulting `OAuthClient` object is:
   "refreshTokenIdleTimeoutEnabled": true,
   "refreshTokenIdleTimeoutSeconds": 1209600,
   "refreshTokenRotationEnabled": false,
-  "issueJWTAccessToken": false,
+  "issueJWTAccessToken": true,
   "maxConcurrentSession": 0,
   "customUIURI": null,
   "app2appEnabled": false,
@@ -351,7 +352,7 @@ Token lifetime fields are populated from `oauth.dynamic_client_registration.defa
 
 Each field falls back independently, so a `default_client_config` that sets only `access_token_lifetime_seconds` leaves the other three at the defaults above. Note that the example object shown earlier in this section reflects the `default_client_config` in [dcr.md's Configuration](./dcr.md#configuration), not these defaults.
 
-All Authgear extension fields are fixed at their zero values for DCR clients and cannot be changed at registration time.
+All Authgear extension fields are fixed for DCR clients and cannot be changed at registration time. Each is fixed at its zero value except `issueJWTAccessToken`, which follows `kind`: `true` for `FIRST_PARTY`, `false` for `THIRD_PARTY`.
 
 Static clients are implicitly bounded — each one requires a project admin to edit and deploy `authgear.yaml`. DCR-registered and CIMD-resolved clients are not, since neither requires a per-client admin action; each source defines its own `authgear.features.yaml` limit — see [dcr.md — Client Limit](./dcr.md#client-limit) and [cimd.md — Client Limit](./cimd.md#client-limit).
 
@@ -364,11 +365,11 @@ A resource-bound access token is **always** a JWT, for every client kind, overri
 | Client | `resource=` | Access token | `aud` | `/resolve` usable? | `/oauth2/userinfo` usable? | Consent screen |
 |---|---|---|---|---|---|---|
 | Static first-party (`spa` / `traditional_webapp` / `native` / `confidential`), `issue_jwt_access_token: false` (the default when unset) | Omitted | Opaque | — | Yes | Yes | Bypassed |
-| Static first-party, `issue_jwt_access_token: true` | Omitted | JWT | `[<project_endpoint>]` | Yes | Yes | Bypassed |
+| Static first-party, `issue_jwt_access_token: true` | Omitted | JWT | `[<project_endpoint>]` | Yes† | Yes | Bypassed |
 | Static first-party | Provided, and the Resource/Scope grant `allowStaticFirstPartyClientAccess` | JWT | `[<resource_uri>]` | Yes† | Yes | Bypassed |
 | Static third-party (`third_party_app`, deprecated) | Omitted | Opaque | — | **No†** | Yes | Shown |
 | Static third-party | Provided, and the Resource/Scope grant `allowStaticThirdPartyClientAccess` | JWT | `[<resource_uri>]` | **No†** | Yes | Shown |
-| Dynamic first-party (DCR-registered with a first-party IAT, or CIMD-resolved as first-party) | Omitted | Opaque (`issue_jwt_access_token` is fixed `false` for every DCR client — see [Mapping from DCR](#mapping-from-dcr)) | — | Yes† | Yes | Bypassed |
+| Dynamic first-party (DCR-registered with a first-party IAT) | Omitted | JWT (`issueJWTAccessToken` is fixed `true` for first-party DCR clients — see [Mapping from DCR](#mapping-from-dcr)) | `[<project_endpoint>]` | Yes† | Yes | Bypassed |
 | Dynamic first-party | Provided, and the Resource/Scope grant `allowDynamicFirstPartyClientAccess` | JWT | `[<resource_uri>]` | Yes† | Yes | Bypassed |
 | Dynamic third-party (DCR or CIMD) | Omitted | Opaque | — | **No†** | Yes | Shown |
 | Dynamic third-party | Provided, and the Resource/Scope grant `allowDynamicThirdPartyClientAccess` | JWT | `[<resource_uri>]` | **No†** | Yes | Shown |
@@ -378,5 +379,5 @@ A resource-bound access token is **always** a JWT, for every client kind, overri
 Not covered above:
 
 - **M2M clients** (`client_credentials` grant) follow an entirely different flow: no `/oauth2/authorize`, no consent screen, `resource` is *required* rather than optional, and token type is controlled purely by `issue_jwt_access_token` with no third-party override. An M2M client is in no `access_policy` category at all — `allowStaticFirstPartyClientAccess` does not cover it, and `client_credentials` always requires an explicit Client-Resource Association. See [m2m.md](./m2m.md).
-- **CIMD clients** are dynamic clients, first-party or third-party depending on the resolved client's kind, and follow the corresponding dynamic rows above. See [cimd.md](./cimd.md).
+- **CIMD clients** are always dynamic third-party clients and follow the dynamic third-party rows above. See [cimd.md](./cimd.md).
 - `/oauth2/userinfo` usability assumes the granted `scope` includes the relevant OIDC scope (e.g. `openid`) for the claim being requested; it is evaluated against `scope`, not `aud`, so it is unaffected by resource binding either way.

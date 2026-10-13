@@ -75,11 +75,13 @@ Authgear takes a different approach for first-party and third-party clients:
 
 **First-party clients:**
 
-The JWT access token retains the existing default:
+The access token retains the existing default: a JWT with the following `aud` when the client issues JWT access tokens, otherwise opaque.
 
 ```
 aud = ["<project_endpoint>"]
 ```
+
+A static first-party client issues JWT access tokens when `issue_jwt_access_token` is `true`. A dynamic first-party client always does (see [client.md — Mapping from DCR](./client.md#mapping-from-dcr)).
 
 This preserves backward compatibility for existing first-party deployments.
 
@@ -115,7 +117,9 @@ The project endpoint is **not** included. See [How It Works](#how-it-works) for 
 
 | Client type | Token type | `aud` |
 |---|---|---|
-| First-party | JWT | `[<project_endpoint>]` |
+| Static first-party, `issue_jwt_access_token: true` | JWT | `[<project_endpoint>]` |
+| Static first-party, `issue_jwt_access_token: false` | Opaque | N/A |
+| Dynamic first-party | JWT | `[<project_endpoint>]` |
 | Third-party | Opaque | N/A |
 
 ### With Resource Indicator
@@ -150,7 +154,7 @@ GET /oauth2/authorize
 **Rules:**
 
 - `resource` is optional.
-  - First-party client, omitted: issues a JWT with `aud = [<project_endpoint>]`.
+  - First-party client, omitted: issues a JWT with `aud = [<project_endpoint>]` if the client issues JWT access tokens (see [Authgear's decision](#authgears-decision)), otherwise an opaque access token.
   - Third-party client, omitted: issues an opaque access token.
 - Each `resource` value must refer to a Resource that sets the `access_policy` key for the client's [category](./api-resource.md#client-categories). Otherwise `invalid_target` is returned. Requested Scopes are checked as described in [Scope Validation](./oidc.md#scope-validation).
 - Resource URIs must not be prefixed by the Authgear project endpoint.
@@ -178,7 +182,7 @@ grant_type=authorization_code
 - If provided, it must be a subset of the resources bound to the authorization code. Requesting a resource outside the bound set returns `invalid_target`.
 - If omitted:
   - If resources were bound to the authorization code, the token is issued as a JWT with `aud` containing those resource URIs.
-  - If no resources were bound (first-party client only): JWT with `aud = [<project_endpoint>]`.
+  - If no resources were bound (first-party client): as at the authorization endpoint — JWT with `aud = [<project_endpoint>]` or opaque.
   - If no resources were bound (third-party client): opaque access token.
 - The Resource's and Scopes' `access_policy` is re-read before the token is issued — see [API Resources and Scopes — Revocation](./api-resource.md#revocation).
 
@@ -222,7 +226,7 @@ The userinfo endpoint accepts tokens where `scope` contains OIDC scopes (e.g. `o
 
 ### Default — first-party client
 
-A JWT is issued with `aud` set to the project endpoint:
+When the client issues JWT access tokens, `aud` is set to the project endpoint:
 
 ```json
 {
@@ -276,7 +280,7 @@ Error response format differs by endpoint:
 
 ### First-party clients
 
-Unchanged when `resource` is omitted: JWT with `aud = [<project_endpoint>]`. Existing resource servers that validate `aud` contains `<project_endpoint>` continue to work without modification.
+Static first-party clients are unchanged when `resource` is omitted. Dynamic first-party clients switch from an opaque access token to a JWT with `aud = [<project_endpoint>]`; both are accepted at `/resolve` and `/oauth2/userinfo`. Existing resource servers that validate `aud` contains `<project_endpoint>` continue to work without modification.
 
 Extending the `access_policy` to first-party clients does not change any existing deployment, because every key defaults to `false` (see [api-resource.md — Defaults](./api-resource.md#defaults)): a first-party client that sends `resource` keeps receiving `invalid_target` until an admin turns the relevant key on, and no Resource that exists today becomes reachable by a client that could not reach it before.
 

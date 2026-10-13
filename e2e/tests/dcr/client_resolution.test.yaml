@@ -111,11 +111,12 @@ steps:
         {
           "id_token": {
             "iss": "[[string]]"
-          }
+          },
+          "access_token_is_jwt": false
         }
 
-  # DCR clients always issue opaque access tokens (IssueJWTAccessToken is
-  # fixed to false), so this also proves the opaque token is accepted at
+  # A third-party DCR client issues an opaque access token when no resource
+  # is requested, so this also proves the opaque token is accepted at
   # userinfo, not just that the code exchange succeeded.
   - name: userinfo
     action: http_request
@@ -132,7 +133,7 @@ steps:
 
 ---
 
-name: FIRST_PARTY DCR client completes a full authorization-code flow with consent skipped, and its access token works at userinfo
+name: FIRST_PARTY DCR client completes a full authorization-code flow with consent skipped, and its JWT access token works at userinfo and /resolve
 authgear.yaml:
   override: |
     oauth:
@@ -255,6 +256,11 @@ steps:
         {
           "id_token": {
             "iss": "[[string]]"
+          },
+          "access_token_is_jwt": true,
+          "access_token_claims": {
+            "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+            "client_id": "{{ .steps.register.result.http_json_body.client_id }}"
           }
         }
 
@@ -270,6 +276,17 @@ steps:
         {
           "sub": "[[string]]"
         }
+
+  - name: resolve
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4001/resolve
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_output:
+      http_status: 200
+      headers:
+        X-Authgear-Session-Valid: "true"
 
 ---
 

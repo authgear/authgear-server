@@ -33,8 +33,8 @@ func (c *Client) ToClientConfig(defaults *config.OAuthDynamicClientTokenLifetime
 		LogoURI:                        derefOr(c.LogoURI, ""),
 		TOSURI:                         derefOr(c.TOSURI, ""),
 		PolicyURI:                      derefOr(c.PolicyURI, ""),
-		IssueJWTAccessToken:            false, // fixed per client.md's "All Authgear extension fields are fixed at their zero values for DCR clients" rule
-		IsDynamic:                      true,  // every client built by ToClientConfig is DCR/CIMD-resolved, regardless of Kind
+		IssueJWTAccessToken:            c.Kind == model.OAuthClientKindFirstParty, // per client.md — Mapping from DCR
+		IsDynamic:                      true,                                      // every client built by ToClientConfig is DCR/CIMD-resolved, regardless of Kind
 		DynamicSource:                  c.Source,
 	}
 	// nil here means this source has no token-lifetimes config concept at

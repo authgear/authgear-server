@@ -20,7 +20,7 @@ A third-party client is an OAuth client operated by an external developer — so
 |---|---|---|
 | Operated by | Project collaborator | External developer |
 | Consent screen | Not shown | Required |
-| Access token without resource indicator | JWT (`aud = [<project_endpoint>]`) | Opaque |
+| Access token without resource indicator | JWT (`aud = [<project_endpoint>]`), or opaque for a static client with `issue_jwt_access_token: false` — see [client.md](./client.md#access-token-behavior-by-client-kind) | Opaque |
 | `client_credentials` grant | Allowed (M2M clients) | Not allowed |
 | `https://authgear.com/scopes/full-access` | Allowed (public clients only) | Not allowed |
 | `https://authgear.com/scopes/full-userinfo` | Allowed | Not allowed |

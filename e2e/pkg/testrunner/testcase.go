@@ -625,7 +625,7 @@ func (tc *TestCase) executeStep(
 		}
 
 		if step.Output != nil {
-			ok := validateOAuthExchangeCodeOutput(t, step, output)
+			ok := validateOAuthExchangeCodeOutput(t, cmd, prevSteps, step, output)
 			if !ok {
 				return nil, state, false
 			}
@@ -666,7 +666,7 @@ func (tc *TestCase) executeStep(
 		}
 
 		if step.Output != nil {
-			ok := validateOAuthRefreshTokenOutput(t, step, output)
+			ok := validateOAuthRefreshTokenOutput(t, cmd, prevSteps, step, output)
 			if !ok {
 				return nil, state, false
 			}
@@ -1504,10 +1504,15 @@ func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Res
 	return ok
 }
 
-func validateOAuthExchangeCodeOutput(t *testing.T, step Step, output *authflowclient.OAuthExchangeCodeResult) (ok bool) {
+func validateOAuthExchangeCodeOutput(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, step Step, output *authflowclient.OAuthExchangeCodeResult) (ok bool) {
 	outputJSON, _ := json.MarshalIndent(output, "", "  ")
 
-	violations, err := MatchJSON(string(outputJSON), step.Output.Result)
+	expected, ok := renderTemplateString(t, cmd, prevSteps, step.Output.Result)
+	if !ok {
+		return false
+	}
+
+	violations, err := MatchJSON(string(outputJSON), expected)
 	if err != nil {
 		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
 		t.Errorf("  result: %v\n", string(outputJSON))
@@ -1526,10 +1531,15 @@ func validateOAuthExchangeCodeOutput(t *testing.T, step Step, output *authflowcl
 	return true
 }
 
-func validateOAuthRefreshTokenOutput(t *testing.T, step Step, output *authflowclient.OAuthRefreshTokenResult) (ok bool) {
+func validateOAuthRefreshTokenOutput(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, step Step, output *authflowclient.OAuthRefreshTokenResult) (ok bool) {
 	outputJSON, _ := json.MarshalIndent(output, "", "  ")
 
-	violations, err := MatchJSON(string(outputJSON), step.Output.Result)
+	expected, ok := renderTemplateString(t, cmd, prevSteps, step.Output.Result)
+	if !ok {
+		return false
+	}
+
+	violations, err := MatchJSON(string(outputJSON), expected)
 	if err != nil {
 		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
 		t.Errorf("  result: %v\n", string(outputJSON))
