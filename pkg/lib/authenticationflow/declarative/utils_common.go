@@ -25,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func authenticatorIsDefault(ctx context.Context, deps *authflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
@@ -947,4 +948,29 @@ func makeLoginIDSpec(identification model.AuthenticationFlowIdentification, user
 	}
 
 	return spec
+}
+
+// checkLoginIDFormatForIdentification rejects a login ID that cannot be of the
+// identification type. Only the format is checked, because the user may have
+// registered before the blocklist, allowlist or plus sign rules were set.
+func checkLoginIDFormatForIdentification(ctx context.Context, identification model.AuthenticationFlowIdentification, loginID string) error {
+	var format string
+	var err error
+	switch identification {
+	case model.AuthenticationFlowIdentificationEmail:
+		format = "email"
+		err = validation.FormatEmail{}.CheckFormat(ctx, loginID)
+	case model.AuthenticationFlowIdentificationPhone:
+		format = "phone"
+		err = config.FormatPhone{}.CheckFormat(ctx, loginID)
+	default:
+		return nil
+	}
+	if err == nil {
+		return nil
+	}
+
+	validationCtx := &validation.Context{}
+	validationCtx.Child("login_id").EmitError("format", map[string]any{"format": format})
+	return validationCtx.Error("invalid login ID")
 }

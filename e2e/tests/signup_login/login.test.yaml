@@ -44,7 +44,7 @@ steps:
     input: |
       {
         "identification": "email",
-        "login_id": "e2e_login"
+        "login_id": "e2e_login@example.com"
       }
     output:
       result: |

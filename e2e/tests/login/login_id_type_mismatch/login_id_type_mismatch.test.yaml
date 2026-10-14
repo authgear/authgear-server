@@ -1,0 +1,132 @@
+name: Login rejects a login ID that does not match the identification
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: phone
+          - identification: email
+        - type: authenticate
+          one_of:
+          - authentication: primary_oob_otp_sms
+          - authentication: primary_oob_otp_email
+before:
+  - type: custom_sql
+    custom_sql:
+      path: user.sql
+steps:
+  # An existing email must not be accepted as a phone number.
+  - name: create_phone_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: email_as_phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "user@example.com"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "code": 400,
+          "info": {
+            "causes": [
+              {
+                "kind": "format",
+                "details": {
+                  "format": "phone"
+                }
+              }
+            ]
+          }
+        }
+
+  # An existing phone number must not be accepted as an email.
+  - name: create_email_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: phone_as_email
+    action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "+85251000000"
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "code": 400,
+          "info": {
+            "causes": [
+              {
+                "kind": "format",
+                "details": {
+                  "format": "email"
+                }
+              }
+            ]
+          }
+        }
+
+  # A matching login ID still goes through.
+  - name: create_valid_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: valid_phone
+    action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85251000000"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
