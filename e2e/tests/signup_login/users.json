@@ -3,6 +3,7 @@
   "records": [
     {
       "preferred_username": "e2e_login",
+      "email": "e2e_login@example.com",
 
       "name": "Login",
 

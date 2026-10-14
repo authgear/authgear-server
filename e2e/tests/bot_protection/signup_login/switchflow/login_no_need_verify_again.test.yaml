@@ -60,7 +60,7 @@ steps:
     input: |
       {
         "identification": "email",
-        "login_id": "bp_signuplogin",
+        "login_id": "bp_signuplogin@example.com",
         "bot_protection": {
           "type": "cloudflare",
           "response": "pass"

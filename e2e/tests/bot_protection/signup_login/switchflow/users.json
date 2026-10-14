@@ -3,6 +3,7 @@
   "records": [
     {
       "preferred_username": "bp_signuplogin",
+      "email": "bp_signuplogin@example.com",
 
       "name": "BP SignupLogin",
 

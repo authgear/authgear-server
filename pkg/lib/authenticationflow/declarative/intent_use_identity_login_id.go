@@ -69,6 +69,10 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 		loginID := inputTakeLoginID.GetLoginID()
+		err = checkLoginIDFormatForIdentification(ctx, n.Identification, stringutil.NewUserInputString(loginID).TrimSpace())
+		if err != nil {
+			return nil, err
+		}
 		spec := makeLoginIDSpec(n.Identification, stringutil.NewUserInputString(loginID))
 
 		exactMatch, err := findExactOneIdentityInfo(ctx, deps, spec)
