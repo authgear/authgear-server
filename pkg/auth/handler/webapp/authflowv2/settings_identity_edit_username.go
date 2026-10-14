@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -53,6 +54,7 @@ type AuthflowV2SettingsIdentityEditUsernameViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityEditUsernameHandler struct {
+	IdentityConfig    *config.IdentityConfig
 	Database          *appdb.Handle
 	AccountManagement *accountmanagement.Service
 	Identities        *identityservice.Service
@@ -102,6 +104,10 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) GetData(ctx context.Cont
 		})
 	} else if err != nil {
 		return nil, err
+	}
+
+	if target.UpdateDisabled(h.IdentityConfig) {
+		return nil, api.ErrIdentityModifyDisabled
 	}
 
 	vm := AuthflowV2SettingsIdentityEditUsernameViewModel{

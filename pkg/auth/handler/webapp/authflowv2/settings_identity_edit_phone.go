@@ -58,6 +58,7 @@ type AuthflowV2SettingsIdentityEditPhoneViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityEditPhoneHandler struct {
+	IdentityConfig      *config.IdentityConfig
 	Database            *appdb.Handle
 	ControllerFactory   handlerwebapp.ControllerFactory
 	BaseViewModel       *viewmodels.BaseViewModeler
@@ -112,6 +113,10 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(ctx context.Context
 		})
 	} else if err != nil {
 		return nil, err
+	}
+
+	if target.UpdateDisabled(h.IdentityConfig) {
+		return nil, api.ErrIdentityModifyDisabled
 	}
 
 	vm := AuthflowV2SettingsIdentityEditPhoneViewModel{

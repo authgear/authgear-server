@@ -4,8 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -28,6 +30,15 @@ type SettingsAccountDeletionViewModel struct {
 	AccountDeletionAllowed bool
 }
 
+// SettingsLoginIDRowsViewModel decides which login ID rows are links. A row is
+// not a link when the page it leads to has nothing to do.
+type SettingsLoginIDRowsViewModel struct {
+	// LoginIDViewActionable is keyed by identity ID.
+	LoginIDViewActionable map[string]bool
+	// LoginIDKeyHasActions is keyed by login ID key.
+	LoginIDKeyHasActions map[string]bool
+}
+
 type AuthflowV2SettingsHandler struct {
 	Database                 *appdb.Handle
 	ControllerFactory        handlerwebapp.ControllerFactory
@@ -38,6 +49,9 @@ type AuthflowV2SettingsHandler struct {
 	Identities               SettingsIdentityService
 	Renderer                 handlerwebapp.Renderer
 	AccountDeletion          *config.AccountDeletionConfig
+	LoginIDConfig            *config.LoginIDConfig
+	VerificationConfig       *config.VerificationConfig
+	Verification             SettingsVerificationService
 }
 
 func (h *AuthflowV2SettingsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
@@ -70,6 +84,43 @@ func (h *AuthflowV2SettingsHandler) GetData(ctx context.Context, r *http.Request
 	}
 	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
+
+	allIdentities, err := h.Identities.ListByUser(ctx, *userID)
+	if err != nil {
+		return nil, err
+	}
+	viewActionable, err := LoginIDViewActions(ctx, allIdentities, h.Verification, h.LoginIDConfig, h.VerificationConfig)
+	if err != nil {
+		return nil, err
+	}
+	identityCountByKey := map[string]int{}
+	keyHasActions := map[string]bool{}
+	for _, info := range allIdentities {
+		if info.Type != model.IdentityTypeLoginID {
+			continue
+		}
+		key := info.LoginID.LoginIDKey
+		identityCountByKey[key]++
+		if viewActionable[info.ID] {
+			keyHasActions[key] = true
+		}
+	}
+	for _, c := range candidates {
+		key, _ := c[identity.CandidateKeyLoginIDKey].(string)
+		if key == "" {
+			continue
+		}
+		createDisabled, _ := c[identity.CandidateKeyCreateDisabled].(bool)
+		isUsername := c[identity.CandidateKeyLoginIDType] == string(model.LoginIDKeyTypeUsername)
+		// A username key holds one identity only.
+		if !createDisabled && !(isUsername && identityCountByKey[key] > 0) {
+			keyHasActions[key] = true
+		}
+	}
+	viewmodels.Embed(data, SettingsLoginIDRowsViewModel{
+		LoginIDViewActionable: viewActionable,
+		LoginIDKeyHasActions:  keyHasActions,
+	})
 
 	// Account Deletion
 	accountDeletionViewModel := SettingsAccountDeletionViewModel{

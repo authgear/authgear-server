@@ -18741,6 +18741,9 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               serviceService,
 		Renderer:                 responseRenderer,
 		AccountDeletion:          accountDeletionConfig,
+		LoginIDConfig:            loginIDConfig,
+		VerificationConfig:       verificationConfig,
+		Verification:             verificationService,
 	}
 	return authflowV2SettingsHandler
 }
@@ -104897,11 +104900,12 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 
 func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	identityConfig := appConfig.Identity
+	handle := appProvider.AppDatabase
+	appredisHandle := appProvider.Redis
 	appID := appConfig.ID
 	request := p.Request
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
@@ -104999,7 +105003,6 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
 	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
@@ -106034,6 +106037,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityEditEmailHandler := &authflowv2.AuthflowV2SettingsIdentityEditEmailHandler{
+		IdentityConfig:    identityConfig,
 		Database:          handle,
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
@@ -106046,10 +106050,11 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 
 func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	verificationConfig := appConfig.Verification
+	handle := appProvider.AppDatabase
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
 	authenticationConfig := appConfig.Authentication
@@ -106357,7 +106362,6 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -107167,6 +107171,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		Clock:             clockClock,
 	}
 	authflowV2SettingsIdentityListEmailHandler := &authflowv2.AuthflowV2SettingsIdentityListEmailHandler{
+		VerificationConfig:       verificationConfig,
 		Database:                 handle,
 		LoginIDConfig:            loginIDConfig,
 		Identities:               serviceService,
@@ -111779,11 +111784,12 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 
 func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	identityConfig := appConfig.Identity
+	handle := appProvider.AppDatabase
+	appredisHandle := appProvider.Redis
 	appID := appConfig.ID
 	request := p.Request
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
@@ -111881,7 +111887,6 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
 	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	serviceStore := &service.Store{
@@ -112916,6 +112921,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityEditPhoneHandler := &authflowv2.AuthflowV2SettingsIdentityEditPhoneHandler{
+		IdentityConfig:      identityConfig,
 		Database:            handle,
 		ControllerFactory:   controllerFactory,
 		BaseViewModel:       baseViewModeler,
@@ -112929,10 +112935,11 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 
 func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	verificationConfig := appConfig.Verification
+	handle := appProvider.AppDatabase
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
 	authenticationConfig := appConfig.Authentication
@@ -113240,7 +113247,6 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -114050,6 +114056,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		Clock:             clockClock,
 	}
 	authflowV2SettingsIdentityListPhoneHandler := &authflowv2.AuthflowV2SettingsIdentityListPhoneHandler{
+		VerificationConfig:       verificationConfig,
 		Database:                 handle,
 		LoginIDConfig:            loginIDConfig,
 		Identities:               serviceService,
@@ -117509,21 +117516,34 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 
 func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	clockClock := _wireSystemClockValue
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	handle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		ClaimStore:        storePQ,
+	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
 	authenticationConfig := appConfig.Authentication
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
-	secretConfig := config.SecretConfig
 	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appID := appConfig.ID
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -117546,7 +117566,6 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -117819,18 +117838,6 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		Passkey:  provider2,
 		TOTP:     totpProvider,
 		OOBOTP:   oobProvider,
-	}
-	verificationConfig := appConfig.Verification
-	userProfileConfig := appConfig.UserProfile
-	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	verificationService := &verification.Service{
-		Config:            verificationConfig,
-		UserProfileConfig: userProfileConfig,
-		Clock:             clockClock,
-		ClaimStore:        storePQ,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs2.PictureTransformer{
@@ -118620,12 +118627,14 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		ControllerDeps: controllerDeps,
 	}
 	authflowV2SettingsIdentityListUsernameHandler := &authflowv2.AuthflowV2SettingsIdentityListUsernameHandler{
-		Database:          handle,
-		LoginIDConfig:     loginIDConfig,
-		Identities:        serviceService,
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		VerificationConfig: verificationConfig,
+		Verification:       verificationService,
+		Database:           handle,
+		LoginIDConfig:      loginIDConfig,
+		Identities:         serviceService,
+		ControllerFactory:  controllerFactory,
+		BaseViewModel:      baseViewModeler,
+		Renderer:           responseRenderer,
 	}
 	return authflowV2SettingsIdentityListUsernameHandler
 }
@@ -120931,10 +120940,11 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 
 func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	identityConfig := appConfig.Identity
+	handle := appProvider.AppDatabase
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -120968,7 +120978,6 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	authenticationConfig := appConfig.Authentication
-	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
@@ -122068,6 +122077,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		ControllerDeps: controllerDeps,
 	}
 	authflowV2SettingsIdentityEditUsernameHandler := &authflowv2.AuthflowV2SettingsIdentityEditUsernameHandler{
+		IdentityConfig:    identityConfig,
 		Database:          handle,
 		AccountManagement: accountmanagementService,
 		Identities:        serviceService,

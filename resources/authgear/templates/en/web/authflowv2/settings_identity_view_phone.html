@@ -27,9 +27,11 @@
 {{ end }}
 
 {{ define "__settings_identity_phone_edit_button.html" }}
+  {{ if not $.UpdateDisabled }}
   <a class="settings-link-btn" href="{{ $.Href }}">
     {{ translate "v2.page.settings-identity-view-phone.default.edit-phone-button-label" . }}
   </a>
+  {{ end }}
 {{ end }}
 
 {{ define "__settings_identity_phone_verification_button.html" }}
@@ -75,7 +77,7 @@
         )
       )
       "ActionButton" (include "__settings_identity_phone_edit_button.html"
-        (dict "Href" (call $.MakeURL "/settings/identity/change_phone" "q_identity_id" $.PhoneIdentity.ID "q_login_id_key" $.LoginIDKey))
+        (dict "UpdateDisabled" $.UpdateDisabled "Href" (call $.MakeURL "/settings/identity/change_phone" "q_identity_id" $.PhoneIdentity.ID "q_login_id_key" $.LoginIDKey))
       )
     )
   }}

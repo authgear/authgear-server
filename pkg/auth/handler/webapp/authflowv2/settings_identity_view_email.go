@@ -98,7 +98,7 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(ctx context.Context
 
 	updateDisabled := true
 	deleteDisabled := true
-	if loginIDConfig, ok := h.LoginIDConfig.GetKeyConfig(loginIDKey); ok {
+	if loginIDConfig, ok := h.LoginIDConfig.GetKeyConfig(emailIdentity.LoginIDKey); ok {
 		updateDisabled = *loginIDConfig.UpdateDisabled
 		deleteDisabled = *loginIDConfig.DeleteDisabled
 	}

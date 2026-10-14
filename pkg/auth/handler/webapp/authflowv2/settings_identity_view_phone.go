@@ -101,7 +101,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(ctx context.Context
 
 	updateDisabled := true
 	deleteDisabled := true
-	if loginIDConfig, ok := h.LoginIDConfig.GetKeyConfig(loginIDKey); ok {
+	if loginIDConfig, ok := h.LoginIDConfig.GetKeyConfig(phoneIdentity.LoginID.LoginIDKey); ok {
 		updateDisabled = *loginIDConfig.UpdateDisabled
 		deleteDisabled = *loginIDConfig.DeleteDisabled
 	}

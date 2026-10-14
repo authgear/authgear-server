@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -54,6 +55,7 @@ type AuthflowV2SettingsIdentityEditEmailViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityEditEmailHandler struct {
+	IdentityConfig    *config.IdentityConfig
 	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -98,6 +100,10 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 		})
 	} else if err != nil {
 		return nil, err
+	}
+
+	if target.UpdateDisabled(h.IdentityConfig) {
+		return nil, api.ErrIdentityModifyDisabled
 	}
 
 	vm := AuthflowV2SettingsIdentityEditEmailViewModel{

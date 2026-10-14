@@ -27,18 +27,21 @@ func ConfigureAuthflowV2SettingsIdentityListUsername(route httproute.Route) http
 }
 
 type AuthflowV2SettingsIdentityListUsernameViewModel struct {
+	ViewActionable     map[string]bool
 	LoginIDKey         string
 	UsernameIdentities []*identity.LoginID // Expect to be all username login id
 	CreateDisabled     bool
 }
 
 type AuthflowV2SettingsIdentityListUsernameHandler struct {
-	Database          *appdb.Handle
-	LoginIDConfig     *config.LoginIDConfig
-	Identities        SettingsIdentityService
-	ControllerFactory handlerwebapp.ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          handlerwebapp.Renderer
+	VerificationConfig *config.VerificationConfig
+	Verification       SettingsVerificationService
+	Database           *appdb.Handle
+	LoginIDConfig      *config.LoginIDConfig
+	Identities         SettingsIdentityService
+	ControllerFactory  handlerwebapp.ControllerFactory
+	BaseViewModel      *viewmodels.BaseViewModeler
+	Renderer           handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2SettingsIdentityListUsernameHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]any, error) {
@@ -68,7 +71,13 @@ func (h *AuthflowV2SettingsIdentityListUsernameHandler) GetData(ctx context.Cont
 		createDisabled = *loginIDConfig.CreateDisabled
 	}
 
+	viewActionable, err := LoginIDViewActions(ctx, identities, h.Verification, h.LoginIDConfig, h.VerificationConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	vm := AuthflowV2SettingsIdentityListUsernameViewModel{
+		ViewActionable:     viewActionable,
 		LoginIDKey:         loginIDKey,
 		UsernameIdentities: usernameIdentities,
 		CreateDisabled:     createDisabled,
