@@ -4,8 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"net/url"
-
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -49,6 +48,7 @@ type AuthflowV2SettingsIdentityViewUsernameViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityViewUsernameHandler struct {
+	LoginIDListURLs   *SettingsListURLService
 	Database          *appdb.Handle
 	AccountManagement *accountmanagement.Service
 	AppID             config.AppID
@@ -99,6 +99,7 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) GetData(ctx context.Cont
 		DeleteDisabled: deleteDisabled,
 	}
 	viewmodels.Embed(data, vm)
+	viewmodels.Embed(data, NewSettingsListURLMakers(baseViewModel.MakeURL, identities))
 
 	return data, nil
 }
@@ -140,14 +141,11 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) ServeHTTP(w http.Respons
 			return err
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListUsername)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypeUsername, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
-		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result := webapp.Result{RedirectURI: listURL}
 		result.WriteResponse(w, r)
 		return nil
 	})

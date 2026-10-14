@@ -55,6 +55,7 @@ type AuthflowV2SettingsIdentityEditEmailViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityEditEmailHandler struct {
+	LoginIDListURLs   *SettingsListURLService
 	IdentityConfig    *config.IdentityConfig
 	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
@@ -187,16 +188,12 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 			return nil
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypeEmail, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
 
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
-
-		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: listURL}}
 		result.WriteResponse(w, r)
 		return nil
 	})

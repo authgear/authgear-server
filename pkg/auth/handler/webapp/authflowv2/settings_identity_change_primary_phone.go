@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"net/url"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -37,6 +35,7 @@ type AuthflowV2SettingsIdentityChangePrimaryPhoneViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityChangePrimaryPhoneHandler struct {
+	LoginIDListURLs          *SettingsListURLService
 	Database                 *appdb.Handle
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
@@ -92,6 +91,11 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryPhoneHandler) GetData(ctx contex
 		Phones:     phones.Keys(),
 	}
 	viewmodels.Embed(data, vm)
+	makers, err := h.LoginIDListURLs.MakersInTx(ctx, baseViewModel.MakeURL)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, makers)
 
 	return data, nil
 }
@@ -145,15 +149,12 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryPhoneHandler) ServeHTTP(w http.R
 		}
 
 		loginIDKey := r.Form.Get("q_login_id_key")
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypePhone, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
 
-		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: listURL}}
 		result.WriteResponse(w, r)
 		return nil
 	})

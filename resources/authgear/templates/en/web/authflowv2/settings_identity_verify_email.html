@@ -1,7 +1,7 @@
 {{ template "authflowv2/__settings_page_frame.html" . }}
 
 {{ define "page-navbar" }}
-  {{ $back_url := call $.MakeURL "/settings/identity/email" "q_login_id_key" $.LoginIDKey }}
+  {{ $back_url := call $.MakeListEmailURL "/settings" "q_login_id_key" $.LoginIDKey }}
   {{ if $.IdentityID }}
     {{ $back_url = (call $.MakeURL "/settings/identity/view_email" "q_login_id_key" $.LoginIDKey "q_identity_id" $.IdentityID) }}
   {{ end }}

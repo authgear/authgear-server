@@ -62,12 +62,8 @@
         {{ $identityArr = $.Emails }}{{ $identity := $.Email }}
         {{ $url = call $.MakeURL "/settings/identity/email" "q_login_id_key" .login_id_key }}
         {{ if and (eq (len $.Emails) 1) (eq (len $.EmailIdentityIDs) 1) }}
-          {{ $clickable = true }}
-          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/change_email" "q_login_id_key" .login_id_key "q_identity_id" (index $.EmailIdentityIDs 0)) }}
-          {{ if .update_disabled }}
-            {{ $url = (call $.MakeURL "/settings/identity/view_email" "q_login_id_key" .login_id_key "q_identity_id" (index $.EmailIdentityIDs 0)) }}
-            {{ $clickable = index $.LoginIDViewActionable (index $.EmailIdentityIDs 0) }}
-          {{ end }}
+          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/view_email" "q_login_id_key" .login_id_key "q_identity_id" (index $.EmailIdentityIDs 0)) }}
+          {{ $clickable = index $.LoginIDViewActionable (index $.EmailIdentityIDs 0) }}
         {{ end }}
       {{ end }}
 
@@ -77,12 +73,8 @@
         {{ $identityArr = $.PhoneNumbers }}{{ $identity = $.PhoneNumber }}
         {{ $url = call $.MakeURL "/settings/identity/phone" "q_login_id_key" .login_id_key }}
         {{ if and (eq (len $.PhoneNumbers) 1) (eq (len $.PhoneIdentityIDs) 1) }}
-          {{ $clickable = true }}
-          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/change_phone" "q_login_id_key" .login_id_key "q_identity_id" (index $.PhoneIdentityIDs 0)) }}
-          {{ if .update_disabled }}
-            {{ $url = (call $.MakeURL "/settings/identity/view_phone" "q_login_id_key" .login_id_key "q_identity_id" (index $.PhoneIdentityIDs 0)) }}
-            {{ $clickable = index $.LoginIDViewActionable (index $.PhoneIdentityIDs 0) }}
-          {{ end }}
+          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/view_phone" "q_login_id_key" .login_id_key "q_identity_id" (index $.PhoneIdentityIDs 0)) }}
+          {{ $clickable = index $.LoginIDViewActionable (index $.PhoneIdentityIDs 0) }}
         {{ end }}
       {{ end }}
 
@@ -92,12 +84,8 @@
         {{ $identityArr = $.PreferredUsernames }}{{ $identity = $.PreferredUsername }}
         {{ $url = call $.MakeURL "/settings/identity/username" "q_login_id_key" .login_id_key }}
         {{ if and (eq (len $.PreferredUsernames) 1) (eq (len $.UsernameIdentityIDs) 1) }}
-          {{ $clickable = true }}
-          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/change_username" "q_login_id_key" .login_id_key "q_identity_id" (index $.UsernameIdentityIDs 0)) }}
-          {{ if .update_disabled }}
-            {{ $url = (call $.MakeURL "/settings/identity/view_username" "q_login_id" (index $.UsernameIdentityIDs 0)) }}
-            {{ $clickable = index $.LoginIDViewActionable (index $.UsernameIdentityIDs 0) }}
-          {{ end }}
+          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/view_username" "q_login_id" (index $.UsernameIdentityIDs 0)) }}
+          {{ $clickable = index $.LoginIDViewActionable (index $.UsernameIdentityIDs 0) }}
         {{ end }}
       {{ end }}
 

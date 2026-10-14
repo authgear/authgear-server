@@ -6,6 +6,7 @@ import (
 
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -64,6 +65,7 @@ type AuthflowV2SettingsIdentityViewEmailViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityViewEmailHandler struct {
+	LoginIDListURLs    *SettingsListURLService
 	Database           *appdb.Handle
 	LoginIDConfig      *config.LoginIDConfig
 	VerificationConfig *config.VerificationConfig
@@ -125,6 +127,7 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(ctx context.Context
 		VerificationEnabled: *h.VerificationConfig.Claims.Email.Enabled,
 	}
 	viewmodels.Embed(data, vm)
+	viewmodels.Embed(data, NewSettingsListURLMakers(baseViewModel.MakeURL, identities))
 
 	return data, nil
 }
@@ -166,15 +169,12 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		loginIDKey := r.Form.Get("q_login_id_key")
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypeEmail, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
 
-		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result := webapp.Result{RedirectURI: listURL}
 
 		result.WriteResponse(w, r)
 		return nil

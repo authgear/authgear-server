@@ -4,8 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"net/url"
-
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -44,6 +43,7 @@ type AuthflowV2SettingsIdentityNewUsernameViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityNewUsernameHandler struct {
+	LoginIDListURLs   *SettingsListURLService
 	Database          *appdb.Handle
 	AccountManagement *accountmanagement.Service
 	ControllerFactory handlerwebapp.ControllerFactory
@@ -51,7 +51,7 @@ type AuthflowV2SettingsIdentityNewUsernameHandler struct {
 	Renderer          handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SettingsIdentityNewUsernameHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]any, error) {
+func (h *AuthflowV2SettingsIdentityNewUsernameHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]any, error) {
 	data := map[string]any{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -61,6 +61,11 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) GetData(w http.ResponseWr
 		LoginIDKey: loginIDKey,
 	}
 	viewmodels.Embed(data, vm)
+	makers, err := h.LoginIDListURLs.MakersInTx(ctx, baseViewModel.MakeURL)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, makers)
 
 	return data, nil
 }
@@ -76,7 +81,7 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, _ *webapp.Session) error {
 		var data map[string]any
 		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
-			data, err = h.GetData(w, r)
+			data, err = h.GetData(ctx, w, r)
 			return err
 		})
 		if err != nil {
@@ -110,14 +115,11 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 			return nil
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListUsername)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypeUsername, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
-		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: listURL}}
 		result.WriteResponse(w, r)
 
 		return nil

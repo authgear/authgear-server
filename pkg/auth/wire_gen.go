@@ -103754,111 +103754,20 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	appID := appConfig.ID
-	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorService := &webapp2.ErrorService{
-		AppID:       appID,
-		Cookie:      errorTokenCookieDef,
-		RedisHandle: appredisHandle,
-		Cookies:     cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	uiService := &authenticationinfo.UIService{
-		EndpointsProvider: endpointsEndpoints,
-	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       store,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	identityConfig := appConfig.Identity
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -103867,6 +103776,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -103880,6 +103790,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -103916,20 +103827,28 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
+	resolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: templateResolver,
+		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -103942,11 +103861,51 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -103988,7 +103947,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -103997,7 +103956,52 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: appredisHandle,
+		Cookies:     cookieManager,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
+		Redis:       appredisHandle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -104028,12 +104032,12 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -104058,7 +104062,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -104258,7 +104262,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -104388,7 +104392,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -104605,7 +104609,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  resolver,
+		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -104743,7 +104747,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -104795,7 +104799,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiService,
-		OAuthClientResolver:  resolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -104825,7 +104829,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               resolver,
+		OAuthClientResolver:               oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -104890,6 +104894,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityAddEmailHandler := &authflowv2.AuthflowV2SettingsIdentityAddEmailHandler{
+		LoginIDListURLs:   settingsListURLService,
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
@@ -104900,112 +104905,21 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 
 func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.AppDatabase
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	identityConfig := appConfig.Identity
-	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
-	appID := appConfig.ID
-	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorService := &webapp2.ErrorService{
-		AppID:       appID,
-		Cookie:      errorTokenCookieDef,
-		RedisHandle: appredisHandle,
-		Cookies:     cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	uiService := &authenticationinfo.UIService{
-		EndpointsProvider: endpointsEndpoints,
-	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       store,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -105014,6 +104928,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -105027,6 +104942,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -105063,20 +104979,28 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
+	resolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: templateResolver,
+		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -105089,11 +105013,51 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -105135,7 +105099,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -105144,7 +105108,52 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: appredisHandle,
+		Cookies:     cookieManager,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
+		Redis:       appredisHandle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -105175,12 +105184,12 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -105205,7 +105214,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -105405,7 +105414,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -105535,7 +105544,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -105752,7 +105761,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  resolver,
+		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -105890,7 +105899,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -105942,7 +105951,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiService,
-		OAuthClientResolver:  resolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -105972,7 +105981,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               resolver,
+		OAuthClientResolver:               oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -106037,6 +106046,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityEditEmailHandler := &authflowv2.AuthflowV2SettingsIdentityEditEmailHandler{
+		LoginIDListURLs:   settingsListURLService,
 		IdentityConfig:    identityConfig,
 		Database:          handle,
 		ControllerFactory: controllerFactory,
@@ -107187,111 +107197,20 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	appID := appConfig.ID
-	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorService := &webapp2.ErrorService{
-		AppID:       appID,
-		Cookie:      errorTokenCookieDef,
-		RedisHandle: appredisHandle,
-		Cookies:     cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	uiService := &authenticationinfo.UIService{
-		EndpointsProvider: endpointsEndpoints,
-	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       store,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	identityConfig := appConfig.Identity
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -107300,6 +107219,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -107313,6 +107233,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -107349,20 +107270,28 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
+	resolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: templateResolver,
+		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -107375,11 +107304,51 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -107421,7 +107390,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -107430,7 +107399,52 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: appredisHandle,
+		Cookies:     cookieManager,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
+		Redis:       appredisHandle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -107461,12 +107475,12 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -107491,7 +107505,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -107691,7 +107705,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -107821,7 +107835,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -108038,7 +108052,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  resolver,
+		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -108176,7 +108190,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -108228,7 +108242,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiService,
-		OAuthClientResolver:  resolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -108258,7 +108272,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               resolver,
+		OAuthClientResolver:               oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -108323,6 +108337,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityVerifyEmailHandler := &authflowv2.AuthflowV2SettingsIdentityVerifyEmailHandler{
+		LoginIDListURLs:     settingsListURLService,
 		Database:            handle,
 		ControllerFactory:   controllerFactory,
 		BaseViewModel:       baseViewModeler,
@@ -108342,10 +108357,8 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	identityConfig := appConfig.Identity
-	loginIDConfig := identityConfig.LoginID
-	verificationConfig := appConfig.Verification
 	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
@@ -108362,6 +108375,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
@@ -108542,6 +108556,11 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	verificationConfig := appConfig.Verification
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
@@ -109481,6 +109500,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityViewEmailHandler := &authflowv2.AuthflowV2SettingsIdentityViewEmailHandler{
+		LoginIDListURLs:    settingsListURLService,
 		Database:           handle,
 		LoginIDConfig:      loginIDConfig,
 		VerificationConfig: verificationConfig,
@@ -109497,111 +109517,20 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	appID := appConfig.ID
-	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorService := &webapp2.ErrorService{
-		AppID:       appID,
-		Cookie:      errorTokenCookieDef,
-		RedisHandle: appredisHandle,
-		Cookies:     cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	uiService := &authenticationinfo.UIService{
-		EndpointsProvider: endpointsEndpoints,
-	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       store,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	identityConfig := appConfig.Identity
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -109610,6 +109539,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -109623,6 +109553,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -109659,20 +109590,28 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
+	resolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: templateResolver,
+		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -109685,11 +109624,51 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -109731,7 +109710,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -109740,7 +109719,52 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: appredisHandle,
+		Cookies:     cookieManager,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
+		Redis:       appredisHandle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -109771,12 +109795,12 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -109801,7 +109825,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -110001,7 +110025,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -110131,7 +110155,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -110348,7 +110372,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  resolver,
+		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -110486,7 +110510,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -110538,7 +110562,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiService,
-		OAuthClientResolver:  resolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -110568,7 +110592,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               resolver,
+		OAuthClientResolver:               oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -110622,6 +110646,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		Coordinator:  coordinator,
 	}
 	authflowV2SettingsIdentityChangePrimaryEmailHandler := &authflowv2.AuthflowV2SettingsIdentityChangePrimaryEmailHandler{
+		LoginIDListURLs:          settingsListURLService,
 		Database:                 handle,
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
@@ -110637,111 +110662,20 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	appID := appConfig.ID
-	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorService := &webapp2.ErrorService{
-		AppID:       appID,
-		Cookie:      errorTokenCookieDef,
-		RedisHandle: appredisHandle,
-		Cookies:     cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	uiService := &authenticationinfo.UIService{
-		EndpointsProvider: endpointsEndpoints,
-	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       store,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	identityConfig := appConfig.Identity
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -110750,6 +110684,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -110763,6 +110698,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -110799,20 +110735,28 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
+	resolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: templateResolver,
+		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -110825,11 +110769,51 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -110871,7 +110855,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -110880,7 +110864,52 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: appredisHandle,
+		Cookies:     cookieManager,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
+		Redis:       appredisHandle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -110911,12 +110940,12 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -110941,7 +110970,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -111141,7 +111170,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -111271,7 +111300,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -111488,7 +111517,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  resolver,
+		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -111626,7 +111655,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -111678,7 +111707,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiService,
-		OAuthClientResolver:  resolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -111708,7 +111737,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               resolver,
+		OAuthClientResolver:               oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -111773,6 +111802,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityAddPhoneHandler := &authflowv2.AuthflowV2SettingsIdentityAddPhoneHandler{
+		LoginIDListURLs:     settingsListURLService,
 		ControllerFactory:   controllerFactory,
 		BaseViewModel:       baseViewModeler,
 		Renderer:            responseRenderer,
@@ -111784,112 +111814,21 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 
 func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.AppDatabase
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	identityConfig := appConfig.Identity
-	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
-	appID := appConfig.ID
-	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorService := &webapp2.ErrorService{
-		AppID:       appID,
-		Cookie:      errorTokenCookieDef,
-		RedisHandle: appredisHandle,
-		Cookies:     cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	uiService := &authenticationinfo.UIService{
-		EndpointsProvider: endpointsEndpoints,
-	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       store,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -111898,6 +111837,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -111911,6 +111851,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -111947,20 +111888,28 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
+	resolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: templateResolver,
+		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -111973,11 +111922,51 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -112019,7 +112008,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -112028,7 +112017,52 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: appredisHandle,
+		Cookies:     cookieManager,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
+		Redis:       appredisHandle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -112059,12 +112093,12 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -112089,7 +112123,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -112289,7 +112323,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -112419,7 +112453,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -112636,7 +112670,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  resolver,
+		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -112774,7 +112808,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -112826,7 +112860,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiService,
-		OAuthClientResolver:  resolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -112856,7 +112890,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               resolver,
+		OAuthClientResolver:               oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -112921,6 +112955,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityEditPhoneHandler := &authflowv2.AuthflowV2SettingsIdentityEditPhoneHandler{
+		LoginIDListURLs:     settingsListURLService,
 		IdentityConfig:      identityConfig,
 		Database:            handle,
 		ControllerFactory:   controllerFactory,
@@ -114075,10 +114110,8 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	identityConfig := appConfig.Identity
-	loginIDConfig := identityConfig.LoginID
-	verificationConfig := appConfig.Verification
 	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
@@ -114095,6 +114128,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	loginIDConfig := identityConfig.LoginID
 	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
@@ -114275,6 +114309,11 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	verificationConfig := appConfig.Verification
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
 		Redis: appredisHandle,
@@ -115208,6 +115247,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityViewPhoneHandler := &authflowv2.AuthflowV2SettingsIdentityViewPhoneHandler{
+		LoginIDListURLs:     settingsListURLService,
 		Database:            handle,
 		LoginIDConfig:       loginIDConfig,
 		VerificationConfig:  verificationConfig,
@@ -115225,111 +115265,20 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	appID := appConfig.ID
-	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorService := &webapp2.ErrorService{
-		AppID:       appID,
-		Cookie:      errorTokenCookieDef,
-		RedisHandle: appredisHandle,
-		Cookies:     cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	uiService := &authenticationinfo.UIService{
-		EndpointsProvider: endpointsEndpoints,
-	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       store,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	identityConfig := appConfig.Identity
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -115338,6 +115287,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -115351,6 +115301,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -115387,20 +115338,28 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
+	resolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: templateResolver,
+		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -115413,11 +115372,51 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -115459,7 +115458,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -115468,7 +115467,52 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: appredisHandle,
+		Cookies:     cookieManager,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
+		Redis:       appredisHandle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -115499,12 +115543,12 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -115529,7 +115573,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -115729,7 +115773,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -115859,7 +115903,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -116076,7 +116120,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  resolver,
+		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -116214,7 +116258,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -116266,7 +116310,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiService,
-		OAuthClientResolver:  resolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -116296,7 +116340,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               resolver,
+		OAuthClientResolver:               oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -116350,6 +116394,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		Coordinator:  coordinator,
 	}
 	authflowV2SettingsIdentityChangePrimaryPhoneHandler := &authflowv2.AuthflowV2SettingsIdentityChangePrimaryPhoneHandler{
+		LoginIDListURLs:          settingsListURLService,
 		Database:                 handle,
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
@@ -116365,111 +116410,20 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	appID := appConfig.ID
-	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorService := &webapp2.ErrorService{
-		AppID:       appID,
-		Cookie:      errorTokenCookieDef,
-		RedisHandle: appredisHandle,
-		Cookies:     cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
-	oAuthEndpoints := &endpoints.OAuthEndpoints{
-		HTTPHost:               httpHost,
-		HTTPProto:              httpProto,
-		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
-	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		OAuthEndpoints:          oAuthEndpoints,
-		UIImplementationService: uiImplementationService,
-	}
-	uiService := &authenticationinfo.UIService{
-		EndpointsProvider: endpointsEndpoints,
-	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &oauthclient.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	clientCache := &oauthclient.ClientCache{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	queries := &oauthclient.Queries{
-		Store:       store,
-		OAuthConfig: oAuthConfig,
-		Database:    handle,
-		Cache:       clientCache,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-		Queries:         queries,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	featureConfig := config.FeatureConfig
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	redisStore := &redis.Store{
-		Redis:       appredisHandle,
-		AppID:       appID,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	userStore := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
-	identityConfig := appConfig.Identity
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -116478,6 +116432,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		UIConfig:      uiConfig,
@@ -116491,6 +116446,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -116527,20 +116483,28 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
+	resolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: templateResolver,
+		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -116553,11 +116517,51 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    handle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
 	translationService := &translation.Service{
 		TemplateEngine:                  engine,
 		StaticAssets:                    staticAssetResolver,
 		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -116599,7 +116603,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -116608,7 +116612,52 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: appredisHandle,
+		Cookies:     cookieManager,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	redisStore := &redis.Store{
+		Redis:       appredisHandle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -116639,12 +116688,12 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -116669,7 +116718,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -116869,7 +116918,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	}
 	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -116999,7 +117048,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -117216,7 +117265,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		OAuthConfig:     oAuthConfig,
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
-		ClientResolver:  resolver,
+		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
@@ -117354,7 +117403,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
-		OAuthClientResolver:             resolver,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -117406,7 +117455,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiService,
-		OAuthClientResolver:  resolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -117436,7 +117485,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		SupportedLanguageTags:             supportedLanguageTags,
 		AuthUISentryDSN:                   authUISentryDSN,
 		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
-		OAuthClientResolver:               resolver,
+		OAuthClientResolver:               oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -117501,6 +117550,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		UIInfoResolver:            uiService,
 	}
 	authflowV2SettingsIdentityVerifyPhoneHandler := &authflowv2.AuthflowV2SettingsIdentityVerifyPhoneHandler{
+		LoginIDListURLs:     settingsListURLService,
 		Database:            handle,
 		ControllerFactory:   controllerFactory,
 		BaseViewModel:       baseViewModeler,
@@ -118645,44 +118695,17 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	request := p.Request
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appID := appConfig.ID
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawCommands := &user.RawCommands{
-		Store: store,
-		Clock: clockClock,
-	}
-	rawQueries := &user.RawQueries{
-		Store: store,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
+	secretConfig := config.SecretConfig
 	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -118705,6 +118728,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -118746,6 +118770,10 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
@@ -118756,6 +118784,10 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -118853,7 +118885,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -118862,7 +118894,29 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawCommands := &user.RawCommands{
+		Store: userStore,
+		Clock: clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -118893,12 +118947,12 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -118923,7 +118977,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -118951,14 +119005,14 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -118970,7 +119024,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	}
 	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     readOnlyService,
 		Verification:       verificationService,
@@ -119043,7 +119097,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
 		Users:           userQueries,
-		UserStore:       store,
+		UserStore:       userStore,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
@@ -119055,7 +119109,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
-		UserStore:       store,
+		UserStore:       userStore,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
@@ -119076,7 +119130,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		SearchConfig:               searchConfig,
 		Clock:                      clockClock,
 		Database:                   handle,
-		UserStore:                  store,
+		UserStore:                  userStore,
 		Producer:                   userReindexProducer,
 		SourceProvider:             sourceProvider,
 		ElasticsearchReindexer:     elasticsearchService,
@@ -119157,7 +119211,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		SimpleStoreRedisFactory:      simpleStoreRedisFactory,
 	}
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -119288,7 +119342,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -119436,7 +119490,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -119458,7 +119512,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	store5 := &redis.Store{
+	store4 := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -119503,10 +119557,10 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store5,
+		OfflineGrants:   store4,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store5,
+		Store:   store4,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -119658,7 +119712,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             oauthclientResolver,
-		OfflineGrants:                   store5,
+		OfflineGrants:                   store4,
 		Identities:                      facadeIdentityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -119778,6 +119832,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		ControllerDeps: controllerDeps,
 	}
 	authflowV2SettingsIdentityNewUsernameHandler := &authflowv2.AuthflowV2SettingsIdentityNewUsernameHandler{
+		LoginIDListURLs:   settingsListURLService,
 		Database:          handle,
 		AccountManagement: accountmanagementService,
 		ControllerFactory: controllerFactory,
@@ -119793,44 +119848,17 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	request := p.Request
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appID := appConfig.ID
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawCommands := &user.RawCommands{
-		Store: store,
-		Clock: clockClock,
-	}
-	rawQueries := &user.RawQueries{
-		Store: store,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
+	secretConfig := config.SecretConfig
 	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appID := appConfig.ID
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -119853,6 +119881,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -119894,6 +119923,10 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
@@ -119904,6 +119937,10 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -120001,7 +120038,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -120010,7 +120047,29 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawCommands := &user.RawCommands{
+		Store: userStore,
+		Clock: clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -120041,12 +120100,12 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -120071,7 +120130,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -120099,14 +120158,14 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -120118,7 +120177,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	}
 	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     readOnlyService,
 		Verification:       verificationService,
@@ -120191,7 +120250,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
 		Users:           userQueries,
-		UserStore:       store,
+		UserStore:       userStore,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
@@ -120203,7 +120262,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
-		UserStore:       store,
+		UserStore:       userStore,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
@@ -120224,7 +120283,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		SearchConfig:               searchConfig,
 		Clock:                      clockClock,
 		Database:                   handle,
-		UserStore:                  store,
+		UserStore:                  userStore,
 		Producer:                   userReindexProducer,
 		SourceProvider:             sourceProvider,
 		ElasticsearchReindexer:     elasticsearchService,
@@ -120305,7 +120364,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		SimpleStoreRedisFactory:      simpleStoreRedisFactory,
 	}
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -120436,7 +120495,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -120584,7 +120643,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -120606,7 +120665,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	store5 := &redis.Store{
+	store4 := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -120651,10 +120710,10 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store5,
+		OfflineGrants:   store4,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store5,
+		Store:   store4,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -120806,7 +120865,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             oauthclientResolver,
-		OfflineGrants:                   store5,
+		OfflineGrants:                   store4,
 		Identities:                      facadeIdentityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -120926,6 +120985,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		ControllerDeps: controllerDeps,
 	}
 	authflowV2SettingsIdentityViewUsernameHandler := &authflowv2.AuthflowV2SettingsIdentityViewUsernameHandler{
+		LoginIDListURLs:   settingsListURLService,
 		Database:          handle,
 		AccountManagement: accountmanagementService,
 		AppID:             appID,
@@ -120940,48 +121000,21 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 
 func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.AppDatabase
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	handle := appProvider.AppDatabase
-	request := p.Request
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clockClock := _wireSystemClockValue
-	store := &user.Store{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-		AppID:       appID,
-	}
-	rawCommands := &user.RawCommands{
-		Store: store,
-		Clock: clockClock,
-	}
-	rawQueries := &user.RawQueries{
-		Store: store,
-	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
-	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
-	localizationConfig := appConfig.Localization
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
-	authenticationConfig := appConfig.Authentication
-	featureConfig := config.FeatureConfig
-	identityFeatureConfig := featureConfig.Identity
-	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
-	serviceStore := &service.Store{
+	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -121004,6 +121037,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
+	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -121045,6 +121079,10 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		Redis: appredisHandle,
 		AppID: appID,
 	}
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
@@ -121055,6 +121093,10 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -121152,7 +121194,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		Identity:                identityConfig,
 		IdentityFeatureConfig:   identityFeatureConfig,
 		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
-		Store:                   serviceStore,
+		Store:                   store,
 		LoginID:                 provider,
 		OAuth:                   oauthProvider,
 		Anonymous:               anonymousProvider,
@@ -121161,7 +121203,29 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		SIWE:                    siweProvider,
 		LDAP:                    ldapProvider,
 	}
-	store3 := &service2.Store{
+	settingsListURLService := &authflowv2.SettingsListURLService{
+		Database:   handle,
+		Identities: serviceService,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawCommands := &user.RawCommands{
+		Store: userStore,
+		Clock: clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -121192,12 +121256,12 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		Expiry:          expiry,
 		Housekeeper:     housekeeper,
 	}
-	store4 := &passkey3.Store{
+	store3 := &passkey3.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	provider2 := &passkey3.Provider{
-		Store:   store4,
+		Store:   store3,
 		Clock:   clockClock,
 		Passkey: passkeyService,
 	}
@@ -121222,7 +121286,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		UIConfig:                 uiConfig,
 	}
 	readOnlyService := &service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -121250,14 +121314,14 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -121269,7 +121333,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	}
 	userQueries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     readOnlyService,
 		Verification:       verificationService,
@@ -121342,7 +121406,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
 		Users:           userQueries,
-		UserStore:       store,
+		UserStore:       userStore,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
@@ -121354,7 +121418,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		AppID:           appID,
 		Client:          client,
 		Users:           userQueries,
-		UserStore:       store,
+		UserStore:       userStore,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 	}
@@ -121375,7 +121439,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		SearchConfig:               searchConfig,
 		Clock:                      clockClock,
 		Database:                   handle,
-		UserStore:                  store,
+		UserStore:                  userStore,
 		Producer:                   userReindexProducer,
 		SourceProvider:             sourceProvider,
 		ElasticsearchReindexer:     elasticsearchService,
@@ -121456,7 +121520,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		SimpleStoreRedisFactory:      simpleStoreRedisFactory,
 	}
 	serviceReadOnlyService := service2.ReadOnlyService{
-		Store:    store3,
+		Store:    serviceStore,
 		Password: passwordProvider,
 		Passkey:  provider2,
 		TOTP:     totpProvider,
@@ -121587,7 +121651,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 	}
 	service3 := &service2.Service{
 		ReadOnlyService: serviceReadOnlyService,
-		Store:           store3,
+		Store:           serviceStore,
 		Config:          appConfig,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
@@ -121735,7 +121799,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -121757,7 +121821,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
 	}
-	store5 := &redis.Store{
+	store4 := &redis.Store{
 		Redis:       appredisHandle,
 		AppID:       appID,
 		SQLBuilder:  sqlBuilderApp,
@@ -121802,10 +121866,10 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		ClientResolver:  oauthclientResolver,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
-		OfflineGrants:   store5,
+		OfflineGrants:   store4,
 	}
 	sessionManager := &oauth.SessionManager{
-		Store:   store5,
+		Store:   store4,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -121957,7 +122021,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		FeatureConfig:                   featureConfig,
 		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
 		OAuthClientResolver:             oauthclientResolver,
-		OfflineGrants:                   store5,
+		OfflineGrants:                   store4,
 		Identities:                      facadeIdentityFacade,
 		Authenticators:                  authenticatorFacade,
 		AnonymousIdentities:             anonymousProvider,
@@ -122077,6 +122141,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		ControllerDeps: controllerDeps,
 	}
 	authflowV2SettingsIdentityEditUsernameHandler := &authflowv2.AuthflowV2SettingsIdentityEditUsernameHandler{
+		LoginIDListURLs:   settingsListURLService,
 		IdentityConfig:    identityConfig,
 		Database:          handle,
 		AccountManagement: accountmanagementService,

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"net/url"
-
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -54,6 +52,7 @@ type AuthflowV2SettingsIdentityEditUsernameViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityEditUsernameHandler struct {
+	LoginIDListURLs   *SettingsListURLService
 	IdentityConfig    *config.IdentityConfig
 	Database          *appdb.Handle
 	AccountManagement *accountmanagement.Service
@@ -168,14 +167,11 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 			return nil
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListUsername)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypeUsername, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
-		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: listURL}}
 		result.WriteResponse(w, r)
 
 		return nil

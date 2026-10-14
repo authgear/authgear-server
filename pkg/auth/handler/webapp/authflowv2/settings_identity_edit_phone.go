@@ -58,6 +58,7 @@ type AuthflowV2SettingsIdentityEditPhoneViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityEditPhoneHandler struct {
+	LoginIDListURLs     *SettingsListURLService
 	IdentityConfig      *config.IdentityConfig
 	Database            *appdb.Handle
 	ControllerFactory   handlerwebapp.ControllerFactory
@@ -204,16 +205,12 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 			return nil
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypePhone, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
 
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
-
-		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: listURL}}
 		result.WriteResponse(w, r)
 		return nil
 	})
