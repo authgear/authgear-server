@@ -71,6 +71,21 @@ config:
     phone_input:
       allowlist: []
 ---
+name: enable-auth-flow-builder
+error: null
+config:
+  ui:
+    auth_flow_builder_enabled: true
+---
+name: auth-flow-builder-enabled-must-be-boolean
+error: |-
+  invalid feature config:
+  /ui/auth_flow_builder_enabled: type
+    map[actual:[string] expected:[boolean]]
+config:
+  ui:
+    auth_flow_builder_enabled: "yes"
+---
 name: limit-number-of-applications
 error: null
 config:

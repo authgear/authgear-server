@@ -53,6 +53,7 @@ ui:
   white_labeling:
     disabled: false
   phone_input: {}
+  auth_flow_builder_enabled: false
 custom_domain:
   disabled: false
 oauth:

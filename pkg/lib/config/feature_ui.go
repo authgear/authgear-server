@@ -8,7 +8,8 @@ var _ = FeatureConfigSchema.Add("UIFeatureConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"white_labeling": { "$ref": "#/$defs/WhiteLabelingFeatureConfig" },
-		"phone_input": { "$ref": "#/$defs/PhoneInputFeatureConfig" }
+		"phone_input": { "$ref": "#/$defs/PhoneInputFeatureConfig" },
+		"auth_flow_builder_enabled": { "type": "boolean" }
 	}
 }
 `)
@@ -16,6 +17,14 @@ var _ = FeatureConfigSchema.Add("UIFeatureConfig", `
 type UIFeatureConfig struct {
 	WhiteLabeling *WhiteLabelingFeatureConfig `json:"white_labeling,omitempty"`
 	PhoneInput    *PhoneInputFeatureConfig    `json:"phone_input,omitempty"`
+	// AuthFlowBuilderEnabled gates the portal's auth flow builder while it is in testing.
+	AuthFlowBuilderEnabled *bool `json:"auth_flow_builder_enabled,omitempty"`
+}
+
+func (c *UIFeatureConfig) SetDefaults() {
+	if c.AuthFlowBuilderEnabled == nil {
+		c.AuthFlowBuilderEnabled = new(false)
+	}
 }
 
 var _ MergeableFeatureConfig = &UIFeatureConfig{}
@@ -35,6 +44,9 @@ func (c *UIFeatureConfig) Merge(layer *FeatureConfig) MergeableFeatureConfig {
 	}
 	if layer.UI.PhoneInput != nil {
 		merged.PhoneInput = layer.UI.PhoneInput
+	}
+	if layer.UI.AuthFlowBuilderEnabled != nil {
+		merged.AuthFlowBuilderEnabled = layer.UI.AuthFlowBuilderEnabled
 	}
 
 	return merged

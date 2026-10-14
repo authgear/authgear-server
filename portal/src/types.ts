@@ -1189,6 +1189,7 @@ export interface CustomDomainFeatureConfig {
 export interface UIFeatureConfig {
   white_labeling?: WhiteLabelingFeatureConfig;
   phone_input?: PhoneInputFeatureConfig;
+  auth_flow_builder_enabled?: boolean;
 }
 
 export interface PhoneInputFeatureConfig {
