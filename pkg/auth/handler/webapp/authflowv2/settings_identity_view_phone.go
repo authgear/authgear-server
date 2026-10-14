@@ -64,6 +64,7 @@ type AuthflowV2SettingsIdentityViewPhoneViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityViewPhoneHandler struct {
+	LoginIDListURLs     *SettingsListURLService
 	Database            *appdb.Handle
 	LoginIDConfig       *config.LoginIDConfig
 	VerificationConfig  *config.VerificationConfig
@@ -101,7 +102,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(ctx context.Context
 
 	updateDisabled := true
 	deleteDisabled := true
-	if loginIDConfig, ok := h.LoginIDConfig.GetKeyConfig(loginIDKey); ok {
+	if loginIDConfig, ok := h.LoginIDConfig.GetKeyConfig(phoneIdentity.LoginID.LoginIDKey); ok {
 		updateDisabled = *loginIDConfig.UpdateDisabled
 		deleteDisabled = *loginIDConfig.DeleteDisabled
 	}
@@ -129,6 +130,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(ctx context.Context
 		VerificationEnabled: *h.VerificationConfig.Claims.PhoneNumber.Enabled,
 	}
 	viewmodels.Embed(data, vm)
+	viewmodels.Embed(data, NewSettingsListURLMakers(baseViewModel.MakeURL, identities))
 
 	return data, nil
 }
@@ -171,15 +173,12 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		loginIDKey := r.Form.Get("q_login_id_key")
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypePhone, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
 
-		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result := webapp.Result{RedirectURI: listURL}
 
 		result.WriteResponse(w, r)
 		return nil

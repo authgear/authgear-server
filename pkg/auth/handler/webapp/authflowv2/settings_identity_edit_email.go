@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -54,6 +55,8 @@ type AuthflowV2SettingsIdentityEditEmailViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityEditEmailHandler struct {
+	LoginIDListURLs   *SettingsListURLService
+	IdentityConfig    *config.IdentityConfig
 	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -98,6 +101,10 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(ctx context.Context
 		})
 	} else if err != nil {
 		return nil, err
+	}
+
+	if target.UpdateDisabled(h.IdentityConfig) {
+		return nil, api.ErrIdentityModifyDisabled
 	}
 
 	vm := AuthflowV2SettingsIdentityEditEmailViewModel{
@@ -181,16 +188,12 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 			return nil
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypeEmail, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
 
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
-
-		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: listURL}}
 		result.WriteResponse(w, r)
 		return nil
 	})

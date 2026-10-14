@@ -37,6 +37,7 @@ type AuthflowV2SettingsIdentityListPhoneViewModelOAuthIdentity struct {
 }
 
 type AuthflowV2SettingsIdentityListPhoneViewModel struct {
+	ViewActionable       map[string]bool
 	LoginIDKey           string
 	PrimaryPhone         string
 	AllPhones            []string
@@ -47,6 +48,7 @@ type AuthflowV2SettingsIdentityListPhoneViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityListPhoneHandler struct {
+	VerificationConfig       *config.VerificationConfig
 	Database                 *appdb.Handle
 	LoginIDConfig            *config.LoginIDConfig
 	Identities               SettingsIdentityService
@@ -135,7 +137,13 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(ctx context.Context
 		createDisabled = *loginIDConfig.CreateDisabled
 	}
 
+	viewActionable, err := LoginIDViewActions(ctx, allIdentities, h.Verification, h.LoginIDConfig, h.VerificationConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	vm := AuthflowV2SettingsIdentityListPhoneViewModel{
+		ViewActionable:       viewActionable,
 		LoginIDKey:           loginIDKey,
 		PhoneIdentities:      phoneIdentities,
 		OAuthPhoneIdentities: oauthPhoneIdentities,

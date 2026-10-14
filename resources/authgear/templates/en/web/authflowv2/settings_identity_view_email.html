@@ -1,10 +1,11 @@
 {{ template "authflowv2/__settings_page_frame.html" . }}
 
 {{ define "page-navbar" }}
+  {{ $backHref := call $.MakeListEmailURL (call $.MakeBackURL "/settings") "q_login_id_key" $.LoginIDKey }}
   {{ template "authflowv2/__navbar.html"
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
-        "BackHref" (call $.MakeURL "/settings/identity/email" "q_login_id_key" $.LoginIDKey)
+        "BackHref" $backHref
         "Title" (translate "v2.page.settings-identity-email.default.title" nil)
         "Context" .
      )
@@ -27,7 +28,7 @@
 {{ end }}
 
 {{ define "__settings_identity_email_edit_button.html" }}
-  {{ if not $.Verified }}
+  {{ if and (not $.Verified) (not $.UpdateDisabled) }}
     <a class="settings-link-btn" href="{{ $.Href }}">
       {{ translate "v2.page.settings-identity-view-email.default.edit-email-button-label" . }}
     </a>
@@ -77,7 +78,7 @@
         )
       )
       "ActionButton" (include "__settings_identity_email_edit_button.html"
-        (dict "Href" (call $.MakeURL "/settings/identity/change_email" "q_login_id_key" $.LoginIDKey "q_identity_id" $IdentityID))
+        (dict "UpdateDisabled" $.UpdateDisabled "Href" (call $.MakeURL "/settings/identity/change_email" "q_login_id_key" $.LoginIDKey "q_identity_id" $IdentityID))
       )
     )
   }}

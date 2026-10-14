@@ -5,8 +5,6 @@ import (
 	"math"
 	"net/http"
 
-	"net/url"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -69,6 +67,7 @@ type AuthflowV2SettingsIdentityVerifyEmailViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityVerifyEmailHandler struct {
+	LoginIDListURLs     *SettingsListURLService
 	Database            *appdb.Handle
 	ControllerFactory   handlerwebapp.ControllerFactory
 	BaseViewModel       *viewmodels.BaseViewModeler
@@ -115,6 +114,11 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(ctx context.Conte
 	vm.FailedAttemptRateLimitExceeded = state.TooManyAttempts
 
 	viewmodels.Embed(data, vm)
+	makers, err := h.LoginIDListURLs.Makers(ctx, baseViewModel.MakeURL)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, makers)
 
 	return data, nil
 }
@@ -165,15 +169,12 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 			return nil
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypeEmail, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
 
-		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: listURL}}
 		result.WriteResponse(w, r)
 		return nil
 	})

@@ -46,6 +46,7 @@ type AuthflowV2SettingsIdentityAddPhoneViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityAddPhoneHandler struct {
+	LoginIDListURLs     *SettingsListURLService
 	ControllerFactory   handlerwebapp.ControllerFactory
 	BaseViewModel       *viewmodels.BaseViewModeler
 	Renderer            handlerwebapp.Renderer
@@ -53,7 +54,7 @@ type AuthflowV2SettingsIdentityAddPhoneHandler struct {
 	AccountManagement   accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsIdentityAddPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
+func (h *AuthflowV2SettingsIdentityAddPhoneHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
 	data := map[string]any{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
@@ -68,6 +69,11 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) GetData(r *http.Request, rw 
 		Channel:    channel,
 	}
 	viewmodels.Embed(data, vm)
+	makers, err := h.LoginIDListURLs.Makers(ctx, baseViewModel.MakeURL)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, makers)
 
 	return data, nil
 }
@@ -81,7 +87,7 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.GetWithSettingsActionWebSession(r, func(ctx context.Context, _ *webapp.Session) error {
-		data, err := h.GetData(r, w)
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -136,16 +142,12 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 			return nil
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
+		listURL, err := h.LoginIDListURLs.URL(ctx, model.LoginIDKeyTypePhone, loginIDKey, "/settings")
 		if err != nil {
 			return err
 		}
 
-		q := redirectURI.Query()
-		q.Set("q_login_id_key", loginIDKey)
-		redirectURI.RawQuery = q.Encode()
-
-		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: redirectURI.String()}}
+		result := &webapp.SettingsCompletedResult{Result: &webapp.Result{RedirectURI: listURL}}
 		result.WriteResponse(w, r)
 		return nil
 	})

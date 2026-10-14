@@ -18,14 +18,15 @@
     {{ range $.UsernameIdentities }}
       <li>
         {{ $href := (call $.MakeURL "/settings/identity/view_username" "q_login_id" .ID )}}
-        <a class="contents" href="{{$href}}">
+        {{ $actionable := index $.ViewActionable .ID }}
+        {{ if $actionable }}<a class="contents" href="{{$href}}">{{ end }}
           {{ template "authflowv2/__settings_item.html"
             (dict
               "Label" .OriginalLoginID
-              "WithArrow" true
+              "WithArrow" $actionable
             )
           }}
-        </a>
+        {{ if $actionable }}</a>{{ end }}
       </li>
     {{ end }}
   </ul>

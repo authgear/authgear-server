@@ -38,6 +38,7 @@ type AuthflowV2SettingsIdentityListEmailViewModelOAuthIdentity struct {
 }
 
 type AuthflowV2SettingsIdentityListEmailViewModel struct {
+	ViewActionable       map[string]bool
 	LoginIDKey           string
 	PrimaryEmail         string
 	AllEmails            []string
@@ -48,6 +49,7 @@ type AuthflowV2SettingsIdentityListEmailViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityListEmailHandler struct {
+	VerificationConfig       *config.VerificationConfig
 	Database                 *appdb.Handle
 	LoginIDConfig            *config.LoginIDConfig
 	Identities               *identityservice.Service
@@ -130,7 +132,17 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(ctx context.Context
 		createDisabled = *loginIDConfig.CreateDisabled
 	}
 
+	allIdentities, err := h.Identities.ListByUser(ctx, *userID)
+	if err != nil {
+		return nil, err
+	}
+	viewActionable, err := LoginIDViewActions(ctx, allIdentities, h.Verification, h.LoginIDConfig, h.VerificationConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	vm := AuthflowV2SettingsIdentityListEmailViewModel{
+		ViewActionable:       viewActionable,
 		LoginIDKey:           loginIDKey,
 		EmailIdentities:      emailIdentities,
 		OAuthEmailIdentities: oauthEmailIdentities,

@@ -33,7 +33,8 @@
         {{ if not (empty $claims) }}
           {{ $claim := first $claims }}
           {{ $href := (call $.MakeURL "/settings/identity/view_phone" "q_login_id_key" $.LoginIDKey "q_identity_id" .ID )}}
-          <a class="contents" href="{{$href}}">
+          {{ $actionable := index $.ViewActionable .ID }}
+          {{ if $actionable }}<a class="contents" href="{{$href}}">{{ end }}
             {{ template "authflowv2/__settings_item.html"
               (dict
                 "MaterialIconName" "phone_iphone"
@@ -41,10 +42,10 @@
                 "SupplementaryNote" (include "__settings_identity_phone_verification_label.html"
                   (dict "Verified" $claim.Verified)
                 )
-                "WithArrow" true
+                "WithArrow" $actionable
               )
             }}
-          </a>
+          {{ if $actionable }}</a>{{ end }}
         {{ end }}
       </li>
     {{ end }}
