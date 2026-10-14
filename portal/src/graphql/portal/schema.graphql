@@ -60,6 +60,11 @@ type App implements Node {
   """"""
   effectiveSecretConfig: EffectiveSecretConfig!
 
+  """
+  The authentication flows generated from the app's settings. A custom flow named "default" replaces the generated flow of its type.
+  """
+  generatedAuthenticationFlows: AuthenticationFlowConfig!
+
   """The ID of an object"""
   id: ID!
 
@@ -184,6 +189,11 @@ enum AppSecretKey {
   """"""
   WEBHOOK_SECRET
 }
+
+"""
+The `AuthenticationFlowConfig` scalar type represents the authentication_flow section of an app config
+"""
+scalar AuthenticationFlowConfig
 
 """Bot protection provider secret"""
 type BotProtectionProviderSecret {
