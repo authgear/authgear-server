@@ -131,7 +131,7 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) ServeHTTP(w http.Respons
 			return err
 		}
 		identityID := r.Form.Get("x_identity_id")
-		loginIDKey := r.Form.Get("x_login_key")
+		loginIDKey := r.Form.Get("x_login_id_key")
 
 		resolvedSession := session.GetSession(ctx)
 		_, err = h.AccountManagement.DeleteIdentityUsername(ctx, resolvedSession, &accountmanagement.DeleteIdentityUsernameInput{

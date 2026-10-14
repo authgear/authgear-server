@@ -67,9 +67,9 @@ func LoginIDViewActions(
 	return out, nil
 }
 
-// isSingleListItem reports whether the identity list page of a login ID type
-// holds exactly one item. Such a list is not worth navigating to.
-func isSingleListItem(all []*identity.Info, loginIDType model.LoginIDKeyType) bool {
+// hasAtMostOneListItem reports whether the identity list page of a login ID
+// type holds no item or one item. Such a list is not worth navigating to.
+func hasAtMostOneListItem(all []*identity.Info, loginIDType model.LoginIDKeyType) bool {
 	var claim string
 	switch loginIDType {
 	case model.LoginIDKeyTypeEmail:
@@ -91,11 +91,11 @@ func isSingleListItem(all []*identity.Info, loginIDType model.LoginIDKeyType) bo
 			}
 		}
 	}
-	return count == 1
+	return count <= 1
 }
 
 // SettingsListURLMakers are template functions to link to an identity list
-// page. When the list holds only one item, they return skipTo instead.
+// page. When the list holds at most one item, they return skipTo instead.
 type SettingsListURLMakers struct {
 	MakeListEmailURL    func(skipTo string, pairs ...string) string
 	MakeListPhoneURL    func(skipTo string, pairs ...string) string
@@ -105,7 +105,7 @@ type SettingsListURLMakers struct {
 func NewSettingsListURLMakers(makeURL func(path string, pairs ...string) string, all []*identity.Info) SettingsListURLMakers {
 	maker := func(loginIDType model.LoginIDKeyType, path string) func(string, ...string) string {
 		return func(skipTo string, pairs ...string) string {
-			if isSingleListItem(all, loginIDType) {
+			if hasAtMostOneListItem(all, loginIDType) {
 				return skipTo
 			}
 			return makeURL(path, pairs...)

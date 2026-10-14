@@ -25,11 +25,11 @@ func TestSettingsListURLMakers(t *testing.T) {
 			OAuth: &identity.OAuth{Claims: map[string]any{stdattrs.Email: "a@example.com"}},
 		}
 
-		Convey("skips the list when there is one item", func() {
+		Convey("skips the list when there is at most one item", func() {
 			m := NewSettingsListURLMakers(makeURL, []*identity.Info{loginID("1", model.LoginIDKeyTypePhone)})
 			So(m.MakeListPhoneURL("/skip"), ShouldEqual, "/skip")
-			// Other types have no item, so the list is kept.
-			So(m.MakeListEmailURL("/skip"), ShouldEqual, "/settings/identity/email")
+			// An empty list has nothing to show either.
+			So(m.MakeListEmailURL("/skip"), ShouldEqual, "/skip")
 		})
 
 		Convey("keeps the list when there are several items", func() {
