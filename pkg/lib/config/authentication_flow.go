@@ -448,6 +448,23 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 			"then": {
 				"required": ["login_flow"],
 				"not": { "required": ["signup_flow"] }
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identification": { "const": "passkey" }
+				}
+			},
+			"then": {
+				"required": ["login_flow"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identification": { "enum": ["select_account", "passkey"] }
+				}
 			},
 			"else": {
 				"required": ["signup_flow", "login_flow"]
