@@ -9,6 +9,7 @@ import (
 
 	relay "github.com/authgear/authgear-server/pkg/graphqlgo/relay"
 
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -533,6 +534,13 @@ var nodeApp = node(
 				Type: graphql.NewNonNull(FeatureConfig),
 				Resolve: func(p graphql.ResolveParams) (any, error) {
 					return model.NewPortalFeatureConfig(p.Source.(*model.App).Context.Config.FeatureConfig), nil
+				},
+			},
+			"generatedAuthenticationFlows": &graphql.Field{
+				Description: "The authentication flows generated from the app's settings. A custom flow named \"default\" replaces the generated flow of its type.",
+				Type:        graphql.NewNonNull(AuthenticationFlowConfig),
+				Resolve: func(p graphql.ResolveParams) (any, error) {
+					return declarative.GenerateAuthenticationFlowConfig(p.Source.(*model.App).Context.Config.AppConfig), nil
 				},
 			},
 			"usage": &graphql.Field{

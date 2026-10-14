@@ -14,6 +14,8 @@ export type Scalars = {
   Float: { input: number; output: number; }
   /** The `AppConfig` scalar type represents an app config JSON object */
   AppConfig: { input: GQL_AppConfig; output: GQL_AppConfig; }
+  /** The `AuthenticationFlowConfig` scalar type represents the authentication_flow section of an app config */
+  AuthenticationFlowConfig: { input: any; output: any; }
   /** The `Date` scalar type represents a Date. The Date is serialized in ISO 8601 format */
   Date: { input: GQL_Date; output: GQL_Date; }
   /** The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string */
@@ -65,6 +67,8 @@ export type App = Node & {
   effectiveAppConfig: Scalars['AppConfig']['output'];
   effectiveFeatureConfig: Scalars['FeatureConfig']['output'];
   effectiveSecretConfig: EffectiveSecretConfig;
+  /** The authentication flows generated from the app's settings. A custom flow named "default" replaces the generated flow of its type. */
+  generatedAuthenticationFlows: Scalars['AuthenticationFlowConfig']['output'];
   /** The ID of an object */
   id: Scalars['ID']['output'];
   isProcessingSubscription: Scalars['Boolean']['output'];

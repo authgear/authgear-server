@@ -12,6 +12,11 @@ var FeatureConfig = graphqlutil.NewJSONObjectScalar(
 	"The `FeatureConfig` scalar type represents an feature config JSON object",
 )
 
+var AuthenticationFlowConfig = graphqlutil.NewJSONObjectScalar(
+	"AuthenticationFlowConfig",
+	"The `AuthenticationFlowConfig` scalar type represents the authentication_flow section of an app config",
+)
+
 var TutorialStatusData = graphqlutil.NewJSONObjectScalar(
 	"TutorialStatusData",
 	"The `TutorialStatusData` scalar type represents tutorial status data",
