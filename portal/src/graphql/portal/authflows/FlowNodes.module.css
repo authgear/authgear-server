@@ -89,6 +89,18 @@
   border-radius: 7px;
 }
 
+/* Options that hand off to the same two flows: one tinted box sharing one
+   has-account / no-account pair. */
+.optionGroup {
+  --subnode-padding: 10px;
+
+  gap: 6px;
+  padding: 8px var(--subnode-padding);
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+  background: var(--gray-a2);
+}
+
 /* Inside a group the handle sits on the group's edge, past its padding. */
 .optionHandle {
   right: calc(

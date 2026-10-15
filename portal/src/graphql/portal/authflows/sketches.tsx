@@ -13,6 +13,7 @@ import {
 import { FlowStepItem, isDeviceTokenOption } from "./tree";
 import {
   AccountAnswer,
+  handoffGroups,
   optionAnswerHandleID,
   optionFlowRefs,
   optionHandleID,
@@ -514,31 +515,76 @@ function OptionRows({
   const { renderToString } = useContext(Context);
   const isIdentify = item.step.type === "identify";
   const isCreate = item.step.type === "create_authenticator";
-  const options = (item.step.one_of ?? []).map((option, i) => ({ option, i }));
+  const allOptions = item.step.one_of ?? [];
+  const options = allOptions.map((option, i) => ({ option, i }));
   const shown = options.filter(
     ({ option, i }) => i !== hiddenIndex && !isDeviceTokenOption(option)
   );
   const deviceToken = options.find(({ option }) => isDeviceTokenOption(option));
   // Several alternatives are drawn as sub-nodes.
   const subnodes = shown.length > 1;
+
+  // Options that hand off to the same two flows share a group box with one
+  // has-account / no-account pair, at the position of the group's first.
+  const groupOf = new Map<number, number[]>();
+  for (const group of handoffGroups(allOptions)) {
+    if (group.length > 1) {
+      for (const i of group) {
+        groupOf.set(i, group);
+      }
+    }
+  }
+  const entries: { key: number; members: typeof shown }[] = [];
+  for (const entry of shown) {
+    const group = groupOf.get(entry.i);
+    if (group == null) {
+      entries.push({ key: entry.i, members: [entry] });
+    } else if (group[0] === entry.i) {
+      entries.push({
+        key: entry.i,
+        members: shown.filter(({ i }) => group.includes(i)),
+      });
+    }
+  }
+
+  const sketch = (option: AuthenticationFlowOptionConfig) =>
+    isIdentify ? (
+      <IdentifyOption option={option} />
+    ) : isCreate ? (
+      <CreateAuthenticatorOption option={option} />
+    ) : (
+      <AuthenticatorOption option={option} />
+    );
+  const or = (
+    <div className={styles.orDivider}>
+      {renderToString("AuthFlowsScreen.sketch.or")}
+    </div>
+  );
+
   return (
     <>
-      {shown.map(({ option, i }, k) => (
-        <React.Fragment key={i}>
-          {k > 0 ? (
-            <div className={styles.orDivider}>
-              {renderToString("AuthFlowsScreen.sketch.or")}
+      {entries.map(({ key, members }, k) => (
+        <React.Fragment key={key}>
+          {k > 0 ? or : null}
+          {members.length === 1 ? (
+            <OptionRow item={item} optionIndex={key} subnode={subnodes}>
+              {sketch(members[0].option)}
+            </OptionRow>
+          ) : (
+            <div className={cn(styles.optionRow, styles.optionGroup)}>
+              {members.map(({ option, i }, m) => (
+                <React.Fragment key={i}>
+                  {m > 0 ? or : null}
+                  {sketch(option)}
+                </React.Fragment>
+              ))}
+              <OptionHandle
+                item={item}
+                optionIndex={key}
+                className={styles.optionHandle}
+              />
             </div>
-          ) : null}
-          <OptionRow item={item} optionIndex={i} subnode={subnodes}>
-            {isIdentify ? (
-              <IdentifyOption option={option} />
-            ) : isCreate ? (
-              <CreateAuthenticatorOption option={option} />
-            ) : (
-              <AuthenticatorOption option={option} />
-            )}
-          </OptionRow>
+          )}
         </React.Fragment>
       ))}
       {deviceToken != null ? (
