@@ -84,7 +84,8 @@ There are three pure functions, none of which use React.
 - A step whose `one_of` is present but empty is a choice with no branches (see [Edge cases](#edge-cases)).
 - `optional: true` is kept as a flag on the step.
 - `target_step` is kept as step data for the side panel. It is not an edge.
-- When every option of a non-optional choice continues with identical steps (the generator appends `view_recovery_code` to each 2FA option), those steps are drawn once after the options rejoin, using the first option's step ids.
+- Every step in the config is drawn as its own node, even when several options repeat the same steps (the generator repeats a chain per identification). The canvas mirrors the config one-to-one, because the builder will edit it: a merged node would hide which copy an edit changes.
+- Every step knows the identification of the identify option it follows (Email, Phone), so a `verify` step can say where its code went.
 - A `device_token` option is not a branch. The user never chooses it: it lets a remembered device skip the step, and adds "Remember this device" to the step's page. Branches keep their original option index.
 
 ### `treeToGraph(tree)`
@@ -123,10 +124,11 @@ A card about 240px wide. The header has a title, plus the step `name` in small m
 | `identify` | Per option: a login ID input labelled Email, Phone or Username; one "Continue with X" button per configured OAuth provider; a passkey button; a "Continue as…" row for `select_account`; username and password inputs for LDAP. A form attached to an option shows its fields under that option. |
 | `authenticate` | Per option: a password input; OTP boxes ("Code sent to email" or "Code sent to phone"); authenticator-app code boxes; a passkey button; a "Use a recovery code" link. With `device_token`, a "Remember this device" checkbox after the options, with no "or" and no output, noted "Next time, this device skips this step." |
 | `create_authenticator` | Per option, a heading describing the method ("Create a password", "Create a passkey", "Get codes by email", "Use an authenticator app"; a phone code names its channel from `authenticator.oob_otp.sms.phone_otp_mode`: "Get codes by SMS", "by WhatsApp" or "by WhatsApp or SMS"), then its fields: a new password input; a passkey button; for a code method, the email or phone input (left out with `target_step`, when the code goes to that step's login ID) and code boxes; for an authenticator app, a QR code and code boxes. |
-| `verify`, `verify_account_recovery_code` | OTP boxes and "Enter the code we sent". |
+| `verify` | Code boxes, labelled by the login ID its branch collected: "Enter the code sent to the email", or for a phone, by its channel from `phone_otp_mode` ("…sent by WhatsApp or SMS"). |
+| `verify_account_recovery_code` | One section per channel and form the flow's `select_destination` steps can send, headed by what it sends ("Reset link by email"): a link shows "Link sent" and Resend, as AuthUI's link-sent page does; a code shows code boxes. Several are drawn as bordered sub-nodes. Each section has its own input on the card's left edge, and each `select_destination` connects to the sections for what it sends, so the email branch lands on the link and the phone branch on the code. A `select_destination` with no `allowed_channels` counts as every channel, as at runtime. |
 | `fill_form`, `fill_in_user_profile` | Each field with its attribute label, a required marker, and a control that matches the attribute type. |
 | `change_password`, `reset_password` | New password and confirm inputs. |
-| `select_destination` | One row per allowed channel. |
+| `select_destination` | Only with `enumerate_destinations`, when it is a page: "Choose where to send it", two masked sample destinations as radio rows, and Send. Without it, it is a pill (see [Pageless node](#pageless-node)). |
 | `view_recovery_code` | A grid of masked codes. |
 | `prompt_create_passkey` | A passkey prompt with "Skip". |
 | `terminate_other_sessions` | "Logged in on another device", a Continue button and a "No, don't log out" link, matching AuthUI's confirmation page. |
@@ -162,7 +164,7 @@ A flow the current flow hands off to: "Log in flow" or "Sign up flow", its name,
 
 ### Pageless node
 
-A small pill. It is used for `check_account_status` and an `identify` step whose only option is `id_token`.
+A small pill. It is used for `check_account_status`, `select_destination` without `enumerate_destinations`, and an `identify` step whose only option is `id_token`. An `identify` by `id_token` adds a muted line, "From the app's ID token", whose tooltip explains that the app sends the signed-in user's ID token and the flow identifies them from it, with no page. A `select_destination` pill adds what it sends, one entry per allowed channel ("Reset link by email · Code by SMS"), and a line saying where: "To the email entered", "To the phone number entered", or "To the email or phone number entered" outside an identify option. Its tooltip says the user does not see the step.
 
 ### Start and End
 
@@ -184,6 +186,7 @@ A plain card showing the raw `type`, for step types this portal version does not
 Clicking a node opens a read-only side panel with:
 
 - a description of what the step does and when the user sees it, for every step type the portal knows
+- the step's name as a "Name" row
 - the step's settings in plain words, including `optional` and what `target_step` refers to
 - the step's YAML, serialized with `js-yaml`
 
