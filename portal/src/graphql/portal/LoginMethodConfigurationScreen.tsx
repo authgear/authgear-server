@@ -114,6 +114,9 @@ import {
   IconRadioCardOption,
 } from "../../components/v2/IconRadioCards/IconRadioCards";
 import { formatDuration, parseDuration } from "../../util/duration";
+import { makeHelpDeskURL } from "../../util/helpDesk";
+import { useViewerQuery } from "./query/viewerQuery";
+import { useAppContext } from "../../context/AppContext";
 import { useUIImplementation } from "../../hook/useUIImplementation";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
@@ -2348,6 +2351,17 @@ function PhoneSettings(props: PhoneSettingsProps) {
     setState,
   } = props;
   const { renderToString } = useContext(Context);
+  // The header already loads the viewer. If it failed, the link still works
+  // and the help desk form just asks for email and name.
+  const { viewer } = useViewerQuery({ fetchPolicy: "cache-first" });
+  // appID here is the GraphQL node ID; the help desk wants the plain project ID.
+  const { appID: rawAppID } = useAppContext();
+  const helpDeskURL = makeHelpDeskURL({
+    purpose: "sms-otp",
+    projectID: rawAppID,
+    email: viewer?.email,
+    fullName: viewer?.formattedName,
+  });
 
   const onChangePhoneList = useCallback(
     (allowlist: string[], pinnedList: string[]) => {
@@ -2458,9 +2472,7 @@ function PhoneSettings(props: PhoneSettingsProps) {
                   values={{
                     // eslint-disable-next-line react/no-unstable-nested-components
                     applicationLink: (chunks: React.ReactNode) => (
-                      <ExternalLink href="https://go.authgear.com/portal-support">
-                        {chunks}
-                      </ExternalLink>
+                      <ExternalLink href={helpDeskURL}>{chunks}</ExternalLink>
                     ),
                     // eslint-disable-next-line react/no-unstable-nested-components
                     billingLink: (chunks: React.ReactNode) => (
