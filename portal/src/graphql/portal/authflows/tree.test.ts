@@ -1,0 +1,115 @@
+import { describe, it, expect } from "@jest/globals";
+import { flowToTree, FlowStepItem } from "./tree";
+import {
+  customSignupWithForm,
+  generatedEmailOAuthPasskey2FA,
+  generatedUsernameOnly,
+} from "./__fixtures__/flows";
+import { AuthenticationFlowConfig } from "../../../types";
+
+function only<T>(xs: T[] | undefined): T {
+  if (xs?.length !== 1) {
+    throw new Error("expected exactly one element");
+  }
+  return xs[0];
+}
+
+function summary(items: FlowStepItem[]) {
+  return items.map((i) => ({
+    id: i.id,
+    kind: i.kind,
+    branches: i.branches?.length ?? null,
+  }));
+}
+
+describe("flowToTree", () => {
+  it("builds the generated login flow", () => {
+    const tree = flowToTree(only(generatedEmailOAuthPasskey2FA.login_flows));
+    expect(summary(tree)).toEqual([
+      { id: "/steps/0", kind: "page", branches: 4 },
+      { id: "/steps/1", kind: "pageless", branches: null },
+      { id: "/steps/2", kind: "pageless", branches: null },
+      { id: "/steps/3", kind: "page", branches: null },
+    ]);
+    const emailBranch = tree[0].branches![1];
+    expect(summary(emailBranch.sequence)).toEqual([
+      { id: "/steps/0/one_of/1/steps/0", kind: "page", branches: 2 },
+    ]);
+    const passwordBranch = emailBranch.sequence[0].branches![0];
+    expect(passwordBranch.sequence[0].optional).toBe(true);
+    expect(summary(passwordBranch.sequence)).toEqual([
+      {
+        id: "/steps/0/one_of/1/steps/0/one_of/0/steps/0",
+        kind: "page",
+        branches: 4,
+      },
+      {
+        id: "/steps/0/one_of/1/steps/0/one_of/0/steps/1",
+        kind: "page",
+        branches: null,
+      },
+    ]);
+  });
+
+  it("inlines single-option steps", () => {
+    const tree = flowToTree(only(customSignupWithForm.signup_flows));
+    expect(summary(tree)).toEqual([
+      { id: "/steps/0", kind: "page", branches: null },
+      { id: "/steps/0/one_of/0/steps/0", kind: "page", branches: null },
+      { id: "/steps/0/one_of/0/steps/1", kind: "page", branches: null },
+      { id: "/steps/1", kind: "page", branches: null },
+    ]);
+  });
+
+  it("treats identify by id_token as pageless", () => {
+    const tree = flowToTree(only(generatedEmailOAuthPasskey2FA.reauth_flows));
+    expect(summary(tree)).toEqual([
+      { id: "/steps/0", kind: "pageless", branches: null },
+      { id: "/steps/1", kind: "page", branches: 4 },
+    ]);
+  });
+
+  it("keeps a choice step without options as an empty choice", () => {
+    const tree = flowToTree(only(generatedUsernameOnly.account_recovery_flows));
+    expect(summary(tree)).toEqual([
+      { id: "/steps/0", kind: "page", branches: 0 },
+      { id: "/steps/1", kind: "page", branches: null },
+      { id: "/steps/2", kind: "page", branches: null },
+    ]);
+  });
+
+  it("does not inline the single option of an optional step", () => {
+    const flow: AuthenticationFlowConfig = {
+      name: "default",
+      steps: [
+        {
+          type: "authenticate",
+          optional: true,
+          one_of: [
+            {
+              authentication: "secondary_totp",
+              steps: [{ type: "view_recovery_code" }],
+            },
+          ],
+        },
+      ],
+    };
+    const tree = flowToTree(flow);
+    expect(summary(tree)).toEqual([
+      { id: "/steps/0", kind: "page", branches: 1 },
+    ]);
+    expect(summary(tree[0].branches![0].sequence)).toEqual([
+      { id: "/steps/0/one_of/0/steps/0", kind: "page", branches: null },
+    ]);
+  });
+
+  it("marks unknown step types", () => {
+    const tree = flowToTree({
+      name: "default",
+      steps: [{ type: "future_step" }],
+    });
+    expect(summary(tree)).toEqual([
+      { id: "/steps/0", kind: "unknown", branches: null },
+    ]);
+  });
+});

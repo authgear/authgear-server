@@ -1,0 +1,25 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 360px;
+  padding: 16px;
+  border-left: 1px solid var(--gray-a5);
+  overflow: auto;
+}
+
+.options {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.yaml {
+  margin: 0;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--gray-a3);
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+  white-space: pre;
+  overflow: auto;
+}

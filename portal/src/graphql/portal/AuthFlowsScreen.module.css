@@ -1,0 +1,29 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 24px 16px;
+}
+
+.toolbar {
+  margin-top: 8px;
+}
+
+.canvasArea {
+  position: relative;
+  display: flex;
+  /* A definite height, so fitting the flow to the view centres it. */
+  height: max(480px, calc(100vh - 280px));
+  border-top: 1px solid var(--gray-a5);
+}
+
+.notFound {
+  padding: 24px;
+}
