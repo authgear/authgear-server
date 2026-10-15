@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import {
   AuthenticationFlowsConfig,
+  AuthenticatorPhoneOTPMode,
   CustomAttributesAttributeConfig,
   OAuthSSOProviderConfig,
 } from "../../../types";
@@ -10,6 +11,8 @@ export interface FlowSketchContextValue {
   flowType: FlowType;
   oauthProviders: OAuthSSOProviderConfig[];
   customAttributes: CustomAttributesAttributeConfig[];
+  // How phone codes are sent: SMS, WhatsApp or either.
+  phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
   custom: AuthenticationFlowsConfig | undefined;
   generated: AuthenticationFlowsConfig;
 }

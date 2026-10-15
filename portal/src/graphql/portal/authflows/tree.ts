@@ -108,6 +108,35 @@ function sequenceToTree(
       items.push({ id, step, kind, optional, branches: null });
       return;
     }
+    // When every option continues with the same steps (the generator appends
+    // view_recovery_code to each 2FA option), draw them once after the
+    // options rejoin. Not for an optional step: skipping it also skips them.
+    const firstSteps = choices[0]?.option.steps ?? [];
+    const shared =
+      !optional &&
+      choices.length > 1 &&
+      firstSteps.length > 0 &&
+      choices.every(
+        ({ option }) =>
+          JSON.stringify(option.steps ?? []) === JSON.stringify(firstSteps)
+      );
+    if (shared) {
+      items.push({
+        id,
+        step,
+        kind,
+        optional,
+        branches: choices.map(({ option, j }) => ({
+          optionIndex: j,
+          option,
+          sequence: [],
+        })),
+      });
+      items.push(
+        ...sequenceToTree(firstSteps, `${id}/one_of/${choices[0].j}/steps`)
+      );
+      return;
+    }
     items.push({
       id,
       step,

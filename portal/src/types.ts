@@ -768,6 +768,9 @@ export interface AuthenticationFlowOptionConfig {
   signup_flow?: string;
   login_flow?: string;
   on_failure?: string;
+  // On an authenticate or create_authenticator option: the step whose login
+  // ID receives the code, so the user does not enter one.
+  target_step?: string;
   form?: AuthenticationFlowFormConfig;
   steps?: AuthenticationFlowStepConfig[];
 }

@@ -1,6 +1,7 @@
 import {
   AuthenticationFlowOptionConfig,
   AuthenticationFlowStepConfig,
+  AuthenticatorPhoneOTPMode,
   OAuthSSOProviderType,
 } from "../../../types";
 import { IntlContextValue } from "../../../intl";
@@ -80,13 +81,29 @@ export function stepTitle(
   return id != null ? renderToString(id) : type;
 }
 
+const phoneCodeLabelMessageIDs: Record<AuthenticatorPhoneOTPMode, string> = {
+  sms: "AuthFlowsScreen.authentication.oob_otp_sms.sms",
+  whatsapp: "AuthFlowsScreen.authentication.oob_otp_sms.whatsapp",
+  whatsapp_sms: "AuthFlowsScreen.authentication.oob_otp_sms.whatsapp_sms",
+};
+
+// phoneOTPMode, from authenticator.oob_otp.sms.phone_otp_mode, names the
+// channel a phone code is sent by.
 export function optionLabel(
   option: AuthenticationFlowOptionConfig,
-  renderToString: RenderToString
+  renderToString: RenderToString,
+  phoneOTPMode?: AuthenticatorPhoneOTPMode
 ): string {
   if (option.identification != null) {
     const id = identificationMessageIDs[option.identification];
     return id != null ? renderToString(id) : option.identification;
+  }
+  if (
+    phoneOTPMode != null &&
+    (option.authentication === "primary_oob_otp_sms" ||
+      option.authentication === "secondary_oob_otp_sms")
+  ) {
+    return renderToString(phoneCodeLabelMessageIDs[phoneOTPMode]);
   }
   if (option.authentication != null) {
     const id = authenticationMessageIDs[option.authentication];
@@ -179,4 +196,20 @@ const stepDescriptionMessageIDs: Partial<Record<string, string>> = {
 
 export function stepDescriptionMessageID(type: string): string | null {
   return stepDescriptionMessageIDs[type] ?? null;
+}
+
+const phoneCodeSetupMessageIDs: Record<AuthenticatorPhoneOTPMode, string> = {
+  sms: "AuthFlowsScreen.setup.oob_otp_sms.sms",
+  whatsapp: "AuthFlowsScreen.setup.oob_otp_sms.whatsapp",
+  whatsapp_sms: "AuthFlowsScreen.setup.oob_otp_sms.whatsapp_sms",
+};
+
+// Phone codes go by SMS, WhatsApp or either, per
+// authenticator.oob_otp.sms.phone_otp_mode.
+export function phoneCodeSetupMessageID(
+  mode: AuthenticatorPhoneOTPMode | undefined
+): string {
+  return mode != null
+    ? phoneCodeSetupMessageIDs[mode]
+    : "AuthFlowsScreen.setup.oob_otp_sms.any";
 }

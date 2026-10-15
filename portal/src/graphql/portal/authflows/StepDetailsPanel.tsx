@@ -3,17 +3,21 @@ import yaml from "js-yaml";
 import { Flex, Heading, IconButton, Text } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../../intl";
+import { AuthenticatorPhoneOTPMode } from "../../../types";
 import { FlowStepItem } from "./tree";
 import { optionLabel, stepDescriptionMessageID, stepTitle } from "./labels";
 import styles from "./StepDetailsPanel.module.css";
 
 export interface StepDetailsPanelProps {
   item: FlowStepItem;
+  // How phone codes are sent, to name the channel in the options list.
+  phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
   onClose: () => void;
 }
 
 export function StepDetailsPanel({
   item,
+  phoneOTPMode,
   onClose,
 }: StepDetailsPanelProps): React.ReactElement {
   const { renderToString } = useContext(Context);
@@ -69,7 +73,7 @@ export function StepDetailsPanel({
           </Heading>
           <ul className={styles.options}>
             {options.map((o, i) => (
-              <li key={i}>{optionLabel(o, renderToString)}</li>
+              <li key={i}>{optionLabel(o, renderToString, phoneOTPMode)}</li>
             ))}
           </ul>
         </>
