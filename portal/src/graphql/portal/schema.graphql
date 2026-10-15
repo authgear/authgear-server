@@ -63,7 +63,7 @@ type App implements Node {
   """
   The authentication flows generated from the app's settings. A custom flow named "default" replaces the generated flow of its type.
   """
-  generatedAuthenticationFlows: AuthenticationFlowConfig!
+  generatedAuthenticationFlows: GeneratedAuthenticationFlows!
 
   """The ID of an object"""
   id: ID!
@@ -191,9 +191,29 @@ enum AppSecretKey {
 }
 
 """
-The `AuthenticationFlowConfig` scalar type represents the authentication_flow section of an app config
+The `AuthenticationFlowAccountRecoveryFlow` scalar type represents an item of authentication_flow.account_recovery_flows in an app config
 """
-scalar AuthenticationFlowConfig
+scalar AuthenticationFlowAccountRecoveryFlow
+
+"""
+The `AuthenticationFlowLoginFlow` scalar type represents an item of authentication_flow.login_flows in an app config
+"""
+scalar AuthenticationFlowLoginFlow
+
+"""
+The `AuthenticationFlowReauthFlow` scalar type represents an item of authentication_flow.reauth_flows in an app config
+"""
+scalar AuthenticationFlowReauthFlow
+
+"""
+The `AuthenticationFlowSignupFlow` scalar type represents an item of authentication_flow.signup_flows in an app config
+"""
+scalar AuthenticationFlowSignupFlow
+
+"""
+The `AuthenticationFlowSignupLoginFlow` scalar type represents an item of authentication_flow.signup_login_flows in an app config
+"""
+scalar AuthenticationFlowSignupLoginFlow
 
 """Bot protection provider secret"""
 type BotProtectionProviderSecret {
@@ -517,6 +537,26 @@ input GenerateTestTokenInput {
 type GenerateTestTokenPayload {
   """The generated token"""
   token: String!
+}
+
+"""
+The authentication flow of each type that Authgear generates from the app's settings
+"""
+type GeneratedAuthenticationFlows {
+  """Null when the app's settings give no way to recover an account."""
+  accountRecoveryFlow: AuthenticationFlowAccountRecoveryFlow
+
+  """"""
+  loginFlow: AuthenticationFlowLoginFlow!
+
+  """"""
+  reauthFlow: AuthenticationFlowReauthFlow!
+
+  """"""
+  signupFlow: AuthenticationFlowSignupFlow!
+
+  """"""
+  signupLoginFlow: AuthenticationFlowSignupLoginFlow!
 }
 
 """"""
