@@ -26,6 +26,7 @@ type PortalFeatureConfig struct {
 	Collaborator     *config.CollaboratorFeatureConfig     `json:"collaborator,omitempty"`
 	FraudProtection  *config.FraudProtectionFeatureConfig  `json:"fraud_protection,omitempty"`
 	Telemetry        *config.TelemetryFeatureConfig        `json:"telemetry,omitempty"`
+	Portal           *config.PortalFeatureConfig           `json:"portal,omitempty"`
 }
 
 // PortalMessagingFeatureConfig exposes only the messaging feature flags
@@ -53,6 +54,7 @@ func NewPortalFeatureConfig(c *config.FeatureConfig) *PortalFeatureConfig {
 		Collaborator:     c.Collaborator,
 		FraudProtection:  c.FraudProtection,
 		Telemetry:        c.Telemetry,
+		Portal:           c.Portal,
 	}
 	if c.Messaging != nil {
 		out.Messaging = &PortalMessagingFeatureConfig{

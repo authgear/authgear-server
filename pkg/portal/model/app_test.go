@@ -55,6 +55,12 @@ secrets:
 		So(*NewPortalFeatureConfig(fc).Telemetry.AuditLogs.Streaming.Disabled, ShouldBeTrue)
 	})
 
+	Convey("NewPortalFeatureConfig passes portal flags through", t, func() {
+		enabled := true
+		fc := &config.FeatureConfig{Portal: &config.PortalFeatureConfig{AuthFlowBuilderEnabled: &enabled}}
+		So(*NewPortalFeatureConfig(fc).Portal.AuthFlowBuilderEnabled, ShouldBeTrue)
+	})
+
 	Convey("empty keepStreamNames survives the mutation's JSON round trip", t, func() {
 		// graphql-go coerces a list input [] into []interface{}{}.
 		input := map[string]any{

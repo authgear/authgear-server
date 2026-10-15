@@ -34,7 +34,8 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 		"web3": { "$ref": "#/$defs/Web3FeatureConfig" },
 		"admin_api": { "$ref": "#/$defs/AdminAPIFeatureConfig" },
 		"test_mode": { "$ref": "#/$defs/TestModeFeatureConfig" },
-		"fraud_protection": { "$ref": "#/$defs/FraudProtectionFeatureConfig" }
+		"fraud_protection": { "$ref": "#/$defs/FraudProtectionFeatureConfig" },
+		"portal": { "$ref": "#/$defs/PortalFeatureConfig" }
 	}
 }
 `)
@@ -59,6 +60,7 @@ type FeatureConfig struct {
 	AdminAPI         *AdminAPIFeatureConfig         `json:"admin_api,omitempty"`
 	TestMode         *TestModeFeatureConfig         `json:"test_mode,omitempty"`
 	FraudProtection  *FraudProtectionFeatureConfig  `json:"fraud_protection,omitempty"`
+	Portal           *PortalFeatureConfig           `json:"portal,omitempty"`
 }
 
 func (c *FeatureConfig) Merge(layer *FeatureConfig) *FeatureConfig {

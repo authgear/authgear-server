@@ -157,3 +157,5 @@ test_mode:
     suppressed: false
 fraud_protection:
   is_modifiable: false
+portal:
+  auth_flow_builder_enabled: false

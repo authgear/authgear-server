@@ -127,6 +127,9 @@ configs:
   - ui:
       phone_input:
         allowlist: []
+  # portal is set by one layer only; later layers without it must keep it.
+  - portal:
+      auth_flow_builder_enabled: true
   - identity:
       oauth:
         providers:
@@ -319,3 +322,5 @@ result:
           action: block
         - quota: 15
           action: alert
+  portal:
+    auth_flow_builder_enabled: true
