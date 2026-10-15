@@ -84,6 +84,7 @@ There are three pure functions, none of which use React.
 - A step whose `one_of` is present but empty is a choice with no branches (see [Edge cases](#edge-cases)).
 - `optional: true` is kept as a flag on the step.
 - `target_step` is kept as step data for the side panel. It is not an edge.
+- A `device_token` option is not a branch. The user never chooses it: it lets a remembered device skip the step, and adds "Remember this device" to the step's page. Branches keep their original option index.
 
 ### `treeToGraph(tree)`
 
@@ -91,7 +92,7 @@ There are three pure functions, none of which use React.
 - A choice node has one output handle per option, in config order. Option edges carry no label: each handle sits beside its option's row, which already names it.
 - Each handle connects to the first step of its branch. If the branch is empty, it connects to the join.
 - **Join:** the last node of every branch connects to the step after the choice, or to End if there is none.
-- An optional step also gets a dashed bypass edge, "Skipped if not set up", from the node before it to the node after it.
+- No step gets a bypass edge, optional or not: its condition line already says it may be skipped.
 - **Hand-off:** an option with `login_flow` or `signup_flow` (a `signup_login` identify option) ends the flow. It connects to one flow node per flow it names, instead of continuing. An option naming both has two outputs, "Has account" to the login flow and "No account" to the signup flow, because AuthUI logs the user in when an account with that login ID or identity exists and signs them up otherwise.
 - **End** is drawn only when some path reaches it. A `signup_login` flow, whose every option hands off, has none.
 
@@ -101,7 +102,7 @@ There are three pure functions, none of which use React.
 - A sequence places its nodes in a row.
 - A choice stacks its branches vertically in config order and centres the choice node on the stack. The join goes to the right of the widest branch.
 - The terminals (End, or the flows the tree hands off to) stack in the last column, in the order options first name them.
-- **Lanes:** an edge that skips columns gets a reserved horizontal lane, so no line runs under a card. That covers an empty branch beside non-empty ones (a lane in the branch stack) and the bypass edge of an optional step (a lane above it). When every branch of a choice is empty, no lane is needed.
+- **Lanes:** an edge that skips columns gets a reserved horizontal lane, so no line runs under a card. That is the edge of an empty branch beside non-empty ones, given a lane in the branch stack. When every branch of a choice is empty, no lane is needed.
 - **Edge routing:** edges are curves. An edge to the next column is one S-curve. An edge that skips columns curves into its lane inside the gap after its source, runs straight along the lane, and curves into its target inside the gap before it, so it never crosses a card.
 - `sizes` are the node sizes measured by `@xyflow/react` after the first render. The canvas renders hidden, measures, lays out, shows the result and fits the view.
 - Positions are never stored. They are recomputed from the tree on every render.
@@ -114,18 +115,30 @@ All nodes use Radix and theme tokens. Every label comes from `en.json`.
 
 ### Page node
 
-A card about 240px wide. The header has a plain-language title, plus the step `name` in small mono text when one is set. The body is a greyscale wireframe of the page, built from config:
+A card about 240px wide. The header has a title, plus the step `name` in small mono text when one is set. The title is the step's config `type` in plain words, sentence case (`create_authenticator` is "Create authenticator", `prompt_create_passkey` is "Prompt to create passkey"), so the canvas matches the YAML one-to-one. The body is a greyscale wireframe of the page, built from config:
 
 | Step | Sketch |
 |---|---|
 | `identify` | Per option: a login ID input labelled Email, Phone or Username; one "Continue with X" button per configured OAuth provider; a passkey button; a "Continue as…" row for `select_account`; username and password inputs for LDAP. A form attached to an option shows its fields under that option. |
-| `authenticate`, `create_authenticator` | Per option: a password input; OTP boxes ("Code sent to email" or "Code sent to phone"); authenticator-app code boxes; a passkey button; a "Use a recovery code" link; a "Remember this device" checkbox for `device_token`. |
+| `authenticate`, `create_authenticator` | Per option: a password input; OTP boxes ("Code sent to email" or "Code sent to phone"); authenticator-app code boxes; a passkey button; a "Use a recovery code" link. With `device_token`, a "Remember this device" checkbox after the options, with no "or" and no output, noted "Next time, this device skips this step." |
 | `verify`, `verify_account_recovery_code` | OTP boxes and "Enter the code we sent". |
 | `fill_form`, `fill_in_user_profile` | Each field with its attribute label, a required marker, and a control that matches the attribute type. |
 | `change_password`, `reset_password` | New password and confirm inputs. |
 | `select_destination` | One row per allowed channel. |
 | `view_recovery_code` | A grid of masked codes. |
 | `prompt_create_passkey` | A passkey prompt with "Skip". |
+| `terminate_other_sessions` | "Logged in on another device", a Continue button and a "No, don't log out" link, matching AuthUI's confirmation page. |
+
+A step the runtime may skip states when it runs, in a short accent-coloured line with a branch icon at the top of the card or pill, above the title, with a divider under it. Hovering the line shows the full explanation.
+
+| Line | Steps | Full condition |
+|---|---|---|
+| Only if the user has set up 2FA | `optional: true`, every option a second factor | the user has set up one of the step's 2FA methods |
+| Only if the user has set up one of these | any other `optional: true` step | the user has set up one of the step's methods |
+| Only if the password must change | `change_password` | the password just used has expired, or fails the policy while `authenticator.password.force_change` is on |
+| Only if the app allows one session | `terminate_other_sessions` | the app allows a single session (`max_concurrent_session: 1`) and the user already has one there |
+| Only if the user has no passkey | `prompt_create_passkey` | the user signed in with something that can use a passkey and has none yet |
+
 
 On a choice node, each option's output handle sits beside that option's row in the sketch. When a step has more than one option, an "or" divider separates them, since they are alternatives on one page.
 
@@ -147,7 +160,7 @@ A flow the current flow hands off to: "Log in flow" or "Sign up flow", its name,
 
 ### Pageless node
 
-A small pill. It is used for `check_account_status`, `terminate_other_sessions`, and an `identify` step whose only option is `id_token`.
+A small pill. It is used for `check_account_status` and an `identify` step whose only option is `id_token`.
 
 ### Start and End
 
@@ -168,6 +181,7 @@ A plain card showing the raw `type`, for step types this portal version does not
 
 Clicking a node opens a read-only side panel with:
 
+- a description of what the step does and when the user sees it, for every step type the portal knows
 - the step's settings in plain words, including `optional` and what `target_step` refers to
 - the step's YAML, serialized with `js-yaml`
 
@@ -194,7 +208,7 @@ Clicking the canvas background closes it.
   - branches appear in config order, each above the next
   - every branch ends at the join
   - the join is to the right of every branch
-  - an optional step has a bypass edge
+  - an optional step has no bypass edge
   - a single-option `one_of` is inlined
   - an empty `one_of` has no outgoing edge
   - an unknown step type yields an Unknown node
