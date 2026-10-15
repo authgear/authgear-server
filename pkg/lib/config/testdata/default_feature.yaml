@@ -53,7 +53,6 @@ ui:
   white_labeling:
     disabled: false
   phone_input: {}
-  auth_flow_builder_enabled: false
 custom_domain:
   disabled: false
 oauth:
@@ -158,3 +157,5 @@ test_mode:
     suppressed: false
 fraud_protection:
   is_modifiable: false
+portal:
+  auth_flow_builder_enabled: false

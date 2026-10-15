@@ -484,7 +484,9 @@ func TestFeatureConfigDisabledFieldsSerializeExplicitly(t *testing.T) {
 
 		ui, _ := raw["ui"].(map[string]any)
 		So(ui["white_labeling"], ShouldResemble, map[string]any{"disabled": false})
-		So(ui["auth_flow_builder_enabled"], ShouldEqual, false)
+
+		portal, _ := raw["portal"].(map[string]any)
+		So(portal["auth_flow_builder_enabled"], ShouldEqual, false)
 
 		authentication, _ := raw["authentication"].(map[string]any)
 		secondaryAuthenticators, _ := authentication["secondary_authenticators"].(map[string]any)
