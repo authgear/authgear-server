@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { FlowCanvas } from "./FlowCanvas";
 import { FlowSketchContext, FlowSketchContextValue } from "./FlowSketchContext";
 import { flowToTree } from "./tree";
-import { FlowType } from "./model";
+import { FlowType, accountRecoveryDestinations } from "./model";
 import {
   customSignupWithForm,
   generatedEmailOAuthPasskey2FA,
@@ -34,10 +34,11 @@ function CanvasStory({
       oauthProviders: [{ alias: "google", type: "google" }],
       customAttributes: [],
       phoneOTPMode: "sms",
+      recoveryDestinations: accountRecoveryDestinations(flow),
       custom,
       generated,
     }),
-    [flowType, custom, generated]
+    [flowType, flow, custom, generated]
   );
   return (
     <MemoryRouter>

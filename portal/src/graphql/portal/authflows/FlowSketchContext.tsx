@@ -5,7 +5,7 @@ import {
   CustomAttributesAttributeConfig,
   OAuthSSOProviderConfig,
 } from "../../../types";
-import { FlowType } from "./model";
+import { AccountRecoveryDestination, FlowType } from "./model";
 
 export interface FlowSketchContextValue {
   flowType: FlowType;
@@ -13,6 +13,8 @@ export interface FlowSketchContextValue {
   customAttributes: CustomAttributesAttributeConfig[];
   // How phone codes are sent: SMS, WhatsApp or either.
   phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
+  // What the flow's account recovery messages send, and how (link, code).
+  recoveryDestinations: AccountRecoveryDestination[];
   custom: AuthenticationFlowsConfig | undefined;
   generated: AuthenticationFlowsConfig;
 }

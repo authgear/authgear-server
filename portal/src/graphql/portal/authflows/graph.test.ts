@@ -9,6 +9,7 @@ import {
   handoffGroups,
   optionAnswerHandleID,
   optionHandleID,
+  recoveryDestinationHandleID,
   treeToGraph,
 } from "./graph";
 import {
@@ -206,5 +207,65 @@ describe("treeToGraph", () => {
   it("lists End as the terminal of an ordinary flow", () => {
     const graph = graphOf(only(customSignupWithForm.signup_flows));
     expect(graph.terminalIDs).toEqual([END_NODE_ID]);
+  });
+});
+
+describe("account recovery", () => {
+  const recovery: AuthenticationFlowConfig = {
+    name: "default",
+    steps: [
+      {
+        type: "identify",
+        one_of: [
+          {
+            identification: "email",
+            steps: [
+              {
+                type: "select_destination",
+                allowed_channels: [{ channel: "email", otp_form: "link" }],
+              },
+            ],
+          },
+          {
+            identification: "phone",
+            steps: [
+              {
+                type: "select_destination",
+                allowed_channels: [{ channel: "sms", otp_form: "code" }],
+              },
+            ],
+          },
+        ],
+      },
+      { type: "verify_account_recovery_code" },
+    ],
+  };
+
+  it("lands each destination on its own section of the verify step", () => {
+    const graph = graphOf(recovery);
+    const into = graph.edges
+      .filter((e) => e.target === "/steps/1")
+      .map((e) => [e.source, e.targetHandle]);
+    expect(into).toEqual([
+      [
+        "/steps/0/one_of/0/steps/0",
+        recoveryDestinationHandleID({ channel: "email", otp_form: "link" }),
+      ],
+      [
+        "/steps/0/one_of/1/steps/0",
+        recoveryDestinationHandleID({ channel: "sms", otp_form: "code" }),
+      ],
+    ]);
+  });
+
+  it("leaves other edges on the default target handle", () => {
+    const graph = graphOf(recovery);
+    expect(
+      graph.edges
+        .filter((e) => e.target !== "/steps/1")
+        .map((e) => e.targetHandle)
+    ).toEqual(
+      graph.edges.filter((e) => e.target !== "/steps/1").map(() => null)
+    );
   });
 });

@@ -41,12 +41,14 @@ export function StepDetailsPanel({
         </IconButton>
       </Flex>
       {step.name != null ? (
-        <Text as="p" size="1" color="gray">
-          <FormattedMessage
-            id="AuthFlowsScreen.panel.step-name"
-            values={{ name: step.name }}
-          />
-        </Text>
+        <dl className={styles.nameList}>
+          <dt>
+            <FormattedMessage id="AuthFlowsScreen.panel.name" />
+          </dt>
+          <dd>
+            <code>{step.name}</code>
+          </dd>
+        </dl>
       ) : null}
       {description != null ? (
         <Text as="p" size="2">

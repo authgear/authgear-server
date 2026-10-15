@@ -20,6 +20,9 @@ export interface FlowStepItem {
   optional: boolean;
   // null: not a choice. []: a choice with no options.
   branches: FlowBranch[] | null;
+  // The identification of the identify option this step follows, such as
+  // "email" for a verify step after the Email option; null outside one.
+  identification: string | null;
 }
 
 export const IDENTIFICATION_ID_TOKEN = "id_token";
@@ -68,6 +71,11 @@ function stepKind(step: AuthenticationFlowStepConfig): StepKind {
   if (pagelessStepTypes.has(step.type)) {
     return "pageless";
   }
+  // select_destination only has a page when the user chooses among the
+  // account's emails and phones; otherwise it sends to the login ID entered.
+  if (step.type === "select_destination") {
+    return step.enumerate_destinations === true ? "page" : "pageless";
+  }
   const oneOf = step.one_of ?? [];
   if (
     step.type === "identify" &&
@@ -84,7 +92,8 @@ function stepKind(step: AuthenticationFlowStepConfig): StepKind {
 
 function sequenceToTree(
   steps: AuthenticationFlowStepConfig[],
-  pointer: string
+  pointer: string,
+  identification: string | null
 ): FlowStepItem[] {
   const items: FlowStepItem[] = [];
   steps.forEach((step, i) => {
@@ -94,58 +103,40 @@ function sequenceToTree(
       .filter(({ option }) => !isDeviceTokenOption(option));
     const optional = step.optional === true;
     const kind = stepKind(step);
+    const base = { id, step, kind, optional, identification };
+    // Steps after an identify option know which login ID it collected.
+    const nestedIdentification = (option: AuthenticationFlowOptionConfig) =>
+      step.type === "identify"
+        ? option.identification ?? identification
+        : identification;
     // An optional step keeps its single option as a branch, so skipping it
     // also skips the option's nested steps.
     if (choices.length === 1 && !optional) {
       const { option, j } = choices[0];
-      items.push({ id, step, kind, optional, branches: null });
+      items.push({ ...base, branches: null });
       items.push(
-        ...sequenceToTree(option.steps ?? [], `${id}/one_of/${j}/steps`)
+        ...sequenceToTree(
+          option.steps ?? [],
+          `${id}/one_of/${j}/steps`,
+          nestedIdentification(option)
+        )
       );
       return;
     }
     if (choices.length === 0 && !choiceStepTypes.has(step.type)) {
-      items.push({ id, step, kind, optional, branches: null });
-      return;
-    }
-    // When every option continues with the same steps (the generator appends
-    // view_recovery_code to each 2FA option), draw them once after the
-    // options rejoin. Not for an optional step: skipping it also skips them.
-    const firstSteps = choices[0]?.option.steps ?? [];
-    const shared =
-      !optional &&
-      choices.length > 1 &&
-      firstSteps.length > 0 &&
-      choices.every(
-        ({ option }) =>
-          JSON.stringify(option.steps ?? []) === JSON.stringify(firstSteps)
-      );
-    if (shared) {
-      items.push({
-        id,
-        step,
-        kind,
-        optional,
-        branches: choices.map(({ option, j }) => ({
-          optionIndex: j,
-          option,
-          sequence: [],
-        })),
-      });
-      items.push(
-        ...sequenceToTree(firstSteps, `${id}/one_of/${choices[0].j}/steps`)
-      );
+      items.push({ ...base, branches: null });
       return;
     }
     items.push({
-      id,
-      step,
-      kind,
-      optional,
+      ...base,
       branches: choices.map(({ option, j }) => ({
         optionIndex: j,
         option,
-        sequence: sequenceToTree(option.steps ?? [], `${id}/one_of/${j}/steps`),
+        sequence: sequenceToTree(
+          option.steps ?? [],
+          `${id}/one_of/${j}/steps`,
+          nestedIdentification(option)
+        ),
       })),
     });
   });
@@ -153,5 +144,5 @@ function sequenceToTree(
 }
 
 export function flowToTree(flow: AuthenticationFlowConfig): FlowStepItem[] {
-  return sequenceToTree(flow.steps ?? [], "/steps");
+  return sequenceToTree(flow.steps ?? [], "/steps", null);
 }

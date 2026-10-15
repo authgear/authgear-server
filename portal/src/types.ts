@@ -785,6 +785,9 @@ export interface AuthenticationFlowStepConfig {
   // Deprecated fill_in_user_profile shape.
   user_profile?: { pointer?: string; required?: boolean }[];
   allowed_channels?: { channel: string; otp_form?: string }[];
+  // On select_destination: list every email and phone on the account to
+  // choose from, instead of using the login ID the user entered.
+  enumerate_destinations?: boolean;
 }
 
 export interface AuthenticationFlowConfig {

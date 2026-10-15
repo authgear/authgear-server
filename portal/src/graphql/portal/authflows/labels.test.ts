@@ -2,9 +2,12 @@ import { describe, it, expect } from "@jest/globals";
 import {
   ifNeededMessageIDs,
   optionLabel,
+  destinationMessageID,
   optionalMessageIDs,
+  pagelessNoteMessageIDs,
   phoneCodeSetupMessageID,
   stepDescriptionMessageID,
+  verifyCodeMessageID,
 } from "./labels";
 import { KNOWN_STEP_TYPES } from "./tree";
 
@@ -116,5 +119,64 @@ describe("optionLabel", () => {
     expect(
       optionLabel({ authentication: "primary_oob_otp_sms" }, renderToString)
     ).toEqual("AuthFlowsScreen.authentication.oob_otp_sms");
+  });
+});
+
+describe("verifyCodeMessageID", () => {
+  it("names email", () => {
+    expect(verifyCodeMessageID("email", "sms")).toEqual(
+      "AuthFlowsScreen.verify.email"
+    );
+  });
+
+  it.each([
+    ["sms", "AuthFlowsScreen.verify.phone.sms"],
+    ["whatsapp", "AuthFlowsScreen.verify.phone.whatsapp"],
+    ["whatsapp_sms", "AuthFlowsScreen.verify.phone.whatsapp_sms"],
+  ] as const)("names the phone channel for %s", (mode, expected) => {
+    expect(verifyCodeMessageID("phone", mode)).toEqual(expected);
+  });
+
+  it("stays generic otherwise", () => {
+    expect(verifyCodeMessageID(null, "sms")).toEqual(
+      "AuthFlowsScreen.sketch.enter-code"
+    );
+    expect(verifyCodeMessageID("phone", undefined)).toEqual(
+      "AuthFlowsScreen.sketch.enter-code"
+    );
+  });
+});
+
+describe("pagelessNoteMessageIDs", () => {
+  it("explains identify by ID token", () => {
+    expect(
+      pagelessNoteMessageIDs({
+        type: "identify",
+        one_of: [{ identification: "id_token" }],
+      })
+    ).toEqual({
+      line: "AuthFlowsScreen.pageless.id_token",
+      note: "AuthFlowsScreen.pageless.id_token.note",
+    });
+  });
+
+  it("returns null for other steps", () => {
+    expect(pagelessNoteMessageIDs({ type: "check_account_status" })).toBeNull();
+  });
+});
+
+describe("destinationMessageID", () => {
+  it.each([
+    ["email", "link", "AuthFlowsScreen.destination.email.link"],
+    ["email", "code", "AuthFlowsScreen.destination.email.code"],
+    ["sms", "code", "AuthFlowsScreen.destination.sms.code"],
+    ["sms", "link", "AuthFlowsScreen.destination.sms.link"],
+    ["whatsapp", "code", "AuthFlowsScreen.destination.whatsapp.code"],
+  ])("describes %s with %s", (channel, otpForm, expected) => {
+    expect(destinationMessageID(channel, otpForm)).toEqual(expected);
+  });
+
+  it("returns null for an unknown channel", () => {
+    expect(destinationMessageID("pigeon", "code")).toBeNull();
   });
 });

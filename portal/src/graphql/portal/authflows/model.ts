@@ -1,5 +1,6 @@
 import {
   AuthenticationFlowConfig,
+  AuthenticationFlowStepConfig,
   AuthenticationFlowsConfig,
 } from "../../../types";
 
@@ -103,4 +104,58 @@ export function flowSelectionSearch(selection: FlowSelection): string {
     type: selection.type,
     name: selection.name,
   }).toString()}`;
+}
+
+export interface AccountRecoveryDestination {
+  channel: string;
+  otp_form: string;
+}
+
+// What the server sends when select_destination lists no allowed_channels
+// (config.GetAllAccountRecoveryChannel).
+const ALL_ACCOUNT_RECOVERY_DESTINATIONS: AccountRecoveryDestination[] = [
+  { channel: "email", otp_form: "link" },
+  { channel: "email", otp_form: "code" },
+  { channel: "sms", otp_form: "code" },
+  { channel: "sms", otp_form: "link" },
+  { channel: "whatsapp", otp_form: "code" },
+];
+
+// What one select_destination step can send.
+export function selectDestinationChannels(
+  step: AuthenticationFlowStepConfig
+): AccountRecoveryDestination[] {
+  const allowed = step.allowed_channels ?? [];
+  if (allowed.length === 0) {
+    return ALL_ACCOUNT_RECOVERY_DESTINATIONS;
+  }
+  return allowed.flatMap((c) =>
+    c.otp_form != null ? [{ channel: c.channel, otp_form: c.otp_form }] : []
+  );
+}
+
+// Every channel and form (link, code) an account recovery flow can send,
+// once each, from its select_destination steps. The verify step after them
+// shows one section per destination, since a link and a code look different.
+export function accountRecoveryDestinations(
+  flow: AuthenticationFlowConfig
+): AccountRecoveryDestination[] {
+  const found = new Map<string, AccountRecoveryDestination>();
+  const walk = (steps: AuthenticationFlowStepConfig[]) => {
+    for (const step of steps) {
+      if (step.type === "select_destination") {
+        for (const d of selectDestinationChannels(step)) {
+          const key = `${d.channel}.${d.otp_form}`;
+          if (!found.has(key)) {
+            found.set(key, d);
+          }
+        }
+      }
+      for (const option of step.one_of ?? []) {
+        walk(option.steps ?? []);
+      }
+    }
+  };
+  walk(flow.steps ?? []);
+  return [...found.values()];
 }

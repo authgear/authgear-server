@@ -213,3 +213,60 @@ export function phoneCodeSetupMessageID(
     ? phoneCodeSetupMessageIDs[mode]
     : "AuthFlowsScreen.setup.oob_otp_sms.any";
 }
+
+const verifyPhoneMessageIDs: Record<AuthenticatorPhoneOTPMode, string> = {
+  sms: "AuthFlowsScreen.verify.phone.sms",
+  whatsapp: "AuthFlowsScreen.verify.phone.whatsapp",
+  whatsapp_sms: "AuthFlowsScreen.verify.phone.whatsapp_sms",
+};
+
+// What a verify step asks for, named by the login ID its branch collected.
+export function verifyCodeMessageID(
+  identification: string | null,
+  phoneOTPMode: AuthenticatorPhoneOTPMode | undefined
+): string {
+  if (identification === "email") {
+    return "AuthFlowsScreen.verify.email";
+  }
+  if (identification === "phone" && phoneOTPMode != null) {
+    return verifyPhoneMessageIDs[phoneOTPMode];
+  }
+  return "AuthFlowsScreen.sketch.enter-code";
+}
+
+// A pageless step the user never sees can still need saying what it does:
+// a short line on the pill, and a note that explains it.
+export function pagelessNoteMessageIDs(
+  step: AuthenticationFlowStepConfig
+): { line: string; note: string } | null {
+  const options = step.one_of ?? [];
+  if (
+    step.type === "identify" &&
+    options.length > 0 &&
+    options.every((o) => o.identification === "id_token")
+  ) {
+    return {
+      line: "AuthFlowsScreen.pageless.id_token",
+      note: "AuthFlowsScreen.pageless.id_token.note",
+    };
+  }
+  return null;
+}
+
+const destinationMessageIDs: Partial<Record<string, string>> = {
+  "email.link": "AuthFlowsScreen.destination.email.link",
+  "email.code": "AuthFlowsScreen.destination.email.code",
+  "sms.link": "AuthFlowsScreen.destination.sms.link",
+  "sms.code": "AuthFlowsScreen.destination.sms.code",
+  "whatsapp.link": "AuthFlowsScreen.destination.whatsapp.link",
+  "whatsapp.code": "AuthFlowsScreen.destination.whatsapp.code",
+};
+
+// What an account recovery channel sends, and where: a link or a code
+// (otp_form), by email, SMS or WhatsApp, to the login ID the user entered.
+export function destinationMessageID(
+  channel: string,
+  otpForm: string | undefined
+): string | null {
+  return destinationMessageIDs[`${channel}.${otpForm}`] ?? null;
+}
