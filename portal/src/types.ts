@@ -397,10 +397,11 @@ export function AuthenticatorPhoneOTPMode_includesWhatsapp(
   }
 }
 
+// WhatsApp first so the portal shows it before SMS.
 export const AuthenticatorPhoneOTPMode_list: AuthenticatorPhoneOTPMode[] = [
-  "sms",
-  "whatsapp_sms",
   "whatsapp",
+  "whatsapp_sms",
+  "sms",
 ];
 
 export interface AuthenticationRateLimitsConfig {
