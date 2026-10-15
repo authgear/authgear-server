@@ -94,7 +94,7 @@ There are three pure functions, none of which use React.
 - Each handle connects to the first step of its branch. If the branch is empty, it connects to the join.
 - **Join:** the last node of every branch connects to the step after the choice, or to End if there is none.
 - No step gets a bypass edge, optional or not: its condition line already says it may be skipped.
-- **Hand-off:** an option with `login_flow` or `signup_flow` (a `signup_login` identify option) ends the flow. It connects to one flow node per flow it names, instead of continuing. An option naming both has two outputs, "Has account" to the login flow and "No account" to the signup flow, because AuthUI logs the user in when an account with that login ID or identity exists and signs them up otherwise.
+- **Hand-off:** an option with `login_flow` or `signup_flow` (a `signup_login` identify option) ends the flow. It connects to one flow node per flow it names, instead of continuing. An option naming both has two outputs, "Has account" to the login flow and "No account" to the signup flow, because AuthUI logs the user in when an account with that login ID or identity exists and signs them up otherwise. Options naming the same two flows form a group: they share one "Has account" / "No account" pair, from the group's first option, and are drawn together in one tinted box at that option's position.
 - **End** is drawn only when some path reaches it. A `signup_login` flow, whose every option hands off, has none.
 
 ### `layoutGraph(tree, sizes, terminals)`
