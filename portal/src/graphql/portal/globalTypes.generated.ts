@@ -14,8 +14,16 @@ export type Scalars = {
   Float: { input: number; output: number; }
   /** The `AppConfig` scalar type represents an app config JSON object */
   AppConfig: { input: GQL_AppConfig; output: GQL_AppConfig; }
-  /** The `AuthenticationFlowConfig` scalar type represents the authentication_flow section of an app config */
-  AuthenticationFlowConfig: { input: any; output: any; }
+  /** The `AuthenticationFlowAccountRecoveryFlow` scalar type represents an item of authentication_flow.account_recovery_flows in an app config */
+  AuthenticationFlowAccountRecoveryFlow: { input: any; output: any; }
+  /** The `AuthenticationFlowLoginFlow` scalar type represents an item of authentication_flow.login_flows in an app config */
+  AuthenticationFlowLoginFlow: { input: any; output: any; }
+  /** The `AuthenticationFlowReauthFlow` scalar type represents an item of authentication_flow.reauth_flows in an app config */
+  AuthenticationFlowReauthFlow: { input: any; output: any; }
+  /** The `AuthenticationFlowSignupFlow` scalar type represents an item of authentication_flow.signup_flows in an app config */
+  AuthenticationFlowSignupFlow: { input: any; output: any; }
+  /** The `AuthenticationFlowSignupLoginFlow` scalar type represents an item of authentication_flow.signup_login_flows in an app config */
+  AuthenticationFlowSignupLoginFlow: { input: any; output: any; }
   /** The `Date` scalar type represents a Date. The Date is serialized in ISO 8601 format */
   Date: { input: GQL_Date; output: GQL_Date; }
   /** The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string */
@@ -68,7 +76,7 @@ export type App = Node & {
   effectiveFeatureConfig: Scalars['FeatureConfig']['output'];
   effectiveSecretConfig: EffectiveSecretConfig;
   /** The authentication flows generated from the app's settings. A custom flow named "default" replaces the generated flow of its type. */
-  generatedAuthenticationFlows: Scalars['AuthenticationFlowConfig']['output'];
+  generatedAuthenticationFlows: GeneratedAuthenticationFlows;
   /** The ID of an object */
   id: Scalars['ID']['output'];
   isProcessingSubscription: Scalars['Boolean']['output'];
@@ -370,6 +378,17 @@ export type GenerateTestTokenPayload = {
   __typename?: 'GenerateTestTokenPayload';
   /** The generated token */
   token: Scalars['String']['output'];
+};
+
+/** The authentication flow of each type that Authgear generates from the app's settings */
+export type GeneratedAuthenticationFlows = {
+  __typename?: 'GeneratedAuthenticationFlows';
+  /** Null when the app's settings give no way to recover an account. */
+  accountRecoveryFlow?: Maybe<Scalars['AuthenticationFlowAccountRecoveryFlow']['output']>;
+  loginFlow: Scalars['AuthenticationFlowLoginFlow']['output'];
+  reauthFlow: Scalars['AuthenticationFlowReauthFlow']['output'];
+  signupFlow: Scalars['AuthenticationFlowSignupFlow']['output'];
+  signupLoginFlow: Scalars['AuthenticationFlowSignupLoginFlow']['output'];
 };
 
 export type Mutation = {

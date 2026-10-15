@@ -367,6 +367,50 @@ var oauthSSOProviderDemoSecretItem = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+// Each field generates only its own flow, from the *config.AppConfig source.
+var generatedAuthenticationFlows = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "GeneratedAuthenticationFlows",
+	Description: "The authentication flow of each type that Authgear generates from the app's settings",
+	Fields: graphql.Fields{
+		"signupFlow": &graphql.Field{
+			Type: graphql.NewNonNull(AuthenticationFlowSignupFlow),
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				return declarative.GenerateSignupFlowConfig(p.Source.(*config.AppConfig)), nil
+			},
+		},
+		"loginFlow": &graphql.Field{
+			Type: graphql.NewNonNull(AuthenticationFlowLoginFlow),
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				return declarative.GenerateLoginFlowConfig(p.Source.(*config.AppConfig)), nil
+			},
+		},
+		"signupLoginFlow": &graphql.Field{
+			Type: graphql.NewNonNull(AuthenticationFlowSignupLoginFlow),
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				return declarative.GenerateSignupLoginFlowConfig(p.Source.(*config.AppConfig)), nil
+			},
+		},
+		"reauthFlow": &graphql.Field{
+			Type: graphql.NewNonNull(AuthenticationFlowReauthFlow),
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				return declarative.GenerateReauthFlowConfig(p.Source.(*config.AppConfig)), nil
+			},
+		},
+		"accountRecoveryFlow": &graphql.Field{
+			Description: "Null when the app's settings give no way to recover an account.",
+			Type:        AuthenticationFlowAccountRecoveryFlow,
+			Resolve: func(p graphql.ResolveParams) (any, error) {
+				flow := declarative.GenerateAccountRecoveryFlowConfigIfRecoverable(p.Source.(*config.AppConfig))
+				// Return an untyped nil so that a nil flow resolves to null.
+				if flow == nil {
+					return nil, nil
+				}
+				return flow, nil
+			},
+		},
+	},
+})
+
 var secretKeyToConfigKeyMap map[AppSecretKey][]config.SecretKey = map[AppSecretKey][]config.SecretKey{
 	AppSecretKeyOauthSSOProviderClientSecrets:  {config.OAuthSSOProviderCredentialsKey},
 	AppSecretKeyWebhookSecret:                  {config.WebhookKeyMaterialsKey},
@@ -538,9 +582,9 @@ var nodeApp = node(
 			},
 			"generatedAuthenticationFlows": &graphql.Field{
 				Description: "The authentication flows generated from the app's settings. A custom flow named \"default\" replaces the generated flow of its type.",
-				Type:        graphql.NewNonNull(AuthenticationFlowConfig),
+				Type:        graphql.NewNonNull(generatedAuthenticationFlows),
 				Resolve: func(p graphql.ResolveParams) (any, error) {
-					return declarative.GenerateAuthenticationFlowConfig(p.Source.(*model.App).Context.Config.AppConfig), nil
+					return p.Source.(*model.App).Context.Config.AppConfig, nil
 				},
 			},
 			"usage": &graphql.Field{
