@@ -32,8 +32,11 @@ import styles from "./AuthFlowsScreen.module.css";
 const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
   const { appID } = useParams() as { appID: string };
   const { renderToString } = useContext(Context);
+  // Settings edited elsewhere in the portal change the generated flows, and
+  // nothing refetches them, so a cached copy here would be stale.
   const { data, loading, error, refetch } = useAuthFlowsScreenQueryQuery({
     variables: { id: appID },
+    fetchPolicy: "network-only",
   });
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -61,6 +64,12 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
   );
 
   const flowKey = `${selection.type}/${selection.name}`;
+  // The canvas measures its nodes once, so it remounts whenever the flow's
+  // content changes, not only when another flow is selected.
+  const canvasKey = useMemo(
+    () => `${flowKey}:${JSON.stringify(resolved?.flow ?? null)}`,
+    [flowKey, resolved]
+  );
   const tree = useMemo(
     () => (resolved != null ? flowToTree(resolved.flow) : null),
     [resolved]
@@ -192,7 +201,7 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
         {tree != null && sketchContext != null ? (
           <FlowSketchContext.Provider value={sketchContext}>
             <FlowCanvas
-              key={flowKey}
+              key={canvasKey}
               tree={tree}
               selectedStepID={selectedStepID}
               onSelectStep={onSelectStep}

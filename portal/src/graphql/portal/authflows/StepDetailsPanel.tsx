@@ -4,7 +4,7 @@ import { Flex, Heading, IconButton, Text } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../../intl";
 import { FlowStepItem } from "./tree";
-import { optionLabel, stepTitle } from "./labels";
+import { optionLabel, stepDescriptionMessageID, stepTitle } from "./labels";
 import styles from "./StepDetailsPanel.module.css";
 
 export interface StepDetailsPanelProps {
@@ -18,6 +18,7 @@ export function StepDetailsPanel({
 }: StepDetailsPanelProps): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { step } = item;
+  const description = stepDescriptionMessageID(step.type);
   const options = step.one_of ?? [];
   const stepYAML = useMemo(() => yaml.dump(step), [step]);
   return (
@@ -41,6 +42,11 @@ export function StepDetailsPanel({
             id="AuthFlowsScreen.panel.step-name"
             values={{ name: step.name }}
           />
+        </Text>
+      ) : null}
+      {description != null ? (
+        <Text as="p" size="2">
+          <FormattedMessage id={description} />
         </Text>
       ) : null}
       {item.optional ? (

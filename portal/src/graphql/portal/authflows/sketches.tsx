@@ -9,7 +9,7 @@ import {
   AuthenticationFlowStepConfig,
   CustomAttributesAttributeConfig,
 } from "../../../types";
-import { FlowStepItem } from "./tree";
+import { FlowStepItem, isDeviceTokenOption } from "./tree";
 import {
   AccountAnswer,
   optionAnswerHandleID,
@@ -47,6 +47,10 @@ function SketchSelect({ label }: { label: string }) {
 
 function SketchButton({ label }: { label: string }) {
   return <div className={styles.sketchButton}>{label}</div>;
+}
+
+function SketchText({ label }: { label: string }) {
+  return <span className={styles.sketchText}>{label}</span>;
 }
 
 function SketchLink({ label }: { label: string }) {
@@ -382,9 +386,11 @@ function OptionRows({
 }) {
   const { renderToString } = useContext(Context);
   const isIdentify = item.step.type === "identify";
-  const shown = (item.step.one_of ?? [])
-    .map((option, i) => ({ option, i }))
-    .filter(({ i }) => i !== hiddenIndex);
+  const options = (item.step.one_of ?? []).map((option, i) => ({ option, i }));
+  const shown = options.filter(
+    ({ option, i }) => i !== hiddenIndex && !isDeviceTokenOption(option)
+  );
+  const deviceToken = options.find(({ option }) => isDeviceTokenOption(option));
   return (
     <>
       {shown.map(({ option, i }, k) => (
@@ -403,6 +409,16 @@ function OptionRows({
           </OptionRow>
         </React.Fragment>
       ))}
+      {deviceToken != null ? (
+        // Part of the page, not an alternative: it lets this device skip the
+        // step next time.
+        <div className={styles.rememberDevice}>
+          <AuthenticatorOption option={deviceToken.option} />
+          <span className={styles.rememberDeviceNote}>
+            {renderToString("AuthFlowsScreen.sketch.remember-device-note")}
+          </span>
+        </div>
+      ) : null}
     </>
   );
 }
@@ -472,6 +488,20 @@ export function StepSketch({
             <span key={i}>••••-••••</span>
           ))}
         </div>
+      );
+    case "terminate_other_sessions":
+      return (
+        <>
+          <SketchText
+            label={renderToString("AuthFlowsScreen.sketch.other-device")}
+          />
+          <SketchButton
+            label={renderToString("AuthFlowsScreen.sketch.continue")}
+          />
+          <SketchLink
+            label={renderToString("AuthFlowsScreen.sketch.dont-log-out")}
+          />
+        </>
       );
     case "prompt_create_passkey":
       return (

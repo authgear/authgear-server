@@ -27,9 +27,35 @@
   font-size: var(--font-size-2);
 }
 
-.optionalTag {
+/* When a step the runtime may skip runs: a short line atop the card. */
+.conditionLine {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--gray-a4);
   font-size: var(--font-size-1);
-  color: var(--gray-11);
+  color: var(--accent-11);
+  cursor: help;
+}
+
+/* Same line as on cards, scaled to the pill. */
+.pill .conditionLine {
+  align-self: stretch;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+}
+
+.conditionIcon {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .stepName {
@@ -170,6 +196,21 @@
   justify-content: center;
 }
 
+/* "Remember this device": part of the page, after the options. */
+.rememberDevice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--gray-a4);
+}
+
+.rememberDeviceNote {
+  font-size: 10px;
+  color: var(--gray-10);
+}
+
 .orDivider {
   display: flex;
   gap: 8px;
@@ -218,6 +259,11 @@
   text-align: center;
 }
 
+.sketchText {
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
 .sketchLink {
   font-size: var(--font-size-1);
   color: var(--gray-11);
@@ -260,9 +306,13 @@
 }
 
 .pill {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
   padding: 6px 14px;
   border: 1px solid var(--gray-a6);
-  border-radius: 999px;
+  border-radius: 14px;
   background: var(--gray-a2);
   font-size: var(--font-size-1);
   cursor: pointer;

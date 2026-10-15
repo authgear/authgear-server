@@ -53,7 +53,7 @@ export interface FlowGraphNode {
   flowRef?: FlowRef;
 }
 
-export type FlowGraphEdgeKind = "next" | "option" | "skip";
+export type FlowGraphEdgeKind = "next" | "option";
 
 export interface FlowGraphEdge {
   id: string;
@@ -69,10 +69,6 @@ export interface FlowGraphEdge {
 
 export function optionLaneKey(choiceID: string, optionIndex: number): string {
   return `${choiceID}/${optionHandleID(optionIndex)}`;
-}
-
-export function skipLaneKey(optionalStepID: string): string {
-  return `skip:${optionalStepID}`;
 }
 
 export interface FlowGraph {
@@ -154,16 +150,6 @@ export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
           });
           return [];
         });
-      }
-      if (item.optional) {
-        outlets = [
-          ...outlets,
-          ...current.map((o) => ({
-            ...o,
-            kind: "skip" as const,
-            lane: skipLaneKey(item.id),
-          })),
-        ];
       }
       current = outlets;
     }

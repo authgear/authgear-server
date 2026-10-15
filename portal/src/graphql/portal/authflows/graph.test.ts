@@ -61,8 +61,6 @@ describe("treeToGraph", () => {
         [S, optionHandleID(0), "option", C],
         [S, optionHandleID(1), "option", C],
         [S, optionHandleID(2), "option", C],
-        [S, optionHandleID(3), "option", C],
-        [P, optionHandleID(0), "skip", C],
         [C, NEXT_HANDLE_ID, "next", "/steps/1"],
         [P, optionHandleID(1), "option", "/steps/1"],
         ["/steps/1", NEXT_HANDLE_ID, "next", "/steps/2"],
@@ -70,11 +68,11 @@ describe("treeToGraph", () => {
         ["/steps/3", NEXT_HANDLE_ID, "next", END_NODE_ID],
       ])
     );
-    expect(graph.edges).toHaveLength(16);
-    expect(new Set(graph.edges.map((e) => e.id)).size).toEqual(16);
+    expect(graph.edges).toHaveLength(14);
+    expect(new Set(graph.edges.map((e) => e.id)).size).toEqual(14);
   });
 
-  it("names the lane each option and skip edge travels in", () => {
+  it("names the lane each option edge travels in", () => {
     const graph = graphOf(only(generatedEmailOAuthPasskey2FA.login_flows));
     const lane = (source: string, handle: string, kind: string) =>
       graph.edges.find(
@@ -84,8 +82,14 @@ describe("treeToGraph", () => {
     expect(lane("/steps/0", optionHandleID(2), "option")).toEqual(
       `/steps/0/${optionHandleID(2)}`
     );
-    expect(lane(P, optionHandleID(0), "skip")).toEqual(`skip:${S}`);
     expect(lane("/steps/1", NEXT_HANDLE_ID, "next")).toBeNull();
+  });
+
+  it("draws no bypass around an optional step: its condition line says so", () => {
+    const graph = graphOf(only(generatedEmailOAuthPasskey2FA.login_flows));
+    expect(
+      graph.edges.filter((e) => e.target === C).map((e) => e.source)
+    ).toEqual([S, S, S]);
   });
 
   it("chains inlined single-option steps with next edges", () => {
