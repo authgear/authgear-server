@@ -750,6 +750,54 @@ export interface UserProfileConfig {
   custom_attributes?: CustomAttributesConfig;
 }
 
+export interface AuthenticationFlowFormFieldConfig {
+  user_profile?: {
+    pointer?: string;
+    required?: boolean;
+  };
+}
+
+export interface AuthenticationFlowFormConfig {
+  name?: string;
+  fields?: AuthenticationFlowFormFieldConfig[];
+}
+
+export interface AuthenticationFlowOptionConfig {
+  identification?: string;
+  authentication?: string;
+  signup_flow?: string;
+  login_flow?: string;
+  on_failure?: string;
+  form?: AuthenticationFlowFormConfig;
+  steps?: AuthenticationFlowStepConfig[];
+}
+
+export interface AuthenticationFlowStepConfig {
+  type: string;
+  name?: string;
+  optional?: boolean;
+  target_step?: string;
+  one_of?: AuthenticationFlowOptionConfig[];
+  form?: AuthenticationFlowFormConfig;
+  // Deprecated fill_in_user_profile shape.
+  user_profile?: { pointer?: string; required?: boolean }[];
+  allowed_channels?: { channel: string; otp_form?: string }[];
+}
+
+export interface AuthenticationFlowConfig {
+  name: string;
+  steps?: AuthenticationFlowStepConfig[];
+}
+
+export interface AuthenticationFlowsConfig {
+  signup_flows?: AuthenticationFlowConfig[];
+  promote_flows?: AuthenticationFlowConfig[];
+  login_flows?: AuthenticationFlowConfig[];
+  signup_login_flows?: AuthenticationFlowConfig[];
+  reauth_flows?: AuthenticationFlowConfig[];
+  account_recovery_flows?: AuthenticationFlowConfig[];
+}
+
 export interface NetworkProtectionConfig {
   ip_filter?: IPFilterConfig;
 }
@@ -875,6 +923,7 @@ export interface PortalAPIAppConfig {
   session?: SessionConfig;
   hook?: HookConfig;
   user_profile?: UserProfileConfig;
+  authentication_flow?: AuthenticationFlowsConfig;
   account_deletion?: AccountDeletionConfig;
   account_anonymization?: AccountAnonymizationConfig;
   google_tag_manager?: GoogleTagManagerConfig;

@@ -1,0 +1,10 @@
+query authFlowsScreenQuery($id: ID!) {
+  node(id: $id) {
+    __typename
+    ... on App {
+      id
+      effectiveAppConfig
+      generatedAuthenticationFlows
+    }
+  }
+}

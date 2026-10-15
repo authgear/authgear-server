@@ -1,0 +1,321 @@
+.card {
+  --node-padding: 12px;
+
+  width: 240px;
+  padding: var(--node-padding);
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+  background: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+}
+
+.selected {
+  outline: 2px solid var(--accent-9);
+  outline-offset: 2px;
+}
+
+.cardHeader {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: var(--font-size-2);
+}
+
+.optionalTag {
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
+.stepName {
+  display: block;
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.optionRow {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Inside a group the handle sits on the group's edge, past its padding. */
+.optionHandle {
+  right: calc(-1 * (var(--node-padding) + var(--handle-extra, 0px)));
+}
+
+/* An identify step drawn as two pages: "Continue as", then the login page. */
+.group {
+  --node-padding: 12px;
+  --handle-extra: 16px;
+
+  position: relative;
+  box-sizing: border-box;
+  border: 1px solid var(--gray-a6);
+  border-radius: 14px;
+  background: var(--gray-2);
+  cursor: pointer;
+}
+
+.groupHeader {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--gray-a5);
+}
+
+.groupHeader > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.groupLines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.groupLine {
+  fill: none;
+  stroke: var(--gray-9);
+  stroke-width: 1.25;
+}
+
+.groupLineDashed {
+  stroke-dasharray: 5 4;
+}
+
+.groupArrow {
+  fill: var(--gray-9);
+}
+
+.continuePage,
+.loginPage {
+  box-sizing: border-box;
+  border: 1px solid var(--gray-a6);
+  border-radius: 9px;
+  background: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+}
+
+.continuePage {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border-style: dashed;
+}
+
+.loginPage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.pageCaption {
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  color: var(--gray-11);
+}
+
+.pageTitle {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: var(--font-size-1);
+}
+
+/* The use-another-account action between the two pages. */
+.groupAction {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid var(--gray-a6);
+  border-radius: 999px;
+  background: var(--color-panel-solid);
+  font-size: var(--font-size-1);
+}
+
+.fixedRow {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.orDivider {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--font-size-1);
+  color: var(--gray-10);
+}
+
+.orDivider::before,
+.orDivider::after {
+  flex: 1;
+  border-top: 1px solid var(--gray-a5);
+  content: "";
+}
+
+.sketchField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sketchLabel {
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
+.sketchInput {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--gray-a7);
+  border-radius: 4px;
+}
+
+.sketchChevron {
+  color: var(--gray-9);
+}
+
+.sketchButton {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--gray-a3);
+  font-size: var(--font-size-1);
+  text-align: center;
+}
+
+.sketchLink {
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+  text-decoration: underline;
+}
+
+.sketchCheckbox {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--font-size-1);
+}
+
+.sketchCheckboxBox {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--gray-a8);
+  border-radius: 2px;
+}
+
+.sketchOTP {
+  display: flex;
+  gap: 4px;
+}
+
+.sketchOTPBox {
+  width: 20px;
+  height: 24px;
+  border: 1px solid var(--gray-a7);
+  border-radius: 4px;
+}
+
+.sketchCodes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
+.pill {
+  padding: 6px 14px;
+  border: 1px solid var(--gray-a6);
+  border-radius: 999px;
+  background: var(--gray-a2);
+  font-size: var(--font-size-1);
+  cursor: pointer;
+}
+
+.terminal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--gray-a7);
+  border-radius: 50%;
+  background: var(--color-panel-solid);
+  font-size: var(--font-size-1);
+}
+
+/* A flow this one hands off to. */
+.flowRef {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 160px;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+  background: var(--gray-2);
+}
+
+.flowRefMissing {
+  border-color: var(--red-a7);
+}
+
+.flowRefOpen {
+  margin-top: 4px;
+  font-size: var(--font-size-1);
+}
+
+.flowRefMissingText {
+  margin-top: 4px;
+  font-size: var(--font-size-1);
+  color: var(--red-11);
+}
+
+/* The answer an output stands for, n8n style: beside its handle. */
+.portLabel {
+  position: absolute;
+  bottom: 6px;
+  left: 10px;
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--gray-11);
+  pointer-events: none;
+}

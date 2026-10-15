@@ -1,0 +1,16 @@
+.canvas {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.minimap {
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.minimapVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
