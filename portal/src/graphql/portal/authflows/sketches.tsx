@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import cn from "classnames";
 import { Handle, Position } from "@xyflow/react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { Context } from "../../../intl";
@@ -16,7 +17,11 @@ import {
   optionFlowRefs,
   optionHandleID,
 } from "./graph";
-import { oauthProviderMessageIDs, optionLabel } from "./labels";
+import {
+  oauthProviderMessageIDs,
+  optionLabel,
+  phoneCodeSetupMessageID,
+} from "./labels";
 import { useFlowSketchContext } from "./FlowSketchContext";
 import { IdentifyGroupGeometry } from "./groupGeometry";
 import styles from "./FlowNodes.module.css";
@@ -66,6 +71,18 @@ function SketchCheckbox({ label }: { label: string }) {
   );
 }
 
+// Tabler's qrcode icon, from the icon font the portal already loads.
+function SketchQRCode({ label }: { label: string }) {
+  return (
+    <div className={styles.sketchField}>
+      <span className={styles.sketchLabel}>{label}</span>
+      <span className={styles.sketchQR}>
+        <i className="ti ti-qrcode" aria-hidden={true} />
+      </span>
+    </div>
+  );
+}
+
 function SketchOTP({ label }: { label: string }) {
   return (
     <div className={styles.sketchField}>
@@ -104,6 +121,17 @@ function fieldControl(
   }
 }
 
+function formFieldLabel(
+  pointer: string,
+  customAttributes: CustomAttributesAttributeConfig[],
+  renderToString: (id: string) => string
+): string {
+  const name = pointer.replace(/^\//, "");
+  return customAttributes.some((a) => a.pointer === pointer)
+    ? name
+    : renderToString(`standard-attribute.${name}`);
+}
+
 function FormFields({ form }: { form: AuthenticationFlowFormConfig }) {
   const { renderToString } = useContext(Context);
   const { customAttributes } = useFlowSketchContext();
@@ -119,11 +147,8 @@ function FormFields({ form }: { form: AuthenticationFlowFormConfig }) {
         const pointer = field.user_profile?.pointer ?? "";
         const required = field.user_profile?.required === true;
         const custom = customAttributes.find((a) => a.pointer === pointer);
-        const name = pointer.replace(/^\//, "");
         const label =
-          (custom != null
-            ? name
-            : renderToString(`standard-attribute.${name}`)) +
+          formFieldLabel(pointer, customAttributes, renderToString) +
           (required ? " *" : "");
         switch (fieldControl(pointer, custom)) {
           case "select":
@@ -210,13 +235,110 @@ function IdentifyOption({
   }
 }
 
+// Setting up a method is drawn as one line describing it.
+const setupMessageIDs: Partial<Record<string, string>> = {
+  primary_password: "AuthFlowsScreen.setup.password",
+  secondary_password: "AuthFlowsScreen.setup.password",
+  primary_passkey: "AuthFlowsScreen.setup.passkey",
+  primary_oob_otp_email: "AuthFlowsScreen.setup.oob_otp_email",
+  secondary_oob_otp_email: "AuthFlowsScreen.setup.oob_otp_email",
+  secondary_totp: "AuthFlowsScreen.setup.totp",
+};
+
+// A method being set up: its one-line description as the heading, then the
+// fields the user fills in. A code method without target_step asks for the
+// email or phone first; with target_step the code goes to that step's
+// login ID, so only the code is entered.
+function CreateAuthenticatorOption({
+  option,
+}: {
+  option: AuthenticationFlowOptionConfig;
+}) {
+  const { renderToString } = useContext(Context);
+  const { phoneOTPMode } = useFlowSketchContext();
+  const auth = option.authentication;
+  const isPhoneCode =
+    auth === "primary_oob_otp_sms" || auth === "secondary_oob_otp_sms";
+  const id = isPhoneCode
+    ? phoneCodeSetupMessageID(phoneOTPMode)
+    : auth != null
+    ? setupMessageIDs[auth]
+    : undefined;
+  const heading =
+    id != null ? renderToString(id) : optionLabel(option, renderToString);
+  const codeBoxes = (
+    <SketchOTP label={renderToString("AuthFlowsScreen.sketch.enter-code")} />
+  );
+  const askFirst = (messageID: string) =>
+    option.target_step == null ? (
+      <SketchInput label={renderToString(messageID)} />
+    ) : null;
+  let fields: React.ReactNode;
+  switch (auth) {
+    case "primary_password":
+    case "secondary_password":
+      fields = (
+        <SketchInput
+          label={renderToString("AuthFlowsScreen.sketch.new-password")}
+        />
+      );
+      break;
+    case "primary_passkey":
+      fields = (
+        <SketchButton
+          label={renderToString("AuthFlowsScreen.sketch.create-passkey")}
+        />
+      );
+      break;
+    case "primary_oob_otp_email":
+    case "secondary_oob_otp_email":
+      fields = (
+        <>
+          {askFirst("AuthFlowsScreen.identification.email")}
+          {codeBoxes}
+        </>
+      );
+      break;
+    case "primary_oob_otp_sms":
+    case "secondary_oob_otp_sms":
+      fields = (
+        <>
+          {askFirst("AuthFlowsScreen.sketch.phone-number")}
+          {codeBoxes}
+        </>
+      );
+      break;
+    case "secondary_totp":
+      fields = (
+        <>
+          <SketchQRCode
+            label={renderToString("AuthFlowsScreen.sketch.scan-qr")}
+          />
+          <SketchOTP
+            label={renderToString("AuthFlowsScreen.sketch.enter-app-code")}
+          />
+        </>
+      );
+      break;
+    default:
+      fields = null;
+  }
+  return (
+    <>
+      <span className={styles.sketchOption}>{heading}</span>
+      {fields}
+    </>
+  );
+}
+
 function AuthenticatorOption({
   option,
 }: {
   option: AuthenticationFlowOptionConfig;
 }) {
   const { renderToString } = useContext(Context);
-  const label = optionLabel(option, renderToString);
+  const { phoneOTPMode } = useFlowSketchContext();
+  const label = optionLabel(option, renderToString, phoneOTPMode);
   switch (option.authentication) {
     case "primary_password":
     case "secondary_password":
@@ -308,14 +430,19 @@ function OptionHandle({
 function OptionRow({
   item,
   optionIndex,
+  subnode,
   children,
 }: {
   item: FlowStepItem;
   optionIndex: number;
+  // One of several alternatives: drawn as its own tinted sub-node.
+  subnode: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.optionRow}>
+    <div
+      className={cn(styles.optionRow, subnode ? styles.optionSubnode : null)}
+    >
       {children}
       <OptionHandle
         item={item}
@@ -386,11 +513,14 @@ function OptionRows({
 }) {
   const { renderToString } = useContext(Context);
   const isIdentify = item.step.type === "identify";
+  const isCreate = item.step.type === "create_authenticator";
   const options = (item.step.one_of ?? []).map((option, i) => ({ option, i }));
   const shown = options.filter(
     ({ option, i }) => i !== hiddenIndex && !isDeviceTokenOption(option)
   );
   const deviceToken = options.find(({ option }) => isDeviceTokenOption(option));
+  // Several alternatives are drawn as sub-nodes.
+  const subnodes = shown.length > 1;
   return (
     <>
       {shown.map(({ option, i }, k) => (
@@ -400,9 +530,11 @@ function OptionRows({
               {renderToString("AuthFlowsScreen.sketch.or")}
             </div>
           ) : null}
-          <OptionRow item={item} optionIndex={i}>
+          <OptionRow item={item} optionIndex={i} subnode={subnodes}>
             {isIdentify ? (
               <IdentifyOption option={option} />
+            ) : isCreate ? (
+              <CreateAuthenticatorOption option={option} />
             ) : (
               <AuthenticatorOption option={option} />
             )}

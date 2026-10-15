@@ -101,6 +101,8 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
             oauthProviders: appConfig?.identity?.oauth?.providers ?? [],
             customAttributes:
               appConfig?.user_profile?.custom_attributes?.attributes ?? [],
+            phoneOTPMode:
+              appConfig?.authenticator?.oob_otp?.sms?.phone_otp_mode,
             custom,
             generated,
           }
@@ -213,7 +215,13 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
           </Text>
         )}
         {selectedItem != null ? (
-          <StepDetailsPanel item={selectedItem} onClose={onClosePanel} />
+          <StepDetailsPanel
+            item={selectedItem}
+            phoneOTPMode={
+              appConfig?.authenticator?.oob_otp?.sms?.phone_otp_mode
+            }
+            onClose={onClosePanel}
+          />
         ) : null}
       </div>
     </div>

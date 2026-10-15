@@ -33,6 +33,7 @@ function CanvasStory({
       flowType,
       oauthProviders: [{ alias: "google", type: "google" }],
       customAttributes: [],
+      phoneOTPMode: "sms",
       custom,
       generated,
     }),

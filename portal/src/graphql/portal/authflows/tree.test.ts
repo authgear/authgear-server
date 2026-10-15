@@ -141,6 +141,48 @@ describe("flowToTree", () => {
     ]);
   });
 
+  it("draws steps every option shares once, after the options rejoin", () => {
+    const recovery = { type: "view_recovery_code" };
+    const tree = flowToTree({
+      name: "default",
+      steps: [
+        {
+          type: "create_authenticator",
+          one_of: [
+            { authentication: "secondary_totp", steps: [recovery] },
+            { authentication: "secondary_oob_otp_sms", steps: [recovery] },
+          ],
+        },
+        { type: "prompt_create_passkey" },
+      ],
+    });
+    expect(summary(tree)).toEqual([
+      { id: "/steps/0", kind: "page", branches: 2 },
+      { id: "/steps/0/one_of/0/steps/0", kind: "page", branches: null },
+      { id: "/steps/1", kind: "page", branches: null },
+    ]);
+    expect(tree[0].branches?.map((b) => b.sequence.length)).toEqual([0, 0]);
+  });
+
+  it("keeps branches apart when their steps differ", () => {
+    const tree = flowToTree({
+      name: "default",
+      steps: [
+        {
+          type: "create_authenticator",
+          one_of: [
+            {
+              authentication: "secondary_totp",
+              steps: [{ type: "view_recovery_code" }],
+            },
+            { authentication: "secondary_oob_otp_sms" },
+          ],
+        },
+      ],
+    });
+    expect(tree[0].branches?.map((b) => b.sequence.length)).toEqual([1, 0]);
+  });
+
   it("marks unknown step types", () => {
     const tree = flowToTree({
       name: "default",

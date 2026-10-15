@@ -79,9 +79,22 @@
   gap: 6px;
 }
 
+/* One of several alternatives: a bordered sub-node of its own. Its padding is
+   added to the handle offset, so the handle stays on the card's edge. */
+.optionSubnode {
+  --subnode-padding: 10px;
+
+  padding: 8px var(--subnode-padding);
+  border: 1px solid var(--gray-a6);
+  border-radius: 7px;
+}
+
 /* Inside a group the handle sits on the group's edge, past its padding. */
 .optionHandle {
-  right: calc(-1 * (var(--node-padding) + var(--handle-extra, 0px)));
+  right: calc(
+    -1 * (var(--node-padding) + var(--handle-extra, 0px) +
+          var(--subnode-padding, 0px))
+  );
 }
 
 /* An identify step drawn as two pages: "Continue as", then the login page. */
@@ -245,6 +258,7 @@
   padding: 0 6px;
   border: 1px solid var(--gray-a7);
   border-radius: 4px;
+  background: var(--color-panel-solid);
 }
 
 .sketchChevron {
@@ -257,6 +271,12 @@
   background: var(--gray-a3);
   font-size: var(--font-size-1);
   text-align: center;
+}
+
+/* One option described in a line, for a step that sets a method up. */
+.sketchOption {
+  font-weight: 500;
+  font-size: var(--font-size-1);
 }
 
 .sketchText {
@@ -282,6 +302,21 @@
   height: 12px;
   border: 1px solid var(--gray-a8);
   border-radius: 2px;
+  background: var(--color-panel-solid);
+}
+
+/* A QR code to scan with an authenticator app. */
+.sketchQR {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--gray-a7);
+  border-radius: 4px;
+  background: var(--color-panel-solid);
+  font-size: 32px;
+  color: var(--gray-12);
 }
 
 .sketchOTP {
@@ -294,6 +329,7 @@
   height: 24px;
   border: 1px solid var(--gray-a7);
   border-radius: 4px;
+  background: var(--color-panel-solid);
 }
 
 .sketchCodes {

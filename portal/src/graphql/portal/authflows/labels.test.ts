@@ -1,7 +1,9 @@
 import { describe, it, expect } from "@jest/globals";
 import {
   ifNeededMessageIDs,
+  optionLabel,
   optionalMessageIDs,
+  phoneCodeSetupMessageID,
   stepDescriptionMessageID,
 } from "./labels";
 import { KNOWN_STEP_TYPES } from "./tree";
@@ -74,5 +76,45 @@ describe("stepDescriptionMessageID", () => {
 
   it("returns null for a step type this portal does not know", () => {
     expect(stepDescriptionMessageID("future_step")).toBeNull();
+  });
+});
+
+describe("phoneCodeSetupMessageID", () => {
+  it.each([
+    ["sms", "AuthFlowsScreen.setup.oob_otp_sms.sms"],
+    ["whatsapp", "AuthFlowsScreen.setup.oob_otp_sms.whatsapp"],
+    ["whatsapp_sms", "AuthFlowsScreen.setup.oob_otp_sms.whatsapp_sms"],
+  ] as const)("names the channel for %s", (mode, expected) => {
+    expect(phoneCodeSetupMessageID(mode)).toEqual(expected);
+  });
+
+  it("says phone when the mode is unknown", () => {
+    expect(phoneCodeSetupMessageID(undefined)).toEqual(
+      "AuthFlowsScreen.setup.oob_otp_sms.any"
+    );
+  });
+});
+
+describe("optionLabel", () => {
+  const renderToString = (id: string) => id;
+
+  it.each([
+    ["sms", "AuthFlowsScreen.authentication.oob_otp_sms.sms"],
+    ["whatsapp", "AuthFlowsScreen.authentication.oob_otp_sms.whatsapp"],
+    ["whatsapp_sms", "AuthFlowsScreen.authentication.oob_otp_sms.whatsapp_sms"],
+  ] as const)("names the phone channel for %s", (mode, expected) => {
+    expect(
+      optionLabel(
+        { authentication: "secondary_oob_otp_sms" },
+        renderToString,
+        mode
+      )
+    ).toEqual(expected);
+  });
+
+  it("says phone when the mode is unknown", () => {
+    expect(
+      optionLabel({ authentication: "primary_oob_otp_sms" }, renderToString)
+    ).toEqual("AuthFlowsScreen.authentication.oob_otp_sms");
   });
 });
