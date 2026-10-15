@@ -6,6 +6,7 @@ import {
   NEXT_HANDLE_ID,
   START_NODE_ID,
   flowRefNodeID,
+  handoffGroups,
   optionAnswerHandleID,
   optionHandleID,
   treeToGraph,
@@ -131,14 +132,75 @@ describe("treeToGraph", () => {
       [START_NODE_ID, NEXT_HANDLE_ID, "next", "/steps/0"],
       // Continue as and passkey only log in, from the option's own handle.
       ["/steps/0", optionHandleID(0), "option", login],
-      // Email and Google answer whether the account exists, one handle each.
+      // Email and Google hand off the same way, so they share one pair,
+      // from Email, the first of the group.
       ["/steps/0", optionAnswerHandleID(1, "has_account"), "option", login],
       ["/steps/0", optionAnswerHandleID(1, "no_account"), "option", signup],
-      ["/steps/0", optionAnswerHandleID(2, "has_account"), "option", login],
-      ["/steps/0", optionAnswerHandleID(2, "no_account"), "option", signup],
       ["/steps/0", optionHandleID(3), "option", login],
     ]);
     expect(graph.terminalIDs).toEqual([login, signup]);
+  });
+
+  const emailPhoneUsername: AuthenticationFlowConfig = {
+    name: "default",
+    steps: [
+      {
+        type: "identify",
+        one_of: [
+          { identification: "select_account", login_flow: "default" },
+          {
+            identification: "email",
+            login_flow: "default",
+            signup_flow: "default",
+          },
+          { identification: "passkey", login_flow: "default" },
+          {
+            identification: "phone",
+            login_flow: "default",
+            signup_flow: "default",
+          },
+          {
+            identification: "username",
+            login_flow: "default",
+            signup_flow: "vip",
+          },
+          {
+            identification: "oauth",
+            login_flow: "default",
+            signup_flow: "default",
+          },
+        ],
+      },
+    ],
+  };
+
+  it("groups options that hand off to the same two flows", () => {
+    const options = emailPhoneUsername.steps![0].one_of!;
+    expect(handoffGroups(options)).toEqual([[1, 3, 5], [4]]);
+  });
+
+  it("draws one has-account / no-account pair per hand-off group", () => {
+    const graph = graphOf(emailPhoneUsername);
+    const login = flowRefNodeID("login", "default");
+    expect(edgeTuples(graph)).toEqual([
+      [START_NODE_ID, NEXT_HANDLE_ID, "next", "/steps/0"],
+      ["/steps/0", optionHandleID(0), "option", login],
+      ["/steps/0", optionAnswerHandleID(1, "has_account"), "option", login],
+      [
+        "/steps/0",
+        optionAnswerHandleID(1, "no_account"),
+        "option",
+        flowRefNodeID("signup", "default"),
+      ],
+      ["/steps/0", optionHandleID(2), "option", login],
+      ["/steps/0", optionAnswerHandleID(4, "has_account"), "option", login],
+      [
+        "/steps/0",
+        optionAnswerHandleID(4, "no_account"),
+        "option",
+        flowRefNodeID("signup", "vip"),
+      ],
+    ]);
   });
 
   it("lists End as the terminal of an ordinary flow", () => {

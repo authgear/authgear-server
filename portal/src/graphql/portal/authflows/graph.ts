@@ -46,6 +46,25 @@ export function optionFlowRefs(
   return refs;
 }
 
+// Options that can hand off to both flows, grouped by the two flows they
+// name, in order of first appearance; each group lists option indexes. A
+// group shares one has-account / no-account pair, from its first option.
+export function handoffGroups(
+  options: AuthenticationFlowOptionConfig[]
+): number[][] {
+  const groups = new Map<string, number[]>();
+  options.forEach((option, i) => {
+    if (option.login_flow == null || option.signup_flow == null) {
+      return;
+    }
+    const key = JSON.stringify([option.login_flow, option.signup_flow]);
+    const group = groups.get(key) ?? [];
+    group.push(i);
+    groups.set(key, group);
+  });
+  return [...groups.values()];
+}
+
 export interface FlowGraphNode {
   id: string;
   kind: GraphNodeKind;
@@ -123,6 +142,9 @@ export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
           },
         ];
       } else {
+        const followers = new Set(
+          handoffGroups(item.step.one_of ?? []).flatMap((g) => g.slice(1))
+        );
         outlets = item.branches.flatMap((b) => {
           const start: Outlet = {
             source: item.id,
@@ -134,6 +156,10 @@ export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
           const refs = optionFlowRefs(b.option);
           if (refs.length === 0) {
             return walk(b.sequence, [start]);
+          }
+          // A grouped option's lines leave from its group's first option.
+          if (followers.has(b.optionIndex)) {
+            return [];
           }
           // A hand-off ends this flow: the option leads to the named flows.
           // Login comes first in optionFlowRefs, so it is the has-account
