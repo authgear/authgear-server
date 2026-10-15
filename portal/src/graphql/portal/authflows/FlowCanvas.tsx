@@ -133,6 +133,7 @@ function FlowCanvasInner({
           source: e.source,
           sourceHandle: e.sourceHandle,
           target: e.target,
+          targetHandle: e.targetHandle,
           type: "lane",
           data: {
             laneY: e.lane != null ? layout?.lanes.get(e.lane) ?? null : null,

@@ -1,5 +1,6 @@
 import { AuthenticationFlowOptionConfig } from "../../../types";
 import { FlowStepItem, StepKind } from "./tree";
+import { AccountRecoveryDestination, selectDestinationChannels } from "./model";
 
 export const START_NODE_ID = "start";
 export const END_NODE_ID = "end";
@@ -18,6 +19,14 @@ export function optionAnswerHandleID(
   answer: AccountAnswer
 ): string {
   return `${optionHandleID(optionIndex)}-${answer}`;
+}
+
+// The verify step of an account recovery flow has one section, and one
+// input, per destination, so each select_destination lands on what it sends.
+export function recoveryDestinationHandleID(
+  d: AccountRecoveryDestination
+): string {
+  return `destination-${d.channel}-${d.otp_form}`;
 }
 
 export type GraphNodeKind = "start" | "end" | "flow" | StepKind;
@@ -79,6 +88,8 @@ export interface FlowGraphEdge {
   source: string;
   sourceHandle: string;
   target: string;
+  // null: the target's default input.
+  targetHandle: string | null;
   kind: FlowGraphEdgeKind;
   optionIndex: number | null;
   // The lane key layoutGraph reserves for an edge that must route around
@@ -105,6 +116,8 @@ interface Outlet {
   kind: FlowGraphEdgeKind;
   optionIndex: number | null;
   lane: string | null;
+  // What the select_destination this path last passed can send.
+  destinations: AccountRecoveryDestination[] | null;
 }
 
 export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
@@ -115,13 +128,29 @@ export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
   // Insertion-ordered, so flows appear in the order options first name them.
   const flowRefs = new Map<string, FlowRef>();
 
-  const connect = (outlets: Outlet[], target: string) => {
-    for (const o of outlets) {
-      edges.push({
-        id: `${o.source}:${o.sourceHandle}:${o.kind}->${target}`,
-        ...o,
-        target,
-      });
+  const connect = (
+    outlets: Outlet[],
+    target: string,
+    targetItem: FlowStepItem | null = null
+  ) => {
+    for (const { destinations, ...o } of outlets) {
+      const id = `${o.source}:${o.sourceHandle}:${o.kind}->${target}`;
+      if (
+        targetItem?.step.type === "verify_account_recovery_code" &&
+        destinations != null
+      ) {
+        for (const d of destinations) {
+          const targetHandle = recoveryDestinationHandleID(d);
+          edges.push({
+            id: `${id}:${targetHandle}`,
+            ...o,
+            target,
+            targetHandle,
+          });
+        }
+      } else {
+        edges.push({ id, ...o, target, targetHandle: null });
+      }
     }
   };
 
@@ -129,7 +158,16 @@ export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
     let current = incoming;
     for (const item of sequence) {
       nodes.push({ id: item.id, kind: item.kind, item });
-      connect(current, item.id);
+      connect(current, item.id, item);
+      // Steps after a select_destination carry what it sends, until the
+      // verify step they lead to.
+      const incomingDestinations = new Set(current.map((o) => o.destinations));
+      const destinations =
+        item.step.type === "select_destination"
+          ? selectDestinationChannels(item.step)
+          : incomingDestinations.size === 1
+          ? [...incomingDestinations][0]
+          : null;
       let outlets: Outlet[];
       if (item.branches == null) {
         outlets = [
@@ -139,6 +177,7 @@ export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
             kind: "next",
             optionIndex: null,
             lane: null,
+            destinations,
           },
         ];
       } else {
@@ -152,6 +191,7 @@ export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
             kind: "option",
             optionIndex: b.optionIndex,
             lane: optionLaneKey(item.id, b.optionIndex),
+            destinations,
           };
           const refs = optionFlowRefs(b.option);
           if (refs.length === 0) {
@@ -189,6 +229,7 @@ export function treeToGraph(tree: FlowStepItem[]): FlowGraph {
       kind: "next",
       optionIndex: null,
       lane: null,
+      destinations: null,
     },
   ]);
   const terminalIDs: string[] = [];

@@ -17,11 +17,14 @@ import {
   optionAnswerHandleID,
   optionFlowRefs,
   optionHandleID,
+  recoveryDestinationHandleID,
 } from "./graph";
 import {
   oauthProviderMessageIDs,
   optionLabel,
   phoneCodeSetupMessageID,
+  destinationMessageID,
+  verifyCodeMessageID,
 } from "./labels";
 import { useFlowSketchContext } from "./FlowSketchContext";
 import { IdentifyGroupGeometry } from "./groupGeometry";
@@ -80,6 +83,20 @@ function SketchQRCode({ label }: { label: string }) {
       <span className={styles.sketchQR}>
         <i className="ti ti-qrcode" aria-hidden={true} />
       </span>
+    </div>
+  );
+}
+
+function SketchRadio({ label, checked }: { label: string; checked: boolean }) {
+  return (
+    <div className={styles.sketchRadio}>
+      <span
+        className={cn(
+          styles.sketchRadioDot,
+          checked ? styles.sketchRadioOn : null
+        )}
+      />
+      <span>{label}</span>
     </div>
   );
 }
@@ -428,6 +445,58 @@ function OptionHandle({
   );
 }
 
+// One section per destination the flow sends to: AuthUI shows a "link sent"
+// page for a link and code boxes for a code. Several are drawn as sub-nodes.
+function RecoveryCodeFields() {
+  const { renderToString } = useContext(Context);
+  const { recoveryDestinations } = useFlowSketchContext();
+  const codeBoxes = (
+    <SketchOTP label={renderToString("AuthFlowsScreen.sketch.enter-code")} />
+  );
+  if (recoveryDestinations.length === 0) {
+    return codeBoxes;
+  }
+  const subnode = recoveryDestinations.length > 1;
+  return (
+    <>
+      {recoveryDestinations.map((d) => {
+        const heading = destinationMessageID(d.channel, d.otp_form);
+        return (
+          <div
+            key={`${d.channel}.${d.otp_form}`}
+            className={cn(
+              styles.optionRow,
+              subnode ? styles.optionSubnode : null
+            )}
+          >
+            <Handle
+              type="target"
+              position={Position.Left}
+              id={recoveryDestinationHandleID(d)}
+              className={styles.destinationHandle}
+            />
+            <span className={styles.sketchOption}>
+              {heading != null ? renderToString(heading) : d.channel}
+            </span>
+            {d.otp_form === "link" ? (
+              <>
+                <SketchText
+                  label={renderToString("AuthFlowsScreen.recovery.link-sent")}
+                />
+                <SketchLink
+                  label={renderToString("AuthFlowsScreen.recovery.resend")}
+                />
+              </>
+            ) : (
+              codeBoxes
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 function OptionRow({
   item,
   optionIndex,
@@ -601,18 +670,6 @@ function OptionRows({
   );
 }
 
-const channelMessageIDs: Partial<Record<string, string>> = {
-  email: "AuthFlowsScreen.sketch.channel.email",
-  sms: "AuthFlowsScreen.sketch.channel.sms",
-  whatsapp: "AuthFlowsScreen.sketch.channel.whatsapp",
-};
-
-function ChannelButton({ channel }: { channel: string }) {
-  const { renderToString } = useContext(Context);
-  const id = channelMessageIDs[channel];
-  return <SketchButton label={id != null ? renderToString(id) : channel} />;
-}
-
 export function StepSketch({
   item,
   hiddenIndex,
@@ -622,6 +679,7 @@ export function StepSketch({
   hiddenIndex: number;
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
+  const { phoneOTPMode } = useFlowSketchContext();
   const { step } = item;
   switch (step.type) {
     case "identify":
@@ -629,12 +687,15 @@ export function StepSketch({
     case "create_authenticator":
       return <OptionRows item={item} hiddenIndex={hiddenIndex} />;
     case "verify":
-    case "verify_account_recovery_code":
       return (
         <SketchOTP
-          label={renderToString("AuthFlowsScreen.sketch.enter-code")}
+          label={renderToString(
+            verifyCodeMessageID(item.identification, phoneOTPMode)
+          )}
         />
       );
+    case "verify_account_recovery_code":
+      return <RecoveryCodeFields />;
     case "fill_form":
       return <FormFields form={step.form ?? {}} />;
     case "fill_in_user_profile":
@@ -652,11 +713,22 @@ export function StepSketch({
         </>
       );
     case "select_destination":
+      // Only drawn as a page with enumerate_destinations: the user picks one
+      // of the account's emails and phones, shown masked.
       return (
         <>
-          {(step.allowed_channels ?? []).map((c, i) => (
-            <ChannelButton key={i} channel={c.channel} />
-          ))}
+          <SketchText
+            label={renderToString("AuthFlowsScreen.destination.choose")}
+          />
+          <SketchRadio
+            label={renderToString("AuthFlowsScreen.destination.sample-email")}
+            checked={true}
+          />
+          <SketchRadio
+            label={renderToString("AuthFlowsScreen.destination.sample-phone")}
+            checked={false}
+          />
+          <SketchButton label={renderToString("AuthFlowsScreen.sketch.send")} />
         </>
       );
     case "view_recovery_code":

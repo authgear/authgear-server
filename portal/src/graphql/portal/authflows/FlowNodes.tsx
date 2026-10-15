@@ -11,6 +11,8 @@ import {
   IfNeededMessageIDs,
   ifNeededMessageIDs,
   optionalMessageIDs,
+  destinationMessageID,
+  pagelessNoteMessageIDs,
   stepTitle,
 } from "./labels";
 import { Tooltip } from "../../../components/v2/Tooltip/Tooltip";
@@ -78,7 +80,7 @@ function ConditionLine({
 
 function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const { flowType } = useFlowSketchContext();
+  const { flowType, recoveryDestinations } = useFlowSketchContext();
   const item = requireItem(data);
   const isEmptyChoice = item.branches?.length === 0;
   const continueIndex = continuePageOptionIndex(item);
@@ -93,7 +95,16 @@ function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
   }
   return (
     <div className={cn(styles.card, selected ? styles.selected : null)}>
-      <Handle type="target" position={Position.Left} />
+      <Handle
+        type="target"
+        position={Position.Left}
+        className={
+          item.step.type === "verify_account_recovery_code" &&
+          recoveryDestinations.length > 0
+            ? styles.unusedHandle
+            : undefined
+        }
+      />
       <ConditionLine item={item} />
       <div className={styles.cardHeader}>
         <span className={styles.cardTitle}>
@@ -242,17 +253,58 @@ function IdentifyGroup({
   );
 }
 
+const destinationTargetMessageIDs: Partial<Record<string, string>> = {
+  email: "AuthFlowsScreen.destination.to.email",
+  phone: "AuthFlowsScreen.destination.to.phone",
+};
+
+// select_destination with no page: what it sends, and that it goes to the
+// email or phone the user just entered.
+function DestinationLines({
+  item,
+}: {
+  item: FlowStepItem;
+}): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  const sends = (item.step.allowed_channels ?? []).map((c) => {
+    const id = destinationMessageID(c.channel, c.otp_form);
+    return id != null ? renderToString(id) : c.channel;
+  });
+  const target =
+    item.identification != null
+      ? destinationTargetMessageIDs[item.identification]
+      : undefined;
+  return (
+    <Tooltip content={renderToString("AuthFlowsScreen.destination.pill-note")}>
+      <span className={styles.pillNote}>
+        {sends.join(" · ")}
+        <br />
+        {renderToString(target ?? "AuthFlowsScreen.destination.to.any")}
+      </span>
+    </Tooltip>
+  );
+}
+
 function PagelessNode({
   data,
   selected,
 }: NodeProps<FlowNode>): React.ReactElement {
   const { renderToString } = useContext(Context);
   const item = requireItem(data);
+  const note = pagelessNoteMessageIDs(item.step);
   return (
     <div className={cn(styles.pill, selected ? styles.selected : null)}>
       <Handle type="target" position={Position.Left} />
       <ConditionLine item={item} />
       {stepTitle(item.step.type, renderToString)}
+      {note != null ? (
+        <Tooltip content={renderToString(note.note)}>
+          <span className={styles.pillNote}>{renderToString(note.line)}</span>
+        </Tooltip>
+      ) : null}
+      {item.step.type === "select_destination" ? (
+        <DestinationLines item={item} />
+      ) : null}
       <Handle type="source" position={Position.Right} id={NEXT_HANDLE_ID} />
     </div>
   );

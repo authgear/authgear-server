@@ -23,3 +23,21 @@
   white-space: pre;
   overflow: auto;
 }
+
+/* Label and value pairs, such as "Name" and the step's name. */
+.nameList {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  font-size: var(--font-size-1);
+}
+
+.nameList dt {
+  color: var(--gray-11);
+}
+
+.nameList dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

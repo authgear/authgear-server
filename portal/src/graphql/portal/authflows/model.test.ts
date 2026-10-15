@@ -1,5 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import {
+  accountRecoveryDestinations,
   DEFAULT_FLOW_NAME,
   DEFAULT_FLOW_TYPE,
   flowSelectionSearch,
@@ -99,5 +100,47 @@ describe("flowSelectionSearch", () => {
     expect(flowSelectionSearch({ type: "login", name: "default" })).toEqual(
       "?type=login&name=default"
     );
+  });
+});
+
+describe("accountRecoveryDestinations", () => {
+  const branch = (
+    identification: string,
+    allowed: { channel: string; otp_form: string }[] | undefined
+  ) => ({
+    identification,
+    steps: [{ type: "select_destination", allowed_channels: allowed }],
+  });
+
+  it("lists each channel and form once, in order", () => {
+    expect(
+      accountRecoveryDestinations({
+        name: "default",
+        steps: [
+          {
+            type: "identify",
+            one_of: [
+              branch("email", [{ channel: "email", otp_form: "link" }]),
+              branch("phone", [
+                { channel: "sms", otp_form: "code" },
+                { channel: "email", otp_form: "link" },
+              ]),
+            ],
+          },
+        ],
+      })
+    ).toEqual([
+      { channel: "email", otp_form: "link" },
+      { channel: "sms", otp_form: "code" },
+    ]);
+  });
+
+  it("treats missing allowed_channels as every channel", () => {
+    expect(
+      accountRecoveryDestinations({
+        name: "default",
+        steps: [{ type: "identify", one_of: [branch("email", undefined)] }],
+      })
+    ).toHaveLength(5);
   });
 });

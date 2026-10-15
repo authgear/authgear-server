@@ -141,7 +141,7 @@ describe("flowToTree", () => {
     ]);
   });
 
-  it("draws steps every option shares once, after the options rejoin", () => {
+  it("keeps each option's steps, even when they are the same: the canvas mirrors the config the builder edits", () => {
     const recovery = { type: "view_recovery_code" };
     const tree = flowToTree({
       name: "default",
@@ -153,15 +153,31 @@ describe("flowToTree", () => {
             { authentication: "secondary_oob_otp_sms", steps: [recovery] },
           ],
         },
-        { type: "prompt_create_passkey" },
       ],
     });
-    expect(summary(tree)).toEqual([
-      { id: "/steps/0", kind: "page", branches: 2 },
-      { id: "/steps/0/one_of/0/steps/0", kind: "page", branches: null },
-      { id: "/steps/1", kind: "page", branches: null },
+    expect(tree[0].branches?.map((b) => b.sequence.map((i) => i.id))).toEqual([
+      ["/steps/0/one_of/0/steps/0"],
+      ["/steps/0/one_of/1/steps/0"],
     ]);
-    expect(tree[0].branches?.map((b) => b.sequence.length)).toEqual([0, 0]);
+  });
+
+  it("tells a step which login ID its branch identified with", () => {
+    const tree = flowToTree({
+      name: "default",
+      steps: [
+        {
+          type: "identify",
+          one_of: [
+            { identification: "email", steps: [{ type: "verify" }] },
+            { identification: "phone", steps: [{ type: "verify" }] },
+          ],
+        },
+      ],
+    });
+    expect(tree[0].branches?.map((b) => b.sequence[0].identification)).toEqual([
+      "email",
+      "phone",
+    ]);
   });
 
   it("keeps branches apart when their steps differ", () => {
@@ -181,6 +197,17 @@ describe("flowToTree", () => {
       ],
     });
     expect(tree[0].branches?.map((b) => b.sequence.length)).toEqual([1, 0]);
+  });
+
+  it("draws select_destination as a page only when the user chooses", () => {
+    const tree = flowToTree({
+      name: "default",
+      steps: [
+        { type: "select_destination" },
+        { type: "select_destination", enumerate_destinations: true },
+      ],
+    });
+    expect(tree.map((i) => i.kind)).toEqual(["pageless", "page"]);
   });
 
   it("marks unknown step types", () => {

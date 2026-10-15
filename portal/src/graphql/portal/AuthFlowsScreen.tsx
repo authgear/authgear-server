@@ -11,6 +11,7 @@ import { AuthenticationFlowsConfig, PortalAPIAppConfig } from "../../types";
 import {
   DEFAULT_FLOW_NAME,
   FlowSelection,
+  accountRecoveryDestinations,
   flowSelectionSearch,
   flowTypes,
   isFlowType,
@@ -103,11 +104,15 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
               appConfig?.user_profile?.custom_attributes?.attributes ?? [],
             phoneOTPMode:
               appConfig?.authenticator?.oob_otp?.sms?.phone_otp_mode,
+            recoveryDestinations:
+              resolved != null
+                ? accountRecoveryDestinations(resolved.flow)
+                : [],
             custom,
             generated,
           }
         : null,
-    [selection.type, appConfig, custom, generated]
+    [selection.type, appConfig, custom, generated, resolved]
   );
 
   const select = useCallback(
