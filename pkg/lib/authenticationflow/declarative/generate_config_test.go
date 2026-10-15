@@ -12,23 +12,28 @@ import (
 	_ "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/google"
 )
 
-func TestGenerateAuthenticationFlowConfig(t *testing.T) {
-	Convey("GenerateAuthenticationFlowConfig", t, func() {
+func TestGenerateConfigAsCustomFlows(t *testing.T) {
+	Convey("Generated flows saved as custom flows", t, func() {
 		ctx := context.Background()
 
-		// Saving the generated flows unchanged as custom flows must produce a valid config,
-		// except where expectedErr says otherwise.
-		test := func(cfgYAML string, expectedErr string) {
+		// Saving the generated flows unchanged as custom flows must produce a valid config.
+		test := func(cfgYAML string, expectRecoverable bool) {
 			appConfig, err := config.Parse(ctx, []byte(cfgYAML))
 			So(err, ShouldBeNil)
 
-			flows := GenerateAuthenticationFlowConfig(appConfig)
-			So(flows.SignupFlows, ShouldHaveLength, 1)
-			So(flows.PromoteFlows, ShouldHaveLength, 1)
-			So(flows.LoginFlows, ShouldHaveLength, 1)
-			So(flows.SignupLoginFlows, ShouldHaveLength, 1)
-			So(flows.ReauthFlows, ShouldHaveLength, 1)
-			So(flows.AccountRecoveryFlows, ShouldHaveLength, 1)
+			flows := &config.AuthenticationFlowConfig{
+				SignupFlows:      []*config.AuthenticationFlowSignupFlow{GenerateSignupFlowConfig(appConfig)},
+				LoginFlows:       []*config.AuthenticationFlowLoginFlow{GenerateLoginFlowConfig(appConfig)},
+				SignupLoginFlows: []*config.AuthenticationFlowSignupLoginFlow{GenerateSignupLoginFlowConfig(appConfig)},
+				ReauthFlows:      []*config.AuthenticationFlowReauthFlow{GenerateReauthFlowConfig(appConfig)},
+			}
+			accountRecoveryFlow := GenerateAccountRecoveryFlowConfigIfRecoverable(appConfig)
+			if expectRecoverable {
+				So(accountRecoveryFlow, ShouldNotBeNil)
+				flows.AccountRecoveryFlows = []*config.AuthenticationFlowAccountRecoveryFlow{accountRecoveryFlow}
+			} else {
+				So(accountRecoveryFlow, ShouldBeNil)
+			}
 
 			flowsJSON, err := json.Marshal(flows)
 			So(err, ShouldBeNil)
@@ -44,11 +49,7 @@ func TestGenerateAuthenticationFlowConfig(t *testing.T) {
 			roundTripped, err := yaml.Marshal(raw)
 			So(err, ShouldBeNil)
 			_, err = config.Parse(ctx, roundTripped)
-			if expectedErr == "" {
-				So(err, ShouldBeNil)
-			} else {
-				So(err, ShouldBeError, expectedErr)
-			}
+			So(err, ShouldBeNil)
 		}
 
 		Convey("default settings", func() {
@@ -56,7 +57,7 @@ func TestGenerateAuthenticationFlowConfig(t *testing.T) {
 id: test
 http:
   public_origin: http://test
-`, "")
+`, true)
 		})
 
 		Convey("phone with SMS OTP", func() {
@@ -73,11 +74,11 @@ identity:
   login_id:
     keys:
     - type: phone
-`, "")
+`, true)
 		})
 
 		// Without an email or phone login ID there is no way to recover an account,
-		// so the generated account recovery flow has no options.
+		// so no account recovery flow is generated.
 		Convey("username and password with required 2FA", func() {
 			test(`
 id: test
@@ -96,9 +97,7 @@ identity:
   login_id:
     keys:
     - type: username
-`, `invalid configuration:
-/authentication_flow/account_recovery_flows/0/steps/0: required
-  map[actual:[type] expected:[one_of] missing:[one_of]]`)
+`, false)
 		})
 
 		Convey("email with passkey and an OAuth provider", func() {
@@ -123,7 +122,7 @@ identity:
     - alias: google
       type: google
       client_id: client-id
-`, "")
+`, true)
 		})
 	})
 }
