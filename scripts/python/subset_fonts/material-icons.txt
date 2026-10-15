@@ -47,6 +47,7 @@ fingerprint
 flag
 forward_to_inbox
 function
+group
 height
 hide
 highlight
@@ -60,6 +61,7 @@ image
 info
 input
 ios
+join
 key
 key_vertical
 keyboard

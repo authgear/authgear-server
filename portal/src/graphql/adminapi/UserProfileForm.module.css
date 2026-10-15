@@ -155,3 +155,9 @@
 .pictureFileInput {
   display: none;
 }
+
+.booleanControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -350,3 +350,16 @@ type MilestoneOOBOTPLastUsedChannelUpdated interface {
 	authflow.Milestone
 	MilestoneOOBOTPLastUsedChannelUpdated()
 }
+
+// MilestoneDidFillForm marks a node that writes submitted form values.
+type MilestoneDidFillForm interface {
+	authflow.Milestone
+	// MilestoneDidFillForm reports whether the write was skipped.
+	MilestoneDidFillForm() (skipped bool)
+}
+
+// MilestoneFillForm marks IntentFillForm, so the identify step knows its form phase is handled.
+type MilestoneFillForm interface {
+	authflow.Milestone
+	MilestoneFillForm()
+}

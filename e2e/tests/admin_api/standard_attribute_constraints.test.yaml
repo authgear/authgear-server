@@ -1,0 +1,142 @@
+name: Constraints apply only to the standard attributes changed through the Admin API
+authgear.yaml:
+  override: |
+    user_profile:
+      standard_attributes:
+        validation:
+        - pointer: /given_name
+          min_length: 3
+        - pointer: /address/locality
+          allowed_characters: [letters]
+before:
+  - type: custom_sql
+    custom_sql:
+      path: standard_attribute_constraints.sql
+steps:
+  - name: get_user
+    action: query
+    query: |
+      SELECT id FROM _auth_user WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          { "id": "[[string]]" }
+        ]
+
+  - name: unchanged_violating_values_pass
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation ($userID: ID!, $standardAttributes: UserStandardAttributes) {
+          updateUser(input: { userID: $userID, standardAttributes: $standardAttributes }) {
+            user {
+              standardAttributes
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user.result.rows 0).id }}",
+          "standardAttributes": {"given_name": "A", "nickname": "n", "address": {"locality": "L0ndon"}}
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateUser": {
+              "user": {
+                "standardAttributes": {"given_name": "A", "nickname": "n", "address": {"locality": "L0ndon"}}
+              }
+            }
+          },
+          "errors": null
+        }
+
+  - name: changed_violating_given_name
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation ($userID: ID!, $standardAttributes: UserStandardAttributes) {
+          updateUser(input: { userID: $userID, standardAttributes: $standardAttributes }) {
+            user {
+              standardAttributes
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user.result.rows 0).id }}",
+          "standardAttributes": {"given_name": "Al", "nickname": "n", "address": {"locality": "L0ndon"}}
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid",
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
+
+  - name: changed_violating_sub_attribute
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation ($userID: ID!, $standardAttributes: UserStandardAttributes) {
+          updateUser(input: { userID: $userID, standardAttributes: $standardAttributes }) {
+            user {
+              standardAttributes
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user.result.rows 0).id }}",
+          "standardAttributes": {"given_name": "A", "nickname": "n", "address": {"locality": "Par1s"}}
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid",
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
+
+  - name: changed_valid_values
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation ($userID: ID!, $standardAttributes: UserStandardAttributes) {
+          updateUser(input: { userID: $userID, standardAttributes: $standardAttributes }) {
+            user {
+              standardAttributes
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user.result.rows 0).id }}",
+          "standardAttributes": {"given_name": "Alice", "nickname": "n", "address": {"locality": "London"}}
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateUser": {
+              "user": {
+                "standardAttributes": {"given_name": "Alice", "nickname": "n", "address": {"locality": "London"}}
+              }
+            }
+          },
+          "errors": null
+        }

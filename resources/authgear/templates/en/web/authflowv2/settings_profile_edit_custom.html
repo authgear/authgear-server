@@ -8,7 +8,12 @@
 
   {{ $label := $ca.Label }}
   {{ if $hasKey }}
-    {{ $label = (translate $labelKey nil) }}
+    {{ if (eq $ca.Type "boolean") }}
+      {{/* The label of a boolean attribute may contain links, which cannot be in the title. */}}
+      {{ $label = (linksToText (include $labelKey nil)) }}
+    {{ else }}
+      {{ $label = (translate $labelKey nil) }}
+    {{ end }}
   {{ end }}
 
   {{ template "authflowv2/__navbar.html"
@@ -54,6 +59,33 @@
             `
           )
       }}
+      {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" $ca.StringConstraints) }}
+    {{ end }}
+
+    {{ if (eq $ca.Type "boolean") }}
+      {{ $boolean_label := $ca.Label }}
+      {{ $boolean_label_key := printf "custom-attribute-label-%s" $ca.Pointer }}
+      {{ if $.Translations.HasKey $boolean_label_key }}
+        {{ $boolean_label = (include $boolean_label_key nil) }}
+      {{ end }}
+      <span class="flex flex-row items-center gap-x-2.5">
+        <span class="checkbox">
+          <input
+            type="checkbox"
+            name="{{ $ca.Pointer }}"
+            value="true"
+            {{ if $Value }}checked{{ end }}
+            data-form-state-target="input"
+          >
+          {{/* A span, not a label, because the whole control is already inside a label. */}}
+          <span class="checkbox__label">
+            <span class="checkbox__icon material-icons">check</span>
+          </span>
+        </span>
+        <span class="body-text--md">{{ sanitizeLinksHTML $boolean_label }}</span>
+      </span>
+      {{/* An unchecked checkbox is not submitted, so the hidden input submits false. The first value wins on the server. */}}
+      <input type="hidden" name="{{ $ca.Pointer }}" value="false">
     {{ end }}
 
     {{ if (eq $ca.Type "number") }}

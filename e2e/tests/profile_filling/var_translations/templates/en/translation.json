@@ -1,0 +1,5 @@
+{
+  "custom-attribute-label-/x_employee_id": "Employee ID",
+  "custom-attribute-pattern-error-/x_employee_id": "Start with E, then 5 digits",
+  "custom-attribute-label-/x_terms": "I accept the <a href=\"https://example.com/terms\">Terms</a>"
+}

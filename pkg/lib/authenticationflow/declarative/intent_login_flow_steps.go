@@ -115,6 +115,13 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 			UserID:        i.userID(flows),
 		})
 		break
+	case config.AuthenticationFlowLoginFlowStepTypeFillForm:
+		// Config validation has ensured an identify step comes before a fill_form step.
+		result = authflow.NewSubFlow(&IntentFillForm{
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, i.NextStepIndex),
+			UserID:      i.userID(flows),
+		})
+		break
 	case config.AuthenticationFlowLoginFlowStepTypePromptCreatePasskey:
 		result = authflow.NewSubFlow(&IntentLoginFlowStepPromptCreatePasskey{
 			FlowReference: i.FlowReference,

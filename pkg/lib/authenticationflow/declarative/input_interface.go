@@ -127,6 +127,15 @@ type inputFillInUserProfile interface {
 	GetAttributes() []attrs.T
 }
 
+type inputFillForm interface {
+	GetFormFields() []FormFieldInput
+}
+
+// inputIdentifyFormFields is named differently from inputFillForm.GetFormFields because the signatures differ.
+type inputIdentifyFormFields interface {
+	GetIdentifyFormFields() (fields []FormFieldInput, submitted bool)
+}
+
 type inputConfirmTerminateOtherSessions interface {
 	ConfirmTerminateOtherSessions()
 }

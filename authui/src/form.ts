@@ -192,9 +192,30 @@ export class RestoreFormController extends Controller {
         elem instanceof HTMLTextAreaElement
       ) {
         const value = formDataJSON[elem.name];
-        if (value != null) {
-          elem.value = value;
+        if (value == null) {
+          continue;
         }
+        if (
+          elem instanceof HTMLInputElement &&
+          (elem.type === "checkbox" || elem.type === "radio")
+        ) {
+          // Never change the value of a checkbox or a radio button.
+          // Only the form value of the one that was selected is restored.
+          elem.checked = value === elem.value;
+          continue;
+        }
+        if (
+          elem instanceof HTMLInputElement &&
+          elem.type === "hidden" &&
+          form.querySelector(
+            `input[type="checkbox"][name="${CSS.escape(elem.name)}"]`
+          ) != null
+        ) {
+          // A hidden input paired with a checkbox carries the value of an unchecked checkbox.
+          // The form value was taken from the first of the two, so it does not belong to this input.
+          continue;
+        }
+        elem.value = value;
       }
     }
   }

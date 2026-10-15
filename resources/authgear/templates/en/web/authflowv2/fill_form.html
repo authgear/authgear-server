@@ -1,0 +1,57 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+  {{ $form := $.Form }}
+
+  {{ $title_key := "v2.page.fill-form.default.title" }}
+  {{ $description_key := "v2.page.fill-form.default.description" }}
+  {{ if $form.Name }}
+    {{ $named_title_key := printf "v2.page.fill-form.%s.title" $form.Name }}
+    {{ if $.Translations.HasKey $named_title_key }}
+      {{ $title_key = $named_title_key }}
+    {{ end }}
+    {{ $named_description_key := printf "v2.page.fill-form.%s.description" $form.Name }}
+    {{ if $.Translations.HasKey $named_description_key }}
+      {{ $description_key = $named_description_key }}
+    {{ end }}
+  {{ end }}
+
+  {{ $unknown_error_message := include "authflowv2/__form_error_message.html" (merge (dict "Form" $form) $) }}
+
+  <div class="flex flex-col gap-y-8 flex-1-0-auto">
+    <div class="screen-title-description">
+      <h1 class="screen-title">
+        {{ include $title_key nil }}
+      </h1>
+      {{ $description := toString (include $description_key (dict "FlowType" $.FlowType)) }}
+      {{ if trim $description }}
+        <h2 class="screen-description">{{ $description }}</h2>
+      {{ end }}
+
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" $unknown_error_message
+        )
+      }}
+    </div>
+
+    <form
+      class="flex flex-col gap-y-8"
+      method="post"
+      novalidate
+      data-controller="turbo-form"
+      data-action="submit->turbo-form#submitForm"
+    >
+      {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $form) $) }}
+
+      <button
+        class="primary-btn w-full"
+        type="submit"
+        name="x_action"
+        value="submit"
+        data-authgear-event="authgear.button.submit_form"
+      >{{ include "v2.component.button.default.label-continue" nil }}</button>
+    </form>
+  </div>
+{{ end }}

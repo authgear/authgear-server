@@ -198,6 +198,9 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 	case config.AuthenticationFlowStepTypeFillInUserProfile:
 		// fill_in_user_profile contains NO branches.
 		break
+	case config.AuthenticationFlowStepTypeFillForm:
+		// fill_form contains NO branches.
+		break
 	case config.AuthenticationFlowStepTypeViewRecoveryCode:
 		// view_recovery_code contains NO branches.
 		break
@@ -234,6 +237,9 @@ func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousXStep s
 		break
 	case config.AuthenticationFlowStepTypeChangePassword:
 		// change_password contains NO branches.
+		break
+	case config.AuthenticationFlowStepTypeFillForm:
+		// fill_form contains NO branches.
 		break
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
 		// prompt_create_passkey contains NO branches.

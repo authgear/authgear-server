@@ -1,0 +1,96 @@
+name: Signup with a form in the identify step (UC2)
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            form:
+              fields:
+              - user_profile:
+                  pointer: /given_name
+                  required: true
+              - user_profile:
+                  pointer: /family_name
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: wrong_field_value_type
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_form_user",
+        "fields": [
+          { "key": "/given_name", "value": 1 }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_form_user",
+        "fields": [
+          { "key": "/given_name", "value": "John" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "e2e_password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - action: query
+    query: |
+      SELECT standard_attributes->>'given_name' AS given_name, standard_attributes ? 'family_name' AS has_family_name
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "given_name": "John",
+            "has_family_name": false
+          }
+        ]

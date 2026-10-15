@@ -1,0 +1,148 @@
+name: Signup with a fill_form step (UC1)
+authgear.yaml:
+  override: |
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+        - type: fill_form
+          form:
+            name: names
+            fields:
+            - user_profile:
+                pointer: /given_name
+                required: true
+            - user_profile:
+                pointer: /family_name
+                required: true
+steps:
+  - name: create
+    action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_form_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "e2e_password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form",
+            "data": {
+              "type": "fill_form_data",
+              "form": {
+                "name": "names",
+                "fields": [
+                  {
+                    "key": "/given_name",
+                    "type": "string",
+                    "label": "Given name",
+                    "required": true
+                  },
+                  {
+                    "key": "/family_name",
+                    "type": "string",
+                    "label": "Family name",
+                    "required": true
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  - name: missing_required_field
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "John" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "code": 400
+        }
+
+  - action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "John" },
+          { "key": "/family_name", "value": "Doe" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - action: query
+    query: |
+      SELECT standard_attributes->>'given_name' AS given_name, standard_attributes->>'family_name' AS family_name
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "given_name": "John",
+            "family_name": "Doe"
+          }
+        ]
+
+  - action: audit_query
+    audit_query: |
+      SELECT activity_type, data->'payload'->'user'->'standard_attributes'->>'given_name' AS given_name
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'user.created'
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.created",
+            "given_name": "John"
+          }
+        ]

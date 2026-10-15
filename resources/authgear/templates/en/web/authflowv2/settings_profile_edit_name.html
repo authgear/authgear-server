@@ -33,6 +33,7 @@
             "Disabled" (not (call $.IsEditable "/name"))
           )
       }}
+      {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/name")) }}
     {{ end }}
 
     {{ if (call $.IsReadable "/given_name") }}
@@ -47,6 +48,7 @@
             "Disabled" (not (call $.IsEditable "/given_name"))
           )
       }}
+      {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/given_name")) }}
     {{ end }}
 
     {{ if (call $.IsReadable "/middle_name") }}
@@ -61,6 +63,7 @@
             "Disabled" (not (call $.IsEditable "/middle_name"))
           )
       }}
+      {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/middle_name")) }}
     {{ end }}
 
     {{ if (call $.IsReadable "/family_name") }}
@@ -75,6 +78,7 @@
             "Disabled" (not (call $.IsEditable "/family_name"))
           )
       }}
+      {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/family_name")) }}
     {{ end }}
 
     {{ if (call $.IsReadable "/nickname") }}
@@ -89,6 +93,7 @@
             "Disabled" (not (call $.IsEditable "/nickname"))
           )
       }}
+      {{ template "authflowv2/__string_constraints_hint.html" (dict "Constraints" (index $.StandardAttributeStringConstraints "/nickname")) }}
     {{ end }}
   </div>
 

@@ -1,0 +1,185 @@
+part: AuthenticationFlowLoginFlow
+name: form-on-identify-branch-rejected
+error: |-
+  invalid value:
+  /steps/0/one_of/0: not
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      form:
+        fields:
+        - user_profile:
+            pointer: /given_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-valid
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+  - type: fill_form
+    form:
+      name: names
+      fields:
+      - user_profile:
+          pointer: /given_name
+          required: true
+      - user_profile:
+          pointer: /x_newsletter
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-nested-in-branch
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      steps:
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /given_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-requires-form
+error: |-
+  invalid value:
+  /steps/0: required
+    map[actual:[type] expected:[form] missing:[form]]
+value:
+  name: id
+  steps:
+  - type: fill_form
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-empty-fields
+error: |-
+  invalid value:
+  /steps/0/form/fields: minItems
+    map[actual:0 expected:1]
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      fields: []
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-field-with-two-kinds
+error: |-
+  invalid value:
+  /steps/0/form/fields/0: maxProperties
+    map[actual:2 expected:1]
+  /steps/0/form/fields/0/other: 
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+        other:
+          pointer: /family_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: fill-form-name-default-rejected
+error: |-
+  invalid value:
+  /steps/0/form/name: not
+value:
+  name: id
+  steps:
+  - type: fill_form
+    form:
+      name: default
+      fields:
+      - user_profile:
+          pointer: /given_name
+
+---
+part: AuthenticationFlowLoginFlow
+name: fill-form-valid
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+  - type: fill_form
+    form:
+      fields:
+      - user_profile:
+          pointer: /given_name
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+
+---
+part: AuthenticationFlowLoginFlow
+name: fill-form-requires-form
+error: |-
+  invalid value:
+  /steps/0: required
+    map[actual:[type] expected:[form] missing:[form]]
+value:
+  name: id
+  steps:
+  - type: fill_form
+
+---
+part: AuthenticationFlowSignupFlow
+name: identify-form-valid
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: username
+      form:
+        name: names
+        fields:
+        - user_profile:
+            pointer: /given_name
+            required: true
+    - identification: email
+    - identification: phone
+      form:
+        fields:
+        - user_profile:
+            pointer: /family_name
+
+---
+part: AuthenticationFlowSignupFlow
+name: identify-form-on-oauth-rejected
+error: |-
+  invalid value:
+  /steps/0/one_of/0/identification: enum
+    map[actual:oauth expected:[email phone username]]
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: oauth
+      form:
+        fields:
+        - user_profile:
+            pointer: /given_name

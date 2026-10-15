@@ -35,6 +35,15 @@ func init() {
 //       IntentAccountLing (MilestoneFlowCreateIdentity)
 //         NodeDoCreateIdentity (MilestoneDoCreateIdentity)
 //     NodeDoUseIdentity
+//
+// After the identity is created, standard attributes are populated and the login hint is checked,
+// a branch that has a form continues with
+//
+//   IntentFillForm (MilestoneFillForm)
+//     NodeDoFillForm (MilestoneDidFillForm)
+//     NodeFormPostSubmitted
+//
+// before the nested steps.
 
 type IntentSignupFlowStepIdentify struct {
 	FlowReference          authflow.FlowReference `json:"flow_reference,omitempty"`
@@ -44,6 +53,10 @@ type IntentSignupFlowStepIdentify struct {
 	Options                []IdentificationOption `json:"options,omitempty"`
 	IsUpdatingExistingUser bool                   `json:"is_updating_existing_user,omitempty"`
 	IsCreateSkipped        bool                   `json:"is_create_skipped,omitempty"`
+
+	// FormFields is the fields submitted with the identification. It is held until IntentFillForm takes it.
+	FormFields                        []FormFieldInput `json:"form_fields,omitempty"`
+	IsFormSubmittedWithIdentification bool             `json:"is_form_submitted_with_identification,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentSignupFlowStepIdentify{}
@@ -54,6 +67,8 @@ func (*IntentSignupFlowStepIdentify) Milestone() {}
 func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.IsUpdatingExistingUser = true
 	i.UserID = newUserID
+	// Forms are skipped for an existing user.
+	i.FormFields = nil
 
 	m1, m1Flows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	if ok {
@@ -197,6 +212,10 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 		if err != nil {
 			return nil, err
 		}
+		current, err := authflow.FlowObject(flowRootObject, i.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
 		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaStepIdentify{
 			FlowRootObject:            flowRootObject,
@@ -205,6 +224,8 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 			ShouldBypassBotProtection: shouldBypassBotProtection,
 			BotProtectionCfg:          deps.Config.BotProtection,
 			IsExternalJWTAllowed:      true,
+			Forms:                     identifyBranchForms(i.step(current)),
+			Config:                    deps.Config,
 		}, nil
 	}
 
@@ -254,6 +275,11 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 				return nil, err
 			}
 
+			var inputIdentifyFormFields inputIdentifyFormFields
+			if authflow.AsInput(input, &inputIdentifyFormFields) {
+				i.FormFields, i.IsFormSubmittedWithIdentification = inputIdentifyFormFields.GetIdentifyFormFields()
+			}
+
 			switch identification {
 			case model.AuthenticationFlowIdentificationEmail:
 				fallthrough
@@ -288,6 +314,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	_, _, standardAttributesPopulated := authflow.FindMilestoneInCurrentFlow[MilestoneDoPopulateStandardAttributes](flows)
 	_, _, loginHintChecked := authflow.FindMilestoneInCurrentFlow[MilestoneCheckLoginHint](flows)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
+	_, _, formHandled := authflow.FindMilestoneInCurrentFlow[MilestoneFillForm](flows)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated:
@@ -306,6 +333,18 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			return nil, err
 		}
 		return authflow.NewNodeSimple(n), nil
+	case identityCreated && standardAttributesPopulated && loginHintChecked && !formHandled && i.branchForm(step, i.identificationMethod(flows)) != nil && !nestedStepHandled:
+		identification := i.identificationMethod(flows)
+		fields := i.FormFields
+		// IntentFillForm holds the only copy from now on.
+		i.FormFields = nil
+		return authflow.NewSubFlow(&IntentFillForm{
+			JSONPointer:                   i.jsonPointer(step, identification),
+			UserID:                        i.UserID,
+			IsUpdatingExistingUser:        i.IsUpdatingExistingUser,
+			IsSubmittedWithIdentification: i.IsFormSubmittedWithIdentification,
+			SubmittedFields:               fields,
+		}), nil
 	case identityCreated && standardAttributesPopulated && loginHintChecked && !nestedStepHandled:
 		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
@@ -320,9 +359,26 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 }
 
 func (i *IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	current, err := i.currentFlowObject(deps, flows, i)
+	if err != nil {
+		return nil, err
+	}
+	options, err := identificationOptionsWithForms(ctx, deps, i.Options, i.step(current), i.UserID)
+	if err != nil {
+		return nil, err
+	}
 	return NewIdentificationData(IdentificationData{
-		Options: i.Options,
+		Options: options,
 	}), nil
+}
+
+// branchForm returns the form of the branch of the identification, or nil.
+func (i *IntentSignupFlowStepIdentify) branchForm(step *config.AuthenticationFlowSignupFlowStep, identification model.AuthenticationFlowIdentification) *config.AuthenticationFlowForm {
+	idx, err := i.checkIdentificationMethod(nil, step, identification)
+	if err != nil {
+		return nil
+	}
+	return step.OneOf[idx].Form
 }
 
 func (*IntentSignupFlowStepIdentify) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowStep {

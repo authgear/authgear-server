@@ -1,0 +1,132 @@
+name: A form between identify and verify is checked before the OTP is sent (UC9)
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        sms:
+          phone_otp_mode: sms
+    test_mode:
+      sms:
+        enabled: true
+        rules:
+        - regex: "^\\+6591230001$"
+          suppressed: true
+    hook:
+      blocking_handlers:
+      - event: authentication.form.post_submitted
+        url: authgeardeno:///deno/formcheckemployee.ts
+    user_profile:
+      custom_attributes:
+        attributes:
+        - id: "0000"
+          pointer: /x_employee_id
+          type: string
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - name: identify_phone
+          type: identify
+          one_of:
+          - identification: phone
+        - type: fill_form
+          form:
+            name: employee
+            fields:
+            - user_profile:
+                pointer: /x_employee_id
+                required: true
+        - type: verify
+          target_step: identify_phone
+        - type: create_authenticator
+          one_of:
+          - authentication: primary_password
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+6591230001"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form"
+          }
+        }
+
+  - name: the_hook_rejects_the_form
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/x_employee_id", "value": "E99999" }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "HookDisallowed"
+        }
+
+  - name: no_sms_before_the_form_is_accepted
+    action: audit_query
+    audit_query: |
+      SELECT count(*) AS count
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'sms.suppressed'
+    audit_query_output:
+      rows: |
+        [
+          { "count": "0" }
+        ]
+
+  - name: the_hook_accepts_the_form
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/x_employee_id", "value": "E10234" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify"
+          }
+        }
+
+  - name: the_sms_is_sent_after_the_form_is_accepted
+    action: audit_query
+    audit_query: |
+      SELECT count(*) AS count
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type = 'sms.suppressed'
+    audit_query_output:
+      rows: |
+        [
+          { "count": "1" }
+        ]

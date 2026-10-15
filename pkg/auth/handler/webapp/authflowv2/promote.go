@@ -61,9 +61,15 @@ func (h *AuthflowV2PromoteHandler) GetData(
 	authflowViewModel := h.getAuthflowViewModel(s, screen, r)
 	viewmodels.Embed(data, authflowViewModel)
 
+	forms, err := IdentifyFormViewModels(screen, &baseViewModel)
+	if err != nil {
+		return nil, err
+	}
 	signupViewModel := AuthflowV2SignupViewModel{
-		CanSwitchToLogin: false,
-		UIVariant:        AuthflowV2SignupUIVariantSignup,
+		CanSwitchToLogin:      false,
+		UIVariant:             AuthflowV2SignupUIVariantSignup,
+		FormsByIdentification: forms,
+		IsFormError:           isFormError(baseViewModel.RawError),
 	}
 	viewmodels.Embed(data, signupViewModel)
 
@@ -117,6 +123,9 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		input := map[string]any{
 			"identification": identification,
 			"login_id":       loginID,
+		}
+		if form := IdentificationOptionForm(screen, identification); form != nil {
+			input["fields"] = BuildFormFieldsInput(r.Form, *form).Fields
 		}
 
 		err = handlerwebapp.HandleIdentificationBotProtection(ctx, model.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)

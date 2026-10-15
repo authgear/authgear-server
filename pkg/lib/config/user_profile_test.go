@@ -158,6 +158,12 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 			"type":   "string",
 			"format": "iso3166-1-alpha-2",
 		})
+
+		test(&CustomAttributesAttributeConfig{
+			Type: CustomAttributeTypeBoolean,
+		}, map[string]any{
+			"type": "boolean",
+		})
 	})
 
 	Convey("ParseString", t, func() {
@@ -178,5 +184,30 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		test(CustomAttributeTypeEmail, "user@example.com", "user@example.com")
 		test(CustomAttributeTypeURL, "https://example.com", "https://example.com")
 		test(CustomAttributeTypeCountryCode, "HK", "HK")
+		test(CustomAttributeTypeBoolean, "true", true)
+		test(CustomAttributeTypeBoolean, "false", false)
+
+		c := &CustomAttributesAttributeConfig{Type: CustomAttributeTypeBoolean}
+		_, err := c.ParseString("yes")
+		So(err, ShouldNotBeNil)
+	})
+
+	Convey("StringConstraints", t, func() {
+		two := 2
+		Convey("custom attribute", func() {
+			So((&CustomAttributesAttributeConfig{Type: CustomAttributeTypeString}).StringConstraints(), ShouldBeNil)
+			So((&CustomAttributesAttributeConfig{Type: CustomAttributeTypeInteger, MinLength: &two}).StringConstraints(), ShouldBeNil)
+			c := (&CustomAttributesAttributeConfig{Type: CustomAttributeTypeString, MinLength: &two}).StringConstraints()
+			So(*c.MinLength, ShouldEqual, 2)
+		})
+		Convey("standard attribute", func() {
+			c := &StandardAttributesConfig{
+				Validation: []*StandardAttributesValidationConfig{
+					{Pointer: "/given_name", Pattern: "^a"},
+				},
+			}
+			So(c.GetStringConstraints("/given_name").Pattern, ShouldEqual, "^a")
+			So(c.GetStringConstraints("/name"), ShouldBeNil)
+		})
 	})
 }

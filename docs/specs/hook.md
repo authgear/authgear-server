@@ -63,7 +63,7 @@ To let the operation to proceed, respond with `is_allowed` set to `true`.
 }
 ```
 
-To fail the operation, respond with `is_allowed` set to `false`, and a non-empty `title` and `reason`.
+To fail the operation, respond with `is_allowed` set to `false`. `title` and `reason` are optional.
 
 ```json
 {

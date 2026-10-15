@@ -1,0 +1,12 @@
+@layer components {
+  :root {
+    --form__container-gap: 1.25rem;
+  }
+
+  /* A named form also has .form__container--<name>, for custom CSS to set the grid template. */
+  .form__container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--form__container-gap);
+  }
+}

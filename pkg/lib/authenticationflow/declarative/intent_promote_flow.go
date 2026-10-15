@@ -153,6 +153,11 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 
 			return nil
 		}),
+		// user.anonymous.promoted is delivered before user.profile.updated.
+		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
+			userID := i.userID(flows)
+			return dispatchUserProfileUpdateIfFormFilled(ctx, deps, flows, userID)
+		}),
 		revertUnverifiedSMSOTPs(flows),
 	}, nil
 }

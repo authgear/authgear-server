@@ -6,7 +6,7 @@ import React, {
   useRef,
   Children,
 } from "react";
-import { Button, Heading, Select } from "@radix-ui/themes";
+import { Button, Checkbox, Heading, Select, Text } from "@radix-ui/themes";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
@@ -407,6 +407,19 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     [customAttributes, onChangeCustomAttributes, pointer]
   );
 
+  const onChangeBoolean = useCallback(
+    (checked: boolean | "indeterminate") => {
+      if (checked === "indeterminate" || onChangeCustomAttributes == null) {
+        return;
+      }
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: checked ? "true" : "false",
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
   const onChangePhoneNumber = useCallback(
     (values: { e164?: string; rawInputValue: string }) => {
       if (onChangeCustomAttributes == null) {
@@ -574,6 +587,19 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           label={label}
           disabled={disabled}
         />
+      );
+    case "boolean":
+      return (
+        <div className={styles.customAttributeControl}>
+          <Text as="label" size="2" className={styles.booleanControl}>
+            <Checkbox
+              checked={value === "true"}
+              onCheckedChange={onChangeBoolean}
+              disabled={disabled}
+            />
+            {label}
+          </Text>
+        </div>
       );
   }
 }

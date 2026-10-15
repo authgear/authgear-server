@@ -1,0 +1,84 @@
+name: user.profile.pre_update sees the attributes filled in the form
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: user.profile.pre_update
+        url: authgeardeno:///deno/profilepreupdatecheck.ts
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+        - type: fill_form
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "John" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  # The hook allows only when the payload has given_name John.
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

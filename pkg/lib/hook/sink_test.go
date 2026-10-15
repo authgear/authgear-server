@@ -2,17 +2,21 @@ package hook
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"net/url"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -306,6 +310,51 @@ func TestSink(t *testing.T) {
 				err := s.DeliverBlockingEvent(ctx, &e)
 
 				So(err, ShouldBeError, "disallowed by hook event handler")
+			})
+
+			Convey("should disallow operation with reasons", func() {
+				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
+					{
+						Event: string(MockBlockingEventType1),
+						URL:   "https://example.com/a",
+					},
+				}
+
+				ctx := context.Background()
+
+				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
+				webhook.EXPECT().DeliverBlockingEvent(gomock.Any(), mustURL(cfg.BlockingHandlers[0].URL), &e).Times(1).Return(
+					&event.HookResponse{
+						IsAllowed: false,
+						Title:     "Invalid employee ID",
+						Reasons: []event.HookResponseReason{
+							{
+								Type:    event.HookResponseReasonTypeInvalidFormField,
+								Field:   &event.FormFieldRef{UserProfile: &event.FormFieldRefUserProfile{Pointer: "/x_employee_id"}},
+								Message: "Unknown employee",
+							},
+						},
+					},
+					nil,
+				)
+
+				err := s.DeliverBlockingEvent(ctx, &e)
+
+				So(err, ShouldBeError, "disallowed by hook event handler")
+				var apiErr *apierrors.APIError
+				So(errors.As(err, &apiErr), ShouldBeTrue)
+				So(apiErr.Reason, ShouldEqual, "HookDisallowed")
+				items, err := json.Marshal(apiErr.Info_ReadOnly["reasons"].(errorutil.DetailTaggedValue).Value)
+				So(err, ShouldBeNil)
+				So(string(items), ShouldEqualJSON, `[
+					{
+						"title": "Invalid employee ID",
+						"reason": "",
+						"reasons": [
+							{"type": "invalid_form_field", "key": "/x_employee_id", "message": "Unknown employee"}
+						]
+					}
+				]`)
 			})
 
 			Convey("should time out long requests", func() {

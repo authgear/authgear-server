@@ -1,13 +1,16 @@
 {{ define "authflowv2/__select_input.html" }}
 
+{{ $placeholder := include "v2.component.select-input.default.not-provided-label" nil }}
+{{ if $.Placeholder }}{{ $placeholder = $.Placeholder }}{{ end }}
+
 {{ $options := prepend $.Options (dict
-  "triggerLabel" (include "v2.component.select-input.default.not-provided-label" nil)
+  "triggerLabel" $placeholder
   "label" (include "v2.component.select-input.default.not-provided-label" nil)
   "value" ""
 )}}
 
 <div
-  class="select-input"
+  class="select-input {{ if $.IsError }}select-input--error{{ end }}"
   data-controller="select-input"
   data-select-input-options-value="{{ toJson $options }}"
 >

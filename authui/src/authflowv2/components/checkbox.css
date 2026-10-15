@@ -53,6 +53,10 @@
     }
   }
 
+  .checkbox--error .checkbox__label {
+    @apply ring-[color:var(--color-error)];
+  }
+
   .checkbox input {
     &:checked + .checkbox__label {
       @apply bg-[color:var(--checkbox\_\_background-color--checked)];

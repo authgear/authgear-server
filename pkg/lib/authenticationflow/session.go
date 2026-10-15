@@ -137,6 +137,7 @@ func (s *Session) ToOutput() *SessionOutput {
 func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) context.Context {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
 	ctx = context.WithValue(ctx, contextKeySAMLSessionID, s.SAMLSessionID)
+	ctx = WithFormInputConsumption(ctx)
 
 	if s.ClientID != "" {
 		otelauthgear.SetClientID(ctx, s.ClientID)

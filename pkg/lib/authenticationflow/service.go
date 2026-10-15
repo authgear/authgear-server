@@ -672,7 +672,9 @@ func (s *Service) getFlowAction(ctx context.Context, session *Session, flow *Flo
 		p := findInputReactorResult.InputSchema.GetJSONPointer()
 		flowRootObject := findInputReactorResult.InputSchema.GetFlowRootObject()
 
-		if flowRootObject != nil {
+		if s, ok := findInputReactorResult.InputSchema.(InputSchemaWithFlowActionType); ok {
+			flowAction = &FlowAction{Type: s.FlowActionType()}
+		} else if flowRootObject != nil {
 			flowAction = GetFlowAction(flowRootObject, p)
 		}
 	}

@@ -1,0 +1,107 @@
+name: user.profile.pre_update rejects a login after the form was accepted
+extra_files_directory: ./var
+authgear.yaml:
+  override: |
+    hook:
+      blocking_handlers:
+      - event: authentication.form.post_submitted
+        url: authgeardeno:///deno/allowed.ts
+      - event: user.profile.pre_update
+        url: authgeardeno:///deno/profilepreupdatereject.ts
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+        - type: fill_form
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form"
+          }
+        }
+
+  - name: the_form_is_accepted
+    action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "John" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: the_final_input_fails
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      error: |
+        {
+          "reason": "HookDisallowed",
+          "info": {
+            "event_type": "user.profile.pre_update",
+            "reasons": [
+              {
+                "title": "Profile update rejected"
+              }
+            ]
+          }
+        }
+
+  - name: the_attribute_is_not_stored
+    action: query
+    query: |
+      SELECT standard_attributes ? 'given_name' AS has_given_name
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "has_given_name": false
+          }
+        ]

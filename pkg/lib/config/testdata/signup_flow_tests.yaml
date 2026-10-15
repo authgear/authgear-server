@@ -41,7 +41,7 @@ error: |-
   /steps/2/user_profile/0/pointer: format
     map[error:0: expecting / but found: "g" format:json-pointer]
   /steps/3/type: enum
-    map[actual:foobar expected:[identify create_authenticator verify fill_in_user_profile view_recovery_code prompt_create_passkey]]
+    map[actual:foobar expected:[identify create_authenticator verify fill_in_user_profile fill_form view_recovery_code prompt_create_passkey]]
 value:
   name: id
   steps:

@@ -2,8 +2,14 @@
 {{ define "page-content" }}
 
   {{ $display_input_error := false }}
-  {{ if and .Error (not .OAuthError) }}
+  {{ if and .Error (not .OAuthError) (not .IsFormError) }}
     {{ $display_input_error = true }}
+  {{ end }}
+
+  {{ $login_form := index $.FormsByIdentification $.LoginIDKey }}
+  {{ $form_error_message := "" }}
+  {{ if (and $login_form.Fields .IsFormError) }}
+    {{ $form_error_message = include "authflowv2/__form_error_message.html" (merge (dict "Form" $login_form) $) }}
   {{ end }}
 
   {{ $oauth_error_message := "" }}
@@ -119,6 +125,15 @@
             "Message" $oauth_error_message
           )
         }}
+        {{ if $form_error_message }}
+          {{ template "authflowv2/__alert_message.html"
+            (dict
+              "Type" "error"
+              "Classname" "mt-4"
+              "Message" $form_error_message
+            )
+          }}
+        {{ end }}
       </div>
     </div>
 
@@ -203,6 +218,12 @@
           <input style="position:absolute;width:0;height:0;" aria-hidden="true" type="password" autocomplete="current-password" name="">
         </div>
       {{ end }}{{ end }}
+      {{ end }}
+
+      {{ if $login_form.Fields }}
+        <div class="py-2">
+          {{ template "authflowv2/__form_fields.html" (merge (dict "Form" $login_form "InlineLabels" true) $) }}
+        </div>
       {{ end }}
 
       <button

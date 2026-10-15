@@ -16,6 +16,7 @@
       - [Bot protection input; type: cloudflare](#bot-protection-input-type-cloudflare)
       - [Bot protection input; type: recaptchav2](#bot-protection-input-type-recaptchav2)
       - [Bot protection error](#bot-protection-error)
+    + [Form in identification options](#form-in-identification-options)
     + [identification: email](#identification-email)
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
@@ -34,6 +35,7 @@
     + [authentication: secondary_totp](#authentication-secondary_totp)
   * [type: signup; action.type: view_recovery_code](#type-signup-actiontype-view_recovery_code)
   * [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey)
+  * [type: signup; action.type: fill_form](#type-signup-actiontype-fill_form)
   * [type: login; action.type: identify](#type-login-actiontype-identify)
     + [identification: id_token](#identification-id_token)
     + [identification: select_account](#identification-select_account)
@@ -49,6 +51,7 @@
     + [authentication: secondary_totp](#authentication-secondary_totp-1)
   * [type: login; action.type: change_password](#type-login-actiontype-change_password)
   * [type: login; action.type: prompt_create_passkey](#type-login-actiontype-prompt_create_passkey)
+  * [type: login; action.type: fill_form](#type-login-actiontype-fill_form)
   * [type: signup_login; action.type: identify](#type-signup_login-actiontype-identify)
   * [type: account_recovery; action.type: identify](#type-account_recovery-actiontype-identify)
     + [Bot protection](#bot-protection-3)
@@ -63,6 +66,7 @@
   * [oauth_data](#oauth_data)
   * [create_authenticator_data](#create_authenticator_data)
   * [view_recovery_code_data](#view_recovery_code_data)
+  * [fill_form_data](#fill_form_data)
   * [select_oob_otp_channels_data](#select_oob_otp_channels_data)
   * [verify_oob_otp_data](#verify_oob_otp_data)
   * [create_passkey_data](#create_passkey_data)
@@ -332,6 +336,44 @@ When you submit an input without performing Captcha challenge, you will receive 
   }
 }
 ```
+
+### Form in identification options
+
+In signup and promote flows, an `email`, `phone`, or `username` option may contain the key `form`, which is the same as `form` in [fill_form_data](#fill_form_data):
+
+```json
+{
+  "identification": "username",
+  "form": {
+    "name": "names",
+    "fields": [
+      {
+        "key": "/given_name",
+        "type": "string",
+        "label": "Given name",
+        "required": true
+      }
+    ]
+  }
+}
+```
+
+Render the fields together with the login ID input. The input of that option takes `fields`, with the same meaning and rules as the input of [fill_form](#type-signup-actiontype-fill_form):
+
+```json
+{
+  "identification": "username",
+  "login_id": "johndoe",
+  "fields": [
+    {
+      "key": "/given_name",
+      "value": "John"
+    }
+  ]
+}
+```
+
+The errors are those of the login ID and those of [fill_form](#type-signup-actiontype-fill_form). On any error, the flow stays in this step. See [Forms in the identify step](./user-profile/profile-filling.md#forms-in-the-identify-step).
 
 ### identification: email
 
@@ -1296,9 +1338,76 @@ Pass `creation_options` to `main` and then pass this input
 }
 ```
 
+## type: signup; action.type: fill_form
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "fill_form",
+      "data": {
+        "type": "fill_form_data",
+        "form": {
+          "fields": [
+            {
+              "key": "/given_name",
+              "type": "string",
+              "label": "Given name",
+              "required": true,
+              "value": "John",
+              "constraints": { "max_length": 50 }
+            },
+            {
+              "key": "/x_plan",
+              "type": "enum",
+              "label": "Plan",
+              "required": false,
+              "options": [
+                { "value": "free", "label": "Free" },
+                { "value": "pro", "label": "Pro" }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+Render one input for each item of `data.form.fields`, in order. See [fill_form_data](#fill_form_data). When and why this step appears is specified in [Profile Filling](./user-profile/profile-filling.md#the-fill_form-step).
+
+The corresponding input is
+
+```json
+{
+  "fields": [
+    {
+      "key": "/given_name",
+      "value": "John"
+    }
+  ]
+}
+```
+
+- `fields`: One item per field the end-user filled.
+  - `key`: The `key` of a field in `data.form.fields`.
+  - `value`: A value of the field's `type`.
+
+A field absent from the input is treated as empty, and its stored value is cleared. Every field with `required: true` must be present and filled. A `key` not in `data.form.fields` is rejected.
+
+If a value fails validation, the error is `ValidationFailed`, and the flow stays in this step.
+
+If a hook on [authentication.form.post_submitted](./event.md#authenticationformpost_submitted) rejects the input, the error is `HookDisallowed`, and the flow stays in this step. Each entry of `info.reasons` may carry `reasons`, a list of `{ "type": "invalid_form_field", "key", "message" }` to show under the matching fields. See [Validation hook](./user-profile/profile-filling.md#validation-hook).
+
 ## type: login; action.type: identify
 
-See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `login`.
+See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `login`, and options have no [form](#form-in-identification-options).
 
 ### identification: id_token
 
@@ -1843,9 +1952,13 @@ The corresponding input is
 
 See [type: signup; action.type: prompt_create_passkey](#type-signup-actiontype-prompt_create_passkey). They are the same except that `type` is `login`.
 
+## type: login; action.type: fill_form
+
+See [type: signup; action.type: fill_form](#type-signup-actiontype-fill_form). They are the same except that `type` is `login`.
+
 ## type: signup_login; action.type: identify
 
-See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `signup_login`.
+See [type: signup; action.type: identify](#type-signup-actiontype-identify). They are the same except that `type` is `signup_login`, and options have no [form](#form-in-identification-options).
 
 `select_account` is also available here — see [identification: select_account](#identification-select_account).
 
@@ -2105,6 +2218,37 @@ The data contains options for creating new authenticator.
 The data contains recovery codes of the user.
 
 - `recovery_codes`: The recovery codes of the user.
+
+## fill_form_data
+
+The data describes the fields of a form, so the frontend can render it without knowing where the values are stored.
+
+- `form`: The form to render.
+  - `name`: The form's `name`. Absent when the form has none. It is unrelated to `result.name`, the name of the flow. A Custom UI can use it to choose its own title and description for the page.
+  - `fields`: The fields to render, in order. Each field has:
+    - `key`: Identifies the field in the input. Treat it as an opaque string.
+    - `type`: The kind of value and input. See the table below.
+    - `label`: The field label, localized for the request. It may contain `<a href>` links when `type` is `boolean`.
+    - `required`: Whether the field must be filled to submit the form.
+    - `value`: The current value. Absent when there is none.
+    - `options`: Present when `type` is `enum`. A list of `{ "value", "label" }`, with localized labels.
+    - `suggestions`: Optional. Values to offer for a `string` field; other values are also accepted.
+    - `constraints`: Optional. Any of `min_length`, `max_length`, `allowed_characters`, `pattern`, and `pattern_message` for `string`; `minimum` and `maximum` for `integer` and `number`. `pattern_message` is the localized message to show when `pattern` fails, present when the developer provides one.
+
+| `type` | `value` | Suggested input |
+|---|---|---|
+| `string` | A string. | A text field. |
+| `integer` | An integer. | A number field. |
+| `number` | A number. | A number field. |
+| `boolean` | `true` or `false`. A required `boolean` must be `true`. | A checkbox. |
+| `enum` | One of `options[].value`. | A dropdown. |
+| `date` | A `YYYY-MM-DD` string. | A date picker. |
+| `email` | An email address. | An email field. |
+| `phone_number` | An E.164 phone number. | A phone field. |
+| `url` | A URL. | A URL field. |
+| `country_code` | An ISO 3166-1 alpha-2 code. | A country dropdown. |
+| `timezone` | A tz database name, such as `Asia/Hong_Kong`. | A timezone dropdown. |
+| `address` | An object with any of `formatted`, `street_address`, `locality`, `region`, `postal_code`, and `country`, all strings. | A group of text fields. |
 
 ## select_oob_otp_channels_data
 

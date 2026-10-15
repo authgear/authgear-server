@@ -185,6 +185,7 @@ type HookResponse struct {
 	IsAllowed     bool                       `json:"is_allowed"`
 	Title         string                     `json:"title,omitempty"`
 	Reason        string                     `json:"reason,omitempty"`
+	Reasons       []HookResponseReason       `json:"reasons,omitempty"`
 	Mutations     Mutations                  `json:"mutations,omitempty"`
 	Constraints   *Constraints               `json:"constraints,omitempty"`
 	BotProtection *BotProtectionRequirements `json:"bot_protection,omitempty"`

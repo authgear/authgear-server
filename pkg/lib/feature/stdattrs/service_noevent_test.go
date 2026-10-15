@@ -2,6 +2,7 @@ package stdattrs
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -10,7 +11,58 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+func TestServiceNoEventValidateStringConstraints(t *testing.T) {
+	Convey("ServiceNoEvent.validateStringConstraints", t, func() {
+		two := 2
+		service := &ServiceNoEvent{
+			UserProfileConfig: &config.UserProfileConfig{
+				StandardAttributes: &config.StandardAttributesConfig{
+					Validation: []*config.StandardAttributesValidationConfig{
+						{Pointer: "/given_name", MinLength: &two},
+						{Pointer: "/address/locality", Pattern: "^[A-Z]"},
+					},
+				},
+			},
+		}
+
+		Convey("checks a changed value", func() {
+			err := service.validateStringConstraints(map[string]any{}, map[string]any{"given_name": "A"})
+			var aErr *validation.AggregatedError
+			So(errors.As(err, &aErr), ShouldBeTrue)
+			So(aErr.Errors, ShouldHaveLength, 1)
+			So(aErr.Errors[0].Keyword, ShouldEqual, "minLength")
+			So(aErr.Errors[0].Location, ShouldEqual, "/given_name")
+
+			So(service.validateStringConstraints(map[string]any{}, map[string]any{"given_name": "Al"}), ShouldBeNil)
+		})
+
+		Convey("passes an unchanged violating value", func() {
+			err := service.validateStringConstraints(
+				map[string]any{"given_name": "A"},
+				map[string]any{"given_name": "A"},
+			)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("reports a nested location", func() {
+			err := service.validateStringConstraints(
+				map[string]any{},
+				map[string]any{"address": map[string]any{"locality": "london"}},
+			)
+			var aErr *validation.AggregatedError
+			So(errors.As(err, &aErr), ShouldBeTrue)
+			So(aErr.Errors[0].Keyword, ShouldEqual, "pattern")
+			So(aErr.Errors[0].Location, ShouldEqual, "/address/locality")
+		})
+
+		Convey("ignores absent values", func() {
+			So(service.validateStringConstraints(map[string]any{"given_name": "A"}, map[string]any{}), ShouldBeNil)
+		})
+	})
+}
 
 func TestServiceNoEventDeriveStandardAttributesForUsersWithClaims(t *testing.T) {
 	Convey("ServiceNoEvent.DeriveStandardAttributesForUsersWithClaims", t, func() {

@@ -48,6 +48,7 @@ func TestAppConfigSchema(t *testing.T) {
 		"testdata/signup_flow_tests.yaml",
 		"testdata/login_flow_tests.yaml",
 		"testdata/signup_login_flow_tests.yaml",
+		"testdata/authentication_flow_form_tests.yaml",
 		"testdata/reauth_flow_tests.yaml",
 		"testdata/account_linking_tests.yaml",
 		"testdata/captcha_tests.yaml",

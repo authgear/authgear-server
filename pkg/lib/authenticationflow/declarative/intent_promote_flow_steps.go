@@ -113,6 +113,12 @@ func (i *IntentPromoteFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dep
 			UserID:      i.UserID,
 		})
 		break
+	case config.AuthenticationFlowSignupFlowStepTypeFillForm:
+		result = authflow.NewSubFlow(&IntentFillForm{
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, i.NextStepIndex),
+			UserID:      i.UserID,
+		})
+		break
 	case config.AuthenticationFlowSignupFlowStepTypePromptCreatePasskey:
 		result = authflow.NewSubFlow(&IntentSignupFlowStepPromptCreatePasskey{
 			StepName:    step.Name,

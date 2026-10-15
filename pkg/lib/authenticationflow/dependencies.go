@@ -248,6 +248,11 @@ type UserFacade interface {
 	GetUserIDsByLoginIDLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
 }
 
+type TranslationService interface {
+	HasKey(ctx context.Context, key string) (bool, error)
+	RenderText(ctx context.Context, key string, args any) (string, error)
+}
+
 type Dependencies struct {
 	Config                  *config.AppConfig
 	FeatureConfig           *config.FeatureConfig
@@ -294,6 +299,8 @@ type Dependencies struct {
 	MFADeviceTokenCookie mfa.CookieDef
 
 	UserFacade UserFacade
+
+	Translations TranslationService
 
 	Cookies CookieManager
 

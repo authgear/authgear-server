@@ -39,6 +39,10 @@
         ring-[color:var(--select-input\_\_trigger-ring-color--focus)];
     }
 
+    .select-input--error & {
+      @apply ring-[color:var(--select-input\_\_trigger-ring-color--error)];
+    }
+
     &::after {
       @apply material-icons;
       content: "arrow_forward_ios";
