@@ -1,0 +1,78 @@
+import { describe, it, expect } from "@jest/globals";
+import {
+  ifNeededMessageIDs,
+  optionalMessageIDs,
+  stepDescriptionMessageID,
+} from "./labels";
+import { KNOWN_STEP_TYPES } from "./tree";
+
+describe("ifNeededMessageIDs", () => {
+  it.each([
+    "change_password",
+    "terminate_other_sessions",
+    "prompt_create_passkey",
+  ])("gives %s a short condition and a full note", (type) => {
+    expect(ifNeededMessageIDs(type)).toEqual({
+      condition: `AuthFlowsScreen.if-needed.condition.${type}`,
+      note: `AuthFlowsScreen.if-needed.${type}`,
+    });
+  });
+
+  it("returns null for a step that always shows", () => {
+    expect(ifNeededMessageIDs("identify")).toBeNull();
+  });
+});
+
+describe("optionalMessageIDs", () => {
+  it("names 2FA when every option is a second factor", () => {
+    expect(
+      optionalMessageIDs({
+        type: "authenticate",
+        optional: true,
+        one_of: [
+          { authentication: "secondary_totp" },
+          { authentication: "secondary_oob_otp_email" },
+          { authentication: "recovery_code" },
+          { authentication: "device_token" },
+        ],
+      })
+    ).toEqual({
+      condition: "AuthFlowsScreen.optional.condition.2fa",
+      note: "AuthFlowsScreen.optional.note.2fa",
+    });
+  });
+
+  it("falls back to its options when they are not all second factors", () => {
+    expect(
+      optionalMessageIDs({
+        type: "authenticate",
+        optional: true,
+        one_of: [
+          { authentication: "primary_passkey" },
+          { authentication: "secondary_totp" },
+        ],
+      })
+    ).toEqual({
+      condition: "AuthFlowsScreen.optional.condition.any",
+      note: "AuthFlowsScreen.optional.note.any",
+    });
+  });
+});
+
+describe("stepDescriptionMessageID", () => {
+  it("explains check_account_status", () => {
+    expect(stepDescriptionMessageID("check_account_status")).toEqual(
+      "AuthFlowsScreen.step-description.check_account_status"
+    );
+  });
+
+  it.each([...KNOWN_STEP_TYPES])("describes %s", (type) => {
+    expect(stepDescriptionMessageID(type)).toEqual(
+      `AuthFlowsScreen.step-description.${type}`
+    );
+  });
+
+  it("returns null for a step type this portal does not know", () => {
+    expect(stepDescriptionMessageID("future_step")).toBeNull();
+  });
+});

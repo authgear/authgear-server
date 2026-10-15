@@ -7,7 +7,7 @@ import {
   flowRefNodeID,
   treeToGraph,
 } from "./graph";
-import { GAP_X, LANE_HEIGHT, Position, Size, layoutGraph } from "./layout";
+import { GAP_X, Position, Size, layoutGraph } from "./layout";
 import {
   generatedEmailOAuthPasskey2FA,
   generatedUsernameOnly,
@@ -171,13 +171,9 @@ describe("layoutGraph", () => {
     expect(lanes.get("/steps/0/option-2")).toEqual(140);
   });
 
-  it("reserves a lane above an optional step for its skip edge", () => {
+  it("reserves no extra room around an optional step", () => {
     const { lanes } = layout(optionalInBranch);
-    // The password branch is centred at -36 (the passkey lane sits below it),
-    // so the optional card's top is -86 and its lane is half a lane above.
-    expect(lanes.get("skip:/steps/0/one_of/0/steps/0")).toEqual(
-      -86 - LANE_HEIGHT / 2
-    );
+    expect([...lanes.keys()].filter((k) => k.startsWith("skip:"))).toEqual([]);
   });
 
   it("keeps every lane and row off the cards it passes", () => {

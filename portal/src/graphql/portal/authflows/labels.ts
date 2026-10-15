@@ -1,5 +1,6 @@
 import {
   AuthenticationFlowOptionConfig,
+  AuthenticationFlowStepConfig,
   OAuthSSOProviderType,
 } from "../../../types";
 import { IntlContextValue } from "../../../intl";
@@ -92,4 +93,90 @@ export function optionLabel(
     return id != null ? renderToString(id) : option.authentication;
   }
   return renderToString("AuthFlowsScreen.option.unknown");
+}
+
+// Steps the runtime runs only when a condition holds, without the config
+// marking them optional: a short condition shown on the step, and a note
+// that explains it in full.
+export interface IfNeededMessageIDs {
+  condition: string;
+  note: string;
+}
+
+const ifNeededMessageIDsByType: Partial<Record<string, IfNeededMessageIDs>> = {
+  change_password: {
+    condition: "AuthFlowsScreen.if-needed.condition.change_password",
+    note: "AuthFlowsScreen.if-needed.change_password",
+  },
+  terminate_other_sessions: {
+    condition: "AuthFlowsScreen.if-needed.condition.terminate_other_sessions",
+    note: "AuthFlowsScreen.if-needed.terminate_other_sessions",
+  },
+  prompt_create_passkey: {
+    condition: "AuthFlowsScreen.if-needed.condition.prompt_create_passkey",
+    note: "AuthFlowsScreen.if-needed.prompt_create_passkey",
+  },
+};
+
+export function ifNeededMessageIDs(type: string): IfNeededMessageIDs | null {
+  return ifNeededMessageIDsByType[type] ?? null;
+}
+
+// Authentications that only ever serve as a second factor.
+const secondFactorAuthentications = new Set([
+  "secondary_password",
+  "secondary_totp",
+  "secondary_oob_otp_email",
+  "secondary_oob_otp_sms",
+  "recovery_code",
+  "device_token",
+]);
+
+// An optional step is skipped when the user has none of its options set up.
+// When every option is a second factor, that is "has set up 2FA".
+export function optionalMessageIDs(
+  step: AuthenticationFlowStepConfig
+): IfNeededMessageIDs {
+  const options = step.one_of ?? [];
+  const is2FA =
+    options.length > 0 &&
+    options.every(
+      (o) =>
+        o.authentication != null &&
+        secondFactorAuthentications.has(o.authentication)
+    );
+  return is2FA
+    ? {
+        condition: "AuthFlowsScreen.optional.condition.2fa",
+        note: "AuthFlowsScreen.optional.note.2fa",
+      }
+    : {
+        condition: "AuthFlowsScreen.optional.condition.any",
+        note: "AuthFlowsScreen.optional.note.any",
+      };
+}
+
+// What each step does, shown in the side panel.
+const stepDescriptionMessageIDs: Partial<Record<string, string>> = {
+  identify: "AuthFlowsScreen.step-description.identify",
+  authenticate: "AuthFlowsScreen.step-description.authenticate",
+  create_authenticator: "AuthFlowsScreen.step-description.create_authenticator",
+  verify: "AuthFlowsScreen.step-description.verify",
+  fill_in_user_profile: "AuthFlowsScreen.step-description.fill_in_user_profile",
+  fill_form: "AuthFlowsScreen.step-description.fill_form",
+  view_recovery_code: "AuthFlowsScreen.step-description.view_recovery_code",
+  prompt_create_passkey:
+    "AuthFlowsScreen.step-description.prompt_create_passkey",
+  terminate_other_sessions:
+    "AuthFlowsScreen.step-description.terminate_other_sessions",
+  check_account_status: "AuthFlowsScreen.step-description.check_account_status",
+  change_password: "AuthFlowsScreen.step-description.change_password",
+  select_destination: "AuthFlowsScreen.step-description.select_destination",
+  verify_account_recovery_code:
+    "AuthFlowsScreen.step-description.verify_account_recovery_code",
+  reset_password: "AuthFlowsScreen.step-description.reset_password",
+};
+
+export function stepDescriptionMessageID(type: string): string | null {
+  return stepDescriptionMessageIDs[type] ?? null;
 }

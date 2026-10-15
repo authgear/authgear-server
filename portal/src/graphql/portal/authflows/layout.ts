@@ -1,5 +1,5 @@
 import { FlowStepItem } from "./tree";
-import { START_NODE_ID, optionLaneKey, skipLaneKey } from "./graph";
+import { START_NODE_ID, optionLaneKey } from "./graph";
 
 export interface Size {
   width: number;
@@ -13,8 +13,8 @@ export interface Position {
 
 export const GAP_X = 120;
 export const GAP_Y = 40;
-// Height reserved for an edge that runs past other cards: an empty branch
-// beside non-empty ones, or the skip edge above an optional step.
+// Height reserved for the edge of an empty branch beside non-empty ones, which
+// runs past the cards of its siblings.
 export const LANE_HEIGHT = 32;
 
 export interface FlowLayout {
@@ -26,8 +26,6 @@ export interface FlowLayout {
 
 interface ItemBox {
   box: Size;
-  // Height of the node and its branches, without the skip lane reserve.
-  innerHeight: number;
   // Total height of the branches stacked under a choice.
   stackHeight: number;
   branchBoxes: Size[];
@@ -77,15 +75,12 @@ export function layoutGraph(
         (sum, b, j) => sum + (j > 0 ? GAP_Y : 0) + b.height,
         0
       );
-      const innerHeight = Math.max(node.height, stackHeight);
       const itemBox: Size = {
         width: node.width + (branchWidth > 0 ? GAP_X + branchWidth : 0),
-        // The skip lane sits above; reserve the same below to stay centred.
-        height: innerHeight + (item.optional ? 2 * LANE_HEIGHT : 0),
+        height: Math.max(node.height, stackHeight),
       };
       itemBoxes.set(item, {
         box: itemBox,
-        innerHeight,
         stackHeight,
         branchBoxes,
       });
@@ -115,13 +110,7 @@ export function layoutGraph(
         cursor += GAP_X;
       }
       placeNode(item.id, cursor, centerY);
-      const { box, innerHeight, stackHeight, branchBoxes } = itemBoxOf(item);
-      if (item.optional) {
-        lanes.set(
-          skipLaneKey(item.id),
-          centerY - innerHeight / 2 - LANE_HEIGHT / 2
-        );
-      }
+      const { box, stackHeight, branchBoxes } = itemBoxOf(item);
       const branchX = cursor + sizeOf(item.id).width + GAP_X;
       let top = centerY - stackHeight / 2;
       (item.branches ?? []).forEach((b, j) => {

@@ -7,7 +7,13 @@ import { FlowStepItem } from "./tree";
 import { FlowRef, NEXT_HANDLE_ID, optionHandleID } from "./graph";
 import { flowSelectionSearch, resolveFlow } from "./model";
 import Link from "../../../Link";
-import { stepTitle } from "./labels";
+import {
+  IfNeededMessageIDs,
+  ifNeededMessageIDs,
+  optionalMessageIDs,
+  stepTitle,
+} from "./labels";
+import { Tooltip } from "../../../components/v2/Tooltip/Tooltip";
 import {
   ContinueAsPage,
   StepSketch,
@@ -31,6 +37,45 @@ function requireItem(data: FlowNodeData): FlowStepItem {
   return data.item;
 }
 
+// The condition under which a step runs, for a step the runtime may skip:
+// optional in config, or run only when needed. Null for a step that always runs.
+function stepConditionMessageIDs(
+  item: FlowStepItem
+): IfNeededMessageIDs | null {
+  if (item.optional) {
+    return optionalMessageIDs(item.step);
+  }
+  return ifNeededMessageIDs(item.step.type);
+}
+
+// States when the step runs; the tooltip explains it in full.
+function ConditionLine({
+  item,
+}: {
+  item: FlowStepItem;
+}): React.ReactElement | null {
+  const { renderToString } = useContext(Context);
+  const ids = stepConditionMessageIDs(item);
+  if (ids == null) {
+    return null;
+  }
+  return (
+    <Tooltip content={renderToString(ids.note)}>
+      <span className={styles.conditionLine}>
+        <svg
+          className={styles.conditionIcon}
+          viewBox="0 0 16 16"
+          aria-hidden={true}
+        >
+          <path d="M2 4h4c2 0 3 2 4 4s2 4 4 4" />
+          <path d="M2 4h12" />
+        </svg>
+        {renderToString(ids.condition)}
+      </span>
+    </Tooltip>
+  );
+}
+
 function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { flowType } = useFlowSketchContext();
@@ -49,15 +94,11 @@ function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
   return (
     <div className={cn(styles.card, selected ? styles.selected : null)}>
       <Handle type="target" position={Position.Left} />
+      <ConditionLine item={item} />
       <div className={styles.cardHeader}>
         <span className={styles.cardTitle}>
           {stepTitle(item.step.type, renderToString)}
         </span>
-        {item.optional ? (
-          <span className={styles.optionalTag}>
-            {renderToString("AuthFlowsScreen.optional")}
-          </span>
-        ) : null}
       </div>
       {item.step.name != null ? (
         <span className={styles.stepName}>{item.step.name}</span>
@@ -210,6 +251,7 @@ function PagelessNode({
   return (
     <div className={cn(styles.pill, selected ? styles.selected : null)}>
       <Handle type="target" position={Position.Left} />
+      <ConditionLine item={item} />
       {stepTitle(item.step.type, renderToString)}
       <Handle type="source" position={Position.Right} id={NEXT_HANDLE_ID} />
     </div>

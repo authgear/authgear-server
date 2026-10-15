@@ -28,7 +28,8 @@ describe("flowToTree", () => {
     expect(summary(tree)).toEqual([
       { id: "/steps/0", kind: "page", branches: 4 },
       { id: "/steps/1", kind: "pageless", branches: null },
-      { id: "/steps/2", kind: "pageless", branches: null },
+      // terminate_other_sessions asks the user to confirm on a page.
+      { id: "/steps/2", kind: "page", branches: null },
       { id: "/steps/3", kind: "page", branches: null },
     ]);
     const emailBranch = tree[0].branches![1];
@@ -41,7 +42,9 @@ describe("flowToTree", () => {
       {
         id: "/steps/0/one_of/1/steps/0/one_of/0/steps/0",
         kind: "page",
-        branches: 4,
+        // device_token is not a choice: it lets a remembered device skip
+        // the step, so it does not become a branch.
+        branches: 3,
       },
       {
         id: "/steps/0/one_of/1/steps/0/one_of/0/steps/1",
@@ -100,6 +103,41 @@ describe("flowToTree", () => {
     ]);
     expect(summary(tree[0].branches![0].sequence)).toEqual([
       { id: "/steps/0/one_of/0/steps/0", kind: "page", branches: null },
+    ]);
+  });
+
+  it("keeps the original option index on branches after device_token", () => {
+    const tree = flowToTree({
+      name: "default",
+      steps: [
+        {
+          type: "authenticate",
+          one_of: [
+            { authentication: "device_token" },
+            { authentication: "secondary_totp" },
+            { authentication: "recovery_code" },
+          ],
+        },
+      ],
+    });
+    expect(tree[0].branches?.map((b) => b.optionIndex)).toEqual([1, 2]);
+  });
+
+  it("inlines a step whose only other option is device_token", () => {
+    const tree = flowToTree({
+      name: "default",
+      steps: [
+        {
+          type: "authenticate",
+          one_of: [
+            { authentication: "secondary_totp" },
+            { authentication: "device_token" },
+          ],
+        },
+      ],
+    });
+    expect(summary(tree)).toEqual([
+      { id: "/steps/0", kind: "page", branches: null },
     ]);
   });
 

@@ -10,12 +10,6 @@ export interface CurvePathInput {
   gap: number;
 }
 
-export interface CurvePath {
-  path: string;
-  labelX: number;
-  labelY: number;
-}
-
 // One cubic S-curve from (x1, y1) to (x2, y2), leaving and arriving level.
 function sCurve(x1: number, y1: number, x2: number, y2: number): string {
   const midX = (x1 + x2) / 2;
@@ -32,26 +26,19 @@ export function curvePath({
   targetY,
   laneY,
   gap,
-}: CurvePathInput): CurvePath {
+}: CurvePathInput): string {
   const laneStartX = sourceX + gap;
   const laneEndX = targetX - gap;
   if (laneY == null || laneEndX <= laneStartX) {
-    return {
-      path: `M ${sourceX} ${sourceY} ${sCurve(
-        sourceX,
-        sourceY,
-        targetX,
-        targetY
-      )}`,
-      labelX: (sourceX + targetX) / 2,
-      labelY: (sourceY + targetY) / 2,
-    };
+    return `M ${sourceX} ${sourceY} ${sCurve(
+      sourceX,
+      sourceY,
+      targetX,
+      targetY
+    )}`;
   }
-  return {
-    path:
-      `M ${sourceX} ${sourceY} ${sCurve(sourceX, sourceY, laneStartX, laneY)}` +
-      ` L ${laneEndX} ${laneY} ${sCurve(laneEndX, laneY, targetX, targetY)}`,
-    labelX: (laneStartX + laneEndX) / 2,
-    labelY: laneY,
-  };
+  return (
+    `M ${sourceX} ${sourceY} ${sCurve(sourceX, sourceY, laneStartX, laneY)}` +
+    ` L ${laneEndX} ${laneY} ${sCurve(laneEndX, laneY, targetX, targetY)}`
+  );
 }

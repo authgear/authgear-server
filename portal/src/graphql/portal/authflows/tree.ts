@@ -23,6 +23,15 @@ export interface FlowStepItem {
 }
 
 export const IDENTIFICATION_ID_TOKEN = "id_token";
+export const AUTHENTICATION_DEVICE_TOKEN = "device_token";
+
+// device_token is not something the user chooses: it lets a remembered device
+// skip the step, and adds "Remember this device" to the step's page.
+export function isDeviceTokenOption(
+  option: AuthenticationFlowOptionConfig
+): boolean {
+  return option.authentication === AUTHENTICATION_DEVICE_TOKEN;
+}
 
 const pageStepTypes = new Set([
   "identify",
@@ -37,12 +46,16 @@ const pageStepTypes = new Set([
   "select_destination",
   "verify_account_recovery_code",
   "reset_password",
-]);
-
-const pagelessStepTypes = new Set([
-  "check_account_status",
   "terminate_other_sessions",
 ]);
+
+const pagelessStepTypes = new Set(["check_account_status"]);
+
+// Every step type this portal knows how to draw.
+export const KNOWN_STEP_TYPES: readonly string[] = [
+  ...pageStepTypes,
+  ...pagelessStepTypes,
+];
 
 // Steps whose options are required; a missing one_of is a choice with none.
 const choiceStepTypes = new Set([
@@ -76,19 +89,22 @@ function sequenceToTree(
   const items: FlowStepItem[] = [];
   steps.forEach((step, i) => {
     const id = `${pointer}/${i}`;
-    const oneOf = step.one_of ?? [];
+    const choices = (step.one_of ?? [])
+      .map((option, j) => ({ option, j }))
+      .filter(({ option }) => !isDeviceTokenOption(option));
     const optional = step.optional === true;
     const kind = stepKind(step);
     // An optional step keeps its single option as a branch, so skipping it
     // also skips the option's nested steps.
-    if (oneOf.length === 1 && !optional) {
+    if (choices.length === 1 && !optional) {
+      const { option, j } = choices[0];
       items.push({ id, step, kind, optional, branches: null });
       items.push(
-        ...sequenceToTree(oneOf[0].steps ?? [], `${id}/one_of/0/steps`)
+        ...sequenceToTree(option.steps ?? [], `${id}/one_of/${j}/steps`)
       );
       return;
     }
-    if (oneOf.length === 0 && !choiceStepTypes.has(step.type)) {
+    if (choices.length === 0 && !choiceStepTypes.has(step.type)) {
       items.push({ id, step, kind, optional, branches: null });
       return;
     }
@@ -97,7 +113,7 @@ function sequenceToTree(
       step,
       kind,
       optional,
-      branches: oneOf.map((option, j) => ({
+      branches: choices.map(({ option, j }) => ({
         optionIndex: j,
         option,
         sequence: sequenceToTree(option.steps ?? [], `${id}/one_of/${j}/steps`),

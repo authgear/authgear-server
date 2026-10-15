@@ -136,7 +136,6 @@ function FlowCanvasInner({
           type: "lane",
           data: {
             laneY: e.lane != null ? layout?.lanes.get(e.lane) ?? null : null,
-            skip: e.kind === "skip",
           },
         })
       ),
