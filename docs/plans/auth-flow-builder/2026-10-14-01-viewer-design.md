@@ -84,6 +84,7 @@ There are three pure functions, none of which use React.
 - A step whose `one_of` is present but empty is a choice with no branches (see [Edge cases](#edge-cases)).
 - `optional: true` is kept as a flag on the step.
 - `target_step` is kept as step data for the side panel. It is not an edge.
+- When every option of a non-optional choice continues with identical steps (the generator appends `view_recovery_code` to each 2FA option), those steps are drawn once after the options rejoin, using the first option's step ids.
 - A `device_token` option is not a branch. The user never chooses it: it lets a remembered device skip the step, and adds "Remember this device" to the step's page. Branches keep their original option index.
 
 ### `treeToGraph(tree)`
@@ -120,7 +121,8 @@ A card about 240px wide. The header has a title, plus the step `name` in small m
 | Step | Sketch |
 |---|---|
 | `identify` | Per option: a login ID input labelled Email, Phone or Username; one "Continue with X" button per configured OAuth provider; a passkey button; a "Continue as…" row for `select_account`; username and password inputs for LDAP. A form attached to an option shows its fields under that option. |
-| `authenticate`, `create_authenticator` | Per option: a password input; OTP boxes ("Code sent to email" or "Code sent to phone"); authenticator-app code boxes; a passkey button; a "Use a recovery code" link. With `device_token`, a "Remember this device" checkbox after the options, with no "or" and no output, noted "Next time, this device skips this step." |
+| `authenticate` | Per option: a password input; OTP boxes ("Code sent to email" or "Code sent to phone"); authenticator-app code boxes; a passkey button; a "Use a recovery code" link. With `device_token`, a "Remember this device" checkbox after the options, with no "or" and no output, noted "Next time, this device skips this step." |
+| `create_authenticator` | Per option, a heading describing the method ("Create a password", "Create a passkey", "Get codes by email", "Use an authenticator app"; a phone code names its channel from `authenticator.oob_otp.sms.phone_otp_mode`: "Get codes by SMS", "by WhatsApp" or "by WhatsApp or SMS"), then its fields: a new password input; a passkey button; for a code method, the email or phone input (left out with `target_step`, when the code goes to that step's login ID) and code boxes; for an authenticator app, a QR code and code boxes. |
 | `verify`, `verify_account_recovery_code` | OTP boxes and "Enter the code we sent". |
 | `fill_form`, `fill_in_user_profile` | Each field with its attribute label, a required marker, and a control that matches the attribute type. |
 | `change_password`, `reset_password` | New password and confirm inputs. |
@@ -140,7 +142,7 @@ A step the runtime may skip states when it runs, in a short accent-coloured line
 | Only if the user has no passkey | `prompt_create_passkey` | the user signed in with something that can use a passkey and has none yet |
 
 
-On a choice node, each option's output handle sits beside that option's row in the sketch. When a step has more than one option, an "or" divider separates them, since they are alternatives on one page.
+On a choice node, each option's output handle sits beside that option's row in the sketch. When a step has more than one option, each option is drawn as its own sub-node (a bordered, rounded box holding its sketch and its handle), with an "or" between them, since they are alternatives on one page. Inputs and code boxes in a sketch have a solid panel background, so they read as fields.
 
 ### Identify group
 
