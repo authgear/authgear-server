@@ -969,19 +969,58 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		return nil, err
 	}
 
+	// The original refresh tokens are those of the client that created the
+	// session, i.e. the mobile app. Its config is only needed to check a
+	// resource, so a request without one does not depend on it.
+	var originalClient *config.OAuthClientConfig
+	if r.Resource() != "" {
+		originalClient = h.ClientResolver.ResolveClient(ctx, offlineGrant.InitialClientID)
+		if originalClient == nil {
+			return nil, protocol.NewError("server_error", "cannot find original client for pre-authenticated url")
+		}
+	}
+	originals := offlineGrant.ScopesByResourceURI(offlineGrant.InitialClientID)
+
+	// Project-level scopes of the new session. Resource scopes are added below,
+	// and only for the resource requested.
+	var projectScopes []string
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
 		if !offlineGrant.HasAllScopes(offlineGrant.InitialClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
-		err = oauth.ValidateScopesByClientConfig(requestedScopes, nil)
+		// A resource scope of the session is known only on the resource it is
+		// bound to.
+		var knownResourceScopes []string
+		if r.Resource() != "" {
+			knownResourceScopes = slice.Filter(originals[r.Resource()], oauth.IsResourceScope)
+		}
+		err = oauth.ValidateScopesByClientConfig(requestedScopes, knownResourceScopes)
 		if err != nil {
 			return nil, err
 		}
-		scopes = oauth.GrantedScopes(client, requestedScopes, nil)
+		projectScopes = oauth.GrantedScopes(client, requestedScopes, nil)
+	} else {
+		projectScopes = slice.Filter(scopes, func(s string) bool { return !oauth.IsResourceScope(s) })
 	}
 
-	authz, err := h.Authorizations.CheckAndGrant(ctx, client.ClientID, offlineGrant.GetUserID(), "", scopes)
+	resourceID, resourceScopes, err := derivedGrantResourceScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		originalClient,
+		client,
+		originals,
+		r.Resource(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(requestedScopes) > 0 {
+		resourceScopes = slice.Filter(resourceScopes, func(s string) bool { return slices.Contains(requestedScopes, s) })
+	}
+	scopes = append(projectScopes, resourceScopes...)
+
+	authz, err := h.Authorizations.CheckAndGrant(ctx, client.ClientID, offlineGrant.GetUserID(), resourceID, scopes)
 	if err != nil {
 		return nil, err
 	}
@@ -992,6 +1031,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		ClientID:        client.ClientID,
 		OfflineGrantID:  offlineGrant.ID,
 		Scopes:          scopes,
+		ResourceURI:     r.Resource(),
 	}
 	result, err := h.PreAuthenticatedURLTokenService.IssuePreAuthenticatedURLToken(ctx, options)
 	if err != nil {

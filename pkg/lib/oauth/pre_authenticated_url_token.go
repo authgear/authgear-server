@@ -17,6 +17,8 @@ type PreAuthenticatedURLToken struct {
 	ClientID        string   `json:"client_id"`
 	OfflineGrantID  string   `json:"offline_grant_id"`
 	Scopes          []string `json:"scopes"`
+	// ResourceURI is empty when the browser session is not bound to a resource.
+	ResourceURI string `json:"resource_uri,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at"`

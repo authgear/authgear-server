@@ -43,7 +43,7 @@ func (g *OfflineGrant) ScopesByResourceURI(clientID string) map[string][]string
 
 `TokenHandler.handlePreAuthenticatedURLToken` (`handler_token.go`), after `verifyIDTokenDeviceSecretHash`. This replaces the `requestedScopes` block and the `CheckAndGrant` call:
 
-1. `originalClient := h.ClientResolver.ResolveClient(ctx, offlineGrant.InitialClientID)`; `nil` → `protocol.NewError("server_error", "cannot find original client for pre-authenticated url")`.
+1. Only when `r.Resource() != ""`: `originalClient := h.ClientResolver.ResolveClient(ctx, offlineGrant.InitialClientID)`; `nil` → `protocol.NewError("server_error", "cannot find original client for pre-authenticated url")`. A request without `resource` does not depend on the original client's config, as before.
 2. `originals := offlineGrant.ScopesByResourceURI(offlineGrant.InitialClientID)`.
 3. `base := scopes`, which is today's `offlineGrant.GetScopes(offlineGrant.InitialClientID)`.
 4. If `len(r.Scope()) > 0`:
