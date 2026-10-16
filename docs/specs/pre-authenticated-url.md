@@ -85,6 +85,7 @@ When a mobile app wants to create Pre-Authenticated URL, it makes a request to t
 - `actor_token_type`: Must be `urn:x-oath:params:oauth:token-type:device-secret`
 - `requested_token_type`: Required. The value must be `urn:authgear:params:oauth:token-type:pre-authenticated-url-token`.
 - `scope`: Optional. Requested scopes of the new session. Only scopes exist in the current offline grant is allowed.
+- `resource`: Optional. See [Resource Indicators](#resource-indicators).
 
 Here is an example:
 
@@ -147,9 +148,13 @@ In the response, the authorize endpoint will redirect the user to `redirect_uri`
 
 ## Resource Indicators
 
-Pre-Authenticated URL does not support [resource indicators](./access-token-audience-binding.md). The token exchange request takes no `resource`, and a Resource Scope cannot be requested in its `scope`.
+Pre-Authenticated URL is a [derived grant](./access-token-audience-binding.md#derived-grant). The web app's client is the new client. The original refresh tokens are those of the mobile app's client in the session named by the `sid` of `subject_token`, where the mobile app's client is the client that created that session.
 
-When `scope` is not requested, the tokens issued for the browser session carry every scope of the mobile app's session, Resource Scopes included. Neither the requesting client's Authorization nor a Resource's access policy limits them. They are not bound to a Resource, even when the mobile app's session is.
+`resource` goes on the [Token Exchange Request](#token-exchange-request). The authorization endpoint request takes no `resource`.
+
+`scope`, when given, must still be within the mobile app's session. Without it, project-level scopes are those of the mobile app's session.
+
+In the SDKs, `makePreAuthenticatedURL()` gains an optional `resource`.
 
 ## Client Metadata
 
