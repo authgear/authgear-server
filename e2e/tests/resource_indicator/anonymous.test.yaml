@@ -1,0 +1,210 @@
+name: Anonymous request with resource issues a resource-bound grant
+# The anonymous-request grant takes resource and scope. The refresh token is
+# bound to the resource, which a refresh with resource proves.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - anonymous
+      primary_authenticators:
+      - password
+    oauth:
+      clients:
+      - access_token_lifetime_seconds: 1800
+        client_id: e2e
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: reactweb
+        redirect_uris:
+        - http://localhost:4000
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: spa
+        issue_jwt_access_token: true
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # full-access is present but offline_access is not.
+  - name: challenge_without_offline_access
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "anonymous_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: anonymous_without_offline_access
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:anonymous-request
+      client_id: e2e
+      jwt: "{{ generateAnonymousRequestJWT .steps.challenge_without_offline_access.result.http_json_body.result.token }}"
+      scope: openid https://authgear.com/scopes/full-access
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_scope"
+        }
+
+  - name: challenge_default
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "anonymous_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: anonymous_default
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:anonymous-request
+      client_id: e2e
+      jwt: "{{ generateAnonymousRequestJWT .steps.challenge_default.result.http_json_body.result.token }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "refresh_token": "[[string]]",
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
+        }
+
+  # The unbound refresh token cannot be refreshed for a resource.
+  - name: refresh_default_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.anonymous_default.result.http_json_body.refresh_token }}"
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_target"
+        }
+
+  - name: challenge_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "anonymous_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: anonymous_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:anonymous-request
+      client_id: e2e
+      jwt: "{{ generateAnonymousRequestJWT .steps.challenge_with_resource.result.http_json_body.result.token }}"
+      scope: openid offline_access https://authgear.com/scopes/full-access read:orders
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "refresh_token": "[[string]]",
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
+
+  - name: refresh_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.anonymous_with_resource.result.http_json_body.refresh_token }}"
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]"
+        }

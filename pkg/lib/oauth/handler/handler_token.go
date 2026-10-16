@@ -1070,6 +1070,23 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
 
+	// Check resource and scope before the user is created.
+	resourceID, scopes, err := newGrantScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		h.IDTokenIssuer.Iss(),
+		client,
+		r.Resource(),
+		r.Scope(),
+		defaultOfflineFullAccessScopes(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkOfflineFullAccessScopes(scopes); err != nil {
+		return nil, err
+	}
+
 	var graph *interaction.Graph
 	err = h.Graphs.DryRun(ctx, interaction.ContextValues{}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
@@ -1121,14 +1138,11 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	// TODO(oauth): allow specifying scopes
-	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
-
 	authz, err := h.Authorizations.CheckAndGrant(
 		ctx,
 		client.ClientID,
 		info.UserID,
-		"",
+		resourceID,
 		scopes,
 	)
 	if err != nil {
@@ -1153,6 +1167,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		SSOEnabled:         false,
 		IssueDeviceSecret:  issueDeviceToken,
 		DPoPJKT:            dpopJKT,
+		ResourceURI:        r.Resource(),
 	}
 	offlineGrant, newTokenHash, err := h.issueOfflineGrant(
 		ctx,
@@ -1178,6 +1193,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		SessionLike:              offlineGrant,
 		InitialRefreshTokenHash:  newTokenHash,
 		UserBlockingEventContext: eventUserCtx,
+		ResourceURI:              r.Resource(),
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
