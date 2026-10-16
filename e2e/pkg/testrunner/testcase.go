@@ -1052,6 +1052,13 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return jwtStr
 	}
+	templateFuncMap["generateBiometricRequestJWT"] = func(challenge string, action string) string {
+		jwtStr, err := GenerateBiometricRequestJWT(challenge, action)
+		if err != nil {
+			panic(err)
+		}
+		return jwtStr
+	}
 	templateFuncMap["generatePasskeyAttestation"] = func(options any, origin string) string {
 		response, err := GeneratePasskeyAttestation(options, origin)
 		if err != nil {

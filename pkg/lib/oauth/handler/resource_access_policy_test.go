@@ -64,3 +64,82 @@ func TestResourceScopesForIssuance(t *testing.T) {
 		})
 	})
 }
+
+func TestNewGrantScopes(t *testing.T) {
+	Convey("newGrantScopes", t, func() {
+		ctx := context.Background()
+		issuer := stubIDTokenIssuer{}.Iss()
+		spaClient := &config.OAuthClientConfig{
+			ClientID:        "spa-client",
+			ApplicationType: config.OAuthClientApplicationTypeSPA,
+		}
+		defaults := []string{"openid", "offline_access", "https://authgear.com/scopes/full-access"}
+
+		svc := &stubResourceScopeService{
+			resource: &resourcescope.Resource{
+				ID:           "resource-id",
+				ResourceURI:  "https://api.example.com/orders",
+				AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true},
+			},
+			scopes: []*resourcescope.Scope{
+				{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}},
+				// Known, but not opened to static first-party clients.
+				{Scope: "delete:orders"},
+			},
+		}
+
+		Convey("no resource and no scope returns the defaults", func() {
+			resourceID, scopes, err := newGrantScopes(ctx, svc, issuer, spaClient, "", nil, defaults)
+			So(err, ShouldBeNil)
+			So(resourceID, ShouldEqual, "")
+			So(scopes, ShouldResemble, defaults)
+		})
+
+		Convey("a resource scope without resource is invalid_scope", func() {
+			_, _, err := newGrantScopes(ctx, svc, issuer, spaClient, "", []string{"openid", "read:orders"}, defaults)
+			So(err, ShouldNotBeNil)
+			So(err.(*protocol.OAuthProtocolError).Type(), ShouldEqual, "invalid_scope")
+		})
+
+		Convey("a resource under the project endpoint is invalid_target", func() {
+			_, _, err := newGrantScopes(ctx, svc, issuer, spaClient, issuer+"/oauth2/userinfo", nil, defaults)
+			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint"))
+		})
+
+		Convey("a resource that does not allow the client is invalid_target", func() {
+			denied := &stubResourceScopeService{
+				resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: "https://api.example.com/orders"},
+			}
+			_, _, err := newGrantScopes(ctx, denied, issuer, spaClient, "https://api.example.com/orders", nil, defaults)
+			So(err, ShouldNotBeNil)
+			So(err.(*protocol.OAuthProtocolError).Type(), ShouldEqual, "invalid_target")
+		})
+
+		Convey("a resource with scopes returns the id and drops scopes the client is not granted", func() {
+			resourceID, scopes, err := newGrantScopes(ctx, svc, issuer, spaClient, "https://api.example.com/orders",
+				[]string{"openid", "offline_access", "https://authgear.com/scopes/full-access", "read:orders", "delete:orders"}, defaults)
+			So(err, ShouldBeNil)
+			So(resourceID, ShouldEqual, "resource-id")
+			So(scopes, ShouldResemble, []string{"openid", "offline_access", "https://authgear.com/scopes/full-access", "read:orders"})
+		})
+
+		Convey("an unknown scope is invalid_scope", func() {
+			_, _, err := newGrantScopes(ctx, svc, issuer, spaClient, "https://api.example.com/orders",
+				[]string{"openid", "unknown:scope"}, defaults)
+			So(err, ShouldNotBeNil)
+			So(err.(*protocol.OAuthProtocolError).Type(), ShouldEqual, "invalid_scope")
+		})
+	})
+}
+
+func TestCheckOfflineFullAccessScopes(t *testing.T) {
+	Convey("checkOfflineFullAccessScopes", t, func() {
+		So(checkOfflineFullAccessScopes([]string{"openid", "offline_access", "https://authgear.com/scopes/full-access"}), ShouldBeNil)
+
+		err := checkOfflineFullAccessScopes([]string{"openid", "https://authgear.com/scopes/full-access"})
+		So(err, ShouldResemble, protocol.NewError("invalid_scope", "offline_access and full-access must be requested"))
+
+		err = checkOfflineFullAccessScopes([]string{"openid", "offline_access"})
+		So(err, ShouldResemble, protocol.NewError("invalid_scope", "offline_access and full-access must be requested"))
+	})
+}

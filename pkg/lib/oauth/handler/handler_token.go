@@ -1237,6 +1237,9 @@ func (h *TokenHandler) handleBiometricRequest(
 	action, _ := actionIface.(string)
 	switch action {
 	case string(identitybiometric.RequestActionSetup):
+		if r.Resource() != "" {
+			return nil, protocol.NewError("invalid_request", "resource is not supported for biometric setup")
+		}
 		return h.handleBiometricSetup(ctx, req, client, r)
 	case string(identitybiometric.RequestActionAuthenticate):
 		return h.handleBiometricAuthenticate(ctx, client, r)
@@ -1332,6 +1335,24 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
 
+	// Check resource and scope before authenticating, so an invalid request
+	// authenticates nobody.
+	resourceID, scopes, err := newGrantScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		h.IDTokenIssuer.Iss(),
+		client,
+		r.Resource(),
+		r.Scope(),
+		defaultOfflineFullAccessScopes(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkOfflineFullAccessScopes(scopes); err != nil {
+		return nil, err
+	}
+
 	var graph *interaction.Graph
 	err = h.Graphs.DryRun(ctx, interaction.ContextValues{}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
@@ -1391,25 +1412,11 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
-	requestedScopes := r.Scope()
-	if len(requestedScopes) > 0 {
-		err := oauth.ValidateScopesByClientConfig(requestedScopes, nil)
-		if err != nil {
-			return nil, err
-		}
-		scopes = oauth.GrantedScopes(client, requestedScopes, nil)
-	}
-
-	if !oauth.ContainsAllScopes(scopes, []string{oauth.OfflineAccess, oauth.FullAccessScope}) {
-		return nil, protocol.NewError("invalid_scope", "offline_access and full-access must be requested")
-	}
-
 	authz, err := h.Authorizations.CheckAndGrant(
 		ctx,
 		client.ClientID,
 		info.UserID,
-		"",
+		resourceID,
 		scopes,
 	)
 	if err != nil {
@@ -1448,6 +1455,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		SSOEnabled:         false,
 		IssueDeviceSecret:  issueDeviceToken,
 		DPoPJKT:            dpopJKT,
+		ResourceURI:        r.Resource(),
 	}
 	offlineGrant, newTokenHash, err := h.issueOfflineGrant(
 		ctx,
@@ -1473,6 +1481,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		SessionLike:              offlineGrant,
 		InitialRefreshTokenHash:  newTokenHash,
 		UserBlockingEventContext: eventUserCtx,
+		ResourceURI:              r.Resource(),
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,

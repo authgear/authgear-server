@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -84,4 +85,53 @@ func resourceScopesForIssuance(
 	return slice.Filter(granted, func(s string) bool {
 		return !oauth.IsResourceScope(s) || slices.Contains(stillAllowed, s)
 	}), nil
+}
+
+// newGrantScopes checks resource and scope on a token request that creates
+// a grant, as /oauth2/authorize would. defaultScopes is used when scope is
+// omitted. See docs/specs/access-token-audience-binding.md § New grant.
+func newGrantScopes(
+	ctx context.Context,
+	svc ResourceAccessPolicyService,
+	issuer string,
+	client *config.OAuthClientConfig,
+	resourceURI string,
+	requestedScopes []string,
+	defaultScopes []string,
+) (resourceID string, scopes []string, err error) {
+	var known, allowed []string
+	if resourceURI != "" {
+		if strings.HasPrefix(resourceURI, issuer) {
+			return "", nil, protocol.NewError("invalid_target", "resource URI must not be a prefixed by authgear endpoint")
+		}
+		var resource *resourcescope.Resource
+		resource, known, allowed, err = resourceScopes(ctx, svc, client, resourceURI)
+		if err != nil {
+			return "", nil, err
+		}
+		resourceID = resource.ID
+	}
+
+	if len(requestedScopes) == 0 {
+		return resourceID, defaultScopes, nil
+	}
+	if err := oauth.ValidateScopesByClientConfig(requestedScopes, known); err != nil {
+		return "", nil, err
+	}
+	return resourceID, oauth.GrantedScopes(client, requestedScopes, allowed), nil
+}
+
+// checkOfflineFullAccessScopes rejects a biometric or anonymous grant that
+// would issue no refresh token or no full-access.
+func checkOfflineFullAccessScopes(scopes []string) error {
+	if !oauth.ContainsAllScopes(scopes, []string{oauth.OfflineAccess, oauth.FullAccessScope}) {
+		return protocol.NewError("invalid_scope", "offline_access and full-access must be requested")
+	}
+	return nil
+}
+
+// defaultOfflineFullAccessScopes is the scope of a biometric or anonymous
+// grant that does not request one.
+func defaultOfflineFullAccessScopes() []string {
+	return []string{oauth.ScopeOpenID, oauth.OfflineAccess, oauth.FullAccessScope}
 }
