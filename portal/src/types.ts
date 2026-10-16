@@ -772,6 +772,9 @@ export interface AuthenticationFlowOptionConfig {
   // ID receives the code, so the user does not enter one.
   target_step?: string;
   form?: AuthenticationFlowFormConfig;
+  bot_protection?: { mode: string };
+  // On a signup create_authenticator option; unset means required.
+  verification_required?: boolean;
   steps?: AuthenticationFlowStepConfig[];
 }
 

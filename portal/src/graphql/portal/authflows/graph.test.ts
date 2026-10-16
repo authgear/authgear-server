@@ -7,8 +7,10 @@ import {
   START_NODE_ID,
   flowRefNodeID,
   handoffGroups,
+  joinNodeID,
   optionAnswerHandleID,
   optionHandleID,
+  optionLaneKey,
   recoveryDestinationHandleID,
   treeToGraph,
 } from "./graph";
@@ -47,31 +49,37 @@ describe("treeToGraph", () => {
       P,
       S,
       C,
+      joinNodeID(P),
+      joinNodeID("/steps/0"),
       "/steps/1",
       "/steps/2",
       "/steps/3",
       END_NODE_ID,
     ]);
+    // Both choices with steps under an option are boxed: their options meet
+    // at the box's join before what follows.
     expect(edgeTuples(graph)).toEqual(
       expect.arrayContaining([
         [START_NODE_ID, NEXT_HANDLE_ID, "next", "/steps/0"],
-        ["/steps/0", optionHandleID(0), "option", "/steps/1"],
+        ["/steps/0", optionHandleID(0), "option", joinNodeID("/steps/0")],
         ["/steps/0", optionHandleID(1), "option", P],
-        ["/steps/0", optionHandleID(2), "option", "/steps/1"],
-        ["/steps/0", optionHandleID(3), "option", "/steps/1"],
+        ["/steps/0", optionHandleID(2), "option", joinNodeID("/steps/0")],
+        ["/steps/0", optionHandleID(3), "option", joinNodeID("/steps/0")],
         [P, optionHandleID(0), "option", S],
         [S, optionHandleID(0), "option", C],
         [S, optionHandleID(1), "option", C],
         [S, optionHandleID(2), "option", C],
-        [C, NEXT_HANDLE_ID, "next", "/steps/1"],
-        [P, optionHandleID(1), "option", "/steps/1"],
+        [C, NEXT_HANDLE_ID, "next", joinNodeID(P)],
+        [P, optionHandleID(1), "option", joinNodeID(P)],
+        [joinNodeID(P), NEXT_HANDLE_ID, "next", joinNodeID("/steps/0")],
+        [joinNodeID("/steps/0"), NEXT_HANDLE_ID, "next", "/steps/1"],
         ["/steps/1", NEXT_HANDLE_ID, "next", "/steps/2"],
         ["/steps/2", NEXT_HANDLE_ID, "next", "/steps/3"],
         ["/steps/3", NEXT_HANDLE_ID, "next", END_NODE_ID],
       ])
     );
-    expect(graph.edges).toHaveLength(14);
-    expect(new Set(graph.edges.map((e) => e.id)).size).toEqual(14);
+    expect(graph.edges).toHaveLength(16);
+    expect(new Set(graph.edges.map((e) => e.id)).size).toEqual(16);
   });
 
   it("names the lane each option edge travels in", () => {
@@ -267,5 +275,303 @@ describe("account recovery", () => {
     ).toEqual(
       graph.edges.filter((e) => e.target !== "/steps/1").map(() => null)
     );
+  });
+});
+
+describe("insertion points", () => {
+  const insertAtOf = (flow: AuthenticationFlowConfig) =>
+    new Map(
+      graphOf(flow).edges.map((e) => [`${e.source}->${e.target}`, e.insertAt])
+    );
+
+  it("puts each line kind at its config location", () => {
+    const at = insertAtOf({
+      name: "default",
+      steps: [
+        {
+          type: "identify",
+          one_of: [
+            {
+              identification: "email",
+              steps: [
+                {
+                  type: "authenticate",
+                  one_of: [{ authentication: "primary_password" }],
+                },
+              ],
+            },
+            { identification: "phone" },
+          ],
+        },
+        { type: "check_account_status" },
+      ],
+    });
+    expect(at.get(`${START_NODE_ID}->/steps/0`)).toEqual({
+      steps: "/steps",
+      index: 0,
+    });
+    expect(at.get("/steps/0->/steps/0/one_of/0/steps/0")).toEqual({
+      steps: "/steps/0/one_of/0/steps",
+      index: 0,
+    });
+    expect(at.get("/steps/0/one_of/0/steps/0->/steps/0:join")).toEqual({
+      steps: "/steps/0/one_of/0/steps",
+      index: 1,
+    });
+    expect(at.get("/steps/0->/steps/0:join")).toEqual({
+      steps: "/steps/0/one_of/1/steps",
+      index: 0,
+    });
+    expect(at.get("/steps/0:join->/steps/1")).toEqual({
+      steps: "/steps",
+      index: 1,
+    });
+    expect(at.get(`/steps/1->${END_NODE_ID}`)).toEqual({
+      steps: "/steps",
+      index: 2,
+    });
+  });
+
+  it("inserts after an inline single-option step into its nested steps", () => {
+    const at = insertAtOf({
+      name: "default",
+      steps: [
+        {
+          type: "identify",
+          one_of: [
+            {
+              identification: "email",
+              steps: [{ type: "check_account_status" }],
+            },
+          ],
+        },
+      ],
+    });
+    expect(at.get("/steps/0->/steps/0/one_of/0/steps/0")).toEqual({
+      steps: "/steps/0/one_of/0/steps",
+      index: 0,
+    });
+  });
+
+  it("inserts after an inline step with no nested steps in its own list", () => {
+    const at = insertAtOf({
+      name: "default",
+      steps: [
+        { type: "identify", one_of: [{ identification: "email" }] },
+        { type: "check_account_status" },
+      ],
+    });
+    expect(at.get("/steps/0->/steps/1")).toEqual({ steps: "/steps", index: 1 });
+  });
+
+  it("has no insertion point on a hand-off line", () => {
+    const graph = graphOf({
+      name: "default",
+      steps: [
+        {
+          type: "identify",
+          one_of: [
+            {
+              identification: "email",
+              login_flow: "default",
+              signup_flow: "default",
+            },
+            {
+              identification: "oauth",
+              login_flow: "default",
+              signup_flow: "default",
+            },
+          ],
+        },
+      ],
+    });
+    const handoffs = graph.edges.filter((e) => e.target.startsWith("flow:"));
+    expect(handoffs.length).toBeGreaterThan(0);
+    expect(handoffs.every((e) => e.insertAt === null)).toBe(true);
+  });
+});
+
+describe("insertion points after a hand-off", () => {
+  it("has none after a single inline hand-off option", () => {
+    const graph = graphOf({
+      name: "default",
+      steps: [
+        {
+          type: "identify",
+          one_of: [
+            {
+              identification: "email",
+              login_flow: "default",
+              signup_flow: "default",
+            },
+          ],
+        },
+      ],
+    });
+    expect(
+      graph.edges.filter((e) => e.source === "/steps/0").map((e) => e.insertAt)
+    ).toEqual(
+      graph.edges.filter((e) => e.source === "/steps/0").map(() => null)
+    );
+  });
+});
+
+// A choice whose options have no steps is not boxed; its lines meet at what
+// follows, and the first of them carries the point after the choice.
+describe("insertion after a choice", () => {
+  const flow: AuthenticationFlowConfig = {
+    name: "default",
+    steps: [
+      {
+        type: "identify",
+        one_of: [{ identification: "email" }, { identification: "phone" }],
+      },
+    ],
+  };
+
+  it("marks one line where the options meet with the point after the choice", () => {
+    const merges = graphOf(flow)
+      .edges.filter((e) => e.mergeInsertAt != null)
+      .map((e) => [e.target, e.mergeInsertAt]);
+    expect(merges).toEqual([[END_NODE_ID, { steps: "/steps", index: 1 }]]);
+  });
+
+  it("does so before the next step, not only before End", () => {
+    const merges = graphOf({
+      ...flow,
+      steps: [...(flow.steps ?? []), { type: "view_recovery_code" }],
+    })
+      .edges.filter((e) => e.mergeInsertAt != null)
+      .map((e) => [e.target, e.mergeInsertAt]);
+    expect(merges).toEqual([["/steps/1", { steps: "/steps", index: 1 }]]);
+  });
+
+  it("has none after a step that is not a choice", () => {
+    expect(
+      graphOf({
+        name: "default",
+        steps: [{ type: "check_account_status" }],
+      }).edges.filter((e) => e.mergeInsertAt != null)
+    ).toEqual([]);
+  });
+});
+
+describe("boxed choices", () => {
+  const flow: AuthenticationFlowConfig = {
+    name: "default",
+    steps: [
+      {
+        type: "identify",
+        one_of: [
+          { identification: "email", steps: [{ type: "verify" }] },
+          { identification: "username" },
+        ],
+      },
+      { type: "fill_form" },
+    ],
+  };
+  const join = joinNodeID("/steps/0");
+
+  it("joins every option at the box's exit, then leads on once", () => {
+    const graph = treeToGraph(flowToTree(flow));
+    expect(graph.nodes.map((n) => [n.id, n.kind])).toEqual([
+      [START_NODE_ID, "start"],
+      ["/steps/0", "page"],
+      ["/steps/0/one_of/0/steps/0", "page"],
+      [join, "join"],
+      ["/steps/1", "page"],
+      [END_NODE_ID, "end"],
+    ]);
+    expect(edgeTuples(graph)).toEqual([
+      [START_NODE_ID, NEXT_HANDLE_ID, "next", "/steps/0"],
+      ["/steps/0", optionHandleID(0), "option", "/steps/0/one_of/0/steps/0"],
+      ["/steps/0/one_of/0/steps/0", NEXT_HANDLE_ID, "next", join],
+      ["/steps/0", optionHandleID(1), "option", join],
+      [join, NEXT_HANDLE_ID, "next", "/steps/1"],
+      ["/steps/1", NEXT_HANDLE_ID, "next", END_NODE_ID],
+    ]);
+  });
+
+  it("adds after the choice from the exit line, and nowhere else", () => {
+    const graph = treeToGraph(flowToTree(flow));
+    const exit = graph.edges.find((e) => e.source === join);
+    expect(exit?.insertAt).toEqual({ steps: "/steps", index: 1 });
+    expect(exit?.afterChoice).toEqual(true);
+    expect(graph.edges.filter((e) => e.mergeInsertAt != null)).toEqual([]);
+  });
+
+  it("runs each option's line to the exit along its row", () => {
+    const graph = treeToGraph(flowToTree(flow));
+    const into = graph.edges.filter((e) => e.target === join);
+    expect(into.map((e) => [e.source, e.lane])).toEqual([
+      ["/steps/0/one_of/0/steps/0", optionLaneKey("/steps/0", 0)],
+      ["/steps/0", optionLaneKey("/steps/0", 1)],
+    ]);
+  });
+
+  it("draws no box for a choice whose options have no steps", () => {
+    const graph = treeToGraph(
+      flowToTree({
+        name: "default",
+        steps: [
+          {
+            type: "identify",
+            one_of: [
+              { identification: "email" },
+              { identification: "username" },
+            ],
+          },
+        ],
+      })
+    );
+    expect(graph.nodes.some((n) => n.kind === "join")).toEqual(false);
+  });
+
+  it("keeps account recovery's lines to each destination's input", () => {
+    const recovery: AuthenticationFlowConfig = {
+      name: "default",
+      steps: [
+        {
+          type: "identify",
+          one_of: [
+            {
+              identification: "email",
+              steps: [
+                {
+                  type: "select_destination",
+                  allowed_channels: [{ channel: "email", otp_form: "link" }],
+                },
+              ],
+            },
+            {
+              identification: "phone",
+              steps: [
+                {
+                  type: "select_destination",
+                  allowed_channels: [{ channel: "sms", otp_form: "code" }],
+                },
+              ],
+            },
+          ],
+        },
+        { type: "verify_account_recovery_code" },
+      ],
+    };
+    const graph = treeToGraph(flowToTree(recovery));
+    expect(graph.nodes.some((n) => n.kind === "join")).toEqual(false);
+    expect(
+      graph.edges
+        .filter((e) => e.target === "/steps/1")
+        .map((e) => [e.source, e.targetHandle])
+    ).toEqual([
+      [
+        "/steps/0/one_of/0/steps/0",
+        recoveryDestinationHandleID({ channel: "email", otp_form: "link" }),
+      ],
+      [
+        "/steps/0/one_of/1/steps/0",
+        recoveryDestinationHandleID({ channel: "sms", otp_form: "code" }),
+      ],
+    ]);
   });
 });

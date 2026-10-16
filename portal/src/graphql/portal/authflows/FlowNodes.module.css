@@ -15,6 +15,12 @@
   outline-offset: 2px;
 }
 
+/* A save error the server reported for this step. */
+.hasErrors {
+  border-color: var(--red-9);
+  box-shadow: 0 0 0 1px var(--red-9);
+}
+
 .cardHeader {
   display: flex;
   gap: 8px;
@@ -458,4 +464,67 @@
   white-space: nowrap;
   color: var(--gray-11);
   pointer-events: none;
+}
+
+/* A boxed choice: the choice card, then a row per option. */
+.box {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border: 1.5px solid var(--gray-a6);
+  border-radius: 12px;
+  background: var(--gray-a2);
+}
+
+.boxRow {
+  position: absolute;
+  right: 0;
+  box-sizing: border-box;
+  background: var(--gray-a2);
+}
+
+.boxRow:last-child {
+  border-bottom-right-radius: 12px;
+}
+
+.boxRow:first-child {
+  border-top-right-radius: 12px;
+}
+
+.boxRowDivided {
+  border-top: 1px solid var(--gray-a5);
+}
+
+.boxRowLabel {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--accent-11);
+}
+
+.join {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gray-9);
+}
+
+.join :global(.react-flow__handle) {
+  opacity: 0;
+}
+
+.joinLabel {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  font-size: var(--font-size-1);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--gray-11);
 }

@@ -1,0 +1,64 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  align-self: flex-start;
+  cursor: default;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+}
+
+.optionTable {
+  display: grid;
+  gap: 6px;
+  align-items: center;
+}
+
+.columnHeader {
+  color: var(--gray-11);
+  font-size: var(--font-size-1);
+  cursor: default;
+}
+
+.cell {
+  display: flex;
+  min-width: 0;
+}
+
+.cellControl {
+  width: 100%;
+  min-width: 0;
+}
+
+/* A setting that does not apply to this option. */
+.notApplicable {
+  padding-left: 8px;
+  color: var(--gray-9);
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}

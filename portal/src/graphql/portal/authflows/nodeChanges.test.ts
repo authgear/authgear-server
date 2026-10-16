@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { NodeChange } from "@xyflow/react";
-import { splitNodeChanges } from "./nodeChanges";
+import { applySizes, splitNodeChanges } from "./nodeChanges";
 
 describe("splitNodeChanges", () => {
   it("keeps only measurements, so the canvas cannot lose nodes", () => {
@@ -32,5 +32,25 @@ describe("splitNodeChanges", () => {
       { type: "dimensions", id: "a", dimensions: { width: 1, height: 2 } },
     ];
     expect(splitNodeChanges(changes).selectedID).toBeUndefined();
+  });
+});
+
+describe("applySizes", () => {
+  it("records measured sizes and keeps the map when nothing changed", () => {
+    const prev = new Map([["a", { width: 1, height: 2 }]]);
+    const same = applySizes(prev, [
+      { type: "dimensions", id: "a", dimensions: { width: 1, height: 2 } },
+    ]);
+    expect(same).toBe(prev);
+    const next = applySizes(prev, [
+      { type: "dimensions", id: "b", dimensions: { width: 3, height: 4 } },
+      { type: "dimensions", id: "c" },
+    ]);
+    expect(next).toEqual(
+      new Map([
+        ["a", { width: 1, height: 2 }],
+        ["b", { width: 3, height: 4 }],
+      ])
+    );
   });
 });

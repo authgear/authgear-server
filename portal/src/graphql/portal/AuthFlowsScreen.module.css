@@ -27,3 +27,17 @@
 .notFound {
   padding: 24px;
 }
+
+.toolbarSpacer {
+  flex: 1;
+}
+
+/* Why a dragged line did not link, over the top of the canvas. */
+.dropNotice {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  left: 50%;
+  max-width: 480px;
+  transform: translateX(-50%);
+}

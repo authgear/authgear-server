@@ -3,7 +3,6 @@ query authFlowsScreenQuery($id: ID!) {
     __typename
     ... on App {
       id
-      effectiveAppConfig
       generatedAuthenticationFlows {
         signupFlow
         loginFlow

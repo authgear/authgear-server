@@ -1,5 +1,10 @@
 import { FlowStepItem } from "./tree";
-import { START_NODE_ID, optionLaneKey } from "./graph";
+import {
+  START_NODE_ID,
+  isBoxedChoice,
+  joinNodeID,
+  optionLaneKey,
+} from "./graph";
 
 export interface Size {
   width: number;
@@ -13,15 +18,40 @@ export interface Position {
 
 export const GAP_X = 120;
 export const GAP_Y = 40;
-// Height reserved for the edge of an empty branch beside non-empty ones, which
-// runs past the cards of its siblings.
+// Height of a box's row for an option with no steps: room for its line.
 export const LANE_HEIGHT = 32;
+// Room between a box's edge and the choice card in it.
+export const BOX_PAD = 24;
+// Room between a box's widest row and its right edge, where the rows meet.
+export const BOX_EXIT = GAP_X;
+
+// One option's row in a box: what lies between top and bottom runs only for
+// that option.
+export interface ChoiceBoxRow {
+  optionIndex: number;
+  top: number;
+  bottom: number;
+}
+
+// A boxed choice: the choice card on the left, its options' rows on the
+// right, from rowsX to the box's right edge.
+export interface ChoiceBox {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rowsX: number;
+  rows: ChoiceBoxRow[];
+}
 
 export interface FlowLayout {
   // Top-left corner of every node.
   positions: Map<string, Position>;
   // The y of every reserved lane, keyed by FlowGraphEdge.lane.
   lanes: Map<string, number>;
+  // Outer boxes before the boxes nested in them.
+  boxes: ChoiceBox[];
 }
 
 interface ItemBox {
@@ -66,19 +96,21 @@ export function layoutGraph(
         measureSequence(b.sequence)
       );
       const branchWidth = Math.max(0, ...contentBoxes.map((b) => b.width));
-      // When every branch is empty, its edges go straight to the next column
-      // and cross nothing, so they need no lane.
       const branchBoxes = contentBoxes.map((b) =>
-        b.width === 0 && branchWidth > 0 ? { width: 0, height: LANE_HEIGHT } : b
+        b.width === 0 ? { width: 0, height: LANE_HEIGHT } : b
       );
       const stackHeight = branchBoxes.reduce(
         (sum, b, j) => sum + (j > 0 ? GAP_Y : 0) + b.height,
         0
       );
-      const itemBox: Size = {
-        width: node.width + (branchWidth > 0 ? GAP_X + branchWidth : 0),
-        height: Math.max(node.height, stackHeight),
-      };
+      const itemBox: Size = isBoxedChoice(item)
+        ? {
+            width: BOX_PAD + node.width + GAP_X + branchWidth + BOX_EXIT,
+            height: Math.max(node.height + 2 * BOX_PAD, stackHeight + GAP_Y),
+          }
+        : // A choice whose options have no steps is just its card: its
+          // options' lines go straight to what follows.
+          node;
       itemBoxes.set(item, {
         box: itemBox,
         stackHeight,
@@ -94,6 +126,7 @@ export function layoutGraph(
 
   const positions = new Map<string, Position>();
   const lanes = new Map<string, number>();
+  const boxes: ChoiceBox[] = [];
   const placeNode = (id: string, x: number, centerY: number) => {
     positions.set(id, { x, y: centerY - sizeOf(id).height / 2 });
   };
@@ -109,17 +142,50 @@ export function layoutGraph(
       if (i > 0) {
         cursor += GAP_X;
       }
-      placeNode(item.id, cursor, centerY);
       const { box, stackHeight, branchBoxes } = itemBoxOf(item);
-      const branchX = cursor + sizeOf(item.id).width + GAP_X;
+      if (!isBoxedChoice(item)) {
+        placeNode(item.id, cursor, centerY);
+        cursor += box.width;
+        return;
+      }
+      const cardX = cursor + BOX_PAD;
+      placeNode(item.id, cardX, centerY);
+      const branchX = cardX + sizeOf(item.id).width + GAP_X;
+      const boxTop = centerY - box.height / 2;
+      const rows: ChoiceBoxRow[] = [];
+      boxes.push({
+        id: item.id,
+        x: cursor,
+        y: boxTop,
+        width: box.width,
+        height: box.height,
+        rowsX: branchX - GAP_X / 2,
+        rows,
+      });
+      const joinID = joinNodeID(item.id);
+      if (sizes.has(joinID)) {
+        placeNode(
+          joinID,
+          cursor + box.width - sizeOf(joinID).width / 2,
+          centerY
+        );
+      }
+      // A row reaches halfway to its neighbours, and the outer rows to the
+      // box's edges. Each option's line runs through the middle of its row.
       let top = centerY - stackHeight / 2;
       (item.branches ?? []).forEach((b, j) => {
         const height = branchBoxes[j].height;
-        if (b.sequence.length === 0) {
-          if (height > 0) {
-            lanes.set(optionLaneKey(item.id, b.optionIndex), top + height / 2);
-          }
-        } else {
+        const rowTop = j === 0 ? boxTop : top - GAP_Y / 2;
+        if (j > 0) {
+          rows[j - 1].bottom = rowTop;
+        }
+        rows.push({
+          optionIndex: b.optionIndex,
+          top: rowTop,
+          bottom: boxTop + box.height,
+        });
+        lanes.set(optionLaneKey(item.id, b.optionIndex), top + height / 2);
+        if (b.sequence.length > 0) {
           placeSequence(b.sequence, branchX, top + height / 2);
         }
         top += height + GAP_Y;
@@ -144,5 +210,5 @@ export function layoutGraph(
     placeNode(id, terminalX, terminalTop + height / 2);
     terminalTop += height + GAP_Y;
   }
-  return { positions, lanes };
+  return { positions, lanes, boxes };
 }
