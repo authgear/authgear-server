@@ -30,6 +30,10 @@ const flowListKeys: Record<FlowType, keyof AuthenticationFlowsConfig> = {
   account_recovery: "account_recovery_flows",
 };
 
+export function flowListKey(type: FlowType): keyof AuthenticationFlowsConfig {
+  return flowListKeys[type];
+}
+
 function flowsOf(
   config: AuthenticationFlowsConfig | undefined,
   type: FlowType
@@ -140,7 +144,7 @@ export interface AccountRecoveryDestination {
 
 // What the server sends when select_destination lists no allowed_channels
 // (config.GetAllAccountRecoveryChannel).
-const ALL_ACCOUNT_RECOVERY_DESTINATIONS: AccountRecoveryDestination[] = [
+export const ALL_ACCOUNT_RECOVERY_DESTINATIONS: AccountRecoveryDestination[] = [
   { channel: "email", otp_form: "link" },
   { channel: "email", otp_form: "code" },
   { channel: "sms", otp_form: "code" },

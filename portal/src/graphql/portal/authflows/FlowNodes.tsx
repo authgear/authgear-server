@@ -4,6 +4,7 @@ import { Handle, Node, NodeProps, NodeTypes, Position } from "@xyflow/react";
 import { Context } from "../../../intl";
 import { Callout } from "../../../components/v2/Callout/Callout";
 import { FlowStepItem } from "./tree";
+import { ChoiceBox } from "./layout";
 import { FlowRef, NEXT_HANDLE_ID, optionHandleID } from "./graph";
 import { flowSelectionSearch, resolveFlow } from "./model";
 import Link from "../../../Link";
@@ -12,6 +13,7 @@ import {
   ifNeededMessageIDs,
   optionalMessageIDs,
   destinationMessageID,
+  optionLabel,
   pagelessNoteMessageIDs,
   stepTitle,
 } from "./labels";
@@ -23,14 +25,32 @@ import {
 } from "./sketches";
 import { identifyGroupGeometry } from "./groupGeometry";
 import { useFlowSketchContext } from "./FlowSketchContext";
+import {
+  NodeEditToolbar,
+  WarningLine,
+  useHasErrors,
+} from "./edit/CanvasControls";
 import styles from "./FlowNodes.module.css";
 
 // xyflow requires node data to be a record.
 export interface FlowNodeData extends Record<string, unknown> {
   item: FlowStepItem | null;
   flowRef: FlowRef | null;
+  // Set on a box node, whose item is the boxed choice.
+  box?: ChoiceBox;
 }
 export type FlowNode = Node<FlowNodeData>;
+
+export const BOX_NODE_TYPE = "box";
+const BOX_NODE_ID_PREFIX = "box:";
+
+export function boxNodeID(choiceID: string): string {
+  return `${BOX_NODE_ID_PREFIX}${choiceID}`;
+}
+
+export function isBoxNodeID(id: string): boolean {
+  return id.startsWith(BOX_NODE_ID_PREFIX);
+}
 
 function requireItem(data: FlowNodeData): FlowStepItem {
   if (data.item == null) {
@@ -84,6 +104,7 @@ function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
   const item = requireItem(data);
   const isEmptyChoice = item.branches?.length === 0;
   const continueIndex = continuePageOptionIndex(item);
+  const hasErrors = useHasErrors(item.id);
   if (continueIndex >= 0) {
     return (
       <IdentifyGroup
@@ -94,7 +115,14 @@ function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
     );
   }
   return (
-    <div className={cn(styles.card, selected ? styles.selected : null)}>
+    <div
+      className={cn(
+        styles.card,
+        selected ? styles.selected : null,
+        hasErrors ? styles.hasErrors : null
+      )}
+    >
+      <NodeEditToolbar stepID={item.id} selected={selected} />
       <Handle
         type="target"
         position={Position.Left}
@@ -106,6 +134,7 @@ function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
         }
       />
       <ConditionLine item={item} />
+      <WarningLine stepID={item.id} />
       <div className={styles.cardHeader}>
         <span className={styles.cardTitle}>
           {stepTitle(item.step.type, renderToString)}
@@ -153,18 +182,24 @@ function IdentifyGroup({
   selected: boolean;
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
+  const hasErrors = useHasErrors(item.id);
   const g = identifyGroupGeometry();
   const continueRight = g.continueLeft + g.continueWidth;
   const actionCenterX = g.actionLeft + g.actionWidth / 2;
   return (
     <div
-      className={cn(styles.group, selected ? styles.selected : null)}
+      className={cn(
+        styles.group,
+        selected ? styles.selected : null,
+        hasErrors ? styles.hasErrors : null
+      )}
       style={{
         width: g.width,
         paddingTop: g.loginTop,
         paddingLeft: g.loginLeft,
       }}
     >
+      <NodeEditToolbar stepID={item.id} selected={selected} />
       <div className={styles.groupHeader} style={{ height: g.headerHeight }}>
         <span className={styles.cardTitle}>
           {stepTitle(item.step.type, renderToString)}
@@ -292,10 +327,19 @@ function PagelessNode({
   const { renderToString } = useContext(Context);
   const item = requireItem(data);
   const note = pagelessNoteMessageIDs(item.step);
+  const hasErrors = useHasErrors(item.id);
   return (
-    <div className={cn(styles.pill, selected ? styles.selected : null)}>
+    <div
+      className={cn(
+        styles.pill,
+        selected ? styles.selected : null,
+        hasErrors ? styles.hasErrors : null
+      )}
+    >
+      <NodeEditToolbar stepID={item.id} selected={selected} />
       <Handle type="target" position={Position.Left} />
       <ConditionLine item={item} />
+      <WarningLine stepID={item.id} />
       {stepTitle(item.step.type, renderToString)}
       {note != null ? (
         <Tooltip content={renderToString(note.note)}>
@@ -368,6 +412,54 @@ function FlowRefNode({ data }: NodeProps<FlowNode>): React.ReactElement {
   );
 }
 
+// Behind a boxed choice: one row per option, each labelled with its option.
+function BoxNode({ data }: NodeProps<FlowNode>): React.ReactElement | null {
+  const { renderToString } = useContext(Context);
+  const { phoneOTPMode } = useFlowSketchContext();
+  const { box, item } = data;
+  if (box == null || item == null) {
+    return null;
+  }
+  return (
+    <div className={styles.box}>
+      {box.rows.map((row, j) => {
+        const option = item.step.one_of?.[row.optionIndex];
+        return (
+          <div
+            key={row.optionIndex}
+            className={cn(styles.boxRow, j > 0 ? styles.boxRowDivided : null)}
+            style={{
+              left: box.rowsX - box.x,
+              top: row.top - box.y,
+              height: row.bottom - row.top,
+            }}
+          >
+            {option != null ? (
+              <span className={styles.boxRowLabel}>
+                {optionLabel(option, renderToString, phoneOTPMode)}
+              </span>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Where a boxed choice's options meet: what follows runs for every option.
+function JoinNode(): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  return (
+    <div className={styles.join}>
+      <Handle type="target" position={Position.Left} />
+      <span className={styles.joinLabel}>
+        {renderToString("AuthFlowsScreen.box.every-option")}
+      </span>
+      <Handle type="source" position={Position.Right} id={NEXT_HANDLE_ID} />
+    </div>
+  );
+}
+
 // Keyed by GraphNodeKind. Unknown steps reuse PageNode, whose sketch falls back.
 export const flowNodeTypes: NodeTypes = {
   start: StartNode,
@@ -376,4 +468,6 @@ export const flowNodeTypes: NodeTypes = {
   page: PageNode,
   unknown: PageNode,
   pageless: PagelessNode,
+  join: JoinNode,
+  [BOX_NODE_TYPE]: BoxNode,
 };

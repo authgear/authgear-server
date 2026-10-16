@@ -139,7 +139,7 @@ function fieldControl(
   }
 }
 
-function formFieldLabel(
+export function formFieldLabel(
   pointer: string,
   customAttributes: CustomAttributesAttributeConfig[],
   renderToString: (id: string) => string

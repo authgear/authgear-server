@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { curvePath } from "./edgePath";
+import { OUTPUT_INSERT_OFFSET, curveLabelPoint, curvePath } from "./edgePath";
 
 describe("curvePath", () => {
   it("draws one S-curve between neighbouring columns", () => {
@@ -41,5 +41,51 @@ describe("curvePath", () => {
         gap: 120,
       })
     ).toEqual("M 0 0 C 60 0, 60 0, 120 0");
+  });
+});
+
+describe("curveLabelPoint", () => {
+  it("sits on the lane when the line runs along it", () => {
+    expect(
+      curveLabelPoint({
+        sourceX: 0,
+        sourceY: 0,
+        targetX: 600,
+        targetY: 0,
+        laneY: 100,
+        gap: 120,
+      })
+    ).toEqual({ x: 300, y: 100 });
+  });
+
+  it("sits on the curve when the line is too short for its lane", () => {
+    expect(
+      curveLabelPoint({
+        sourceX: 0,
+        sourceY: -80,
+        targetX: 200,
+        targetY: 40,
+        laneY: 100,
+        gap: 120,
+      })
+    ).toEqual({ x: 100, y: -20 });
+  });
+});
+
+describe("curveLabelPoint beside the source", () => {
+  it("sits just past the output a line leaves, level with it", () => {
+    expect(
+      curveLabelPoint(
+        {
+          sourceX: 0,
+          sourceY: -80,
+          targetX: 600,
+          targetY: 40,
+          laneY: 100,
+          gap: 120,
+        },
+        true
+      )
+    ).toEqual({ x: OUTPUT_INSERT_OFFSET, y: -80 });
   });
 });

@@ -6,6 +6,9 @@ import { Context, FormattedMessage } from "../../../intl";
 import { AuthenticatorPhoneOTPMode } from "../../../types";
 import { FlowStepItem } from "./tree";
 import { optionLabel, stepDescriptionMessageID, stepTitle } from "./labels";
+import { StepForm, StepFormProps } from "./edit/StepForm";
+import { StepYAMLEditor } from "./edit/StepYAMLEditor";
+import { replaceStep } from "./edit/edits";
 import styles from "./StepDetailsPanel.module.css";
 
 export interface StepDetailsPanelProps {
@@ -13,17 +16,19 @@ export interface StepDetailsPanelProps {
   // How phone codes are sent, to name the channel in the options list.
   phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
   onClose: () => void;
+  // Present in edit mode: the panel becomes a form for the step.
+  edit?: Omit<StepFormProps, "stepID">;
 }
 
 export function StepDetailsPanel({
   item,
   phoneOTPMode,
   onClose,
+  edit,
 }: StepDetailsPanelProps): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { step } = item;
   const description = stepDescriptionMessageID(step.type);
-  const options = step.one_of ?? [];
   const stepYAML = useMemo(() => yaml.dump(step), [step]);
   return (
     <aside className={styles.panel}>
@@ -40,6 +45,52 @@ export function StepDetailsPanel({
           <Cross2Icon />
         </IconButton>
       </Flex>
+      {edit != null ? (
+        <>
+          {description != null ? (
+            <Text as="p" size="2" color="gray">
+              <FormattedMessage id={description} />
+            </Text>
+          ) : null}
+          <StepForm {...edit} stepID={item.id} />
+          <Heading size="2" as="h3">
+            <FormattedMessage id="AuthFlowsScreen.edit.yaml.title" />
+          </Heading>
+          <StepYAMLEditor
+            key={`${item.id}:${stepYAML}`}
+            step={step}
+            flowType={edit.flowType}
+            onApply={(next) =>
+              edit.apply(replaceStep(edit.flow, item.id, next))
+            }
+          />
+        </>
+      ) : (
+        <ReadOnlyDetails
+          item={item}
+          phoneOTPMode={phoneOTPMode}
+          stepYAML={stepYAML}
+        />
+      )}
+    </aside>
+  );
+}
+
+function ReadOnlyDetails({
+  item,
+  phoneOTPMode,
+  stepYAML,
+}: {
+  item: FlowStepItem;
+  phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
+  stepYAML: string;
+}): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  const { step } = item;
+  const description = stepDescriptionMessageID(step.type);
+  const options = step.one_of ?? [];
+  return (
+    <>
       {step.name != null ? (
         <dl className={styles.nameList}>
           <dt>
@@ -84,6 +135,6 @@ export function StepDetailsPanel({
         <FormattedMessage id="AuthFlowsScreen.panel.yaml" />
       </Heading>
       <pre className={styles.yaml}>{stepYAML}</pre>
-    </aside>
+    </>
   );
 }

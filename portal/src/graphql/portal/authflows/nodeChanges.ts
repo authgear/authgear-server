@@ -27,3 +27,32 @@ export function splitNodeChanges<N extends NodeChange>(
   }
   return { measurements, selectedID };
 }
+
+export interface MeasuredSize {
+  width: number;
+  height: number;
+}
+
+// Node sizes, kept across edits so the canvas relayouts in place instead of
+// remounting. Returns prev itself when no size changed.
+export function applySizes(
+  prev: ReadonlyMap<string, MeasuredSize>,
+  changes: NodeChange[]
+): ReadonlyMap<string, MeasuredSize> {
+  let next: Map<string, MeasuredSize> | null = null;
+  for (const c of changes) {
+    if (c.type !== "dimensions" || c.dimensions == null) {
+      continue;
+    }
+    const old = (next ?? prev).get(c.id);
+    if (
+      old?.width === c.dimensions.width &&
+      old.height === c.dimensions.height
+    ) {
+      continue;
+    }
+    next ??= new Map(prev);
+    next.set(c.id, c.dimensions);
+  }
+  return next ?? prev;
+}
