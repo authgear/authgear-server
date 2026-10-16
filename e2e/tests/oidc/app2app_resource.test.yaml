@@ -1,6 +1,7 @@
-name: app2app from a resource-bound refresh token issues no resource scopes without resource
-# Without resource, the code app2app issues is not bound to a resource, so it
-# must not carry the resource scopes of the refresh token it was made from.
+name: app2app from a resource-bound refresh token follows the resource parameter
+# Without resource, the code app2app issues is not bound to a resource and must
+# not carry the resource scopes of the refresh token it was made from. With
+# resource, it is bound to it.
 authgear.features.yaml:
   override: |
     oauth:
@@ -269,3 +270,119 @@ steps:
             "resource_scopes": ["read:orders"]
           }
         ]
+
+  # App2app with resource: the code is bound to it and carries the resource
+  # scopes both clients are granted.
+  - name: challenge_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "app2app_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: app2app_request_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:app2app-request
+      client_id: app2apptarget
+      redirect_uri: http://localhost:4000/app2app-callback
+      refresh_token: "{{ .steps.exchange_code.result.http_json_body.refresh_token }}"
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      jwt: "{{ generateApp2AppJWT .steps.challenge_with_resource.result.http_json_body.result.token }}"
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "code": "[[string]]"
+        }
+
+  - name: redeem_app2app_code_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: authorization_code
+      client_id: app2apptarget
+      redirect_uri: http://localhost:4000/app2app-callback
+      code_verifier: abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ
+      code: "{{ .steps.app2app_request_with_resource.result.http_json_body.code }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "refresh_token": "[[string]]",
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
+
+  # The refresh token is bound to the resource.
+  - name: refresh_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: app2apptarget
+      refresh_token: "{{ .steps.redeem_app2app_code_with_resource.result.http_json_body.refresh_token }}"
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]"
+        }
+
+  # A resource the presented refresh token is not bound to.
+  - name: challenge_other_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "app2app_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: app2app_request_other_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:app2app-request
+      client_id: app2apptarget
+      redirect_uri: http://localhost:4000/app2app-callback
+      refresh_token: "{{ .steps.exchange_code.result.http_json_body.refresh_token }}"
+      code_challenge_method: S256
+      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
+      jwt: "{{ generateApp2AppJWT .steps.challenge_other_resource.result.http_json_body.result.token }}"
+      resource: https://api.example.com/other
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_target"
+        }

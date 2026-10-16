@@ -1588,7 +1588,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	}
 
 	// FIXME(DEV-1430): The new scopes should be validated against the new client
-	scopes := slice.Filter(offlineGrantSession.Scopes, func(s string) bool { return !oauth.IsResourceScope(s) })
+	projectScopes := slice.Filter(offlineGrantSession.Scopes, func(s string) bool { return !oauth.IsResourceScope(s) })
 
 	originalClient := h.ClientResolver.ResolveClient(ctx, offlineGrantSession.ClientID)
 	if originalClient == nil {
@@ -1622,11 +1622,26 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
 	}
 
+	// The new client gets the resource scopes of the presented refresh token
+	// only on the resource it names, and only those both clients are granted.
+	resourceID, resourceScopes, err := derivedGrantResourceScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		originalClient,
+		client,
+		map[string][]string{offlineGrantSession.ResourceURI: offlineGrantSession.Scopes},
+		r.Resource(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	scopes := append(projectScopes, resourceScopes...)
+
 	authz, err := h.Authorizations.CheckAndGrant(
 		ctx,
 		client.ClientID,
 		originalOfflineGrant.GetUserID(),
-		"",
+		resourceID,
 		scopes,
 	)
 	if err != nil {
@@ -1642,6 +1657,9 @@ func (h *TokenHandler) handleApp2AppRequest(
 	artificialAuthorizationRequest["client_id"] = client.ClientID
 	artificialAuthorizationRequest["scope"] = strings.Join(scopes, " ")
 	artificialAuthorizationRequest["code_challenge"] = r.CodeChallenge()
+	if r.Resource() != "" {
+		artificialAuthorizationRequest["resource"] = r.Resource()
+	}
 	if originalOfflineGrant.SSOEnabled {
 		artificialAuthorizationRequest["x_sso_enabled"] = "true"
 	}

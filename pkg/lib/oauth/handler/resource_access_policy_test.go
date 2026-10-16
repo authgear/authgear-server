@@ -143,3 +143,69 @@ func TestCheckOfflineFullAccessScopes(t *testing.T) {
 		So(err, ShouldResemble, protocol.NewError("invalid_scope", "offline_access and full-access must be requested"))
 	})
 }
+
+func TestDerivedGrantResourceScopes(t *testing.T) {
+	Convey("derivedGrantResourceScopes", t, func() {
+		ctx := context.Background()
+		const orders = "https://api.example.com/orders"
+
+		original := &config.OAuthClientConfig{
+			ClientID:        "static-first-party",
+			ApplicationType: config.OAuthClientApplicationTypeSPA,
+		}
+		thirdParty := &config.OAuthClientConfig{
+			ClientID:        "static-third-party",
+			ApplicationType: config.OAuthClientApplicationTypeThirdPartyApp,
+		}
+		// The original refresh token holds project-level scopes and three
+		// scopes of the resource.
+		originals := map[string][]string{
+			orders: {"openid", "offline_access", "read:orders", "write:orders", "delete:orders"},
+		}
+
+		svc := func(resource model.AccessPolicy) *stubResourceScopeService {
+			return &stubResourceScopeService{
+				resource: &resourcescope.Resource{ID: "resource-id", ResourceURI: orders, AccessPolicy: resource},
+				scopes: []*resourcescope.Scope{
+					{Scope: "read:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true, AllowStaticThirdPartyClientAccess: true}},
+					{Scope: "write:orders", AccessPolicy: model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}},
+					{Scope: "delete:orders", AccessPolicy: model.AccessPolicy{AllowStaticThirdPartyClientAccess: true}},
+				},
+			}
+		}
+		both := model.AccessPolicy{AllowStaticFirstPartyClientAccess: true, AllowStaticThirdPartyClientAccess: true}
+
+		Convey("no resource carries nothing", func() {
+			resourceID, scopes, err := derivedGrantResourceScopes(ctx, svc(both), original, thirdParty, originals, "")
+			So(err, ShouldBeNil)
+			So(resourceID, ShouldEqual, "")
+			So(scopes, ShouldBeNil)
+		})
+
+		Convey("a resource the original refresh token is not bound to is invalid_target", func() {
+			_, _, err := derivedGrantResourceScopes(ctx, svc(both), original, thirdParty, map[string][]string{"": {"openid"}}, orders)
+			So(err, ShouldResemble, protocol.NewError("invalid_target", "resource is not bound to the original session"))
+		})
+
+		Convey("only scopes both clients are granted are carried, and project scopes are not", func() {
+			resourceID, scopes, err := derivedGrantResourceScopes(ctx, svc(both), original, thirdParty, originals, orders)
+			So(err, ShouldBeNil)
+			So(resourceID, ShouldEqual, "resource-id")
+			// write:orders is not granted to the third-party client, and
+			// delete:orders is not granted to the original client.
+			So(scopes, ShouldResemble, []string{"read:orders"})
+		})
+
+		Convey("a resource that does not allow the new client is invalid_target", func() {
+			_, _, err := derivedGrantResourceScopes(ctx, svc(model.AccessPolicy{AllowStaticFirstPartyClientAccess: true}), original, thirdParty, originals, orders)
+			So(err, ShouldNotBeNil)
+			So(err.(*protocol.OAuthProtocolError).Type(), ShouldEqual, "invalid_target")
+		})
+
+		Convey("a resource that does not allow the original client is invalid_target", func() {
+			_, _, err := derivedGrantResourceScopes(ctx, svc(model.AccessPolicy{AllowStaticThirdPartyClientAccess: true}), original, thirdParty, originals, orders)
+			So(err, ShouldNotBeNil)
+			So(err.(*protocol.OAuthProtocolError).Type(), ShouldEqual, "invalid_target")
+		})
+	})
+}

@@ -130,6 +130,42 @@ func checkOfflineFullAccessScopes(scopes []string) error {
 	return nil
 }
 
+// derivedGrantResourceScopes returns the Resource Scopes a derived grant
+// carries for resourceURI. originals maps each Resource URI an original
+// refresh token is bound to ("" for unbound) to its scopes. See
+// docs/specs/access-token-audience-binding.md § Derived grant.
+func derivedGrantResourceScopes(
+	ctx context.Context,
+	svc ResourceAccessPolicyService,
+	originalClient *config.OAuthClientConfig,
+	newClient *config.OAuthClientConfig,
+	originals map[string][]string,
+	resourceURI string,
+) (resourceID string, scopes []string, err error) {
+	if resourceURI == "" {
+		return "", nil, nil
+	}
+
+	held, ok := originals[resourceURI]
+	if !ok {
+		return "", nil, protocol.NewError("invalid_target", "resource is not bound to the original session")
+	}
+
+	_, _, allowedOriginal, err := resourceScopes(ctx, svc, originalClient, resourceURI)
+	if err != nil {
+		return "", nil, err
+	}
+	resource, _, allowedNew, err := resourceScopes(ctx, svc, newClient, resourceURI)
+	if err != nil {
+		return "", nil, err
+	}
+
+	scopes = slice.Filter(held, func(s string) bool {
+		return oauth.IsResourceScope(s) && slices.Contains(allowedOriginal, s) && slices.Contains(allowedNew, s)
+	})
+	return resource.ID, scopes, nil
+}
+
 // defaultOfflineFullAccessScopes is the scope of a biometric or anonymous
 // grant that does not request one.
 func defaultOfflineFullAccessScopes() []string {
