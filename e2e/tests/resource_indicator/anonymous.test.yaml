@@ -137,6 +137,11 @@ steps:
           "refresh_token": "[[string]]",
           "scope": "openid offline_access https://authgear.com/scopes/full-access"
         }
+      access_token_claims: |
+        {
+          "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
+        }
 
   # The unbound refresh token cannot be refreshed for a resource.
   - name: refresh_default_with_resource
@@ -192,6 +197,11 @@ steps:
           "refresh_token": "[[string]]",
           "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
         }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
 
   - name: refresh_with_resource
     action: http_request
@@ -207,4 +217,9 @@ steps:
       json_body: |
         {
           "access_token": "[[string]]"
+        }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
         }

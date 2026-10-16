@@ -162,6 +162,11 @@ steps:
       # asserted as the absence of one.
       location_not_contains:
         - error=
+      app_access_token_cookie_claims: |
+        {
+          "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+          "scope": "openid offline_access device_sso https://authgear.com/scopes/pre-authenticated-url https://authgear.com/scopes/full-access"
+        }
 
   # The token is single use: ExchangeForAccessToken consumes it, so presenting
   # it again must fail. This is what shows the step above really spent it,

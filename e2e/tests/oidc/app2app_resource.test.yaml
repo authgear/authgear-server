@@ -247,6 +247,11 @@ steps:
           "refresh_token": "[[string]]",
           "scope": "openid offline_access https://authgear.com/scopes/full-access"
         }
+      access_token_claims: |
+        {
+          "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
+        }
 
   # Only the resource-bound grant of the authenticated app holds read:orders;
   # the requesting app got none.
@@ -329,6 +334,11 @@ steps:
           "refresh_token": "[[string]]",
           "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
         }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
 
   # The refresh token is bound to the resource.
   - name: refresh_with_resource
@@ -345,6 +355,11 @@ steps:
       json_body: |
         {
           "access_token": "[[string]]"
+        }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
         }
 
   # A resource the presented refresh token is not bound to.

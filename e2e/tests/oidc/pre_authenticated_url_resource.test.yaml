@@ -202,6 +202,11 @@ steps:
         - http://localhost:4000
       location_not_contains:
         - error=
+      app_access_token_cookie_claims: |
+        {
+          "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+          "scope": "openid offline_access device_sso https://authgear.com/scopes/pre-authenticated-url https://authgear.com/scopes/full-access"
+        }
 
   - name: authorization
     action: query
@@ -312,3 +317,8 @@ steps:
         - http://localhost:4000
       location_not_contains:
         - error=
+      app_access_token_cookie_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid read:orders"
+        }

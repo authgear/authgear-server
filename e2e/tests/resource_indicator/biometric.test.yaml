@@ -334,6 +334,11 @@ steps:
           "refresh_token": "[[string]]",
           "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
         }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
 
   # The refresh token is bound to the resource: it can be refreshed for it.
   - name: refresh_with_resource
@@ -350,4 +355,52 @@ steps:
       json_body: |
         {
           "access_token": "[[string]]"
+        }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
+
+  # Without resource the token is bound to the project endpoint and carries
+  # no resource scope.
+  - name: challenge_authenticate_default
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "biometric_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: authenticate_default
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:biometric-request
+      client_id: e2e
+      jwt: "{{ generateBiometricRequestJWT .steps.challenge_authenticate_default.result.http_json_body.result.token \"authenticate\" }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "refresh_token": "[[string]]",
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
+        }
+      access_token_claims: |
+        {
+          "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
         }

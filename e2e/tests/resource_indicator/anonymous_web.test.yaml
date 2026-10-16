@@ -81,6 +81,13 @@ steps:
       }
     http_output:
       http_status: 400
+      json_body: |
+        {
+          "error": {
+            "reason": "ValidationFailed",
+            "info": { "causes": [{ "location": "/resource" }] }
+          }
+        }
 
   - name: signup_without_offline_access
     action: http_request
@@ -96,6 +103,12 @@ steps:
       }
     http_output:
       http_status: 400
+      json_body: |
+        {
+          "error": {
+            "message": "offline_access and full-access must be requested"
+          }
+        }
 
   - name: signup_with_resource
     action: http_request
@@ -120,6 +133,11 @@ steps:
             "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
           }
         }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
 
   # The refresh token is bound to the resource.
   - name: refresh_with_resource
@@ -136,6 +154,11 @@ steps:
       json_body: |
         {
           "access_token": "[[string]]"
+        }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
         }
 
   # With a refresh token, resource can only repeat the bound one.
@@ -154,6 +177,12 @@ steps:
       }
     http_output:
       http_status: 400
+      json_body: |
+        {
+          "error": {
+            "message": "resource must be a subset of the resource originally authorized"
+          }
+        }
 
   - name: signup_with_refresh_token
     action: http_request
@@ -174,5 +203,62 @@ steps:
         {
           "result": {
             "access_token": "[[string]]"
+          }
+        }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
+
+  # Without resource the token is bound to the project endpoint and carries
+  # no resource scope.
+  - name: signup_default
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/api/anonymous_user/signup
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_id": "e2e",
+        "session_type": "refresh_token"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "access_token": "[[string]]",
+            "refresh_token": "[[string]]",
+            "scope": "openid offline_access https://authgear.com/scopes/full-access"
+          }
+        }
+      access_token_claims: |
+        {
+          "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
+        }
+
+  # An unbound refresh token cannot be refreshed for a resource.
+  - name: signup_with_unbound_refresh_token_and_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/api/anonymous_user/signup
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_id": "e2e",
+        "session_type": "refresh_token",
+        "refresh_token": "{{ .steps.signup_default.result.http_json_body.result.refresh_token }}",
+        "resource": "https://api.example.com/orders"
+      }
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": {
+            "message": "resource must be a subset of the resource originally authorized"
           }
         }

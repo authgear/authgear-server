@@ -272,6 +272,12 @@
     "HTTPOutput": {
       "additionalProperties": false,
       "properties": {
+        "access_token_claims": {
+          "type": "string"
+        },
+        "app_access_token_cookie_claims": {
+          "type": "string"
+        },
         "headers": {
           "additionalProperties": {
             "type": "string"
@@ -567,6 +573,21 @@
           "if": {
             "properties": {
               "action": {
+                "const": "syslog_server_query"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "syslog_server_port",
+              "syslog_server_output"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
                 "const": "oauth_approve_consent"
               }
             }
@@ -708,6 +729,7 @@
             "http_request",
             "hook_server_query",
             "smtp_log_query",
+            "syslog_server_query",
             "oauth_setup",
             "oauth_approve_consent",
             "oauth_exchange_code",
@@ -758,6 +780,9 @@
         },
         "generate_refresh_token_user_id": {
           "type": "string"
+        },
+        "hook_server_min_count": {
+          "type": "integer"
         },
         "hook_server_output": {
           "$ref": "#/$defs/QueryOutput"
@@ -915,6 +940,15 @@
         },
         "state_token": {
           "type": "string"
+        },
+        "syslog_server_min_count": {
+          "type": "integer"
+        },
+        "syslog_server_output": {
+          "$ref": "#/$defs/QueryOutput"
+        },
+        "syslog_server_port": {
+          "type": "integer"
         },
         "to": {
           "type": "string"

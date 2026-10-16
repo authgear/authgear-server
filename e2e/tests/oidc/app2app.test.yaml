@@ -216,6 +216,11 @@ steps:
           "token_type": "Bearer",
           "scope": "openid offline_access https://authgear.com/scopes/full-access"
         }
+      access_token_claims: |
+        {
+          "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
+        }
 
   # Neither app asked for a resource, so both only hold the scopes their own
   # authorization asked for, and the requesting app got no more than the
