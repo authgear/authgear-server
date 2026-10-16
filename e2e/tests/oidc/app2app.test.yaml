@@ -213,5 +213,29 @@ steps:
       json_body: |
         {
           "access_token": "[[string]]",
-          "token_type": "Bearer"
+          "token_type": "Bearer",
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
         }
+
+  # Neither app asked for a resource, so both only hold the scopes their own
+  # authorization asked for, and the requesting app got no more than the
+  # authenticated app's session had.
+  - name: authorizations
+    action: query
+    query: |
+      SELECT client_id, scopes_by_resources->'authgear' AS project_scopes
+      FROM _auth_oauth_authorization
+      WHERE app_id = '{{ .AppID }}'
+      ORDER BY client_id
+    query_output:
+      rows: |
+        [
+          {
+            "client_id": "app2apptarget",
+            "project_scopes": ["openid", "offline_access", "https://authgear.com/scopes/full-access"]
+          },
+          {
+            "client_id": "e2e",
+            "project_scopes": ["openid", "offline_access", "https://authgear.com/scopes/full-access"]
+          }
+        ]

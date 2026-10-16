@@ -205,3 +205,26 @@ steps:
         {
           "access_token": "[[never]]"
         }
+
+  # The exchange records the session's scopes on the web app's authorization
+  # unchanged: nothing about the session was bound to a resource.
+  - name: authorization
+    action: query
+    query: |
+      SELECT client_id, scopes_by_resources->'authgear' AS project_scopes
+      FROM _auth_oauth_authorization
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "client_id": "e2e",
+            "project_scopes": [
+              "openid",
+              "offline_access",
+              "device_sso",
+              "https://authgear.com/scopes/pre-authenticated-url",
+              "https://authgear.com/scopes/full-access"
+            ]
+          }
+        ]
