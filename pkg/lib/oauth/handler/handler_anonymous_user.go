@@ -91,6 +91,9 @@ type AnonymousUserHandler struct {
 	AnonymousIdentities AnonymousIdentityProvider
 	PromotionCodes      PromotionCodeStore
 	OAuthClientResolver OAuthClientResolver
+
+	IDTokenIssuer               IDTokenIssuer
+	ResourceAccessPolicyService ResourceAccessPolicyService
 }
 
 // SignupAnonymousUser return token response or api errors
@@ -100,12 +103,14 @@ func (h *AnonymousUserHandler) SignupAnonymousUser(
 	clientID string,
 	sessionType WebSessionType,
 	refreshToken string,
+	resource string,
+	scopes []string,
 ) (*SignupAnonymousUserResult, error) {
 	switch sessionType {
 	case WebSessionTypeCookie:
 		return h.signupAnonymousUserWithCookieSessionType(ctx, req)
 	case WebSessionTypeRefreshToken:
-		return h.signupAnonymousUserWithRefreshTokenSessionType(ctx, req, clientID, refreshToken)
+		return h.signupAnonymousUserWithRefreshTokenSessionType(ctx, req, clientID, refreshToken, resource, scopes)
 	default:
 		panic("unknown web session type")
 	}
@@ -150,6 +155,8 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	req *http.Request,
 	clientID string,
 	refreshToken string,
+	resource string,
+	requestedScopes []string,
 ) (*SignupAnonymousUserResult, error) {
 	ctx, client := resolveClient(ctx, h.OAuthClientResolver, clientID)
 	if client == nil {
@@ -161,9 +168,6 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		// unauthorized_client
 		return nil, apierrors.NewInvalid("Anonymous user is not supported by the client application type. Try using SPA, Traditional Web App, or Native App client types if applicable.")
 	}
-
-	// TODO(oauth): allow specifying scopes for anonymous user signup
-	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 
 	if refreshToken != "" {
 		authz, grant, currentRefreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
@@ -186,13 +190,24 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			panic(fmt.Errorf("unexpected: failed to resolve offline grant session"))
 		}
 
+		// As in the refresh_token grant, resource can only repeat the one the
+		// refresh token is bound to, and scope is ignored.
+		if resource != "" && resource != session.ResourceURI {
+			return nil, apierrors.NewInvalid("resource must be a subset of the resource originally authorized")
+		}
+		issuedScopes, err := resourceScopesForIssuance(ctx, h.ResourceAccessPolicyService, client, session.ResourceURI, session.Scopes)
+		if err != nil {
+			return nil, oauthErrorToAPIError(err)
+		}
+
 		prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 			ClientConfig:            client,
-			Scopes:                  scopes,
+			Scopes:                  issuedScopes,
 			AuthorizationID:         authz.ID,
 			AuthenticationInfo:      grant.GetAuthenticationInfo(),
 			SessionLike:             grant,
 			InitialRefreshTokenHash: session.InitialTokenHash,
+			ResourceURI:             session.ResourceURI,
 		}
 		result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 			PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
@@ -206,6 +221,23 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			PrepareUserAccessGrantByRefreshTokenResult: result1,
 			Response: protocol.TokenResponse{},
 		}, nil
+	}
+
+	// Check resource and scope before the user is created.
+	resourceID, scopes, err := newGrantScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		h.IDTokenIssuer.Iss(),
+		client,
+		resource,
+		requestedScopes,
+		defaultOfflineFullAccessScopes(),
+	)
+	if err != nil {
+		return nil, oauthErrorToAPIError(err)
+	}
+	if err := checkOfflineFullAccessScopes(scopes); err != nil {
+		return nil, oauthErrorToAPIError(err)
 	}
 
 	graph, err := h.runSignupAnonymousUserGraph(ctx, true)
@@ -222,7 +254,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		ctx,
 		client.ClientID,
 		info.UserID,
-		"",
+		resourceID,
 		scopes,
 	)
 	if err != nil {
@@ -243,6 +275,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		DeviceInfo:         nil,
 		SSOEnabled:         false,
 		DPoPJKT:            dpopJKT,
+		ResourceURI:        resource,
 	}
 	offlineGrant, newTokenHash, err := h.TokenService.IssueOfflineGrant(ctx, client, opts, resp)
 	if err != nil {
@@ -256,6 +289,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		AuthenticationInfo:      info,
 		SessionLike:             offlineGrant,
 		InitialRefreshTokenHash: newTokenHash,
+		ResourceURI:             resource,
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
@@ -397,4 +431,14 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 	code = c
 	codeObj = cObj
 	return
+}
+
+// oauthErrorToAPIError reports an OAuth error from the shared resource
+// checks in this API's error format.
+func oauthErrorToAPIError(err error) error {
+	var oauthErr *protocol.OAuthProtocolError
+	if errors.As(err, &oauthErr) {
+		return apierrors.NewInvalid(oauthErr.Error())
+	}
+	return err
 }

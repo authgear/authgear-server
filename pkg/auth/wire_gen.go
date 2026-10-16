@@ -9919,17 +9919,22 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 		AccessGrantService:  accessGrantService,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
-		AppID:               appID,
-		OAuthConfig:         oAuthConfig,
-		Graphs:              interactionService,
-		Authorizations:      authorizationService,
-		Clock:               clockClock,
-		TokenService:        tokenService,
-		UserProvider:        userQueries,
-		AnonymousIdentities: anonymousProvider,
-		PromotionCodes:      anonymousStoreRedis,
-		OAuthClientResolver: resolver,
+		AppID:                       appID,
+		OAuthConfig:                 oAuthConfig,
+		Graphs:                      interactionService,
+		Authorizations:              authorizationService,
+		Clock:                       clockClock,
+		TokenService:                tokenService,
+		UserProvider:                userQueries,
+		AnonymousIdentities:         anonymousProvider,
+		PromotionCodes:              anonymousStoreRedis,
+		OAuthClientResolver:         resolver,
+		IDTokenIssuer:               idTokenIssuer,
+		ResourceAccessPolicyService: accessPolicyService,
 	}
 	anonymousUserSignupAPIHandler := &api.AnonymousUserSignupAPIHandler{
 		Database:             handle,
@@ -11037,17 +11042,22 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Events:              eventService,
 		AccessGrantService:  accessGrantService,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
-		AppID:               appID,
-		OAuthConfig:         oAuthConfig,
-		Graphs:              interactionService,
-		Authorizations:      authorizationService,
-		Clock:               clockClock,
-		TokenService:        tokenService,
-		UserProvider:        userQueries,
-		AnonymousIdentities: anonymousProvider,
-		PromotionCodes:      anonymousStoreRedis,
-		OAuthClientResolver: resolver,
+		AppID:                       appID,
+		OAuthConfig:                 oAuthConfig,
+		Graphs:                      interactionService,
+		Authorizations:              authorizationService,
+		Clock:                       clockClock,
+		TokenService:                tokenService,
+		UserProvider:                userQueries,
+		AnonymousIdentities:         anonymousProvider,
+		PromotionCodes:              anonymousStoreRedis,
+		OAuthClientResolver:         resolver,
+		IDTokenIssuer:               idTokenIssuer,
+		ResourceAccessPolicyService: accessPolicyService,
 	}
 	anonymousUserPromotionCodeAPIHandler := &api.AnonymousUserPromotionCodeAPIHandler{
 		Database:       handle,

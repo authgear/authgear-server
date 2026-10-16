@@ -13,7 +13,7 @@
 /pkg/auth/handler/api/accountmanagement_v1_identification.go:64:9: requestcontext
 /pkg/auth/handler/api/accountmanagement_v1_identification_oauth.go:55:9: requestcontext
 /pkg/auth/handler/api/anonymous_user_promotion_code.go:78:9: requestcontext
-/pkg/auth/handler/api/anonymous_user_signup.go:93:9: requestcontext
+/pkg/auth/handler/api/anonymous_user_signup.go:106:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_create.go:81:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_get.go:40:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_input.go:68:9: requestcontext

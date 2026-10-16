@@ -1,0 +1,178 @@
+name: Anonymous user signup with resource issues a resource-bound grant
+# The Web SDK endpoint takes resource and scope for a refresh token session.
+# With an existing refresh token it follows the refresh_token grant instead.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - anonymous
+      primary_authenticators:
+      - password
+    oauth:
+      clients:
+      - access_token_lifetime_seconds: 1800
+        client_id: e2e
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: reactweb
+        redirect_uris:
+        - http://localhost:4000
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: spa
+        issue_jwt_access_token: true
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # Neither is meaningful for a cookie session, which issues no token.
+  - name: signup_cookie_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/api/anonymous_user/signup
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "session_type": "cookie",
+        "resource": "https://api.example.com/orders"
+      }
+    http_output:
+      http_status: 400
+
+  - name: signup_without_offline_access
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/api/anonymous_user/signup
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_id": "e2e",
+        "session_type": "refresh_token",
+        "scope": "openid https://authgear.com/scopes/full-access"
+      }
+    http_output:
+      http_status: 400
+
+  - name: signup_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/api/anonymous_user/signup
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_id": "e2e",
+        "session_type": "refresh_token",
+        "resource": "https://api.example.com/orders",
+        "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "access_token": "[[string]]",
+            "refresh_token": "[[string]]",
+            "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+          }
+        }
+
+  # The refresh token is bound to the resource.
+  - name: refresh_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.signup_with_resource.result.http_json_body.result.refresh_token }}"
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]"
+        }
+
+  # With a refresh token, resource can only repeat the bound one.
+  - name: signup_with_refresh_token_and_other_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/api/anonymous_user/signup
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_id": "e2e",
+        "session_type": "refresh_token",
+        "refresh_token": "{{ .steps.signup_with_resource.result.http_json_body.result.refresh_token }}",
+        "resource": "https://api.example.com/other"
+      }
+    http_output:
+      http_status: 400
+
+  - name: signup_with_refresh_token
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/api/anonymous_user/signup
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "client_id": "e2e",
+        "session_type": "refresh_token",
+        "refresh_token": "{{ .steps.signup_with_resource.result.http_json_body.result.refresh_token }}",
+        "resource": "https://api.example.com/orders"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "access_token": "[[string]]"
+          }
+        }
