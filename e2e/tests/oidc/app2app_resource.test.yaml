@@ -1,7 +1,6 @@
-name: app2app from a resource-bound refresh token grants its resource scopes on that resource
-# The code app2app issues is not bound to a resource, so the refresh token it
-# leads to is unbound but still carries the resource scopes. A second app2app
-# from that token must still succeed.
+name: app2app from a resource-bound refresh token issues no resource scopes without resource
+# Without resource, the code app2app issues is not bound to a resource, so it
+# must not carry the resource scopes of the refresh token it was made from.
 authgear.features.yaml:
   override: |
     oauth:
@@ -188,8 +187,8 @@ steps:
           "refresh_token": "[[string]]"
         }
 
-  # First app2app: the refresh token is bound to the resource, so its
-  # read:orders is granted on that resource.
+  # App2app without resource: the presented refresh token is bound to the
+  # resource, but the new client asks for none.
   - name: challenge
     action: http_request
     http_request_method: POST
@@ -228,8 +227,8 @@ steps:
           "code": "[[string]]"
         }
 
-  # The code app2app issues is not bound to a resource, so this refresh token
-  # is unbound but still carries read:orders.
+  # The code is not bound to a resource, so the tokens it leads to carry no
+  # scope of one.
   - name: redeem_app2app_code
     action: http_request
     http_request_method: POST
@@ -244,51 +243,12 @@ steps:
       http_status: 200
       json_body: |
         {
-          "refresh_token": "[[string]]"
+          "refresh_token": "[[string]]",
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
         }
 
-  # Second app2app, from that unbound refresh token. Its read:orders cannot be
-  # attributed to a resource; it must not fail the request.
-  - name: challenge_2
-    action: http_request
-    http_request_method: POST
-    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
-    http_request_headers:
-      Content-Type: application/json
-    http_request_body: |
-      {
-        "purpose": "app2app_request"
-      }
-    http_output:
-      http_status: 200
-      json_body: |
-        {
-          "result": {
-            "token": "[[string]]"
-          }
-        }
-
-  - name: app2app_request_from_unbound_token
-    action: http_request
-    http_request_method: POST
-    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
-    http_request_form_urlencoded_body:
-      grant_type: urn:authgear:params:oauth:grant-type:app2app-request
-      client_id: e2e
-      redirect_uri: http://localhost:4000
-      refresh_token: "{{ .steps.redeem_app2app_code.result.http_json_body.refresh_token }}"
-      code_challenge_method: S256
-      code_challenge: RqIZl4LIgn8KxW9QO-nTnv7pf0CnNrksx9fF-CXP2FE
-      jwt: "{{ generateApp2AppJWT .steps.challenge_2.result.http_json_body.result.token }}"
-    http_output:
-      http_status: 200
-      json_body: |
-        {
-          "code": "[[string]]"
-        }
-
-  # Both clients hold read:orders on the resource, from the resource-bound
-  # grants only.
+  # Only the resource-bound grant of the authenticated app holds read:orders;
+  # the requesting app got none.
   - name: authorizations
     action: query
     query: |
@@ -302,7 +262,7 @@ steps:
         [
           {
             "client_id": "app2apptarget",
-            "resource_scopes": ["read:orders"]
+            "resource_scopes": null
           },
           {
             "client_id": "e2e",

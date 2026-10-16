@@ -1563,7 +1563,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	}
 
 	// FIXME(DEV-1430): The new scopes should be validated against the new client
-	scopes := offlineGrantSession.Scopes
+	scopes := slice.Filter(offlineGrantSession.Scopes, func(s string) bool { return !oauth.IsResourceScope(s) })
 
 	originalClient := h.ClientResolver.ResolveClient(ctx, offlineGrantSession.ClientID)
 	if originalClient == nil {
@@ -1597,25 +1597,11 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
 	}
 
-	// The scopes come from the original refresh token, so its resource scopes
-	// are granted on the resource that token is bound to. The lookup uses the
-	// original client, as refreshing that token would.
-	resourceID := ""
-	if offlineGrantSession.ResourceURI != "" {
-		resource, err := h.ResourceAccessPolicyService.GetResourceByURI(ctx, offlineGrantSession.ResourceURI, originalClient)
-		if errors.Is(err, resourcescope.ErrResourceNotFound) {
-			return nil, errResourceNotAvailable()
-		} else if err != nil {
-			return nil, err
-		}
-		resourceID = resource.ID
-	}
-
 	authz, err := h.Authorizations.CheckAndGrant(
 		ctx,
 		client.ClientID,
 		originalOfflineGrant.GetUserID(),
-		resourceID,
+		"",
 		scopes,
 	)
 	if err != nil {
@@ -1629,7 +1615,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	// FIXME(tung): It seems nonce is not needed in app2app because native apps are not using it?
 	artificialAuthorizationRequest := make(protocol.AuthorizationRequest)
 	artificialAuthorizationRequest["client_id"] = client.ClientID
-	artificialAuthorizationRequest["scope"] = strings.Join(authz.AllScopes(), " ")
+	artificialAuthorizationRequest["scope"] = strings.Join(scopes, " ")
 	artificialAuthorizationRequest["code_challenge"] = r.CodeChallenge()
 	if originalOfflineGrant.SSOEnabled {
 		artificialAuthorizationRequest["x_sso_enabled"] = "true"
@@ -1828,7 +1814,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	// Re-read the access policy before issuing anything: only the token
 	// issued here is narrowed, the grant itself keeps every authorized
 	// scope. See docs/specs/api-resource.md § Revocation.
-	issuedScopes, err := h.resourceScopesForIssuance(ctx, client, resourceURI, code.AuthorizationRequest.Scope())
+	issuedScopes, err := resourceScopesForIssuance(ctx, h.ResourceAccessPolicyService, client, resourceURI, code.AuthorizationRequest.Scope())
 	if err != nil {
 		return nil, err
 	}
@@ -2147,7 +2133,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	// Re-read the access policy before issuing anything: only the token
 	// issued here is narrowed, the grant itself keeps every authorized
 	// scope. See docs/specs/api-resource.md § Revocation.
-	issuedScopes, err := h.resourceScopesForIssuance(ctx, client, resourceURI, offlineGrantSession.Scopes)
+	issuedScopes, err := resourceScopesForIssuance(ctx, h.ResourceAccessPolicyService, client, resourceURI, offlineGrantSession.Scopes)
 	if err != nil {
 		return nil, err
 	}

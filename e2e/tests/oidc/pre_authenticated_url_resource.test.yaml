@@ -1,7 +1,7 @@
 name: Pre-authenticated URL token exchange succeeds when the session holds a resource scope
-# The token exchange copies the offline grant's scopes, which here include
-# read:orders, as they are. It must still succeed, and must not grant
-# read:orders on anything but the resource it was authorized for.
+# The session holds read:orders on a resource. The token exchange must still
+# succeed, and the browser session it leads to carries no resource scope,
+# because it is not bound to a resource.
 authgear.yaml:
   override: |
     authentication:
@@ -182,7 +182,7 @@ steps:
         }
 
 
-  # Using the token issues the browser session's tokens from the same scopes.
+  # Using the token issues the browser session's tokens, without resource scopes.
   - name: use_pre_authenticated_url
     action: http_request
     http_request_method: GET

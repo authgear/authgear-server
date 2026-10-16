@@ -64,18 +64,20 @@ func resourceScopes(
 // minus any resource-specific scope the Resource no longer opens to the
 // client's category. Only the returned value is narrowed -- the caller's
 // own grant is left alone, so a re-enabled key is restored on the next
-// issuance without the user re-authorizing. See
+// issuance without the user re-authorizing. A token not bound to a Resource
+// carries no resource-specific scope at all. See
 // docs/specs/api-resource.md § Revocation.
-func (h *TokenHandler) resourceScopesForIssuance(
+func resourceScopesForIssuance(
 	ctx context.Context,
+	svc ResourceAccessPolicyService,
 	client *config.OAuthClientConfig,
 	resourceURI string,
 	granted []string,
 ) ([]string, error) {
 	if resourceURI == "" {
-		return granted, nil
+		return slice.Filter(granted, func(s string) bool { return !oauth.IsResourceScope(s) }), nil
 	}
-	_, _, stillAllowed, err := resourceScopes(ctx, h.ResourceAccessPolicyService, client, resourceURI)
+	_, _, stillAllowed, err := resourceScopes(ctx, svc, client, resourceURI)
 	if err != nil {
 		return nil, err
 	}

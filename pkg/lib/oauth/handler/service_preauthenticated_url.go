@@ -14,6 +14,7 @@ type PreAuthenticatedURLTokenServiceImpl struct {
 	PreAuthenticatedURLTokens oauth.PreAuthenticatedURLTokenStore
 	AccessGrantService        oauth.PreAuthenticatedURLTokenAccessGrantService
 	OfflineGrantService       oauth.PreAuthenticatedURLTokenOfflineGrantService
+	ResourceAccessPolicy      ResourceAccessPolicyService
 }
 
 type IssuePreAuthenticatedURLTokenResult struct {
@@ -84,6 +85,11 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 		return nil, err
 	}
 
+	scopes, err := resourceScopesForIssuance(ctx, s.ResourceAccessPolicy, client, "", tokenModel.Scopes)
+	if err != nil {
+		return nil, err
+	}
+
 	// DPoP is not important here, because the refresh token is not exposed
 	dpopJKT := ""
 
@@ -93,7 +99,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(ctx, oauth.CreateNewRefreshTokenOptions{
 		OfflineGrant:                   offlineGrant,
 		ClientID:                       tokenModel.ClientID,
-		Scopes:                         tokenModel.Scopes,
+		Scopes:                         scopes,
 		AuthorizationID:                tokenModel.AuthorizationID,
 		DPoPJKT:                        dpopJKT,
 		ShortLivedRefreshTokenExpireAt: &shortLivedRefreshTokenExpireAt,
@@ -105,7 +111,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:            client,
-		Scopes:                  tokenModel.Scopes,
+		Scopes:                  scopes,
 		AuthorizationID:         tokenModel.AuthorizationID,
 		AuthenticationInfo:      offlineGrant.GetAuthenticationInfo(),
 		SessionLike:             offlineGrant,
