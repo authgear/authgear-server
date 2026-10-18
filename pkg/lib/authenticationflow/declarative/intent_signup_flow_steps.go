@@ -124,6 +124,13 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
 		})
 		break
+	case config.AuthenticationFlowSignupFlowStepTypeFillForm:
+		result = authflow.NewSubFlow(&IntentFillForm{
+			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, i.NextStepIndex),
+			UserID:                 i.UserID,
+			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
+		})
+		break
 	case config.AuthenticationFlowSignupFlowStepTypePromptCreatePasskey:
 		result = authflow.NewSubFlow(&IntentSignupFlowStepPromptCreatePasskey{
 			StepName:    step.Name,

@@ -18,6 +18,7 @@ import (
 // payload-defining source files in each package, so a new payload type
 // cannot be silently omitted from this list.
 var payloadRegistry = []any{
+	&blocking.AuthenticationFormPostSubmittedBlockingEventPayload{},
 	&blocking.AuthenticationPostIdentifiedBlockingEventPayload{},
 	&blocking.AuthenticationPreAuthenticatedBlockingEventPayload{},
 	&blocking.AuthenticationPreInitializeBlockingEventPayload{},

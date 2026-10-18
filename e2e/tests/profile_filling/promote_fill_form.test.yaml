@@ -1,0 +1,136 @@
+name: A fill_form step in a promote flow (UC7)
+before:
+  - type: create_challenge
+    create_challenge:
+      token: "2YW8N6MS0MPSA880JKZRTKQR63WS6M7H"
+      purpose: "anonymous_request"
+  - type: custom_sql
+    custom_sql:
+      path: promote_anonymous_user.sql
+authgear.yaml:
+  override: |
+    user_profile:
+      standard_attributes:
+        access_control:
+        - pointer: /nickname
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+    authentication_flow:
+      promote_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+        - type: fill_form
+          form:
+            fields:
+            - user_profile:
+                pointer: /nickname
+                required: true
+steps:
+  - action: create
+    input: |
+      {
+        "type": "promote",
+        "name": "default",
+        "url_query": "login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Danonymous%26jwt%3DeyJraWQiOiI0QUJERDhBNy0yMTAyLTRBQTAtQTIyOS0yOTk0NTZBNDVCMzMiLCJhbGciOiJSUzI1NiIsInR5cCI6InZuZC5hdXRoZ2Vhci5hbm9ueW1vdXMtcmVxdWVzdCJ9.eyJkZXZpY2VfaW5mbyI6e30sImNoYWxsZW5nZSI6IjJZVzhONk1TME1QU0E4ODBKS1pSVEtRUjYzV1M2TTdIIiwiaWF0IjoxNzQ5NzE1NDQ3LCJleHAiOjU3NDk3MTU1MDcsImFjdGlvbiI6InByb21vdGUifQ.cIJrgxs1nLvNyHHrrcS0x4Dut6c1PtmcIHfI9ioQ5l9dV6qgPH-KSKyomxKdqX-uj2DSiISI4-DPKugvGK276EqWGB0WCShQcEn0ZtrEtjXdQz-o-CWEu5ct8Iwn38u0qH5W0HNoU5eqyr6Ykysklkvj1BZq9jaj_hT2BYeHRycBf9z-T4gLF7O3Bs6Sr5fwPjqq7z6IKu3YuZiYFQe6_LjJrAtuKscrCSRsLuFxJf9dsgiq8OQagl3qxdBdKHur37GWukDbXm-fmg9sKWyNxscc_H1-6QnQSfYLGy-LXmzWPHL8uKN09DPXyE23mz1rE_d7kFc3ZLYvrGYlc8R5fw"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_promoted"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form",
+            "data": {
+              "form": {
+                "fields": [
+                  {
+                    "key": "/nickname",
+                    "type": "string",
+                    "label": "Nickname",
+                    "required": true
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/nickname", "value": "Johnny" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: the_user_is_the_same_and_has_the_nickname
+    action: query
+    query: |
+      SELECT standard_attributes->>'nickname' AS nickname, standard_attributes->>'given_name' AS given_name
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "nickname": "Johnny",
+            "given_name": "Anon"
+          }
+        ]
+
+  - name: events_in_order
+    action: audit_query
+    audit_query: |
+      SELECT activity_type, data->'payload'->'user'->'standard_attributes'->>'nickname' AS nickname
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('user.anonymous.promoted', 'user.profile.updated')
+      ORDER BY (data->>'seq')::bigint
+    audit_query_output:
+      rows: |
+        [
+          { "activity_type": "user.anonymous.promoted" },
+          { "activity_type": "user.profile.updated", "nickname": "Johnny" }
+        ]

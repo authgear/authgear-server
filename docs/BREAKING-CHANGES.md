@@ -2,7 +2,7 @@
 
 Changes that can break a **working deployment** when you upgrade. Newest first.
 
-This is not a changelog. A change is listed here only if an upgrade can stop something that used to work, and only with what to do about it.
+This is not a changelog. A change is listed here only if an upgrade can stop something that used to work, and only with what to do about it. Something that used to work means something Authgear officially supports; a config key or input that was never supported is not listed when it starts being rejected or starts to take effect.
 
 ## How to use this file
 

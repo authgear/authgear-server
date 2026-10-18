@@ -1,0 +1,77 @@
+name: User import rejects a record that violates the string constraints
+authgear.yaml:
+  override: |
+    user_profile:
+      standard_attributes:
+        validation:
+        - pointer: /given_name
+          min_length: 3
+      custom_attributes:
+        attributes:
+        - id: "0000"
+          pointer: /x_employee_id
+          type: string
+          pattern: "^E[0-9]+$"
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+steps:
+- action: admin_api_user_import_create
+  name: the_user_import
+  admin_api_user_import_request:
+    json_document: |
+      {
+        "upsert": false,
+        "identifier": "preferred_username",
+        "records": [
+          {
+            "preferred_username": "import_ok",
+            "given_name": "Alice",
+            "custom_attributes": { "x_employee_id": "E123" }
+          },
+          {
+            "preferred_username": "import_bad_custom",
+            "custom_attributes": { "x_employee_id": "123" }
+          },
+          {
+            "preferred_username": "import_bad_standard",
+            "given_name": "Al"
+          }
+        ]
+      }
+  admin_api_user_import_output:
+    result: |
+      {
+        "id": "[[string]]",
+        "status": "pending"
+      }
+- action: sleep
+  sleep_for: "1s"
+- action: admin_api_user_import_get
+  admin_api_user_import_id: "{{ .steps.the_user_import.result.id }}"
+  admin_api_user_import_output:
+    result: |
+      {
+        "status": "completed",
+        "summary": {
+          "total": 3,
+          "inserted": 1,
+          "failed": 2
+        },
+        "details": [
+          { "index": 0, "outcome": "inserted" },
+          { "index": 1, "outcome": "failed" },
+          { "index": 2, "outcome": "failed" }
+        ]
+      }
+- action: query
+  query: |
+    SELECT standard_attributes->>'preferred_username' AS username
+    FROM _auth_user
+    WHERE app_id = '{{ .AppID }}'
+  query_output:
+    rows: |
+      [
+        { "username": "import_ok" }
+      ]

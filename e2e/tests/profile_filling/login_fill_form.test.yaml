@@ -1,0 +1,183 @@
+name: A fill_form step in a login flow, before authenticate
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+        - type: fill_form
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+                required: true
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+before:
+  - type: user_import
+    user_import: login_users.json
+steps:
+  - name: first_login
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "type": "login",
+          "action": {
+            "type": "fill_form",
+            "data": {
+              "type": "fill_form_data",
+              "form": {
+                "fields": [
+                  {
+                    "key": "/given_name",
+                    "type": "string",
+                    "label": "Given name",
+                    "required": true,
+                    "value": "[[never]]"
+                  }
+                ]
+              }
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "fields": [
+          { "key": "/given_name", "value": "John" }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  # The values are written only when the flow finishes.
+  - name: not_written_before_the_flow_finishes
+    action: query
+    query: |
+      SELECT standard_attributes ? 'given_name' AS has_given_name
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "has_given_name": false
+          }
+        ]
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: written_after_the_flow_finishes
+    action: query
+    query: |
+      SELECT standard_attributes->>'given_name' AS given_name
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "given_name": "John"
+          }
+        ]
+
+  - name: events_in_order
+    action: audit_query
+    audit_query: |
+      SELECT activity_type, data->'payload'->'user'->'standard_attributes'->>'given_name' AS given_name
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('user.profile.updated', 'user.authenticated')
+      ORDER BY (data->>'seq')::bigint
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.profile.updated",
+            "given_name": "John"
+          },
+          {
+            "activity_type": "user.authenticated"
+          }
+        ]
+
+  - name: second_login_shows_the_stored_value
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form",
+            "data": {
+              "form": {
+                "fields": [
+                  {
+                    "key": "/given_name",
+                    "value": "John"
+                  }
+                ]
+              }
+            }
+          }
+        }

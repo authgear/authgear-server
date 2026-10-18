@@ -126,6 +126,46 @@ func (s *ServiceNoEvent) validate(ctx context.Context, pointers []string, input 
 	return nil
 }
 
+// validateStringConstraints checks changed values only,
+// so narrowing a constraint affects future writes only.
+func (s *ServiceNoEvent) validateStringConstraints(pointers []string, original customattrs.T, incoming customattrs.T) error {
+	vctx := &validation.Context{}
+	for _, ptrStr := range pointers {
+		for _, c := range s.Config.CustomAttributes.Attributes {
+			if c.Pointer != ptrStr {
+				continue
+			}
+			cons := c.StringConstraints()
+			if cons == nil {
+				continue
+			}
+
+			ptr, err := jsonpointer.Parse(c.Pointer)
+			if err != nil {
+				return err
+			}
+			newValue, ok := stringAt(ptr, incoming)
+			if !ok || newValue == "" {
+				continue
+			}
+			if oldValue, ok := stringAt(ptr, original); ok && oldValue == newValue {
+				continue
+			}
+			attrs.ValidateStringConstraints(vctx.Child(ptr[0]), cons, newValue, false)
+		}
+	}
+	return vctx.Error("invalid custom attributes")
+}
+
+func stringAt(ptr jsonpointer.T, t customattrs.T) (string, bool) {
+	v, err := ptr.Traverse(map[string]any(t))
+	if err != nil {
+		return "", false
+	}
+	str, ok := v.(string)
+	return str, ok
+}
+
 func (s *ServiceNoEvent) allPointers() (out []string) {
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		out = append(out, c.Pointer)
@@ -220,6 +260,11 @@ func (s *ServiceNoEvent) updateCustomAttributes(ctx context.Context, role access
 	}
 
 	original, err := s.fromStorageForm(user.CustomAttributes)
+	if err != nil {
+		return err
+	}
+
+	err = s.validateStringConstraints(pointers, original, incoming)
 	if err != nil {
 		return err
 	}

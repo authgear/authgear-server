@@ -2,13 +2,94 @@ package customattrs
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+type fakeUserQueries struct {
+	custom map[string]any
+}
+
+func (q *fakeUserQueries) GetRaw(ctx context.Context, userID string) (*user.User, error) {
+	return &user.User{CustomAttributes: q.custom}, nil
+}
+
+type fakeUserStore struct {
+	stored map[string]any
+}
+
+func (s *fakeUserStore) UpdateCustomAttributes(ctx context.Context, userID string, storageForm map[string]any) error {
+	s.stored = storageForm
+	return nil
+}
+
+func TestServiceNoEventStringConstraints(t *testing.T) {
+	Convey("ServiceNoEvent string constraints", t, func() {
+		two := 2
+		store := &fakeUserStore{}
+		queries := &fakeUserQueries{custom: map[string]any{}}
+		s := &ServiceNoEvent{
+			Config: &config.UserProfileConfig{
+				CustomAttributes: &config.CustomAttributesConfig{
+					Attributes: []*config.CustomAttributesAttributeConfig{
+						{ID: "0000", Pointer: "/employee_id", Type: config.CustomAttributeTypeString, Pattern: "^E[0-9]+$", MinLength: &two},
+						{ID: "0001", Pointer: "/other", Type: config.CustomAttributeTypeString},
+						{ID: "0002", Pointer: "/accepted", Type: config.CustomAttributeTypeBoolean},
+					},
+				},
+			},
+			UserQueries: queries,
+			UserStore:   store,
+		}
+		for _, c := range s.Config.CustomAttributes.Attributes {
+			c.SetDefaults()
+		}
+		ctx := context.Background()
+		update := func(form map[string]string) error {
+			return s.UpdateCustomAttributesWithForm(ctx, accesscontrol.RoleGreatest, "u", form)
+		}
+
+		Convey("checks a changed value", func() {
+			err := update(map[string]string{"/employee_id": "12345"})
+			var aErr *validation.AggregatedError
+			So(err, ShouldNotBeNil)
+			So(errors.As(err, &aErr), ShouldBeTrue)
+			So(aErr.Errors, ShouldHaveLength, 1)
+			So(aErr.Errors[0].Keyword, ShouldEqual, "pattern")
+			So(aErr.Errors[0].Location, ShouldEqual, "/employee_id")
+			So(store.stored, ShouldBeNil)
+
+			So(update(map[string]string{"/employee_id": "E12345"}), ShouldBeNil)
+			So(store.stored["0000"], ShouldEqual, "E12345")
+		})
+
+		Convey("passes an unchanged violating value", func() {
+			queries.custom = map[string]any{"0000": "12345"}
+			So(update(map[string]string{"/employee_id": "12345", "/other": "x"}), ShouldBeNil)
+			So(store.stored["0001"], ShouldEqual, "x")
+		})
+
+		Convey("does not check a deletion", func() {
+			queries.custom = map[string]any{"0000": "12345"}
+			So(update(map[string]string{"/employee_id": ""}), ShouldBeNil)
+		})
+
+		Convey("writes a boolean from a form value", func() {
+			So(update(map[string]string{"/accepted": "false"}), ShouldBeNil)
+			So(store.stored["0002"], ShouldEqual, false)
+			So(update(map[string]string{"/accepted": "true"}), ShouldBeNil)
+			So(store.stored["0002"], ShouldEqual, true)
+		})
+	})
+}
 
 func TestServiceNoEvent(t *testing.T) {
 	Convey("ServiceNoEvent", t, func() {

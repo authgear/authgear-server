@@ -1,0 +1,393 @@
+name: The types of the fields and their validation
+authgear.yaml:
+  override: |
+    localization:
+      fallback_language: en
+      supported_languages: [en, zh-HK]
+    user_profile:
+      custom_attributes:
+        attributes:
+        - id: "0000"
+          pointer: /x_age
+          type: integer
+          minimum: 0
+          maximum: 120
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+        - id: "0001"
+          pointer: /x_score
+          type: number
+          minimum: 0.5
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+        - id: "0002"
+          pointer: /x_phone
+          type: phone_number
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+        - id: "0003"
+          pointer: /x_email
+          type: email
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+        - id: "0004"
+          pointer: /x_url
+          type: url
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+        - id: "0005"
+          pointer: /x_country
+          type: country_code
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+        - type: fill_form
+          form:
+            fields:
+            - user_profile:
+                pointer: /x_age
+            - user_profile:
+                pointer: /x_score
+            - user_profile:
+                pointer: /x_phone
+            - user_profile:
+                pointer: /x_email
+            - user_profile:
+                pointer: /x_url
+            - user_profile:
+                pointer: /x_country
+            - user_profile:
+                pointer: /birthdate
+            - user_profile:
+                pointer: /zoneinfo
+            - user_profile:
+                pointer: /locale
+            - user_profile:
+                pointer: /gender
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_form_user"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "e2e_password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "fill_form",
+            "data": {
+              "form": {
+                "fields": [
+                  { "key": "/x_age", "type": "integer" },
+                  { "key": "/x_score", "type": "number" },
+                  { "key": "/x_phone", "type": "phone_number" },
+                  { "key": "/x_email", "type": "email" },
+                  { "key": "/x_url", "type": "url" },
+                  { "key": "/x_country", "type": "country_code" },
+                  { "key": "/birthdate", "type": "date" },
+                  { "key": "/zoneinfo", "type": "timezone" },
+                  { "key": "/locale", "type": "enum" },
+                  { "key": "/gender", "type": "string", "suggestions": ["male", "female"] }
+                ]
+              }
+            }
+          }
+        }
+
+  - name: integer_above_maximum
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/x_age",
+            "value": 150
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: integer_not_integer
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/x_age",
+            "value": 1.5
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: number_below_minimum
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/x_score",
+            "value": 0.1
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: invalid_phone
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/x_phone",
+            "value": "123"
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: invalid_email
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/x_email",
+            "value": "not-an-email"
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: invalid_url
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/x_url",
+            "value": "not a url"
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: invalid_country
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/x_country",
+            "value": "ZZZ"
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: invalid_birthdate
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/birthdate",
+            "value": "31-01-1990"
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: invalid_timezone
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/zoneinfo",
+            "value": "Mars/Base"
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: locale_not_supported
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/locale",
+            "value": "fr"
+          }
+        ]
+      }
+    output:
+      error: |
+        {
+          "reason": "ValidationFailed"
+        }
+
+  - name: valid
+    action: input
+    input: |
+      {
+        "fields": [
+          {
+            "key": "/x_age",
+            "value": 30
+          },
+          {
+            "key": "/x_score",
+            "value": 1.5
+          },
+          {
+            "key": "/x_phone",
+            "value": "+85298765432"
+          },
+          {
+            "key": "/x_email",
+            "value": "john@example.com"
+          },
+          {
+            "key": "/x_url",
+            "value": "https://example.com"
+          },
+          {
+            "key": "/x_country",
+            "value": "HK"
+          },
+          {
+            "key": "/birthdate",
+            "value": "1990-01-31"
+          },
+          {
+            "key": "/zoneinfo",
+            "value": "Asia/Hong_Kong"
+          },
+          {
+            "key": "/locale",
+            "value": "zh-HK"
+          },
+          {
+            "key": "/gender",
+            "value": "female"
+          }
+        ]
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - action: query
+    query: |
+      SELECT custom_attributes->'0000' AS age, custom_attributes->'0001' AS score, custom_attributes->>'0002' AS phone,
+        custom_attributes->>'0005' AS country, standard_attributes->>'birthdate' AS birthdate,
+        standard_attributes->>'zoneinfo' AS zoneinfo, standard_attributes->>'locale' AS locale, standard_attributes->>'gender' AS gender
+      FROM _auth_user
+      WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "age": 30,
+            "score": 1.5,
+            "phone": "+85298765432",
+            "country": "HK",
+            "birthdate": "1990-01-31",
+            "zoneinfo": "Asia/Hong_Kong",
+            "locale": "zh-HK",
+            "gender": "female"
+          }
+        ]

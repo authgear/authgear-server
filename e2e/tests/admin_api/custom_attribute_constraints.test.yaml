@@ -1,0 +1,139 @@
+name: Constraints apply only to the values changed through the Admin API
+authgear.yaml:
+  override: |
+    user_profile:
+      custom_attributes:
+        attributes:
+        - id: "0000"
+          pointer: /x_employee_id
+          type: string
+          pattern: "^E[0-9]+$"
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+        - id: "0001"
+          pointer: /x_other
+          type: string
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+before:
+  - type: custom_sql
+    custom_sql:
+      path: custom_attribute_constraints.sql
+steps:
+  - name: get_user
+    action: query
+    query: |
+      SELECT id FROM _auth_user WHERE app_id = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          { "id": "[[string]]" }
+        ]
+
+  # The stored value of x_employee_id violates the pattern, but it is unchanged.
+  - name: update_another_attribute
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation ($userID: ID!, $customAttributes: UserCustomAttributes) {
+          updateUser(input: { userID: $userID, customAttributes: $customAttributes }) {
+            user {
+              customAttributes
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user.result.rows 0).id }}",
+          "customAttributes": {
+            "x_employee_id": "12345",
+            "x_other": "b"
+          }
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateUser": {
+              "user": {
+                "customAttributes": {
+                  "x_employee_id": "12345",
+                  "x_other": "b"
+                }
+              }
+            }
+          },
+          "errors": null
+        }
+
+  - name: change_to_a_violating_value
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation ($userID: ID!, $customAttributes: UserCustomAttributes) {
+          updateUser(input: { userID: $userID, customAttributes: $customAttributes }) {
+            user {
+              id
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user.result.rows 0).id }}",
+          "customAttributes": {
+            "x_employee_id": "54321",
+            "x_other": "b"
+          }
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": null,
+          "errors": [
+            {
+              "extensions": {
+                "errorName": "Invalid",
+                "reason": "ValidationFailed"
+              }
+            }
+          ]
+        }
+
+  - name: change_to_a_valid_value
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation ($userID: ID!, $customAttributes: UserCustomAttributes) {
+          updateUser(input: { userID: $userID, customAttributes: $customAttributes }) {
+            user {
+              customAttributes
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user.result.rows 0).id }}",
+          "customAttributes": {
+            "x_employee_id": "E54321",
+            "x_other": "b"
+          }
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "updateUser": {
+              "user": {
+                "customAttributes": {
+                  "x_employee_id": "E54321",
+                  "x_other": "b"
+                }
+              }
+            }
+          },
+          "errors": null
+        }

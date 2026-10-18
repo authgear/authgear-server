@@ -16,6 +16,7 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepFillInUserProfile{})
 }
 
+// Deprecated: Use IntentFillForm.
 type IntentSignupFlowStepFillInUserProfile struct {
 	JSONPointer            jsonpointer.T `json:"json_pointer,omitempty"`
 	StepName               string        `json:"step_name,omitempty"`

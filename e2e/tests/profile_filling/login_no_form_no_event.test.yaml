@@ -1,0 +1,74 @@
+name: A login flow without a form does not dispatch user.profile.updated
+before:
+  - type: user_import
+    user_import: login_users.json
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            steps:
+            - type: authenticate
+              one_of:
+              - authentication: primary_password
+steps:
+  - action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - action: audit_query
+    audit_query: |
+      SELECT activity_type
+      FROM _audit_log
+      WHERE app_id = '{{ .AppID }}'
+        AND activity_type IN ('user.profile.updated', 'user.authenticated')
+      ORDER BY activity_type
+    audit_query_output:
+      rows: |
+        [
+          {
+            "activity_type": "user.authenticated"
+          }
+        ]

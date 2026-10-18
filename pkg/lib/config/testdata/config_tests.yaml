@@ -2738,3 +2738,511 @@ config:
             package_name: com.example.app
             sha256_cert_fingerprints:
               - "8B:BF:39:60:61:89:30:A4:45:F3:D7:09:1E:7B:1B:05:0F:8A:FD:AF:24:EB:F1:EB:2E:3D:13:88:09:FC:79:59"
+
+---
+name: user-profile-custom-attribute-min-length-greater-than-max-length
+error: |-
+  invalid configuration:
+  /user_profile/custom_attributes/attributes/0/min_length: maxLength
+    map[actual:10 expected:5]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+        - id: "0000"
+          pointer: /employee_id
+          type: string
+          min_length: 10
+          max_length: 5
+
+---
+name: user-profile-standard-attributes-validation
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    standard_attributes:
+      validation:
+        - pointer: /given_name
+          min_length: 2
+          max_length: 50
+          allowed_characters: [letters, spaces]
+        - pointer: /address/postal_code
+          pattern: "^[0-9]{5}$"
+
+---
+name: user-profile-standard-attributes-validation-min-length-greater-than-max-length
+error: |-
+  invalid configuration:
+  /user_profile/standard_attributes/validation/0/min_length: maxLength
+    map[actual:10 expected:5]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    standard_attributes:
+      validation:
+        - pointer: /given_name
+          min_length: 10
+          max_length: 5
+
+---
+name: user-profile-standard-attributes-validation-duplicated-pointer
+error: |-
+  invalid configuration:
+  /user_profile/standard_attributes/validation/1/pointer: duplicated
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    standard_attributes:
+      validation:
+        - pointer: /given_name
+          min_length: 1
+        - pointer: /given_name
+          max_length: 5
+
+---
+name: user-profile-standard-attributes-validation-non-string-pointer
+error: |-
+  invalid configuration:
+  /user_profile/standard_attributes/validation/0/pointer: enum
+    map[actual:/birthdate expected:[/name /given_name /family_name /middle_name /nickname /address/formatted /address/street_address /address/locality /address/region /address/postal_code]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    standard_attributes:
+      validation:
+        - pointer: /birthdate
+          min_length: 1
+
+---
+name: user-profile-standard-attributes-validation-invalid-pattern
+error: |-
+  invalid configuration:
+  /user_profile/standard_attributes/validation/0/pattern: format
+    map[Code:missing closing ) Expr:( format:x_re2_regex]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    standard_attributes:
+      validation:
+        - pointer: /given_name
+          pattern: "("
+
+---
+name: fill-form-not-fillable-email-without-ui-authentication-flow
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/1/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /email
+
+---
+name: fill-form-not-fillable-address-sub-attribute
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/1/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /address/locality
+
+---
+name: fill-form-not-fillable-hidden-by-default
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/1/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /name
+
+---
+name: fill-form-not-fillable-unknown-pointer
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/1/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /x_unknown
+
+---
+name: fill-form-not-fillable-custom-readonly
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/1/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+      - id: "0000"
+        pointer: /x_readonly
+        type: string
+        access_control:
+          end_user: readonly
+          bearer: readonly
+          portal_ui: readwrite
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /x_readonly
+
+---
+name: fill-form-custom-readwrite-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+      - id: "0000"
+        pointer: /x_writable
+        type: string
+        access_control:
+          end_user: readwrite
+          bearer: readonly
+          portal_ui: readwrite
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /x_writable
+
+---
+name: fill-form-standard-made-fillable-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    standard_attributes:
+      access_control:
+      - pointer: /name
+        access_control:
+          end_user: readwrite
+          bearer: readonly
+          portal_ui: readwrite
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /name
+
+---
+name: fill-form-duplicated-pointer
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/1/form/fields/1/user_profile/pointer: duplicated pointer
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /given_name
+          - user_profile:
+              pointer: /given_name
+
+---
+name: fill-form-before-identify-signup
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/0: fill_form must come after an identify step
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /given_name
+      - type: identify
+        one_of:
+        - identification: email
+
+---
+name: fill-form-before-identify-login
+error: |-
+  invalid configuration:
+  /authentication_flow/login_flows/0/steps/0: fill_form must come after an identify step
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    login_flows:
+    - name: custom_login_1
+      steps:
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /given_name
+      - type: identify
+        one_of:
+        - identification: email
+
+---
+name: fill-form-nested-in-non-identify-branch-before-identify-signup
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/0/one_of/0/steps/0: fill_form must come after an identify step
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: create_authenticator
+        one_of:
+        - authentication: primary_password
+          steps:
+          - type: fill_form
+            form:
+              fields:
+              - user_profile:
+                  pointer: /given_name
+      - type: identify
+        one_of:
+        - identification: email
+
+---
+name: fill-form-after-identify-login-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    login_flows:
+    - name: custom_login_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /given_name
+      - type: authenticate
+        one_of:
+        - authentication: primary_password
+
+---
+name: fill-form-promote-not-fillable
+error: |-
+  invalid configuration:
+  /authentication_flow/promote_flows/0/steps/1/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    promote_flows:
+    - name: custom_promote_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+      - type: fill_form
+        form:
+          fields:
+          - user_profile:
+              pointer: /email
+
+---
+name: identify-form-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: username
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+                required: true
+
+---
+name: identify-form-not-fillable
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/0/one_of/0/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+          form:
+            fields:
+            - user_profile:
+                pointer: /email
+
+---
+name: identify-form-duplicated-pointer
+error: |-
+  invalid configuration:
+  /authentication_flow/promote_flows/0/steps/0/one_of/0/form/fields/1/user_profile/pointer: duplicated pointer
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    promote_flows:
+    - name: custom_promote_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: username
+          form:
+            fields:
+            - user_profile:
+                pointer: /given_name
+            - user_profile:
+                pointer: /given_name
+
+---
+name: identify-form-in-branch-of-non-identify-step-validated
+error: |-
+  invalid configuration:
+  /authentication_flow/signup_flows/0/steps/0/one_of/0/steps/0/one_of/0/form/fields/0/user_profile/pointer: attribute is not fillable
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: custom_signup_1
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+          steps:
+          - type: identify
+            one_of:
+            - identification: username
+              form:
+                fields:
+                - user_profile:
+                    pointer: /x_unknown

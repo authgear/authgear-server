@@ -1,0 +1,13 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "mock@example.com",
+      "given_name": "Existing",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2a$12$paw2a1pv1uDDeUsIUVsWz.MCMxfKzZSD6X57iOXKMJCJKsMN8MZIO"
+      }
+    }
+  ]
+}

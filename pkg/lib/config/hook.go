@@ -43,6 +43,7 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 			"oidc.id_token.pre_create",
 			"authentication.pre_initialize",
 			"authentication.post_identified",
+			"authentication.form.post_submitted",
 			"authentication.pre_authenticated"
 
 		] },

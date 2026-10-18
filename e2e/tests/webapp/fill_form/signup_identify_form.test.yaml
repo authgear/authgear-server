@@ -1,0 +1,72 @@
+name: Signup with form fields on the identify page via webapp
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: username
+          type: username
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            form:
+              fields:
+              - user_profile:
+                  pointer: /given_name
+                  required: true
+              - user_profile:
+                  pointer: /family_name
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+  - name: get_signup_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/signup?{{ .steps.oauth_setup.result.query }}&q_login_id_key=username&q_login_id_input_type=text
+    http_output:
+      http_status: 200
+      redirect_path: /signup
+      html_xpath_exists:
+        - /html/body//form//input[@name='q_login_id']
+      html_text_contains:
+        - name="/given_name"
+        - name="/family_name"
+  - name: missing_required_field
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_signup_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      q_login_id_key: username
+      q_login_id: webapp_form_user
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /signup
+      html_text_contains:
+        - name="/given_name"
+        - This field is required
+  - name: submit_with_fields
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.missing_required_field.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      q_login_id_key: username
+      q_login_id: webapp_form_user
+      x_action: login_id
+      "/given_name": John
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/create_password

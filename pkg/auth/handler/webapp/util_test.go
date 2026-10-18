@@ -26,5 +26,14 @@ func TestJSONPointerFormToMap(t *testing.T) {
 			"/name":       "John Doe",
 			"/given_name": "",
 		})
+
+		// A checkbox is followed by a hidden input of "false".
+		// Checked, both are submitted, and the checkbox wins because it comes first.
+		Convey("takes the first value", func() {
+			form := url.Values{"/accepted": []string{"true", "false"}}
+			So(JSONPointerFormToMap(form), ShouldResemble, map[string]string{"/accepted": "true"})
+			form = url.Values{"/accepted": []string{"false"}}
+			So(JSONPointerFormToMap(form), ShouldResemble, map[string]string{"/accepted": "false"})
+		})
 	})
 }

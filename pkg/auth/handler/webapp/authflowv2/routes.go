@@ -36,6 +36,7 @@ const (
 	// nolint: gosec
 	AuthflowV2RoutePromptCreatePasskey = "/authflow/v2/prompt_create_passkey"
 	AuthflowV2RouteViewRecoveryCode    = "/authflow/v2/view_recovery_code"
+	AuthflowV2RouteFillForm            = "/authflow/v2/fill_form"
 	// nolint: gosec
 	AuthflowV2RouteCreatePassword = "/authflow/v2/create_password"
 	// nolint: gosec
@@ -314,6 +315,8 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(ctx context.Context, s *weba
 		}
 	case config.AuthenticationFlowStepTypeFillInUserProfile:
 		panic(fmt.Errorf("fill_in_user_profile is not supported yet"))
+	case config.AuthenticationFlowStepTypeFillForm:
+		s.Advance(AuthflowV2RouteFillForm, result)
 	case config.AuthenticationFlowStepTypeViewRecoveryCode:
 		s.Advance(AuthflowV2RouteViewRecoveryCode, result)
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
@@ -490,6 +493,8 @@ func (n *AuthflowV2Navigator) navigateLogin(ctx context.Context, s *webapp.Authf
 		s.Advance(AuthflowV2RouteTerminateOtherSessions, result)
 	case config.AuthenticationFlowStepTypeChangePassword:
 		s.Advance(AuthflowV2RouteChangePassword, result)
+	case config.AuthenticationFlowStepTypeFillForm:
+		s.Advance(AuthflowV2RouteFillForm, result)
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
 		s.Advance(AuthflowV2RoutePromptCreatePasskey, result)
 	default:

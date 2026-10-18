@@ -12,6 +12,7 @@
       - [authentication.pre_initialize](#authenticationpre_initialize)
       - [authentication.post_identified](#authenticationpost_identified)
       - [authentication.pre_authenticated](#authenticationpre_authenticated)
+      - [authentication.form.post_submitted](#authenticationformpost_submitted)
       - [oidc.jwt.pre_create](#oidcjwtpre_create)
       - [oidc.id_token.pre_create](#oidcid_tokenpre_create)
     + [Non-blocking Events](#non-blocking-events)
@@ -130,6 +131,14 @@ All fields are guaranteed that only backward-compatible changes would be made.
 
 - [user.pre_create](#userpre_create)
 - [user.profile.pre_update](#userprofilepre_update)
+- [user.pre_schedule_deletion](#userpre_schedule_deletion)
+- [user.pre_schedule_anonymization](#userpre_schedule_anonymization)
+- [authentication.pre_initialize](#authenticationpre_initialize)
+- [authentication.post_identified](#authenticationpost_identified)
+- [authentication.pre_authenticated](#authenticationpre_authenticated)
+- [authentication.form.post_submitted](#authenticationformpost_submitted)
+- [oidc.jwt.pre_create](#oidcjwtpre_create)
+- [oidc.id_token.pre_create](#oidcid_tokenpre_create)
 
 Blocking event Hooks can perform mutations. See [Blocking Event Mutations](./hook.md#blocking-event-mutations).
 
@@ -153,6 +162,7 @@ Occurs right before the user creation. User can be created by user signup, user 
 ```
 
 - `oauth.state`: OAuth state if the signup is triggered through authorize endpoint with state parameter.
+- `user`: In a signup flow, it includes the attributes the end-user filled in forms.
 
 Supported hook responses:
 
@@ -161,7 +171,7 @@ Supported hook responses:
 
 #### user.profile.pre_update
 
-Occurs right before the update of user profile.
+Occurs right before the update of user profile. In a login or promote flow, it occurs once when the flow finishes, if the end-user submitted a form; it does not occur when each form is submitted. See [Profile Filling](./user-profile/profile-filling.md#validation-hook).
 
 ```json5
 {
@@ -462,6 +472,77 @@ authentication_flows:
 
 After `authentication.pre_authenticated` is triggered, `amr` constraints in the hook response will be enforced by additional `authenticate` steps, if needed.
 
+#### authentication.form.post_submitted
+
+Occurs right after the end-user submits a [form](./glossary.md#form) in an authentication flow, before the flow accepts it. Nothing is stored yet; the attributes are stored when the flow finishes. See [Profile Filling](./user-profile/profile-filling.md#validation-hook).
+
+Fields in payload:
+- `authentication_context`: An [`AuthenticationContext`](./event_models.md#authenticationcontext) object.
+- `user`: The user with every attribute submitted so far in this flow applied, in the same shape as the `user` of [user.profile.pre_update](#userprofilepre_update). In a signup flow, it is the user to be created.
+- `form`: The submitted form. Its keys follow the [form object](./user-profile/profile-filling.md#form-object).
+  - `name`: The form's `name`. Absent when the form has none.
+  - `fields`: One item per field of the form, in the form's order.
+    - `field`: The field. As in the form object, it has exactly one key, which names the kind of field.
+      - `user_profile`:
+        - `pointer`: The attribute's pointer.
+    - `value`: The submitted value, or `null` if the field is empty.
+
+```json5
+{
+  "payload": {
+    "authentication_context": { /* ... */ },
+    "user": { /* ... */ },
+    "form": {
+      "name": "employee",
+      "fields": [
+        {
+          "field": {
+            "user_profile": {
+              "pointer": "/x_employee_id"
+            }
+          },
+          "value": "E99999"
+        }
+      ]
+    }
+  }
+}
+```
+
+Supported hook responses:
+
+- [is_allowed](./hook.md#blocking-events)
+- `reasons`: Optional. Allowed only when `is_allowed` is `false`. A list of typed reasons. Each item has a `type`; a response with an unknown `type` is invalid.
+
+| `type` | Other keys | Meaning |
+|---|---|---|
+| `invalid_form_field` | `field`: a field of the submitted form, in the shape of `field` in `payload.form.fields`. `message`: a message for the end-user. | The value of that field is rejected. |
+
+```json
+{
+  "is_allowed": false,
+  "title": "Employee not found",
+  "reasons": [
+    {
+      "type": "invalid_form_field",
+      "field": {
+        "user_profile": {
+          "pointer": "/x_employee_id"
+        }
+      },
+      "message": "This employee ID does not exist."
+    }
+  ]
+}
+```
+
+If a hook rejects the form, the flow stays in the step that shows the form.
+
+`authentication.form.post_submitted` will be triggered in the following flow types:
+- signup
+- promote
+- login
+
 #### oidc.jwt.pre_create
 
 Occurs right before the access token is issued.
@@ -564,7 +645,7 @@ Occurs after a new user is created. User can be created by user signup, user sig
 
 #### user.profile.updated
 
-Occurs when the user profile is updated.
+Occurs when the user profile is updated. In a login or promote flow, it occurs once when the flow finishes, if the end-user submitted a form. A signup flow fires [user.created](#usercreated) instead.
 
 ```json5
 {
@@ -1469,7 +1550,9 @@ flowchart TD
         CreateAuthenticator --> AuthenticationPreAuthenticated[authentication.pre_authenticated]
         AuthenticationPreAuthenticated --> CreateAuthenticatorAdaptive["Create Authenticator<br>(Enforce AMR Constraints)"]
         CreateAuthenticatorAdaptive --> ViewRecoveryCode[View Recovery Code]
-        ViewRecoveryCode --> PromptCreatePasskey[Prompt Create Passkey]
+        ViewRecoveryCode --> FillForm["Fill Form<br>(custom flows only)"]
+        FillForm --> AuthenticationFormPostSubmitted[authentication.form.post_submitted]
+        AuthenticationFormPostSubmitted --> PromptCreatePasskey[Prompt Create Passkey]
         PromptCreatePasskey --> UserPreCreate[user.pre_create]
         UserPreCreate --> CreateUser[Create User]
         CreateUser --> UserCreated[user.created]
@@ -1488,8 +1571,8 @@ flowchart TD
     classDef blockingEvent fill:#ADD8E6,color:#000000
     classDef processNode fill:#dddddd,color:#000000
     class BotProtectionVerificationFailed,UserCreated event
-    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,UserPreCreate,OIDCJWTPreCreate blockingEvent
-    class Start,BotProtection,Identify,Verify,CreateAuthenticator,ViewRecoveryCode,PromptCreatePasskey,CreateAuthenticatorAdaptive,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
+    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,AuthenticationFormPostSubmitted,UserPreCreate,OIDCJWTPreCreate blockingEvent
+    class Start,BotProtection,Identify,Verify,CreateAuthenticator,ViewRecoveryCode,FillForm,PromptCreatePasskey,CreateAuthenticatorAdaptive,CreateUser,FinishSignup,ExchangeCode,IssueTokens processNode
 ```
 
 ### Login
@@ -1518,8 +1601,14 @@ flowchart TD
         ChangePassword --> CheckAccountStatus[Check Account Status]
         CheckAccountStatus -- "Blocked" --> AuthenticationBlocked[authentication.blocked]
         CheckAccountStatus -- "Success" --> TerminateOtherSessions[Terminate Other Sessions]
-        TerminateOtherSessions --> PromptCreatePasskey[Prompt Create Passkey]
-        PromptCreatePasskey --> UserAuthenticated[user.authenticated]
+        TerminateOtherSessions --> FillForm["Fill Form<br>(custom flows only)"]
+        FillForm --> AuthenticationFormPostSubmitted[authentication.form.post_submitted]
+        AuthenticationFormPostSubmitted --> PromptCreatePasskey[Prompt Create Passkey]
+        PromptCreatePasskey -- "A form was submitted" --> UserProfilePreUpdate[user.profile.pre_update]
+        UserProfilePreUpdate --> UpdateProfile[Update Profile]
+        UpdateProfile --> UserProfileUpdated[user.profile.updated]
+        UserProfileUpdated --> UserAuthenticated[user.authenticated]
+        PromptCreatePasskey -- "No form was submitted" --> UserAuthenticated
         UserAuthenticated --> FinishLogin([Finish])
     end
 
@@ -1534,7 +1623,7 @@ flowchart TD
     classDef event fill:#98FB98,color:#000000
     classDef blockingEvent fill:#ADD8E6,color:#000000
     classDef processNode fill:#dddddd,color:#000000
-    class BotProtectionVerificationFailed,AuthenticationIdentityLoginIDFailed,PrimaryAuthFailed,SecondaryAuthFailed,AuthenticationBlocked,UserAuthenticated event
-    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,OIDCJWTPreCreate blockingEvent
-    class Start,BotProtection,Identify,AuthenticatePrimary,AuthenticateSecondary,ChangePassword,CheckAccountStatus,TerminateOtherSessions,PromptCreatePasskey,AuthenticateAdaptive,ExchangeCode,IssueTokens,FinishLogin processNode
+    class BotProtectionVerificationFailed,AuthenticationIdentityLoginIDFailed,PrimaryAuthFailed,SecondaryAuthFailed,AuthenticationBlocked,UserAuthenticated,UserProfileUpdated event
+    class AuthenticationPreInitialize,AuthenticationPostIdentified,AuthenticationPreAuthenticated,AuthenticationFormPostSubmitted,UserProfilePreUpdate,OIDCJWTPreCreate blockingEvent
+    class Start,BotProtection,Identify,AuthenticatePrimary,AuthenticateSecondary,ChangePassword,CheckAccountStatus,TerminateOtherSessions,FillForm,UpdateProfile,PromptCreatePasskey,AuthenticateAdaptive,ExchangeCode,IssueTokens,FinishLogin processNode
 ```

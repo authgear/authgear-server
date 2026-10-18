@@ -41,6 +41,7 @@ import {
   OAuthClientConfig,
   Authorization,
   Session,
+  isCustomAttributeType,
 } from "../../types";
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { extractRawID } from "../../util/graphql";
@@ -254,10 +255,22 @@ function makeStandardAttributesFromState(
 
 function makeCustomAttributesFromState(
   state: CustomAttributesState,
-  config: CustomAttributesAttributeConfig[]
+  config: CustomAttributesAttributeConfig[],
+  original: CustomAttributes
 ): CustomAttributes {
   const out: CustomAttributes = {};
   for (const c of config) {
+    // The Admin API replaces all custom attributes, so a value of a type the
+    // portal does not know must be sent back unchanged or it is deleted.
+    if (!isCustomAttributeType(c.type)) {
+      // FIXME(custom-attributes): support any-level jsonpointer.
+      const fieldName = parseJSONPointer(c.pointer)[0];
+      if (original[fieldName] !== undefined) {
+        out[fieldName] = original[fieldName];
+      }
+      continue;
+    }
+
     const value = state[c.pointer];
 
     if (value === "") {
@@ -292,6 +305,9 @@ function makeCustomAttributesFromState(
         break;
       case "country_code":
         out[fieldName] = value;
+        break;
+      case "boolean":
+        out[fieldName] = value === "true";
         break;
     }
   }
@@ -793,13 +809,14 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
           makeStandardAttributesFromState(state.standardAttributes),
           makeCustomAttributesFromState(
             state.customAttributes,
-            customAttributesConfig
+            customAttributesConfig,
+            user.customAttributes
           )
         );
         refreshUser?.();
         return { result: undefined };
       },
-      [updateUser, customAttributesConfig, refreshUser]
+      [updateUser, customAttributesConfig, user.customAttributes, refreshUser]
     );
 
     const form = useFormWithExternalInitialState({

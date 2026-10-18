@@ -2,7 +2,6 @@
   * [User Profile Pointer](#user-profile-pointer)
     * [Known violation of User Profile Pointer: User profile definition](#known-violation-of-user-profile-pointer-user-profile-definition)
     * [Known violation of User Profile Pointer: SAML NameID attribute](#known-violation-of-user-profile-pointer-saml-nameid-attribute)
-    * [Known violation of User Profile Pointer: Authentication flow user\_profile step](#known-violation-of-user-profile-pointer-authentication-flow-user_profile-step)
   * [Identity Attributes Pointer](#identity-attributes-pointer)
     * [Known violation of Identity Attributes Pointer: Account linking identity attributes mapping](#known-violation-of-identity-attributes-pointer-account-linking-identity-attributes-mapping)
 
@@ -52,6 +51,9 @@ user_profile:
         end_user: readwrite
         bearer: readwrite
         portal_ui: readwrite
+    validation:
+    - pointer: /given_name
+      max_length: 50
   custom_attributes:
     attributes:
     - id: "0000"
@@ -87,40 +89,6 @@ saml:
     nameid_attribute:
       user_profile:
         pointer: /email
-```
-
-### Known violation of User Profile Pointer: Authentication flow user_profile step
-
-It is defined as:
-
-```yaml
-authentication_flow:
-  signup_flows:
-  - name: default
-    steps:
-    - type: user_profile
-      user_profile:
-      - pointer: /x_age
-        required: true
-      - pointer: /x_hobby
-        required: true
-```
-
-If it followed the convention, it would be:
-
-```yaml
-authentication_flow:
-  signup_flows:
-  - name: default
-    steps:
-    - type: user_profile
-      user_profile:
-      - user_profile:
-          pointer: /x_age
-          required: true
-      - user_profile:
-          pointer: /x_hobby
-          required: true
 ```
 
 ## Identity Attributes Pointer

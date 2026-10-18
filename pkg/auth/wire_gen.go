@@ -12711,6 +12711,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -13940,6 +13941,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -15176,6 +15178,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -46409,6 +46412,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -47638,6 +47642,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -59280,6 +59285,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -60430,6 +60436,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -61550,6 +61557,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -64609,6 +64617,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -65862,6 +65871,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -67108,6 +67118,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -68344,6 +68355,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -69577,6 +69589,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -70814,6 +70827,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -72049,6 +72063,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -73282,6 +73297,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -74511,6 +74527,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -74646,6 +74663,1236 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Renderer:      responseRenderer,
 	}
 	return authflowV2ViewRecoveryCodeHandler
+}
+
+func newWebAppAuthflowV2FillFormHandler(p *deps.RequestProvider) http.Handler {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	clockClock := _wireSystemClockValue
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	appID := appConfig.ID
+	handle := appProvider.Redis
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	featureConfig := config.FeatureConfig
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	secretConfig := config.SecretConfig
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	localizationConfig := appConfig.Localization
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appContext.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		UIConfig:      uiConfig,
+		LoginIDConfig: loginIDConfig,
+		Resources:     manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth2.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth2.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Redis: handle,
+		AppID: appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	translationService := &translation.Service{
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthClientResolver:             oauthclientResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+		OAuthConfig:        oAuthConfig,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clockClock,
+	}
+	ldapStore := &ldap.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	normalizer := &stdattrs.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	ldapProvider := &ldap.Provider{
+		Store:                        ldapStore,
+		Clock:                        clockClock,
+		StandardAttributesNormalizer: normalizer,
+	}
+	serviceService := &service.Service{
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Expiry:          expiry,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	oobProvider := &oob.Provider{
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
+	}
+	readOnlyService := &service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		ClaimStore:        storePQ,
+	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs2.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsQueries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     readOnlyService,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     rolesgroupsQueries,
+		Clock:              clockClock,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: userQueries,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	webHookImpl := hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	httpFeatureConfig := featureConfig.HTTP
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig, httpFeatureConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient(httpFeatureConfig)
+	eventWebHookImpl := &hook.EventWebHookImpl{
+		WebHookImpl: webHookImpl,
+		SyncHTTP:    syncHTTPClient,
+		AsyncHTTP:   asyncHTTPClient,
+	}
+	denoHook := hook.DenoHook{
+		ResourceManager: manager,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	eventDenoHookImpl := &hook.EventDenoHookImpl{
+		DenoHook:        denoHook,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
+	sink := &hook.Sink{
+		Config:             hookConfig,
+		Clock:              clockClock,
+		EventWebHook:       eventWebHookImpl,
+		EventDenoHook:      eventDenoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
+	}
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
+	auditSink := &audit.Sink{
+		Database: writeHandle,
+		Store:    writeStore,
+		Producer: producer,
+	}
+	searchConfig := appConfig.Search
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           appID,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		Clock:           clockClock,
+		Database:        appdbHandle,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	configAppID := &appConfig.ID
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := appProvider.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := &pgsearch.Service{
+		AppID:    configAppID,
+		Store:    pgsearchStore,
+		Database: searchdbHandle,
+	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
+	reindexer := &reindex.Reindexer{
+		AppID:                      appID,
+		SearchConfig:               searchConfig,
+		Clock:                      clockClock,
+		Database:                   appdbHandle,
+		UserStore:                  store,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
+	}
+	reindexSink := &reindex.Sink{
+		Reindexer: reindexer,
+		Database:  appdbHandle,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaReadOnlyService := &mfa.ReadOnlyService{
+		RecoveryCodes: storeRecoveryCodePQ,
+	}
+	userInfoService := &userinfo.UserInfoService{
+		Redis:                 handle,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
+		AuthenticatorService:  readOnlyService,
+		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
+	}
+	userinfoSink := &userinfo.Sink{
+		UserInfoService: userInfoService,
+	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
+	userCommands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     rolesgroupsQueries,
+	}
+	userProvider := &user.Provider{
+		Commands: userCommands,
+		Queries:  userQueries,
+	}
+	serviceReadOnlyService := service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	testModeConfig := appConfig.TestMode
+	testModeFeatureConfig := featureConfig.TestMode
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	attemptTrackerRedis := &otp.AttemptTrackerRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storageRedis := ratelimit.NewAppStorageRedis(handle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Database:     appdbHandle,
+		Storage:      storageRedis,
+		AppID:        appID,
+		Config:       rateLimitsFeatureConfig,
+		EventService: eventService,
+	}
+	messagingConfig := appConfig.Messaging
+	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
+	messageStore := &whatsapp.MessageStore{
+		Redis:       globalredisHandle,
+		Credentials: whatsappCloudAPICredentials,
+	}
+	whatsappService := &whatsapp.Service{
+		Clock:                 clockClock,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
+		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
+	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	httpReferer := deps.ProvideHTTPReferer(request)
+	fraudprotectionService := &fraudprotection.Service{
+		AppID:           appID,
+		Metrics:         metricsStore,
+		LeakyBucket:     leakyBucketStore,
+		Config:          fraudProtectionConfig,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		HTTPRequestURL:  httpRequestURL,
+		HTTPReferer:     httpReferer,
+		Clock:           clockClock,
+		Database:        appdbHandle,
+		EventService:    eventService,
+		VerifiedClaims:  storePQ,
+	}
+	otpService := &otp.Service{
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		RateLimiter:           limiter,
+		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
+	}
+	rateLimits := service2.RateLimits{
+		IP:            remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+		RateLimiter:   limiter,
+	}
+	authenticationLockoutConfig := authenticationConfig.Lockout
+	lockoutStorageRedis := &lockout.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	lockoutService := &lockout.Service{
+		Storage: lockoutStorageRedis,
+	}
+	serviceLockout := service2.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	service3 := &service2.Service{
+		ReadOnlyService: serviceReadOnlyService,
+		Store:           store3,
+		Config:          appConfig,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
+	}
+	readOnlyService2 := mfa.ReadOnlyService{
+		RecoveryCodes: storeRecoveryCodePQ,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	mfaService := &mfa.Service{
+		ReadOnlyService: readOnlyService2,
+		IP:              remoteIP,
+		DeviceTokens:    storeDeviceTokenRedis,
+		RecoveryCodes:   storeRecoveryCodePQ,
+		Clock:           clockClock,
+		Config:          appConfig,
+		FeatureConfig:   featureConfig,
+		EnvConfig:       rateLimitsEnvironmentConfig,
+		RateLimiter:     limiter,
+		Lockout:         mfaLockout,
+	}
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		GomailDialer: dialer,
+	}
+	devMode := environmentConfig.DevMode
+	usageAlertEmailServiceImpl := &usage.UsageAlertEmailServiceImpl{
+		AppID:              appID,
+		TranslationService: translationService,
+		MailSender:         sender,
+		DevMode:            devMode,
+	}
+	usageLimiter := &usage.Limiter{
+		Clock:                  clockClock,
+		Database:               appdbHandle,
+		AppID:                  appID,
+		Redis:                  handle,
+		EffectiveConfig:        config,
+		EventService:           eventService,
+		UsageAlertEmailService: usageAlertEmailServiceImpl,
+	}
+	limits := messaging.Limits{
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	smsProvider := messagingConfig.Deprecated_SMSProvider
+	smsGatewayConfig := messagingConfig.SMSGateway
+	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
+	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
+	customSMSProviderConfig := deps.ProvideCustomSMSProviderConfig(secretConfig)
+	smsGatewayEnvironmentConfig := &environmentConfig.SMSGatewayConfig
+	smsGatewayEnvironmentDefaultConfig := &smsGatewayEnvironmentConfig.Default
+	smsGatewayEnvironmentDefaultProvider := smsGatewayEnvironmentDefaultConfig.Provider
+	smsGatewayEnvironmentDefaultUseConfigFrom := smsGatewayEnvironmentDefaultConfig.UseConfigFrom
+	smsGatewayEnvironmentNexmoCredentials := smsGatewayEnvironmentConfig.Nexmo
+	smsGatewayEnvironmentTwilioCredentials := smsGatewayEnvironmentConfig.Twilio
+	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
+	hookDenoHook := &hook.DenoHook{
+		ResourceManager: manager,
+	}
+	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
+	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, smsHookTimeout)
+	smsDenoHook := custom.SMSDenoHook{
+		DenoHook: hookDenoHook,
+		Client:   hookDenoClient,
+	}
+	hookWebHookImpl := &hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	hookHTTPClient := custom.NewHookHTTPClient(smsHookTimeout, httpFeatureConfig)
+	smsWebHook := custom.SMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  hookHTTPClient,
+	}
+	envSMSHookTimeout := custom.NewEnvSMSHookTimeout(smsGatewayEnvironmentCustomSMSProviderConfig)
+	envHookHTTPClient := custom.NewEnvHookHTTPClient(envSMSHookTimeout)
+	envSMSWebHook := custom.EnvSMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  envHookHTTPClient,
+	}
+	clientResolver := &sms.ClientResolver{
+		AuthgearYAMLSMSProvider:                    smsProvider,
+		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
+		AuthgearSecretsYAMLNexmoCredentials:        nexmoCredentials,
+		AuthgearSecretsYAMLTwilioCredentials:       twilioCredentials,
+		AuthgearSecretsYAMLCustomSMSProviderConfig: customSMSProviderConfig,
+		EnvironmentDefaultProvider:                 smsGatewayEnvironmentDefaultProvider,
+		EnvironmentDefaultUseConfigFrom:            smsGatewayEnvironmentDefaultUseConfigFrom,
+		EnvironmentNexmoCredentials:                smsGatewayEnvironmentNexmoCredentials,
+		EnvironmentTwilioCredentials:               smsGatewayEnvironmentTwilioCredentials,
+		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
+		SMSDenoHook:                                smsDenoHook,
+		SMSWebHook:                                 smsWebHook,
+		EnvSMSWebHook:                              envSMSWebHook,
+	}
+	smsSender := &sms.Sender{
+		ClientResolver: clientResolver,
+	}
+	messagingFeatureConfig := featureConfig.Messaging
+	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
+	testModeEmailConfig := testModeConfig.Email
+	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
+	testModeSMSConfig := testModeConfig.SMS
+	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	testModeWhatsappConfig := testModeConfig.Whatsapp
+	messagingSender := &messaging.Sender{
+		Limits:                            limits,
+		Events:                            eventService,
+		FraudProtection:                   fraudprotectionService,
+		MailSender:                        sender,
+		SMSSender:                         smsSender,
+		WhatsappSender:                    whatsappService,
+		Database:                          appdbHandle,
+		DevMode:                           devMode,
+		MessagingFeatureConfig:            messagingFeatureConfig,
+		FeatureTestModeEmailSuppressed:    featureTestModeEmailSuppressed,
+		TestModeEmailConfig:               testModeEmailConfig,
+		FeatureTestModeSMSSuppressed:      featureTestModeSMSSuppressed,
+		TestModeSMSConfig:                 testModeSMSConfig,
+		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
+		TestModeWhatsappConfig:            testModeWhatsappConfig,
+	}
+	forgotpasswordSender := &forgotpassword.Sender{
+		AppConfg:    appConfig,
+		Identities:  serviceService,
+		Sender:      messagingSender,
+		Translation: translationService,
+	}
+	stdattrsService := &stdattrs2.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &idpsession.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     storeRedis,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
+	}
+	redisStore := &redis.Store{
+		Redis:       handle,
+		AppID:       appID,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Redis: analyticredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           handle,
+		Store:           storeRedis,
+		AccessEvents:    eventProvider,
+		MeterService:    meterService,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	offlineGrantService := oauth.OfflineGrantService{
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		OAuthConfig:     oAuthConfig,
+		Clock:           clockClock,
+		IDPSessions:     idpsessionProvider,
+		ClientResolver:  oauthclientResolver,
+		AccessEvents:    eventProvider,
+		MeterService:    meterService,
+		OfflineGrants:   redisStore,
+	}
+	sessionManager := &oauth.SessionManager{
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	accountAnonymizationConfig := appConfig.AccountAnonymization
+	maxTrials := _wireMaxTrialsValue
+	passwordRand := password.NewRandSource()
+	generator := &password.Generator{
+		MaxTrials:      maxTrials,
+		Checker:        passwordChecker,
+		Rand:           passwordRand,
+		PasswordConfig: authenticatorPasswordConfig,
+	}
+	coordinator := &facade.Coordinator{
+		Events:                     eventService,
+		Identities:                 serviceService,
+		Authenticators:             service3,
+		Verification:               verificationService,
+		MFA:                        mfaService,
+		SendPassword:               forgotpasswordSender,
+		UserCommands:               userCommands,
+		UserQueries:                userQueries,
+		RolesGroupsCommands:        commands,
+		StdAttrsService:            stdattrsService,
+		PasswordHistory:            historyStore,
+		OAuth:                      authorizationStore,
+		IDPSessions:                idpsessionManager,
+		OAuthSessions:              sessionManager,
+		IdentityConfig:             identityConfig,
+		AccountDeletionConfig:      accountDeletionConfig,
+		AccountAnonymizationConfig: accountAnonymizationConfig,
+		AuthenticationConfig:       authenticationConfig,
+		Clock:                      clockClock,
+		PasswordGenerator:          generator,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
+	customattrsService := &customattrs.Service{
+		Config:         userProfileConfig,
+		ServiceNoEvent: customattrsServiceNoEvent,
+		Events:         eventService,
+	}
+	messageSender := &otp.MessageSender{
+		AppID:          appID,
+		Translation:    translationService,
+		Endpoints:      endpointsEndpoints,
+		Sender:         messagingSender,
+		CodeStore:      codeStoreRedis,
+		WhatsappConfig: whatsappConfig,
+	}
+	workflowVerificationFacade := facade.WorkflowVerificationFacade{
+		Verification: verificationService,
+	}
+	sender2 := forgotpassword.Sender{
+		AppConfg:    appConfig,
+		Identities:  serviceService,
+		Sender:      messagingSender,
+		Translation: translationService,
+	}
+	forgotpasswordService := &forgotpassword.Service{
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     serviceService,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
+		PasswordSender: sender2,
+		Events:         eventService,
+	}
+	accountMigrationConfig := appConfig.AccountMigration
+	accountMigrationHookConfig := accountMigrationConfig.Hook
+	accountmigrationHookDenoClient := accountmigration.NewHookDenoClient(denoEndpoint, accountMigrationHookConfig)
+	accountMigrationDenoHook := &accountmigration.AccountMigrationDenoHook{
+		DenoHook: denoHook,
+		Client:   accountmigrationHookDenoClient,
+	}
+	accountmigrationHookHTTPClient := accountmigration.NewHookHTTPClient(accountMigrationHookConfig, httpFeatureConfig)
+	accountMigrationWebHook := &accountmigration.AccountMigrationWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  accountmigrationHookHTTPClient,
+	}
+	accountmigrationService := &accountmigration.Service{
+		Config:   accountMigrationHookConfig,
+		DenoHook: accountMigrationDenoHook,
+		WebHook:  accountMigrationWebHook,
+	}
+	challengeStore := &challenge.Store{
+		Redis: handle,
+		AppID: appID,
+	}
+	challengeProvider := &challenge.Provider{
+		Store: challengeStore,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	captchaConfig := appConfig.Captcha
+	deprecated_CaptchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	captchaHTTPClient := captcha.NewHTTPClient()
+	cloudflareClient := captcha.NewCloudflareClient(deprecated_CaptchaCloudflareCredentials, captchaHTTPClient)
+	captchaProvider := &captcha2.Provider{
+		RemoteIP:         remoteIP,
+		Config:           captchaConfig,
+		CloudflareClient: cloudflareClient,
+	}
+	botProtectionConfig := appConfig.BotProtection
+	botProtectionProviderCredentials := deps.ProvideBotProtectionProvidersCredentials(secretConfig)
+	botprotectionCloudflareClient := botprotection.NewCloudflareClient(botProtectionProviderCredentials, environmentConfig)
+	recaptchaV2Client := botprotection.NewRecaptchaV2Client(botProtectionProviderCredentials, environmentConfig)
+	botprotectionProvider := &botprotection.Provider{
+		RemoteIP:          remoteIP,
+		Config:            botProtectionConfig,
+		CloudflareClient:  botprotectionCloudflareClient,
+		RecaptchaV2Client: recaptchaV2Client,
+		Events:            eventService,
+	}
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
+	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
+	simpleStoreRedisFactory := &sso.SimpleStoreRedisFactory{
+		AppID: appID,
+		Redis: handle,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthSSOProviderCredentials,
+		SSOOAuthDemoCredentials:      ssooAuthDemoCredentials,
+		Clock:                        clockClock,
+		StandardAttributesNormalizer: normalizer,
+		HTTPClient:                   oAuthHTTPClient,
+		SimpleStoreRedisFactory:      simpleStoreRedisFactory,
+	}
+	requestOptionsService := &passkey2.RequestOptionsService{
+		ConfigService:   configService,
+		IdentityService: serviceService,
+		Store:           store2,
+	}
+	creationOptionsService := &passkey2.CreationOptionsService{
+		ConfigService:   configService,
+		UserService:     userQueries,
+		IdentityService: serviceService,
+		Store:           store2,
+	}
+	externalJWTConfig := appConfig.ExternalJWT
+	cache := rootProvider.JWKCache
+	externaljwtService := &externaljwt.Service{
+		ExternalJWTConfig: externalJWTConfig,
+		JWKSCache:         cache,
+		Clock:             clockClock,
+	}
+	ldapConfig := identityConfig.LDAP
+	ldapServerUserCredentials := deps.ProvideLDAPServerUserCredentials(secretConfig)
+	clientFactory := &ldap2.ClientFactory{
+		Config:       ldapConfig,
+		SecretConfig: ldapServerUserCredentials,
+	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	userFacade := &facade.UserFacade{
+		UserProvider: userProvider,
+		Clock:        clockClock,
+		Coordinator:  coordinator,
+	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	facadeIdentityFacade := &facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	userBlockingEventContextProvider := &oauth.UserBlockingEventContextProvider{
+		Users:      userQueries,
+		Identities: facadeIdentityFacade,
+	}
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets:                   oAuthKeyMaterials,
+		BaseURL:                   endpointsEndpoints,
+		UserInfoService:           userInfoService,
+		Events:                    eventService,
+		UserBlockingEventContexts: userBlockingEventContextProvider,
+		Clock:                     clockClock,
+	}
+	dependencies := &authenticationflow.Dependencies{
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		RateLimitsEnvConfig:             rateLimitsEnvironmentConfig,
+		SSOOAuthDemoCredentials:         ssooAuthDemoCredentials,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		BotProtection:                   botprotectionProvider,
+		FraudProtection:                 fraudprotectionService,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		ExternalJWT:                     externaljwtService,
+		LoginIDs:                        provider,
+		LDAP:                            ldapProvider,
+		LDAPClientFactory:               clientFactory,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		UserFacade:                      userFacade,
+		Translations:                    translationService,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		OfflineGrants:                   redisStore,
+		IDTokens:                        idTokenIssuer,
+	}
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis: handle,
+		AppID: appID,
+	}
+	uiService := &authenticationinfo.UIService{
+		EndpointsProvider: endpointsEndpoints,
+	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	authenticationflowService := &authenticationflow.Service{
+		Deps:                dependencies,
+		Store:               authenticationflowStoreImpl,
+		Database:            appdbHandle,
+		UIConfig:            uiConfig,
+		UIInfoResolver:      uiService,
+		OAuthClientResolver: oauthclientResolver,
+		OAuthSessionStore:   oauthsessionStoreRedis,
+	}
+	samlsessionStoreRedis := &samlsession.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	promptResolver := &oauth.PromptResolver{
+		Clock: clockClock,
+	}
+	oauthOfflineGrantService := &oauth.OfflineGrantService{
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		OAuthConfig:     oAuthConfig,
+		Clock:           clockClock,
+		IDPSessions:     idpsessionProvider,
+		ClientResolver:  oauthclientResolver,
+		AccessEvents:    eventProvider,
+		MeterService:    meterService,
+		OfflineGrants:   redisStore,
+	}
+	idTokenHintResolver := &oidc.IDTokenHintResolver{
+		Issuer:              idTokenIssuer,
+		Sessions:            idpsessionProvider,
+		OfflineGrantService: oauthOfflineGrantService,
+	}
+	uiInfoResolver := &oidc.UIInfoResolver{
+		Config:              oAuthConfig,
+		EndpointsProvider:   endpointsEndpoints,
+		PromptResolver:      promptResolver,
+		IDTokenHintResolver: idTokenHintResolver,
+		Clock:               clockClock,
+		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
+	}
+	webappoauthStore := &webappoauth.Store{
+		Redis: globalredisHandle,
+	}
+	authflowV2Navigator := &authflowv2.AuthflowV2Navigator{
+		AppID:           appID,
+		Endpoints:       endpointsEndpoints,
+		OAuthStateStore: webappoauthStore,
+	}
+	errorTokenCookieDef := webapp2.NewErrorTokenCookieDef()
+	errorService := &webapp2.ErrorService{
+		AppID:       appID,
+		Cookie:      errorTokenCookieDef,
+		RedisHandle: handle,
+		Cookies:     cookieManager,
+	}
+	responseRenderer := &webapp.ResponseRenderer{
+		TemplateEngine: engine,
+	}
+	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	authUIWindowMessageAllowedOrigins := environmentConfig.AuthUIWindowMessageAllowedOrigins
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:                        trustProxy,
+		OAuth:                             oAuthConfig,
+		AuthUI:                            uiConfig,
+		AuthUIFeatureConfig:               uiFeatureConfig,
+		StaticAssets:                      staticAssetResolver,
+		ForgotPassword:                    forgotPasswordConfig,
+		Authentication:                    authenticationConfig,
+		GoogleTagManager:                  googleTagManagerConfig,
+		BotProtection:                     botProtectionConfig,
+		ErrorService:                      errorService,
+		Translations:                      translationService,
+		Clock:                             clockClock,
+		FlashMessage:                      flashMessage,
+		DefaultLanguageTag:                defaultLanguageTag,
+		SupportedLanguageTags:             supportedLanguageTags,
+		AuthUISentryDSN:                   authUISentryDSN,
+		AuthUIWindowMessageAllowedOrigins: authUIWindowMessageAllowedOrigins,
+		OAuthClientResolver:               oauthclientResolver,
+	}
+	errorRenderer := &webapp.ErrorRenderer{
+		ErrorService:            errorService,
+		UIImplementationService: uiImplementationService,
+		Renderer:                responseRenderer,
+		BaseViewModel:           baseViewModeler,
+		AuthflowV2Navigator:     authflowV2Navigator,
+	}
+	authflowController := &webapp.AuthflowController{
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
+		Clock:                   clockClock,
+		Cookies:                 cookieManager,
+		Sessions:                sessionStoreRedis,
+		SessionCookie:           sessionCookieDef,
+		SignedUpCookie:          signedUpCookieDef,
+		Endpoints:               endpointsEndpoints,
+		Authflows:               authenticationflowService,
+		OAuthSessions:           oauthsessionStoreRedis,
+		SAMLSessions:            samlsessionStoreRedis,
+		UIInfoResolver:          uiInfoResolver,
+		UIConfig:                uiConfig,
+		OAuthClientResolver:     oauthclientResolver,
+		Navigator:               authflowV2Navigator,
+		ErrorRenderer:           errorRenderer,
+	}
+	authflowV2FillFormHandler := &authflowv2.AuthflowV2FillFormHandler{
+		Controller:    authflowController,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+	}
+	return authflowV2FillFormHandler
 }
 
 func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
@@ -75740,6 +76987,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -76974,6 +78222,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -78209,6 +79458,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -79438,6 +80688,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -80671,6 +81922,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -81900,6 +83152,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -83129,6 +84382,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -84358,6 +85612,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -85587,6 +86842,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -86823,6 +88079,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -88054,6 +89311,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -89284,6 +90542,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -90662,6 +91921,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		SessionCookie:                   cookieDef2,
 		MFADeviceTokenCookie:            cookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -91835,6 +93095,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -93624,6 +94885,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -94853,6 +96115,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -96082,6 +97345,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -97451,6 +98715,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
@@ -98682,6 +99947,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
 		UserFacade:                      userFacade,
+		Translations:                    translationService,
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
