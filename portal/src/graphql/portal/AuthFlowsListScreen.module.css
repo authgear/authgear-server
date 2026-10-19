@@ -12,6 +12,13 @@
   gap: 8px;
 }
 
+.titleRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .sections {
   display: flex;
   flex-direction: column;
