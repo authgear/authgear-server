@@ -44,11 +44,10 @@ function bundles(
   hasMember: (type: FlowType) => boolean
 ): boolean {
   const options = (flow.steps ?? []).flatMap((s) => s.one_of ?? []);
-  const handoffs = options.filter(
-    (o) => o.login_flow != null || o.signup_flow != null
-  );
+  // Both hand-offs, so the bundle really owns a signup and a login flow.
   return (
-    handoffs.length > 0 &&
+    options.some((o) => o.login_flow != null) &&
+    options.some((o) => o.signup_flow != null) &&
     options.every(
       (o) =>
         (o.login_flow == null || o.login_flow === flow.name) &&

@@ -25,7 +25,7 @@ import {
 } from "../../hook/useAppConfigForm";
 import { AuthenticationFlowsConfig, PortalAPIAppConfig } from "../../types";
 import { useAuthFlowsScreenQueryQuery } from "./query/authFlowsScreenQuery";
-import { flowPath, resolveFlow } from "./authflows/model";
+import { DEFAULT_FLOW_NAME, flowPath, resolveFlow } from "./authflows/model";
 import { flowTypeMessageIDs } from "./authflows/labels";
 import {
   FlowRow,
@@ -38,6 +38,7 @@ import {
   applyFlowAction,
   copyAs,
   deleteBlockers,
+  nameError,
 } from "./authflows/list/actions";
 import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
 import { NewFlowDialog } from "./authflows/list/NewFlowDialog";
@@ -307,7 +308,13 @@ function ListContent({
         title={<FormattedMessage id="AuthFlowsScreen.list.set-default.title" />}
         description={
           <FormattedMessage
-            id="AuthFlowsScreen.list.set-default.description"
+            id={
+              pending != null &&
+              nameError(flows, typesOf(pending.row), DEFAULT_FLOW_NAME, true) ==
+                null
+                ? "AuthFlowsScreen.list.set-default.description.generated"
+                : "AuthFlowsScreen.list.set-default.description"
+            }
             values={{ name: pending?.row.name ?? "" }}
           />
         }

@@ -169,3 +169,40 @@ describe("freeName", () => {
     expect(freeName(f, ["login"], "login")).toEqual("login_2");
   });
 });
+
+describe("references to generated flows", () => {
+  it("leaves a hand-off to a generated default alone when another flow takes its name", () => {
+    const f: AuthenticationFlowsConfig = {
+      signup_login_flows: [handoff("other", "default")],
+      login_flows: [{ name: "staff", steps: [] }],
+    };
+    const next = applyFlowAction(f, {
+      kind: "set_default",
+      type: "login",
+      name: "staff",
+      bundle: false,
+    });
+    expect(next.signup_login_flows?.[0].steps?.[0].one_of?.[0]).toMatchObject({
+      login_flow: "default",
+      signup_flow: "default",
+    });
+  });
+
+  it("does not point a hand-off at a name no flow was renamed to", () => {
+    const f: AuthenticationFlowsConfig = {
+      signup_login_flows: [handoff("default", "default")],
+      login_flows: [{ name: "default", steps: [] }],
+    };
+    const next = applyFlowAction(f, {
+      kind: "rename",
+      type: "signup_login",
+      name: "default",
+      newName: "members",
+      bundle: true,
+    });
+    expect(next.signup_login_flows?.[0].steps?.[0].one_of?.[0]).toMatchObject({
+      login_flow: "members",
+      signup_flow: "default",
+    });
+  });
+});

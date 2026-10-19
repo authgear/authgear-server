@@ -115,3 +115,24 @@ describe("flowSections", () => {
     expect(keys).toEqual(["signup_login", "signup", "login"]);
   });
 });
+
+describe("isBundle needs both hand-offs", () => {
+  it("is false for a signup_login flow that only hands off to login", () => {
+    const custom: AuthenticationFlowsConfig = {
+      signup_login_flows: [
+        {
+          name: "x",
+          steps: [
+            {
+              type: "identify",
+              one_of: [{ identification: "passkey", login_flow: "x" }],
+            },
+          ],
+        },
+      ],
+      signup_flows: [{ name: "x", steps: [] }],
+      login_flows: [{ name: "x", steps: [] }],
+    };
+    expect(isBundle(custom, "x")).toEqual(false);
+  });
+});

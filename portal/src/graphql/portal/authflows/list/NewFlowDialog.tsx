@@ -23,6 +23,7 @@ import {
   StarterID,
   projectMethods,
   scratchFlows,
+  scratchMissing,
   starterFlows,
   starterMissing,
   stepSummary,
@@ -99,7 +100,9 @@ export function NewFlowDialog({
   const methods = useMemo(() => projectMethods(config), [config]);
   const [step, setStep] = useState<Step>("type");
   const [type, setType] = useState<CreatableType>("signup_login");
-  const [start, setStart] = useState<Start>("scratch");
+  const [start, setStart] = useState<Start>(
+    scratchMissing(methods) ? "template" : "scratch"
+  );
   const [starter, setStarter] = useState<StarterID>("current");
   const [name, setName] = useState("");
 
@@ -136,8 +139,11 @@ export function NewFlowDialog({
   ).map((s) => ({
     value: s,
     title: renderToString(startMessageIDs[s]),
-    subtitle: renderToString(startDescriptionMessageIDs[s]),
-    disabled: s === "import",
+    subtitle:
+      s === "scratch" && scratchMissing(methods)
+        ? renderToString("AuthFlowsScreen.new.start.scratch.missing")
+        : renderToString(startDescriptionMessageIDs[s]),
+    disabled: s === "import" || (s === "scratch" && scratchMissing(methods)),
   }));
   // The flow a template card summarises: the login flow for Login, else the
   // signup flow.
