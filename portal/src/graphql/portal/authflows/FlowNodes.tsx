@@ -6,7 +6,7 @@ import { Callout } from "../../../components/v2/Callout/Callout";
 import { FlowStepItem } from "./tree";
 import { ChoiceBox } from "./layout";
 import { FlowRef, NEXT_HANDLE_ID, optionHandleID } from "./graph";
-import { flowSelectionSearch, resolveFlow } from "./model";
+import { resolveFlow } from "./model";
 import Link from "../../../Link";
 import {
   IfNeededMessageIDs,
@@ -382,7 +382,7 @@ const flowRefTitleMessageIDs: Record<FlowRef["type"], string> = {
 // A flow this one hands off to. Opening it switches the canvas to that flow.
 function FlowRefNode({ data }: NodeProps<FlowNode>): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const { custom, generated } = useFlowSketchContext();
+  const { custom, generated, flowLink } = useFlowSketchContext();
   const ref = data.flowRef;
   if (ref == null) {
     throw new Error("flow node rendered without a flow");
@@ -397,7 +397,7 @@ function FlowRefNode({ data }: NodeProps<FlowNode>): React.ReactElement {
       <span className={styles.stepName}>{ref.name}</span>
       {exists ? (
         <Link
-          to={{ search: flowSelectionSearch(ref) }}
+          to={flowLink(ref)}
           className={cn(styles.flowRefOpen, "nodrag", "nopan")}
           onClick={(e) => e.stopPropagation()}
         >

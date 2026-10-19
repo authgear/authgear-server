@@ -137,6 +137,19 @@ export function flowSelectionSearch(selection: FlowSelection): string {
   }).toString()}`;
 }
 
+// The editor's URL for a flow, or for a bundle when type is signup_login.
+export function flowPath(appID: string, type: FlowType, name: string): string {
+  return `/project/${encodeURIComponent(
+    appID
+  )}/configuration/authentication/flows/${type}/${encodeURIComponent(name)}`;
+}
+
+export function flowListPath(appID: string): string {
+  return `/project/${encodeURIComponent(
+    appID
+  )}/configuration/authentication/flows`;
+}
+
 export interface AccountRecoveryDestination {
   channel: string;
   otp_form: string;

@@ -9,15 +9,16 @@ import { ValidationFailedErrorInfoCause } from "../../../../error/validation";
 import { FlowType, flowListKey } from "../model";
 import { isWithin } from "./pointer";
 
-// The draft being edited; null while only viewing.
+// One flow being edited.
 export interface EditorDraft {
   type: FlowType;
   name: string;
   flow: AuthenticationFlowConfig;
 }
 
+// The flows being edited: one, or a bundle's three. Empty while viewing.
 export interface EditorState {
-  draft: EditorDraft | null;
+  drafts: EditorDraft[];
 }
 
 function flowList(
@@ -55,6 +56,14 @@ export function replaceFlow(
       list.push(flow);
     }
   });
+}
+
+// raw with every draft written in, as replaceFlow does for one.
+export function replaceFlows(
+  raw: PortalAPIAppConfig,
+  drafts: EditorDraft[]
+): PortalAPIAppConfig {
+  return drafts.reduce((r, d) => replaceFlow(r, d.type, d.name, d.flow), raw);
 }
 
 // Where the flow is, or will be once appended, in the config: the prefix of
