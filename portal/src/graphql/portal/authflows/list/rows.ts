@@ -11,17 +11,6 @@ export const CREATABLE_TYPES: readonly CreatableType[] = [
   "login",
 ];
 
-const BUNDLE_TYPES: readonly FlowType[] = ["signup_login", "signup", "login"];
-export function bundleTypes(): readonly FlowType[] {
-  return BUNDLE_TYPES;
-}
-
-const OTHER_TYPES: readonly FlowType[] = [
-  "promote",
-  "reauth",
-  "account_recovery",
-];
-
 function flowsOf(
   config: AuthenticationFlowsConfig | undefined,
   type: FlowType
@@ -29,103 +18,65 @@ function flowsOf(
   return config?.[flowListKey(type)] ?? [];
 }
 
-function has(
-  config: AuthenticationFlowsConfig | undefined,
-  type: FlowType,
-  name: string
-): boolean {
-  return flowsOf(config, type).some((f) => f.name === name);
-}
-
-// Whether the signup_login flow `name` only hands off to the signup and
-// login flows of the same name, and both exist.
-function bundles(
-  flow: AuthenticationFlowConfig,
-  hasMember: (type: FlowType) => boolean
-): boolean {
-  const options = (flow.steps ?? []).flatMap((s) => s.one_of ?? []);
-  // Both hand-offs, so the bundle really owns a signup and a login flow.
-  return (
-    options.some((o) => o.login_flow != null) &&
-    options.some((o) => o.signup_flow != null) &&
-    options.every(
-      (o) =>
-        (o.login_flow == null || o.login_flow === flow.name) &&
-        (o.signup_flow == null || o.signup_flow === flow.name)
-    ) &&
-    hasMember("signup") &&
-    hasMember("login")
-  );
-}
-
-export function isBundle(
-  custom: AuthenticationFlowsConfig | undefined,
-  name: string,
-  generated?: AuthenticationFlowsConfig
-): boolean {
-  const lookup = (type: FlowType) =>
-    flowsOf(custom, type).find((f) => f.name === name) ??
-    (name === DEFAULT_FLOW_NAME
-      ? flowsOf(generated, type).find((f) => f.name === name)
-      : undefined);
-  const flow = lookup("signup_login");
-  return flow != null && bundles(flow, (t) => lookup(t) != null);
-}
-
 export interface FlowRow {
   type: FlowType;
   name: string;
+  // Named default: the flow AuthUI runs when the app names none.
+  isDefault: boolean;
+  // Generated from Login methods: the type has no custom default.
   generated: boolean;
-  inUse: boolean;
-  bundle: boolean;
-  partOf: string | null;
 }
 
-export type SectionKey = "signup_login" | "signup" | "login" | "other";
+// Only the creatable types are listed for now; other flows stay in
+// authgear.yaml, untouched.
+export type SectionKey = CreatableType;
 
 export interface FlowSection {
   key: SectionKey;
   rows: FlowRow[];
 }
 
+// A type with no custom default runs the generated one. default comes first.
 function rowsOf(
   custom: AuthenticationFlowsConfig | undefined,
   generated: AuthenticationFlowsConfig,
   type: FlowType
 ): FlowRow[] {
-  const names: { name: string; generated: boolean }[] = [];
+  const customs = flowsOf(custom, type);
+  const rows: FlowRow[] = [];
   if (
-    !has(custom, type, DEFAULT_FLOW_NAME) &&
-    has(generated, type, DEFAULT_FLOW_NAME)
+    !customs.some((f) => f.name === DEFAULT_FLOW_NAME) &&
+    flowsOf(generated, type).some((f) => f.name === DEFAULT_FLOW_NAME)
   ) {
-    names.push({ name: DEFAULT_FLOW_NAME, generated: true });
+    rows.push({
+      type,
+      name: DEFAULT_FLOW_NAME,
+      isDefault: true,
+      generated: true,
+    });
   }
-  for (const f of flowsOf(custom, type)) {
-    names.push({ name: f.name, generated: false });
-  }
-  return names.map(({ name, generated: g }) => {
-    const bundled = isBundle(custom, name, generated);
-    return {
+  for (const { name } of customs) {
+    rows.push({
       type,
       name,
-      generated: g,
-      inUse: name === DEFAULT_FLOW_NAME,
-      bundle: type === "signup_login" && bundled,
-      partOf: (type === "signup" || type === "login") && bundled ? name : null,
-    };
-  });
+      isDefault: name === DEFAULT_FLOW_NAME,
+      generated: false,
+    });
+  }
+  // default leads its section, wherever authgear.yaml has it.
+  return [
+    ...rows.filter((r) => r.isDefault),
+    ...rows.filter((r) => !r.isDefault),
+  ];
 }
 
+// Sections with no flows are left out.
 export function flowSections(
   custom: AuthenticationFlowsConfig | undefined,
   generated: AuthenticationFlowsConfig
 ): FlowSection[] {
-  const sections: FlowSection[] = (
-    ["signup_login", "signup", "login"] as const
-  ).map((key) => ({ key, rows: rowsOf(custom, generated, key) }));
-  const other = OTHER_TYPES.flatMap((t) => rowsOf(custom, generated, t));
-  if (other.length > 0) {
-    sections.push({ key: "other", rows: other });
-  }
-  return sections;
+  return CREATABLE_TYPES.map((key) => ({
+    key,
+    rows: rowsOf(custom, generated, key),
+  })).filter((s) => s.rows.length > 0);
 }

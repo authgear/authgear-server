@@ -1,3 +1,11 @@
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+}
+
 .note {
   margin-top: 8px;
 }

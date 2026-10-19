@@ -1,67 +1,27 @@
 import { describe, it, expect } from "@jest/globals";
 import { AuthenticationFlowsConfig } from "../../../../types";
-import { flowSections, isBundle } from "./rows";
+import { flowSections } from "./rows";
 
 const generated: AuthenticationFlowsConfig = {
-  signup_login_flows: [
-    {
-      name: "default",
-      steps: [
-        {
-          type: "identify",
-          one_of: [
-            {
-              identification: "email",
-              login_flow: "default",
-              signup_flow: "default",
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  signup_flows: [{ name: "default", steps: [{ type: "identify" }] }],
-  login_flows: [{ name: "default", steps: [{ type: "identify" }] }],
-  account_recovery_flows: [{ name: "default", steps: [{ type: "identify" }] }],
+  signup_login_flows: [{ name: "default", steps: [] }],
+  signup_flows: [{ name: "default", steps: [] }],
+  login_flows: [{ name: "default", steps: [] }],
+  account_recovery_flows: [{ name: "default", steps: [] }],
 };
 
-const handoff = (name: string, login: string, signup: string) => ({
-  name,
-  steps: [
-    {
-      type: "identify",
-      one_of: [
-        { identification: "email", login_flow: login, signup_flow: signup },
-        { identification: "passkey", login_flow: login },
-      ],
-    },
-  ],
-});
+const names = (custom: AuthenticationFlowsConfig | undefined) =>
+  flowSections(custom, generated).map((s) => [
+    s.key,
+    s.rows.map((r) => `${r.name}${r.generated ? " (generated)" : ""}`),
+  ]);
 
 describe("flowSections", () => {
-  it("lists the generated defaults when there are no custom flows", () => {
-    const sections = flowSections(undefined, generated);
-    expect(sections.map((s) => s.key)).toEqual([
-      "signup_login",
-      "signup",
-      "login",
-      "other",
+  it("lists the generated defaults of the three creatable types only", () => {
+    expect(names(undefined)).toEqual([
+      ["signup_login", ["default (generated)"]],
+      ["signup", ["default (generated)"]],
+      ["login", ["default (generated)"]],
     ]);
-    expect(sections[0].rows).toEqual([
-      {
-        type: "signup_login",
-        name: "default",
-        generated: true,
-        inUse: true,
-        bundle: true,
-        partOf: null,
-      },
-    ]);
-    expect(sections[1].rows[0]).toMatchObject({
-      generated: true,
-      partOf: "default",
-    });
-    expect(sections[3].rows.map((r) => r.type)).toEqual(["account_recovery"]);
   });
 
   it("puts a custom default in place of the generated one", () => {
@@ -71,68 +31,37 @@ describe("flowSections", () => {
         { name: "staff", steps: [] },
       ],
     };
-    const login = flowSections(custom, generated)[2].rows;
-    expect(login.map((r) => [r.name, r.generated, r.inUse])).toEqual([
-      ["default", false, true],
-      ["staff", false, false],
+    expect(names(custom)[2]).toEqual(["login", ["default", "staff"]]);
+  });
+
+  it("lists custom flows after the generated default of their type", () => {
+    const custom: AuthenticationFlowsConfig = {
+      signup_flows: [{ name: "members", steps: [] }],
+    };
+    expect(names(custom)[1]).toEqual([
+      "signup",
+      ["default (generated)", "members"],
     ]);
   });
 
-  it("bundles a signup_login flow with same-named signup and login flows", () => {
+  it("puts default first, even when written after other flows", () => {
     const custom: AuthenticationFlowsConfig = {
-      signup_login_flows: [handoff("members", "members", "members")],
-      signup_flows: [{ name: "members", steps: [] }],
-      login_flows: [{ name: "members", steps: [] }],
-    };
-    const [sl, signup, login] = flowSections(custom, generated);
-    expect(sl.rows.find((r) => r.name === "members")).toMatchObject({
-      bundle: true,
-    });
-    expect(signup.rows.find((r) => r.name === "members")?.partOf).toEqual(
-      "members"
-    );
-    expect(login.rows.find((r) => r.name === "members")?.partOf).toEqual(
-      "members"
-    );
-  });
-
-  it("does not bundle a signup_login flow that hands off to other names", () => {
-    const custom: AuthenticationFlowsConfig = {
-      signup_login_flows: [handoff("members", "default", "members")],
-      signup_flows: [{ name: "members", steps: [] }],
-      login_flows: [{ name: "members", steps: [] }],
-    };
-    expect(isBundle(custom, "members")).toEqual(false);
-    const signup = flowSections(custom, generated)[1];
-    expect(signup.rows.find((r) => r.name === "members")?.partOf).toEqual(null);
-  });
-
-  it("omits Other when the project has none", () => {
-    const keys = flowSections(undefined, {
-      ...generated,
-      account_recovery_flows: [],
-    }).map((s) => s.key);
-    expect(keys).toEqual(["signup_login", "signup", "login"]);
-  });
-});
-
-describe("isBundle needs both hand-offs", () => {
-  it("is false for a signup_login flow that only hands off to login", () => {
-    const custom: AuthenticationFlowsConfig = {
-      signup_login_flows: [
-        {
-          name: "x",
-          steps: [
-            {
-              type: "identify",
-              one_of: [{ identification: "passkey", login_flow: "x" }],
-            },
-          ],
-        },
+      login_flows: [
+        { name: "staff", steps: [] },
+        { name: "default", steps: [] },
       ],
-      signup_flows: [{ name: "x", steps: [] }],
-      login_flows: [{ name: "x", steps: [] }],
     };
-    expect(isBundle(custom, "x")).toEqual(false);
+    expect(names(custom)[2]).toEqual(["login", ["default", "staff"]]);
+  });
+
+  it("marks the flow named default", () => {
+    const rows = flowSections(
+      { login_flows: [{ name: "staff", steps: [] }] },
+      generated
+    )[2].rows;
+    expect(rows.map((r) => [r.name, r.isDefault])).toEqual([
+      ["default", true],
+      ["staff", false],
+    ]);
   });
 });

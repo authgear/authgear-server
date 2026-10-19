@@ -2,7 +2,6 @@ import { describe, it, expect } from "@jest/globals";
 import { AuthenticationFlowsConfig } from "../../../../types";
 import {
   applyFlowAction,
-  copyAs,
   deleteBlockers,
   freeName,
   nameError,
@@ -19,190 +18,110 @@ const handoff = (name: string, to: string) => ({
 });
 
 const flows: AuthenticationFlowsConfig = {
-  signup_login_flows: [
-    handoff("default", "default"),
-    handoff("members", "members"),
-  ],
-  signup_flows: [
-    { name: "default", steps: [] },
-    { name: "members", steps: [] },
-  ],
+  signup_login_flows: [handoff("default", "default")],
+  signup_flows: [{ name: "default", steps: [] }],
   login_flows: [
     { name: "default", steps: [] },
-    { name: "members", steps: [] },
+    { name: "staff", steps: [] },
   ],
 };
 
-const names = (
-  f: AuthenticationFlowsConfig,
-  key: keyof AuthenticationFlowsConfig
-) => (f[key] ?? []).map((x) => x.name);
-const targets = (f: AuthenticationFlowsConfig) =>
-  (f.signup_login_flows ?? []).map((x) => [
-    x.name,
-    x.steps?.[0].one_of?.[0].login_flow,
-  ]);
-
-describe("set_default", () => {
-  it("swaps a bundle's three flows with the defaults and their hand-offs", () => {
-    const next = applyFlowAction(flows, {
-      kind: "set_default",
-      type: "signup_login",
-      name: "members",
-      bundle: true,
-    });
-    expect(names(next, "signup_flows")).toEqual(["members", "default"]);
-    expect(targets(next)).toEqual([
-      ["members", "members"],
-      ["default", "default"],
-    ]);
-  });
-
-  it("makes a flow default when only the generated one existed", () => {
-    const next = applyFlowAction(
-      { login_flows: [{ name: "staff", steps: [] }] },
-      {
-        kind: "set_default",
-        type: "login",
-        name: "staff",
-        bundle: false,
-      }
-    );
-    expect(names(next, "login_flows")).toEqual(["default"]);
-  });
-
-  it("rewrites hand-offs in other signup_login flows that named either flow", () => {
-    const f: AuthenticationFlowsConfig = {
-      signup_login_flows: [handoff("other", "default")],
-      login_flows: [
-        { name: "default", steps: [] },
-        { name: "staff", steps: [] },
-      ],
-      signup_flows: [{ name: "default", steps: [] }],
-    };
-    const next = applyFlowAction(f, {
-      kind: "set_default",
-      type: "login",
-      name: "staff",
-      bundle: false,
-    });
-    expect(next.signup_login_flows?.[0].steps?.[0].one_of?.[0]).toMatchObject({
-      login_flow: "staff",
-      signup_flow: "default",
-    });
-  });
-});
+const options = (f: AuthenticationFlowsConfig) =>
+  f.signup_login_flows?.[0].steps?.[0].one_of?.[0];
 
 describe("rename", () => {
-  it("renames a bundle and its hand-offs", () => {
+  it("renames one flow, and the hand-offs that named it follow", () => {
     const next = applyFlowAction(flows, {
       kind: "rename",
-      type: "signup_login",
-      name: "members",
-      newName: "staff",
-      bundle: true,
-    });
-    expect(names(next, "login_flows")).toEqual(["default", "staff"]);
-    expect(targets(next)[1]).toEqual(["staff", "staff"]);
-  });
-});
-
-describe("add and copyAs", () => {
-  it("copies a bundle under a new name with its hand-offs", () => {
-    const copies = copyAs(
-      [
-        { type: "signup_login", flow: flows.signup_login_flows![1] },
-        { type: "signup", flow: flows.signup_flows![1] },
-        { type: "login", flow: flows.login_flows![1] },
-      ],
-      "members_2"
-    );
-    const next = applyFlowAction(flows, { kind: "add", flows: copies });
-    expect(names(next, "signup_flows")).toEqual([
-      "default",
-      "members",
-      "members_2",
-    ]);
-    expect(targets(next)[2]).toEqual(["members_2", "members_2"]);
-  });
-});
-
-describe("delete", () => {
-  it("deletes a bundle's three flows", () => {
-    const next = applyFlowAction(flows, {
-      kind: "delete",
-      type: "signup_login",
-      name: "members",
-      bundle: true,
-    });
-    expect(names(next, "login_flows")).toEqual(["default"]);
-  });
-
-  it("blocks deleting a login flow a signup_login flow still names", () => {
-    expect(deleteBlockers(flows, "login", "members", false)).toEqual([
-      "members",
-    ]);
-    expect(deleteBlockers(flows, "signup_login", "members", true)).toEqual([]);
-  });
-});
-
-describe("nameError", () => {
-  it("checks the pattern, clashes across a bundle's types, and default", () => {
-    const all = ["signup_login", "signup", "login"] as const;
-    expect(nameError(flows, all, "2fa", false)).toEqual("invalid");
-    expect(nameError(flows, all, "members", false)).toEqual("taken");
-    expect(nameError(flows, all, "default", false)).toEqual("taken");
-    expect(nameError({}, ["login"], "default", false)).toEqual("reserved");
-    expect(nameError({}, ["login"], "default", true)).toEqual(null);
-    expect(nameError(flows, all, "staff", false)).toEqual(null);
-  });
-});
-
-describe("freeName", () => {
-  it("numbers from 2 past the names taken in any of the types", () => {
-    const f: AuthenticationFlowsConfig = {
-      signup_flows: [{ name: "signup_login_2", steps: [] }],
-    };
-    expect(
-      freeName(f, ["signup_login", "signup", "login"], "signup_login")
-    ).toEqual("signup_login_3");
-    expect(freeName(f, ["login"], "login")).toEqual("login_2");
-  });
-});
-
-describe("references to generated flows", () => {
-  it("leaves a hand-off to a generated default alone when another flow takes its name", () => {
-    const f: AuthenticationFlowsConfig = {
-      signup_login_flows: [handoff("other", "default")],
-      login_flows: [{ name: "staff", steps: [] }],
-    };
-    const next = applyFlowAction(f, {
-      kind: "set_default",
       type: "login",
-      name: "staff",
-      bundle: false,
+      name: "default",
+      newName: "members",
     });
-    expect(next.signup_login_flows?.[0].steps?.[0].one_of?.[0]).toMatchObject({
-      login_flow: "default",
+    expect(next.login_flows?.map((f) => f.name)).toEqual(["members", "staff"]);
+    expect(options(next)).toMatchObject({
+      login_flow: "members",
       signup_flow: "default",
     });
   });
 
-  it("does not point a hand-off at a name no flow was renamed to", () => {
-    const f: AuthenticationFlowsConfig = {
-      signup_login_flows: [handoff("default", "default")],
-      login_flows: [{ name: "default", steps: [] }],
-    };
-    const next = applyFlowAction(f, {
+  it("leaves hand-offs alone when renaming a signup_login flow", () => {
+    const next = applyFlowAction(flows, {
       kind: "rename",
       type: "signup_login",
       name: "default",
       newName: "members",
-      bundle: true,
     });
-    expect(next.signup_login_flows?.[0].steps?.[0].one_of?.[0]).toMatchObject({
-      login_flow: "members",
+    expect(next.signup_login_flows?.[0].name).toEqual("members");
+    expect(options(next)).toMatchObject({
+      login_flow: "default",
       signup_flow: "default",
     });
+  });
+});
+
+describe("add", () => {
+  it("appends the flow to its type", () => {
+    const next = applyFlowAction(flows, {
+      kind: "add",
+      type: "login",
+      flow: { name: "staff_2", steps: [] },
+    });
+    expect(next.login_flows?.map((f) => f.name)).toEqual([
+      "default",
+      "staff",
+      "staff_2",
+    ]);
+  });
+});
+
+describe("delete", () => {
+  it("deletes one flow", () => {
+    const next = applyFlowAction(flows, {
+      kind: "delete",
+      type: "login",
+      name: "staff",
+    });
+    expect(next.login_flows?.map((f) => f.name)).toEqual(["default"]);
+  });
+
+  it("drops a type's list when its last flow goes: the schema wants none or some", () => {
+    const next = applyFlowAction(
+      { signup_login_flows: [handoff("x", "default")] },
+      { kind: "delete", type: "signup_login", name: "x" }
+    );
+    expect(next).toEqual({});
+  });
+
+  it("never blocks resetting a default flow: the generated one takes its place", () => {
+    expect(deleteBlockers(flows, "login", "default")).toEqual([]);
+  });
+
+  it("blocks deleting a flow a signup_login flow still hands off to", () => {
+    const f: AuthenticationFlowsConfig = {
+      signup_login_flows: [handoff("default", "staff")],
+      login_flows: [{ name: "staff", steps: [] }],
+    };
+    expect(deleteBlockers(f, "login", "staff")).toEqual(["default"]);
+    expect(deleteBlockers(flows, "login", "staff")).toEqual([]);
+    expect(deleteBlockers(flows, "signup_login", "default")).toEqual([]);
+  });
+});
+
+describe("nameError", () => {
+  it("checks the pattern, clashes within the type, and the reserved default", () => {
+    expect(nameError(flows, "login", "2fa")).toEqual("invalid");
+    expect(nameError(flows, "login", "staff")).toEqual("taken");
+    expect(nameError(flows, "signup", "staff")).toEqual(null);
+    expect(nameError({}, "login", "default")).toEqual("reserved");
+  });
+});
+
+describe("freeName", () => {
+  it("numbers from 2 past the names the type has", () => {
+    const f: AuthenticationFlowsConfig = {
+      login_flows: [{ name: "login_2", steps: [] }],
+    };
+    expect(freeName(f, "login", "login")).toEqual("login_3");
+    expect(freeName(f, "signup", "signup")).toEqual("signup_2");
   });
 });

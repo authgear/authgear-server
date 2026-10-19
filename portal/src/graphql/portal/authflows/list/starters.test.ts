@@ -63,22 +63,36 @@ describe("projectMethods", () => {
 });
 
 describe("scratchFlows", () => {
-  it("builds a bundle handing off to its own signup and login flows", () => {
+  it("builds one signup_login flow handing off to the default flows", () => {
     const out = scratchFlows("signup_login", "members", projectMethods(config));
-    expect(out.map((f) => [f.type, f.flow.name])).toEqual([
-      ["signup_login", "members"],
-      ["signup", "members"],
-      ["login", "members"],
+    expect(out).toEqual([
+      {
+        type: "signup_login",
+        flow: {
+          name: "members",
+          steps: [
+            {
+              type: "identify",
+              one_of: [
+                {
+                  identification: "email",
+                  login_flow: "default",
+                  signup_flow: "default",
+                },
+              ],
+            },
+          ],
+        },
+      },
     ]);
-    expect(out[0].flow.steps?.[0].one_of?.[0]).toEqual({
-      identification: "email",
-      login_flow: "members",
-      signup_flow: "members",
-    });
-    expect(out[2].flow.steps?.map((s) => s.type)).toEqual([
-      "identify",
-      "authenticate",
-    ]);
+  });
+
+  it("builds a login flow that identifies then authenticates", () => {
+    expect(
+      scratchFlows("login", "x", projectMethods(config))[0].flow.steps?.map(
+        (s) => s.type
+      )
+    ).toEqual(["identify", "authenticate"]);
   });
 });
 
@@ -95,11 +109,14 @@ describe("starterMissing", () => {
 });
 
 describe("starterFlows", () => {
-  it("copies the generated flows under the new name", () => {
+  it("copies the generated flow under the new name, hand-offs unchanged", () => {
     const out = starterFlows("current", "signup_login", "members", generated);
+    expect(out.map((f) => [f.type, f.flow.name])).toEqual([
+      ["signup_login", "members"],
+    ]);
     expect(out[0].flow.steps?.[0].one_of?.[0]).toMatchObject({
-      login_flow: "members",
-      signup_flow: "members",
+      login_flow: "default",
+      signup_flow: "default",
     });
   });
 

@@ -21,12 +21,6 @@
   font-size: var(--font-size-2);
 }
 
-/* A bundle's three flows. */
-.parts {
-  align-self: flex-start;
-  margin-top: 8px;
-}
-
 .canvasArea {
   position: relative;
   display: flex;

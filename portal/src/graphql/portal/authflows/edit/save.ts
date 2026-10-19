@@ -19,6 +19,8 @@ export interface EditorDraft {
 // The flows being edited: one, or a bundle's three. Empty while viewing.
 export interface EditorState {
   drafts: EditorDraft[];
+  // Flows to remove on save: an edited default reset to the generated one.
+  removals: { type: FlowType; name: string }[];
 }
 
 function flowList(
@@ -64,6 +66,29 @@ export function replaceFlows(
   drafts: EditorDraft[]
 ): PortalAPIAppConfig {
   return drafts.reduce((r, d) => replaceFlow(r, d.type, d.name, d.flow), raw);
+}
+
+// raw without the named flows; removing a default flow resets it to the
+// generated one.
+export function removeFlows(
+  raw: PortalAPIAppConfig,
+  removals: { type: FlowType; name: string }[]
+): PortalAPIAppConfig {
+  return produce(raw, (d) => {
+    for (const { type, name } of removals) {
+      const key = flowListKey(type);
+      const list = d.authentication_flow?.[key];
+      if (d.authentication_flow != null && list != null) {
+        const rest = list.filter((f) => f.name !== name);
+        // A flow list must have at least one flow, or be absent.
+        if (rest.length > 0) {
+          d.authentication_flow[key] = rest;
+        } else {
+          delete d.authentication_flow[key];
+        }
+      }
+    }
+  });
 }
 
 // Where the flow is, or will be once appended, in the config: the prefix of

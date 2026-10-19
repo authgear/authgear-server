@@ -17,8 +17,8 @@ export interface FlowNameDialogProps {
   open: boolean;
   title: string;
   confirmText: string;
-  // The types the name must be free in: one, or a bundle's three.
-  types: readonly FlowType[];
+  // The type the name must be free in.
+  type: FlowType;
   initialName: string;
   flows: AuthenticationFlowsConfig | undefined;
   onSubmit: (name: string) => void;
@@ -31,7 +31,7 @@ export function FlowNameDialog({
   open,
   title,
   confirmText,
-  types,
+  type,
   initialName,
   flows,
   onSubmit,
@@ -39,7 +39,7 @@ export function FlowNameDialog({
 }: FlowNameDialogProps): React.ReactElement {
   const { renderToString } = useContext(Context);
   const [name, setName] = useState(initialName);
-  const error = nameError(flows, types, name, false);
+  const error = nameError(flows, type, name);
   const submit = () => {
     if (error == null) {
       onSubmit(name);
