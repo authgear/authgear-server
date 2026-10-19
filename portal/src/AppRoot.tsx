@@ -33,6 +33,9 @@ const isFraudProtectionAvailable = (
   fc: PortalAPIFeatureConfig | null
 ): boolean => fc?.fraud_protection?.is_modifiable ?? false;
 
+const AuthFlowsListScreen = lazy(
+  async () => import("./graphql/portal/AuthFlowsListScreen")
+);
 const AuthFlowsScreen = lazy(
   async () => import("./graphql/portal/AuthFlowsScreen")
 );
@@ -647,7 +650,7 @@ const AppRoot: React.VFC = function AppRoot() {
                   path="flows"
                   element={
                     <Suspense fallback={<ShowLoading />}>
-                      <AuthFlowsScreen />
+                      <AuthFlowsListScreen />
                     </Suspense>
                   }
                 />
