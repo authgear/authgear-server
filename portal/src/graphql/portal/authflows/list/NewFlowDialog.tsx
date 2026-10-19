@@ -10,7 +10,7 @@ import {
 import { SecondaryButton } from "../../../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { flowPath } from "../model";
 import { stepTitle } from "../labels";
-import { CREATABLE_TYPES, CreatableType } from "./rows";
+import { CreatableType } from "./rows";
 import { freeName, nameError } from "./actions";
 import {
   MissingMethod,
@@ -73,18 +73,13 @@ function ChoiceCards<T extends string>({
     </RadioCards.Root>
   );
 }
-type Step = "type" | "start" | "template" | "name";
+type Step = "start" | "template" | "name";
 
-const typeTitleMessageIDs: Record<CreatableType, string> = {
-  signup_login: "AuthFlowsScreen.new.type.signup_login",
-  signup: "AuthFlowsScreen.new.type.signup",
-  login: "AuthFlowsScreen.new.type.login",
-};
-
-const typeDescriptionMessageIDs: Record<CreatableType, string> = {
-  signup_login: "AuthFlowsScreen.new.type.signup_login.description",
-  signup: "AuthFlowsScreen.new.type.signup.description",
-  login: "AuthFlowsScreen.new.type.login.description",
+// The section's New flow button picks the type.
+const titleMessageIDs: Record<CreatableType, string> = {
+  signup_login: "AuthFlowsScreen.new.title.signup_login",
+  signup: "AuthFlowsScreen.new.title.signup",
+  login: "AuthFlowsScreen.new.title.login",
 };
 
 const startMessageIDs: Record<Start, string> = {
@@ -119,6 +114,7 @@ const missingMessageIDs: Record<MissingMethod, string> = {
 
 export interface NewFlowDialogProps {
   appID: string;
+  type: CreatableType;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   // authgear.yaml's flows, as written.
@@ -127,10 +123,11 @@ export interface NewFlowDialogProps {
   config: PortalAPIAppConfig;
 }
 
-// Type, then how to start, then (for a template) which one, then the name.
+// How to start, then (for a template) which one, then the name.
 // Create opens the editor on the new flows as an unsaved draft.
 export function NewFlowDialog({
   appID,
+  type,
   open,
   onOpenChange,
   flows,
@@ -140,8 +137,7 @@ export function NewFlowDialog({
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
   const methods = useMemo(() => projectMethods(config), [config]);
-  const [step, setStep] = useState<Step>("type");
-  const [type, setType] = useState<CreatableType>("signup_login");
+  const [step, setStep] = useState<Step>("start");
   const [start, setStart] = useState<Start>("current");
   const [starter, setStarter] = useState<TemplateID>("email_password");
   const [name, setName] = useState("");
@@ -166,11 +162,6 @@ export function NewFlowDialog({
     navigate(flowPath(appID, type, name), { state: { newFlows } });
   };
 
-  const typeOptions: Choice<CreatableType>[] = CREATABLE_TYPES.map((t) => ({
-    value: t,
-    title: renderToString(typeTitleMessageIDs[t]),
-    subtitle: renderToString(typeDescriptionMessageIDs[t]),
-  }));
   const startOptions: Choice<Start>[] = (
     ["current", "scratch", "template", "import"] as const
   ).map((s) => ({
@@ -206,7 +197,6 @@ export function NewFlowDialog({
   );
 
   const back: Partial<Record<Step, Step>> = {
-    start: "type",
     template: "start",
     name: start === "template" ? "template" : "start",
   };
@@ -217,21 +207,12 @@ export function NewFlowDialog({
       onOpenChange={(o) => {
         onOpenChange(o);
         if (!o) {
-          setStep("type");
+          setStep("start");
         }
       }}
     >
       <Dialog.Content maxWidth="560px" size="3">
-        <Dialog.Title>
-          {renderToString("AuthFlowsScreen.new.title")}
-        </Dialog.Title>
-        {step === "type" ? (
-          <ChoiceCards
-            choices={typeOptions}
-            value={type}
-            onValueChange={setType}
-          />
-        ) : null}
+        <Dialog.Title>{renderToString(titleMessageIDs[type])}</Dialog.Title>
         {step === "start" ? (
           <ChoiceCards
             choices={startOptions}
@@ -285,15 +266,10 @@ export function NewFlowDialog({
             <SecondaryButton
               size="2"
               text={renderToString("AuthFlowsScreen.new.back")}
-              onClick={() => setStep(back[step] ?? "type")}
+              onClick={() => setStep(back[step] ?? "start")}
             />
           ) : null}
           <span className={styles.spacer} />
-          {step === "type" ? (
-            <Button size="2" onClick={() => setStep("start")}>
-              {renderToString("AuthFlowsScreen.new.next")}
-            </Button>
-          ) : null}
           {step === "start" ? (
             <Button
               size="2"

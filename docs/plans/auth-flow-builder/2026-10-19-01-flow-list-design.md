@@ -48,9 +48,9 @@ A name is valid when it matches `^[a-zA-Z_][a-zA-Z0-9_]*$`, is not `default`, an
 
 ## New flow
 
-A dialog from the list's **New flow** button. Nothing is saved until the editor's Save.
+A dialog from the **New flow** button on each section's heading row, which sets the flow's type (the dialog's title names it: "New signup & login flow"). Nothing is saved until the editor's Save.
 
-1. **Type.** Cards: Signup & login ("One page: existing users log in, new users sign up"), Signup ("Create an account"), Login ("Sign in to an existing account").
+1. **Type.** Set by the section; the dialog has no type step.
 2. **Start.**
    - **From the default flow** (first, selected): a copy of the flow generated from Login methods. A copied signup_login flow still hands off to the `default` signup and login flows.
    - **From scratch:** the smallest flow that saves. Signup: an identify step with the project's first login method. Login: identify, then authenticate. Signup & login: an identify step whose option hands off to the `default` signup and login flows.
