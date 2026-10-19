@@ -70,7 +70,7 @@ A dialog from the list's **New flow** button. Nothing is saved until the editor'
 3. **Template.**
    - First: "From your Login methods settings", a copy of the generated flow.
    - Then the starters: Email + password, Passwordless email code, Phone + SMS code, Email + password + 2FA. Each card shows its steps in one line ("Identify → Verify → Create password").
-   - A starter needing a login method or authenticator the project has not enabled is disabled, with the reason and a link to Login methods.
+   - A starter needing a login method or authenticator the project has not enabled is disabled, with the reason. One link under the templates goes to Login methods.
 4. **Name.** Prefilled with an unused name: the type plus a number (`signup_login_2`, `login_2`). `default` is allowed only when the type has no custom `default`, with a note that the flow is in use once saved.
 
 **Create** opens the editor on the new flow as an unsaved draft. Discard on a never-saved flow returns to the list. Reloading before the first save loses the draft and shows "Flow not found" with a link to the list.
