@@ -37,6 +37,7 @@ function CanvasStory({
       recoveryDestinations: accountRecoveryDestinations(flow),
       custom,
       generated,
+      flowLink: (ref) => `?flow=${ref.type}/${ref.name}`,
     }),
     [flowType, flow, custom, generated]
   );

@@ -1,6 +1,23 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Button, Flex, Heading, Select, Text } from "@radix-ui/themes";
-import { useParams, useSearchParams } from "react-router-dom";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  Button,
+  Flex,
+  Heading,
+  SegmentedControl,
+  Text,
+} from "@radix-ui/themes";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import Link from "../../Link";
 import { Context, FormattedMessage } from "../../intl";
 import ShowLoading from "../../ShowLoading";
@@ -25,17 +42,18 @@ import {
 } from "../../types";
 import {
   DEFAULT_FLOW_NAME,
-  FlowSelection,
+  FlowType,
   GeneratedFlows,
   accountRecoveryDestinations,
-  flowSelectionSearch,
-  flowTypes,
+  flowListPath,
+  flowPath,
   generatedFlowsConfig,
   isFlowType,
   listFlowNames,
-  parseFlowSelection,
   resolveFlow,
 } from "./authflows/model";
+import { bundleTypes, isBundle } from "./authflows/list/rows";
+import { NewFlows } from "./authflows/list/starters";
 import { flowTypeMessageIDs } from "./authflows/labels";
 import { FlowCanvas } from "./authflows/FlowCanvas";
 import { FlowStepItem, flowToTree } from "./authflows/tree";
@@ -56,10 +74,11 @@ import {
 } from "./authflows/edit/edits";
 import { getAt } from "./authflows/edit/pointer";
 import {
+  EditorDraft,
   EditorState,
   flowPointer,
   rawFlow,
-  replaceFlow,
+  replaceFlows,
   stepErrors,
 } from "./authflows/edit/save";
 import styles from "./AuthFlowsScreen.module.css";
@@ -67,7 +86,7 @@ import styles from "./AuthFlowsScreen.module.css";
 type EditorForm = AppConfigFormModel<EditorState>;
 
 function constructFormState(): EditorState {
-  return { draft: null };
+  return { drafts: [] };
 }
 
 function constructConfig(
@@ -75,10 +94,7 @@ function constructConfig(
   _initial: EditorState,
   current: EditorState
 ): PortalAPIAppConfig {
-  const { draft } = current;
-  return draft != null
-    ? replaceFlow(raw, draft.type, draft.name, draft.flow)
-    : raw;
+  return replaceFlows(raw, current.drafts);
 }
 
 function allStepIDs(tree: FlowStepItem[]): string[] {
@@ -151,30 +167,42 @@ function AuthFlowsContent({
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { onSave, canSave, isUpdating } = useFormContainerBaseContext();
+  const params = useParams() as { type?: string; name?: string };
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const appConfig = form.effectiveConfig;
   const custom = appConfig.authentication_flow;
-  const draft = form.state.draft;
+  const drafts = form.state.drafts;
 
-  const urlSelection = useMemo(
-    () => parseFlowSelection(searchParams, custom),
-    [searchParams, custom]
+  const routeType: FlowType | null = isFlowType(params.type)
+    ? params.type
+    : null;
+  const name = params.name ?? "";
+  // A bundle is edited as one: its signup_login flow and the signup and
+  // login flows it hands off to, each on its own tab.
+  const bundle =
+    routeType === "signup_login" &&
+    (drafts.length > 0
+      ? drafts.length === bundleTypes().length
+      : isBundle(custom, name, generated));
+  const part = searchParams.get("part");
+  const shownType: FlowType | null = bundle
+    ? part === "signup" || part === "login"
+      ? part
+      : "signup_login"
+    : routeType;
+  const selection = useMemo(
+    () => (shownType != null ? { type: shownType, name } : null),
+    [shownType, name]
   );
-  // While editing, the draft decides which flow is shown, even if the URL
-  // changes under it.
-  const selection: FlowSelection = useMemo(
-    () =>
-      draft != null ? { type: draft.type, name: draft.name } : urlSelection,
-    [draft, urlSelection]
-  );
-  const names = useMemo(
-    () => listFlowNames(custom, selection.type),
-    [custom, selection.type]
-  );
+
+  const draft =
+    drafts.find((d) => d.type === shownType && d.name === name) ?? null;
   const resolved = useMemo(
     () =>
-      generated != null
+      generated != null && selection != null
         ? resolveFlow(custom, generated, selection.type, selection.name)
         : null,
     [custom, generated, selection]
@@ -182,7 +210,20 @@ function AuthFlowsContent({
   const shownFlow: AuthenticationFlowConfig | null =
     draft?.flow ?? resolved?.flow ?? null;
 
-  const flowKey = `${selection.type}/${selection.name}`;
+  // A flow created in the New flow dialog arrives as unsaved drafts.
+  const { setState } = form;
+  const incoming = (location.state as { newFlows?: NewFlows } | null)?.newFlows;
+  useEffect(() => {
+    if (incoming != null) {
+      setState(() => ({
+        drafts: incoming.map(
+          ({ type, flow }): EditorDraft => ({ type, name: flow.name, flow })
+        ),
+      }));
+    }
+  }, [incoming, setState]);
+
+  const flowKey = `${shownType ?? ""}/${name}`;
   const tree = useMemo(
     () => (shownFlow != null ? flowToTree(shownFlow) : null),
     [shownFlow]
@@ -212,7 +253,7 @@ function AuthFlowsContent({
     () =>
       generated != null
         ? {
-            flowType: selection.type,
+            flowType: shownType ?? "signup_login",
             oauthProviders: appConfig.identity?.oauth?.providers ?? [],
             customAttributes:
               appConfig.user_profile?.custom_attributes?.attributes ?? [],
@@ -221,25 +262,32 @@ function AuthFlowsContent({
               shownFlow != null ? accountRecoveryDestinations(shownFlow) : [],
             custom,
             generated,
+            flowLink: (ref) =>
+              bundle && ref.name === name
+                ? `?part=${ref.type}`
+                : flowPath(appID, ref.type, ref.name),
           }
         : null,
-    [selection.type, appConfig, custom, generated, shownFlow]
+    [shownType, appConfig, custom, generated, shownFlow, bundle, name, appID]
   );
 
   // Editing.
-  const { setState } = form;
   const apply = useCallback(
     (result: EditResult, notice?: string) => {
-      setState((s) =>
-        s.draft != null ? { draft: { ...s.draft, flow: result.flow } } : s
-      );
+      setState((s) => ({
+        drafts: s.drafts.map((d) =>
+          d.type === shownType && d.name === name
+            ? { ...d, flow: result.flow }
+            : d
+        ),
+      }));
       setSelected(
         result.selected != null
           ? { flowKey, stepID: result.selected, notice }
           : null
       );
     },
-    [setState, flowKey]
+    [setState, flowKey, shownType, name]
   );
   const [pendingRemove, setPendingRemove] = useState<PendingRemove | null>(
     null
@@ -315,8 +363,8 @@ function AuthFlowsContent({
     [apply]
   );
   const editorValue = useFlowEditorValue({
-    flowType: selection.type,
-    flow: draft?.flow ?? { name: selection.name },
+    flowType: shownType ?? "signup_login",
+    flow: draft?.flow ?? { name },
     errorStepIDs,
     apply: applyAndClearNotice,
     requestRemove,
@@ -324,14 +372,27 @@ function AuthFlowsContent({
   });
 
   const [confirmGenerated, setConfirmGenerated] = useState(false);
-  const startEditing = useCallback(
-    (flow: AuthenticationFlowConfig) => {
-      setState(() => ({
-        draft: { type: selection.type, name: selection.name, flow },
-      }));
-    },
-    [setState, selection]
+  const editTypes = useMemo(
+    () => (bundle ? bundleTypes() : routeType != null ? [routeType] : []),
+    [bundle, routeType]
   );
+  // Each flow as authgear.yaml says it, or the generated flow for a default
+  // that is not written yet.
+  const startEditing = useCallback(() => {
+    if (generated == null) {
+      return;
+    }
+    const next: EditorDraft[] = [];
+    for (const type of editTypes) {
+      const raw =
+        form.rawConfig != null ? rawFlow(form.rawConfig, type, name) : null;
+      const flow = raw ?? resolveFlow(custom, generated, type, name)?.flow;
+      if (flow != null) {
+        next.push({ type, name, flow: { ...flow, name } });
+      }
+    }
+    setState(() => ({ drafts: next }));
+  }, [generated, editTypes, form.rawConfig, name, custom, setState]);
   const onEdit = useCallback(() => {
     if (resolved == null) {
       return;
@@ -340,109 +401,59 @@ function AuthFlowsContent({
       setConfirmGenerated(true);
       return;
     }
-    // Edit what authgear.yaml says, not the flow after defaults.
-    const raw =
-      form.rawConfig != null
-        ? rawFlow(form.rawConfig, selection.type, selection.name)
-        : null;
-    startEditing(raw ?? resolved.flow);
-  }, [resolved, form.rawConfig, selection, startEditing]);
+    startEditing();
+  }, [resolved, startEditing]);
   const onConfirmGenerated = useCallback(() => {
     setConfirmGenerated(false);
-    if (resolved != null) {
-      startEditing({ ...resolved.flow, name: selection.name });
-    }
-  }, [resolved, selection.name, startEditing]);
+    startEditing();
+  }, [startEditing]);
+  // Discarding a flow that was never saved leaves its page: there is
+  // nothing behind the draft. Navigating waits for the reset to render, so
+  // the unsaved-changes prompt does not stop it.
+  const [leaving, setLeaving] = useState(false);
   const onDiscard = useCallback(() => {
+    const saved = drafts.some(
+      (d) =>
+        form.rawConfig != null &&
+        rawFlow(form.rawConfig, d.type, d.name) != null
+    );
     form.reset();
     setSelected(null);
-  }, [form]);
-
-  const select = useCallback(
-    (next: FlowSelection) => {
-      setSearchParams(new URLSearchParams(flowSelectionSearch(next)));
-    },
-    [setSearchParams]
-  );
-  const onTypeChange = useCallback(
-    (value: string) => {
-      if (isFlowType(value)) {
-        select({ type: value, name: DEFAULT_FLOW_NAME });
-      }
-    },
-    [select]
-  );
-  const onNameChange = useCallback(
-    (value: string) => select({ type: selection.type, name: value }),
-    [select, selection.type]
-  );
+    if (!saved && resolved == null) {
+      setLeaving(true);
+    }
+  }, [drafts, form, resolved]);
+  useEffect(() => {
+    if (leaving && drafts.length === 0) {
+      navigate(flowListPath(appID));
+    }
+  }, [leaving, drafts.length, navigate, appID]);
 
   const editing = draft != null;
   // Edits made while a save is in flight would be lost when it lands.
   const canEdit = editing && !isUpdating;
-  const flowTypeName = renderToString(flowTypeMessageIDs[selection.type]);
+  const flowTypeName =
+    routeType != null ? renderToString(flowTypeMessageIDs[routeType]) : "";
+  const listPath = flowListPath(appID);
 
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <Heading size="6" as="h1">
-          <FormattedMessage id="AuthFlowsScreen.title" />
-        </Heading>
-        <Text as="p" size="2" color="gray">
-          <FormattedMessage id="AuthFlowsScreen.description" />
-        </Text>
+        <Link to={listPath} className={styles.back}>
+          <FormattedMessage id="AuthFlowsScreen.back" />
+        </Link>
         <Flex gap="3" align="center" wrap="wrap" className={styles.toolbar}>
-          <Select.Root
-            value={selection.type}
-            onValueChange={onTypeChange}
-            disabled={editing}
-          >
-            <Select.Trigger
-              aria-label={renderToString("AuthFlowsScreen.picker.type")}
-            />
-            <Select.Content>
-              {flowTypes.map((t) => (
-                <Select.Item key={t} value={t}>
-                  {renderToString(flowTypeMessageIDs[t])}
-                </Select.Item>
-              ))}
-            </Select.Content>
-          </Select.Root>
-          {names.length > 1 ? (
-            <Select.Root
-              value={selection.name}
-              onValueChange={onNameChange}
-              disabled={editing}
-            >
-              <Select.Trigger
-                aria-label={renderToString("AuthFlowsScreen.picker.name")}
-              />
-              <Select.Content>
-                {names.map((n) => (
-                  <Select.Item key={n} value={n}>
-                    {n}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
-          ) : null}
-          {editing ? (
+          <Heading size="6" as="h1">
+            {name}
+          </Heading>
+          <Text size="2" color="gray">
+            {flowTypeName}
+          </Text>
+          {name === DEFAULT_FLOW_NAME ? (
             <Badge
               size="2"
-              variant="info"
-              text={
-                <FormattedMessage
-                  id="AuthFlowsScreen.edit.editing"
-                  values={{ name: selection.name, type: flowTypeName }}
-                />
-              }
-            />
-          ) : null}
-          {!editing && resolved?.source === "custom" ? (
-            <Badge
-              size="2"
-              variant="info"
-              text={<FormattedMessage id="AuthFlowsScreen.badge.custom" />}
+              variant="success"
+              text={<FormattedMessage id="AuthFlowsScreen.badge.in-use" />}
             />
           ) : null}
           {!editing && resolved?.source === "generated" ? (
@@ -483,6 +494,31 @@ function AuthFlowsContent({
             </Button>
           ) : null}
         </Flex>
+        {bundle ? (
+          <SegmentedControl.Root
+            size="1"
+            className={styles.parts}
+            value={shownType ?? "signup_login"}
+            onValueChange={(v) =>
+              setSearchParams(
+                v === "signup" || v === "login"
+                  ? new URLSearchParams({ part: v })
+                  : new URLSearchParams()
+              )
+            }
+            aria-label={renderToString("AuthFlowsScreen.parts")}
+          >
+            <SegmentedControl.Item value="signup_login">
+              <FormattedMessage id="AuthFlowsScreen.part.choose" />
+            </SegmentedControl.Item>
+            <SegmentedControl.Item value="signup">
+              <FormattedMessage id="AuthFlowsScreen.part.signup" />
+            </SegmentedControl.Item>
+            <SegmentedControl.Item value="login">
+              <FormattedMessage id="AuthFlowsScreen.part.login" />
+            </SegmentedControl.Item>
+          </SegmentedControl.Root>
+        ) : null}
       </header>
       <FormErrorMessageBar />
       <div className={styles.canvasArea}>
@@ -504,7 +540,10 @@ function AuthFlowsContent({
           </FlowSketchContext.Provider>
         ) : (
           <Text as="p" size="2" className={styles.notFound}>
-            <FormattedMessage id="AuthFlowsScreen.flow-not-found" />
+            <FormattedMessage id="AuthFlowsScreen.flow-not-found" />{" "}
+            <Link to={listPath}>
+              <FormattedMessage id="AuthFlowsScreen.back" />
+            </Link>
           </Text>
         )}
         {selectedItem != null ? (

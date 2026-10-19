@@ -671,15 +671,26 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <AppRoute
-                feature="authFlowBuilder"
-                path="flows"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <AuthFlowsScreen />
-                  </Suspense>
-                }
-              />
+              <AppRoute feature="authFlowBuilder" path="flows">
+                <AppRoute
+                  feature={null}
+                  index={true}
+                  element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <AuthFlowsScreen />
+                      </Suspense>
+                  }
+                />
+                <AppRoute
+                  feature={null}
+                  path=":type/:name"
+                  element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <AuthFlowsScreen />
+                      </Suspense>
+                  }
+                />
+              </AppRoute>
               <AppRoute
                 feature={null}
                 path="anonymous-users"

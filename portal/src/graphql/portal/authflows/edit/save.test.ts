@@ -1,6 +1,12 @@
 import { describe, it, expect } from "@jest/globals";
 import { PortalAPIAppConfig } from "../../../../types";
-import { flowPointer, rawFlow, replaceFlow, stepErrors } from "./save";
+import {
+  flowPointer,
+  rawFlow,
+  replaceFlow,
+  replaceFlows,
+  stepErrors,
+} from "./save";
 
 const raw: PortalAPIAppConfig = {
   id: "app",
@@ -120,5 +126,25 @@ describe("stepErrors", () => {
         "/steps/0",
       ]).size
     ).toEqual(0);
+  });
+});
+
+describe("replaceFlows", () => {
+  it("replaces or appends every draft", () => {
+    const base = {
+      authentication_flow: { login_flows: [{ name: "a", steps: [] }] },
+    } as unknown as PortalAPIAppConfig;
+    const next = replaceFlows(base, [
+      {
+        type: "login",
+        name: "a",
+        flow: { name: "a", steps: [{ type: "identify" }] },
+      },
+      { type: "signup", name: "a", flow: { name: "a", steps: [] } },
+    ]);
+    expect(next.authentication_flow?.login_flows?.[0].steps).toHaveLength(1);
+    expect(next.authentication_flow?.signup_flows?.map((f) => f.name)).toEqual(
+      ["a"]
+    );
   });
 });
