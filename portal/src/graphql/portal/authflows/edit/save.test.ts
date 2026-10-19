@@ -4,6 +4,7 @@ import {
   flowPointer,
   rawFlow,
   replaceFlow,
+  removeFlows,
   replaceFlows,
   stepErrors,
 } from "./save";
@@ -143,8 +144,25 @@ describe("replaceFlows", () => {
       { type: "signup", name: "a", flow: { name: "a", steps: [] } },
     ]);
     expect(next.authentication_flow?.login_flows?.[0].steps).toHaveLength(1);
-    expect(next.authentication_flow?.signup_flows?.map((f) => f.name)).toEqual(
-      ["a"]
-    );
+    expect(next.authentication_flow?.signup_flows?.map((f) => f.name)).toEqual([
+      "a",
+    ]);
+  });
+});
+
+describe("removeFlows", () => {
+  it("removes the named flows and keeps the rest", () => {
+    const next = removeFlows(raw, [{ type: "login", name: "default" }]);
+    expect(next.authentication_flow?.login_flows?.map((f) => f.name)).toEqual([
+      "vip",
+    ]);
+    expect(next.authentication_flow?.signup_flows).toHaveLength(1);
+  });
+});
+
+describe("removeFlows on the last flow of a type", () => {
+  it("drops the type's list rather than leaving it empty", () => {
+    const next = removeFlows(raw, [{ type: "signup", name: "default" }]);
+    expect(next.authentication_flow).not.toHaveProperty("signup_flows");
   });
 });

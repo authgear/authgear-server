@@ -5,8 +5,8 @@ import {
 } from "../../../../types";
 import { DEFAULT_FLOW_NAME, FlowType, flowListKey } from "../model";
 import { CreatableType } from "./rows";
-import { copyAs } from "./actions";
 
+// What New flow creates: one flow, in an array the editor takes as drafts.
 export type NewFlows = { type: FlowType; flow: AuthenticationFlowConfig }[];
 
 export interface ProjectMethods {
@@ -34,17 +34,14 @@ export function projectMethods(config: PortalAPIAppConfig): ProjectMethods {
   };
 }
 
-// passkey only logs in, so a bundle's passkey option names no signup flow.
+// passkey only logs in, so its signup_login option names no signup flow.
 const LOGIN_ONLY = new Set(["passkey"]);
 // Identities that sign in without a separate authenticate step.
 const NO_AUTHENTICATOR = new Set(["oauth"]);
 
-function bundle(
-  name: string,
-  identification: string,
-  signup: AuthenticationFlowConfig,
-  login: AuthenticationFlowConfig
-): NewFlows {
+// A signup_login flow: the identify step, handing off to the default signup
+// and login flows (custom or generated), which the editor can repoint.
+function signupLogin(name: string, identification: string): NewFlows {
   return [
     {
       type: "signup_login",
@@ -55,15 +52,17 @@ function bundle(
             type: "identify",
             one_of: [
               LOGIN_ONLY.has(identification)
-                ? { identification, login_flow: name }
-                : { identification, login_flow: name, signup_flow: name },
+                ? { identification, login_flow: DEFAULT_FLOW_NAME }
+                : {
+                    identification,
+                    login_flow: DEFAULT_FLOW_NAME,
+                    signup_flow: DEFAULT_FLOW_NAME,
+                  },
             ],
           },
         ],
       },
     },
-    { type: "signup", flow: signup },
-    { type: "login", flow: login },
   ];
 }
 
@@ -111,7 +110,7 @@ export function scratchFlows(
   };
   if (type === "signup") return [{ type, flow: signup }];
   if (type === "login") return [{ type, flow: login }];
-  return bundle(name, identification, signup, login);
+  return signupLogin(name, identification);
 }
 
 export type StarterID =
@@ -277,19 +276,15 @@ export function starterFlows(
   generated: AuthenticationFlowsConfig
 ): NewFlows {
   if (id === "current") {
-    const types: FlowType[] =
-      type === "signup_login" ? ["signup_login", "signup", "login"] : [type];
-    const sources = types.flatMap((t) =>
-      (generated[flowListKey(t)] ?? [])
-        .filter((f) => f.name === DEFAULT_FLOW_NAME)
-        .map((flow) => ({ type: t, flow }))
-    );
-    return copyAs(sources, name);
+    // Hand-offs keep naming the default flows.
+    return (generated[flowListKey(type)] ?? [])
+      .filter((f) => f.name === DEFAULT_FLOW_NAME)
+      .map((flow) => ({ type, flow: { ...flow, name } }));
   }
   const { identification, signup, login } = starterPair(id, name);
   if (type === "signup") return [{ type, flow: signup }];
   if (type === "login") return [{ type, flow: login }];
-  return bundle(name, identification, signup, login);
+  return signupLogin(name, identification);
 }
 
 export function stepSummary(flow: AuthenticationFlowConfig): string[] {

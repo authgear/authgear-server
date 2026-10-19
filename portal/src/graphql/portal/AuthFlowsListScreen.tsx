@@ -25,23 +25,20 @@ import {
 } from "../../hook/useAppConfigForm";
 import { AuthenticationFlowsConfig, PortalAPIAppConfig } from "../../types";
 import { useAuthFlowsScreenQueryQuery } from "./query/authFlowsScreenQuery";
-import { DEFAULT_FLOW_NAME, flowPath, resolveFlow } from "./authflows/model";
-import { flowTypeMessageIDs } from "./authflows/labels";
-import {
-  FlowRow,
-  SectionKey,
-  bundleTypes,
-  flowSections,
-} from "./authflows/list/rows";
+import { flowPath, resolveFlow } from "./authflows/model";
+import { FlowRow, SectionKey, flowSections } from "./authflows/list/rows";
 import {
   FlowAction,
   applyFlowAction,
-  copyAs,
   deleteBlockers,
-  nameError,
 } from "./authflows/list/actions";
 import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
 import { NewFlowDialog } from "./authflows/list/NewFlowDialog";
+import {
+  flowUses,
+  removeFlowUses,
+  renameFlowUses,
+} from "./authflows/list/usage";
 import styles from "./AuthFlowsListScreen.module.css";
 
 // The one action being saved; null otherwise.
@@ -66,20 +63,28 @@ function constructConfig(
   if (action == null) {
     return raw;
   }
-  return produce(raw, (d) => {
+  const next = produce(raw, (d) => {
     d.authentication_flow = applyFlowAction(raw.authentication_flow, action);
   });
+  // Groups and applications follow a renamed flow, and let go of a deleted
+  // one. A deleted default needs nothing: the generated one answers to it.
+  if (action.kind === "rename") {
+    return renameFlowUses(next, action.type, action.name, action.newName);
+  }
+  if (action.kind === "delete") {
+    return removeFlowUses(next, action.type, action.name);
+  }
+  return next;
 }
 
 const sectionTitleMessageIDs: Record<SectionKey, string> = {
   signup_login: "AuthFlowsScreen.list.section.signup_login",
   signup: "AuthFlowsScreen.list.section.signup",
   login: "AuthFlowsScreen.list.section.login",
-  other: "AuthFlowsScreen.list.section.other",
 };
 
 type Pending = {
-  kind: "rename" | "duplicate" | "set_default" | "delete";
+  kind: "rename" | "duplicate" | "delete";
   row: FlowRow;
 } | null;
 
@@ -142,22 +147,88 @@ function ListContent({
   const close = useCallback(() => setPending(null), []);
 
   const { saveWith } = form;
+  const { setState } = form;
   const run = useCallback(
     (action: FlowAction) => {
       setPending(null);
-      // A failure shows in the error bar, from the form's updateError.
-      saveWith(() => ({ action })).catch(() => {});
+      // A failure shows in the error bar, from the form's updateError. The
+      // failed action is dropped so the list is not left with unsaved
+      // changes it does not have.
+      saveWith(() => ({ action })).catch(() => {
+        setState(() => ({ action: null }));
+      });
     },
-    [saveWith]
+    [saveWith, setState]
   );
 
-  const typesOf = (row: FlowRow) => (row.bundle ? bundleTypes() : [row.type]);
+  // Every place that still names the flow: deleting it would leave them
+  // pointing at nothing, which the server refuses.
+  // What names the flow: hand-offs from signup_login flows, flow groups,
+  // and applications that allow it.
+  const usesOf = (row: FlowRow) => {
+    const uses =
+      form.rawConfig != null
+        ? flowUses(form.rawConfig, row.type, row.name)
+        : [];
+    return {
+      handoffs: deleteBlockers(flows, row.type, row.name),
+      groups: uses.filter((u) => u.kind === "group").map((u) => u.name),
+      apps: uses.filter((u) => u.kind === "application").map((u) => u.name),
+    };
+  };
+  // A hand-off has no safe stand-in, so it blocks deleting; groups and
+  // applications are cleaned up by the delete itself.
+  const deleteBlockedReason = (row: FlowRow): string | null => {
+    const { handoffs } = usesOf(row);
+    return handoffs.length > 0
+      ? renderToString("AuthFlowsScreen.list.delete.blocked", {
+          names: handoffs.join(", "),
+        })
+      : null;
+  };
+  const usedByLine = (row: FlowRow): string | null => {
+    const { handoffs, groups, apps } = usesOf(row);
+    const parts = [
+      ...groups.map((n) =>
+        renderToString("AuthFlowsScreen.list.used-by.group", { name: n })
+      ),
+      ...apps.map((n) =>
+        renderToString("AuthFlowsScreen.list.used-by.application", { name: n })
+      ),
+      ...handoffs.map((n) =>
+        renderToString("AuthFlowsScreen.list.used-by.handoff", { name: n })
+      ),
+    ];
+    return parts.length > 0
+      ? renderToString("AuthFlowsScreen.list.used-by", {
+          uses: parts.join(" · "),
+        })
+      : null;
+  };
+  // What deleting changes elsewhere, for the confirmation.
+  const deleteEffects = (row: FlowRow): string => {
+    const { groups, apps } = usesOf(row);
+    return [
+      groups.length > 0
+        ? renderToString("AuthFlowsScreen.list.delete.effect.groups", {
+            names: groups.join(", "),
+          })
+        : null,
+      apps.length > 0
+        ? renderToString("AuthFlowsScreen.list.delete.effect.applications", {
+            names: apps.join(", "),
+          })
+        : null,
+    ]
+      .filter((t): t is string => t != null)
+      .join(" ");
+  };
   const duplicate = (row: FlowRow, newName: string) => {
-    const sources = typesOf(row).flatMap((type) => {
-      const flow = resolveFlow(flows, generated, type, row.name)?.flow;
-      return flow != null ? [{ type, flow }] : [];
-    });
-    run({ kind: "add", flows: copyAs(sources, newName) });
+    // A generated row duplicates the generated flow.
+    const flow = resolveFlow(flows, generated, row.type, row.name)?.flow;
+    if (flow != null) {
+      run({ kind: "add", type: row.type, flow: { ...flow, name: newName } });
+    }
   };
 
   return (
@@ -196,58 +267,40 @@ function ListContent({
               {section.rows.map((row) => (
                 <CardTable.Row key={`${row.type}/${row.name}`}>
                   <CardTable.Cell className={styles.colName}>
-                    <Link to={flowPath(appID, row.type, row.name)}>
-                      {row.name}
-                    </Link>
-                    {section.key === "other" ? (
+                    <span className={styles.nameLine}>
+                      <Link to={flowPath(appID, row.type, row.name)}>
+                        {row.name}
+                      </Link>
+                      {/* A default flow someone changed: Reset brings back
+                          the one built from Login methods. */}
+                      {row.isDefault && !row.generated ? (
+                        <Tooltip
+                          content={renderToString(
+                            "AuthFlowsScreen.list.edited.tooltip"
+                          )}
+                        >
+                          <span>
+                            <Badge
+                              size="1"
+                              variant="neutral"
+                              text={renderToString(
+                                "AuthFlowsScreen.list.edited"
+                              )}
+                            />
+                          </span>
+                        </Tooltip>
+                      ) : null}
+                    </span>
+                    {usedByLine(row) != null ? (
                       <Text size="1" color="gray">
-                        {renderToString(flowTypeMessageIDs[row.type])}
+                        {usedByLine(row)}
                       </Text>
-                    ) : null}
-                    {row.bundle ? (
-                      <Text size="1" color="gray">
-                        <FormattedMessage
-                          id="AuthFlowsScreen.list.bundle"
-                          values={{ name: row.name }}
-                        />
-                      </Text>
-                    ) : null}
-                    {row.partOf != null ? (
-                      <Text size="1" color="gray">
-                        <FormattedMessage
-                          id="AuthFlowsScreen.list.part-of"
-                          values={{ name: row.partOf }}
-                        />
-                      </Text>
-                    ) : null}
-                  </CardTable.Cell>
-                  <CardTable.Cell className={styles.colStatus}>
-                    <Badge
-                      size="1"
-                      variant={row.inUse ? "success" : "neutral"}
-                      text={renderToString(
-                        row.inUse
-                          ? "AuthFlowsScreen.badge.in-use"
-                          : "AuthFlowsScreen.badge.not-in-use"
-                      )}
-                    />
-                    {row.generated ? (
-                      <Badge
-                        size="1"
-                        variant="neutral"
-                        text={renderToString("AuthFlowsScreen.badge.generated")}
-                      />
                     ) : null}
                   </CardTable.Cell>
                   <CardTable.Cell className={styles.colActions}>
                     <RowMenu
                       row={row}
-                      deleteBlockedBy={deleteBlockers(
-                        flows,
-                        row.type,
-                        row.name,
-                        row.bundle
-                      )}
+                      deleteBlockedReason={deleteBlockedReason(row)}
                       onOpen={() => {
                         navigate(flowPath(appID, row.type, row.name));
                       }}
@@ -274,7 +327,7 @@ function ListContent({
               ? "AuthFlowsScreen.list.rename"
               : "AuthFlowsScreen.list.duplicate"
           )}
-          types={typesOf(pending.row)}
+          type={pending.row.type}
           initialName={
             pending.kind === "rename"
               ? pending.row.name
@@ -289,7 +342,6 @@ function ListContent({
                 type: row.type,
                 name: row.name,
                 newName,
-                bundle: row.bundle,
               });
             } else {
               duplicate(row, newName);
@@ -299,64 +351,47 @@ function ListContent({
         />
       ) : null}
       <ConfirmationDialog
-        open={pending?.kind === "set_default"}
-        onOpenChange={(o) => {
-          if (!o) {
-            close();
-          }
-        }}
-        title={<FormattedMessage id="AuthFlowsScreen.list.set-default.title" />}
-        description={
-          <FormattedMessage
-            id={
-              pending != null &&
-              nameError(flows, typesOf(pending.row), DEFAULT_FLOW_NAME, true) ==
-                null
-                ? "AuthFlowsScreen.list.set-default.description.generated"
-                : "AuthFlowsScreen.list.set-default.description"
-            }
-            values={{ name: pending?.row.name ?? "" }}
-          />
-        }
-        confirmText={<FormattedMessage id="AuthFlowsScreen.list.set-default" />}
-        cancelText={<FormattedMessage id="AuthFlowsScreen.edit.cancel" />}
-        confirmColor="indigo"
-        onConfirm={() => {
-          if (pending != null) {
-            run({
-              kind: "set_default",
-              type: pending.row.type,
-              name: pending.row.name,
-              bundle: pending.row.bundle,
-            });
-          }
-        }}
-        onCancel={close}
-      />
-      <ConfirmationDialog
         open={pending?.kind === "delete"}
         onOpenChange={(o) => {
           if (!o) {
             close();
           }
         }}
+        // Removing an edited default resets it to the one built from Login
+        // methods, so it reads as Reset.
         title={
           <FormattedMessage
-            id="AuthFlowsScreen.list.delete.title"
+            id={
+              pending?.row.isDefault === true
+                ? "AuthFlowsScreen.reset.title"
+                : "AuthFlowsScreen.list.delete.title"
+            }
             values={{ name: pending?.row.name ?? "" }}
           />
         }
         description={
+          <>
+            <FormattedMessage
+              id={
+                pending?.row.isDefault === true
+                  ? "AuthFlowsScreen.reset.description"
+                  : "AuthFlowsScreen.list.delete.description"
+              }
+            />
+            {pending != null && !pending.row.isDefault
+              ? ` ${deleteEffects(pending.row)}`
+              : null}
+          </>
+        }
+        confirmText={
           <FormattedMessage
             id={
-              pending?.row.inUse === true
-                ? "AuthFlowsScreen.list.delete.description.in-use"
-                : "AuthFlowsScreen.list.delete.description"
+              pending?.row.isDefault === true
+                ? "AuthFlowsScreen.reset"
+                : "AuthFlowsScreen.list.delete"
             }
-            values={{ bundle: pending?.row.bundle === true ? "yes" : "no" }}
           />
         }
-        confirmText={<FormattedMessage id="AuthFlowsScreen.list.delete" />}
         cancelText={<FormattedMessage id="AuthFlowsScreen.edit.cancel" />}
         onConfirm={() => {
           if (pending != null) {
@@ -364,7 +399,6 @@ function ListContent({
               kind: "delete",
               type: pending.row.type,
               name: pending.row.name,
-              bundle: pending.row.bundle,
             });
           }
         }}
@@ -376,17 +410,18 @@ function ListContent({
 
 function RowMenu({
   row,
-  deleteBlockedBy,
+  deleteBlockedReason,
   onOpen,
   onAction,
 }: {
   row: FlowRow;
-  deleteBlockedBy: string[];
+  // Why the flow cannot be deleted, as rendered text; null when it can.
+  deleteBlockedReason: string | null;
   onOpen: () => void;
-  onAction: (kind: "rename" | "duplicate" | "set_default" | "delete") => void;
+  onAction: (kind: "rename" | "duplicate" | "delete") => void;
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const blocked = deleteBlockedBy.length > 0;
+  const blocked = deleteBlockedReason != null;
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
@@ -404,12 +439,10 @@ function RowMenu({
         <DropdownMenu.Item onSelect={onOpen}>
           {renderToString("AuthFlowsScreen.list.open")}
         </DropdownMenu.Item>
-        {!row.inUse && !row.generated ? (
-          <DropdownMenu.Item onSelect={() => onAction("set_default")}>
-            {renderToString("AuthFlowsScreen.list.set-default")}
-          </DropdownMenu.Item>
-        ) : null}
-        {!row.generated ? (
+        {/* A generated flow is not in authgear.yaml: nothing to rename or
+            delete until it is edited and saved. */}
+        {/* The default flow keeps its name: AuthUI runs it by that name. */}
+        {!row.generated && !row.isDefault ? (
           <DropdownMenu.Item onSelect={() => onAction("rename")}>
             {renderToString("AuthFlowsScreen.list.rename")}
           </DropdownMenu.Item>
@@ -417,26 +450,23 @@ function RowMenu({
         <DropdownMenu.Item onSelect={() => onAction("duplicate")}>
           {renderToString("AuthFlowsScreen.list.duplicate")}
         </DropdownMenu.Item>
+        {!row.generated ? <DropdownMenu.Separator /> : null}
         {!row.generated ? (
-          <>
-            <DropdownMenu.Separator />
-            <Tooltip
-              content={renderToString("AuthFlowsScreen.list.delete.blocked", {
-                names: deleteBlockedBy.join(", "),
-              })}
-              disabled={!blocked}
-            >
-              <span>
-                <DropdownMenu.Item
-                  color="red"
-                  disabled={blocked}
-                  onSelect={() => onAction("delete")}
-                >
-                  {renderToString("AuthFlowsScreen.list.delete")}
-                </DropdownMenu.Item>
-              </span>
-            </Tooltip>
-          </>
+          <Tooltip content={deleteBlockedReason} disabled={!blocked}>
+            <span>
+              <DropdownMenu.Item
+                color="red"
+                disabled={blocked}
+                onSelect={() => onAction("delete")}
+              >
+                {renderToString(
+                  row.isDefault
+                    ? "AuthFlowsScreen.reset"
+                    : "AuthFlowsScreen.list.delete"
+                )}
+              </DropdownMenu.Item>
+            </span>
+          </Tooltip>
         ) : null}
       </DropdownMenu.Content>
     </DropdownMenu.Root>

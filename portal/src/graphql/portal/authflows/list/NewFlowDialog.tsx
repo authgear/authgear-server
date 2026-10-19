@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from "react";
-import { Button, Dialog, Text, TextField } from "@radix-ui/themes";
+import { Button, Dialog, RadioCards, Text, TextField } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
 import Link from "../../../../Link";
 import { Context } from "../../../../intl";
@@ -8,13 +8,9 @@ import {
   PortalAPIAppConfig,
 } from "../../../../types";
 import { SecondaryButton } from "../../../../components/v2/Button/SecondaryButton/SecondaryButton";
-import {
-  RadioCardOption,
-  RadioCards,
-} from "../../../../components/v2/RadioCards/RadioCards";
-import { DEFAULT_FLOW_NAME, flowPath } from "../model";
+import { flowPath } from "../model";
 import { stepTitle } from "../labels";
-import { CREATABLE_TYPES, CreatableType, bundleTypes } from "./rows";
+import { CREATABLE_TYPES, CreatableType } from "./rows";
 import { freeName, nameError } from "./actions";
 import {
   MissingMethod,
@@ -31,7 +27,52 @@ import {
 import { nameErrorMessageIDs } from "./FlowNameDialog";
 import styles from "./NewFlowDialog.module.css";
 
-type Start = "scratch" | "template" | "import";
+type Start = "current" | "scratch" | "template" | "import";
+// The templates step lists the common setups; "current" is its own start.
+type TemplateID = Exclude<StarterID, "current">;
+
+interface Choice<T extends string> {
+  value: T;
+  title: string;
+  subtitle?: string;
+  disabled?: boolean;
+}
+
+// One full-width card per choice, text left-aligned, so the steps read as a
+// list rather than a grid of tiles.
+function ChoiceCards<T extends string>({
+  choices,
+  value,
+  onValueChange,
+}: {
+  choices: Choice<T>[];
+  value: T;
+  onValueChange: (value: T) => void;
+}): React.ReactElement {
+  return (
+    <RadioCards.Root
+      columns="1"
+      size="2"
+      value={value}
+      onValueChange={(v) => onValueChange(v as T)}
+    >
+      {choices.map((c) => (
+        <RadioCards.Item key={c.value} value={c.value} disabled={c.disabled}>
+          <div className={styles.choice}>
+            <Text size="2" weight="medium">
+              {c.title}
+            </Text>
+            {c.subtitle != null ? (
+              <Text size="2" color="gray">
+                {c.subtitle}
+              </Text>
+            ) : null}
+          </div>
+        </RadioCards.Item>
+      ))}
+    </RadioCards.Root>
+  );
+}
 type Step = "type" | "start" | "template" | "name";
 
 const typeTitleMessageIDs: Record<CreatableType, string> = {
@@ -47,19 +88,20 @@ const typeDescriptionMessageIDs: Record<CreatableType, string> = {
 };
 
 const startMessageIDs: Record<Start, string> = {
+  current: "AuthFlowsScreen.new.start.current",
   scratch: "AuthFlowsScreen.new.start.scratch",
   template: "AuthFlowsScreen.new.start.template",
   import: "AuthFlowsScreen.new.start.import",
 };
 
 const startDescriptionMessageIDs: Record<Start, string> = {
+  current: "AuthFlowsScreen.new.start.current.description",
   scratch: "AuthFlowsScreen.new.start.scratch.description",
   template: "AuthFlowsScreen.new.start.template.description",
   import: "AuthFlowsScreen.new.start.import.description",
 };
 
-const starterMessageIDs: Record<StarterID, string> = {
-  current: "AuthFlowsScreen.new.starter.current",
+const starterMessageIDs: Record<TemplateID, string> = {
   email_password: "AuthFlowsScreen.new.starter.email_password",
   email_code: "AuthFlowsScreen.new.starter.email_code",
   phone_code: "AuthFlowsScreen.new.starter.phone_code",
@@ -100,19 +142,14 @@ export function NewFlowDialog({
   const methods = useMemo(() => projectMethods(config), [config]);
   const [step, setStep] = useState<Step>("type");
   const [type, setType] = useState<CreatableType>("signup_login");
-  const [start, setStart] = useState<Start>(
-    scratchMissing(methods) ? "template" : "scratch"
-  );
-  const [starter, setStarter] = useState<StarterID>("current");
+  const [start, setStart] = useState<Start>("current");
+  const [starter, setStarter] = useState<TemplateID>("email_password");
   const [name, setName] = useState("");
 
-  const types = type === "signup_login" ? bundleTypes() : [type];
-  // default is free only while no custom flow of these types has it.
-  const allowDefault = nameError(flows, types, DEFAULT_FLOW_NAME, true) == null;
-  const error = nameError(flows, types, name, allowDefault);
+  const error = nameError(flows, type, name);
 
   const toName = () => {
-    setName(freeName(flows, types, type));
+    setName(freeName(flows, type, type));
     setStep("name");
   };
   const create = () => {
@@ -120,22 +157,22 @@ export function NewFlowDialog({
       return;
     }
     const newFlows: NewFlows =
-      start === "template"
+      start === "current"
+        ? starterFlows("current", type, name, generated)
+        : start === "template"
         ? starterFlows(starter, type, name, generated)
         : scratchFlows(type, name, methods);
     onOpenChange(false);
     navigate(flowPath(appID, type, name), { state: { newFlows } });
   };
 
-  const typeOptions: RadioCardOption<CreatableType>[] = CREATABLE_TYPES.map(
-    (t) => ({
-      value: t,
-      title: renderToString(typeTitleMessageIDs[t]),
-      subtitle: renderToString(typeDescriptionMessageIDs[t]),
-    })
-  );
-  const startOptions: RadioCardOption<Start>[] = (
-    ["scratch", "template", "import"] as const
+  const typeOptions: Choice<CreatableType>[] = CREATABLE_TYPES.map((t) => ({
+    value: t,
+    title: renderToString(typeTitleMessageIDs[t]),
+    subtitle: renderToString(typeDescriptionMessageIDs[t]),
+  }));
+  const startOptions: Choice<Start>[] = (
+    ["current", "scratch", "template", "import"] as const
   ).map((s) => ({
     value: s,
     title: renderToString(startMessageIDs[s]),
@@ -145,29 +182,26 @@ export function NewFlowDialog({
         : renderToString(startDescriptionMessageIDs[s]),
     disabled: s === "import" || (s === "scratch" && scratchMissing(methods)),
   }));
-  // The flow a template card summarises: the login flow for Login, else the
-  // signup flow.
-  const summaryType = type === "login" ? "login" : "signup";
-  const starterOptions: RadioCardOption<StarterID>[] = STARTER_IDS.map((id) => {
+  const templateIDs = STARTER_IDS.filter(
+    (id): id is TemplateID => id !== "current"
+  );
+  const starterOptions: Choice<TemplateID>[] = templateIDs.map((id) => {
     const missing = starterMissing(id, methods);
-    const flow = starterFlows(id, type, "preview", generated).find(
-      (f) => f.type === summaryType
-    )?.flow;
+    // A template always makes exactly one flow.
+    const [{ flow }] = starterFlows(id, type, "preview", generated);
     return {
       value: id,
       title: renderToString(starterMessageIDs[id]),
       subtitle:
         missing.length > 0
           ? missing.map((m) => renderToString(missingMessageIDs[m])).join(" ")
-          : flow != null
-          ? stepSummary(flow)
+          : stepSummary(flow)
               .map((t) => stepTitle(t, renderToString))
-              .join(" → ")
-          : undefined,
+              .join(" → "),
       disabled: missing.length > 0,
     };
   });
-  const anyMissing = STARTER_IDS.some(
+  const anyMissing = templateIDs.some(
     (id) => starterMissing(id, methods).length > 0
   );
 
@@ -192,29 +226,23 @@ export function NewFlowDialog({
           {renderToString("AuthFlowsScreen.new.title")}
         </Dialog.Title>
         {step === "type" ? (
-          <RadioCards
-            size="2"
-            numberOfColumns={1}
-            options={typeOptions}
+          <ChoiceCards
+            choices={typeOptions}
             value={type}
             onValueChange={setType}
           />
         ) : null}
         {step === "start" ? (
-          <RadioCards
-            size="2"
-            numberOfColumns={1}
-            options={startOptions}
+          <ChoiceCards
+            choices={startOptions}
             value={start}
             onValueChange={setStart}
           />
         ) : null}
         {step === "template" ? (
           <>
-            <RadioCards
-              size="2"
-              numberOfColumns={1}
-              options={starterOptions}
+            <ChoiceCards
+              choices={starterOptions}
               value={starter}
               onValueChange={setStarter}
             />
@@ -248,10 +276,6 @@ export function NewFlowDialog({
             {error != null ? (
               <Text as="p" size="1" color="red" className={styles.note}>
                 {renderToString(nameErrorMessageIDs[error])}
-              </Text>
-            ) : name === DEFAULT_FLOW_NAME ? (
-              <Text as="p" size="1" color="gray" className={styles.note}>
-                {renderToString("AuthFlowsScreen.new.name.default")}
               </Text>
             ) : null}
           </form>

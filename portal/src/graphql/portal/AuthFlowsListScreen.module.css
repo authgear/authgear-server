@@ -32,22 +32,22 @@
 }
 
 .colName {
-  display: flex;
   flex: 1;
   flex-direction: column;
   gap: 2px;
+  /* Table cells centre their content; the name and its sublines start left. */
+  align-items: flex-start;
   min-width: 0;
 }
 
-.colStatus {
+.nameLine {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
-  width: 200px;
 }
 
 .colActions {
-  display: flex;
+  flex: none;
   justify-content: flex-end;
-  width: 48px;
+  width: 56px;
 }
