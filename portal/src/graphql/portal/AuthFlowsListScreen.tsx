@@ -143,7 +143,8 @@ function ListContent({
     [flows, generated]
   );
   const [pending, setPending] = useState<Pending>(null);
-  const [creating, setCreating] = useState(false);
+  // The section whose New flow was clicked: it sets the flow's type.
+  const [creating, setCreating] = useState<SectionKey | null>(null);
   const close = useCallback(() => setPending(null), []);
 
   const { saveWith } = form;
@@ -234,23 +235,23 @@ function ListContent({
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <div className={styles.titleRow}>
-          <Heading size="6" as="h1">
-            <FormattedMessage id="AuthFlowsScreen.title" />
-          </Heading>
-          <Button type="button" onClick={() => setCreating(true)}>
-            <FormattedMessage id="AuthFlowsScreen.new.button" />
-          </Button>
-        </div>
+        <Heading size="6" as="h1">
+          <FormattedMessage id="AuthFlowsScreen.title" />
+        </Heading>
         <Text as="p" size="2" color="gray">
           <FormattedMessage id="AuthFlowsScreen.list.description" />
         </Text>
       </header>
-      {creating ? (
+      {creating != null ? (
         <NewFlowDialog
           appID={appID}
+          type={creating}
           open={true}
-          onOpenChange={setCreating}
+          onOpenChange={(o) => {
+            if (!o) {
+              setCreating(null);
+            }
+          }}
           flows={flows}
           generated={generated}
           config={form.effectiveConfig}
@@ -260,9 +261,19 @@ function ListContent({
       <div className={styles.sections}>
         {sections.map((section) => (
           <section key={section.key} className={styles.section}>
-            <Heading size="3" as="h2">
-              {renderToString(sectionTitleMessageIDs[section.key])}
-            </Heading>
+            <div className={styles.sectionHeader}>
+              <Heading size="3" as="h2">
+                {renderToString(sectionTitleMessageIDs[section.key])}
+              </Heading>
+              <Button
+                type="button"
+                size="1"
+                variant="soft"
+                onClick={() => setCreating(section.key)}
+              >
+                <FormattedMessage id="AuthFlowsScreen.new.button" />
+              </Button>
+            </div>
             <CardTable>
               {section.rows.map((row) => (
                 <CardTable.Row key={`${row.type}/${row.name}`}>
