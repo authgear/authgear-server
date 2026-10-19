@@ -39,6 +39,7 @@ const warningMessageIDs: Record<ReferenceWarning, string> = {
   missing: "AuthFlowsScreen.edit.warning.missing",
   wrong_type: "AuthFlowsScreen.edit.warning.wrong_type",
   not_earlier: "AuthFlowsScreen.edit.warning.not_earlier",
+  wrong_contact: "AuthFlowsScreen.edit.warning.wrong_contact",
 };
 
 const noTargetMessageIDs: Partial<Record<string, string>> = {

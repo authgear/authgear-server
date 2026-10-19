@@ -295,3 +295,108 @@ describe("earlierSteps with a pointer past the flow", () => {
     ).toEqual([{ pointer: "/steps/0", name: "identify" }]);
   });
 });
+
+// signup_identify: email → [create 2FA], phone → [create 2FA]; the 2FA step
+// sends SMS codes in both options.
+const codesFlow: AuthenticationFlowConfig = {
+  name: "default",
+  steps: [
+    {
+      type: "identify",
+      name: "signup_identify",
+      one_of: [
+        {
+          identification: "email",
+          steps: [
+            {
+              type: "create_authenticator",
+              one_of: [{ authentication: "secondary_oob_otp_sms" }],
+            },
+          ],
+        },
+        {
+          identification: "phone",
+          steps: [
+            {
+              type: "create_authenticator",
+              one_of: [{ authentication: "secondary_oob_otp_sms" }],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+const EMAIL_2FA = "/steps/0/one_of/0/steps/0";
+const PHONE_2FA = "/steps/0/one_of/1/steps/0";
+
+describe("targetCandidates for a code option", () => {
+  it("offers an enclosing identify only when its option on the path collects that contact", () => {
+    expect(
+      targetCandidates(codesFlow, EMAIL_2FA, "create_authenticator", "phone")
+    ).toEqual([]);
+    expect(
+      targetCandidates(codesFlow, PHONE_2FA, "create_authenticator", "phone")
+    ).toEqual([{ pointer: "/steps/0", name: "signup_identify" }]);
+    expect(
+      targetCandidates(codesFlow, EMAIL_2FA, "create_authenticator", "email")
+    ).toEqual([{ pointer: "/steps/0", name: "signup_identify" }]);
+  });
+
+  it("offers an earlier identify only when every option collects that contact", () => {
+    const flow: AuthenticationFlowConfig = {
+      name: "default",
+      steps: [
+        {
+          type: "identify",
+          name: "mixed",
+          one_of: [{ identification: "email" }, { identification: "phone" }],
+        },
+        {
+          type: "identify",
+          name: "phone_only",
+          one_of: [{ identification: "phone" }],
+        },
+        {
+          type: "create_authenticator",
+          one_of: [{ authentication: "secondary_oob_otp_sms" }],
+        },
+      ],
+    };
+    expect(
+      targetCandidates(flow, "/steps/2", "create_authenticator", "phone").map(
+        (c) => c.name
+      )
+    ).toEqual(["phone_only"]);
+  });
+});
+
+describe("referenceWarnings for a code option", () => {
+  it("flags a target that collects another kind of contact on the path", () => {
+    const flow: AuthenticationFlowConfig = {
+      ...codesFlow,
+      steps: [
+        {
+          ...codesFlow.steps![0],
+          one_of: codesFlow.steps![0].one_of!.map((o) => ({
+            ...o,
+            steps: [
+              {
+                type: "create_authenticator",
+                one_of: [
+                  {
+                    authentication: "secondary_oob_otp_sms",
+                    target_step: "signup_identify",
+                  },
+                ],
+              },
+            ],
+          })),
+        },
+      ],
+    };
+    expect(referenceWarnings("signup", flow)).toEqual(
+      new Map([[EMAIL_2FA, "wrong_contact"]])
+    );
+  });
+});

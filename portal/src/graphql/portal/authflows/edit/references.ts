@@ -89,6 +89,50 @@ export function earlierSteps(
   return out.filter((p) => getAt(flow, p) != null);
 }
 
+// The email or phone a code option sends its codes to.
+export type Contact = "email" | "phone";
+
+const authenticationContacts: Partial<Record<string, Contact>> = {
+  primary_oob_otp_email: "email",
+  secondary_oob_otp_email: "email",
+  primary_oob_otp_sms: "phone",
+  secondary_oob_otp_sms: "phone",
+};
+
+const identificationContacts: Partial<Record<string, Contact>> = {
+  email: "email",
+  phone: "phone",
+};
+
+export function codeContact(
+  authentication: string | undefined
+): Contact | null {
+  return authentication != null
+    ? authenticationContacts[authentication] ?? null
+    : null;
+}
+
+// Whether the identify step at target has collected contact by the time the
+// step at from runs. When from is under one of target's options, only that
+// option counts; otherwise every option must collect it, as any may have run.
+function collects(
+  flow: AuthenticationFlowConfig,
+  target: string,
+  from: string,
+  contact: Contact
+): boolean {
+  const options = stepAt(flow, target).one_of ?? [];
+  const m = /^\/one_of\/(\d+)\//.exec(from.slice(target.length));
+  const onPath =
+    isWithin(from, target) && m != null ? [options[Number(m[1])]] : options;
+  return (
+    onPath.length > 0 &&
+    onPath.every(
+      (o) => identificationContacts[o.identification ?? ""] === contact
+    )
+  );
+}
+
 function isAllIDToken(step: Step): boolean {
   return (step.one_of ?? []).every(
     (o) => o.identification === IDENTIFICATION_ID_TOKEN
@@ -108,14 +152,20 @@ export interface TargetCandidate {
   name: string | null;
 }
 
+// contact: for a code option, the email or phone the target must have
+// collected on the way to the step.
 export function targetCandidates(
   flow: AuthenticationFlowConfig,
   pointer: string,
-  usage: TargetUsage
+  usage: TargetUsage,
+  contact: Contact | null = null
 ): TargetCandidate[] {
   return earlierSteps(flow, pointer)
     .map((p) => ({ pointer: p, step: stepAt(flow, p) }))
     .filter(({ step }) => canTarget(usage, step))
+    .filter(
+      ({ pointer: p }) => contact == null || collects(flow, p, pointer, contact)
+    )
     .map(({ pointer: p, step }) => ({ pointer: p, name: step.name ?? null }));
 }
 
@@ -124,6 +174,8 @@ interface Reference {
   holder: string;
   name: string;
   usage: TargetUsage;
+  // Set for a code option: what it sends its codes to.
+  contact: Contact | null;
 }
 
 function isTargetUsage(type: string): type is TargetUsage {
@@ -137,11 +189,21 @@ function allReferences(flow: AuthenticationFlowConfig): Reference[] {
       continue;
     }
     if (step.target_step != null) {
-      refs.push({ holder: pointer, name: step.target_step, usage: step.type });
+      refs.push({
+        holder: pointer,
+        name: step.target_step,
+        usage: step.type,
+        contact: null,
+      });
     }
     for (const o of step.one_of ?? []) {
       if (o.target_step != null) {
-        refs.push({ holder: pointer, name: o.target_step, usage: step.type });
+        refs.push({
+          holder: pointer,
+          name: o.target_step,
+          usage: step.type,
+          contact: codeContact(o.authentication),
+        });
       }
     }
   }
@@ -258,7 +320,11 @@ export function ensureNamed(
   return { flow: next, name };
 }
 
-export type ReferenceWarning = "missing" | "wrong_type" | "not_earlier";
+export type ReferenceWarning =
+  | "missing"
+  | "wrong_type"
+  | "not_earlier"
+  | "wrong_contact";
 
 // Problems with each step's target_step, keyed by the step holding it.
 // Only "missing" fails the save; the others fail at runtime.
@@ -284,6 +350,11 @@ export function referenceWarnings(
       warnings.set(ref.holder, "wrong_type");
     } else if (!earlierSteps(flow, ref.holder).includes(target)) {
       warnings.set(ref.holder, "not_earlier");
+    } else if (
+      ref.contact != null &&
+      !collects(flow, target, ref.holder, ref.contact)
+    ) {
+      warnings.set(ref.holder, "wrong_contact");
     }
   }
   return warnings;
