@@ -62,3 +62,74 @@
   flex: 1;
   min-width: 0;
 }
+
+/* Marks a 2FA authenticator, beside its name. */
+.kindTag {
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--gray-a3);
+  color: var(--gray-11);
+  font-size: var(--font-size-1);
+}
+
+/* Collapsed settings under the options table. */
+.advanced {
+  border-top: 1px solid var(--gray-a5);
+  padding-top: 8px;
+}
+
+.advancedSummary {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  align-self: flex-start;
+  width: fit-content;
+  margin-left: -4px;
+  padding: 2px 6px 2px 4px;
+  border-radius: 4px;
+  color: var(--accent-11);
+  font-size: var(--font-size-2);
+  font-weight: 500;
+  list-style: none;
+  cursor: pointer;
+}
+
+.advancedSummary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedSummary:hover {
+  background: var(--accent-a3);
+}
+
+/* Points right when closed, down when open. */
+.advancedChevron {
+  transition: transform 150ms ease;
+}
+
+.advanced[open] .advancedChevron {
+  transform: rotate(90deg);
+}
+
+.advancedBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.advancedTable {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.advancedOption {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

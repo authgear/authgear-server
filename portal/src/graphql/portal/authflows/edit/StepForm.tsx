@@ -9,7 +9,7 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { TrashIcon } from "@radix-ui/react-icons";
+import { ChevronRightIcon, TrashIcon } from "@radix-ui/react-icons";
 import { Context } from "../../../../intl";
 import { Callout } from "../../../../components/v2/Callout/Callout";
 import {
@@ -41,6 +41,9 @@ import {
 import {
   isLoginOnlyIdentification,
   allowedAuthentications,
+  AuthenticationKind,
+  authenticationKind,
+  sendsCodes,
   allowedIdentifications,
   newOption,
 } from "./rules";
@@ -57,12 +60,6 @@ const RESERVED_FORM_NAME = "default";
 const TARGET_NONE = "-none";
 // pkg/lib/config GetOnFailure treats an unset on_failure as ignore.
 const ON_FAILURE_DEFAULT = "ignore";
-const OOB_AUTHENTICATIONS = new Set([
-  "primary_oob_otp_email",
-  "primary_oob_otp_sms",
-  "secondary_oob_otp_email",
-  "secondary_oob_otp_sms",
-]);
 
 const onFailureMessageIDs: Record<string, string> = {
   error: "AuthFlowsScreen.edit.form.on-failure.error",
@@ -330,14 +327,12 @@ type OptionColumnKey =
   | "login_flow"
   | "signup_flow"
   | "on_failure"
-  | "target_step"
   | "verification_required";
 
 const optionColumnMessageIDs: Record<OptionColumnKey, string> = {
   login_flow: "AuthFlowsScreen.edit.form.column.has-account",
   signup_flow: "AuthFlowsScreen.edit.form.column.no-account",
   on_failure: "AuthFlowsScreen.edit.form.column.on-failure",
-  target_step: "AuthFlowsScreen.edit.form.column.target-step",
   verification_required: "AuthFlowsScreen.edit.form.column.verify",
 };
 
@@ -346,6 +341,72 @@ function NotApplicable() {
 }
 
 // One row per option, with each setting as a column, so labels appear once.
+const authenticationKindMessageIDs: Record<AuthenticationKind, string> = {
+  primary: "AuthFlowsScreen.edit.form.authentication-kind.primary",
+  secondary: "AuthFlowsScreen.edit.form.authentication-kind.secondary",
+};
+
+// The identifications or authenticators an option can take. Authenticators
+// are grouped into primary and 2FA, since both have a Password and a Code
+// sent to email; a 2FA one is tagged, which the closed select shows too.
+function OptionValueItems({
+  isIdentify,
+  values,
+  phoneOTPMode,
+}: {
+  isIdentify: boolean;
+  values: string[];
+  phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
+}): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  if (isIdentify) {
+    return (
+      <>
+        {values.map((v) => (
+          <Select.Item key={v} value={v}>
+            {optionLabel({ identification: v }, renderToString, phoneOTPMode)}
+          </Select.Item>
+        ))}
+      </>
+    );
+  }
+  const kinds: AuthenticationKind[] = ["primary", "secondary"];
+  return (
+    <>
+      {kinds.map((kind, k) => {
+        const group = values.filter((v) => authenticationKind(v) === kind);
+        if (group.length === 0) {
+          return null;
+        }
+        return (
+          <React.Fragment key={kind}>
+            {k > 0 ? <Select.Separator /> : null}
+            <Select.Group>
+              <Select.Label>
+                {renderToString(authenticationKindMessageIDs[kind])}
+              </Select.Label>
+              {group.map((v) => (
+                <Select.Item key={v} value={v}>
+                  {optionLabel(
+                    { authentication: v },
+                    renderToString,
+                    phoneOTPMode
+                  )}
+                  {kind === "secondary" ? (
+                    <span className={styles.kindTag}>
+                      {renderToString(authenticationKindMessageIDs.secondary)}
+                    </span>
+                  ) : null}
+                </Select.Item>
+              ))}
+            </Select.Group>
+          </React.Fragment>
+        );
+      })}
+    </>
+  );
+}
+
 function OptionsField(props: StepFormProps) {
   const { renderToString } = useContext(Context);
   const { flowType, flow, stepID, apply, phoneOTPMode } = props;
@@ -377,8 +438,10 @@ function OptionsField(props: StepFormProps) {
     updateOption(j, (o) => {
       if (!isIdentify) {
         o.authentication = v;
-        if (!OOB_AUTHENTICATIONS.has(v)) {
+        // Only code options send to a step's email or phone, or verify it.
+        if (!sendsCodes(v)) {
           delete o.verification_required;
+          delete o.target_step;
         }
         return;
       }
@@ -401,12 +464,11 @@ function OptionsField(props: StepFormProps) {
   if (flowType === "account_recovery") {
     columns.push("on_failure");
   }
-  if (
+  // Where an option's codes go is an advanced setting, under the table.
+  const hasSendCodesTo =
     (step.type === "authenticate" || step.type === "create_authenticator") &&
-    flowType !== "reauth"
-  ) {
-    columns.push("target_step");
-  }
+    flowType !== "reauth" &&
+    options.some((o) => sendsCodes(o.authentication));
   if (step.type === "create_authenticator") {
     columns.push("verification_required");
   }
@@ -465,35 +527,9 @@ function OptionsField(props: StepFormProps) {
             </Select.Content>
           </Select.Root>
         );
-      case "target_step":
-        return (
-          <TargetStepSelect
-            flow={flow}
-            stepID={stepID}
-            usage={
-              step.type === "create_authenticator" ? step.type : "authenticate"
-            }
-            value={o.target_step}
-            required={false}
-            onChange={(base, name) =>
-              updateOption(
-                j,
-                (d) => {
-                  if (name == null) {
-                    delete d.target_step;
-                  } else {
-                    d.target_step = name;
-                  }
-                },
-                base
-              )
-            }
-          />
-        );
       case "verification_required":
         // Only codes sent to an email or phone verify it.
-        return o.authentication != null &&
-          OOB_AUTHENTICATIONS.has(o.authentication) ? (
+        return sendsCodes(o.authentication) ? (
           <Checkbox
             size="1"
             checked={o.verification_required ?? true}
@@ -518,9 +554,11 @@ function OptionsField(props: StepFormProps) {
       <div
         className={styles.optionTable}
         style={{
-          gridTemplateColumns: `minmax(0, 1.3fr) ${columns
-            .map(() => "minmax(0, 1fr)")
-            .join(" ")} 24px`,
+          gridTemplateColumns: `minmax(0, 1.6fr) ${columns
+            .map((c) =>
+              c === "verification_required" ? "auto" : "minmax(0, 1fr)"
+            )
+            .join(" ")} auto`,
         }}
       >
         <span className={styles.columnHeader}>
@@ -547,22 +585,14 @@ function OptionsField(props: StepFormProps) {
               >
                 <Select.Trigger className={styles.cellControl} />
                 <Select.Content>
-                  {(current != null && !values.includes(current)
-                    ? [...values, current]
-                    : values
-                  )
-                    .filter((v) => v === current || !used.has(v))
-                    .map((v) => (
-                      <Select.Item key={v} value={v}>
-                        {optionLabel(
-                          isIdentify
-                            ? { identification: v }
-                            : { authentication: v },
-                          renderToString,
-                          phoneOTPMode
-                        )}
-                      </Select.Item>
-                    ))}
+                  <OptionValueItems
+                    isIdentify={isIdentify}
+                    values={(current != null && !values.includes(current)
+                      ? [...values, current]
+                      : values
+                    ).filter((v) => v === current || !used.has(v))}
+                    phoneOTPMode={phoneOTPMode}
+                  />
                 </Select.Content>
               </Select.Root>
               {columns.map((c) => (
@@ -609,7 +639,97 @@ function OptionsField(props: StepFormProps) {
       >
         {renderToString("AuthFlowsScreen.edit.add-option")}
       </Button>
+      {hasSendCodesTo ? (
+        <AdvancedSettings
+          setCount={
+            options.filter(
+              (o) => sendsCodes(o.authentication) && o.target_step != null
+            ).length
+          }
+        >
+          <FieldLabel
+            label={renderToString("AuthFlowsScreen.edit.form.send-codes-to")}
+            configKey="target_step"
+          />
+          <Text as="p" size="1" color="gray">
+            {renderToString(
+              "AuthFlowsScreen.edit.form.send-codes-to.description"
+            )}
+          </Text>
+          <div className={styles.advancedTable}>
+            {options.map((o, j) =>
+              sendsCodes(o.authentication) ? (
+                <React.Fragment key={j}>
+                  <Text size="2" className={styles.advancedOption}>
+                    {optionLabel(o, renderToString, phoneOTPMode)}
+                  </Text>
+                  <TargetStepSelect
+                    flow={flow}
+                    stepID={stepID}
+                    usage={
+                      step.type === "create_authenticator"
+                        ? step.type
+                        : "authenticate"
+                    }
+                    value={o.target_step}
+                    required={false}
+                    onChange={(base, name) =>
+                      updateOption(
+                        j,
+                        (d) => {
+                          if (name == null) {
+                            delete d.target_step;
+                          } else {
+                            d.target_step = name;
+                          }
+                        },
+                        base
+                      )
+                    }
+                  />
+                </React.Fragment>
+              ) : null
+            )}
+          </div>
+        </AdvancedSettings>
+      ) : null}
     </div>
+  );
+}
+
+// Settings most flows never change, collapsed until opened. The summary
+// counts the ones that are set, so a value is never out of sight entirely.
+function AdvancedSettings({
+  setCount,
+  children,
+}: {
+  setCount: number;
+  children: React.ReactNode;
+}) {
+  const { renderToString } = useContext(Context);
+  const [open, setOpen] = useState(false);
+  return (
+    <details
+      className={styles.advanced}
+      open={open}
+      onToggle={(e) => setOpen(e.currentTarget.open)}
+    >
+      <summary className={styles.advancedSummary}>
+        <ChevronRightIcon
+          className={styles.advancedChevron}
+          aria-hidden={true}
+        />
+        {renderToString("AuthFlowsScreen.edit.form.advanced")}
+        {setCount > 0 ? (
+          <Text size="1" color="gray">
+            {renderToString("AuthFlowsScreen.edit.form.advanced.set", {
+              count: setCount,
+            })}
+          </Text>
+        ) : null}
+      </summary>
+      <div className={styles.advancedBody}>{children}</div>
+    </details>
   );
 }
 

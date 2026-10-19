@@ -1,8 +1,10 @@
 .panel {
   display: flex;
   flex-direction: column;
+  flex: none;
   gap: 12px;
-  width: 360px;
+  /* Room for a step's options table: an option and two settings a row. */
+  width: 400px;
   padding: 16px;
   border-left: 1px solid var(--gray-a5);
   overflow: auto;
