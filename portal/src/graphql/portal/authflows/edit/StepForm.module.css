@@ -121,8 +121,8 @@
 
 .advancedTable {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 6px;
+  grid-template-columns: fit-content(55%) minmax(0, 1fr);
+  gap: 6px 12px;
   align-items: center;
   margin-top: 4px;
 }

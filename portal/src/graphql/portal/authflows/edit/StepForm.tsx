@@ -31,7 +31,9 @@ import { destinationMessageID, optionLabel, stepTitle } from "../labels";
 import { formFieldLabel } from "../sketches";
 import { EditResult, addOption, updateStep } from "./edits";
 import {
+  Contact,
   TargetUsage,
+  codeContact,
   duplicateNames,
   ensureNamed,
   referencesTo,
@@ -221,12 +223,19 @@ function NameField({
   );
 }
 
+// When a code option names no step, it sends to what the user types.
+const targetNoneMessageIDs: Record<Contact, string> = {
+  email: "AuthFlowsScreen.edit.form.target.none.email",
+  phone: "AuthFlowsScreen.edit.form.target.none.phone",
+};
+
 // The target_step select: earlier steps the runtime accepts, by name. An
 // unnamed candidate is named when picked.
 function TargetStepSelect({
   flow,
   stepID,
   usage,
+  contact = null,
   value,
   required,
   onChange,
@@ -234,14 +243,21 @@ function TargetStepSelect({
   flow: AuthenticationFlowConfig;
   stepID: string;
   usage: TargetUsage;
+  // For a code option: only steps that collected this contact on the path.
+  contact?: Contact | null;
   value: string | undefined;
   required: boolean;
   // A null name clears target_step.
   onChange: (flow: AuthenticationFlowConfig, name: string | null) => void;
 }) {
   const { renderToString } = useContext(Context);
-  const candidates = targetCandidates(flow, stepID, usage);
+  const candidates = targetCandidates(flow, stepID, usage, contact);
   const known = candidates.some((c) => c.name != null && c.name === value);
+  // A step that exists but collected another contact on this path.
+  const unusable =
+    value != null &&
+    !known &&
+    targetCandidates(flow, stepID, usage).some((c) => c.name === value);
   const onValueChange = (v: string) => {
     if (v === TARGET_NONE) {
       onChange(flow, null);
@@ -265,14 +281,21 @@ function TargetStepSelect({
       <Select.Content>
         {!required ? (
           <Select.Item value={TARGET_NONE}>
-            {renderToString("AuthFlowsScreen.edit.form.target.none")}
+            {renderToString(
+              contact != null
+                ? targetNoneMessageIDs[contact]
+                : "AuthFlowsScreen.edit.form.target.none"
+            )}
           </Select.Item>
         ) : null}
         {value != null && !known ? (
           <Select.Item value={value}>
-            {renderToString("AuthFlowsScreen.edit.form.target.missing", {
-              name: value,
-            })}
+            {renderToString(
+              unusable
+                ? "AuthFlowsScreen.edit.form.target.unusable"
+                : "AuthFlowsScreen.edit.form.target.missing",
+              { name: value }
+            )}
           </Select.Item>
         ) : null}
         {candidates.map((c) =>
@@ -671,6 +694,7 @@ function OptionsField(props: StepFormProps) {
                         ? step.type
                         : "authenticate"
                     }
+                    contact={codeContact(o.authentication)}
                     value={o.target_step}
                     required={false}
                     onChange={(base, name) =>
