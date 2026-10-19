@@ -1,0 +1,14 @@
+.note {
+  margin-top: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-top: var(--space-4);
+}
+
+.spacer {
+  flex: 1;
+}

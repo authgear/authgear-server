@@ -170,3 +170,17 @@ export function nameError(
   }
   return null;
 }
+
+// The first of base_2, base_3, … that no flow of the types has.
+export function freeName(
+  flows: AuthenticationFlowsConfig | undefined,
+  types: readonly FlowType[],
+  base: string
+): string {
+  for (let n = 2; ; n++) {
+    const name = `${base}_${n}`;
+    if (nameError(flows, types, name, false) == null) {
+      return name;
+    }
+  }
+}

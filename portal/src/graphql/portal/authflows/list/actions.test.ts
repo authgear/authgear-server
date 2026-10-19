@@ -1,6 +1,12 @@
 import { describe, it, expect } from "@jest/globals";
 import { AuthenticationFlowsConfig } from "../../../../types";
-import { applyFlowAction, copyAs, deleteBlockers, nameError } from "./actions";
+import {
+  applyFlowAction,
+  copyAs,
+  deleteBlockers,
+  freeName,
+  nameError,
+} from "./actions";
 
 const handoff = (name: string, to: string) => ({
   name,
@@ -149,5 +155,17 @@ describe("nameError", () => {
     expect(nameError({}, ["login"], "default", false)).toEqual("reserved");
     expect(nameError({}, ["login"], "default", true)).toEqual(null);
     expect(nameError(flows, all, "staff", false)).toEqual(null);
+  });
+});
+
+describe("freeName", () => {
+  it("numbers from 2 past the names taken in any of the types", () => {
+    const f: AuthenticationFlowsConfig = {
+      signup_flows: [{ name: "signup_login_2", steps: [] }],
+    };
+    expect(
+      freeName(f, ["signup_login", "signup", "login"], "signup_login")
+    ).toEqual("signup_login_3");
+    expect(freeName(f, ["login"], "login")).toEqual("login_2");
   });
 });

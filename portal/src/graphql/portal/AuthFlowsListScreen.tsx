@@ -1,6 +1,12 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
-import { DropdownMenu, Heading, IconButton, Text } from "@radix-ui/themes";
+import {
+  Button,
+  DropdownMenu,
+  Heading,
+  IconButton,
+  Text,
+} from "@radix-ui/themes";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import Link from "../../Link";
@@ -34,6 +40,7 @@ import {
   deleteBlockers,
 } from "./authflows/list/actions";
 import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
+import { NewFlowDialog } from "./authflows/list/NewFlowDialog";
 import styles from "./AuthFlowsListScreen.module.css";
 
 // The one action being saved; null otherwise.
@@ -130,6 +137,7 @@ function ListContent({
     [flows, generated]
   );
   const [pending, setPending] = useState<Pending>(null);
+  const [creating, setCreating] = useState(false);
   const close = useCallback(() => setPending(null), []);
 
   const { saveWith } = form;
@@ -154,13 +162,28 @@ function ListContent({
   return (
     <div className={styles.root}>
       <header className={styles.header}>
-        <Heading size="6" as="h1">
-          <FormattedMessage id="AuthFlowsScreen.title" />
-        </Heading>
+        <div className={styles.titleRow}>
+          <Heading size="6" as="h1">
+            <FormattedMessage id="AuthFlowsScreen.title" />
+          </Heading>
+          <Button type="button" onClick={() => setCreating(true)}>
+            <FormattedMessage id="AuthFlowsScreen.new.button" />
+          </Button>
+        </div>
         <Text as="p" size="2" color="gray">
           <FormattedMessage id="AuthFlowsScreen.list.description" />
         </Text>
       </header>
+      {creating ? (
+        <NewFlowDialog
+          appID={appID}
+          open={true}
+          onOpenChange={setCreating}
+          flows={flows}
+          generated={generated}
+          config={form.effectiveConfig}
+        />
+      ) : null}
       <FormErrorMessageBar />
       <div className={styles.sections}>
         {sections.map((section) => (
