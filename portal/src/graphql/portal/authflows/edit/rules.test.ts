@@ -3,6 +3,8 @@ import {
   allowedAuthentications,
   allowedIdentifications,
   allowedStepTypes,
+  authenticationKind,
+  sendsCodes,
   newOption,
   newStep,
 } from "./rules";
@@ -192,5 +194,32 @@ describe("signup_login options that only log in", () => {
     expect(
       newOption("signup_login", { type: "identify", one_of: used })
     ).toEqual({ identification: "passkey", login_flow: "default" });
+  });
+});
+
+describe("authenticationKind", () => {
+  it("tells primary authenticators from 2FA ones", () => {
+    expect(authenticationKind("primary_password")).toEqual("primary");
+    expect(authenticationKind("primary_passkey")).toEqual("primary");
+    expect(authenticationKind("secondary_password")).toEqual("secondary");
+    expect(authenticationKind("secondary_totp")).toEqual("secondary");
+  });
+
+  it("counts recovery codes and remembered devices as 2FA", () => {
+    expect(authenticationKind("recovery_code")).toEqual("secondary");
+    expect(authenticationKind("device_token")).toEqual("secondary");
+  });
+});
+
+describe("sendsCodes", () => {
+  it("is true for authenticators that send codes to an email or phone", () => {
+    expect(sendsCodes("primary_oob_otp_email")).toEqual(true);
+    expect(sendsCodes("secondary_oob_otp_sms")).toEqual(true);
+  });
+
+  it("is false for the rest, which have no address to send to", () => {
+    expect(sendsCodes("secondary_totp")).toEqual(false);
+    expect(sendsCodes("primary_password")).toEqual(false);
+    expect(sendsCodes(undefined)).toEqual(false);
   });
 });

@@ -85,6 +85,28 @@ const loginAuthentications = [
   "device_token",
 ];
 
+// Primary authenticators sign the user in; the rest are 2FA: a second
+// factor, a recovery code, or a remembered device that skips 2FA.
+export type AuthenticationKind = "primary" | "secondary";
+
+export function authenticationKind(authentication: string): AuthenticationKind {
+  return authentication.startsWith("primary_") ? "primary" : "secondary";
+}
+
+const codeAuthentications = new Set([
+  "primary_oob_otp_email",
+  "primary_oob_otp_sms",
+  "secondary_oob_otp_email",
+  "secondary_oob_otp_sms",
+]);
+
+// Authenticators that send codes to an email or phone. Only these read an
+// option's target_step (the step whose email or phone they send to) and
+// verification_required.
+export function sendsCodes(authentication: string | undefined): boolean {
+  return authentication != null && codeAuthentications.has(authentication);
+}
+
 export const CHOICE_STEP_TYPES: readonly string[] = [
   "identify",
   "authenticate",
