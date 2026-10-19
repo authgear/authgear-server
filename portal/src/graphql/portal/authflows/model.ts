@@ -19,7 +19,6 @@ export function isFlowType(v: unknown): v is FlowType {
 }
 
 export const DEFAULT_FLOW_NAME = "default";
-export const DEFAULT_FLOW_TYPE: FlowType = "signup_login";
 
 const flowListKeys: Record<FlowType, keyof AuthenticationFlowsConfig> = {
   signup_login: "signup_login_flows",
@@ -109,32 +108,6 @@ export function listFlowNames(
     }
   }
   return names;
-}
-
-export interface FlowSelection {
-  type: FlowType;
-  name: string;
-}
-
-export function parseFlowSelection(
-  params: URLSearchParams,
-  custom: AuthenticationFlowsConfig | undefined
-): FlowSelection {
-  const rawType = params.get("type");
-  const type = isFlowType(rawType) ? rawType : DEFAULT_FLOW_TYPE;
-  const rawName = params.get("name");
-  const name =
-    rawName != null && listFlowNames(custom, type).includes(rawName)
-      ? rawName
-      : DEFAULT_FLOW_NAME;
-  return { type, name };
-}
-
-export function flowSelectionSearch(selection: FlowSelection): string {
-  return `?${new URLSearchParams({
-    type: selection.type,
-    name: selection.name,
-  }).toString()}`;
 }
 
 // The editor's URL for a flow, or for a bundle when type is signup_login.

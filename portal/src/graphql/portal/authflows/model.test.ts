@@ -2,11 +2,8 @@ import { describe, it, expect } from "@jest/globals";
 import {
   accountRecoveryDestinations,
   DEFAULT_FLOW_NAME,
-  DEFAULT_FLOW_TYPE,
-  flowSelectionSearch,
   generatedFlowsConfig,
   listFlowNames,
-  parseFlowSelection,
   resolveFlow,
 } from "./model";
 import {
@@ -67,40 +64,6 @@ describe("listFlowNames", () => {
 
   it("lists only default when there is no custom flow", () => {
     expect(listFlowNames(undefined, "login")).toEqual(["default"]);
-  });
-});
-
-describe("parseFlowSelection", () => {
-  it("falls back for an unknown type", () => {
-    expect(
-      parseFlowSelection(new URLSearchParams("type=bogus"), customWithNamed)
-    ).toEqual({ type: DEFAULT_FLOW_TYPE, name: DEFAULT_FLOW_NAME });
-  });
-
-  it("keeps a custom name of the selected type", () => {
-    expect(
-      parseFlowSelection(
-        new URLSearchParams("type=signup&name=vip"),
-        customWithNamed
-      )
-    ).toEqual({ type: "signup", name: "vip" });
-  });
-
-  it("falls back to default for a name that exists only for another type", () => {
-    expect(
-      parseFlowSelection(
-        new URLSearchParams("type=login&name=vip"),
-        customWithNamed
-      )
-    ).toEqual({ type: "login", name: DEFAULT_FLOW_NAME });
-  });
-});
-
-describe("flowSelectionSearch", () => {
-  it("serializes type and name", () => {
-    expect(flowSelectionSearch({ type: "login", name: "default" })).toEqual(
-      "?type=login&name=default"
-    );
   });
 });
 
