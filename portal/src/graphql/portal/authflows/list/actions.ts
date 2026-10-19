@@ -30,15 +30,20 @@ function renameAll(
   d: AuthenticationFlowsConfig,
   renames: { type: FlowType; from: string; to: string }[]
 ) {
-  for (const { type, from, to } of renames) {
+  // Only flows written in the config are renamed. A hand-off to a name with
+  // no custom flow (a generated default) keeps pointing at that name.
+  const done = renames.filter(({ type, from, to }) => {
+    let renamed = false;
     for (const f of d[flowListKey(type)] ?? []) {
       if (f.name === from) {
         f.name = to;
+        renamed = true;
       }
     }
-  }
+    return renamed;
+  });
   const map = (type: "login" | "signup", v: string | undefined) => {
-    const r = renames.find((x) => x.type === type && x.from === v);
+    const r = done.find((x) => x.type === type && x.from === v);
     return r != null ? r.to : v;
   };
   for (const f of d.signup_login_flows ?? []) {

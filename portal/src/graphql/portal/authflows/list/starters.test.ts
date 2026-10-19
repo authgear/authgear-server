@@ -5,6 +5,7 @@ import {
   STARTER_IDS,
   projectMethods,
   scratchFlows,
+  scratchMissing,
   starterFlows,
   starterMissing,
   stepSummary,
@@ -133,5 +134,38 @@ describe("stepSummary", () => {
       "verify",
       "create_authenticator",
     ]);
+  });
+});
+
+describe("scratchFlows with few methods", () => {
+  it("prefers a login ID over social login", () => {
+    const m = {
+      identifications: ["oauth", "phone"],
+      primary: ["primary_oob_otp_sms"],
+      secondary: [],
+    };
+    expect(scratchFlows("login", "x", m)[0].flow.steps?.[0].one_of).toEqual([
+      { identification: "phone" },
+    ]);
+  });
+
+  it("skips the authenticate step after social login", () => {
+    const m = { identifications: ["oauth"], primary: [], secondary: [] };
+    expect(
+      scratchFlows("login", "x", m)[0].flow.steps?.map((s) => s.type)
+    ).toEqual(["identify"]);
+  });
+
+  it("is unavailable without a login ID or social login", () => {
+    expect(
+      scratchMissing({
+        identifications: ["passkey"],
+        primary: [],
+        secondary: [],
+      })
+    ).toEqual(true);
+    expect(
+      scratchMissing({ identifications: ["email"], primary: [], secondary: [] })
+    ).toEqual(false);
   });
 });

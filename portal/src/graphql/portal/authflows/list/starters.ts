@@ -34,8 +34,10 @@ export function projectMethods(config: PortalAPIAppConfig): ProjectMethods {
   };
 }
 
-// Identifications that can lead to signup; passkey and oauth only log in here.
+// passkey only logs in, so a bundle's passkey option names no signup flow.
 const LOGIN_ONLY = new Set(["passkey"]);
+// Identities that sign in without a separate authenticate step.
+const NO_AUTHENTICATOR = new Set(["oauth"]);
 
 function bundle(
   name: string,
@@ -65,13 +67,35 @@ function bundle(
   ];
 }
 
+// The identification a from-scratch flow starts with: the first login ID,
+// else social login. null when the project has neither.
+function scratchIdentification(methods: ProjectMethods): string | null {
+  return (
+    methods.identifications.find(
+      (i) => !LOGIN_ONLY.has(i) && !NO_AUTHENTICATOR.has(i)
+    ) ??
+    methods.identifications.find((i) => NO_AUTHENTICATOR.has(i)) ??
+    null
+  );
+}
+
+export function scratchMissing(methods: ProjectMethods): boolean {
+  return scratchIdentification(methods) == null;
+}
+
+// Only call when scratchMissing is false.
 export function scratchFlows(
   type: CreatableType,
   name: string,
   methods: ProjectMethods
 ): NewFlows {
-  const identification = methods.identifications[0] ?? "email";
-  const authentication = methods.primary[0] ?? "primary_password";
+  const identification = scratchIdentification(methods);
+  if (identification == null) {
+    throw new Error("scratchFlows: the project has no login method");
+  }
+  const authentication = NO_AUTHENTICATOR.has(identification)
+    ? undefined
+    : methods.primary[0];
   const signup: AuthenticationFlowConfig = {
     name,
     steps: [{ type: "identify", one_of: [{ identification }] }],
@@ -80,7 +104,9 @@ export function scratchFlows(
     name,
     steps: [
       { type: "identify", one_of: [{ identification }] },
-      { type: "authenticate", one_of: [{ authentication }] },
+      ...(authentication != null
+        ? [{ type: "authenticate", one_of: [{ authentication }] }]
+        : []),
     ],
   };
   if (type === "signup") return [{ type, flow: signup }];

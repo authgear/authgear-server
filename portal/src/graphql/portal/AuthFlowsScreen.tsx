@@ -12,12 +12,7 @@ import {
   SegmentedControl,
   Text,
 } from "@radix-ui/themes";
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Link from "../../Link";
 import { Context, FormattedMessage } from "../../intl";
 import ShowLoading from "../../ShowLoading";
@@ -54,6 +49,7 @@ import {
 } from "./authflows/model";
 import { bundleTypes, isBundle } from "./authflows/list/rows";
 import { NewFlows } from "./authflows/list/starters";
+import { useLocationEffect } from "../../hook/useLocationEffect";
 import { flowTypeMessageIDs } from "./authflows/labels";
 import { FlowCanvas } from "./authflows/FlowCanvas";
 import { FlowStepItem, flowToTree } from "./authflows/tree";
@@ -170,7 +166,6 @@ function AuthFlowsContent({
   const params = useParams() as { type?: string; name?: string };
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const appConfig = form.effectiveConfig;
   const custom = appConfig.authentication_flow;
@@ -182,10 +177,13 @@ function AuthFlowsContent({
   const name = params.name ?? "";
   // A bundle is edited as one: its signup_login flow and the signup and
   // login flows it hands off to, each on its own tab.
+  // While editing, the drafts of this flow say it (a new bundle exists only
+  // as drafts); drafts left from another flow do not count.
+  const ownDrafts = drafts.filter((d) => d.name === name);
   const bundle =
     routeType === "signup_login" &&
-    (drafts.length > 0
-      ? drafts.length === bundleTypes().length
+    (ownDrafts.length > 0
+      ? ownDrafts.length === bundleTypes().length
       : isBundle(custom, name, generated));
   const part = searchParams.get("part");
   const shownType: FlowType | null = bundle
@@ -210,18 +208,23 @@ function AuthFlowsContent({
   const shownFlow: AuthenticationFlowConfig | null =
     draft?.flow ?? resolved?.flow ?? null;
 
-  // A flow created in the New flow dialog arrives as unsaved drafts.
+  // A flow created in the New flow dialog arrives as unsaved drafts, once:
+  // the state is popped from history, so a reload or Back cannot bring the
+  // starter back over later edits.
   const { setState } = form;
-  const incoming = (location.state as { newFlows?: NewFlows } | null)?.newFlows;
-  useEffect(() => {
-    if (incoming != null) {
-      setState(() => ({
-        drafts: incoming.map(
-          ({ type, flow }): EditorDraft => ({ type, name: flow.name, flow })
-        ),
-      }));
+  const incoming = useLocationEffect<{ newFlows?: NewFlows } | null>(
+    (state) => {
+      const newFlows = state?.newFlows;
+      if (newFlows != null) {
+        setState(() => ({
+          drafts: newFlows.map(
+            ({ type, flow }): EditorDraft => ({ type, name: flow.name, flow })
+          ),
+        }));
+      }
     }
-  }, [incoming, setState]);
+  );
+  const arriving = incoming?.newFlows != null && drafts.length === 0;
 
   const flowKey = `${shownType ?? ""}/${name}`;
   const tree = useMemo(
@@ -527,7 +530,7 @@ function AuthFlowsContent({
             <Callout type="warning" size="1" text={dropNotice} />
           </div>
         ) : null}
-        {tree != null && sketchContext != null ? (
+        {arriving ? null : tree != null && sketchContext != null ? (
           <FlowSketchContext.Provider value={sketchContext}>
             <FlowEditorContext.Provider value={canEdit ? editorValue : null}>
               <FlowCanvas
