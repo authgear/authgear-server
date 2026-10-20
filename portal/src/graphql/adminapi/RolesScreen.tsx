@@ -1,12 +1,7 @@
-import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Spinner, Text } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import {
-  RolesListQueryDocument,
-  RolesListQueryQuery,
-  RolesListQueryQueryVariables,
-} from "./query/rolesListQuery.generated";
+import { useRolesListQueryQuery } from "./query/rolesListQuery.generated";
 import styles from "./RolesScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { Context, FormattedMessage } from "../../intl";
@@ -65,17 +60,15 @@ const RolesScreen: React.VFC = function RolesScreen() {
     setOffset(0);
   }, []);
 
-  const { data, previousData, loading, error, refetch } = useQuery<
-    RolesListQueryQuery,
-    RolesListQueryQueryVariables
-  >(RolesListQueryDocument, {
-    variables: {
-      pageSize: isSearch ? searchResultSize : pageSize,
-      searchKeyword: debouncedSearchKey,
-      cursor,
-    },
-    fetchPolicy: "network-only",
-  });
+  const { data, previousData, loading, error, refetch } =
+    useRolesListQueryQuery({
+      variables: {
+        pageSize: isSearch ? searchResultSize : pageSize,
+        searchKeyword: debouncedSearchKey,
+        cursor,
+      },
+      fetchPolicy: "network-only",
+    });
 
   const currentData = data ?? previousData;
   // Only the very first load has no data at all; subsequent refetches keep

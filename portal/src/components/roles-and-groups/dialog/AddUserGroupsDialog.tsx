@@ -1,12 +1,7 @@
 import { Context as MessageContext } from "../../../intl";
 import React, { useCallback, useContext, useMemo } from "react";
 import ErrorDialog from "../../../error/ErrorDialog";
-import {
-  GroupsListQueryDocument,
-  GroupsListQueryQuery,
-  GroupsListQueryQueryVariables,
-} from "../../../graphql/adminapi/query/groupsListQuery.generated";
-import { useQuery } from "@apollo/client";
+import { useGroupsListQueryQuery } from "../../../graphql/adminapi/query/groupsListQuery.generated";
 import { Group } from "../../../graphql/adminapi/globalTypes.generated";
 import AddTagsDialog, { AddTagsDialogTag } from "./AddTagsDialog";
 import { useAddUserToGroupsMutation } from "../../../graphql/adminapi/mutations/addUserToGroupsMutation";
@@ -57,10 +52,7 @@ export const AddUserGroupsDialog: React.VFC<AddUserGroupsDialogProps> =
     const { refetch: refetchUser } = useUserQuery(userID, {
       skip: true,
     });
-    const { refetch } = useQuery<
-      GroupsListQueryQuery,
-      GroupsListQueryQueryVariables
-    >(GroupsListQueryDocument);
+    const { refetch } = useGroupsListQueryQuery({ skip: true });
 
     const onResolveGroupSuggestions = useCallback(
       async (

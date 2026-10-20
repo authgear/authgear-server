@@ -1,13 +1,8 @@
-import { useQuery } from "@apollo/client";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import React, { useContext, useState, useCallback, useMemo } from "react";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
-import {
-  RolesListQueryQuery,
-  RolesListQueryQueryVariables,
-  RolesListQueryDocument,
-} from "../../../graphql/adminapi/query/rolesListQuery.generated";
+import { useRolesListQueryQuery } from "../../../graphql/adminapi/query/rolesListQuery.generated";
 import { UserQueryNodeFragment } from "../../../graphql/adminapi/query/userQuery.generated";
 import { searchRoles } from "../../../model/role";
 import { RolesEmptyView } from "../empty-view/RolesEmptyView";
@@ -34,16 +29,13 @@ function UserDetailsScreenRoleListContainer({
     loading,
     error,
     refetch,
-  } = useQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(
-    RolesListQueryDocument,
-    {
-      variables: {
-        pageSize: 0,
-        searchKeyword: "",
-      },
-      fetchPolicy: "network-only",
-    }
-  );
+  } = useRolesListQueryQuery({
+    variables: {
+      pageSize: 0,
+      searchKeyword: "",
+    },
+    fetchPolicy: "network-only",
+  });
 
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const isSearch = searchKeyword !== "";

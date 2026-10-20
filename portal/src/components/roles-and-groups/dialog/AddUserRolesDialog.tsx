@@ -1,12 +1,7 @@
 import { Context as MessageContext } from "../../../intl";
 import React, { useCallback, useContext, useMemo } from "react";
 import ErrorDialog from "../../../error/ErrorDialog";
-import {
-  RolesListQueryDocument,
-  RolesListQueryQuery,
-  RolesListQueryQueryVariables,
-} from "../../../graphql/adminapi/query/rolesListQuery.generated";
-import { useQuery } from "@apollo/client";
+import { useRolesListQueryQuery } from "../../../graphql/adminapi/query/rolesListQuery.generated";
 import { Role } from "../../../graphql/adminapi/globalTypes.generated";
 import AddTagsDialog, { AddTagsDialogTag } from "./AddTagsDialog";
 import { useAddUserToRolesMutation } from "../../../graphql/adminapi/mutations/addUserToRolesMutation";
@@ -57,10 +52,7 @@ export const AddUserRolesDialog: React.VFC<AddUserRolesDialogProps> =
     const { refetch: refetchUser } = useUserQuery(userID, {
       skip: true,
     });
-    const { refetch } = useQuery<
-      RolesListQueryQuery,
-      RolesListQueryQueryVariables
-    >(RolesListQueryDocument);
+    const { refetch } = useRolesListQueryQuery({ skip: true });
 
     const onResolveRoleSuggestions = useCallback(
       async (

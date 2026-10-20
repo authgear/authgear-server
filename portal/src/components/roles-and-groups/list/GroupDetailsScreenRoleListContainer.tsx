@@ -2,17 +2,12 @@ import React, { useCallback, useContext, useMemo, useState } from "react";
 import { PlusIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { GroupQueryNodeFragment } from "../../../graphql/adminapi/query/groupQuery.generated";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
-import { useQuery } from "@apollo/client";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
 import { Role } from "../../../graphql/adminapi/globalTypes.generated";
 import { PrimaryButton } from "../../v2/Button/PrimaryButton/PrimaryButton";
 import { TextField, TextFieldIcon } from "../../v2/TextField/TextField";
-import {
-  RolesListQueryDocument,
-  RolesListQueryQuery,
-  RolesListQueryQueryVariables,
-} from "../../../graphql/adminapi/query/rolesListQuery.generated";
+import { useRolesListQueryQuery } from "../../../graphql/adminapi/query/rolesListQuery.generated";
 import { RolesEmptyView } from "../empty-view/RolesEmptyView";
 import { GroupRolesList } from "../list/GroupRolesList";
 import { AddGroupRolesDialog } from "../dialog/AddGroupRolesDialog";
@@ -33,16 +28,13 @@ const GroupDetailsScreenRoleListContainer: React.VFC<
     loading,
     error,
     refetch,
-  } = useQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(
-    RolesListQueryDocument,
-    {
-      variables: {
-        pageSize: 0,
-        searchKeyword: "",
-      },
-      fetchPolicy: "network-only",
-    }
-  );
+  } = useRolesListQueryQuery({
+    variables: {
+      pageSize: 0,
+      searchKeyword: "",
+    },
+    fetchPolicy: "network-only",
+  });
 
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const onChangeSearchKeyword = useCallback(

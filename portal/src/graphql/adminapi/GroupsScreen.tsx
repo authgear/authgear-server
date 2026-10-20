@@ -1,12 +1,7 @@
-import { useQuery } from "@apollo/client";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Spinner, Text } from "@radix-ui/themes";
 import { Cross2Icon } from "@radix-ui/react-icons";
-import {
-  GroupsListQueryDocument,
-  GroupsListQueryQuery,
-  GroupsListQueryQueryVariables,
-} from "./query/groupsListQuery.generated";
+import { useGroupsListQueryQuery } from "./query/groupsListQuery.generated";
 import styles from "./GroupsScreen.module.css";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import { Context, FormattedMessage } from "../../intl";
@@ -65,17 +60,15 @@ const GroupsScreen: React.VFC = function GroupsScreen() {
     setOffset(0);
   }, []);
 
-  const { data, previousData, loading, error, refetch } = useQuery<
-    GroupsListQueryQuery,
-    GroupsListQueryQueryVariables
-  >(GroupsListQueryDocument, {
-    variables: {
-      pageSize: isSearch ? searchResultSize : pageSize,
-      searchKeyword: debouncedSearchKey,
-      cursor,
-    },
-    fetchPolicy: "network-only",
-  });
+  const { data, previousData, loading, error, refetch } =
+    useGroupsListQueryQuery({
+      variables: {
+        pageSize: isSearch ? searchResultSize : pageSize,
+        searchKeyword: debouncedSearchKey,
+        cursor,
+      },
+      fetchPolicy: "network-only",
+    });
 
   const currentData = data ?? previousData;
   // Only the very first load has no data at all; subsequent refetches keep
