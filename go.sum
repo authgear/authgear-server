@@ -188,8 +188,8 @@ github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/fxamacker/cbor/v2 v2.9.0 h1:NpKPmjDBgUfBms6tr6JZkTHtfFGcMKsw3eGcmD/sapM=
 github.com/fxamacker/cbor/v2 v2.9.0/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
-github.com/getkin/kin-openapi v0.145.0 h1:htBX+Q7SevVaCUqymFegUKzH2WCbewl9tsmyn2FMGWY=
-github.com/getkin/kin-openapi v0.145.0/go.mod h1:3BH9M9XDe/y9M5DSvEocVYAYq1w0qrhJHjC/vZi0AaY=
+github.com/getkin/kin-openapi v0.149.0 h1:ZbhmVJ4yq5RZDUsyP8lcBcGMsjsaTqXEFt6isdtMDfA=
+github.com/getkin/kin-openapi v0.149.0/go.mod h1:1+BHDzstro+P5CKtPy1X4PfofnFgmRe6uvMy9+r9fKY=
 github.com/getsentry/sentry-go v0.35.0 h1:+FJNlnjJsZMG3g0/rmmP7GiKjQoUF5EXfEtBwtPtkzY=
 github.com/getsentry/sentry-go v0.35.0/go.mod h1:C55omcY9ChRQIUcVcGcs+Zdy4ZpQGvNJ7JYHIoSWOtE=
 github.com/getsentry/sentry-go/slog v0.35.0 h1:pmaBLpH0z+p9M59ur1ULhhVHZWVRn0w19LrdKmIBgHs=
@@ -556,8 +556,8 @@ github.com/samber/slog-common v0.19.0 h1:fNcZb8B2uOLooeYwFpAlKjkQTUafdjfqKcwcC89
 github.com/samber/slog-common v0.19.0/go.mod h1:dTz+YOU76aH007YUU0DffsXNsGFQRQllPQh9XyNoA3M=
 github.com/samber/slog-multi v1.4.1 h1:OVBxOKcorBcGQVKjwlraA41JKWwHQyB/3KfzL3IJAYg=
 github.com/samber/slog-multi v1.4.1/go.mod h1:im2Zi3mH/ivSY5XDj6LFcKToRIWPw1OcjSVSdXt+2d0=
-github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 h1:KRzFb2m7YtdldCEkzs6KqmJw4nqEVZGK7IN2kJkjTuQ=
-github.com/santhosh-tekuri/jsonschema/v6 v6.0.2/go.mod h1:JXeL+ps8p7/KNMjDQk3TCwPpBy0wYklyWTfbkIzdIFU=
+github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 h1:1EYB5IzjZawrrnELUi78f9fPu57HuXjmddZPjrls/28=
+github.com/santhosh-tekuri/jsonschema/v6 v6.0.3/go.mod h1:JXeL+ps8p7/KNMjDQk3TCwPpBy0wYklyWTfbkIzdIFU=
 github.com/segmentio/asm v1.2.0 h1:9BQrFxC+YOHJlTlHGkTrFWf59nbL3XnCoFLTwDCI7ys=
 github.com/segmentio/asm v1.2.0/go.mod h1:BqMnlJP91P8d+4ibuonYZw9mfnzI9HfxselHZr5aAcs=
 github.com/sergi/go-diff v1.1.0/go.mod h1:STckp+ISIX8hZLjrqAeVduY0gWCT9IjLuqbuNXdaHfM=
