@@ -1,0 +1,17 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editor {
+  height: 260px;
+  overflow: hidden;
+  border: 1px solid var(--gray-a6);
+  border-radius: 6px;
+}
+
+/* CodeEditor's own wrapper; Monaco sizes itself to 100% of it. */
+.codeEditor {
+  height: 100%;
+}

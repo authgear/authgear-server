@@ -159,6 +159,10 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     return false;
   }, [effectiveFeatureConfig]);
 
+  const authFlowBuilderEnabled = useMemo(() => {
+    return effectiveFeatureConfig?.portal?.auth_flow_builder_enabled ?? false;
+  }, [effectiveFeatureConfig]);
+
   const fraudProtectionModifiable = useMemo(() => {
     return effectiveFeatureConfig?.fraud_protection?.is_modifiable ?? false;
   }, [effectiveFeatureConfig]);
@@ -242,6 +246,15 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.mfa",
             url: `/project/${appID}/configuration/authentication/2fa`,
           },
+          ...(authFlowBuilderEnabled
+            ? [
+                {
+                  type: "link" as const,
+                  textKey: "ScreenNav.auth-flows",
+                  url: `/project/${appID}/configuration/authentication/flows`,
+                },
+              ]
+            : []),
           {
             type: "link" as const,
             textKey: "ScreenNav.anonymous-users",
@@ -489,6 +502,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     appID,
     analyticEnabled,
     app2appEnabled,
+    authFlowBuilderEnabled,
     fraudProtectionModifiable,
     showIntegrations,
     auditLogEnabled,

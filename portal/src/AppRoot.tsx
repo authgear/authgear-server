@@ -26,10 +26,19 @@ import { isIntegrationsAvailable } from "./util/integrations";
 // their identity is stable across renders.
 const isApp2AppAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
   fc?.oauth?.client?.app2app_enabled ?? false;
+const isAuthFlowBuilderAvailable = (
+  fc: PortalAPIFeatureConfig | null
+): boolean => fc?.portal?.auth_flow_builder_enabled ?? false;
 const isFraudProtectionAvailable = (
   fc: PortalAPIFeatureConfig | null
 ): boolean => fc?.fraud_protection?.is_modifiable ?? false;
 
+const AuthFlowsListScreen = lazy(
+  async () => import("./graphql/portal/AuthFlowsListScreen")
+);
+const AuthFlowsScreen = lazy(
+  async () => import("./graphql/portal/AuthFlowsScreen")
+);
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
   async () => import("./graphql/adminapi/AddRoleScreen")
@@ -632,6 +641,28 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
+              <Route
+                element={
+                  <RequireAppFeature isAvailable={isAuthFlowBuilderAvailable} />
+                }
+              >
+                <Route
+                  path="flows"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AuthFlowsListScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="flows/:type/:name"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AuthFlowsScreen />
+                    </Suspense>
+                  }
+                />
+              </Route>
               <Route
                 path="anonymous-users"
                 element={

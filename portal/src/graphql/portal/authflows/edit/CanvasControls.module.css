@@ -1,0 +1,53 @@
+/* Hidden until its line is hovered; keyboard focus and an open menu keep it
+   shown. Plain :focus would also keep it after a click. */
+.insertButton {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--accent-9);
+  border-radius: 50%;
+  background: var(--color-panel-solid);
+  color: var(--accent-11);
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.insertButton:hover,
+.insertButtonVisible {
+  opacity: 1;
+}
+
+/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- ignore the style if focus-visible is not supported */
+.insertButton:focus-visible {
+  opacity: 1;
+}
+
+.insertButtonDropTarget {
+  transform: scale(1.4);
+  background: var(--accent-9);
+  color: var(--accent-contrast);
+}
+
+.insertItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.warningLine {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--amber-11);
+  font-size: var(--font-size-1);
+}
+
+.errorLine {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--red-11);
+  font-size: var(--font-size-1);
+}

@@ -1,0 +1,135 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  align-self: flex-start;
+  cursor: default;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+}
+
+.optionTable {
+  display: grid;
+  gap: 6px;
+  align-items: center;
+}
+
+.columnHeader {
+  color: var(--gray-11);
+  font-size: var(--font-size-1);
+  cursor: default;
+}
+
+.cell {
+  display: flex;
+  min-width: 0;
+}
+
+.cellControl {
+  width: 100%;
+  min-width: 0;
+}
+
+/* A setting that does not apply to this option. */
+.notApplicable {
+  padding-left: 8px;
+  color: var(--gray-9);
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Marks a 2FA authenticator, beside its name. */
+.kindTag {
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--gray-a3);
+  color: var(--gray-11);
+  font-size: var(--font-size-1);
+}
+
+/* Collapsed settings under the options table. */
+.advanced {
+  border-top: 1px solid var(--gray-a5);
+  padding-top: 8px;
+}
+
+.advancedSummary {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  align-self: flex-start;
+  width: fit-content;
+  margin-left: -4px;
+  padding: 2px 6px 2px 4px;
+  border-radius: 4px;
+  color: var(--accent-11);
+  font-size: var(--font-size-2);
+  font-weight: 500;
+  list-style: none;
+  cursor: pointer;
+}
+
+.advancedSummary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedSummary:hover {
+  background: var(--accent-a3);
+}
+
+/* Points right when closed, down when open. */
+.advancedChevron {
+  transition: transform 150ms ease;
+}
+
+.advanced[open] .advancedChevron {
+  transform: rotate(90deg);
+}
+
+.advancedBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.advancedTable {
+  display: grid;
+  grid-template-columns: fit-content(55%) minmax(0, 1fr);
+  gap: 6px 12px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.advancedOption {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,83 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 24px 16px;
+}
+
+.toolbar {
+  margin-top: 4px;
+}
+
+.back {
+  align-self: flex-start;
+  font-size: var(--font-size-2);
+}
+
+.canvasArea {
+  position: relative;
+  display: flex;
+  /* A definite height, so fitting the flow to the view centres it. */
+  height: max(480px, calc(100vh - 280px));
+  border-top: 1px solid var(--gray-a5);
+}
+
+.notFound {
+  padding: 24px;
+}
+
+.toolbarSpacer {
+  flex: 1;
+}
+
+/* Why a dragged line did not link, over the top of the canvas. */
+.dropNotice {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  left: 50%;
+  max-width: 480px;
+  transform: translateX(-50%);
+}
+
+/* An unsaved draft kept in this browser, offered back. */
+.storedDraft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-3);
+  background: var(--accent-a3);
+}
+
+.storedDraftText {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Problems with the flow as a whole, above the canvas. */
+.flowProblems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 24px 12px;
+}
+
+.flowProblem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flowProblem > :first-child {
+  flex: 1;
+}
