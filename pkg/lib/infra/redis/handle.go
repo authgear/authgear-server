@@ -124,13 +124,11 @@ func (h *Handle) WithMutexExpiry(ctx context.Context, name string, expiry time.D
 			defer close(extendDone)
 			h.extendMutexPeriodically(extendCtx, mutex, expiry)
 		}()
-		// Registered after the unlock defer, so LIFO runs this first:
+		// Registered after the unlock defer, so LIFO runs these first:
 		// the extend goroutine is fully stopped before UnlockContext
 		// touches the same *redsync.Mutex, so the two never race on it.
-		defer func() {
-			cancelExtend()
-			<-extendDone
-		}()
+		defer func() { <-extendDone }()
+		defer cancelExtend()
 	}
 
 	return do()
