@@ -12,6 +12,7 @@ const errorMessageIDs: Record<ParseStepYAMLError, string> = {
   parse: "AuthFlowsScreen.edit.yaml.error.parse",
   not_step: "AuthFlowsScreen.edit.yaml.error.not-step",
   type: "AuthFlowsScreen.edit.yaml.error.type",
+  form: "AuthFlowsScreen.edit.yaml.error.form",
 };
 
 // The selected step, with everything nested under it, as YAML. Apply

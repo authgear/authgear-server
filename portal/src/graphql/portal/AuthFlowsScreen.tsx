@@ -3,9 +3,12 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { Button, Flex, Heading, Text } from "@radix-ui/themes";
+import deepEqual from "deep-equal";
+import { Button, Flex, Heading, IconButton, Text } from "@radix-ui/themes";
+import { Pencil1Icon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import Link from "../../Link";
 import { Context, FormattedMessage } from "../../intl";
@@ -13,6 +16,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { Callout } from "../../components/v2/Callout/Callout";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
+import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import {
   FormContainerBase,
   useFormContainerBaseContext,
@@ -25,6 +29,7 @@ import {
 import { useAuthFlowsScreenQueryQuery } from "./query/authFlowsScreenQuery";
 import {
   AuthenticationFlowConfig,
+  AuthenticationFlowStepConfig,
   AuthenticationFlowsConfig,
   PortalAPIAppConfig,
 } from "../../types";
@@ -41,8 +46,11 @@ import {
   resolveFlow,
 } from "./authflows/model";
 import { NewFlows } from "./authflows/list/starters";
+import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
 import { useLocationEffect } from "../../hook/useLocationEffect";
-import { flowTypeMessageIDs } from "./authflows/labels";
+import { useLeavePageWarning } from "../../hook/useLeavePageWarning";
+import { flowTypeMessageIDs, optionLabel } from "./authflows/labels";
+import { formFieldLabel } from "./authflows/sketches";
 import { FlowCanvas } from "./authflows/FlowCanvas";
 import { FlowStepItem, flowToTree } from "./authflows/tree";
 import { findStep } from "./authflows/findStep";
@@ -51,22 +59,45 @@ import {
   FlowSketchContext,
   FlowSketchContextValue,
 } from "./authflows/FlowSketchContext";
-import { FlowEditorContext } from "./authflows/edit/FlowEditorContext";
+import {
+  FlowEditorContext,
+  StepProblem,
+} from "./authflows/edit/FlowEditorContext";
+import { ConflictDialog } from "./authflows/edit/ConflictDialog";
+import {
+  StoredDraft,
+  readStoredDraft,
+  removeStoredDraft,
+  storeDraft,
+} from "./authflows/edit/draftStorage";
 import { useFlowEditorValue } from "./authflows/edit/useFlowEditorValue";
 import {
   EditResult,
   countNestedSteps,
   countOptionSteps,
+  insertStep,
   removeOption,
   removeStep,
 } from "./authflows/edit/edits";
 import { getAt } from "./authflows/edit/pointer";
+import {
+  FlowCheck,
+  StepCheck,
+  checkAccountStatusAt,
+  fillablePointers,
+  flowChecks,
+  knownPointers,
+  stepChecks,
+} from "./authflows/edit/checks";
+import { describeCause, flowErrorRule } from "./authflows/edit/causes";
+import { ValidationFailedErrorInfoCause } from "../../error/validation";
 import {
   EditorDraft,
   EditorState,
   flowPointer,
   rawFlow,
   removeFlows,
+  renameFlow,
   replaceFlows,
   stepErrors,
 } from "./authflows/edit/save";
@@ -83,8 +114,39 @@ function constructConfig(
   _initial: EditorState,
   current: EditorState
 ): PortalAPIAppConfig {
-  return removeFlows(replaceFlows(raw, current.drafts), current.removals);
+  const next = removeFlows(replaceFlows(raw, current.drafts), current.removals);
+  const { rename } = current;
+  return rename != null
+    ? renameFlow(next, rename.type, rename.name, rename.newName)
+    : next;
 }
+
+const checkMessageIDs: Record<StepCheck["kind"], string> = {
+  form_before_identify: "AuthFlowsScreen.check.form-before-identify",
+  form_before_authentication:
+    "AuthFlowsScreen.check.form-before-authentication",
+  field_not_fillable: "AuthFlowsScreen.error.not-fillable",
+  field_duplicate: "AuthFlowsScreen.error.duplicate-field",
+};
+
+const optionCheckMessageIDs: Record<
+  "field_not_fillable" | "field_duplicate",
+  string
+> = {
+  field_not_fillable: "AuthFlowsScreen.check.option-field-not-fillable",
+  field_duplicate: "AuthFlowsScreen.check.option-field-duplicate",
+};
+
+// A save error and the editor's check on it say the same thing once.
+function uniqueProblems(problems: StepProblem[]): StepProblem[] {
+  return problems.filter(
+    (p, i) => problems.findIndex((q) => q.text === p.text) === i
+  );
+}
+
+const flowCheckMessageIDs: Record<FlowCheck, string> = {
+  no_check_account_status: "AuthFlowsScreen.check.no-check-account-status",
+};
 
 function allStepIDs(tree: FlowStepItem[]): string[] {
   return tree.flatMap((item) => [
@@ -114,6 +176,25 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
       generatedFlows != null ? generatedFlowsConfig(generatedFlows) : undefined,
     [generatedFlows]
   );
+  // While the shown flow is being edited, save errors inside it are shown on
+  // its steps, and the error bar only counts them. A rename or reset has no
+  // draft to show them on, so the bar shows them as usual.
+  const params = useParams() as { type?: string; name?: string };
+  const { rawConfig } = form;
+  const editingRoute = form.state.drafts.some(
+    (d) => d.type === params.type && d.name === params.name
+  );
+  const errorRules = useMemo(
+    () =>
+      rawConfig != null && isFlowType(params.type) && editingRoute
+        ? [
+            flowErrorRule(
+              flowPointer(rawConfig, params.type, params.name ?? "")
+            ),
+          ]
+        : undefined,
+    [rawConfig, params.type, params.name, editingRoute]
+  );
 
   if (loading || form.isLoading) {
     return <ShowLoading />;
@@ -132,7 +213,11 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
   return (
-    <FormContainerBase form={form}>
+    <FormContainerBase
+      form={form}
+      ownConflictDialog={true}
+      errorRules={errorRules}
+    >
       <AuthFlowsContent appID={appID} form={form} generated={generated} />
     </FormContainerBase>
   );
@@ -155,7 +240,7 @@ function AuthFlowsContent({
   generated: AuthenticationFlowsConfig | undefined;
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const { onSave, canSave, isUpdating } = useFormContainerBaseContext();
+  const { canSave, isUpdating } = useFormContainerBaseContext();
   const params = useParams() as { type?: string; name?: string };
   const navigate = useNavigate();
 
@@ -328,13 +413,91 @@ function AuthFlowsContent({
             flowPointer(form.rawConfig, draft.type, draft.name),
             allStepIDs(tree)
           )
-        : new Map(),
+        : new Map<string, ValidationFailedErrorInfoCause[]>(),
     [draft, tree, form.rawConfig, form.updateError]
   );
   const errorStepIDs = useMemo(
-    () => new Set<string>(errorsByStep.keys()),
+    () => new Set<string>([...errorsByStep.keys()].filter((k) => k !== "")),
     [errorsByStep]
   );
+  const errorPrefix =
+    draft != null && form.rawConfig != null
+      ? flowPointer(form.rawConfig, draft.type, draft.name)
+      : "";
+  const causeText = useCallback(
+    (cause: ValidationFailedErrorInfoCause, stepID: string) => {
+      const m = describeCause(cause, `${errorPrefix}${stepID}`);
+      return renderToString(m.messageID, m.values);
+    },
+    [errorPrefix, renderToString]
+  );
+
+  // The editor's own checks: forms the server would reject, and warnings.
+  const fillable = useMemo(() => fillablePointers(appConfig), [appConfig]);
+  const checksByStep = useMemo(
+    () =>
+      shownType != null && shownFlow != null
+        ? stepChecks(shownType, shownFlow, new Set(fillable))
+        : new Map<string, StepCheck[]>(),
+    [shownType, shownFlow, fillable]
+  );
+  const flowLevelChecks = useMemo(
+    () =>
+      shownType != null && shownFlow != null
+        ? flowChecks(shownType, shownFlow)
+        : [],
+    [shownType, shownFlow]
+  );
+  const customAttributes =
+    appConfig.user_profile?.custom_attributes?.attributes;
+  const checkProblem = useCallback(
+    (c: StepCheck, stepID: string): StepProblem => {
+      const tone =
+        c.kind === "form_before_authentication" ? "warning" : "error";
+      // An option's form has no fields in the panel, so say which option
+      // and attribute.
+      if (
+        (c.kind === "field_not_fillable" || c.kind === "field_duplicate") &&
+        c.option != null &&
+        shownFlow != null
+      ) {
+        const step = getAt(shownFlow, stepID) as
+          | AuthenticationFlowStepConfig
+          | undefined;
+        const option = step?.one_of?.[c.option];
+        if (option != null) {
+          return {
+            tone,
+            text: renderToString(optionCheckMessageIDs[c.kind], {
+              option: optionLabel(option, renderToString),
+              attribute: formFieldLabel(
+                c.pointer,
+                customAttributes ?? [],
+                renderToString
+              ),
+            }),
+          };
+        }
+      }
+      return { tone, text: renderToString(checkMessageIDs[c.kind]) };
+    },
+    [renderToString, shownFlow, customAttributes]
+  );
+  // Each step's first problem, for its card.
+  const problems = useMemo(() => {
+    const out = new Map<string, StepProblem>();
+    for (const [id, causes] of errorsByStep) {
+      if (id !== "" && causes.length > 0) {
+        out.set(id, { tone: "error", text: causeText(causes[0], id) });
+      }
+    }
+    for (const [id, checks] of checksByStep) {
+      if (!out.has(id) && checks.length > 0) {
+        out.set(id, checkProblem(checks[0], id));
+      }
+    }
+    return out;
+  }, [errorsByStep, checksByStep, causeText, checkProblem]);
   // Why the last dropped card did not move; cleared by the next edit.
   const [dropNotice, setDropNotice] = useState<string | null>(null);
   const applyAndClearNotice = useCallback(
@@ -348,6 +511,8 @@ function AuthFlowsContent({
     flowType: shownType ?? "signup_login",
     flow: draft?.flow ?? { name },
     errorStepIDs,
+    problems,
+    fillablePointers: fillable,
     apply: applyAndClearNotice,
     requestRemove,
     notify: setDropNotice,
@@ -370,19 +535,168 @@ function AuthFlowsContent({
       }));
     }
   }, [routeType, form.rawConfig, name, resolved, setState]);
+  // A refresh or a closed tab asks first; in-app navigation is asked about
+  // by FormContainerBase.
+  const { getIsDirty, save, saveWith, reload, reset } = form;
+  useLeavePageWarning(getIsDirty);
+
+  // An unsaved draft kept in this browser, offered back on return. Read once
+  // per flow; written as the draft changes; dropped once saved or discarded.
+  const storedKey = `${appID}/${flowKey}`;
+  const readStored = () =>
+    routeType != null ? readStoredDraft(appID, routeType, name) : null;
+  const [stored, setStored] = useState<{
+    key: string;
+    draft: StoredDraft | null;
+  }>(() => ({ key: storedKey, draft: readStored() }));
+  if (stored.key !== storedKey) {
+    setStored({ key: storedKey, draft: readStored() });
+  }
+  const forgetStored = useCallback(
+    (flows: { type: FlowType; name: string }[]) => {
+      for (const f of flows) {
+        removeStoredDraft(appID, f.type, f.name);
+      }
+      setStored({ key: storedKey, draft: null });
+    },
+    [appID, storedKey]
+  );
+  // What the draft started from: an unchanged draft is not worth keeping.
+  const baseline =
+    (form.rawConfig != null && routeType != null
+      ? rawFlow(form.rawConfig, routeType, name)
+      : null) ??
+    resolved?.flow ??
+    null;
+  useEffect(() => {
+    if (routeType == null || draft == null) {
+      return;
+    }
+    if (baseline != null && deepEqual(baseline, draft.flow, { strict: true })) {
+      return;
+    }
+    storeDraft(appID, routeType, name, draft.flow, Date.now());
+  }, [appID, routeType, name, draft, baseline]);
+  // Leaving through "Discard and leave" resets the form before the next
+  // page shows; the drafts it threw away are not offered back later. A
+  // refresh or closed tab runs no cleanup, so its draft is kept.
+  const leftDrafts = useRef<{ type: FlowType; name: string }[]>([]);
+  const getIsDirtyRef = useRef(getIsDirty);
+  useEffect(() => {
+    if (drafts.length > 0) {
+      leftDrafts.current = drafts.map((d) => ({ type: d.type, name: d.name }));
+    }
+    getIsDirtyRef.current = getIsDirty;
+  }, [drafts, getIsDirty]);
+  useEffect(() => {
+    return () => {
+      if (!getIsDirtyRef.current()) {
+        for (const d of leftDrafts.current) {
+          removeStoredDraft(appID, d.type, d.name);
+        }
+      }
+      leftDrafts.current = [];
+    };
+  }, [appID, flowKey]);
+  const onRestoreStored = useCallback(() => {
+    const flow = stored.draft?.flow;
+    if (routeType != null && flow != null) {
+      setState(() => ({
+        drafts: [{ type: routeType, name, flow }],
+        removals: [],
+      }));
+    }
+  }, [stored, routeType, name, setState]);
+
+  // The last save tried, so Overwrite in the conflict dialog can try it
+  // again without the checksum check.
+  const lastSave = useRef<((ignoreConflict: boolean) => Promise<void>) | null>(
+    null
+  );
+  const attemptSave = useCallback(
+    (op: (ignoreConflict: boolean) => Promise<void>) => {
+      lastSave.current = op;
+      // A failure shows in the error bar, or the conflict dialog.
+      op(false).catch(() => {});
+    },
+    []
+  );
+  const onSaveDrafts = useCallback(() => {
+    const saving = drafts;
+    attemptSave(async (ignoreConflict) => {
+      await save(ignoreConflict);
+      // save() can return without saving, e.g. while another save runs.
+      if (!getIsDirty()) {
+        forgetStored(saving);
+      }
+    });
+  }, [drafts, attemptSave, save, getIsDirty, forgetStored]);
+  // The latest config, with the flow being edited kept on top, to check and
+  // save again.
+  const onReloadKeepingDraft = useCallback(() => {
+    const keep = form.state;
+    reset();
+    setState(() => keep);
+    reload();
+  }, [form.state, reset, setState, reload]);
+  const onOverwrite = useCallback(() => {
+    lastSave.current?.(true).catch(() => {});
+  }, []);
+
   const [confirmReset, setConfirmReset] = useState(false);
-  const { saveWith } = form;
   const onReset = useCallback(() => {
     setConfirmReset(false);
     if (routeType == null) {
       return;
     }
-    // A failure shows in the error bar, from the form's updateError.
-    saveWith(() => ({
-      drafts: [],
-      removals: [{ type: routeType, name }],
-    })).catch(() => {});
-  }, [saveWith, routeType, name]);
+    attemptSave(async (ignoreConflict) => {
+      await saveWith(
+        () => ({ drafts: [], removals: [{ type: routeType, name }] }),
+        ignoreConflict
+      );
+      forgetStored([{ type: routeType, name }]);
+    });
+  }, [attemptSave, saveWith, forgetStored, routeType, name]);
+  // Renaming saves at once, like on the list, then moves to the new name's
+  // page; until then the old page would find no flow.
+  const [renaming, setRenaming] = useState<"dialog" | "saving" | null>(null);
+  const onRename = useCallback(
+    (newName: string) => {
+      if (routeType == null) {
+        return;
+      }
+      attemptSave(async (ignoreConflict) => {
+        setRenaming("saving");
+        try {
+          await saveWith(
+            () => ({
+              drafts: [],
+              removals: [],
+              rename: { type: routeType, name, newName },
+            }),
+            ignoreConflict
+          );
+        } catch (e: unknown) {
+          // The failed rename is not left pending; Overwrite retries it.
+          setState(() => constructFormState());
+          setRenaming(null);
+          throw e;
+        }
+        navigate(flowPath(appID, routeType, newName), { replace: true });
+        setRenaming(null);
+      });
+    },
+    [attemptSave, saveWith, setState, navigate, appID, routeType, name]
+  );
+  // The default flow keeps its name: AuthUI runs it by that name. A rename
+  // saves straight away, so it waits for pending edits to be settled.
+  const renameDisabledReason =
+    name === DEFAULT_FLOW_NAME
+      ? renderToString("AuthFlowsScreen.rename.disabled.default")
+      : draft != null
+      ? renderToString("AuthFlowsScreen.rename.disabled.editing")
+      : null;
+
   // Discarding a flow that was never saved leaves its page: there is
   // nothing behind the draft. Navigating waits for the reset to render, so
   // the unsaved-changes prompt does not stop it.
@@ -393,12 +707,13 @@ function AuthFlowsContent({
         form.rawConfig != null &&
         rawFlow(form.rawConfig, d.type, d.name) != null
     );
-    form.reset();
+    forgetStored(drafts);
+    reset();
     setSelected(null);
     if (!written && resolved == null) {
       setLeaving(true);
     }
-  }, [drafts, form, resolved]);
+  }, [drafts, form.rawConfig, forgetStored, reset, resolved]);
   useEffect(() => {
     if (leaving && drafts.length === 0) {
       navigate(flowListPath(appID));
@@ -422,6 +737,27 @@ function AuthFlowsContent({
           <Heading size="6" as="h1">
             {name}
           </Heading>
+          {resolved != null ? (
+            <Tooltip
+              content={
+                renameDisabledReason ??
+                renderToString("AuthFlowsScreen.list.rename")
+              }
+            >
+              <span>
+                <IconButton
+                  type="button"
+                  variant="ghost"
+                  color="gray"
+                  aria-label={renderToString("AuthFlowsScreen.list.rename")}
+                  disabled={renameDisabledReason != null || isUpdating}
+                  onClick={() => setRenaming("dialog")}
+                >
+                  <Pencil1Icon />
+                </IconButton>
+              </span>
+            </Tooltip>
+          ) : null}
           <Text size="2" color="gray">
             {flowTypeName}
           </Text>
@@ -441,7 +777,7 @@ function AuthFlowsContent({
                 type="button"
                 disabled={!canSave}
                 loading={isUpdating}
-                onClick={onSave}
+                onClick={onSaveDrafts}
               >
                 <FormattedMessage id="AuthFlowsScreen.edit.save" />
               </Button>
@@ -467,13 +803,73 @@ function AuthFlowsContent({
         </Flex>
       </header>
       <FormErrorMessageBar />
+      {!editing && !arriving && stored.draft != null ? (
+        <div className={styles.storedDraft} role="status">
+          <Text size="2" className={styles.storedDraftText}>
+            <FormattedMessage id="AuthFlowsScreen.stored-draft.message" />
+          </Text>
+          <Button
+            type="button"
+            size="1"
+            variant="soft"
+            color="gray"
+            onClick={() =>
+              forgetStored(routeType != null ? [{ type: routeType, name }] : [])
+            }
+          >
+            <FormattedMessage id="AuthFlowsScreen.edit.discard" />
+          </Button>
+          <Button type="button" size="1" onClick={onRestoreStored}>
+            <FormattedMessage id="AuthFlowsScreen.stored-draft.restore" />
+          </Button>
+        </div>
+      ) : null}
+      {(errorsByStep.get("") ?? []).length > 0 || flowLevelChecks.length > 0 ? (
+        <div className={styles.flowProblems}>
+          {(errorsByStep.get("") ?? []).map((c, i) => (
+            <Callout
+              key={`e${i}`}
+              type="error"
+              size="1"
+              text={causeText(c, "")}
+            />
+          ))}
+          {flowLevelChecks.map((c) => (
+            <div key={c} className={styles.flowProblem}>
+              <Callout
+                type="warning"
+                size="1"
+                text={renderToString(flowCheckMessageIDs[c])}
+              />
+              {/* The one flow check; it can add the missing step. */}
+              {canEdit ? (
+                <Button
+                  type="button"
+                  size="1"
+                  variant="soft"
+                  onClick={() =>
+                    applyAndClearNotice(
+                      insertStep(draft.flow, checkAccountStatusAt(draft.flow), {
+                        type: "check_account_status",
+                      })
+                    )
+                  }
+                >
+                  <FormattedMessage id="AuthFlowsScreen.check.add-check-account-status" />
+                </Button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className={styles.canvasArea}>
         {canEdit && dropNotice != null ? (
           <div className={styles.dropNotice}>
             <Callout type="warning" size="1" text={dropNotice} />
           </div>
         ) : null}
-        {arriving ? null : tree != null && sketchContext != null ? (
+        {arriving || renaming === "saving" ? null : tree != null &&
+          sketchContext != null ? (
           <FlowSketchContext.Provider value={sketchContext}>
             <FlowEditorContext.Provider value={canEdit ? editorValue : null}>
               <FlowCanvas
@@ -508,16 +904,32 @@ function AuthFlowsContent({
                     customAttributes:
                       appConfig.user_profile?.custom_attributes?.attributes ??
                       [],
-                    standardAttributePointers: (
-                      appConfig.user_profile?.standard_attributes
-                        ?.access_control ?? []
-                    ).map((a) => a.pointer),
+                    appID,
+                    fillablePointers: fillable,
+                    knownPointers: knownPointers(appConfig),
                     loginFlowNames: listFlowNames(custom, "login"),
                     signupFlowNames: listFlowNames(custom, "signup"),
                     requestRemoveOption,
                     removeOptionBlockedReason:
                       editorValue.removeOptionBlockedReason,
-                    causes: errorsByStep.get(selectedItem.id) ?? [],
+                    problems: uniqueProblems([
+                      ...(errorsByStep.get(selectedItem.id) ?? []).map(
+                        (c): StepProblem => ({
+                          tone: "error",
+                          text: causeText(c, selectedItem.id),
+                        })
+                      ),
+                      // A form step's fields show their own problems.
+                      ...(checksByStep.get(selectedItem.id) ?? [])
+                        .filter(
+                          (c) =>
+                            selectedItem.step.type !== "fill_form" ||
+                            (c.kind !== "field_not_fillable" &&
+                              c.kind !== "field_duplicate")
+                        )
+                        .map((c) => checkProblem(c, selectedItem.id)),
+                    ]),
+                    checks: checksByStep.get(selectedItem.id) ?? [],
                     notice: selected?.notice,
                   }
                 : undefined
@@ -525,6 +937,22 @@ function AuthFlowsContent({
           />
         ) : null}
       </div>
+      {renaming === "dialog" && routeType != null ? (
+        <FlowNameDialog
+          open={true}
+          title={renderToString("AuthFlowsScreen.list.rename.title", { name })}
+          confirmText={renderToString("AuthFlowsScreen.list.rename")}
+          type={routeType}
+          initialName={name}
+          flows={form.rawConfig?.authentication_flow}
+          onSubmit={onRename}
+          onCancel={() => setRenaming(null)}
+        />
+      ) : null}
+      <ConflictDialog
+        onReload={onReloadKeepingDraft}
+        onOverwrite={onOverwrite}
+      />
       <ConfirmationDialog
         open={confirmReset}
         onOpenChange={setConfirmReset}

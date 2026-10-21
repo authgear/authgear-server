@@ -10,7 +10,8 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import { ChevronRightIcon, TrashIcon } from "@radix-ui/react-icons";
-import { Context } from "../../../../intl";
+import { Context, FormattedMessage } from "../../../../intl";
+import Link from "../../../../Link";
 import { Callout } from "../../../../components/v2/Callout/Callout";
 import {
   AuthenticationFlowConfig,
@@ -19,7 +20,6 @@ import {
   AuthenticatorPhoneOTPMode,
   CustomAttributesAttributeConfig,
 } from "../../../../types";
-import { ValidationFailedErrorInfoCause } from "../../../../error/validation";
 import {
   ALL_ACCOUNT_RECOVERY_DESTINATIONS,
   AccountRecoveryDestination,
@@ -50,6 +50,8 @@ import {
   newOption,
 } from "./rules";
 import { getAt } from "./pointer";
+import { StepCheck, neverFillable } from "./checks";
+import { StepProblem } from "./FlowEditorContext";
 import styles from "./StepForm.module.css";
 
 type Step = AuthenticationFlowStepConfig;
@@ -74,16 +76,21 @@ export interface StepFormProps {
   stepID: string;
   apply: (result: EditResult, notice?: string) => void;
   phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
+  appID: string;
   customAttributes: CustomAttributesAttributeConfig[];
-  // Pointers of the standard attributes, from the effective config.
-  standardAttributePointers: string[];
+  // Attributes a form can ask for, and every attribute of the project.
+  fillablePointers: readonly string[];
+  knownPointers: readonly string[];
   loginFlowNames: string[];
   signupFlowNames: string[];
   // Removes an option, after confirming when steps are nested under it.
   requestRemoveOption: (stepID: string, index: number) => void;
   // Why the option cannot be removed, as rendered text; null when it can.
   removeOptionBlockedReason: (stepID: string, index: number) => string | null;
-  causes: ValidationFailedErrorInfoCause[];
+  // Save errors and checks on the step, but not those a form field shows.
+  problems: StepProblem[];
+  // The editor's checks on the step, for its form fields.
+  checks: StepCheck[];
   notice: string | undefined;
 }
 
@@ -136,19 +143,6 @@ function Hint({
       {children}
     </Text>
   );
-}
-
-function causeText(
-  cause: ValidationFailedErrorInfoCause,
-  renderToString: (id: string, values?: Record<string, string>) => string
-): string {
-  if (cause.kind === "general") {
-    return cause.details.msg;
-  }
-  return renderToString("AuthFlowsScreen.edit.error.cause", {
-    kind: cause.kind,
-    location: cause.location,
-  });
 }
 
 function NameField({
@@ -804,13 +798,21 @@ function FormNameField({
 
 function FormFieldsField(props: StepFormProps) {
   const { renderToString } = useContext(Context);
-  const { flow, stepID, apply, customAttributes } = props;
+  const { appID, flow, stepID, apply, customAttributes, checks } = props;
   const step = getAt(flow, stepID) as Step;
   const fields = step.form?.fields ?? [];
-  const pointers = [
-    ...props.standardAttributePointers,
-    ...customAttributes.map((a) => a.pointer),
-  ];
+  const pointers = props.fillablePointers;
+  const label = (p: string) =>
+    formFieldLabel(p, customAttributes, renderToString);
+  const settingsPath = (p: string) =>
+    `/project/${encodeURIComponent(appID)}/configuration/user-profile/${
+      customAttributes.some((a) => a.pointer === p)
+        ? "custom-attributes"
+        : "standard-attributes"
+    }`;
+  const notFillable = new Set(
+    checks.flatMap((c) => (c.kind === "field_not_fillable" ? [c.pointer] : []))
+  );
   const update = (recipe: (s: Step) => void) =>
     apply(updateStep(flow, stepID, recipe));
   return (
@@ -836,6 +838,11 @@ function FormFieldsField(props: StepFormProps) {
         />
         {fields.map((f, j) => {
           const pointer = f.user_profile?.pointer ?? "";
+          // A field cannot ask for what another field already asks for.
+          const others = new Set(
+            fields.filter((_, k) => k !== j).map((g) => g.user_profile?.pointer)
+          );
+          const repeated = others.has(pointer);
           return (
             <div key={j} className={styles.option}>
               <Flex gap="2" align="center">
@@ -860,8 +867,12 @@ function FormFieldsField(props: StepFormProps) {
                       ? pointers
                       : [...pointers, pointer]
                     ).map((p) => (
-                      <Select.Item key={p} value={p}>
-                        {formFieldLabel(p, customAttributes, renderToString)}
+                      <Select.Item
+                        key={p}
+                        value={p}
+                        disabled={p === pointer ? false : others.has(p)}
+                      >
+                        {label(p)}
                       </Select.Item>
                     ))}
                   </Select.Content>
@@ -898,6 +909,39 @@ function FormFieldsField(props: StepFormProps) {
                   {renderToString("AuthFlowsScreen.edit.form.field.required")}
                 </Flex>
               </Text>
+              {notFillable.has(pointer) ? (
+                <Hint tone="red">
+                  {!props.knownPointers.includes(pointer) ? (
+                    <FormattedMessage
+                      id="AuthFlowsScreen.check.field-unknown"
+                      values={{ attribute: label(pointer) }}
+                    />
+                  ) : neverFillable(pointer) ? (
+                    <FormattedMessage
+                      id="AuthFlowsScreen.check.field-never-fillable"
+                      values={{ attribute: label(pointer) }}
+                    />
+                  ) : (
+                    <FormattedMessage
+                      id="AuthFlowsScreen.check.field-not-fillable"
+                      values={{
+                        attribute: label(pointer),
+                        // eslint-disable-next-line react/no-unstable-nested-components
+                        link: (chunks: React.ReactNode) => (
+                          <Link to={settingsPath(pointer)}>{chunks}</Link>
+                        ),
+                      }}
+                    />
+                  )}
+                </Hint>
+              ) : null}
+              {repeated ? (
+                <Hint tone="red">
+                  {renderToString("AuthFlowsScreen.check.field-duplicate", {
+                    attribute: label(pointer),
+                  })}
+                </Hint>
+              ) : null}
             </div>
           );
         })}
@@ -905,6 +949,9 @@ function FormFieldsField(props: StepFormProps) {
           type="button"
           size="1"
           variant="soft"
+          disabled={pointers.every((p) =>
+            fields.some((f) => f.user_profile?.pointer === p)
+          )}
           onClick={() =>
             update((s) => {
               const used = new Set(
@@ -1013,20 +1060,21 @@ function SelectDestinationFields(props: StepFormProps) {
 
 export function StepForm(props: StepFormProps): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const { flowType, flow, stepID, apply, causes, notice } = props;
+  const { flowType, flow, stepID, apply, problems, notice } = props;
   const step = getAt(flow, stepID) as Step;
   const update = (recipe: (s: Step) => void) =>
     apply(updateStep(flow, stepID, recipe));
 
   return (
     <div className={styles.form}>
-      {causes.length > 0 ? (
+      {problems.map((p, i) => (
         <Callout
-          type="error"
+          key={i}
+          type={p.tone === "error" ? "error" : "warning"}
           size="1"
-          text={causes.map((c) => causeText(c, renderToString)).join("\n")}
+          text={p.text}
         />
-      ) : null}
+      ))}
       {notice != null ? <Callout type="info" size="1" text={notice} /> : null}
       <NameField
         key={`${stepID}:${step.name ?? ""}`}

@@ -39,11 +39,9 @@ import {
 } from "./authflows/list/actions";
 import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
 import { NewFlowDialog } from "./authflows/list/NewFlowDialog";
-import {
-  flowUses,
-  removeFlowUses,
-  renameFlowUses,
-} from "./authflows/list/usage";
+import { flowUses, removeFlowUses } from "./authflows/list/usage";
+import { renameFlow } from "./authflows/edit/save";
+import { removeStoredDraft } from "./authflows/edit/draftStorage";
 import styles from "./AuthFlowsListScreen.module.css";
 
 // The one action being saved; null otherwise.
@@ -68,14 +66,14 @@ function constructConfig(
   if (action == null) {
     return raw;
   }
+  if (action.kind === "rename") {
+    return renameFlow(raw, action.type, action.name, action.newName);
+  }
   const next = produce(raw, (d) => {
     d.authentication_flow = applyFlowAction(raw.authentication_flow, action);
   });
-  // Groups and applications follow a renamed flow, and let go of a deleted
-  // one. A deleted default needs nothing: the generated one answers to it.
-  if (action.kind === "rename") {
-    return renameFlowUses(next, action.type, action.name, action.newName);
-  }
+  // Groups and applications let go of a deleted flow. A deleted default
+  // needs nothing: the generated one answers to it.
   if (action.kind === "delete") {
     return removeFlowUses(next, action.type, action.name);
   }
@@ -164,11 +162,20 @@ function ListContent({
       // A failure shows in the error bar, from the form's updateError. The
       // failed action is dropped so the list is not left with unsaved
       // changes it does not have.
-      saveWith(() => ({ action })).catch(() => {
-        setState(() => ({ action: null }));
-      });
+      saveWith(() => ({ action })).then(
+        () => {
+          // A draft kept in this browser for a deleted flow is not offered
+          // back if the name is used again.
+          if (action.kind === "delete") {
+            removeStoredDraft(appID, action.type, action.name);
+          }
+        },
+        () => {
+          setState(() => ({ action: null }));
+        }
+      );
     },
-    [saveWith, setState]
+    [saveWith, setState, appID]
   );
 
   // Every place that still names the flow: deleting it would leave them

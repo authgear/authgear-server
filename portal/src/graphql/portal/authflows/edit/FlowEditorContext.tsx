@@ -8,6 +8,13 @@ export interface InsertableType {
   disabledReason: string | null;
 }
 
+// The first problem with a step, under its title: a save error, a check the
+// server would reject, or a warning.
+export interface StepProblem {
+  tone: "error" | "warning";
+  text: string;
+}
+
 // What the canvas can do in edit mode. Absent while only viewing.
 export interface FlowEditorContextValue {
   insertableTypes: (at: InsertionPoint) => InsertableType[];
@@ -21,9 +28,9 @@ export interface FlowEditorContextValue {
   onMove: (stepID: string, to: InsertionPoint, copy: boolean) => void;
   // The same, for one option of a choice step.
   removeOptionBlockedReason: (stepID: string, index: number) => string | null;
-  // Save errors and reference warnings, by node.
+  // Save errors and editor checks, by node.
   hasErrors: (stepID: string) => boolean;
-  warningMessageID: (stepID: string) => string | null;
+  problem: (stepID: string) => StepProblem | null;
 }
 
 export const FlowEditorContext =

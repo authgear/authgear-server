@@ -135,9 +135,9 @@ describe("newStep", () => {
       type: "verify",
       target_step: "identify",
     });
-    expect(newStep("signup", "fill_form", null)).toEqual({
+    expect(newStep("signup", "fill_form", null, "/x_team")).toEqual({
       type: "fill_form",
-      form: { fields: [{ user_profile: { pointer: "/given_name" } }] },
+      form: { fields: [{ user_profile: { pointer: "/x_team" } }] },
     });
     expect(newStep("login", "check_account_status", null)).toEqual({
       type: "check_account_status",
