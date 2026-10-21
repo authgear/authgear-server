@@ -8,6 +8,8 @@ import { parseRawError } from "../../../../error/parse";
 import { ValidationFailedErrorInfoCause } from "../../../../error/validation";
 import { FlowType, flowListKey } from "../model";
 import { isWithin } from "./pointer";
+import { applyFlowAction } from "../list/actions";
+import { renameFlowUses } from "../list/usage";
 
 // One flow being edited.
 export interface EditorDraft {
@@ -21,6 +23,8 @@ export interface EditorState {
   drafts: EditorDraft[];
   // Flows to remove on save: an edited default reset to the generated one.
   removals: { type: FlowType; name: string }[];
+  // A flow to rename on save.
+  rename?: { type: FlowType; name: string; newName: string };
 }
 
 function flowList(
@@ -91,6 +95,25 @@ export function removeFlows(
   });
 }
 
+// raw with the flow renamed, along with the signup_login hand-offs, flow
+// groups and applications that name it.
+export function renameFlow(
+  raw: PortalAPIAppConfig,
+  type: FlowType,
+  name: string,
+  newName: string
+): PortalAPIAppConfig {
+  const next = produce(raw, (d) => {
+    d.authentication_flow = applyFlowAction(raw.authentication_flow, {
+      kind: "rename",
+      type,
+      name,
+      newName,
+    });
+  });
+  return renameFlowUses(next, type, name, newName);
+}
+
 // Where the flow is, or will be once appended, in the config: the prefix of
 // the save errors that belong to it.
 export function flowPointer(
@@ -106,7 +129,8 @@ export function flowPointer(
 }
 
 // The validation causes of a save error that fall inside the flow, keyed by
-// the node whose pointer is the longest prefix of their location.
+// the node whose pointer is the longest prefix of their location; causes on
+// the flow itself, outside any step, are under "".
 export function stepErrors(
   error: unknown,
   prefix: string,
@@ -130,9 +154,8 @@ export function stepErrors(
           best = id;
         }
       }
-      if (best != null) {
-        out.set(best, [...(out.get(best) ?? []), cause]);
-      }
+      const key = best ?? "";
+      out.set(key, [...(out.get(key) ?? []), cause]);
     }
   }
   return out;

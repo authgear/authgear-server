@@ -132,20 +132,25 @@ export function NodeEditToolbar({
   );
 }
 
-// A problem with the step's target_step, under its title.
+// The step's first problem, under its title.
 export function WarningLine({
   stepID,
 }: {
   stepID: string;
 }): React.ReactElement | null {
-  const { renderToString } = useContext(Context);
   const editor = useFlowEditor();
-  const messageID = editor?.warningMessageID(stepID) ?? null;
-  if (messageID == null) {
+  const problem = editor?.problem(stepID) ?? null;
+  if (problem == null) {
     return null;
   }
   return (
-    <span className={styles.warningLine}>{renderToString(messageID)}</span>
+    <span
+      className={
+        problem.tone === "error" ? styles.errorLine : styles.warningLine
+      }
+    >
+      {problem.text}
+    </span>
   );
 }
 

@@ -119,7 +119,6 @@ export const TARGET_STEP_TYPES: Partial<Record<string, string>> = {
   change_password: "authenticate",
 };
 
-const DEFAULT_FORM_FIELD_POINTER = "/given_name";
 export const IDENTIFICATION_SELECT_ACCOUNT = "select_account";
 const IDENTIFICATION_PASSKEY = "passkey";
 
@@ -193,11 +192,13 @@ function optionValues(flowType: FlowType, stepType: string): string[] {
 }
 
 // A step as inserted: valid for the schema. targetStep is the name a verify
-// or change_password step targets.
+// or change_password step targets; formPointer, the attribute a new form
+// asks for first.
 export function newStep(
   flowType: FlowType,
   type: string,
-  targetStep: string | null
+  targetStep: string | null,
+  formPointer: string | null = null
 ): AuthenticationFlowStepConfig {
   if (CHOICE_STEP_TYPES.includes(type)) {
     const [first] = optionValues(flowType, type);
@@ -206,12 +207,10 @@ export function newStep(
   if (TARGET_STEP_TYPES[type] != null && targetStep != null) {
     return { type, target_step: targetStep };
   }
-  if (type === "fill_form") {
+  if (type === "fill_form" && formPointer != null) {
     return {
       type,
-      form: {
-        fields: [{ user_profile: { pointer: DEFAULT_FORM_FIELD_POINTER } }],
-      },
+      form: { fields: [{ user_profile: { pointer: formPointer } }] },
     };
   }
   return { type };

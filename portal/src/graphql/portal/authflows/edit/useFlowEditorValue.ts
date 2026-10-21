@@ -6,7 +6,11 @@ import {
 } from "../../../../types";
 import { FlowType } from "../model";
 import { optionLabel, stepTitle } from "../labels";
-import { FlowEditorContextValue, InsertableType } from "./FlowEditorContext";
+import {
+  FlowEditorContextValue,
+  InsertableType,
+  StepProblem,
+} from "./FlowEditorContext";
 import { EditResult, insertStep } from "./edits";
 import { MoveError, planMove } from "./move";
 import {
@@ -26,6 +30,7 @@ import {
   targetCandidates,
 } from "./references";
 import { TARGET_STEP_TYPES, allowedStepTypes, newStep } from "./rules";
+import { identifiedBefore } from "./checks";
 
 const moveErrorMessageIDs: Record<MoveError, string> = {
   into_itself: "AuthFlowsScreen.edit.move.error.into-itself",
@@ -56,6 +61,10 @@ export interface FlowEditorOptions {
   flow: AuthenticationFlowConfig;
   // Nodes with errors from the last save.
   errorStepIDs: ReadonlySet<string>;
+  // Each node's first save error or check; target_step warnings come after.
+  problems: ReadonlyMap<string, StepProblem>;
+  // Attributes a form can ask for.
+  fillablePointers: readonly string[];
   // Applies an edit; notice is shown in the panel of the step it selects.
   apply: (result: EditResult, notice?: string) => void;
   // Removes a step, after confirming when steps are nested under it.
@@ -68,6 +77,8 @@ export function useFlowEditorValue({
   flowType,
   flow,
   errorStepIDs,
+  problems,
+  fillablePointers,
   apply,
   requestRemove,
   notify,
@@ -90,6 +101,16 @@ export function useFlowEditorValue({
         return [];
       }
       return allowedStepTypes(flowType).map((type) => {
+        if (type === "fill_form") {
+          // The server rejects a form before any identify step, and a form
+          // needs a field.
+          const disabledReason = !identifiedBefore(flow, stepPointer(at))
+            ? "AuthFlowsScreen.edit.insert.no-identify-before-form"
+            : fillablePointers.length === 0
+            ? "AuthFlowsScreen.edit.insert.no-fillable"
+            : null;
+          return { type, disabledReason };
+        }
         const reason = noTargetMessageIDs[type];
         const blocked =
           isTargetUsage(type) &&
@@ -115,7 +136,14 @@ export function useFlowEditorValue({
         next = named.flow;
         target = named.name;
       }
-      apply(insertStep(next, at, newStep(flowType, type, target)), notice);
+      apply(
+        insertStep(
+          next,
+          at,
+          newStep(flowType, type, target, fillablePointers[0] ?? null)
+        ),
+        notice
+      );
     };
 
     // Called while rendering nodes, which may briefly name steps from before
@@ -207,15 +235,23 @@ export function useFlowEditorValue({
       removeBlockedReason,
       onRemove: requestRemove,
       hasErrors: (stepID) => errorStepIDs.has(stepID),
-      warningMessageID: (stepID) => {
+      problem: (stepID) => {
+        const p = problems.get(stepID);
+        if (p != null) {
+          return p;
+        }
         const w = warnings.get(stepID);
-        return w != null ? warningMessageIDs[w] : null;
+        return w != null
+          ? { tone: "warning", text: renderToString(warningMessageIDs[w]) }
+          : null;
       },
     };
   }, [
     flowType,
     flow,
     errorStepIDs,
+    problems,
+    fillablePointers,
     apply,
     requestRemove,
     notify,

@@ -40,4 +40,41 @@ describe("parseStepYAML", () => {
       parseStepYAML("type: fill_in_user_profile\nuser_profile: []", "signup")
     ).toEqual({ step: { type: "fill_in_user_profile", user_profile: [] } });
   });
+
+  it("refuses a form where the server does not allow one", () => {
+    expect(
+      parseStepYAML("type: authenticate\nform: {fields: []}", "login")
+    ).toEqual({ error: "form" });
+    expect(
+      parseStepYAML(
+        "type: identify\none_of:\n- identification: email\n  form: {fields: []}",
+        "login"
+      )
+    ).toEqual({ error: "form" });
+    expect(
+      parseStepYAML(
+        "type: identify\none_of:\n- identification: oauth\n  form: {fields: []}",
+        "signup"
+      )
+    ).toEqual({ error: "form" });
+    expect(
+      parseStepYAML(
+        "type: identify\none_of:\n- identification: email\n  steps:\n  - type: verify\n    form: {fields: []}",
+        "signup"
+      )
+    ).toEqual({ error: "form" });
+  });
+
+  it("accepts a form on a fill_form step and a signup email option", () => {
+    expect(
+      "step" in parseStepYAML("type: fill_form\nform: {fields: []}", "login")
+    ).toBe(true);
+    expect(
+      "step" in
+        parseStepYAML(
+          "type: identify\none_of:\n- identification: email\n  form: {fields: []}",
+          "signup"
+        )
+    ).toBe(true);
+  });
 });

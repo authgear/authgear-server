@@ -5,6 +5,7 @@ import {
   rawFlow,
   replaceFlow,
   removeFlows,
+  renameFlow,
   replaceFlows,
   stepErrors,
 } from "./save";
@@ -114,11 +115,32 @@ describe("stepErrors", () => {
     ]);
   });
 
+  it("keeps causes on the flow itself under the empty key", () => {
+    const onFlow = {
+      ...error,
+      info: {
+        causes: [
+          {
+            location: "/authentication_flow/login_flows/1/name",
+            kind: "general",
+            details: { msg: "bad name" },
+          },
+        ],
+      },
+    };
+    const errors = stepErrors(onFlow, "/authentication_flow/login_flows/1", [
+      "/steps/0",
+    ]);
+    expect(errors.get("")?.map((c) => c.location)).toEqual([
+      "/authentication_flow/login_flows/1/name",
+    ]);
+  });
+
   it("does not match a sibling index by prefix", () => {
     const errors = stepErrors(error, "/authentication_flow/login_flows/1", [
       "/steps/1",
     ]);
-    expect(errors.size).toEqual(0);
+    expect(errors.has("/steps/1")).toBe(false);
   });
 
   it("ignores errors that are not validation errors", () => {
@@ -164,5 +186,44 @@ describe("removeFlows on the last flow of a type", () => {
   it("drops the type's list rather than leaving it empty", () => {
     const next = removeFlows(raw, [{ type: "signup", name: "default" }]);
     expect(next.authentication_flow).not.toHaveProperty("signup_flows");
+  });
+});
+
+describe("renameFlow", () => {
+  it("renames the flow and everything that names it", () => {
+    const config = {
+      id: "app",
+      authentication_flow: {
+        login_flows: [{ name: "vip", steps: [] }],
+        signup_login_flows: [
+          {
+            name: "default",
+            steps: [
+              { type: "identify", one_of: [{ login_flow: "vip" }] } as never,
+            ],
+          },
+        ],
+      },
+      ui: {
+        authentication_flow: {
+          groups: [{ name: "g", flows: [{ type: "login", name: "vip" }] }],
+        },
+      },
+    } as unknown as PortalAPIAppConfig;
+    const next = renameFlow(config, "login", "vip", "members") as never as {
+      authentication_flow: {
+        login_flows: { name: string }[];
+        signup_login_flows: { steps: { one_of: { login_flow: string }[] }[] }[];
+      };
+      ui: { authentication_flow: { groups: { flows: { name: string }[] }[] } };
+    };
+    expect(next.authentication_flow.login_flows[0].name).toEqual("members");
+    expect(
+      next.authentication_flow.signup_login_flows[0].steps[0].one_of[0]
+        .login_flow
+    ).toEqual("members");
+    expect(next.ui.authentication_flow.groups[0].flows[0].name).toEqual(
+      "members"
+    );
   });
 });

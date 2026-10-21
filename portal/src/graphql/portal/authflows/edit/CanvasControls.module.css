@@ -44,3 +44,10 @@
   color: var(--amber-11);
   font-size: var(--font-size-1);
 }
+
+.errorLine {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--red-11);
+  font-size: var(--font-size-1);
+}
