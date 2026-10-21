@@ -25,7 +25,12 @@ import {
 } from "../../hook/useAppConfigForm";
 import { AuthenticationFlowsConfig, PortalAPIAppConfig } from "../../types";
 import { useAuthFlowsScreenQueryQuery } from "./query/authFlowsScreenQuery";
-import { flowPath, resolveFlow } from "./authflows/model";
+import {
+  GeneratedFlows,
+  flowPath,
+  generatedFlowsConfig,
+  resolveFlow,
+} from "./authflows/model";
 import { FlowRow, SectionKey, flowSections } from "./authflows/list/rows";
 import {
   FlowAction,
@@ -100,6 +105,13 @@ const AuthFlowsListScreen: React.VFC = function AuthFlowsListScreen() {
     constructFormState,
     constructConfig,
   });
+  const app = data?.node?.__typename === "App" ? data.node : null;
+  const generatedFlows: GeneratedFlows | undefined =
+    app?.generatedAuthenticationFlows;
+  const generated = useMemo(
+    () => (generatedFlows != null ? generatedFlowsConfig(generatedFlows) : {}),
+    [generatedFlows]
+  );
   if (loading || form.isLoading) {
     return <ShowLoading />;
   }
@@ -116,9 +128,6 @@ const AuthFlowsListScreen: React.VFC = function AuthFlowsListScreen() {
   if (form.loadError != null) {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
-  const app = data?.node?.__typename === "App" ? data.node : null;
-  const generated = (app?.generatedAuthenticationFlows ??
-    {}) as AuthenticationFlowsConfig;
   return (
     <FormContainerBase form={form}>
       <ListContent appID={appID} form={form} generated={generated} />
