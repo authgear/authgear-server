@@ -7,13 +7,15 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { Badge } from "../../components/v2/Badge/Badge";
 import { useAuthFlowsScreenQueryQuery } from "./query/authFlowsScreenQuery";
-import { AuthenticationFlowsConfig, PortalAPIAppConfig } from "../../types";
+import { PortalAPIAppConfig } from "../../types";
 import {
   DEFAULT_FLOW_NAME,
   FlowSelection,
+  GeneratedFlows,
   accountRecoveryDestinations,
   flowSelectionSearch,
   flowTypes,
+  generatedFlowsConfig,
   isFlowType,
   listFlowNames,
   parseFlowSelection,
@@ -44,9 +46,13 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
   const app = data?.node?.__typename === "App" ? data.node : null;
   const appConfig = app?.effectiveAppConfig as PortalAPIAppConfig | undefined;
   const custom = appConfig?.authentication_flow;
-  const generated = app?.generatedAuthenticationFlows as
-    | AuthenticationFlowsConfig
-    | undefined;
+  const generatedFlows: GeneratedFlows | undefined =
+    app?.generatedAuthenticationFlows;
+  const generated = useMemo(
+    () =>
+      generatedFlows != null ? generatedFlowsConfig(generatedFlows) : undefined,
+    [generatedFlows]
+  );
 
   const selection = useMemo(
     () => parseFlowSelection(searchParams, custom),

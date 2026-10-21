@@ -4,6 +4,7 @@ import {
   DEFAULT_FLOW_NAME,
   DEFAULT_FLOW_TYPE,
   flowSelectionSearch,
+  generatedFlowsConfig,
   listFlowNames,
   parseFlowSelection,
   resolveFlow,
@@ -142,5 +143,37 @@ describe("accountRecoveryDestinations", () => {
         steps: [{ type: "identify", one_of: [branch("email", undefined)] }],
       })
     ).toHaveLength(5);
+  });
+});
+
+describe("generatedFlowsConfig", () => {
+  it("lists each generated flow under its type", () => {
+    const flow = (name: string) => ({ name, steps: [] });
+    expect(
+      generatedFlowsConfig({
+        signupFlow: flow("default"),
+        loginFlow: flow("default"),
+        signupLoginFlow: flow("default"),
+        reauthFlow: flow("default"),
+        accountRecoveryFlow: null,
+      })
+    ).toEqual({
+      signup_flows: [flow("default")],
+      login_flows: [flow("default")],
+      signup_login_flows: [flow("default")],
+      reauth_flows: [flow("default")],
+    });
+  });
+
+  it("includes account recovery when the settings give a way to recover", () => {
+    expect(
+      generatedFlowsConfig({
+        signupFlow: { name: "default" },
+        loginFlow: { name: "default" },
+        signupLoginFlow: { name: "default" },
+        reauthFlow: { name: "default" },
+        accountRecoveryFlow: { name: "default" },
+      }).account_recovery_flows
+    ).toEqual([{ name: "default" }]);
   });
 });

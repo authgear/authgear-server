@@ -8,7 +8,7 @@ export type AuthFlowsScreenQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type AuthFlowsScreenQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveAppConfig: any, generatedAuthenticationFlows: any } | { __typename: 'User' } | { __typename: 'Viewer' } | null };
+export type AuthFlowsScreenQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, effectiveAppConfig: any, generatedAuthenticationFlows: { __typename?: 'GeneratedAuthenticationFlows', signupFlow: any, loginFlow: any, signupLoginFlow: any, reauthFlow: any, accountRecoveryFlow?: any | null } } | { __typename: 'User' } | { __typename: 'Viewer' } | null };
 
 
 export const AuthFlowsScreenQueryDocument = gql`
@@ -18,7 +18,13 @@ export const AuthFlowsScreenQueryDocument = gql`
     ... on App {
       id
       effectiveAppConfig
-      generatedAuthenticationFlows
+      generatedAuthenticationFlows {
+        signupFlow
+        loginFlow
+        signupLoginFlow
+        reauthFlow
+        accountRecoveryFlow
+      }
     }
   }
 }

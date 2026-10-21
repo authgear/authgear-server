@@ -4,7 +4,13 @@ query authFlowsScreenQuery($id: ID!) {
     ... on App {
       id
       effectiveAppConfig
-      generatedAuthenticationFlows
+      generatedAuthenticationFlows {
+        signupFlow
+        loginFlow
+        signupLoginFlow
+        reauthFlow
+        accountRecoveryFlow
+      }
     }
   }
 }
