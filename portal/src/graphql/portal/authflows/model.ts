@@ -37,6 +37,33 @@ function flowsOf(
   return config?.[flowListKeys[type]] ?? [];
 }
 
+// generatedAuthenticationFlows from the portal API: the generated flow of
+// each type. Account recovery is null when the settings give no way to
+// recover an account; promote is not generated.
+export interface GeneratedFlows {
+  signupFlow: AuthenticationFlowConfig;
+  loginFlow: AuthenticationFlowConfig;
+  signupLoginFlow: AuthenticationFlowConfig;
+  reauthFlow: AuthenticationFlowConfig;
+  accountRecoveryFlow?: AuthenticationFlowConfig | null;
+}
+
+// The generated flows shaped like authentication_flow, so they resolve the
+// same way as custom ones.
+export function generatedFlowsConfig(
+  generated: GeneratedFlows
+): AuthenticationFlowsConfig {
+  return {
+    signup_flows: [generated.signupFlow],
+    login_flows: [generated.loginFlow],
+    signup_login_flows: [generated.signupLoginFlow],
+    reauth_flows: [generated.reauthFlow],
+    ...(generated.accountRecoveryFlow != null
+      ? { account_recovery_flows: [generated.accountRecoveryFlow] }
+      : {}),
+  };
+}
+
 export type FlowSource = "custom" | "generated";
 
 export interface ResolvedFlow {
