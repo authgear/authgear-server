@@ -388,10 +388,9 @@ const FraudProtectionConfigurationContent: React.VFC<FraudProtectionConfiguratio
     );
   };
 
-// Access to this screen is gated at the route level by RequireAppFeature (see
-// AppRoot), which redirects to getting started when the project lacks fraud
-// protection. The screen therefore assumes the feature is available and is free
-// to use usePivotNavigation for its tabs without racing the redirect.
+// Access to this screen is gated by the fraudProtection feature on its AppRoute
+// (see AppRoot), which shows a "not available" message instead of mounting the
+// screen when the project lacks fraud protection.
 const FraudProtectionConfigurationScreen: React.VFC =
   function FraudProtectionConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
