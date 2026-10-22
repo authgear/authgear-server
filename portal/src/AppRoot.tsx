@@ -325,7 +325,7 @@ const AppRoot: React.VFC = function AppRoot() {
             />
           </AppRoute>
 
-          <AppRoute feature={null} path="analytics">
+          <AppRoute feature="analytics" path="analytics">
             <AppRoute
               feature={null}
               index={true}

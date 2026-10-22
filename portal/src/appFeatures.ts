@@ -20,6 +20,9 @@ export const APP_FEATURES = {
   auditLog: {
     isAvailable: ({ systemConfig }) => systemConfig.auditLogEnabled,
   },
+  analytics: {
+    isAvailable: ({ systemConfig }) => systemConfig.analyticEnabled,
+  },
 } satisfies Record<string, AppFeatureDefinition>;
 
 export type AppFeature = keyof typeof APP_FEATURES;

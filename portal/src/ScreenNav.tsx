@@ -177,7 +177,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     (app?.effectiveFeatureConfig as PortalAPIFeatureConfig | undefined) ?? null
   );
 
-  const { isAuthgearOnce, analyticEnabled } = useSystemConfig();
+  const { isAuthgearOnce } = useSystemConfig();
 
   const app2appEnabled = useMemo(() => {
     if (effectiveFeatureConfig != null) {
@@ -208,16 +208,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         url: `/project/${appID}/getting-started`,
         icon: RocketIcon,
       },
-      ...(analyticEnabled
-        ? [
-            {
-              type: "link" as const,
-              textKey: "ScreenNav.analytics",
-              url: `/project/${appID}/analytics`,
-              icon: BarChartIcon,
-            },
-          ]
-        : []),
+      {
+        type: "link" as const,
+        textKey: "ScreenNav.analytics",
+        url: `/project/${appID}/analytics`,
+        icon: BarChartIcon,
+        feature: "analytics",
+      },
       {
         type: "group" as const,
         textKey: "ScreenNav.user-management",
@@ -506,7 +503,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     isAuthgearOnce,
     mobileView,
     appID,
-    analyticEnabled,
     app2appEnabled,
     isEnabled,
     showIntegrations,

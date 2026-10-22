@@ -329,17 +329,8 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
   );
 };
 
+// The route is gated by the analytics feature (see AppRoot).
 const AnalyticsScreen: React.VFC = function AnalyticsScreen() {
-  const { analyticEnabled } = useSystemConfig();
-
-  if (!analyticEnabled) {
-    return (
-      <Text as="p" size="2">
-        Analytics page is disabled.
-      </Text>
-    );
-  }
-
   return <AnalyticsScreenContent />;
 };
 
