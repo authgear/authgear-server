@@ -20,10 +20,20 @@ func TestAssociationFiles(t *testing.T) {
 		android := func(packageName string, fingerprints ...string) *config.OAuthClientNativeAppConfig {
 			return &config.OAuthClientNativeAppConfig{Platform: config.OAuthClientNativeAppPlatformAndroid, PackageName: packageName, SHA256CertFingerprints: fingerprints}
 		}
-		serve := func(h http.Handler) *httptest.ResponseRecorder {
+		suffixes := config.AppHostSuffixes{".authgear.cloud"}
+		serveAt := func(h http.Handler, host string) *httptest.ResponseRecorder {
 			w := httptest.NewRecorder()
-			h.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
+			h.ServeHTTP(w, httptest.NewRequest("GET", "https://"+host+"/", nil))
 			return w
+		}
+		serve := func(h http.Handler) *httptest.ResponseRecorder {
+			return serveAt(h, "auth.example.com")
+		}
+		aasa := func(suffixes config.AppHostSuffixes, oauthConfig *config.OAuthConfig) http.Handler {
+			return &AppleAppSiteAssociationHandler{AppHostSuffixes: suffixes, OAuthConfig: oauthConfig}
+		}
+		assetLinks := func(suffixes config.AppHostSuffixes, oauthConfig *config.OAuthConfig) http.Handler {
+			return &AssetLinksHandler{AppHostSuffixes: suffixes, OAuthConfig: oauthConfig}
 		}
 		twoClients := &config.OAuthConfig{
 			Clients: []config.OAuthClientConfig{
@@ -34,7 +44,7 @@ func TestAssociationFiles(t *testing.T) {
 
 		Convey("apple-app-site-association", func() {
 			Convey("lists every iOS app across clients", func() {
-				w := serve(&AppleAppSiteAssociationHandler{OAuthConfig: twoClients})
+				w := serve(aasa(suffixes, twoClients))
 				So(w.Code, ShouldEqual, http.StatusOK)
 				So(w.Header().Get("Content-Type"), ShouldEqual, "application/json")
 				So(w.Body.String(), ShouldEqualJSON, `{
@@ -48,14 +58,31 @@ func TestAssociationFiles(t *testing.T) {
 				oauthConfig := &config.OAuthConfig{Clients: []config.OAuthClientConfig{
 					{ClientID: "a", NativeApps: []*config.OAuthClientNativeAppConfig{android("com.example.a", testFingerprint)}},
 				}}
-				w := serve(&AppleAppSiteAssociationHandler{OAuthConfig: oauthConfig})
+				w := serve(aasa(suffixes, oauthConfig))
 				So(w.Code, ShouldEqual, http.StatusNotFound)
 			})
 		})
 
+		Convey("on a default domain", func() {
+			for name, h := range map[string]func(config.AppHostSuffixes, *config.OAuthConfig) http.Handler{
+				"apple-app-site-association": aasa,
+				"assetlinks.json":            assetLinks,
+			} {
+				Convey(name+" returns 404 on a default domain", func() {
+					w := serveAt(h(suffixes, twoClients), "myapp.authgear.cloud")
+					So(w.Code, ShouldEqual, http.StatusNotFound)
+				})
+
+				Convey(name+" is served when no default domain is configured", func() {
+					w := serveAt(h(nil, twoClients), "myapp.authgear.cloud")
+					So(w.Code, ShouldEqual, http.StatusOK)
+				})
+			}
+		})
+
 		Convey("assetlinks.json", func() {
 			Convey("lists every Android app across clients with both relations and upper-cased fingerprints", func() {
-				w := serve(&AssetLinksHandler{OAuthConfig: twoClients})
+				w := serve(assetLinks(suffixes, twoClients))
 				So(w.Code, ShouldEqual, http.StatusOK)
 				So(w.Header().Get("Content-Type"), ShouldEqual, "application/json")
 				So(w.Body.String(), ShouldEqualJSON, `[
@@ -89,7 +116,7 @@ func TestAssociationFiles(t *testing.T) {
 					{ClientID: "a", NativeApps: []*config.OAuthClientNativeAppConfig{ios("ABCDE12345", "com.example.a")}},
 					{ClientID: "b"},
 				}}
-				w := serve(&AssetLinksHandler{OAuthConfig: oauthConfig})
+				w := serve(assetLinks(suffixes, oauthConfig))
 				So(w.Code, ShouldEqual, http.StatusNotFound)
 			})
 		})

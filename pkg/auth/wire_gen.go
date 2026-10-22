@@ -4827,24 +4827,36 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 
 func newAppleAppSiteAssociationHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	trustProxy := environmentConfig.TrustProxy
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
 	appleAppSiteAssociationHandler := &wellknown.AppleAppSiteAssociationHandler{
-		OAuthConfig: oAuthConfig,
+		AppHostSuffixes: appHostSuffixes,
+		TrustProxy:      trustProxy,
+		OAuthConfig:     oAuthConfig,
 	}
 	return appleAppSiteAssociationHandler
 }
 
 func newAssetLinksHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	trustProxy := environmentConfig.TrustProxy
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
 	assetLinksHandler := &wellknown.AssetLinksHandler{
-		OAuthConfig: oAuthConfig,
+		AppHostSuffixes: appHostSuffixes,
+		TrustProxy:      trustProxy,
+		OAuthConfig:     oAuthConfig,
 	}
 	return assetLinksHandler
 }
