@@ -31,6 +31,8 @@ import {
 import { usePortalClient } from "./graphql/portal/apollo";
 import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
+import { useAppFeatures } from "./hook/useAppFeatures";
+import { AppFeature } from "./appFeatures";
 import styles from "./ScreenNav.module.css";
 import { useCapture } from "./gtm_v2";
 import { PortalAPIFeatureConfig } from "./types";
@@ -58,11 +60,37 @@ interface NavLink {
   // for a screen reached from this link (e.g. via a button, not its own nav
   // entry) whose URL does not sit under `url` itself.
   matchPrefixes?: string[];
+  // Hides the link when the feature is unavailable. This only affects the nav:
+  // the page is gated by `feature` on its AppRoute in AppRoot.tsx.
+  feature?: AppFeature;
 }
 
 interface ScreenNavProps {
   mobileView?: boolean;
   onLinkClick?: () => void;
+}
+
+// filterNavLinks drops links whose `feature` is unavailable, and groups left
+// with no children.
+function filterNavLinks(
+  items: NavLinkItem[],
+  isEnabled: (feature: AppFeature) => boolean
+): NavLinkItem[] {
+  const isLinkAvailable = (link: NavLink) =>
+    link.feature == null || isEnabled(link.feature);
+
+  const out: NavLinkItem[] = [];
+  for (const item of items) {
+    if (item.type === "group") {
+      const children = item.children.filter(isLinkAvailable);
+      if (children.length > 0) {
+        out.push({ ...item, children });
+      }
+    } else if (isLinkAvailable(item)) {
+      out.push(item);
+    }
+  }
+  return out;
 }
 
 function makeInitialExpandState(
@@ -159,9 +187,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     return false;
   }, [effectiveFeatureConfig]);
 
-  const fraudProtectionModifiable = useMemo(() => {
-    return effectiveFeatureConfig?.fraud_protection?.is_modifiable ?? false;
-  }, [effectiveFeatureConfig]);
+  const { isEnabled } = useAppFeatures(appID);
 
   const label = renderToString("ScreenNav.label");
 
@@ -357,15 +383,12 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.bot-protection",
             url: `/project/${appID}/attack-protection/bot-protection`,
           },
-          ...(fraudProtectionModifiable
-            ? [
-                {
-                  type: "link" as const,
-                  textKey: "ScreenNav.fraud-protection",
-                  url: `/project/${appID}/attack-protection/fraud-protection`,
-                },
-              ]
-            : []),
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.fraud-protection",
+            url: `/project/${appID}/attack-protection/fraud-protection`,
+            feature: "fraudProtection",
+          },
           {
             type: "link" as const,
             textKey: "ScreenNav.ip-blocklist",
@@ -482,14 +505,14 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       },
     ];
 
-    return links;
+    return filterNavLinks(links, isEnabled);
   }, [
     isAuthgearOnce,
     mobileView,
     appID,
     analyticEnabled,
     app2appEnabled,
-    fraudProtectionModifiable,
+    isEnabled,
     showIntegrations,
     auditLogEnabled,
   ]);

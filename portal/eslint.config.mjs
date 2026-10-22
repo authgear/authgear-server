@@ -6,6 +6,36 @@ import localRules from "./eslint-rules/index.cjs";
 const js = "src/**/*.{js,jsx,mjs,mjsx}";
 const ts = "src/**/*.{ts,tsx,mts,mtsx}";
 
+const restrictedImportPaths = [
+  {
+    name: "@elgorditosalsero/react-gtm-hook",
+    message: 'Please import "GTMProvider" from ./src/GTMProvider instead.',
+  },
+  {
+    name: "@fluentui/react",
+    importNames: [
+      "TextField",
+      "PrimaryButton",
+      "DefaultButton",
+      "MessageBarButton",
+      "ActionButton",
+      "CommandBarButton",
+      "Link",
+      "Toggle",
+    ],
+    message: "Please import the replacement from ./src instead.",
+  },
+  {
+    name: "zxcvbn",
+    message: "Please import from ./src/util/zxcvbn instead.",
+  },
+  {
+    name: "@fluentui/react",
+    importNames: ["Pivot"],
+    message: "Please use AGPivot from src/components/common/AGPivot instead.",
+  },
+];
+
 export default [
   {
     ignores: ["src/**/*.generated.*", "**/dist/"],
@@ -118,38 +148,24 @@ export default [
       "@typescript-eslint/strict-boolean-expressions": "off",
       "@typescript-eslint/prefer-nullish-coalescing": "off",
       "@typescript-eslint/no-deprecated": "off",
+      "no-restricted-imports": ["error", { paths: restrictedImportPaths }],
+    },
+  },
+  {
+    // Every project route must declare its feature gate, so AppRoot uses
+    // AppRoute, whose `feature` is required, instead of Route.
+    files: ["src/AppRoot.tsx"],
+    rules: {
       "no-restricted-imports": [
         "error",
         {
           paths: [
+            ...restrictedImportPaths,
             {
-              name: "@elgorditosalsero/react-gtm-hook",
+              name: "react-router-dom",
+              importNames: ["Route", "Routes"],
               message:
-                'Please import "GTMProvider" from ./src/GTMProvider instead.',
-            },
-            {
-              name: "@fluentui/react",
-              importNames: [
-                "TextField",
-                "PrimaryButton",
-                "DefaultButton",
-                "MessageBarButton",
-                "ActionButton",
-                "CommandBarButton",
-                "Link",
-                "Toggle",
-              ],
-              message: "Please import the replacement from ./src instead.",
-            },
-            {
-              name: "zxcvbn",
-              message: "Please import from ./src/util/zxcvbn instead.",
-            },
-            {
-              name: "@fluentui/react",
-              importNames: ["Pivot"],
-              message:
-                "Please use AGPivot from src/components/common/AGPivot instead.",
+                "Please use AppRoute and AppRoutes from ./src/AppRoutes instead.",
             },
           ],
         },

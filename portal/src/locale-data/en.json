@@ -85,6 +85,7 @@
   "ScreenHeader.appearance.device": "Device",
   "ScreenHeader.appearance.dark": "Dark",
   "show-error.retry": "Retry",
+  "AppFeatureRouteGuard.not-available": "This feature is not available for this project.",
   "FlavoredErrorBoundSuspense.message": "Something went wrong. Please refresh this page.",
   "errors.validation.unknown": "Invalid input at {location}: {kind}",
   "errors.validation.required": "Please fill in this field",
