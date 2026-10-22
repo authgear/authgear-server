@@ -33,6 +33,10 @@ export const APP_FEATURES = {
     isAvailable: ({ featureConfig }) =>
       featureConfig?.oauth?.client?.app2app_enabled ?? false,
   },
+  customUI: {
+    isAvailable: ({ featureConfig }) =>
+      featureConfig?.oauth?.client?.custom_ui_enabled ?? false,
+  },
   googleTagManager: {
     isAvailable: isGoogleTagManagerAvailable,
   },

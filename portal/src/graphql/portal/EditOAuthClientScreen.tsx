@@ -48,7 +48,6 @@ import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
-import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { useAppFeatures } from "../../hook/useAppFeatures";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
@@ -861,7 +860,7 @@ const EditOAuthClientScreen1: React.VFC<{
   } = useAppAndSecretConfigQuery(appID, secretToken);
   const generateClientSecretHook = useClientSecret(appID, secretToken);
 
-  const featureConfig = useAppFeatureConfigQuery(appID);
+  const features = useAppFeatures(appID);
 
   const [searchParams] = useSearchParams();
   const isQuickScreenVisible = useMemo(() => {
@@ -869,20 +868,8 @@ const EditOAuthClientScreen1: React.VFC<{
     return quickstart === "true";
   }, [searchParams]);
 
-  const customUIEnabled = useMemo(() => {
-    if (featureConfig.isLoading) {
-      return false;
-    }
-    return (
-      featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled ??
-      false
-    );
-  }, [
-    featureConfig.isLoading,
-    featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
-  ]);
-
-  const app2appEnabled = useAppFeatures(appID).isEnabled("app2app");
+  const customUIEnabled = features.isEnabled("customUI");
+  const app2appEnabled = features.isEnabled("app2app");
 
   const samlIdPSigningCertificates = useMemo(() => {
     return secretConfig?.samlIdpSigningSecrets?.certificates ?? [];
