@@ -177,8 +177,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     (app?.effectiveFeatureConfig as PortalAPIFeatureConfig | undefined) ?? null
   );
 
-  const { isAuthgearOnce, auditLogEnabled, analyticEnabled } =
-    useSystemConfig();
+  const { isAuthgearOnce, analyticEnabled } = useSystemConfig();
 
   const app2appEnabled = useMemo(() => {
     if (effectiveFeatureConfig != null) {
@@ -487,16 +486,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
         ],
       },
-      ...(auditLogEnabled
-        ? [
-            {
-              type: "link" as const,
-              textKey: "ScreenNav.audit-log",
-              url: `/project/${appID}/audit-log`,
-              icon: ReaderIcon,
-            },
-          ]
-        : []),
+      {
+        type: "link" as const,
+        textKey: "ScreenNav.audit-log",
+        url: `/project/${appID}/audit-log`,
+        icon: ReaderIcon,
+        feature: "auditLog",
+      },
       {
         type: "link" as const,
         textKey: "PortalAdminSettings.title",
@@ -514,7 +510,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     app2appEnabled,
     isEnabled,
     showIntegrations,
-    auditLogEnabled,
   ]);
 
   const [expandState, setExpandState] = useState<Record<string, boolean>>(

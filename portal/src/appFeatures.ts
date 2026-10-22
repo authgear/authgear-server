@@ -17,6 +17,9 @@ export const APP_FEATURES = {
     isAvailable: ({ featureConfig }) =>
       featureConfig?.fraud_protection?.is_modifiable ?? false,
   },
+  auditLog: {
+    isAvailable: ({ systemConfig }) => systemConfig.auditLogEnabled,
+  },
 } satisfies Record<string, AppFeatureDefinition>;
 
 export type AppFeature = keyof typeof APP_FEATURES;

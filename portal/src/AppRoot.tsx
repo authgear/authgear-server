@@ -1036,7 +1036,7 @@ const AppRoot: React.VFC = function AppRoot() {
             />
           </AppRoute>
 
-          <AppRoute feature={null} path="audit-log">
+          <AppRoute feature="auditLog" path="audit-log">
             <AppRoute
               feature={null}
               index={true}

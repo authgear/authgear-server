@@ -54,7 +54,7 @@ import UserDetailsAccountStatus, {
   AccountStatusMessageBar,
 } from "./UserDetailsAccountStatus";
 import UserDetailsLogs from "./UserDetailsLogs";
-import { useSystemConfig } from "../../context/SystemConfigContext";
+import { useAppFeatures } from "../../hook/useAppFeatures";
 
 // Temporary UI preview data for Sam Lee — remove after Sessions & Apps UI work.
 const UI_PREVIEW_RAW_USER_ID = "8d442fbc-ea7c-4130-9114-432631fdb5d3";
@@ -318,8 +318,10 @@ function makeCustomAttributesFromState(
 const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
-  const { auditLogEnabled } = useSystemConfig();
   const { appID } = useParams() as { appID: string };
+  // UserDetailsScreen waits for the feature config, so the tabs are final on
+  // first render and usePivotNavigation keeps a #logs hash.
+  const auditLogEnabled = useAppFeatures(appID).isEnabled("auditLog");
   const { form, data, appConfig, refreshUser, profileContentRef } = props;
   const pivotItemKeys = useMemo(
     () =>
@@ -863,7 +865,8 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
     loadError: appConfigError,
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
-  const loading = loadingUser || loadingAppConfig;
+  const features = useAppFeatures(appID);
+  const loading = loadingUser || loadingAppConfig || features.isLoading;
 
   if (error != null) {
     return (
@@ -885,6 +888,10 @@ const UserDetailsScreen: React.VFC = function UserDetailsScreen() {
         }}
       />
     );
+  }
+
+  if (features.loadError != null) {
+    return <ShowError error={features.loadError} onRetry={features.reload} />;
   }
 
   if (loading) {
