@@ -469,7 +469,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         ids.add(clientID);
       }
     }
-    return [...ids].sort();
+    return [...ids].sort((a, b) => a.localeCompare(b));
   }, [authorizations, oauthClientConfig, sessions]);
   const { data: dynamicClientsData } = useDynamicClientsQueryQuery({
     variables: { clientIDs: dynamicClientIDs },

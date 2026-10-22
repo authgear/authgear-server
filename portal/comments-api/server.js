@@ -238,7 +238,7 @@ function watchPool(pool) {
 
 function start() {
   const state = { postgres: false, schemaReady: false };
-  let query = async () => {
+  let query = async (_text, _params) => {
     throw new Error("postgres not configured");
   };
   const server = http.createServer((req, res) => {
