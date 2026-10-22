@@ -45,11 +45,7 @@ import {
 import ErrorRenderer from "../../ErrorRenderer";
 import ExternalLink from "../../ExternalLink";
 import { clearEmptyObject } from "../../util/misc";
-import {
-  isAuditLogStreamingAvailable,
-  isGoogleTagManagerAvailable,
-} from "../../util/integrations";
-import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { useAppFeatures } from "../../hook/useAppFeatures";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
@@ -995,9 +991,9 @@ const IntegrationsConfigurationScreen1: React.VFC<{
     constructConfig,
     constructSecretUpdateInstruction,
   });
-  const featureConfig = useAppFeatureConfigQuery(appID);
+  const features = useAppFeatures(appID);
 
-  if (form.isLoading || featureConfig.isLoading) {
+  if (form.isLoading || features.isLoading) {
     return <ShowLoading />;
   }
 
@@ -1005,24 +1001,15 @@ const IntegrationsConfigurationScreen1: React.VFC<{
     return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
-  if (featureConfig.loadError) {
-    return (
-      <ShowError
-        error={featureConfig.loadError}
-        onRetry={featureConfig.reload}
-      />
-    );
+  if (features.loadError) {
+    return <ShowError error={features.loadError} onRetry={features.reload} />;
   }
 
   return (
     <IntegrationsConfigurationContent
       form={form}
-      gtmAvailable={isGoogleTagManagerAvailable(
-        featureConfig.effectiveFeatureConfig
-      )}
-      datadogAvailable={isAuditLogStreamingAvailable(
-        featureConfig.effectiveFeatureConfig
-      )}
+      gtmAvailable={features.isEnabled("googleTagManager")}
+      datadogAvailable={features.isEnabled("auditLogStreaming")}
     />
   );
 };

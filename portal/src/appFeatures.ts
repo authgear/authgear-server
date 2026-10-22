@@ -10,6 +10,12 @@ interface AppFeatureDefinition {
   isAvailable: (ctx: AppFeatureContext) => boolean;
 }
 
+const isGoogleTagManagerAvailable = ({ featureConfig }: AppFeatureContext) =>
+  (featureConfig?.google_tag_manager?.disabled ?? false) === false;
+const isAuditLogStreamingAvailable = ({ featureConfig }: AppFeatureContext) =>
+  (featureConfig?.telemetry?.audit_logs?.streaming?.disabled ?? false) ===
+  false;
+
 // APP_FEATURES defines when each feature is available. Which routes a feature
 // gates is declared by `feature` on AppRoute in AppRoot.tsx.
 export const APP_FEATURES = {
@@ -26,6 +32,17 @@ export const APP_FEATURES = {
   app2app: {
     isAvailable: ({ featureConfig }) =>
       featureConfig?.oauth?.client?.app2app_enabled ?? false,
+  },
+  googleTagManager: {
+    isAvailable: isGoogleTagManagerAvailable,
+  },
+  auditLogStreaming: {
+    isAvailable: isAuditLogStreamingAvailable,
+  },
+  // The Integrations page lists the integrations above that are available.
+  integrations: {
+    isAvailable: (ctx) =>
+      isGoogleTagManagerAvailable(ctx) || isAuditLogStreamingAvailable(ctx),
   },
 } satisfies Record<string, AppFeatureDefinition>;
 

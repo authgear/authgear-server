@@ -13,13 +13,11 @@ import {
   ScreenNavQueryQuery,
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { usePortalClient } from "./graphql/portal/apollo";
-import RequireAppFeature from "./RequireAppFeature";
 import { AppRoute, AppRoutes } from "./AppRoutes";
 import RequireUser from "./RequireUser";
 import RequireAPIResource from "./RequireAPIResource";
 import RequireRole from "./RequireRole";
 import RequireGroup from "./RequireGroup";
-import { isIntegrationsAvailable } from "./util/integrations";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -880,23 +878,16 @@ const AppRoot: React.VFC = function AppRoot() {
             </AppRoute>
           </AppRoute>
 
-          <AppRoute
-            feature={null}
-            element={
-              <RequireAppFeature isAvailable={isIntegrationsAvailable} />
-            }
-          >
-            <AppRoute feature={null} path="integrations">
-              <AppRoute
-                feature={null}
-                index={true}
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <IntegrationsConfigurationScreen />
-                  </Suspense>
-                }
-              />
-            </AppRoute>
+          <AppRoute feature="integrations" path="integrations">
+            <AppRoute
+              feature={null}
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <IntegrationsConfigurationScreen />
+                </Suspense>
+              }
+            />
           </AppRoute>
 
           <AppRoute feature={null} path="billing">

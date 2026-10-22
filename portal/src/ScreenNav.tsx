@@ -34,8 +34,6 @@ import { useAppFeatures } from "./hook/useAppFeatures";
 import { AppFeature } from "./appFeatures";
 import styles from "./ScreenNav.module.css";
 import { useCapture } from "./gtm_v2";
-import { PortalAPIFeatureConfig } from "./types";
-import { isIntegrationsAvailable } from "./util/integrations";
 
 type NavIconComponent = typeof RocketIcon;
 
@@ -168,12 +166,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       id: appID,
     },
   });
-
-  const app =
-    queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
-  const showIntegrations = isIntegrationsAvailable(
-    (app?.effectiveFeatureConfig as PortalAPIFeatureConfig | undefined) ?? null
-  );
 
   const { isAuthgearOnce } = useSystemConfig();
 
@@ -380,16 +372,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
         ],
       },
-      ...(showIntegrations
-        ? [
-            {
-              type: "link" as const,
-              textKey: "ScreenNav.integrations",
-              url: `/project/${appID}/integrations`,
-              icon: GearIcon,
-            },
-          ]
-        : []),
+      {
+        type: "link" as const,
+        textKey: "ScreenNav.integrations",
+        url: `/project/${appID}/integrations`,
+        icon: GearIcon,
+        feature: "integrations",
+      },
 
       ...(isAuthgearOnce
         ? [
@@ -487,7 +476,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     ];
 
     return filterNavLinks(links, isEnabled);
-  }, [isAuthgearOnce, mobileView, appID, isEnabled, showIntegrations]);
+  }, [isAuthgearOnce, mobileView, appID, isEnabled]);
 
   const [expandState, setExpandState] = useState<Record<string, boolean>>(
     () => {
