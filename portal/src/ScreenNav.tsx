@@ -29,7 +29,6 @@ import {
   ScreenNavQueryDocument,
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { usePortalClient } from "./graphql/portal/apollo";
-import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import { useAppFeatures } from "./hook/useAppFeatures";
 import { AppFeature } from "./appFeatures";
@@ -169,7 +168,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       id: appID,
     },
   });
-  const { effectiveFeatureConfig } = useAppFeatureConfigQuery(appID);
 
   const app =
     queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
@@ -178,13 +176,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   );
 
   const { isAuthgearOnce } = useSystemConfig();
-
-  const app2appEnabled = useMemo(() => {
-    if (effectiveFeatureConfig != null) {
-      return effectiveFeatureConfig.oauth?.client?.app2app_enabled ?? false;
-    }
-    return false;
-  }, [effectiveFeatureConfig]);
 
   const { isEnabled } = useAppFeatures(appID);
 
@@ -269,15 +260,12 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.anonymous-users",
             url: `/project/${appID}/configuration/authentication/anonymous-users`,
           },
-          ...(app2appEnabled
-            ? [
-                {
-                  type: "link" as const,
-                  textKey: "ScreenNav.app2app",
-                  url: `/project/${appID}/configuration/authentication/app2app`,
-                },
-              ]
-            : []),
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.app2app",
+            url: `/project/${appID}/configuration/authentication/app2app`,
+            feature: "app2app",
+          },
         ],
       },
       {
@@ -499,14 +487,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     ];
 
     return filterNavLinks(links, isEnabled);
-  }, [
-    isAuthgearOnce,
-    mobileView,
-    appID,
-    app2appEnabled,
-    isEnabled,
-    showIntegrations,
-  ]);
+  }, [isAuthgearOnce, mobileView, appID, isEnabled, showIntegrations]);
 
   const [expandState, setExpandState] = useState<Record<string, boolean>>(
     () => {

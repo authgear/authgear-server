@@ -23,6 +23,10 @@ export const APP_FEATURES = {
   analytics: {
     isAvailable: ({ systemConfig }) => systemConfig.analyticEnabled,
   },
+  app2app: {
+    isAvailable: ({ featureConfig }) =>
+      featureConfig?.oauth?.client?.app2app_enabled ?? false,
+  },
 } satisfies Record<string, AppFeatureDefinition>;
 
 export type AppFeature = keyof typeof APP_FEATURES;

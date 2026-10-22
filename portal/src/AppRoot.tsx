@@ -19,14 +19,7 @@ import RequireUser from "./RequireUser";
 import RequireAPIResource from "./RequireAPIResource";
 import RequireRole from "./RequireRole";
 import RequireGroup from "./RequireGroup";
-import { PortalAPIFeatureConfig } from "./types";
 import { isIntegrationsAvailable } from "./util/integrations";
-
-// Feature-config predicates for the route-level RequireAppFeature guards. Each
-// returns whether the project may access the gated section. Kept module-level so
-// their identity is stable across renders.
-const isApp2AppAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
-  fc?.oauth?.client?.app2app_enabled ?? false;
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -687,19 +680,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 }
               />
               <AppRoute
-                feature={null}
-                element={<RequireAppFeature isAvailable={isApp2AppAvailable} />}
-              >
-                <AppRoute
-                  feature={null}
-                  path="app2app"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <App2AppConfigurationScreen />
-                    </Suspense>
-                  }
-                />
-              </AppRoute>
+                feature="app2app"
+                path="app2app"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <App2AppConfigurationScreen />
+                  </Suspense>
+                }
+              />
             </AppRoute>
             <AppRoute feature={null} path="apps">
               <AppRoute

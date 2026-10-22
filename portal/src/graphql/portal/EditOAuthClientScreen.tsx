@@ -49,6 +49,7 @@ import xamarinIconURL from "../../images/framework_xamarin.svg";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { CopyIconButton } from "../../components/v2/CopyIconButton/CopyIconButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { useAppFeatures } from "../../hook/useAppFeatures";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
@@ -881,15 +882,7 @@ const EditOAuthClientScreen1: React.VFC<{
     featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
   ]);
 
-  const app2appEnabled = useMemo(() => {
-    if (featureConfig.isLoading) {
-      return false;
-    }
-    return (
-      featureConfig.effectiveFeatureConfig?.oauth?.client?.app2app_enabled ??
-      false
-    );
-  }, [featureConfig]);
+  const app2appEnabled = useAppFeatures(appID).isEnabled("app2app");
 
   const samlIdPSigningCertificates = useMemo(() => {
     return secretConfig?.samlIdpSigningSecrets?.certificates ?? [];
