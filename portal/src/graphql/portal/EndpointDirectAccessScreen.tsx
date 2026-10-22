@@ -16,7 +16,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import { Domain } from "./globalTypes.generated";
-import { getHostFromOrigin } from "../../util/domain";
+import { checkIsCustomDomain } from "../../util/domain";
 import { TextField } from "../../components/v2/TextField/TextField";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { SettingsSectionCard } from "../../components/v2/SettingsSectionCard/SettingsSectionCard";
@@ -41,22 +41,6 @@ interface RedirectURLFormState {
   brand_page_uri: string;
   default_redirect_uri: string;
   default_post_logout_redirect_uri: string;
-}
-
-function checkIsCustomDomain(
-  domains: Domain[],
-  public_origin: string
-): boolean {
-  if (domains.length === 0) {
-    return false;
-  }
-  const index = domains.findIndex((d) =>
-    getHostFromOrigin(public_origin).includes(d.domain)
-  );
-  if (index < 0) {
-    return false;
-  }
-  return domains[index].isCustom;
 }
 
 function makeConstructRedirectURLFormState(domains: Domain[]) {
