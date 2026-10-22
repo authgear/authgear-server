@@ -180,11 +180,22 @@ const MyFeatureScreen = lazy(
 
 ### Add the route (inside the JSX route tree)
 
-Find the appropriate `<Route>` section and add:
+Find the appropriate `<AppRoute>` section and add:
 
 ```tsx
-<Route path="my-feature" element={<MyFeatureScreen />} />
+<AppRoute feature={null} path="my-feature" element={<MyFeatureScreen />} />
 ```
+
+`AppRoot.tsx` uses `AppRoute`/`AppRoutes` from `portal/src/AppRoutes.tsx`, not `Route`/`Routes` (lint enforces this). `feature` is required: `null` for no gate, or a feature key.
+
+### Gate the screen behind a feature (if only some projects may access it)
+
+Do not wrap the route or check the feature config in `AppRoot.tsx` or `ScreenNav.tsx`. Instead:
+
+1. Set `feature="<key>"` on the screen's `AppRoute`. When the feature is unavailable, the route and every route under it shows a "not available" message instead of its element.
+2. Set `feature: "<key>"` on the screen's `NavLink` in `ScreenNav.tsx` to hide the link. Forgetting this only leaves the link visible; the page is still gated.
+3. If `<key>` is new, add it to `APP_FEATURES` in `portal/src/appFeatures.ts` with its `isAvailable`. The type checker rejects an unregistered key.
+4. To gate a component inside a screen, use `<AppFeatureGate feature="<key>">` or `useAppFeatures(appID).isEnabled("<key>")`.
 
 ---
 
