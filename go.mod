@@ -2,7 +2,7 @@ module github.com/authgear/authgear-server
 
 // go1.21 supports toolchain
 // See https://go.dev/doc/toolchain
-go 1.26.9
+go 1.26.10
 
 // The fork keeps the upstream module path, so it can only be pulled in via replace.
 replace github.com/iawaknahc/gomessageformat => github.com/oursky/gomessageformat v0.0.0-20260812135726-04797505aebe
