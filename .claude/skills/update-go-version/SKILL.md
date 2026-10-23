@@ -27,7 +27,10 @@ Use this skill when the Go version changes.
 2. Use `nix store prefetch-file` to refresh the hash in `flake.nix`.
 3. Run `make go-mod-tidy`.
 4. Run `make once/Dockerfile`.
-5. Verify the repo still builds if the version bump changed tool behavior.
+5. Grep the repo for the old version to catch any file missing from the list above, and update or consciously skip each hit:
+   `grep -rnF '<old version>' --exclude-dir=node_modules --exclude-dir=.git --exclude=package-lock.json --exclude=go.sum .`
+   Also grep for other `1.26.x` patch versions (docs, `.codebox.conf`, skills) that may have drifted earlier.
+6. Verify the repo still builds if the version bump changed tool behavior.
 
 ## Notes
 
