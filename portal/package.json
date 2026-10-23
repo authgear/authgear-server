@@ -49,7 +49,7 @@
     "@savvywombat/tailwindcss-grid-areas": "^3.1.0",
     "@storybook/addon-docs": "^10.4.4",
     "@storybook/addon-onboarding": "^10.4.4",
-    "@storybook/addon-vitest": "^10.4.4",
+    "@storybook/addon-vitest": "^10.6.2",
     "@storybook/react-vite": "^10.4.4",
     "@types/deep-equal": "1.0.4",
     "@types/jest": "^30.0.0",
