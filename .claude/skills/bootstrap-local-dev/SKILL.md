@@ -16,7 +16,7 @@ If the user already has a working local dev environment, do not run this skill â
 2. Read `.tool-versions` to know which versions are pinned. The current pin is:
 
    ```
-   golang 1.26.2
+   golang 1.26.10
    nodejs 20.19.5
    python 3.12.1
    ```
