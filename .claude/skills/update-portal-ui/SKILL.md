@@ -333,6 +333,7 @@ Before submitting a portal UI change:
 - [ ] Every config-backed input passes `parentJSONPointer` + `fieldName` so schema errors land on the field.
 - [ ] Feature on/off toggles defer to Save in both directions — or, if enabling must be immediate, a comment names the control that acts before the save, the disable direction is still dirty-only, and no control calls `saveWith`.
 - [ ] Any immediate save goes through `saveOnly` (which keeps pending edits) rather than `saveWith` (which commits the whole form), the switch reads the pending value while the cards it gates read the saved one, and the toast names the setting written rather than claiming the page was saved.
+- [ ] A page only some projects may access is gated by `feature` on its `AppRoute` in `AppRoot.tsx`, with the feature defined in `APP_FEATURES` (`portal/src/appFeatures.ts`), and its nav link sets the same `feature`. No ad-hoc feature-config check in `AppRoot.tsx` or `ScreenNav.tsx`.
 - [ ] Every query fetches only the records the screen renders, filtered on the server. No `first: <large>` listing followed by picking items out on the client. Where the API cannot filter that way, an API change was proposed instead of a workaround.
 - [ ] No query result's `error` is dropped. The screen either shows it, or shows a neutral state that does not claim anything the missing data would have decided (not "none", not "does not exist").
 - [ ] Copy naming who a permission covers was checked against the enforcing code, and sibling strings making the same claim were grepped and fixed together.

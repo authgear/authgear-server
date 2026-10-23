@@ -29,12 +29,11 @@ import {
   ScreenNavQueryDocument,
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { usePortalClient } from "./graphql/portal/apollo";
-import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
+import { useAppFeatures } from "./hook/useAppFeatures";
+import { AppFeature } from "./appFeatures";
 import styles from "./ScreenNav.module.css";
 import { useCapture } from "./gtm_v2";
-import { PortalAPIFeatureConfig } from "./types";
-import { isIntegrationsAvailable } from "./util/integrations";
 
 type NavIconComponent = typeof RocketIcon;
 
@@ -58,11 +57,37 @@ interface NavLink {
   // for a screen reached from this link (e.g. via a button, not its own nav
   // entry) whose URL does not sit under `url` itself.
   matchPrefixes?: string[];
+  // Hides the link when the feature is unavailable. This only affects the nav:
+  // the page is gated by `feature` on its AppRoute in AppRoot.tsx.
+  feature?: AppFeature;
 }
 
 interface ScreenNavProps {
   mobileView?: boolean;
   onLinkClick?: () => void;
+}
+
+// filterNavLinks drops links whose `feature` is unavailable, and groups left
+// with no children.
+function filterNavLinks(
+  items: NavLinkItem[],
+  isEnabled: (feature: AppFeature) => boolean
+): NavLinkItem[] {
+  const isLinkAvailable = (link: NavLink) =>
+    link.feature == null || isEnabled(link.feature);
+
+  const out: NavLinkItem[] = [];
+  for (const item of items) {
+    if (item.type === "group") {
+      const children = item.children.filter(isLinkAvailable);
+      if (children.length > 0) {
+        out.push({ ...item, children });
+      }
+    } else if (isLinkAvailable(item)) {
+      out.push(item);
+    }
+  }
+  return out;
 }
 
 function makeInitialExpandState(
@@ -141,27 +166,10 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       id: appID,
     },
   });
-  const { effectiveFeatureConfig } = useAppFeatureConfigQuery(appID);
 
-  const app =
-    queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
-  const showIntegrations = isIntegrationsAvailable(
-    (app?.effectiveFeatureConfig as PortalAPIFeatureConfig | undefined) ?? null
-  );
+  const { isAuthgearOnce } = useSystemConfig();
 
-  const { isAuthgearOnce, auditLogEnabled, analyticEnabled } =
-    useSystemConfig();
-
-  const app2appEnabled = useMemo(() => {
-    if (effectiveFeatureConfig != null) {
-      return effectiveFeatureConfig.oauth?.client?.app2app_enabled ?? false;
-    }
-    return false;
-  }, [effectiveFeatureConfig]);
-
-  const fraudProtectionModifiable = useMemo(() => {
-    return effectiveFeatureConfig?.fraud_protection?.is_modifiable ?? false;
-  }, [effectiveFeatureConfig]);
+  const { isEnabled } = useAppFeatures(appID);
 
   const label = renderToString("ScreenNav.label");
 
@@ -183,16 +191,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
         url: `/project/${appID}/getting-started`,
         icon: RocketIcon,
       },
-      ...(analyticEnabled
-        ? [
-            {
-              type: "link" as const,
-              textKey: "ScreenNav.analytics",
-              url: `/project/${appID}/analytics`,
-              icon: BarChartIcon,
-            },
-          ]
-        : []),
+      {
+        type: "link" as const,
+        textKey: "ScreenNav.analytics",
+        url: `/project/${appID}/analytics`,
+        icon: BarChartIcon,
+        feature: "analytics",
+      },
       {
         type: "group" as const,
         textKey: "ScreenNav.user-management",
@@ -247,15 +252,12 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.anonymous-users",
             url: `/project/${appID}/configuration/authentication/anonymous-users`,
           },
-          ...(app2appEnabled
-            ? [
-                {
-                  type: "link" as const,
-                  textKey: "ScreenNav.app2app",
-                  url: `/project/${appID}/configuration/authentication/app2app`,
-                },
-              ]
-            : []),
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.app2app",
+            url: `/project/${appID}/configuration/authentication/app2app`,
+            feature: "app2app",
+          },
         ],
       },
       {
@@ -357,15 +359,12 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.bot-protection",
             url: `/project/${appID}/attack-protection/bot-protection`,
           },
-          ...(fraudProtectionModifiable
-            ? [
-                {
-                  type: "link" as const,
-                  textKey: "ScreenNav.fraud-protection",
-                  url: `/project/${appID}/attack-protection/fraud-protection`,
-                },
-              ]
-            : []),
+          {
+            type: "link" as const,
+            textKey: "ScreenNav.fraud-protection",
+            url: `/project/${appID}/attack-protection/fraud-protection`,
+            feature: "fraudProtection",
+          },
           {
             type: "link" as const,
             textKey: "ScreenNav.ip-blocklist",
@@ -373,16 +372,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
         ],
       },
-      ...(showIntegrations
-        ? [
-            {
-              type: "link" as const,
-              textKey: "ScreenNav.integrations",
-              url: `/project/${appID}/integrations`,
-              icon: GearIcon,
-            },
-          ]
-        : []),
+      {
+        type: "link" as const,
+        textKey: "ScreenNav.integrations",
+        url: `/project/${appID}/integrations`,
+        icon: GearIcon,
+        feature: "integrations",
+      },
 
       ...(isAuthgearOnce
         ? [
@@ -464,16 +460,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
         ],
       },
-      ...(auditLogEnabled
-        ? [
-            {
-              type: "link" as const,
-              textKey: "ScreenNav.audit-log",
-              url: `/project/${appID}/audit-log`,
-              icon: ReaderIcon,
-            },
-          ]
-        : []),
+      {
+        type: "link" as const,
+        textKey: "ScreenNav.audit-log",
+        url: `/project/${appID}/audit-log`,
+        icon: ReaderIcon,
+        feature: "auditLog",
+      },
       {
         type: "link" as const,
         textKey: "PortalAdminSettings.title",
@@ -482,17 +475,8 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       },
     ];
 
-    return links;
-  }, [
-    isAuthgearOnce,
-    mobileView,
-    appID,
-    analyticEnabled,
-    app2appEnabled,
-    fraudProtectionModifiable,
-    showIntegrations,
-    auditLogEnabled,
-  ]);
+    return filterNavLinks(links, isEnabled);
+  }, [isAuthgearOnce, mobileView, appID, isEnabled]);
 
   const [expandState, setExpandState] = useState<Record<string, boolean>>(
     () => {
