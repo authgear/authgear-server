@@ -1,16 +1,11 @@
 import { Context as MessageContext } from "../../../intl";
 import React, { useCallback, useContext, useMemo } from "react";
 import ErrorDialog from "../../../error/ErrorDialog";
-import { useQuery } from "@apollo/client";
 import { Role } from "../../../graphql/adminapi/globalTypes.generated";
 import AddTagsDialog, { AddTagsDialogTag } from "./AddTagsDialog";
 import { useAddGroupToRolesMutation } from "../../../graphql/adminapi/mutations/addGroupToRolesMutation";
 import { useGroupQuery } from "../../../graphql/adminapi/query/groupQuery";
-import {
-  RolesListQueryDocument,
-  RolesListQueryQuery,
-  RolesListQueryQueryVariables,
-} from "../../../graphql/adminapi/query/rolesListQuery.generated";
+import { useRolesListQueryQuery } from "../../../graphql/adminapi/query/rolesListQuery.generated";
 
 interface AddGroupRolesDialogGroup extends Pick<Role, "id" | "key" | "name"> {}
 
@@ -56,10 +51,7 @@ export const AddGroupRolesDialog: React.VFC<AddGroupRolesDialogProps> =
     const { refetch: refetchGroup } = useGroupQuery(groupID, {
       skip: true,
     });
-    const { refetch } = useQuery<
-      RolesListQueryQuery,
-      RolesListQueryQueryVariables
-    >(RolesListQueryDocument);
+    const { refetch } = useRolesListQueryQuery({ skip: true });
 
     const onResolveGroupSuggestions = useCallback(
       async (

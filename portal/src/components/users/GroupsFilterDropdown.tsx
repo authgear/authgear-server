@@ -1,11 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context as MessageContext } from "../../intl";
-import { useQuery } from "@apollo/client";
-import {
-  GroupsListQueryDocument,
-  GroupsListQueryQuery,
-  GroupsListQueryQueryVariables,
-} from "../../graphql/adminapi/query/groupsListQuery.generated";
+import { useGroupsListQueryQuery } from "../../graphql/adminapi/query/groupsListQuery.generated";
 import { Group } from "../../graphql/adminapi/globalTypes.generated";
 import {
   UsersFilterDropdown,
@@ -35,10 +30,7 @@ export const GroupsFilterDropdown: React.VFC<GroupsFilterDropdownProps> =
     const { renderToString } = useContext(MessageContext);
     const [searchKeyword, setSearchKeyword] = useState("");
 
-    const { data, loading } = useQuery<
-      GroupsListQueryQuery,
-      GroupsListQueryQueryVariables
-    >(GroupsListQueryDocument, {
+    const { data, loading } = useGroupsListQueryQuery({
       variables: {
         pageSize: MAX_OPTIONS,
         searchKeyword: searchKeyword,

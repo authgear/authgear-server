@@ -3,17 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Flex, Heading } from "@radix-ui/themes";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { FormattedMessage } from "../../intl";
-import { useQuery } from "@apollo/client";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
 import ScreenContent from "../../ScreenContent";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { encodeOffsetToCursor } from "../../util/pagination";
-import {
-  UsersListQueryQuery,
-  UsersListQueryQueryVariables,
-  UsersListQueryDocument,
-} from "./query/usersListQuery.generated";
+import { useUsersListQueryQuery } from "./query/usersListQuery.generated";
 import { UserSortBy, SortDirection } from "./globalTypes.generated";
 import ShowError from "../../ShowError";
 import { useDebounced } from "../../hook/useDebounced";
@@ -25,16 +20,8 @@ import {
   UsersFilter,
   UsersFilterBar,
 } from "../../components/users/UsersFilterBar";
-import {
-  RolesListQueryDocument,
-  RolesListQueryQuery,
-  RolesListQueryQueryVariables,
-} from "./query/rolesListQuery.generated";
-import {
-  GroupsListQueryDocument,
-  GroupsListQueryQuery,
-  GroupsListQueryQueryVariables,
-} from "./query/groupsListQuery.generated";
+import { useRolesListQueryQuery } from "./query/rolesListQuery.generated";
+import { useGroupsListQueryQuery } from "./query/groupsListQuery.generated";
 
 const pageSize = 10;
 // We have performance problem on the users query
@@ -77,53 +64,44 @@ function useRemoteData(options: {
     error,
     loading,
     refetch: refetchUsersListData,
-  } = useQuery<UsersListQueryQuery, UsersListQueryQueryVariables>(
-    UsersListQueryDocument,
-    {
-      variables: {
-        pageSize: isSearch ? searchResultSize : pageSize,
-        cursor,
-        sortBy,
-        sortDirection,
-        searchKeyword: debouncedSearchKey,
-        groupKeys: filterGroupKeys,
-        roleKeys: filterRoleKeys,
-      },
-      fetchPolicy: "network-only",
-    }
-  );
+  } = useUsersListQueryQuery({
+    variables: {
+      pageSize: isSearch ? searchResultSize : pageSize,
+      cursor,
+      sortBy,
+      sortDirection,
+      searchKeyword: debouncedSearchKey,
+      groupKeys: filterGroupKeys,
+      roleKeys: filterRoleKeys,
+    },
+    fetchPolicy: "network-only",
+  });
 
   const {
     data: rolesListData,
     loading: isRolesListDataLoading,
     error: rolesListDataError,
     refetch: refetchRolesListData,
-  } = useQuery<RolesListQueryQuery, RolesListQueryQueryVariables>(
-    RolesListQueryDocument,
-    {
-      variables: {
-        pageSize: 0,
-        searchKeyword: "",
-      },
-      fetchPolicy: "network-only",
-    }
-  );
+  } = useRolesListQueryQuery({
+    variables: {
+      pageSize: 0,
+      searchKeyword: "",
+    },
+    fetchPolicy: "network-only",
+  });
 
   const {
     data: groupsListData,
     loading: isGroupsListDataLoading,
     error: groupsListDataError,
     refetch: refetchGroupsListData,
-  } = useQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(
-    GroupsListQueryDocument,
-    {
-      variables: {
-        pageSize: 0,
-        searchKeyword: "",
-      },
-      fetchPolicy: "network-only",
-    }
-  );
+  } = useGroupsListQueryQuery({
+    variables: {
+      pageSize: 0,
+      searchKeyword: "",
+    },
+    fetchPolicy: "network-only",
+  });
 
   return {
     isLoading: loading || isRolesListDataLoading || isGroupsListDataLoading,
