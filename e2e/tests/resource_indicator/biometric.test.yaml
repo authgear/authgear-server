@@ -1,0 +1,406 @@
+name: Biometric authentication with resource issues a resource-bound grant
+# A user sets up biometric authentication with an ordinary session, then
+# authenticates with the biometric key and asks for a resource. The refresh
+# token is bound to the resource, which a refresh with resource proves.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - biometric
+      primary_authenticators:
+      - password
+    oauth:
+      clients:
+      - access_token_lifetime_seconds: 1800
+        client_id: e2e
+        grant_types:
+        - authorization_code
+        - refresh_token
+        name: reactweb
+        redirect_uris:
+        - http://localhost:4000
+        refresh_token_lifetime_seconds: 31449600
+        response_types:
+        - code
+        - none
+        x_application_type: spa
+        issue_jwt_access_token: true
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: create_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  - name: create_scope
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createScope(input: {
+            resourceURI: "https://api.example.com/orders",
+            scope: "read:orders",
+            accessPolicy: { allowStaticFirstPartyClientAccess: true }
+          }) {
+            scope { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createScope": { "scope": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # No access policy key set, so no client category may use it.
+  - name: create_closed_resource
+    action: admin_api_graphql
+    admin_api_request:
+      query: |
+        mutation {
+          createResource(input: {
+            resourceURI: "https://api.example.com/closed"
+          }) {
+            resource { id }
+          }
+        }
+      variables: "{}"
+    admin_api_output:
+      result: |
+        {
+          "data": { "createResource": { "resource": { "id": "[[string]]" } } },
+          "errors": null
+        }
+
+  # An ordinary session, to set up biometric authentication with.
+  - name: oauth_setup
+    action: oauth_setup
+    oauth_setup_client_id: e2e
+    oauth_setup_scope:
+      - openid
+      - offline_access
+      - https://authgear.com/scopes/full-access
+
+  - name: create_flow
+    action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default",
+        "url_query": "{{ .steps.oauth_setup.result.query }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - name: identify
+    action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: authenticate
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished",
+            "data": {
+              "finish_redirect_uri": "[[string]]"
+            }
+          }
+        }
+
+  - name: exchange_code
+    action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.authenticate.result.action.data.finish_redirect_uri }}"
+    oauth_exchange_code_client_id: e2e
+
+  # Setup issues no token, so there is nothing to bind a resource to.
+  - name: challenge_setup_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "biometric_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: setup_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:biometric-request
+      client_id: e2e
+      jwt: "{{ generateBiometricRequestJWT .steps.challenge_setup_with_resource.result.http_json_body.result.token \"setup\" }}"
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_request"
+        }
+
+  - name: challenge_setup
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "biometric_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: setup
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_headers:
+      Authorization: "Bearer {{ .steps.exchange_code.result.access_token }}"
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:biometric-request
+      client_id: e2e
+      jwt: "{{ generateBiometricRequestJWT .steps.challenge_setup.result.http_json_body.result.token \"setup\" }}"
+    http_output:
+      http_status: 200
+
+  # A resource that does not allow the client's category.
+  - name: challenge_closed
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "biometric_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: authenticate_closed_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:biometric-request
+      client_id: e2e
+      jwt: "{{ generateBiometricRequestJWT .steps.challenge_closed.result.http_json_body.result.token \"authenticate\" }}"
+      resource: https://api.example.com/closed
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_target"
+        }
+
+  # A Scope of a resource, without naming the resource.
+  - name: challenge_scope_without_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "biometric_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: authenticate_scope_without_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:biometric-request
+      client_id: e2e
+      jwt: "{{ generateBiometricRequestJWT .steps.challenge_scope_without_resource.result.http_json_body.result.token \"authenticate\" }}"
+      scope: openid offline_access https://authgear.com/scopes/full-access read:orders
+    http_output:
+      http_status: 400
+      json_body: |
+        {
+          "error": "invalid_scope"
+        }
+
+  - name: challenge_authenticate
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "biometric_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: authenticate_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:biometric-request
+      client_id: e2e
+      jwt: "{{ generateBiometricRequestJWT .steps.challenge_authenticate.result.http_json_body.result.token \"authenticate\" }}"
+      scope: openid offline_access https://authgear.com/scopes/full-access read:orders
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "refresh_token": "[[string]]",
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
+
+  # The refresh token is bound to the resource: it can be refreshed for it.
+  - name: refresh_with_resource
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: refresh_token
+      client_id: e2e
+      refresh_token: "{{ .steps.authenticate_with_resource.result.http_json_body.refresh_token }}"
+      resource: https://api.example.com/orders
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]"
+        }
+      access_token_claims: |
+        {
+          "aud": ["https://api.example.com/orders"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access read:orders"
+        }
+
+  # Without resource the token is bound to the project endpoint and carries
+  # no resource scope.
+  - name: challenge_authenticate_default
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/challenge
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "purpose": "biometric_request"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {
+            "token": "[[string]]"
+          }
+        }
+
+  - name: authenticate_default
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{.AppID}}.authgeare2e.localhost:4000/oauth2/token
+    http_request_form_urlencoded_body:
+      grant_type: urn:authgear:params:oauth:grant-type:biometric-request
+      client_id: e2e
+      jwt: "{{ generateBiometricRequestJWT .steps.challenge_authenticate_default.result.http_json_body.result.token \"authenticate\" }}"
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "access_token": "[[string]]",
+          "refresh_token": "[[string]]",
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
+        }
+      access_token_claims: |
+        {
+          "aud": ["http://{{ .AppID }}.authgeare2e.localhost:4000"],
+          "scope": "openid offline_access https://authgear.com/scopes/full-access"
+        }

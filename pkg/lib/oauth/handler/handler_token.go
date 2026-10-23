@@ -969,19 +969,58 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		return nil, err
 	}
 
+	// The original refresh tokens are those of the client that created the
+	// session, i.e. the mobile app. Its config is only needed to check a
+	// resource, so a request without one does not depend on it.
+	var originalClient *config.OAuthClientConfig
+	if r.Resource() != "" {
+		originalClient = h.ClientResolver.ResolveClient(ctx, offlineGrant.InitialClientID)
+		if originalClient == nil {
+			return nil, protocol.NewError("server_error", "cannot find original client for pre-authenticated url")
+		}
+	}
+	originals := offlineGrant.ScopesByResourceURI(offlineGrant.InitialClientID)
+
+	// Project-level scopes of the new session. Resource scopes are added below,
+	// and only for the resource requested.
+	var projectScopes []string
 	requestedScopes := r.Scope()
 	if len(requestedScopes) > 0 {
 		if !offlineGrant.HasAllScopes(offlineGrant.InitialClientID, requestedScopes) {
 			return nil, protocol.NewError("invalid_scope", "requesting extra scopes is not allowed")
 		}
-		err = oauth.ValidateScopesByClientConfig(requestedScopes, nil)
+		// A resource scope of the session is known only on the resource it is
+		// bound to.
+		var knownResourceScopes []string
+		if r.Resource() != "" {
+			knownResourceScopes = slice.Filter(originals[r.Resource()], oauth.IsResourceScope)
+		}
+		err = oauth.ValidateScopesByClientConfig(requestedScopes, knownResourceScopes)
 		if err != nil {
 			return nil, err
 		}
-		scopes = oauth.GrantedScopes(client, requestedScopes, nil)
+		projectScopes = oauth.GrantedScopes(client, requestedScopes, nil)
+	} else {
+		projectScopes = slice.Filter(scopes, func(s string) bool { return !oauth.IsResourceScope(s) })
 	}
 
-	authz, err := h.Authorizations.CheckAndGrant(ctx, client.ClientID, offlineGrant.GetUserID(), "", scopes)
+	resourceID, resourceScopes, err := derivedGrantResourceScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		originalClient,
+		client,
+		originals,
+		r.Resource(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(requestedScopes) > 0 {
+		resourceScopes = slice.Filter(resourceScopes, func(s string) bool { return slices.Contains(requestedScopes, s) })
+	}
+	scopes = append(projectScopes, resourceScopes...)
+
+	authz, err := h.Authorizations.CheckAndGrant(ctx, client.ClientID, offlineGrant.GetUserID(), resourceID, scopes)
 	if err != nil {
 		return nil, err
 	}
@@ -992,6 +1031,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		ClientID:        client.ClientID,
 		OfflineGrantID:  offlineGrant.ID,
 		Scopes:          scopes,
+		ResourceURI:     r.Resource(),
 	}
 	result, err := h.PreAuthenticatedURLTokenService.IssuePreAuthenticatedURLToken(ctx, options)
 	if err != nil {
@@ -1070,6 +1110,23 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
 
+	// Check resource and scope before the user is created.
+	resourceID, scopes, err := newGrantScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		h.IDTokenIssuer.Iss(),
+		client,
+		r.Resource(),
+		r.Scope(),
+		defaultOfflineFullAccessScopes(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkOfflineFullAccessScopes(scopes); err != nil {
+		return nil, err
+	}
+
 	var graph *interaction.Graph
 	err = h.Graphs.DryRun(ctx, interaction.ContextValues{}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
@@ -1121,14 +1178,11 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	// TODO(oauth): allow specifying scopes
-	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
-
 	authz, err := h.Authorizations.CheckAndGrant(
 		ctx,
 		client.ClientID,
 		info.UserID,
-		"",
+		resourceID,
 		scopes,
 	)
 	if err != nil {
@@ -1153,6 +1207,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		SSOEnabled:         false,
 		IssueDeviceSecret:  issueDeviceToken,
 		DPoPJKT:            dpopJKT,
+		ResourceURI:        r.Resource(),
 	}
 	offlineGrant, newTokenHash, err := h.issueOfflineGrant(
 		ctx,
@@ -1178,6 +1233,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		SessionLike:              offlineGrant,
 		InitialRefreshTokenHash:  newTokenHash,
 		UserBlockingEventContext: eventUserCtx,
+		ResourceURI:              r.Resource(),
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
@@ -1237,6 +1293,9 @@ func (h *TokenHandler) handleBiometricRequest(
 	action, _ := actionIface.(string)
 	switch action {
 	case string(identitybiometric.RequestActionSetup):
+		if r.Resource() != "" {
+			return nil, protocol.NewError("invalid_request", "resource is not supported for biometric setup")
+		}
 		return h.handleBiometricSetup(ctx, req, client, r)
 	case string(identitybiometric.RequestActionAuthenticate):
 		return h.handleBiometricAuthenticate(ctx, client, r)
@@ -1332,6 +1391,24 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
 
+	// Check resource and scope before authenticating, so an invalid request
+	// authenticates nobody.
+	resourceID, scopes, err := newGrantScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		h.IDTokenIssuer.Iss(),
+		client,
+		r.Resource(),
+		r.Scope(),
+		defaultOfflineFullAccessScopes(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := checkOfflineFullAccessScopes(scopes); err != nil {
+		return nil, err
+	}
+
 	var graph *interaction.Graph
 	err = h.Graphs.DryRun(ctx, interaction.ContextValues{}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
@@ -1391,25 +1468,11 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
-	requestedScopes := r.Scope()
-	if len(requestedScopes) > 0 {
-		err := oauth.ValidateScopesByClientConfig(requestedScopes, nil)
-		if err != nil {
-			return nil, err
-		}
-		scopes = oauth.GrantedScopes(client, requestedScopes, nil)
-	}
-
-	if !oauth.ContainsAllScopes(scopes, []string{oauth.OfflineAccess, oauth.FullAccessScope}) {
-		return nil, protocol.NewError("invalid_scope", "offline_access and full-access must be requested")
-	}
-
 	authz, err := h.Authorizations.CheckAndGrant(
 		ctx,
 		client.ClientID,
 		info.UserID,
-		"",
+		resourceID,
 		scopes,
 	)
 	if err != nil {
@@ -1448,6 +1511,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		SSOEnabled:         false,
 		IssueDeviceSecret:  issueDeviceToken,
 		DPoPJKT:            dpopJKT,
+		ResourceURI:        r.Resource(),
 	}
 	offlineGrant, newTokenHash, err := h.issueOfflineGrant(
 		ctx,
@@ -1473,6 +1537,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		SessionLike:              offlineGrant,
 		InitialRefreshTokenHash:  newTokenHash,
 		UserBlockingEventContext: eventUserCtx,
+		ResourceURI:              r.Resource(),
 	}
 	result1, err := h.TokenService.PrepareUserAccessGrantByRefreshToken(ctx, PrepareUserAccessGrantByRefreshTokenOptions{
 		PrepareUserAccessGrantOptions: prepareUserAccessGrantOptions,
@@ -1563,7 +1628,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	}
 
 	// FIXME(DEV-1430): The new scopes should be validated against the new client
-	scopes := offlineGrantSession.Scopes
+	projectScopes := slice.Filter(offlineGrantSession.Scopes, func(s string) bool { return !oauth.IsResourceScope(s) })
 
 	originalClient := h.ClientResolver.ResolveClient(ctx, offlineGrantSession.ClientID)
 	if originalClient == nil {
@@ -1597,19 +1662,20 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
 	}
 
-	// The scopes come from the original refresh token, so its resource scopes
-	// are granted on the resource that token is bound to. The lookup uses the
-	// original client, as refreshing that token would.
-	resourceID := ""
-	if offlineGrantSession.ResourceURI != "" {
-		resource, err := h.ResourceAccessPolicyService.GetResourceByURI(ctx, offlineGrantSession.ResourceURI, originalClient)
-		if errors.Is(err, resourcescope.ErrResourceNotFound) {
-			return nil, errResourceNotAvailable()
-		} else if err != nil {
-			return nil, err
-		}
-		resourceID = resource.ID
+	// The new client gets the resource scopes of the presented refresh token
+	// only on the resource it names, and only those both clients are granted.
+	resourceID, resourceScopes, err := derivedGrantResourceScopes(
+		ctx,
+		h.ResourceAccessPolicyService,
+		originalClient,
+		client,
+		map[string][]string{offlineGrantSession.ResourceURI: offlineGrantSession.Scopes},
+		r.Resource(),
+	)
+	if err != nil {
+		return nil, err
 	}
+	scopes := append(projectScopes, resourceScopes...)
 
 	authz, err := h.Authorizations.CheckAndGrant(
 		ctx,
@@ -1629,8 +1695,11 @@ func (h *TokenHandler) handleApp2AppRequest(
 	// FIXME(tung): It seems nonce is not needed in app2app because native apps are not using it?
 	artificialAuthorizationRequest := make(protocol.AuthorizationRequest)
 	artificialAuthorizationRequest["client_id"] = client.ClientID
-	artificialAuthorizationRequest["scope"] = strings.Join(authz.AllScopes(), " ")
+	artificialAuthorizationRequest["scope"] = strings.Join(scopes, " ")
 	artificialAuthorizationRequest["code_challenge"] = r.CodeChallenge()
+	if r.Resource() != "" {
+		artificialAuthorizationRequest["resource"] = r.Resource()
+	}
 	if originalOfflineGrant.SSOEnabled {
 		artificialAuthorizationRequest["x_sso_enabled"] = "true"
 	}
@@ -1828,7 +1897,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	// Re-read the access policy before issuing anything: only the token
 	// issued here is narrowed, the grant itself keeps every authorized
 	// scope. See docs/specs/api-resource.md § Revocation.
-	issuedScopes, err := h.resourceScopesForIssuance(ctx, client, resourceURI, code.AuthorizationRequest.Scope())
+	issuedScopes, err := resourceScopesForIssuance(ctx, h.ResourceAccessPolicyService, client, resourceURI, code.AuthorizationRequest.Scope())
 	if err != nil {
 		return nil, err
 	}
@@ -2147,7 +2216,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	// Re-read the access policy before issuing anything: only the token
 	// issued here is narrowed, the grant itself keeps every authorized
 	// scope. See docs/specs/api-resource.md § Revocation.
-	issuedScopes, err := h.resourceScopesForIssuance(ctx, client, resourceURI, offlineGrantSession.Scopes)
+	issuedScopes, err := resourceScopesForIssuance(ctx, h.ResourceAccessPolicyService, client, resourceURI, offlineGrantSession.Scopes)
 	if err != nil {
 		return nil, err
 	}

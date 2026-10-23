@@ -1272,11 +1272,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer: accessTokenEncoding,
 		Clock:             clockClock,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	preAuthenticatedURLTokenServiceImpl := &handler.PreAuthenticatedURLTokenServiceImpl{
 		Clock:                     clockClock,
 		PreAuthenticatedURLTokens: redisStore,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
+		ResourceAccessPolicy:      accessPolicyService,
 	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{
 		Secrets:                   oAuthKeyMaterials,
@@ -1285,9 +1289,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		BaseURL:                   endpointsEndpoints,
 		Events:                    eventService,
 		UserBlockingEventContexts: userBlockingEventContextProvider,
-	}
-	accessPolicyService := &resourcescope.AccessPolicyService{
-		Store: resourcescopeStore,
 	}
 	oAuthFeatureConfig := featureConfig.OAuth
 	cimdhttpClients := cimd.ProvideCIMDHTTPClients(httpFeatureConfig)
@@ -2349,11 +2350,15 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer: accessTokenEncoding,
 		Clock:             clockClock,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	preAuthenticatedURLTokenServiceImpl := &handler.PreAuthenticatedURLTokenServiceImpl{
 		Clock:                     clockClock,
 		PreAuthenticatedURLTokens: redisStore,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
+		ResourceAccessPolicy:      accessPolicyService,
 	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{
 		Secrets:                   oAuthKeyMaterials,
@@ -2362,9 +2367,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		BaseURL:                   endpointsEndpoints,
 		Events:                    eventService,
 		UserBlockingEventContexts: userBlockingEventContextProvider,
-	}
-	accessPolicyService := &resourcescope.AccessPolicyService{
-		Store: resourcescopeStore,
 	}
 	oAuthFeatureConfig := featureConfig.OAuth
 	cimdhttpClients := cimd.ProvideCIMDHTTPClients(httpFeatureConfig)
@@ -3415,16 +3417,17 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer: accessTokenEncoding,
 		Clock:             clockClock,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	preAuthenticatedURLTokenServiceImpl := &handler.PreAuthenticatedURLTokenServiceImpl{
 		Clock:                     clockClock,
 		PreAuthenticatedURLTokens: store,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
+		ResourceAccessPolicy:      accessPolicyService,
 	}
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
-		Store: resourcescopeStore,
-	}
-	accessPolicyService := &resourcescope.AccessPolicyService{
 		Store: resourcescopeStore,
 	}
 	facadeIdentityFacade := facade.IdentityFacade{
@@ -8546,16 +8549,17 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer: accessTokenEncoding,
 		Clock:             clockClock,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	preAuthenticatedURLTokenServiceImpl := &handler.PreAuthenticatedURLTokenServiceImpl{
 		Clock:                     clockClock,
 		PreAuthenticatedURLTokens: store,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
+		ResourceAccessPolicy:      accessPolicyService,
 	}
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
-		Store: resourcescopeStore,
-	}
-	accessPolicyService := &resourcescope.AccessPolicyService{
 		Store: resourcescopeStore,
 	}
 	facadeIdentityFacade := facade.IdentityFacade{
@@ -9915,17 +9919,22 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 		AccessGrantService:  accessGrantService,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
-		AppID:               appID,
-		OAuthConfig:         oAuthConfig,
-		Graphs:              interactionService,
-		Authorizations:      authorizationService,
-		Clock:               clockClock,
-		TokenService:        tokenService,
-		UserProvider:        userQueries,
-		AnonymousIdentities: anonymousProvider,
-		PromotionCodes:      anonymousStoreRedis,
-		OAuthClientResolver: resolver,
+		AppID:                       appID,
+		OAuthConfig:                 oAuthConfig,
+		Graphs:                      interactionService,
+		Authorizations:              authorizationService,
+		Clock:                       clockClock,
+		TokenService:                tokenService,
+		UserProvider:                userQueries,
+		AnonymousIdentities:         anonymousProvider,
+		PromotionCodes:              anonymousStoreRedis,
+		OAuthClientResolver:         resolver,
+		IDTokenIssuer:               idTokenIssuer,
+		ResourceAccessPolicyService: accessPolicyService,
 	}
 	anonymousUserSignupAPIHandler := &api.AnonymousUserSignupAPIHandler{
 		Database:             handle,
@@ -11033,17 +11042,22 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Events:              eventService,
 		AccessGrantService:  accessGrantService,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
-		AppID:               appID,
-		OAuthConfig:         oAuthConfig,
-		Graphs:              interactionService,
-		Authorizations:      authorizationService,
-		Clock:               clockClock,
-		TokenService:        tokenService,
-		UserProvider:        userQueries,
-		AnonymousIdentities: anonymousProvider,
-		PromotionCodes:      anonymousStoreRedis,
-		OAuthClientResolver: resolver,
+		AppID:                       appID,
+		OAuthConfig:                 oAuthConfig,
+		Graphs:                      interactionService,
+		Authorizations:              authorizationService,
+		Clock:                       clockClock,
+		TokenService:                tokenService,
+		UserProvider:                userQueries,
+		AnonymousIdentities:         anonymousProvider,
+		PromotionCodes:              anonymousStoreRedis,
+		OAuthClientResolver:         resolver,
+		IDTokenIssuer:               idTokenIssuer,
+		ResourceAccessPolicyService: accessPolicyService,
 	}
 	anonymousUserPromotionCodeAPIHandler := &api.AnonymousUserPromotionCodeAPIHandler{
 		Database:       handle,
@@ -53845,16 +53859,17 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenIssuer: accessTokenEncoding,
 		Clock:             clockClock,
 	}
+	accessPolicyService := &resourcescope.AccessPolicyService{
+		Store: resourcescopeStore,
+	}
 	preAuthenticatedURLTokenServiceImpl := &handler.PreAuthenticatedURLTokenServiceImpl{
 		Clock:                     clockClock,
 		PreAuthenticatedURLTokens: redisStore,
 		AccessGrantService:        accessGrantService,
 		OfflineGrantService:       oauthOfflineGrantService,
+		ResourceAccessPolicy:      accessPolicyService,
 	}
 	clientResourceScopeService := &resourcescope.ClientResourceScopeService{
-		Store: resourcescopeStore,
-	}
-	accessPolicyService := &resourcescope.AccessPolicyService{
 		Store: resourcescopeStore,
 	}
 	oauthAccessTokenEncoding := &oauth.AccessTokenEncoding{

@@ -801,6 +801,8 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 		"redirect_path": { "type": "string" },
 		"saml_element": { "$ref": "#/$defs/OuputSAMLElement" },
 		"json_body": { "type": "string" },
+		"access_token_claims": { "type": "string" },
+		"app_access_token_cookie_claims": { "type": "string" },
 		"html_xpath_exists": { "type": "array", "items": { "type": "string" } },
 		"html_text_contains": { "type": "array", "items": { "type": "string" } },
 		"html_text_not_contains": { "type": "array", "items": { "type": "string" } },
@@ -815,15 +817,22 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 `)
 
 type HTTPOutput struct {
-	HTTPStatus          *float64          `json:"http_status"`
-	RedirectPath        *string           `json:"redirect_path"`
-	SAMLElement         *OuputSAMLElement `json:"saml_element"`
-	JSONBody            *string           `json:"json_body"`
-	LocationNotContains []string          `json:"location_not_contains"`
-	LocationContains    []string          `json:"location_contains"`
-	HTMLXPathExists     []string          `json:"html_xpath_exists"`
-	HTMLTextContains    []string          `json:"html_text_contains"`
-	HTMLTextNotContains []string          `json:"html_text_not_contains"`
+	HTTPStatus   *float64          `json:"http_status"`
+	RedirectPath *string           `json:"redirect_path"`
+	SAMLElement  *OuputSAMLElement `json:"saml_element"`
+	JSONBody     *string           `json:"json_body"`
+	// AccessTokenClaims matches the claims of the response body's
+	// access_token, which must be a JWT. It lets a test assert the aud and
+	// scope a grant issued, which a raw http_request step cannot decode.
+	AccessTokenClaims *string `json:"access_token_claims"`
+	// AppAccessTokenCookieClaims is the same for the access token in the
+	// response's app_access_token cookie.
+	AppAccessTokenCookieClaims *string  `json:"app_access_token_cookie_claims"`
+	LocationNotContains        []string `json:"location_not_contains"`
+	LocationContains           []string `json:"location_contains"`
+	HTMLXPathExists            []string `json:"html_xpath_exists"`
+	HTMLTextContains           []string `json:"html_text_contains"`
+	HTMLTextNotContains        []string `json:"html_text_not_contains"`
 	// Headers asserts exact values of specific response headers (e.g. the
 	// resolver endpoint's X-Authgear-Session-Valid, which -- unlike every
 	// other action in this file -- signals its result purely through a

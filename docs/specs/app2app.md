@@ -96,6 +96,7 @@ sequenceDiagram
     - `client_id`: the authenticating client id.
     - `jwt`: a jwt with a challenge token obtained from the `/oauth2/challenge` api, signed with the private key of the device key bound to the refresh token. If `x_app2app_insecure_device_key_binding_enabled` is `true`, a jwt with a new device key will be allowed if there were no device key bound in the current offline grant. In this case the new key will be bound to the offline grant after the request.
     - `redirect_uri`: the redirect uri used to return the result to the authenticating app. The server checks if `redirect_uri` is listed in the `redirect_uris` of the client indicated by `client_id`.
+  - `resource` may also be provided. See [Resource Indicators](#resource-indicators).
   - The server will verify the signature, and generates a new authorization code associated with `client_id`. The client can then use this code to perform code exchange with `grant_type=authorization_code` and obtain a new set of refresh token and access tokens.
 
 ### Android
@@ -154,6 +155,7 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
      - `client_id`: The client id of the initiating app.
      - `redirect_uri`: The redirect uri used to recieve the authentication result.
      - `code_challenge`: The PKCE code challenge with the same purpose in the oidc authorize endpoint.
+     - `resource`: Optional. See [Resource Indicators](#resource-indicators).
 
    - For security reason, App B should verify the signature of the app that is going to handle the intent by:
      - Fetching the `.well-known/assetlinks.json` from the domain of the uri. In this example it will be `https://a.example.com/.well-known/assetlinks.json`.
@@ -257,6 +259,7 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
      - `client_id`: The client id of the initiating app.
      - `redirect_uri`: The redirect uri used to recieve the authentication result.
      - `code_challenge`: The PKCE code challenge with the same purpose in the oidc authorize endpoint.
+     - `resource`: Optional. See [Resource Indicators](#resource-indicators).
 
 2. App A handles the universal link.
 
@@ -388,11 +391,17 @@ When using biometric app2app, `x_app2app_insecure_device_key_binding_enabled` ha
 
 ## Resource Indicators
 
-App2app does not support [resource indicators](./access-token-audience-binding.md) yet. It currently behaves as follows:
+App2app is a [derived grant](./access-token-audience-binding.md#derived-grant): the refresh token the authenticated app presents is the only original refresh token, and the authenticating app's client is the new client.
 
-- The authorization code is not bound to a Resource, so the tokens exchanged for it are not either, even when the refresh token presented is. `resource` cannot be added at the code exchange or on refresh; either fails with `invalid_target`.
-- The code carries every scope the requesting client's Authorization grants, Resource Scopes included.
-- When the refresh token presented is bound to a Resource, its Resource Scopes are recorded on the requesting client's Authorization for that Resource. The request fails with `invalid_target` if that Resource no longer exists, or its access policy no longer admits the client the refresh token was issued to.
+| Where | `resource` |
+|---|---|
+| App2app authentication request (the link the authenticating app opens) | Optional. The authenticated app passes it on unchanged. |
+| `grant_type=urn:authgear:params:oauth:grant-type:app2app` | Optional. Checked as a derived grant. |
+| `grant_type=urn:authgear:params:oauth:grant-type:biometric-request`, action `authenticate_app2app` | Optional. Checked as a derived grant, with the newly issued refresh token as the original. |
+
+The authorization code is bound to the Resource named by `resource`, if any, and its exchange follows the [`authorization_code` grant](./access-token-audience-binding.md#authorization_code-grant). Project-level scopes on the code are those of the original refresh token.
+
+In the SDKs, `App2AppAuthenticateOptions` and `App2AppAuthenticateRequest` gain an optional `resource`.
 
 ## Related Readings
 

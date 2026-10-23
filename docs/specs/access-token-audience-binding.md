@@ -17,6 +17,9 @@ This is implemented via [RFC 8707 — Resource Indicators for OAuth 2.0](https:/
 - [Token Endpoint](#token-endpoint)
   - [authorization_code grant](#authorization_code-grant)
   - [refresh_token grant](#refresh_token-grant)
+- [Grants Without an Authorization Request](#grants-without-an-authorization-request)
+  - [New grant](#new-grant)
+  - [Derived grant](#derived-grant)
 - [Access Token Claims](#access-token-claims)
 - [Error Cases](#error-cases)
 - [Backward Compatibility](#backward-compatibility)
@@ -30,8 +33,6 @@ Two parts of this specification are described in full below but are **not implem
 - **The `scope_by_aud` claim.** Not implemented. A resource-bound access token carries `aud` and the (unfiltered) `scope` claim only; there is no claim mapping individual scopes to individual audiences. This is safe today because at most one resource URI can ever appear in `aud` (see the point above) — every granted scope already applies to that single audience, so a per-audience breakdown carries no extra information. `scope_by_aud` becomes necessary once multiple resources can appear in one token; it is deferred alongside multi-resource support.
 
 Everything else in this document is implemented as written.
-
-App2app and Pre-Authenticated URL do not support resource indicators; see [App-to-App authentication — Resource Indicators](./app2app.md#resource-indicators) and [Pre-Authenticated URL — Resource Indicators](./pre-authenticated-url.md#resource-indicators).
 
 ## Glossary
 
@@ -51,7 +52,7 @@ Without access token audience binding, all Authgear access tokens share `aud = [
 
 The standard solution is RFC 8707 resource indicators: clients declare their target resource at request time, and Authgear binds the `aud` of the issued token to that resource URI. Resource servers can then enforce `aud` contains their own URI.
 
-Authgear previously supported resource indicators only for `m2m` clients using the `client_credentials` grant. This spec extends support to the `authorization_code` and `refresh_token` grants. See [Implementation Status](#implementation-status) for which client types that currently covers.
+Authgear previously supported resource indicators only for `m2m` clients using the `client_credentials` grant. This spec extends support to every [user-delegated grant](./api-resource.md#glossary). See [Implementation Status](#implementation-status) for which client types that currently covers.
 
 ## Default Audience and Audience Confusion Risk
 
@@ -206,6 +207,33 @@ grant_type=refresh_token
 - Requesting a resource not in the original grant returns `invalid_target`.
 - The Resource's and Scopes' `access_policy` is re-read before the token is issued — see [API Resources and Scopes — Revocation](./api-resource.md#revocation).
 
+## Grants Without an Authorization Request
+
+These flows issue tokens without `/oauth2/authorize`, so `resource` goes on the request that issues them. Each flow's spec defines where the parameter goes; the rules are one of the two below.
+
+| Flow | Kind |
+|---|---|
+| [Biometric authentication](./biometric.md#resource-indicators) | [New grant](#new-grant) |
+| [Anonymous user](./anonymous-user.md#resource-indicators) | [New grant](#new-grant) |
+| [App2app](./app2app.md#resource-indicators) | [Derived grant](#derived-grant) |
+| [Pre-Authenticated URL](./pre-authenticated-url.md#resource-indicators) | [Derived grant](#derived-grant) |
+
+### New grant
+
+The request authenticates the user and creates a grant from nothing.
+
+- `resource` and `scope` follow the [Authorization Endpoint](#authorization-endpoint) rules, checked against the requesting client.
+- The issued refresh token is bound to the Resource. Later refreshes follow the [`refresh_token` grant](#refresh_token-grant).
+
+### Derived grant
+
+The request issues tokens to one client (the new client) from refresh tokens held by another (the original refresh tokens). Each flow's spec defines which refresh tokens are the original ones.
+
+- `resource` is optional and single-valued.
+  - Omitted: as at the [Authorization Endpoint](#authorization-endpoint), the tokens are not bound to a Resource. Every Scope of a Resource is dropped.
+  - Given: it must name a Resource that an original refresh token is bound to, and that Resource must allow the [category](./api-resource.md#client-categories) of both the original refresh tokens' client and the new client. Otherwise `invalid_target`. The tokens carry the Scopes of that Resource that the original refresh tokens bound to it hold and the access policy grants to both clients. The others are dropped.
+- Project-level scopes are derived as each flow's spec defines.
+
 ## Access Token Claims
 
 ### With Resource Indicator
@@ -275,6 +303,9 @@ Error response format differs by endpoint:
 | `resource` URI at token exchange (`authorization_code` grant) is not a subset of what was authorized | `invalid_target` | 400 |
 | `resource` URI at refresh (`refresh_token` grant) is not a subset of the original grant | `invalid_target` | 400 |
 | The bound Resource no longer allows the client's category, or has been deleted (either grant) | `invalid_target` | 400 |
+| [New grant](#new-grant): any [authorization endpoint error](#authorization-endpoint-errors) caused by `resource` or `scope` | Same as there | 400 |
+| [Derived grant](#derived-grant): `resource` names no Resource an original refresh token is bound to | `invalid_target` | 400 |
+| [Derived grant](#derived-grant): the Resource named by `resource` does not allow the category of either client, or has been deleted | `invalid_target` | 400 |
 
 ## Backward Compatibility
 
@@ -292,13 +323,13 @@ Third-party clients are new. No existing behavior is affected.
 
 ### `aud` when `resource` is specified
 
-When `resource` is specified, `aud` contains **only** the resource URI(s). This is new behavior — `resource` support for `authorization_code` and `refresh_token` grants did not previously exist.
+When `resource` is specified, `aud` contains **only** the resource URI(s). This is new behavior — `resource` support for user-delegated grants did not previously exist.
 
 ## Relationship to M2M
 
-The `m2m` client type (`client_credentials` grant) already supports resource indicators as described in `docs/specs/m2m.md`. This spec extends resource indicators — the same pre-registered Resources and Scopes — to the `authorization_code` and `refresh_token` grants. `docs/specs/m2m.md` documents a `scope_by_aud` claim for multi-resource `client_credentials` tokens; that claim is not implemented for either grant family today (see [Implementation Status](#implementation-status)).
+The `m2m` client type (`client_credentials` grant) already supports resource indicators as described in `docs/specs/m2m.md`. This spec extends resource indicators — the same pre-registered Resources and Scopes — to the user-delegated grants. `docs/specs/m2m.md` documents a `scope_by_aud` claim for multi-resource `client_credentials` tokens; that claim is not implemented for either grant family today (see [Implementation Status](#implementation-status)).
 
 Two things do **not** carry across:
 
-- **`resource` is required** for `client_credentials` (per existing implementation), and **optional** for `authorization_code` and `refresh_token`, to preserve backward compatibility.
-- **The authorization mechanism is different.** `client_credentials` uses an explicit Client-Resource Association and never consults `access_policy`; `authorization_code`/`refresh_token` use `access_policy` and never consult an association. The two are partitioned by grant, not layered — see [api-resource.md — Relationship to Client-Resource Association](./api-resource.md#relationship-to-client-resource-association) and [m2m.md](./m2m.md#discussion-resource-scope-client-and-downscoping).
+- **`resource` is required** for `client_credentials` (per existing implementation), and **optional** for the user-delegated grants, to preserve backward compatibility.
+- **The authorization mechanism is different.** `client_credentials` uses an explicit Client-Resource Association and never consults `access_policy`; the user-delegated grants use `access_policy` and never consult an association. The two are partitioned by grant, not layered — see [api-resource.md — Relationship to Client-Resource Association](./api-resource.md#relationship-to-client-resource-association) and [m2m.md](./m2m.md#discussion-resource-scope-client-and-downscoping).
