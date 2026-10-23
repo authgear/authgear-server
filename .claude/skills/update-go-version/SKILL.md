@@ -15,7 +15,7 @@ Use this skill when the Go version changes.
 - `e2e/go.mod`
 - `k6/go.mod`
 - `packagetracker/go.mod.tpl`
-- `custombuild/cmd/authgear/Dockerfile`
+- `custombuild/cmd/authgearx/Dockerfile`
 - `custombuild/cmd/portalx/Dockerfile`
 - `cmd/portal/Dockerfile`
 - `cmd/authgear/Dockerfile`
