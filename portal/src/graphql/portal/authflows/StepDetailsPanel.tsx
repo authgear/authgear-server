@@ -7,6 +7,8 @@ import { AuthenticatorPhoneOTPMode } from "../../../types";
 import { FlowStepItem } from "./tree";
 import { optionLabel, stepDescriptionMessageID, stepTitle } from "./labels";
 import { StepForm, StepFormProps } from "./edit/StepForm";
+import { StepProblem } from "./edit/FlowEditorContext";
+import { Callout } from "../../../components/v2/Callout/Callout";
 import { StepYAMLEditor } from "./edit/StepYAMLEditor";
 import { replaceStep } from "./edit/edits";
 import styles from "./StepDetailsPanel.module.css";
@@ -16,6 +18,9 @@ export interface StepDetailsPanelProps {
   // How phone codes are sent, to name the channel in the options list.
   phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
   onClose: () => void;
+  // The step's save errors, checks and warnings; while editing, the form
+  // shows them.
+  problems: StepProblem[];
   // Present in edit mode: the panel becomes a form for the step.
   edit?: Omit<StepFormProps, "stepID">;
 }
@@ -24,6 +29,7 @@ export function StepDetailsPanel({
   item,
   phoneOTPMode,
   onClose,
+  problems,
   edit,
 }: StepDetailsPanelProps): React.ReactElement {
   const { renderToString } = useContext(Context);
@@ -66,11 +72,22 @@ export function StepDetailsPanel({
           />
         </>
       ) : (
-        <ReadOnlyDetails
-          item={item}
-          phoneOTPMode={phoneOTPMode}
-          stepYAML={stepYAML}
-        />
+        <>
+          {problems.map((p, i) => (
+            <Callout
+              key={i}
+              type={p.tone === "error" ? "error" : "warning"}
+              size="1"
+              text={p.text}
+              showCloseButton={false}
+            />
+          ))}
+          <ReadOnlyDetails
+            item={item}
+            phoneOTPMode={phoneOTPMode}
+            stepYAML={stepYAML}
+          />
+        </>
       )}
     </aside>
   );

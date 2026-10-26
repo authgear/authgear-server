@@ -14,7 +14,8 @@ import Link from "../../Link";
 import { Context, FormattedMessage } from "../../intl";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import { Callout } from "../../components/v2/Callout/Callout";
+import { Callout, ToastCallout } from "../../components/v2/Callout/Callout";
+import { PersistentToast } from "../../components/v2/Toast/Toast";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import {
@@ -62,6 +63,7 @@ import {
 import {
   FlowEditorContext,
   StepProblem,
+  StepProblemsContext,
 } from "./authflows/edit/FlowEditorContext";
 import { ConflictDialog } from "./authflows/edit/ConflictDialog";
 import {
@@ -138,7 +140,7 @@ const optionCheckMessageIDs: Record<
 };
 
 // A save error and the editor's check on it say the same thing once.
-function uniqueProblems(problems: StepProblem[]): StepProblem[] {
+function uniqueProblems<T extends StepProblem>(problems: T[]): T[] {
   return problems.filter(
     (p, i) => problems.findIndex((q) => q.text === p.text) === i
   );
@@ -498,8 +500,33 @@ function AuthFlowsContent({
     }
     return out;
   }, [errorsByStep, checksByStep, causeText, checkProblem]);
+  // The selected step's problems, for the panel. Field checks are marked: a
+  // form step's fields show their own while editing.
+  const selectedProblems = useMemo(() => {
+    if (selectedItem == null) {
+      return [];
+    }
+    const id = selectedItem.id;
+    return uniqueProblems([
+      ...(errorsByStep.get(id) ?? []).map((c) => ({
+        tone: "error" as const,
+        text: causeText(c, id),
+        fieldCheck: false,
+      })),
+      ...(checksByStep.get(id) ?? []).map((c) => ({
+        ...checkProblem(c, id),
+        fieldCheck:
+          selectedItem.step.type === "fill_form" &&
+          (c.kind === "field_not_fillable" || c.kind === "field_duplicate"),
+      })),
+    ]);
+  }, [selectedItem, errorsByStep, checksByStep, causeText, checkProblem]);
   // Why the last dropped card did not move; cleared by the next edit.
   const [dropNotice, setDropNotice] = useState<string | null>(null);
+  // The flow whose flow-level warning was closed; shown again for another.
+  const [closedFlowCheckFor, setClosedFlowCheckFor] = useState<string | null>(
+    null
+  );
   const applyAndClearNotice = useCallback(
     (result: EditResult, notice?: string) => {
       setDropNotice(null);
@@ -509,7 +536,7 @@ function AuthFlowsContent({
   );
   const editorValue = useFlowEditorValue({
     flowType: shownType ?? "signup_login",
-    flow: draft?.flow ?? { name },
+    flow: shownFlow ?? { name },
     errorStepIDs,
     problems,
     fillablePointers: fillable,
@@ -517,6 +544,11 @@ function AuthFlowsContent({
     requestRemove,
     notify: setDropNotice,
   });
+  const { hasErrors, problem } = editorValue;
+  const stepProblemsValue = useMemo(
+    () => ({ hasErrors, problem }),
+    [hasErrors, problem]
+  );
 
   // The flow as authgear.yaml says it, not after defaults; a generated
   // default is edited straight away and becomes custom when saved.
@@ -824,7 +856,7 @@ function AuthFlowsContent({
           </Button>
         </div>
       ) : null}
-      {(errorsByStep.get("") ?? []).length > 0 || flowLevelChecks.length > 0 ? (
+      {(errorsByStep.get("") ?? []).length > 0 ? (
         <div className={styles.flowProblems}>
           {(errorsByStep.get("") ?? []).map((c, i) => (
             <Callout
@@ -834,34 +866,51 @@ function AuthFlowsContent({
               text={causeText(c, "")}
             />
           ))}
-          {flowLevelChecks.map((c) => (
-            <div key={c} className={styles.flowProblem}>
-              <Callout
-                type="warning"
-                size="1"
-                text={renderToString(flowCheckMessageIDs[c])}
-              />
-              {/* The one flow check; it can add the missing step. */}
-              {canEdit ? (
-                <Button
-                  type="button"
-                  size="1"
-                  variant="soft"
-                  onClick={() =>
-                    applyAndClearNotice(
-                      insertStep(draft.flow, checkAccountStatusAt(draft.flow), {
-                        type: "check_account_status",
-                      })
-                    )
-                  }
-                >
-                  <FormattedMessage id="AuthFlowsScreen.check.add-check-account-status" />
-                </Button>
-              ) : null}
-            </div>
-          ))}
         </div>
       ) : null}
+      {/* Only while editing, where it can be acted on. */}
+      {draft != null
+        ? flowLevelChecks.map((c) => (
+            <PersistentToast
+              key={c}
+              open={closedFlowCheckFor !== flowKey}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setClosedFlowCheckFor(flowKey);
+                }
+              }}
+            >
+              <ToastCallout
+                type="warning"
+                text={
+                  <Flex direction="column" align="start" gap="2">
+                    {renderToString(flowCheckMessageIDs[c])}
+                    {/* The one flow check; it can add the missing step. */}
+                    <Button
+                      type="button"
+                      disabled={!canEdit}
+                      size="1"
+                      variant="soft"
+                      onClick={() =>
+                        applyAndClearNotice(
+                          insertStep(
+                            draft.flow,
+                            checkAccountStatusAt(draft.flow),
+                            {
+                              type: "check_account_status",
+                            }
+                          )
+                        )
+                      }
+                    >
+                      <FormattedMessage id="AuthFlowsScreen.check.add-check-account-status" />
+                    </Button>
+                  </Flex>
+                }
+              />
+            </PersistentToast>
+          ))
+        : null}
       <div className={styles.canvasArea}>
         {canEdit && dropNotice != null ? (
           <div className={styles.dropNotice}>
@@ -871,14 +920,16 @@ function AuthFlowsContent({
         {arriving || renaming === "saving" ? null : tree != null &&
           sketchContext != null ? (
           <FlowSketchContext.Provider value={sketchContext}>
-            <FlowEditorContext.Provider value={canEdit ? editorValue : null}>
-              <FlowCanvas
-                key={flowKey}
-                tree={tree}
-                selectedStepID={selectedStepID}
-                onSelectStep={onSelectStep}
-              />
-            </FlowEditorContext.Provider>
+            <StepProblemsContext.Provider value={stepProblemsValue}>
+              <FlowEditorContext.Provider value={canEdit ? editorValue : null}>
+                <FlowCanvas
+                  key={flowKey}
+                  tree={tree}
+                  selectedStepID={selectedStepID}
+                  onSelectStep={onSelectStep}
+                />
+              </FlowEditorContext.Provider>
+            </StepProblemsContext.Provider>
           </FlowSketchContext.Provider>
         ) : (
           <Text as="p" size="2" className={styles.notFound}>
@@ -893,6 +944,7 @@ function AuthFlowsContent({
             item={selectedItem}
             phoneOTPMode={appConfig.authenticator?.oob_otp?.sms?.phone_otp_mode}
             onClose={onClosePanel}
+            problems={selectedProblems}
             edit={
               draft != null && canEdit
                 ? {
@@ -912,23 +964,8 @@ function AuthFlowsContent({
                     requestRemoveOption,
                     removeOptionBlockedReason:
                       editorValue.removeOptionBlockedReason,
-                    problems: uniqueProblems([
-                      ...(errorsByStep.get(selectedItem.id) ?? []).map(
-                        (c): StepProblem => ({
-                          tone: "error",
-                          text: causeText(c, selectedItem.id),
-                        })
-                      ),
-                      // A form step's fields show their own problems.
-                      ...(checksByStep.get(selectedItem.id) ?? [])
-                        .filter(
-                          (c) =>
-                            selectedItem.step.type !== "fill_form" ||
-                            (c.kind !== "field_not_fillable" &&
-                              c.kind !== "field_duplicate")
-                        )
-                        .map((c) => checkProblem(c, selectedItem.id)),
-                    ]),
+                    // A form step's fields show their own problems.
+                    problems: selectedProblems.filter((p) => !p.fieldCheck),
                     checks: checksByStep.get(selectedItem.id) ?? [],
                     notice: selected?.notice,
                   }

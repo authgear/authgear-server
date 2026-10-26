@@ -1,6 +1,7 @@
 .card {
   --node-padding: 12px;
 
+  position: relative;
   width: 240px;
   padding: var(--node-padding);
   border: 1px solid var(--gray-a6);
@@ -15,10 +16,15 @@
   outline-offset: 2px;
 }
 
-/* A save error the server reported for this step. */
+/* A save error, or a check the server would reject. */
 .hasErrors {
   border-color: var(--red-9);
   box-shadow: 0 0 0 1px var(--red-9);
+}
+
+.hasWarnings {
+  border-color: var(--amber-9);
+  box-shadow: 0 0 0 1px var(--amber-9);
 }
 
 .cardHeader {
@@ -395,6 +401,7 @@
 }
 
 .pill {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;

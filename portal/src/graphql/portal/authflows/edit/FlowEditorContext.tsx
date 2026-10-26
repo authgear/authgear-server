@@ -8,8 +8,8 @@ export interface InsertableType {
   disabledReason: string | null;
 }
 
-// The first problem with a step, under its title: a save error, a check the
-// server would reject, or a warning.
+// The first problem with a step: a save error, a check the server would
+// reject, or a warning.
 export interface StepProblem {
   tone: "error" | "warning";
   text: string;
@@ -32,6 +32,15 @@ export interface FlowEditorContextValue {
   hasErrors: (stepID: string) => boolean;
   problem: (stepID: string) => StepProblem | null;
 }
+
+// Problems by step, in edit and read mode alike.
+export interface StepProblemsContextValue {
+  hasErrors: (stepID: string) => boolean;
+  problem: (stepID: string) => StepProblem | null;
+}
+
+export const StepProblemsContext =
+  React.createContext<StepProblemsContextValue | null>(null);
 
 export const FlowEditorContext =
   React.createContext<FlowEditorContextValue | null>(null);

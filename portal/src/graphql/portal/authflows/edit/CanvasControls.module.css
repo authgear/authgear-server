@@ -38,16 +38,22 @@
   flex-direction: column;
 }
 
-.warningLine {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--amber-11);
-  font-size: var(--font-size-1);
+/* At the node's top-right corner; the node is the positioned parent. */
+.problemBadge {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-panel-solid);
+  border-radius: 50%;
+  background: var(--amber-9);
+  color: var(--amber-contrast);
 }
 
-.errorLine {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--red-11);
-  font-size: var(--font-size-1);
+.problemBadgeError {
+  background: var(--red-9);
+  color: var(--red-contrast);
 }

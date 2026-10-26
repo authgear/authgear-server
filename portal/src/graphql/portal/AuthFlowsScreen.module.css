@@ -64,7 +64,7 @@
   min-width: 200px;
 }
 
-/* Problems with the flow as a whole, above the canvas. */
+/* Save errors on the flow as a whole, above the canvas. */
 .flowProblems {
   display: flex;
   flex-direction: column;
@@ -72,12 +72,3 @@
   margin: 0 24px 12px;
 }
 
-.flowProblem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.flowProblem > :first-child {
-  flex: 1;
-}
