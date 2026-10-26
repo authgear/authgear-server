@@ -1,0 +1,53 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  max-width: 960px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colName {
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  /* Table cells centre their content; the name and its sublines start left. */
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.nameLine {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.colActions {
+  flex: none;
+  justify-content: flex-end;
+  width: 56px;
+}

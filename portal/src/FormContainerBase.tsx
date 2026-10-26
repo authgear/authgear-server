@@ -26,6 +26,8 @@ export interface FormContainerBaseProps<Form = FormModel> {
   fallbackErrorMessageID?: string;
   beforeSave?: () => Promise<void>;
   afterSave?: () => void;
+  // The children show their own dialog for a save conflict.
+  ownConflictDialog?: boolean;
   children?: React.ReactNode;
 }
 
@@ -54,6 +56,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
     fallbackErrorMessageID,
     beforeSave,
     afterSave,
+    ownConflictDialog = false,
   }) {
     const { updateError, isUpdating, reset, save, getIsDirty } = form;
 
@@ -136,7 +139,9 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
             getIsDirty={getIsDirty}
             onConfirmNavigation={onConfirmNavigation}
           />
-          <FormConfirmOverridingDialog save={callSave} />
+          {ownConflictDialog ? null : (
+            <FormConfirmOverridingDialog save={callSave} />
+          )}
         </FormProvider>
       </FormContainerBaseContext.Provider>
     );

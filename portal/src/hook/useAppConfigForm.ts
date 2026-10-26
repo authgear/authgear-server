@@ -39,6 +39,8 @@ export interface AppConfigFormModel<State> {
   ) => Promise<void>;
   setCanSave: (canSave?: boolean) => void;
   effectiveConfig: PortalAPIAppConfig;
+  // authgear.yaml as written, before defaults; null until loaded.
+  rawConfig: PortalAPIAppConfig | null;
   // Always-fresh dirty check, safe to call from anywhere (see
   // useSyncFormStates). For a render-time boolean (e.g. disabling a
   // button), derive one locally: useMemo(() => getIsDirty(), [getIsDirty]).
@@ -284,6 +286,7 @@ export function useAppConfigForm<State>(
     saveWith,
     saveOnly,
     effectiveConfig,
+    rawConfig: rawConfig ?? null,
     getIsDirty,
   };
 }

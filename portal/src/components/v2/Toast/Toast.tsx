@@ -150,3 +150,32 @@ function ToastRoot({
     </ToastCtx.Provider>
   );
 }
+
+// A toast the screen renders in place, so its content stays current; Radix
+// moves it into the viewport. It stays until closed.
+export function PersistentToast({
+  open,
+  onOpenChange,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children?: React.ReactChild | null;
+}): React.ReactElement {
+  const ctxValues = useMemo<ToastContext>(
+    () => ({ open, setOpen: onOpenChange }),
+    [onOpenChange, open]
+  );
+  return (
+    <ToastCtx.Provider value={ctxValues}>
+      <Toast.Root
+        className={styles.ToastRoot}
+        open={open}
+        onOpenChange={onOpenChange}
+        duration={Infinity}
+      >
+        {children}
+      </Toast.Root>
+    </ToastCtx.Provider>
+  );
+}

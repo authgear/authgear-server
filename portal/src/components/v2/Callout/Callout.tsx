@@ -96,6 +96,16 @@ export function Callout({
   );
 }
 
+// A callout sized for the toast viewport.
+export function ToastCallout(props: CalloutProps): React.ReactElement {
+  return (
+    <Callout
+      {...props}
+      className={cn(props.className, styles["calloutRoot--toast"])}
+    />
+  );
+}
+
 export function useCalloutToast(): {
   showToast: (props: CalloutProps & { duration?: number }) => void;
 } {
@@ -103,13 +113,7 @@ export function useCalloutToast(): {
 
   const showToast = useCallback(
     ({ duration, ...props }: CalloutProps & { duration?: number }) => {
-      registerToast(
-        <Callout
-          {...props}
-          className={cn(props.className, styles["calloutRoot--toast"])}
-        />,
-        duration
-      );
+      registerToast(<ToastCallout {...props} />, duration);
     },
     [registerToast]
   );

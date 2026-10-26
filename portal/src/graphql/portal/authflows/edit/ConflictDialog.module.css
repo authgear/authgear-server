@@ -1,0 +1,11 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* Overwrite sits apart from Cancel and Reload. */
+.spacer {
+  flex: 1;
+}

@@ -1,0 +1,537 @@
+.card {
+  --node-padding: 12px;
+
+  position: relative;
+  width: 240px;
+  padding: var(--node-padding);
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+  background: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+}
+
+.selected {
+  outline: 2px solid var(--accent-9);
+  outline-offset: 2px;
+}
+
+/* A save error, or a check the server would reject. */
+.hasErrors {
+  border-color: var(--red-9);
+  box-shadow: 0 0 0 1px var(--red-9);
+}
+
+.hasWarnings {
+  border-color: var(--amber-9);
+  box-shadow: 0 0 0 1px var(--amber-9);
+}
+
+.cardHeader {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: var(--font-size-2);
+}
+
+/* When a step the runtime may skip runs: a short line atop the card. */
+.conditionLine {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--gray-a4);
+  font-size: var(--font-size-1);
+  color: var(--accent-11);
+  cursor: help;
+}
+
+/* Same line as on cards, scaled to the pill. */
+.pill .conditionLine {
+  align-self: stretch;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+}
+
+.conditionIcon {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stepName {
+  display: block;
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.optionRow {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* One of several alternatives: a bordered sub-node of its own. Its padding is
+   added to the handle offset, so the handle stays on the card's edge. */
+.optionSubnode {
+  --subnode-padding: 10px;
+
+  padding: 8px var(--subnode-padding);
+  border: 1px solid var(--gray-a6);
+  border-radius: 7px;
+}
+
+/* Options that hand off to the same two flows: one tinted box sharing one
+   has-account / no-account pair. */
+.optionGroup {
+  --subnode-padding: 10px;
+
+  gap: 6px;
+  padding: 8px var(--subnode-padding);
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+  background: var(--gray-a2);
+}
+
+/* Inside a group the handle sits on the group's edge, past its padding. */
+.optionHandle {
+  right: calc(
+    -1 * (var(--node-padding) + var(--handle-extra, 0px) +
+          var(--subnode-padding, 0px))
+  );
+}
+
+/* A verify recovery code section's own input, on the card's left edge. */
+.destinationHandle {
+  left: calc(-1 * (var(--node-padding) + var(--subnode-padding, 0px)));
+}
+
+/* The card's default input when every line lands on a section instead. */
+.unusedHandle {
+  visibility: hidden;
+}
+
+/* An identify step drawn as two pages: "Continue as", then the login page. */
+.group {
+  --node-padding: 12px;
+  --handle-extra: 16px;
+
+  position: relative;
+  box-sizing: border-box;
+  border: 1px solid var(--gray-a6);
+  border-radius: 14px;
+  background: var(--gray-2);
+  cursor: pointer;
+}
+
+.groupHeader {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--gray-a5);
+}
+
+.groupHeader > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.groupLines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.groupLine {
+  fill: none;
+  stroke: var(--gray-9);
+  stroke-width: 1.25;
+}
+
+.groupLineDashed {
+  stroke-dasharray: 5 4;
+}
+
+.groupArrow {
+  fill: var(--gray-9);
+}
+
+.continuePage,
+.loginPage {
+  box-sizing: border-box;
+  border: 1px solid var(--gray-a6);
+  border-radius: 9px;
+  background: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+}
+
+.continuePage {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border-style: dashed;
+}
+
+.loginPage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.pageCaption {
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  color: var(--gray-11);
+}
+
+.pageTitle {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: var(--font-size-1);
+}
+
+/* The use-another-account action between the two pages. */
+.groupAction {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid var(--gray-a6);
+  border-radius: 999px;
+  background: var(--color-panel-solid);
+  font-size: var(--font-size-1);
+}
+
+.fixedRow {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* "Remember this device": part of the page, after the options. */
+.rememberDevice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--gray-a4);
+}
+
+.rememberDeviceNote {
+  font-size: 10px;
+  color: var(--gray-10);
+}
+
+.orDivider {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: var(--font-size-1);
+  color: var(--gray-10);
+}
+
+.orDivider::before,
+.orDivider::after {
+  flex: 1;
+  border-top: 1px solid var(--gray-a5);
+  content: "";
+}
+
+.sketchField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sketchLabel {
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
+.sketchInput {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--gray-a7);
+  border-radius: 4px;
+  background: var(--color-panel-solid);
+}
+
+.sketchChevron {
+  color: var(--gray-9);
+}
+
+.sketchButton {
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--gray-a3);
+  font-size: var(--font-size-1);
+  text-align: center;
+}
+
+/* One option described in a line, for a step that sets a method up. */
+.sketchOption {
+  font-weight: 500;
+  font-size: var(--font-size-1);
+}
+
+.sketchText {
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
+.sketchLink {
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+  text-decoration: underline;
+}
+
+.sketchCheckbox {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--font-size-1);
+}
+
+.sketchCheckboxBox {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--gray-a8);
+  border-radius: 2px;
+  background: var(--color-panel-solid);
+}
+
+/* A QR code to scan with an authenticator app. */
+.sketchQR {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--gray-a7);
+  border-radius: 4px;
+  background: var(--color-panel-solid);
+  font-size: 32px;
+  color: var(--gray-12);
+}
+
+.sketchRadio {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 8px;
+  border: 1px solid var(--gray-a6);
+  border-radius: 6px;
+  background: var(--color-panel-solid);
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+}
+
+.sketchRadioDot {
+  box-sizing: border-box;
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--gray-a9);
+  border-radius: 50%;
+}
+
+.sketchRadioOn {
+  border: 4px solid var(--accent-9);
+}
+
+.sketchOTP {
+  display: flex;
+  gap: 4px;
+}
+
+.sketchOTPBox {
+  width: 20px;
+  height: 24px;
+  border: 1px solid var(--gray-a7);
+  border-radius: 4px;
+  background: var(--color-panel-solid);
+}
+
+.sketchCodes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
+.pill {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: 6px 14px;
+  border: 1px solid var(--gray-a6);
+  border-radius: 14px;
+  background: var(--gray-a2);
+  font-size: var(--font-size-1);
+  cursor: pointer;
+}
+
+/* What a pill the user never sees does, under its title. */
+.pillNote {
+  font-size: 10px;
+  color: var(--gray-10);
+  cursor: help;
+}
+
+.terminal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--gray-a7);
+  border-radius: 50%;
+  background: var(--color-panel-solid);
+  font-size: var(--font-size-1);
+}
+
+/* A flow this one hands off to. */
+.flowRef {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 160px;
+  padding: 10px 12px;
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+  background: var(--gray-2);
+}
+
+.flowRefMissing {
+  border-color: var(--red-a7);
+}
+
+.flowRefOpen {
+  margin-top: 4px;
+  font-size: var(--font-size-1);
+}
+
+.flowRefMissingText {
+  margin-top: 4px;
+  font-size: var(--font-size-1);
+  color: var(--red-11);
+}
+
+/* The answer an output stands for, n8n style: beside its handle. */
+.portLabel {
+  position: absolute;
+  bottom: 6px;
+  left: 10px;
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--gray-11);
+  pointer-events: none;
+}
+
+/* A boxed choice: the choice card, then a row per option. */
+.box {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border: 1.5px solid var(--gray-a6);
+  border-radius: 12px;
+  background: var(--gray-a2);
+}
+
+.boxRow {
+  position: absolute;
+  right: 0;
+  box-sizing: border-box;
+  background: var(--gray-a2);
+}
+
+.boxRow:last-child {
+  border-bottom-right-radius: 12px;
+}
+
+.boxRow:first-child {
+  border-top-right-radius: 12px;
+}
+
+.boxRowDivided {
+  border-top: 1px solid var(--gray-a5);
+}
+
+.boxRowLabel {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  font-size: var(--font-size-1);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--accent-11);
+}
+
+.join {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gray-9);
+}
+
+.join :global(.react-flow__handle) {
+  opacity: 0;
+}
+
+.joinLabel {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  font-size: var(--font-size-1);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--gray-11);
+}

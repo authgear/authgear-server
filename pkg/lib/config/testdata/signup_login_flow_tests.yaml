@@ -92,3 +92,39 @@ value:
   - type: identify
     one_of:
     - identification: select_account
+---
+part: AuthenticationFlowSignupLoginFlow
+name: passkey-without-signup-flow
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: passkey
+      login_flow: b
+---
+part: AuthenticationFlowSignupLoginFlow
+name: passkey-with-signup-flow
+error: null
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: passkey
+      signup_flow: a
+      login_flow: b
+---
+part: AuthenticationFlowSignupLoginFlow
+name: passkey-without-login-flow-is-invalid
+error: |-
+  invalid value:
+  /steps/0/one_of/0: required
+    map[actual:[identification] expected:[login_flow] missing:[login_flow]]
+value:
+  name: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: passkey
