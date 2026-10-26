@@ -51,6 +51,7 @@ export interface TextInputProps {
   onClick?: React.MouseEventHandler<HTMLInputElement>;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 }
 
 export interface TextFieldProps extends TextInputProps {
@@ -169,6 +170,7 @@ function Input({
   onClick,
   onBlur,
   onFocus,
+  onKeyDown,
   inputClassName,
   children,
 }: TextInputProps & {
@@ -194,6 +196,7 @@ function Input({
       onClick={onClick}
       onBlur={onBlur}
       onFocus={onFocus}
+      onKeyDown={onKeyDown}
     >
       {children}
     </RadixTextField.Root>

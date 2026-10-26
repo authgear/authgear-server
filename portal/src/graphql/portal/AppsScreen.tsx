@@ -1,4 +1,11 @@
-import React, { useCallback, useMemo, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import cn from "classnames";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Heading, Text } from "@radix-ui/themes";
 import { FormattedMessage, Context } from "../../intl";
@@ -29,23 +36,59 @@ interface AppRowData {
   url: string;
 }
 
-const AppRow: React.VFC<AppRowData> = function AppRow(props: AppRowData) {
-  const { appID, publicOrigin, url } = props;
+function useCaptureEnteredProject(): (appID: string) => void {
   const capture = useCapture();
+  return useCallback(
+    (appID: string) => {
+      capture(
+        "enteredProject",
+        {
+          projectID: appID,
+        },
+        {
+          project_id: appID,
+        }
+      );
+    },
+    [capture]
+  );
+}
+
+interface AppRowProps extends AppRowData {
+  index: number;
+  active: boolean;
+  onActivate: (index: number) => void;
+  rowRef: (index: number, el: HTMLAnchorElement | null) => void;
+}
+
+const AppRow: React.VFC<AppRowProps> = function AppRow(props: AppRowProps) {
+  const { appID, publicOrigin, url, index, active, onActivate, rowRef } = props;
+  const captureEnteredProject = useCaptureEnteredProject();
   const onClick = useCallback(() => {
-    capture(
-      "enteredProject",
-      {
-        projectID: appID,
-      },
-      {
-        project_id: appID,
-      }
-    );
-  }, [appID, capture]);
+    captureEnteredProject(appID);
+  }, [appID, captureEnteredProject]);
+  // mousemove rather than mouseenter, so a row scrolled under a resting
+  // pointer by the arrow keys does not take the highlight back.
+  const onMouseMove = useCallback(() => {
+    if (!active) {
+      onActivate(index);
+    }
+  }, [active, index, onActivate]);
+  const ref = useCallback(
+    (el: HTMLAnchorElement | null) => {
+      rowRef(index, el);
+    },
+    [index, rowRef]
+  );
 
   return (
-    <Link to={url} className={styles.row} onClick={onClick}>
+    <Link
+      ref={ref}
+      to={url}
+      className={cn(styles.row, active ? styles.rowActive : null)}
+      onClick={onClick}
+      onMouseMove={onMouseMove}
+    >
       <Text as="p" size="2" weight="medium" className={styles.rowAppID}>
         {appID}
       </Text>
@@ -140,12 +183,82 @@ const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
     );
   }, [appRowsData, searchKeyword]);
 
+  // The row highlighted by the arrow keys or the pointer; -1 is none.
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const rowEls = useRef<Map<number, HTMLAnchorElement>>(new Map());
+  // Only the arrow keys scroll the highlight into view; a hovered row is
+  // already under the pointer, and scrolling it would move the list away.
+  const scrollToActive = useRef(false);
+  const navigate = useNavigate();
+  const captureEnteredProject = useCaptureEnteredProject();
+
+  const rowRef = useCallback((index: number, el: HTMLAnchorElement | null) => {
+    if (el == null) {
+      rowEls.current.delete(index);
+    } else {
+      rowEls.current.set(index, el);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (scrollToActive.current) {
+      scrollToActive.current = false;
+      rowEls.current.get(activeIndex)?.scrollIntoView({ block: "nearest" });
+    }
+  }, [activeIndex]);
+
   const onChangeSearchKeyword = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearchKeyword(e.currentTarget.value);
+      setActiveIndex(-1);
     },
     []
   );
+
+  const onSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      let next: number;
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          next = Math.min(activeIndex + 1, filteredAppRowsData.length - 1);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          next = Math.max(activeIndex - 1, -1);
+          break;
+        case "Escape":
+          setActiveIndex(-1);
+          return;
+        case "Enter": {
+          // Skip while an IME is composing; Enter commits the composition.
+          if (e.nativeEvent.isComposing) {
+            return;
+          }
+          const row = filteredAppRowsData[activeIndex] as
+            | AppRowData
+            | undefined;
+          if (row != null) {
+            e.preventDefault();
+            captureEnteredProject(row.appID);
+            navigate(row.url);
+          }
+          return;
+        }
+        default:
+          return;
+      }
+      if (next !== activeIndex) {
+        scrollToActive.current = true;
+        setActiveIndex(next);
+      }
+    },
+    [filteredAppRowsData, activeIndex, captureEnteredProject, navigate]
+  );
+
+  const onListMouseLeave = useCallback(() => {
+    setActiveIndex(-1);
+  }, []);
 
   return (
     <section className={styles.body}>
@@ -161,6 +274,7 @@ const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
               placeholder={renderToString("AppsScreen.search.placeholder")}
               value={searchKeyword}
               onChange={onChangeSearchKeyword}
+              onKeyDown={onSearchKeyDown}
             />
           </div>
           {!isAuthgearOnce ? (
@@ -173,10 +287,19 @@ const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
           ) : null}
         </div>
         {!isAuthgearOnce ? <ProjectQuotaMessageBar viewer={viewer} /> : null}
-        <section className={styles.list}>
+        <section className={styles.list} onMouseLeave={onListMouseLeave}>
           {filteredAppRowsData.length > 0 ? (
-            filteredAppRowsData.map((appRowData) => {
-              return <AppRow key={appRowData.appID} {...appRowData} />;
+            filteredAppRowsData.map((appRowData, index) => {
+              return (
+                <AppRow
+                  key={appRowData.appID}
+                  {...appRowData}
+                  index={index}
+                  active={index === activeIndex}
+                  onActivate={setActiveIndex}
+                  rowRef={rowRef}
+                />
+              );
             })
           ) : (
             <Text as="p" size="2" color="gray" className={styles.emptyText}>

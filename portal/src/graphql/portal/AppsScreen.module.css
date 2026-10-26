@@ -117,7 +117,9 @@
   border-top: 1px solid var(--gray-a6);
 }
 
-.row:hover {
+/* Hover is folded into the active row (see AppRow's onMouseMove), so the
+   pointer and the arrow keys never highlight two rows at once. */
+.rowActive {
   background-color: var(--gray-a2);
 }
 
