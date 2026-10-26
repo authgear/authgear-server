@@ -13,7 +13,6 @@ jobs:
     uses: ./.github/workflows/run-checks.yaml
   builds:
     if: ${{ github.repository == 'authgear/authgear-server' }}
-    needs: checks
     secrets: inherit
     uses: ./.github/workflows/run-builds.yaml
     with:
