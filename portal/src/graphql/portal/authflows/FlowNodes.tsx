@@ -27,8 +27,8 @@ import { identifyGroupGeometry } from "./groupGeometry";
 import { useFlowSketchContext } from "./FlowSketchContext";
 import {
   NodeEditToolbar,
-  WarningLine,
-  useHasErrors,
+  ProblemBadge,
+  useProblemTone,
 } from "./edit/CanvasControls";
 import styles from "./FlowNodes.module.css";
 
@@ -43,6 +43,12 @@ export type FlowNode = Node<FlowNodeData>;
 
 export const BOX_NODE_TYPE = "box";
 const BOX_NODE_ID_PREFIX = "box:";
+
+const problemClassNames: Record<"error" | "warning" | "none", string | null> = {
+  error: styles.hasErrors,
+  warning: styles.hasWarnings,
+  none: null,
+};
 
 export function boxNodeID(choiceID: string): string {
   return `${BOX_NODE_ID_PREFIX}${choiceID}`;
@@ -104,7 +110,7 @@ function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
   const item = requireItem(data);
   const isEmptyChoice = item.branches?.length === 0;
   const continueIndex = continuePageOptionIndex(item);
-  const hasErrors = useHasErrors(item.id);
+  const problemTone = useProblemTone(item.id);
   if (continueIndex >= 0) {
     return (
       <IdentifyGroup
@@ -119,7 +125,7 @@ function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
       className={cn(
         styles.card,
         selected ? styles.selected : null,
-        hasErrors ? styles.hasErrors : null
+        problemClassNames[problemTone ?? "none"]
       )}
     >
       <NodeEditToolbar stepID={item.id} selected={selected} />
@@ -134,7 +140,7 @@ function PageNode({ data, selected }: NodeProps<FlowNode>): React.ReactElement {
         }
       />
       <ConditionLine item={item} />
-      <WarningLine stepID={item.id} />
+      <ProblemBadge stepID={item.id} />
       <div className={styles.cardHeader}>
         <span className={styles.cardTitle}>
           {stepTitle(item.step.type, renderToString)}
@@ -182,7 +188,7 @@ function IdentifyGroup({
   selected: boolean;
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
-  const hasErrors = useHasErrors(item.id);
+  const problemTone = useProblemTone(item.id);
   const g = identifyGroupGeometry();
   const continueRight = g.continueLeft + g.continueWidth;
   const actionCenterX = g.actionLeft + g.actionWidth / 2;
@@ -191,7 +197,7 @@ function IdentifyGroup({
       className={cn(
         styles.group,
         selected ? styles.selected : null,
-        hasErrors ? styles.hasErrors : null
+        problemClassNames[problemTone ?? "none"]
       )}
       style={{
         width: g.width,
@@ -200,6 +206,7 @@ function IdentifyGroup({
       }}
     >
       <NodeEditToolbar stepID={item.id} selected={selected} />
+      <ProblemBadge stepID={item.id} />
       <div className={styles.groupHeader} style={{ height: g.headerHeight }}>
         <span className={styles.cardTitle}>
           {stepTitle(item.step.type, renderToString)}
@@ -327,19 +334,19 @@ function PagelessNode({
   const { renderToString } = useContext(Context);
   const item = requireItem(data);
   const note = pagelessNoteMessageIDs(item.step);
-  const hasErrors = useHasErrors(item.id);
+  const problemTone = useProblemTone(item.id);
   return (
     <div
       className={cn(
         styles.pill,
         selected ? styles.selected : null,
-        hasErrors ? styles.hasErrors : null
+        problemClassNames[problemTone ?? "none"]
       )}
     >
       <NodeEditToolbar stepID={item.id} selected={selected} />
       <Handle type="target" position={Position.Left} />
       <ConditionLine item={item} />
-      <WarningLine stepID={item.id} />
+      <ProblemBadge stepID={item.id} />
       {stepTitle(item.step.type, renderToString)}
       {note != null ? (
         <Tooltip content={renderToString(note.note)}>

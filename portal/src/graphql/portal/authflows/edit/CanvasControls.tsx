@@ -1,12 +1,18 @@
 import React, { useContext, useState } from "react";
 import { Button, DropdownMenu, Text } from "@radix-ui/themes";
 import { NodeToolbar, Position } from "@xyflow/react";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import cn from "classnames";
 import { Context } from "../../../../intl";
 import { Tooltip } from "../../../../components/v2/Tooltip/Tooltip";
 import { optionLabel, stepTitle } from "../labels";
 import { useFlowSketchContext } from "../FlowSketchContext";
 import { InsertionPoint } from "./pointer";
-import { useFlowEditor } from "./FlowEditorContext";
+import {
+  StepProblem,
+  StepProblemsContext,
+  useFlowEditor,
+} from "./FlowEditorContext";
 import styles from "./CanvasControls.module.css";
 
 // Mounted only while the menu is open, so the step types are worked out
@@ -132,29 +138,45 @@ export function NodeEditToolbar({
   );
 }
 
-// The step's first problem, under its title.
-export function WarningLine({
+// Marks a step with a problem; selecting the step shows it in the panel.
+export function ProblemBadge({
   stepID,
 }: {
   stepID: string;
 }): React.ReactElement | null {
-  const editor = useFlowEditor();
-  const problem = editor?.problem(stepID) ?? null;
-  if (problem == null) {
+  const { renderToString } = useContext(Context);
+  const tone = useProblemTone(stepID);
+  if (tone == null) {
     return null;
   }
+  const label = renderToString(
+    tone === "error"
+      ? "AuthFlowsScreen.problem.error"
+      : "AuthFlowsScreen.problem.warning"
+  );
   return (
-    <span
-      className={
-        problem.tone === "error" ? styles.errorLine : styles.warningLine
-      }
-    >
-      {problem.text}
-    </span>
+    <Tooltip content={label}>
+      <span
+        role="img"
+        aria-label={label}
+        className={cn(
+          styles.problemBadge,
+          tone === "error" ? styles.problemBadgeError : null
+        )}
+      >
+        <ExclamationTriangleIcon width={11} height={11} />
+      </span>
+    </Tooltip>
   );
 }
 
-export function useHasErrors(stepID: string): boolean {
-  const editor = useFlowEditor();
-  return editor?.hasErrors(stepID) ?? false;
+export function useProblemTone(stepID: string): StepProblem["tone"] | null {
+  const problems = useContext(StepProblemsContext);
+  if (problems == null) {
+    return null;
+  }
+  if (problems.hasErrors(stepID)) {
+    return "error";
+  }
+  return problems.problem(stepID)?.tone ?? null;
 }
