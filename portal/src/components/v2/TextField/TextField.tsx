@@ -23,8 +23,18 @@ export enum TextFieldIcon {
   InfoCircled = "InfoCircled",
 }
 
-export interface TextInputProps {
+// Lets the input act as an ARIA combobox that drives a listbox.
+type ComboboxAriaProps = Pick<
+  React.AriaAttributes,
+  | "aria-expanded"
+  | "aria-controls"
+  | "aria-autocomplete"
+  | "aria-activedescendant"
+>;
+
+export interface TextInputProps extends ComboboxAriaProps {
   id?: string;
+  role?: "combobox";
   size: TextFieldSize;
   type?:
     | "text"
@@ -173,6 +183,11 @@ function Input({
   onKeyDown,
   inputClassName,
   children,
+  role,
+  "aria-expanded": ariaExpanded,
+  "aria-controls": ariaControls,
+  "aria-autocomplete": ariaAutocomplete,
+  "aria-activedescendant": ariaActiveDescendant,
 }: TextInputProps & {
   children: React.ReactNode;
   inputClassName?: string;
@@ -197,6 +212,11 @@ function Input({
       onBlur={onBlur}
       onFocus={onFocus}
       onKeyDown={onKeyDown}
+      role={role}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
+      aria-autocomplete={ariaAutocomplete}
+      aria-activedescendant={ariaActiveDescendant}
     >
       {children}
     </RadixTextField.Root>

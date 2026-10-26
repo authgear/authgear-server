@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useMemo,
   useEffect,
+  useId,
   useRef,
   useState,
 } from "react";
@@ -55,6 +56,7 @@ function useCaptureEnteredProject(): (appID: string) => void {
 }
 
 interface AppRowProps extends AppRowData {
+  optionID: string;
   index: number;
   active: boolean;
   onActivate: (index: number) => void;
@@ -62,7 +64,16 @@ interface AppRowProps extends AppRowData {
 }
 
 const AppRow: React.VFC<AppRowProps> = function AppRow(props: AppRowProps) {
-  const { appID, publicOrigin, url, index, active, onActivate, rowRef } = props;
+  const {
+    appID,
+    publicOrigin,
+    url,
+    optionID,
+    index,
+    active,
+    onActivate,
+    rowRef,
+  } = props;
   const captureEnteredProject = useCaptureEnteredProject();
   const onClick = useCallback(() => {
     captureEnteredProject(appID);
@@ -82,8 +93,14 @@ const AppRow: React.VFC<AppRowProps> = function AppRow(props: AppRowProps) {
   );
 
   return (
+    // An option of the search combobox's listbox, so it is reached with the
+    // arrow keys from the search input rather than with Tab.
     <Link
       ref={ref}
+      id={optionID}
+      role="option"
+      aria-selected={active}
+      tabIndex={-1}
       to={url}
       className={cn(styles.row, active ? styles.rowActive : null)}
       onClick={onClick}
@@ -191,6 +208,13 @@ const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
   const scrollToActive = useRef(false);
   const navigate = useNavigate();
   const captureEnteredProject = useCaptureEnteredProject();
+  const titleID = useId();
+  const listboxID = useId();
+  const optionID = useCallback(
+    (index: number) => `${listboxID}-${index}`,
+    [listboxID]
+  );
+  const hasOptions = filteredAppRowsData.length > 0;
 
   const rowRef = useCallback((index: number, el: HTMLAnchorElement | null) => {
     if (el == null) {
@@ -263,7 +287,13 @@ const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
   return (
     <section className={styles.body}>
       <div className={styles.panel}>
-        <Heading as="h1" size="6" weight="bold" className={styles.panelTitle}>
+        <Heading
+          id={titleID}
+          as="h1"
+          size="6"
+          weight="bold"
+          className={styles.panelTitle}
+        >
           <FormattedMessage id="AppsScreen.title" />
         </Heading>
         <div className={styles.toolbar}>
@@ -275,6 +305,13 @@ const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
               value={searchKeyword}
               onChange={onChangeSearchKeyword}
               onKeyDown={onSearchKeyDown}
+              role="combobox"
+              aria-expanded={hasOptions}
+              aria-controls={listboxID}
+              aria-autocomplete="list"
+              aria-activedescendant={
+                activeIndex >= 0 ? optionID(activeIndex) : undefined
+              }
             />
           </div>
           {!isAuthgearOnce ? (
@@ -287,13 +324,20 @@ const AppListPanel: React.VFC<AppListPanelProps> = function AppListPanel(
           ) : null}
         </div>
         {!isAuthgearOnce ? <ProjectQuotaMessageBar viewer={viewer} /> : null}
-        <section className={styles.list} onMouseLeave={onListMouseLeave}>
-          {filteredAppRowsData.length > 0 ? (
+        <section
+          id={listboxID}
+          role={hasOptions ? "listbox" : undefined}
+          aria-labelledby={titleID}
+          className={styles.list}
+          onMouseLeave={onListMouseLeave}
+        >
+          {hasOptions ? (
             filteredAppRowsData.map((appRowData, index) => {
               return (
                 <AppRow
                   key={appRowData.appID}
                   {...appRowData}
+                  optionID={optionID(index)}
                   index={index}
                   active={index === activeIndex}
                   onActivate={setActiveIndex}
