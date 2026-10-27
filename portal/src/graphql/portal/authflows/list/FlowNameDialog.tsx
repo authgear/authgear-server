@@ -21,6 +21,8 @@ export interface FlowNameDialogProps {
   type: FlowType;
   initialName: string;
   flows: AuthenticationFlowsConfig | undefined;
+  // What else changes with the name, under the field.
+  notice?: string | null;
   onSubmit: (name: string) => void;
   onCancel: () => void;
 }
@@ -34,6 +36,7 @@ export function FlowNameDialog({
   type,
   initialName,
   flows,
+  notice,
   onSubmit,
   onCancel,
 }: FlowNameDialogProps): React.ReactElement {
@@ -71,6 +74,11 @@ export function FlowNameDialog({
           {error != null && name !== initialName ? (
             <Text as="p" size="1" color="red" className={styles.error}>
               {renderToString(nameErrorMessageIDs[error])}
+            </Text>
+          ) : null}
+          {notice != null ? (
+            <Text as="p" size="1" color="gray" className={styles.notice}>
+              {notice}
             </Text>
           ) : null}
           <div className={styles.actions}>
