@@ -1,4 +1,4 @@
-brotli==1.2.0
+brotli==1.2.1
 fonttools==4.61.0
 json-repair==0.61.6
 lxml==6.1.0
