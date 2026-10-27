@@ -73,3 +73,9 @@ identity:
   biometric:
     list_enabled: false
 ```
+
+## Resource Indicators
+
+`grant_type=urn:authgear:params:oauth:grant-type:biometric-request` with action `authenticate` is a [new grant](./access-token-audience-binding.md#new-grant): it takes an optional `resource` alongside `scope`.
+
+With action `setup`, which issues no token, `resource` fails the request with `invalid_request`.

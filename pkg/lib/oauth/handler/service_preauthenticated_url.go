@@ -14,6 +14,7 @@ type PreAuthenticatedURLTokenServiceImpl struct {
 	PreAuthenticatedURLTokens oauth.PreAuthenticatedURLTokenStore
 	AccessGrantService        oauth.PreAuthenticatedURLTokenAccessGrantService
 	OfflineGrantService       oauth.PreAuthenticatedURLTokenOfflineGrantService
+	ResourceAccessPolicy      ResourceAccessPolicyService
 }
 
 type IssuePreAuthenticatedURLTokenResult struct {
@@ -29,6 +30,7 @@ type IssuePreAuthenticatedURLTokenOptions struct {
 	OfflineGrantID  string
 	AuthorizationID string
 	Scopes          []string
+	ResourceURI     string
 }
 
 func (s *PreAuthenticatedURLTokenServiceImpl) IssuePreAuthenticatedURLToken(
@@ -44,6 +46,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) IssuePreAuthenticatedURLToken(
 		ClientID:        options.ClientID,
 		OfflineGrantID:  options.OfflineGrantID,
 		Scopes:          options.Scopes,
+		ResourceURI:     options.ResourceURI,
 
 		CreatedAt: now,
 		ExpireAt:  now.Add(oauth.PreAuthenticatedURLTokenLifetime),
@@ -84,6 +87,11 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 		return nil, err
 	}
 
+	scopes, err := resourceScopesForIssuance(ctx, s.ResourceAccessPolicy, client, tokenModel.ResourceURI, tokenModel.Scopes)
+	if err != nil {
+		return nil, err
+	}
+
 	// DPoP is not important here, because the refresh token is not exposed
 	dpopJKT := ""
 
@@ -93,10 +101,11 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(ctx, oauth.CreateNewRefreshTokenOptions{
 		OfflineGrant:                   offlineGrant,
 		ClientID:                       tokenModel.ClientID,
-		Scopes:                         tokenModel.Scopes,
+		Scopes:                         scopes,
 		AuthorizationID:                tokenModel.AuthorizationID,
 		DPoPJKT:                        dpopJKT,
 		ShortLivedRefreshTokenExpireAt: &shortLivedRefreshTokenExpireAt,
+		ResourceURI:                    tokenModel.ResourceURI,
 	})
 	if err != nil {
 		return nil, err
@@ -105,11 +114,12 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 
 	prepareUserAccessGrantOptions := oauth.PrepareUserAccessGrantOptions{
 		ClientConfig:            client,
-		Scopes:                  tokenModel.Scopes,
+		Scopes:                  scopes,
 		AuthorizationID:         tokenModel.AuthorizationID,
 		AuthenticationInfo:      offlineGrant.GetAuthenticationInfo(),
 		SessionLike:             offlineGrant,
 		InitialRefreshTokenHash: newRefreshTokenResult.TokenHash,
+		ResourceURI:             tokenModel.ResourceURI,
 	}
 	preparationResult, err := s.AccessGrantService.PrepareUserAccessGrant(
 		ctx,

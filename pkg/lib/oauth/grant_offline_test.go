@@ -55,3 +55,51 @@ func TestOfflineGrantToSession(t *testing.T) {
 		})
 	})
 }
+
+func TestOfflineGrantScopesByResourceURI(t *testing.T) {
+	Convey("OfflineGrant.ScopesByResourceURI", t, func() {
+		const orders = "https://api.example.com/orders"
+		const inventory = "https://api.example.com/inventory"
+
+		Convey("a legacy grant with only grant-level scopes is unbound", func() {
+			grant := &OfflineGrant{
+				InitialClientID:   "mobile",
+				Deprecated_Scopes: []string{"openid", "offline_access"},
+			}
+			So(grant.ScopesByResourceURI("mobile"), ShouldResemble, map[string][]string{
+				"": {"openid", "offline_access"},
+			})
+		})
+
+		Convey("refresh tokens bound to different resources are grouped", func() {
+			grant := &OfflineGrant{
+				InitialClientID: "mobile",
+				RefreshTokens: []OfflineGrantRefreshToken{
+					{ClientID: "mobile", Scopes: []string{"openid", "offline_access"}},
+					{ClientID: "mobile", Scopes: []string{"openid", "read:orders"}, ResourceURI: orders},
+					{ClientID: "mobile", Scopes: []string{"read:orders", "write:orders"}, ResourceURI: orders},
+					{ClientID: "mobile", Scopes: []string{"read:stock"}, ResourceURI: inventory},
+				},
+			}
+			So(grant.ScopesByResourceURI("mobile"), ShouldResemble, map[string][]string{
+				"":        {"openid", "offline_access"},
+				orders:    {"openid", "read:orders", "write:orders"},
+				inventory: {"read:stock"},
+			})
+		})
+
+		Convey("refresh tokens of another client are excluded", func() {
+			grant := &OfflineGrant{
+				InitialClientID: "mobile",
+				RefreshTokens: []OfflineGrantRefreshToken{
+					{ClientID: "mobile", Scopes: []string{"openid"}},
+					{ClientID: "web", Scopes: []string{"read:orders"}, ResourceURI: orders},
+				},
+			}
+			So(grant.ScopesByResourceURI("mobile"), ShouldResemble, map[string][]string{
+				"": {"openid"},
+			})
+			So(grant.ScopesByResourceURI("other"), ShouldResemble, map[string][]string{})
+		})
+	})
+}

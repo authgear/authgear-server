@@ -266,7 +266,7 @@ This grant type is similar to `authorization_code`, except that it **DOES NOT** 
 
 ### resource
 
-See [M2M](./m2m.md#changes-in-oauth-20-implementation)
+See [M2M](./m2m.md#changes-in-oauth-20-implementation) for `client_credentials`, and [Access Token Audience Binding](./access-token-audience-binding.md) for every other grant.
 
 ### scope
 
@@ -298,12 +298,13 @@ A requested scope that Authgear does not know fails the request. A known scope t
 | A built-in scope the client is not granted | Dropped |
 | A Scope of the Resource named by `resource` that the client is not granted | Dropped |
 
-A Scope of a Resource is unknown when `resource` is omitted or names a different Resource. Whether a client is granted a Resource's Scope is decided by the [access policy](./api-resource.md#two-level-check) for `authorization_code` and `refresh_token`, and by the [Client-Resource Association](./api-resource.md#client-resource-association) for `client_credentials`.
+A Scope of a Resource is unknown when `resource` is omitted or names a different Resource. Whether a client is granted a Resource's Scope is decided by the [access policy](./api-resource.md#two-level-check) for the [user-delegated grants](./api-resource.md#glossary), and by the [Client-Resource Association](./api-resource.md#client-resource-association) for `client_credentials`.
 
 The rule applies wherever `scope` creates a grant:
 
 - `/oauth2/authorize`
-- `/oauth2/token` with `client_credentials`, `urn:authgear:params:oauth:grant-type:biometric-request`, or `urn:ietf:params:oauth:grant-type:token-exchange` for a [pre-authenticated URL](./pre-authenticated-url.md)
+- `/oauth2/token` with `client_credentials`, `urn:authgear:params:oauth:grant-type:biometric-request`, `urn:authgear:params:oauth:grant-type:anonymous-request`, or `urn:ietf:params:oauth:grant-type:token-exchange` for a [pre-authenticated URL](./pre-authenticated-url.md)
+- [`/api/anonymous_user/signup`](./api.md#apianonymous_usersignup)
 
 Dropping a scope has the same effect as not requesting it:
 

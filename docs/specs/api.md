@@ -85,11 +85,15 @@ For the `refresh_token` app,
     "session_type": {
       "type": "string",
       "enum": ["cookie", "refresh_token"]
-    }
+    },
+    "resource": { "type": "string" },
+    "scope": { "type": "string" }
   },
   "required": ["client_id", "session_type"]
 }
 ```
+
+`scope` is space-delimited as in OAuth. For both, see [Anonymous User — Resource Indicators](./anonymous-user.md#resource-indicators).
 
 ### Response Result Object Schema
 

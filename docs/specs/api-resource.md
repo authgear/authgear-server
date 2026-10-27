@@ -7,7 +7,7 @@ Resources are shared across multiple features:
 Which mechanism grants a Resource depends on the **grant**, and the two partition both by grant and by client type — no client type uses both:
 
 - **`client_credentials`** — `m2m` clients only. The client requests tokens bound to a specific Resource through an explicit Client-Resource Association. The `access_policy` described below does **not** govern this grant. See [M2M spec](./m2m.md).
-- **`authorization_code` and `refresh_token`** — every other client type. A client may request a token for a Resource when that Resource's `access_policy` allows the client's *category*. There are four categories and one policy key per category; see [Access Policy](#access-policy), [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
+- **[User-delegated grants](#glossary)** — every other client type. A client may request a token for a Resource when that Resource's `access_policy` allows the client's *category*. There are four categories and one policy key per category; see [Access Policy](#access-policy), [DCR spec](./dcr.md) and [Third-Party Client spec](./third-party-client.md).
 
 ## Table of Contents
 
@@ -28,6 +28,17 @@ Which mechanism grants a Resource depends on the **grant**, and the two partitio
 **Scope** — a permission value defined on a Resource (e.g. `read:orders`). Scopes are local to their Resource; `read:orders` on `https://onlinestore.myapp.com` is a different permission from `read:orders` on `https://inventory.myapp.com`.
 
 **Client-Resource Association** — an explicit link between an OAuth client and a Resource, together with a subset of the Resource's Scopes that the client is granted. Required by, and available only to, clients using the `client_credentials` grant.
+
+**User-delegated grant** — a grant through which a client obtains an access token on behalf of a user:
+
+- `authorization_code`
+- `refresh_token`
+- `urn:authgear:params:oauth:grant-type:biometric-request`
+- `urn:authgear:params:oauth:grant-type:anonymous-request`, and its Web SDK counterpart [`/api/anonymous_user/signup`](./api.md#apianonymous_usersignup)
+- `urn:authgear:params:oauth:grant-type:app2app`
+- `urn:ietf:params:oauth:grant-type:token-exchange` for a [Pre-Authenticated URL](./pre-authenticated-url.md)
+
+See [Access Token Audience Binding](./access-token-audience-binding.md) for how each takes `resource`.
 
 ## Resource URI Requirements
 
@@ -83,7 +94,7 @@ There is no such pre-selection at the Scope level — a new Scope starts with ev
 
 ### Grants governed by the access policy
 
-`access_policy` governs the `authorization_code` and `refresh_token` grants only. It does **not** govern `client_credentials`, which always requires an explicit Client-Resource Association regardless of every key in this object.
+`access_policy` governs the [user-delegated grants](#glossary) only. It does **not** govern `client_credentials`, which always requires an explicit Client-Resource Association regardless of every key in this object.
 
 No client type is subject to both rules: `client_credentials` is `m2m`-only, and `m2m` is in no `access_policy` category (below), so the two rules never both apply to the same client.
 
@@ -116,11 +127,11 @@ There are two ways a client can be granted a Resource, and **the grant decides w
 | Grant | Mechanism | The other mechanism |
 |---|---|---|
 | `client_credentials` | An explicit [Client-Resource Association](#client-resource-association) | `access_policy` is not consulted |
-| `authorization_code`, `refresh_token` | `access_policy`, at both the Resource and Scope level | An association is not consulted |
+| [User-delegated grants](#glossary) | `access_policy`, at both the Resource and Scope level | An association is not consulted |
 
-So neither mechanism can override the other: a request only ever goes through one of them. In practice this is also a partition by client type, not only by grant: `client_credentials` is `m2m`-only (see [Which clients may be associated](#which-clients-may-be-associated)), and `m2m` cannot use `authorization_code`/`refresh_token`, so no client ever has both an association and an `access_policy` category to reconcile.
+So neither mechanism can override the other: a request only ever goes through one of them. In practice this is also a partition by client type, not only by grant: `client_credentials` is `m2m`-only (see [Which clients may be associated](#which-clients-may-be-associated)), and `m2m` cannot use a user-delegated grant, so no client ever has both an association and an `access_policy` category to reconcile.
 
-There is deliberately **no** key meaning "only explicitly selected clients may access this". For `authorization_code`/`refresh_token` that is what an `access_policy` with all keys `false` already means, and a key named `allow_*` that restricted rather than granted would invert the meaning of every other key in the object.
+There is deliberately **no** key meaning "only explicitly selected clients may access this". For the user-delegated grants that is what an `access_policy` with all keys `false` already means, and a key named `allow_*` that restricted rather than granted would invert the meaning of every other key in the object.
 
 > **Rationale:** dynamic clients (DCR/CIMD) are not created by project collaborators and cannot be enumerated by an admin in advance, so a category-level declaration is the only mechanism available for them. Static clients *can* be enumerated, so a per-client association would be more precise — but associations do not reach these grants today, which is why the category keys cover static clients too.
 
@@ -138,19 +149,19 @@ Clients using `client_credentials` require explicit associations:
 
 If a client requests a Resource it is not associated with, the server returns `invalid_target`. A requested Scope of the Resource that is not in the association is dropped; see [Scope Validation](./oidc.md#scope-validation). If no `scope` is specified, all scopes in the client's association are granted.
 
-An association is consulted only by `client_credentials`. The `authorization_code` and `refresh_token` grants are governed by [`access_policy`](#access-policy) alone — see [Relationship to Client-Resource Association](#relationship-to-client-resource-association).
+An association is consulted only by `client_credentials`. The user-delegated grants are governed by [`access_policy`](#access-policy) alone — see [Relationship to Client-Resource Association](#relationship-to-client-resource-association).
 
 ### Which clients may be associated
 
 Only a client whose application type permits the `client_credentials` grant may be associated with a Resource. The Admin API rejects an attempt to associate any other client, separately from the error it already returns for a client ID that does not exist.
 
-An association on a client that cannot use `client_credentials` has no effect at all — the `authorization_code` and `refresh_token` grants are governed solely by `access_policy` and never consult one. Such an association would show in the portal and the Admin API as a grant that is silently doing nothing.
+An association on a client that cannot use `client_credentials` has no effect at all — the user-delegated grants are governed solely by `access_policy` and never consult one. Such an association would show in the portal and the Admin API as a grant that is silently doing nothing.
 
 Associations of this shape that already exist are not removed; only new ones are rejected.
 
 ### Future work: associations for user-delegated grants
 
-An association today expresses only *"this client may access this Resource as itself"*, which is why it is confined to `client_credentials`, where the client is its own principal. Extending associations to the grants where a client acts **on behalf of a user** — `authorization_code` and `refresh_token` — is planned but not built. It would change three things:
+An association today expresses only *"this client may access this Resource as itself"*, which is why it is confined to `client_credentials`, where the client is its own principal. Extending associations to the grants where a client acts **on behalf of a user** — the [user-delegated grants](#glossary) — is planned but not built. It would change three things:
 
 - A Resource could be opened to a category *and* to named individual clients, so the two mechanisms would genuinely OR for one request instead of being [partitioned by grant](#relationship-to-client-resource-association).
 - [Which clients may be associated](#which-clients-may-be-associated) would relax to admit those clients.

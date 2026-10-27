@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -28,6 +29,8 @@ type AnonymousUserHandler interface {
 		clientID string,
 		sessionType oauthhandler.WebSessionType,
 		refreshToken string,
+		resource string,
+		scopes []string,
 	) (*oauthhandler.SignupAnonymousUserResult, error)
 }
 
@@ -41,7 +44,9 @@ var AnonymousUserSignupAPIRequestSchema = validation.NewSimpleSchema(`
 				"type": "string",
 				"enum": ["cookie", "refresh_token"]
 			},
-			"refresh_token": { "type": "string" }
+			"refresh_token": { "type": "string" },
+			"resource": { "type": "string" },
+			"scope": { "type": "string" }
 		},
 		"required": ["session_type"],
 		"allOf": [
@@ -49,6 +54,12 @@ var AnonymousUserSignupAPIRequestSchema = validation.NewSimpleSchema(`
 				"if": { "properties": { "session_type": { "const": "refresh_token" } } },
 				"then": {
 					"required": ["client_id"]
+				}
+			},
+			{
+				"if": { "properties": { "session_type": { "const": "cookie" } } },
+				"then": {
+					"properties": { "resource": false, "scope": false }
 				}
 			}
 		]
@@ -72,6 +83,8 @@ type AnonymousUserSignupAPIRequest struct {
 	ClientID     string                      `json:"client_id"`
 	SessionType  oauthhandler.WebSessionType `json:"session_type"`
 	RefreshToken string                      `json:"refresh_token"`
+	Resource     string                      `json:"resource"`
+	Scope        string                      `json:"scope"`
 }
 
 var AnonymousUserSignupAPIHandlerLogger = slogutil.NewLogger("handler-anonymous-user-signup")
@@ -115,6 +128,8 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 			payload.ClientID,
 			payload.SessionType,
 			payload.RefreshToken,
+			payload.Resource,
+			strings.Fields(payload.Scope),
 		)
 		return err
 	})

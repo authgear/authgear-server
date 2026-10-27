@@ -3,6 +3,7 @@ package oauth
 import (
 	"context"
 	"crypto/subtle"
+	"slices"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -439,6 +440,30 @@ func (g *OfflineGrant) getScopesSet(clientID string) map[string]struct{} {
 	}
 
 	return clientScopes
+}
+
+// ScopesByResourceURI groups the scopes of clientID's refresh tokens by the
+// Resource each is bound to, "" for unbound.
+func (g *OfflineGrant) ScopesByResourceURI(clientID string) map[string][]string {
+	result := map[string][]string{}
+	add := func(resourceURI string, scopes []string) {
+		for _, scope := range scopes {
+			if !slices.Contains(result[resourceURI], scope) {
+				result[resourceURI] = append(result[resourceURI], scope)
+			}
+		}
+	}
+
+	if g.InitialClientID == clientID {
+		add("", g.Deprecated_Scopes)
+	}
+	for _, token := range g.RefreshTokens {
+		if token.ClientID == clientID {
+			add(token.ResourceURI, token.Scopes)
+		}
+	}
+
+	return result
 }
 
 func (g *OfflineGrant) GetScopes(clientID string) []string {

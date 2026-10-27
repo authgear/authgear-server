@@ -3,6 +3,7 @@ package testrunner
 import (
 	"bytes"
 	"compress/flate"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 	texttemplate "text/template"
@@ -17,6 +19,7 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/beevik/etree"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/graphqlgo/relay"
@@ -1052,6 +1055,20 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return jwtStr
 	}
+	templateFuncMap["generateAnonymousRequestJWT"] = func(challenge string) string {
+		jwtStr, err := GenerateAnonymousRequestJWT(challenge)
+		if err != nil {
+			panic(err)
+		}
+		return jwtStr
+	}
+	templateFuncMap["generateBiometricRequestJWT"] = func(challenge string, action string) string {
+		jwtStr, err := GenerateBiometricRequestJWT(challenge, action)
+		if err != nil {
+			panic(err)
+		}
+		return jwtStr
+	}
 	templateFuncMap["generatePasskeyAttestation"] = func(options any, origin string) string {
 		response, err := GeneratePasskeyAttestation(options, origin)
 		if err != nil {
@@ -1439,6 +1456,18 @@ func validateHTTPOutput(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, s
 			ok = false
 		}
 	}
+	if httpOutput.AccessTokenClaims != nil {
+		expected, templateOk := renderTemplateString(t, cmd, prevSteps, *httpOutput.AccessTokenClaims)
+		if !templateOk || !validateHTTPAccessTokenClaims(t, step, expected, response) {
+			ok = false
+		}
+	}
+	if httpOutput.AppAccessTokenCookieClaims != nil {
+		expected, templateOk := renderTemplateString(t, cmd, prevSteps, *httpOutput.AppAccessTokenCookieClaims)
+		if !templateOk || !validateHTTPAppAccessTokenCookieClaims(t, step, expected, response) {
+			ok = false
+		}
+	}
 	if len(httpOutput.HTMLXPathExists) > 0 || len(httpOutput.HTMLTextContains) > 0 || len(httpOutput.HTMLTextNotContains) > 0 {
 		if !validateHTTPHTML(t, cmd, prevSteps, step, httpOutput, response) {
 			ok = false
@@ -1470,6 +1499,103 @@ func validateHTTPOutput(t *testing.T, cmd *End2EndCmd, prevSteps []StepResult, s
 		}
 	}
 	return ok
+}
+
+func validateHTTPAccessTokenClaims(t *testing.T, step Step, expected string, response *http.Response) bool {
+	body, err := readResponseBodyPreserve(response)
+	if err != nil {
+		t.Errorf("failed to read response body: %v", err)
+		return false
+	}
+	// The token endpoint returns access_token at the top level, the Auth API
+	// wraps it in "result".
+	var payload struct {
+		AccessToken string `json:"access_token"`
+		Result      struct {
+			AccessToken string `json:"access_token"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal(body, &payload); err != nil {
+		t.Errorf("failed to parse response body of '%s' as json: %v", step.Name, err)
+		return false
+	}
+	accessToken := payload.AccessToken
+	if accessToken == "" {
+		accessToken = payload.Result.AccessToken
+	}
+	if accessToken == "" {
+		t.Errorf("expected access_token in the response of '%s': %s", step.Name, string(body))
+		return false
+	}
+	return matchAccessTokenClaims(t, step, expected, accessToken)
+}
+
+// validateHTTPAppAccessTokenCookieClaims matches the claims of the access
+// token a response sets in the app_access_token cookie, e.g. the browser
+// session of a pre-authenticated URL.
+func validateHTTPAppAccessTokenCookieClaims(t *testing.T, step Step, expected string, response *http.Response) bool {
+	for _, cookie := range response.Cookies() {
+		if strings.HasSuffix(cookie.Name, "app_access_token") {
+			return matchAccessTokenClaims(t, step, expected, cookie.Value)
+		}
+	}
+	t.Errorf("expected an app_access_token cookie in the response of '%s'", step.Name)
+	return false
+}
+
+func matchAccessTokenClaims(t *testing.T, step Step, expected string, accessToken string) bool {
+	token, err := jwt.ParseInsecure([]byte(accessToken))
+	if err != nil {
+		t.Errorf("access_token of '%s' is not a JWT: %v", step.Name, err)
+		return false
+	}
+	claims, err := token.AsMap(context.Background())
+	if err != nil {
+		t.Errorf("failed to read access_token claims of '%s': %v", step.Name, err)
+		return false
+	}
+	sameScopeAsExpected(claims, expected)
+	claimsJSON, err := json.MarshalIndent(claims, "", "  ")
+	if err != nil {
+		t.Errorf("failed to encode access_token claims of '%s': %v", step.Name, err)
+		return false
+	}
+	violations, err := MatchJSON(string(claimsJSON), expected)
+	if err != nil {
+		t.Errorf("failed to match access_token claims in '%s': %v\n", step.Name, err)
+		return false
+	}
+	if len(violations) > 0 {
+		t.Errorf("access_token claims mismatch in '%s':\n", step.Name)
+		for _, violation := range violations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  claims: %s\n", claimsJSON)
+		return false
+	}
+	return true
+}
+
+// sameScopeAsExpected rewrites the scope claim into the expected spelling when
+// both hold the same scopes. The order of a scope is not significant, and the
+// server does not keep one for every grant, so it must not decide a match.
+func sameScopeAsExpected(claims map[string]any, expected string) {
+	var expectedClaims map[string]any
+	if err := json.Unmarshal([]byte(expected), &expectedClaims); err != nil {
+		return
+	}
+	actual, ok := claims["scope"].(string)
+	want, wantOk := expectedClaims["scope"].(string)
+	if !ok || !wantOk {
+		return
+	}
+	actualScopes := strings.Fields(actual)
+	wantScopes := strings.Fields(want)
+	slices.Sort(actualScopes)
+	slices.Sort(wantScopes)
+	if slices.Equal(actualScopes, wantScopes) {
+		claims["scope"] = want
+	}
 }
 
 func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Response) (ok bool) {
