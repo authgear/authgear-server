@@ -39,7 +39,7 @@ import {
 } from "./authflows/list/actions";
 import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
 import { NewFlowDialog } from "./authflows/list/NewFlowDialog";
-import { flowUses, removeFlowUses } from "./authflows/list/usage";
+import { flowUses, removeFlowUses, renameNotice } from "./authflows/list/usage";
 import { renameFlow } from "./authflows/edit/save";
 import { removeStoredDraft } from "./authflows/edit/draftStorage";
 import styles from "./AuthFlowsListScreen.module.css";
@@ -361,6 +361,16 @@ function ListContent({
               : `${pending.row.name}_copy`
           }
           flows={flows}
+          notice={
+            pending.kind === "rename"
+              ? renameNotice(
+                  renderToString,
+                  form.rawConfig,
+                  pending.row.type,
+                  pending.row.name
+                )
+              : null
+          }
           onSubmit={(newName) => {
             const { row } = pending;
             if (pending.kind === "rename") {

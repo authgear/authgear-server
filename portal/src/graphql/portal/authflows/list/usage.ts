@@ -1,6 +1,7 @@
 import { produce } from "immer";
 import { PortalAPIAppConfig } from "../../../../types";
 import { DEFAULT_FLOW_NAME, FlowType } from "../model";
+import { deleteBlockers } from "./actions";
 
 // Other settings that name flows: flow groups (ui.authentication_flow.groups)
 // and applications' allowed flows (oauth.clients[].
@@ -115,4 +116,39 @@ export function removeFlowUses(
       }
     }
   });
+}
+
+// The settings that name the flow, which a rename updates with it; null
+// when none do.
+export function renameNotice(
+  renderToString: (id: string, values?: Record<string, string>) => string,
+  config: PortalAPIAppConfig | null,
+  type: FlowType,
+  name: string
+): string | null {
+  if (config == null) {
+    return null;
+  }
+  const uses = flowUses(config, type, name);
+  const groups = uses.filter((u) => u.kind === "group").map((u) => u.name);
+  const apps = uses.filter((u) => u.kind === "application").map((u) => u.name);
+  const handoffs = deleteBlockers(config.authentication_flow, type, name);
+  const lines = [
+    groups.length > 0
+      ? renderToString("AuthFlowsScreen.list.rename.effect.groups", {
+          names: groups.join(", "),
+        })
+      : null,
+    apps.length > 0
+      ? renderToString("AuthFlowsScreen.list.rename.effect.applications", {
+          names: apps.join(", "),
+        })
+      : null,
+    handoffs.length > 0
+      ? renderToString("AuthFlowsScreen.list.rename.effect.handoffs", {
+          names: handoffs.join(", "),
+        })
+      : null,
+  ].filter((t): t is string => t != null);
+  return lines.length > 0 ? lines.join(" ") : null;
 }

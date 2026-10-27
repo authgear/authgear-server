@@ -2,6 +2,10 @@
   margin-top: 6px;
 }
 
+.notice {
+  margin-top: var(--space-2);
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

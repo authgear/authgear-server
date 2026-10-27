@@ -48,6 +48,7 @@ import {
 } from "./authflows/model";
 import { NewFlows } from "./authflows/list/starters";
 import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
+import { renameNotice } from "./authflows/list/usage";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useLeavePageWarning } from "../../hook/useLeavePageWarning";
 import { flowTypeMessageIDs, optionLabel } from "./authflows/labels";
@@ -982,6 +983,7 @@ function AuthFlowsContent({
           type={routeType}
           initialName={name}
           flows={form.rawConfig?.authentication_flow}
+          notice={renameNotice(renderToString, form.rawConfig, routeType, name)}
           onSubmit={onRename}
           onCancel={() => setRenaming(null)}
         />
