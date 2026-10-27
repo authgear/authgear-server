@@ -516,8 +516,9 @@ function AuthFlowsContent({
       })),
       ...(checksByStep.get(id) ?? []).map((c) => ({
         ...checkProblem(c, id),
+        // Option forms are edited under the identify step's options.
         fieldCheck:
-          selectedItem.step.type === "fill_form" &&
+          (selectedItem.step.type === "fill_form" || "option" in c) &&
           (c.kind === "field_not_fillable" || c.kind === "field_duplicate"),
       })),
     ]);

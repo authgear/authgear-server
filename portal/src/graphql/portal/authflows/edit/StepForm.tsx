@@ -9,7 +9,12 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
-import { ChevronRightIcon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ChevronRightIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../../../intl";
 import Link from "../../../../Link";
 import { Callout } from "../../../../components/v2/Callout/Callout";
@@ -29,7 +34,7 @@ import {
 import { Tooltip } from "../../../../components/v2/Tooltip/Tooltip";
 import { destinationMessageID, optionLabel, stepTitle } from "../labels";
 import { formFieldLabel } from "../sketches";
-import { EditResult, addOption, updateStep } from "./edits";
+import { EditResult, addOption, moveItem, updateStep } from "./edits";
 import {
   Contact,
   TargetUsage,
@@ -47,6 +52,7 @@ import {
   authenticationKind,
   sendsCodes,
   allowedIdentifications,
+  canHaveOptionForm,
   newOption,
 } from "./rules";
 import { getAt } from "./pointer";
@@ -56,6 +62,8 @@ import styles from "./StepForm.module.css";
 
 type Step = AuthenticationFlowStepConfig;
 type Option = AuthenticationFlowOptionConfig;
+type Form = NonNullable<Step["form"]>;
+type FormField = NonNullable<Form["fields"]>[number];
 
 const NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 // The schema reserves "default" as a form name.
@@ -463,6 +471,9 @@ function OptionsField(props: StepFormProps) {
         return;
       }
       o.identification = v;
+      if (!canHaveOptionForm(flowType, v)) {
+        delete o.form;
+      }
       // Options that only log in take no signup_flow; every other
       // signup_login option needs both flows.
       if (flowType === "signup_login") {
@@ -755,9 +766,11 @@ function AdvancedSettings({
 function FormNameField({
   value,
   onCommit,
+  hint,
 }: {
   value: string;
   onCommit: (name: string) => void;
+  hint?: React.ReactNode;
 }) {
   const { renderToString } = useContext(Context);
   const [text, setText] = useState(value);
@@ -777,7 +790,9 @@ function FormNameField({
           <Hint tone="red">
             {renderToString("AuthFlowsScreen.edit.form.form-name.invalid")}
           </Hint>
-        ) : null
+        ) : (
+          hint
+        )
       }
     >
       <TextField.Root
@@ -796,12 +811,44 @@ function FormNameField({
   );
 }
 
-function FormFieldsField(props: StepFormProps) {
+// Why an attribute of the project can't be picked, for the field picker.
+const notFillableReasonIDs = {
+  identity: "AuthFlowsScreen.edit.form.field.reason.identity",
+  address: "AuthFlowsScreen.edit.form.field.reason.address",
+  access: "AuthFlowsScreen.edit.form.field.reason.access",
+} as const;
+
+function notFillableReason(pointer: string): keyof typeof notFillableReasonIDs {
+  if (pointer.startsWith("/address/")) {
+    return "address";
+  }
+  return neverFillable(pointer) ? "identity" : "access";
+}
+
+interface FormEditorProps
+  extends Pick<
+    StepFormProps,
+    | "stepID"
+    | "appID"
+    | "customAttributes"
+    | "fillablePointers"
+    | "knownPointers"
+    | "checks"
+  > {
+  form: Form | undefined;
+  updateForm: (recipe: (form: Form) => void) => void;
+  // The identify option the form belongs to; absent for a form step.
+  option?: number;
+  nameHint?: React.ReactNode;
+}
+
+// A form's name and fields, on a form step or an identify option.
+function FormEditor(props: FormEditorProps) {
   const { renderToString } = useContext(Context);
-  const { appID, flow, stepID, apply, customAttributes, checks } = props;
-  const step = getAt(flow, stepID) as Step;
-  const fields = step.form?.fields ?? [];
+  const { appID, customAttributes, form, updateForm, option } = props;
+  const fields = form?.fields ?? [];
   const pointers = props.fillablePointers;
+  const unavailable = props.knownPointers.filter((p) => !pointers.includes(p));
   const label = (p: string) =>
     formFieldLabel(p, customAttributes, renderToString);
   const settingsPath = (p: string) =>
@@ -811,22 +858,22 @@ function FormFieldsField(props: StepFormProps) {
         : "standard-attributes"
     }`;
   const notFillable = new Set(
-    checks.flatMap((c) => (c.kind === "field_not_fillable" ? [c.pointer] : []))
+    props.checks.flatMap((c) =>
+      c.kind === "field_not_fillable" && c.option === option ? [c.pointer] : []
+    )
   );
-  const update = (recipe: (s: Step) => void) =>
-    apply(updateStep(flow, stepID, recipe));
   return (
     <>
       <FormNameField
-        key={`${stepID}:${step.form?.name ?? ""}`}
-        value={step.form?.name ?? ""}
+        key={`${props.stepID}:${option ?? ""}:${form?.name ?? ""}`}
+        value={form?.name ?? ""}
+        hint={props.nameHint}
         onCommit={(name) =>
-          update((s) => {
-            s.form ??= {};
+          updateForm((f) => {
             if (name === "") {
-              delete s.form.name;
+              delete f.name;
             } else {
-              s.form.name = name;
+              f.name = name;
             }
           })
         }
@@ -850,8 +897,8 @@ function FormFieldsField(props: StepFormProps) {
                   size="1"
                   value={pointer}
                   onValueChange={(v) =>
-                    update((s) => {
-                      const field = s.form?.fields?.[j];
+                    updateForm((d) => {
+                      const field = d.fields?.[j];
                       if (field != null) {
                         field.user_profile = {
                           ...field.user_profile,
@@ -875,8 +922,60 @@ function FormFieldsField(props: StepFormProps) {
                         {label(p)}
                       </Select.Item>
                     ))}
+                    {unavailable.some((p) => p !== pointer) ? (
+                      <>
+                        <Select.Separator />
+                        <Select.Group>
+                          <Select.Label>
+                            {renderToString(
+                              "AuthFlowsScreen.edit.form.field.unavailable"
+                            )}
+                          </Select.Label>
+                          {unavailable
+                            .filter((p) => p !== pointer)
+                            .map((p) => (
+                              <Select.Item key={p} value={p} disabled={true}>
+                                {renderToString(
+                                  notFillableReasonIDs[notFillableReason(p)],
+                                  { attribute: label(p) }
+                                )}
+                              </Select.Item>
+                            ))}
+                        </Select.Group>
+                      </>
+                    ) : null}
                   </Select.Content>
                 </Select.Root>
+                <IconButton
+                  type="button"
+                  size="1"
+                  variant="ghost"
+                  color="gray"
+                  disabled={j === 0}
+                  aria-label={renderToString("OrderButtons.move-up")}
+                  onClick={() =>
+                    updateForm((d) => {
+                      d.fields = moveItem(d.fields ?? [], j, j - 1);
+                    })
+                  }
+                >
+                  <ArrowUpIcon />
+                </IconButton>
+                <IconButton
+                  type="button"
+                  size="1"
+                  variant="ghost"
+                  color="gray"
+                  disabled={j === fields.length - 1}
+                  aria-label={renderToString("OrderButtons.move-down")}
+                  onClick={() =>
+                    updateForm((d) => {
+                      d.fields = moveItem(d.fields ?? [], j, j + 1);
+                    })
+                  }
+                >
+                  <ArrowDownIcon />
+                </IconButton>
                 <Button
                   type="button"
                   size="1"
@@ -884,8 +983,8 @@ function FormFieldsField(props: StepFormProps) {
                   color="red"
                   disabled={fields.length <= 1}
                   onClick={() =>
-                    update((s) => {
-                      s.form?.fields?.splice(j, 1);
+                    updateForm((d) => {
+                      d.fields?.splice(j, 1);
                     })
                   }
                 >
@@ -898,8 +997,8 @@ function FormFieldsField(props: StepFormProps) {
                     size="1"
                     checked={f.user_profile?.required === true}
                     onCheckedChange={(checked) =>
-                      update((s) => {
-                        const field = s.form?.fields?.[j];
+                      updateForm((d) => {
+                        const field = d.fields?.[j];
                         if (field?.user_profile != null) {
                           field.user_profile.required = checked === true;
                         }
@@ -953,26 +1052,177 @@ function FormFieldsField(props: StepFormProps) {
             fields.some((f) => f.user_profile?.pointer === p)
           )}
           onClick={() =>
-            update((s) => {
+            updateForm((d) => {
               const used = new Set(
-                (s.form?.fields ?? []).map((f) => f.user_profile?.pointer)
+                (d.fields ?? []).map((f) => f.user_profile?.pointer)
               );
               const next = pointers.find((p) => !used.has(p));
-              if (next == null) {
-                return;
+              if (next != null) {
+                d.fields = [...(d.fields ?? []), newField(next)];
               }
-              s.form ??= {};
-              s.form.fields = [
-                ...(s.form.fields ?? []),
-                { user_profile: { pointer: next } },
-              ];
             })
           }
         >
           {renderToString("AuthFlowsScreen.edit.form.field.add")}
         </Button>
+        {unavailable.some((p) => notFillableReason(p) === "access") ? (
+          <Hint>
+            <FormattedMessage
+              id="AuthFlowsScreen.edit.form.field.unavailable.note"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                standard: (chunks: React.ReactNode) => (
+                  <Link
+                    to={`/project/${encodeURIComponent(
+                      appID
+                    )}/configuration/user-profile/standard-attributes`}
+                  >
+                    {chunks}
+                  </Link>
+                ),
+                // eslint-disable-next-line react/no-unstable-nested-components
+                custom: (chunks: React.ReactNode) => (
+                  <Link
+                    to={`/project/${encodeURIComponent(
+                      appID
+                    )}/configuration/user-profile/custom-attributes`}
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              }}
+            />
+          </Hint>
+        ) : null}
       </div>
     </>
+  );
+}
+
+function newField(pointer: string): FormField {
+  return { user_profile: { pointer } };
+}
+
+function FormFieldsField(props: StepFormProps) {
+  const { flow, stepID, apply } = props;
+  const step = getAt(flow, stepID) as Step;
+  return (
+    <FormEditor
+      {...props}
+      form={step.form}
+      updateForm={(recipe) =>
+        apply(
+          updateStep(flow, stepID, (s) => {
+            s.form ??= {};
+            recipe(s.form);
+          })
+        )
+      }
+      nameHint={
+        <Hint>
+          <FormattedMessage
+            id="AuthFlowsScreen.edit.form.form-name.text-keys"
+            values={{
+              name: step.form?.name ?? RESERVED_FORM_NAME,
+              // eslint-disable-next-line react/no-unstable-nested-components
+              code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+            }}
+          />
+        </Hint>
+      }
+    />
+  );
+}
+
+// Fields an identify option asks for on the same page as its login ID.
+function OptionForms(props: StepFormProps) {
+  const { renderToString } = useContext(Context);
+  const { flowType, flow, stepID, apply, phoneOTPMode } = props;
+  const step = getAt(flow, stepID) as Step;
+  const options = step.one_of ?? [];
+  if (!options.some((o) => canHaveOptionForm(flowType, o.identification))) {
+    return null;
+  }
+  const updateOption = (j: number, recipe: (o: Option) => void) =>
+    apply(
+      updateStep(flow, stepID, (s) => {
+        const o = s.one_of?.[j];
+        if (o != null) {
+          recipe(o);
+        }
+      })
+    );
+  return (
+    <div className={styles.options}>
+      <FieldLabel
+        label={renderToString("AuthFlowsScreen.edit.form.option-forms")}
+        configKey="one_of.form"
+      />
+      <Hint>
+        {renderToString("AuthFlowsScreen.edit.form.option-forms.description")}
+      </Hint>
+      {options.map((o, j) => {
+        if (!canHaveOptionForm(flowType, o.identification)) {
+          return null;
+        }
+        const name = optionLabel(o, renderToString, phoneOTPMode);
+        if (o.form == null) {
+          return (
+            <Button
+              key={j}
+              type="button"
+              size="1"
+              variant="soft"
+              disabled={props.fillablePointers.length === 0}
+              onClick={() =>
+                updateOption(j, (d) => {
+                  d.form = { fields: [newField(props.fillablePointers[0])] };
+                })
+              }
+            >
+              {renderToString("AuthFlowsScreen.edit.form.option-forms.add", {
+                option: name,
+              })}
+            </Button>
+          );
+        }
+        return (
+          <div key={j} className={styles.option}>
+            <Flex gap="2" align="center" justify="between">
+              <Text size="2" weight="medium">
+                {name}
+              </Text>
+              <Button
+                type="button"
+                size="1"
+                variant="ghost"
+                color="red"
+                onClick={() =>
+                  updateOption(j, (d) => {
+                    delete d.form;
+                  })
+                }
+              >
+                {renderToString(
+                  "AuthFlowsScreen.edit.form.option-forms.remove"
+                )}
+              </Button>
+            </Flex>
+            <FormEditor
+              {...props}
+              form={o.form}
+              option={j}
+              updateForm={(recipe) =>
+                updateOption(j, (d) => {
+                  d.form ??= {};
+                  recipe(d.form);
+                })
+              }
+            />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -1131,6 +1381,7 @@ export function StepForm(props: StepFormProps): React.ReactElement {
         step.type === "create_authenticator") ? (
         <OptionsField {...props} />
       ) : null}
+      {step.type === "identify" ? <OptionForms {...props} /> : null}
       {step.type === "fill_form" ? <FormFieldsField {...props} /> : null}
       {step.type === "select_destination" ? (
         <SelectDestinationFields {...props} />

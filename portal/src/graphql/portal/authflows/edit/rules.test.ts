@@ -4,6 +4,7 @@ import {
   allowedIdentifications,
   allowedStepTypes,
   authenticationKind,
+  canHaveOptionForm,
   sendsCodes,
   newOption,
   newStep,
@@ -221,5 +222,20 @@ describe("sendsCodes", () => {
     expect(sendsCodes("secondary_totp")).toEqual(false);
     expect(sendsCodes("primary_password")).toEqual(false);
     expect(sendsCodes(undefined)).toEqual(false);
+  });
+});
+
+describe("canHaveOptionForm", () => {
+  it("allows a form on a login ID option of a signup or promote flow", () => {
+    expect(canHaveOptionForm("signup", "email")).toBe(true);
+    expect(canHaveOptionForm("promote", "username")).toBe(true);
+    expect(canHaveOptionForm("signup", "phone")).toBe(true);
+  });
+
+  it("does not allow one on other options or flow types", () => {
+    expect(canHaveOptionForm("signup", "oauth")).toBe(false);
+    expect(canHaveOptionForm("signup", undefined)).toBe(false);
+    expect(canHaveOptionForm("login", "email")).toBe(false);
+    expect(canHaveOptionForm("signup_login", "email")).toBe(false);
   });
 });

@@ -134,6 +134,21 @@ export function isLoginOnlyIdentification(
   );
 }
 
+// The schema allows a form on a signup or promote identify option only for
+// a login ID; Auth UI shows it on the same page as the login ID field.
+const optionFormFlowTypes = new Set<FlowType>(["signup", "promote"]);
+const optionFormIdentifications = new Set(["email", "phone", "username"]);
+
+export function canHaveOptionForm(
+  flowType: FlowType,
+  identification: string | undefined
+): boolean {
+  return (
+    optionFormFlowTypes.has(flowType) &&
+    optionFormIdentifications.has(identification ?? "")
+  );
+}
+
 export function allowedStepTypes(flowType: FlowType): string[] {
   return stepTypes[flowType];
 }

@@ -5,6 +5,7 @@ import {
   addOption,
   countNestedSteps,
   insertStep,
+  moveItem,
   removeOption,
   removeStep,
   replaceStep,
@@ -150,5 +151,19 @@ describe("removeStep in an option", () => {
   it("drops the option's steps key when its last step goes", () => {
     const r = removeStep(flow, "/steps/0/one_of/0/steps/0");
     expect(r.flow.steps?.[0].one_of?.[0]).toEqual({ identification: "email" });
+  });
+});
+
+describe("moveItem", () => {
+  it("moves an item up and down", () => {
+    expect(moveItem(["a", "b", "c"], 2, 1)).toEqual(["a", "c", "b"]);
+    expect(moveItem(["a", "b", "c"], 0, 1)).toEqual(["b", "a", "c"]);
+  });
+
+  it("changes nothing for a move out of range", () => {
+    const list = ["a", "b"];
+    expect(moveItem(list, 0, -1)).toEqual(["a", "b"]);
+    expect(moveItem(list, 1, 2)).toEqual(["a", "b"]);
+    expect(list).toEqual(["a", "b"]);
   });
 });
