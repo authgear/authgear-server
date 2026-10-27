@@ -1,12 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context as MessageContext } from "../../intl";
-import { useQuery } from "@apollo/client";
 import { Role } from "../../graphql/adminapi/globalTypes.generated";
-import {
-  RolesListQueryDocument,
-  RolesListQueryQuery,
-  RolesListQueryQueryVariables,
-} from "../../graphql/adminapi/query/rolesListQuery.generated";
+import { useRolesListQueryQuery } from "../../graphql/adminapi/query/rolesListQuery.generated";
 import {
   UsersFilterDropdown,
   UsersFilterDropdownOption,
@@ -35,10 +30,7 @@ export const RolesFilterDropdown: React.VFC<RolesFilterDropdownProps> =
     const { renderToString } = useContext(MessageContext);
     const [searchKeyword, setSearchKeyword] = useState("");
 
-    const { data, loading } = useQuery<
-      RolesListQueryQuery,
-      RolesListQueryQueryVariables
-    >(RolesListQueryDocument, {
+    const { data, loading } = useRolesListQueryQuery({
       variables: {
         pageSize: MAX_OPTIONS,
         searchKeyword: searchKeyword,

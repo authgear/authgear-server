@@ -1,13 +1,8 @@
-import { useQuery } from "@apollo/client";
 import { FormattedMessage, Context as MessageContext } from "../../../intl";
 import React, { useContext, useState, useCallback, useMemo } from "react";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
-import {
-  GroupsListQueryQuery,
-  GroupsListQueryQueryVariables,
-  GroupsListQueryDocument,
-} from "../../../graphql/adminapi/query/groupsListQuery.generated";
+import { useGroupsListQueryQuery } from "../../../graphql/adminapi/query/groupsListQuery.generated";
 import { UserQueryNodeFragment } from "../../../graphql/adminapi/query/userQuery.generated";
 import { searchGroups } from "../../../model/group";
 import { GroupsEmptyView } from "../empty-view/GroupsEmptyView";
@@ -34,16 +29,13 @@ function UserDetailsScreenGroupListContainer({
     loading,
     error,
     refetch,
-  } = useQuery<GroupsListQueryQuery, GroupsListQueryQueryVariables>(
-    GroupsListQueryDocument,
-    {
-      variables: {
-        pageSize: 0,
-        searchKeyword: "",
-      },
-      fetchPolicy: "network-only",
-    }
-  );
+  } = useGroupsListQueryQuery({
+    variables: {
+      pageSize: 0,
+      searchKeyword: "",
+    },
+    fetchPolicy: "network-only",
+  });
 
   const [searchKeyword, setSearchKeyword] = useState<string>("");
   const isSearch = searchKeyword !== "";
