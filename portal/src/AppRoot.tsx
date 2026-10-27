@@ -1,5 +1,5 @@
 import React, { useMemo, lazy, Suspense } from "react";
-import { Routes, Route, useParams, Navigate } from "react-router-dom";
+import { useParams, Navigate } from "react-router-dom";
 import { ApolloProvider, useQuery } from "@apollo/client";
 
 import { makeClient } from "./graphql/adminapi/apollo";
@@ -13,22 +13,11 @@ import {
   ScreenNavQueryQuery,
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { usePortalClient } from "./graphql/portal/apollo";
-import RequireAppFeature from "./RequireAppFeature";
+import { AppRoute, AppRoutes } from "./AppRoutes";
 import RequireUser from "./RequireUser";
 import RequireAPIResource from "./RequireAPIResource";
 import RequireRole from "./RequireRole";
 import RequireGroup from "./RequireGroup";
-import { PortalAPIFeatureConfig } from "./types";
-import { isIntegrationsAvailable } from "./util/integrations";
-
-// Feature-config predicates for the route-level RequireAppFeature guards. Each
-// returns whether the project may access the gated section. Kept module-level so
-// their identity is stable across renders.
-const isApp2AppAvailable = (fc: PortalAPIFeatureConfig | null): boolean =>
-  fc?.oauth?.client?.app2app_enabled ?? false;
-const isFraudProtectionAvailable = (
-  fc: PortalAPIFeatureConfig | null
-): boolean => fc?.fraud_protection?.is_modifiable ?? false;
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -304,8 +293,9 @@ const AppRoot: React.VFC = function AppRoot() {
   return (
     <ApolloProvider client={client}>
       <ScreenLayout>
-        <Routes>
-          <Route
+        <AppRoutes>
+          <AppRoute
+            feature={null}
             index={true}
             element={
               <Suspense fallback={<ShowLoading />}>
@@ -314,8 +304,9 @@ const AppRoot: React.VFC = function AppRoot() {
             }
           />
 
-          <Route path="getting-started">
-            <Route
+          <AppRoute feature={null} path="getting-started">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -323,10 +314,11 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
+          </AppRoute>
 
-          <Route path="analytics">
-            <Route
+          <AppRoute feature="analytics" path="analytics">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -334,24 +326,27 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
-          <Route
+          </AppRoute>
+          <AppRoute
+            feature={null}
             path="users/*"
             element={
               <Suspense fallback={<ShowLoading />}>
                 <UsersRedirectScreen />
               </Suspense>
             }
-          ></Route>
+          ></AppRoute>
 
-          <Route path="user-management">
-            <Route
+          <AppRoute feature={null} path="user-management">
+            <AppRoute
+              feature={null}
               index={true}
               element={<Navigate to="users" replace={true} />}
             />
 
-            <Route path="roles">
-              <Route
+            <AppRoute feature={null} path="roles">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -359,7 +354,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="add-role"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -367,13 +363,15 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":roleID" element={<RequireRole />}>
-                <Route
+              <AppRoute feature={null} path=":roleID" element={<RequireRole />}>
+                <AppRoute
+                  feature={null}
                   index={true}
                   element={<Navigate to="details" replace={true} />}
                 />
-                <Route path="details">
-                  <Route
+                <AppRoute feature={null} path="details">
+                  <AppRoute
+                    feature={null}
                     index={true}
                     element={
                       <Suspense fallback={<ShowLoading />}>
@@ -381,12 +379,13 @@ const AppRoot: React.VFC = function AppRoot() {
                       </Suspense>
                     }
                   />
-                </Route>
-              </Route>
-            </Route>
+                </AppRoute>
+              </AppRoute>
+            </AppRoute>
 
-            <Route path="groups">
-              <Route
+            <AppRoute feature={null} path="groups">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -394,7 +393,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="add-group"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -402,13 +402,19 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":groupID" element={<RequireGroup />}>
-                <Route
+              <AppRoute
+                feature={null}
+                path=":groupID"
+                element={<RequireGroup />}
+              >
+                <AppRoute
+                  feature={null}
                   index={true}
                   element={<Navigate to="details" replace={true} />}
                 />
-                <Route path="details">
-                  <Route
+                <AppRoute feature={null} path="details">
+                  <AppRoute
+                    feature={null}
                     index={true}
                     element={
                       <Suspense fallback={<ShowLoading />}>
@@ -416,12 +422,13 @@ const AppRoot: React.VFC = function AppRoot() {
                       </Suspense>
                     }
                   />
-                </Route>
-              </Route>
-            </Route>
+                </AppRoute>
+              </AppRoute>
+            </AppRoute>
 
-            <Route path="users">
-              <Route
+            <AppRoute feature={null} path="users">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -429,7 +436,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="add-user"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -437,13 +445,15 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":userID" element={<RequireUser />}>
-                <Route
+              <AppRoute feature={null} path=":userID" element={<RequireUser />}>
+                <AppRoute
+                  feature={null}
                   index={true}
                   element={<Navigate to="details" replace={true} />}
                 />
-                <Route path="details">
-                  <Route
+                <AppRoute feature={null} path="details">
+                  <AppRoute
+                    feature={null}
                     index={true}
                     element={
                       <Suspense fallback={<ShowLoading />}>
@@ -451,7 +461,8 @@ const AppRoot: React.VFC = function AppRoot() {
                       </Suspense>
                     }
                   />
-                  <Route
+                  <AppRoute
+                    feature={null}
                     path="change-password"
                     element={
                       <Suspense fallback={<ShowLoading />}>
@@ -459,7 +470,8 @@ const AppRoot: React.VFC = function AppRoot() {
                       </Suspense>
                     }
                   />
-                  <Route
+                  <AppRoute
+                    feature={null}
                     path="add-password"
                     element={
                       <Suspense fallback={<ShowLoading />}>
@@ -467,13 +479,14 @@ const AppRoot: React.VFC = function AppRoot() {
                       </Suspense>
                     }
                   />
-                </Route>
-              </Route>
-            </Route>
-          </Route>
+                </AppRoute>
+              </AppRoute>
+            </AppRoute>
+          </AppRoute>
 
-          <Route path="api-resources">
-            <Route
+          <AppRoute feature={null} path="api-resources">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -481,7 +494,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="create"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -489,8 +503,13 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route path=":resourceID" element={<RequireAPIResource />}>
-              <Route
+            <AppRoute
+              feature={null}
+              path=":resourceID"
+              element={<RequireAPIResource />}
+            >
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -498,7 +517,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="scopes/:scopeID"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -506,7 +526,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="applications/:clientID/scopes"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -514,15 +535,17 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-            </Route>
-          </Route>
+            </AppRoute>
+          </AppRoute>
 
-          <Route path="branding">
-            <Route
+          <AppRoute feature={null} path="branding">
+            <AppRoute
+              feature={null}
               index={true}
               element={<Navigate to="design" replace={true} />}
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="design"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -530,7 +553,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="localization"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -538,8 +562,9 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route path="custom-domains">
-              <Route
+            <AppRoute feature={null} path="custom-domains">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -547,12 +572,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":domainID">
-                <Route
+              <AppRoute feature={null} path=":domainID">
+                <AppRoute
+                  feature={null}
                   index={true}
                   element={<Navigate to="verify" replace={true} />}
                 />
-                <Route
+                <AppRoute
+                  feature={null}
                   path="verify"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -560,9 +587,10 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
-              </Route>
-            </Route>
-            <Route
+              </AppRoute>
+            </AppRoute>
+            <AppRoute
+              feature={null}
               path="custom-text"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -570,19 +598,22 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
+          </AppRoute>
 
-          <Route path="configuration">
-            <Route
+          <AppRoute feature={null} path="configuration">
+            <AppRoute
+              feature={null}
               index={true}
               element={<Navigate to="authentication" replace={true} />}
             />
-            <Route path="authentication">
-              <Route
+            <AppRoute feature={null} path="authentication">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={<Navigate to="login-methods" replace={true} />}
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="login-methods"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -590,8 +621,9 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path="external-oauth">
-                <Route
+              <AppRoute feature={null} path="external-oauth">
+                <AppRoute
+                  feature={null}
                   index={true}
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -599,7 +631,8 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
-                <Route
+                <AppRoute
+                  feature={null}
                   path="add"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -607,7 +640,8 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
-                <Route
+                <AppRoute
+                  feature={null}
                   path="edit/:provider/:alias"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -615,8 +649,9 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
-              </Route>
-              <Route
+              </AppRoute>
+              <AppRoute
+                feature={null}
                 path="biometric"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -624,7 +659,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="2fa"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -632,7 +668,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="anonymous-users"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -640,21 +677,19 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
-                element={<RequireAppFeature isAvailable={isApp2AppAvailable} />}
-              >
-                <Route
-                  path="app2app"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <App2AppConfigurationScreen />
-                    </Suspense>
-                  }
-                />
-              </Route>
-            </Route>
-            <Route path="apps">
-              <Route
+              <AppRoute
+                feature="app2app"
+                path="app2app"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <App2AppConfigurationScreen />
+                  </Suspense>
+                }
+              />
+            </AppRoute>
+            <AppRoute feature={null} path="apps">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -662,7 +697,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="agents"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -670,7 +706,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="add"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -678,7 +715,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="add-m2m"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -686,7 +724,8 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="dynamic-clients"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -694,12 +733,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path=":clientID">
-                <Route
+              <AppRoute feature={null} path=":clientID">
+                <AppRoute
+                  feature={null}
                   index={true}
                   element={<Navigate to="edit" replace={true} />}
                 />
-                <Route
+                <AppRoute
+                  feature={null}
                   path="edit"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -707,7 +748,8 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
-                <Route
+                <AppRoute
+                  feature={null}
                   path="edit/resource/:resourceID/scopes"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -715,9 +757,10 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
-              </Route>
-            </Route>
-            <Route
+              </AppRoute>
+            </AppRoute>
+            <AppRoute
+              feature={null}
               path="languages"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -725,12 +768,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route path="user-profile">
-              <Route
+            <AppRoute feature={null} path="user-profile">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={<Navigate to="standard-attributes" replace={true} />}
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="standard-attributes"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -738,8 +783,9 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route path="custom-attributes">
-                <Route
+              <AppRoute feature={null} path="custom-attributes">
+                <AppRoute
+                  feature={null}
                   index={true}
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -747,7 +793,8 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
-                <Route
+                <AppRoute
+                  feature={null}
                   path="add"
                   element={
                     <Suspense fallback={<ShowLoading />}>
@@ -755,12 +802,14 @@ const AppRoot: React.VFC = function AppRoot() {
                     </Suspense>
                   }
                 />
-                <Route path=":index">
-                  <Route
+                <AppRoute feature={null} path=":index">
+                  <AppRoute
+                    feature={null}
                     index={true}
                     element={<Navigate to="edit" replace={true} />}
                   />
-                  <Route
+                  <AppRoute
+                    feature={null}
                     path="edit"
                     element={
                       <Suspense fallback={<ShowLoading />}>
@@ -768,14 +817,15 @@ const AppRoot: React.VFC = function AppRoot() {
                       </Suspense>
                     }
                   />
-                </Route>
-              </Route>
-            </Route>
-          </Route>
+                </AppRoute>
+              </AppRoute>
+            </AppRoute>
+          </AppRoute>
 
-          <Route path="attack-protection">
-            <Route path="account-lockout">
-              <Route
+          <AppRoute feature={null} path="attack-protection">
+            <AppRoute feature={null} path="account-lockout">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -783,9 +833,10 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-            </Route>
-            <Route path="bot-protection">
-              <Route
+            </AppRoute>
+            <AppRoute feature={null} path="bot-protection">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -793,33 +844,30 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-            </Route>
-            <Route
-              element={
-                <RequireAppFeature isAvailable={isFraudProtectionAvailable} />
-              }
-            >
-              <Route path="fraud-protection">
-                <Route
-                  index={true}
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <FraudProtectionConfigurationScreen />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="logs/:logID"
-                  element={
-                    <Suspense fallback={<ShowLoading />}>
-                      <FraudProtectionLogEntryScreen />
-                    </Suspense>
-                  }
-                />
-              </Route>
-            </Route>
-            <Route path="ip-blocklist">
-              <Route
+            </AppRoute>
+            <AppRoute feature="fraudProtection" path="fraud-protection">
+              <AppRoute
+                feature={null}
+                index={true}
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <FraudProtectionConfigurationScreen />
+                  </Suspense>
+                }
+              />
+              <AppRoute
+                feature={null}
+                path="logs/:logID"
+                element={
+                  <Suspense fallback={<ShowLoading />}>
+                    <FraudProtectionLogEntryScreen />
+                  </Suspense>
+                }
+              />
+            </AppRoute>
+            <AppRoute feature={null} path="ip-blocklist">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -827,28 +875,24 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-            </Route>
-          </Route>
+            </AppRoute>
+          </AppRoute>
 
-          <Route
-            element={
-              <RequireAppFeature isAvailable={isIntegrationsAvailable} />
-            }
-          >
-            <Route path="integrations">
-              <Route
-                index={true}
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <IntegrationsConfigurationScreen />
-                  </Suspense>
-                }
-              />
-            </Route>
-          </Route>
+          <AppRoute feature="integrations" path="integrations">
+            <AppRoute
+              feature={null}
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <IntegrationsConfigurationScreen />
+                </Suspense>
+              }
+            />
+          </AppRoute>
 
-          <Route path="billing">
-            <Route
+          <AppRoute feature={null} path="billing">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -856,10 +900,11 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
+          </AppRoute>
 
-          <Route path="license">
-            <Route
+          <AppRoute feature={null} path="license">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -867,10 +912,11 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
+          </AppRoute>
 
-          <Route path="billing-redirect">
-            <Route
+          <AppRoute feature={null} path="billing-redirect">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -878,14 +924,16 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
+          </AppRoute>
 
-          <Route path="advanced">
-            <Route
+          <AppRoute feature={null} path="advanced">
+            <AppRoute
+              feature={null}
               index={true}
               element={<Navigate to="password-reset-code" replace={true} />}
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="hooks"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -893,7 +941,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="admin-api"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -901,7 +950,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="account-deletion"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -909,7 +959,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="account-anonymization"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -917,7 +968,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="session"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -925,7 +977,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="smtp"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -933,7 +986,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="sms-gateway"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -941,7 +995,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="endpoint-direct-access"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -949,7 +1004,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route
+            <AppRoute
+              feature={null}
               path="saml-certificate"
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -957,10 +1013,11 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
+          </AppRoute>
 
-          <Route path="audit-log">
-            <Route
+          <AppRoute feature="auditLog" path="audit-log">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -968,12 +1025,14 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-            <Route path=":logID">
-              <Route
+            <AppRoute feature={null} path=":logID">
+              <AppRoute
+                feature={null}
                 index={true}
                 element={<Navigate to="details" replace={true} />}
               />
-              <Route
+              <AppRoute
+                feature={null}
                 path="details"
                 element={
                   <Suspense fallback={<ShowLoading />}>
@@ -981,11 +1040,12 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-            </Route>
-          </Route>
+            </AppRoute>
+          </AppRoute>
 
-          <Route path="portal-admins">
-            <Route
+          <AppRoute feature={null} path="portal-admins">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -993,11 +1053,12 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
+          </AppRoute>
 
           {/* This screen is not shown in nav bar, which is intentional to prevent normal users from accessing it */}
-          <Route path="edit-config">
-            <Route
+          <AppRoute feature={null} path="edit-config">
+            <AppRoute
+              feature={null}
               index={true}
               element={
                 <Suspense fallback={<ShowLoading />}>
@@ -1005,8 +1066,8 @@ const AppRoot: React.VFC = function AppRoot() {
                 </Suspense>
               }
             />
-          </Route>
-        </Routes>
+          </AppRoute>
+        </AppRoutes>
       </ScreenLayout>
     </ApolloProvider>
   );
