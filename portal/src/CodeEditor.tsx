@@ -15,6 +15,7 @@ export interface CodeEditorProps extends EditorProps {
 const DEFAULT_WHITELISTED_PACKAGES = [
   "https://deno.land/std",
   "https://deno.land/x/authgear_deno_hook",
+  "https://raw.githubusercontent.com/authgear/authgear_deno_hook",
 ];
 
 const REGEX_DETECT_IMPORT =
