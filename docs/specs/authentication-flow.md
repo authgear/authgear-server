@@ -109,6 +109,7 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 ### Design of the configuration
 
 - A flow has one or more `steps`.
+- A flow MAY have a `display_name`, 1 to 100 characters. It labels the flow in the portal and has no effect at runtime: flows are always referred to by `name`.
 - A step MAY optionally have an `id`.
 - A step must have a `type`.
 - A `type` step is specific to the kind of the flow. For example, only SignupFlow has the `type: verify` step.
