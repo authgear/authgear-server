@@ -1299,6 +1299,42 @@ config:
         groups:
         - name: default
 ---
+name: authentication-flow-display-name
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    signup_flows:
+    - name: staff
+      display_name: Staff signup
+      steps:
+      - type: identify
+        one_of:
+        - identification: email
+    login_flows:
+    - name: staff
+      display_name: Staff login
+      steps:
+      - type: terminate_other_sessions
+---
+name: authentication-flow-display-name-too-long
+error: |-
+  invalid configuration:
+  /authentication_flow/login_flows/0/display_name: maxLength
+    map[actual:101 expected:100]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication_flow:
+    login_flows:
+    - name: staff
+      display_name: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+      steps:
+      - type: terminate_other_sessions
+---
 name: authentication-flow-group-valid-custom
 error: null
 config:
