@@ -609,7 +609,7 @@ func validateGroupAllowlist(ctx *validation.Context, allowlist []*Authentication
 		}
 
 		if !groupIsDefined {
-			ctx.Child("oauth", "clients", strconv.Itoa(idx), "authentication_flow_allowlist", "groups", strconv.Itoa(i)).EmitErrorMessage("invalid authentication flow group")
+			ctx.Child("oauth", "clients", strconv.Itoa(idx), "x_authentication_flow_allowlist", "groups", strconv.Itoa(i)).EmitErrorMessage("invalid authentication flow group")
 		}
 	}
 }
@@ -628,7 +628,7 @@ func validateFlowAllowlist(ctx *validation.Context, allowlist []*AuthenticationF
 			}
 		}
 		if !flowIsDefined {
-			ctx.Child("oauth", "clients", strconv.Itoa(idx), "authentication_flow_allowlist", "flows", strconv.Itoa(i)).EmitErrorMessage("invalid authentication flow")
+			ctx.Child("oauth", "clients", strconv.Itoa(idx), "x_authentication_flow_allowlist", "flows", strconv.Itoa(i)).EmitErrorMessage("invalid authentication flow")
 		}
 	}
 }

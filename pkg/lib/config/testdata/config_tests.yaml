@@ -1268,7 +1268,7 @@ config:
 name: authentication-flow-group-not-defined
 error: |-
   invalid configuration:
-  /oauth/clients/0/authentication_flow_allowlist/groups/0: invalid authentication flow group
+  /oauth/clients/0/x_authentication_flow_allowlist/groups/0: invalid authentication flow group
 config:
   id: test
   http:
@@ -1362,7 +1362,7 @@ config:
 name: authentication-flow-invalid-allowlist-flow
 error: |-
   invalid configuration:
-  /oauth/clients/0/authentication_flow_allowlist/flows/0: invalid authentication flow
+  /oauth/clients/0/x_authentication_flow_allowlist/flows/0: invalid authentication flow
 config:
   id: test
   http:
