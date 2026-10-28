@@ -5,9 +5,24 @@ import {
   OAuthSSOProviderType,
 } from "../../../types";
 import { IntlContextValue } from "../../../intl";
-import { FlowType } from "./model";
+import { DEFAULT_FLOW_NAME, FlowType } from "./model";
 
 type RenderToString = IntlContextValue["renderToString"];
+
+// A flow's label: its display_name, else Standard for the default flow,
+// else its name. authgear.yaml, hand-offs and the Authflow API use the name.
+export function flowDisplayName(
+  name: string,
+  renderToString: RenderToString,
+  displayName?: string
+): string {
+  if (displayName != null && displayName !== "") {
+    return displayName;
+  }
+  return name === DEFAULT_FLOW_NAME
+    ? renderToString("AuthFlowsScreen.flow.standard")
+    : name;
+}
 
 export const flowTypeMessageIDs: Record<FlowType, string> = {
   signup_login: "AuthFlowsScreen.flow-type.signup_login",

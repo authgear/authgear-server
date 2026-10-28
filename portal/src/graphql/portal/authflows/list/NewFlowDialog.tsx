@@ -11,7 +11,7 @@ import { SecondaryButton } from "../../../../components/v2/Button/SecondaryButto
 import { flowPath } from "../model";
 import { stepTitle } from "../labels";
 import { CreatableType } from "./rows";
-import { freeName, nameError } from "./actions";
+import { apiNameFrom, freeName, nameError } from "./actions";
 import {
   MissingMethod,
   NewFlows,
@@ -24,7 +24,7 @@ import {
   starterMissing,
   stepSummary,
 } from "./starters";
-import { nameErrorMessageIDs } from "./FlowNameDialog";
+import { DISPLAY_NAME_MAX, nameErrorMessageIDs } from "./FlowNameDialog";
 import styles from "./NewFlowDialog.module.css";
 
 type Start = "current" | "scratch" | "template" | "import";
@@ -140,24 +140,37 @@ export function NewFlowDialog({
   const [step, setStep] = useState<Step>("start");
   const [start, setStart] = useState<Start>("current");
   const [starter, setStarter] = useState<TemplateID>("email_password");
-  const [name, setName] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  // The name follows the display name until it is typed in.
+  const [typedName, setTypedName] = useState<string | null>(null);
+  const [fallbackName, setFallbackName] = useState("");
+  const name = typedName ?? (apiNameFrom(displayName) || fallbackName);
 
   const error = nameError(flows, type, name);
+  const displayNameTooLong = displayName.trim().length > DISPLAY_NAME_MAX;
 
   const toName = () => {
-    setName(freeName(flows, type, type));
+    setFallbackName(freeName(flows, type, type));
     setStep("name");
   };
   const create = () => {
-    if (error != null) {
+    if (error != null || displayNameTooLong) {
       return;
     }
-    const newFlows: NewFlows =
+    const made: NewFlows =
       start === "current"
         ? starterFlows("current", type, name, generated)
         : start === "template"
         ? starterFlows(starter, type, name, generated)
         : scratchFlows(type, name, methods);
+    const label = displayName.trim();
+    // The flow being made gets the display name; flows made with it keep
+    // theirs.
+    const newFlows: NewFlows = made.map((f) =>
+      f.type === type && f.flow.name === name && label !== ""
+        ? { ...f, flow: { ...f.flow, display_name: label } }
+        : f
+    );
     onOpenChange(false);
     navigate(flowPath(appID, type, name), { state: { newFlows } });
   };
@@ -208,6 +221,8 @@ export function NewFlowDialog({
         onOpenChange(o);
         if (!o) {
           setStep("start");
+          setDisplayName("");
+          setTypedName(null);
         }
       }}
     >
@@ -248,17 +263,42 @@ export function NewFlowDialog({
               create();
             }}
           >
-            <TextField.Root
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              aria-label={renderToString("AuthFlowsScreen.list.name")}
-              autoFocus={true}
-            />
-            {error != null ? (
-              <Text as="p" size="1" color="red" className={styles.note}>
-                {renderToString(nameErrorMessageIDs[error])}
+            <label className={styles.field}>
+              <Text size="2" weight="medium">
+                {renderToString("AuthFlowsScreen.list.display-name")}
               </Text>
-            ) : null}
+              <TextField.Root
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                autoFocus={true}
+              />
+              {displayNameTooLong ? (
+                <Text as="p" size="1" color="red">
+                  {renderToString(
+                    "AuthFlowsScreen.list.display-name.too-long",
+                    { max: DISPLAY_NAME_MAX }
+                  )}
+                </Text>
+              ) : null}
+            </label>
+            <label className={styles.field}>
+              <Text size="2" weight="medium">
+                {renderToString("AuthFlowsScreen.list.flow-name")}
+              </Text>
+              <TextField.Root
+                value={name}
+                onChange={(e) => setTypedName(e.target.value)}
+              />
+              {error != null ? (
+                <Text as="p" size="1" color="red">
+                  {renderToString(nameErrorMessageIDs[error])}
+                </Text>
+              ) : (
+                <Text as="p" size="1" color="gray">
+                  {renderToString("AuthFlowsScreen.list.flow-name.hint")}
+                </Text>
+              )}
+            </label>
           </form>
         ) : null}
         <div className={styles.actions}>
@@ -290,7 +330,11 @@ export function NewFlowDialog({
             </Button>
           ) : null}
           {step === "name" ? (
-            <Button size="2" disabled={error != null} onClick={create}>
+            <Button
+              size="2"
+              disabled={error != null || displayNameTooLong}
+              onClick={create}
+            >
               {renderToString("AuthFlowsScreen.new.create")}
             </Button>
           ) : null}

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { AuthenticationFlowsConfig } from "../../../../types";
 import {
+  apiNameFrom,
   applyFlowAction,
   deleteBlockers,
   freeName,
@@ -123,5 +124,38 @@ describe("freeName", () => {
     };
     expect(freeName(f, "login", "login")).toEqual("login_3");
     expect(freeName(f, "signup", "signup")).toEqual("signup_2");
+  });
+});
+
+describe("rename with a display name", () => {
+  it("sets the display name, and clears it when empty", () => {
+    const named = applyFlowAction(flows, {
+      kind: "rename",
+      type: "login",
+      name: "staff",
+      newName: "staff",
+      displayName: "Staff login",
+    });
+    expect(named.login_flows?.[1]).toEqual({
+      name: "staff",
+      display_name: "Staff login",
+      steps: [],
+    });
+    const cleared = applyFlowAction(named, {
+      kind: "rename",
+      type: "login",
+      name: "staff",
+      newName: "staff",
+      displayName: "",
+    });
+    expect(cleared.login_flows?.[1]).toEqual({ name: "staff", steps: [] });
+  });
+});
+
+describe("apiNameFrom", () => {
+  it("makes a valid flow name from a display name", () => {
+    expect(apiNameFrom("Staff login")).toBe("staff_login");
+    expect(apiNameFrom("  2FA -- for admins! ")).toBe("_2fa_for_admins");
+    expect(apiNameFrom("職員")).toBe("");
   });
 });

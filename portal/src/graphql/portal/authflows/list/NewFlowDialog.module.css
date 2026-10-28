@@ -20,3 +20,10 @@
 .spacer {
   flex: 1;
 }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}

@@ -24,7 +24,10 @@ interface WithFlowRefs {
     clients?: {
       client_id: string;
       name?: string;
-      x_authentication_flow_allowlist?: { flows?: FlowRef[] };
+      x_authentication_flow_allowlist?: {
+        groups?: { name: string }[];
+        flows?: FlowRef[];
+      };
     }[];
   };
 }
@@ -63,6 +66,27 @@ export function flowUses(
     }
   }
   return uses;
+}
+
+// Applications whose allowlist is this flow alone. Deleting the flow would
+// empty it, and an empty allowlist allows every flow.
+export function onlyAllowedBy(
+  config: PortalAPIAppConfig,
+  type: FlowType,
+  name: string
+): string[] {
+  const c = config as WithFlowRefs;
+  return (c.oauth?.clients ?? [])
+    .filter((client) => {
+      const allowlist = client.x_authentication_flow_allowlist;
+      const flows = allowlist?.flows ?? [];
+      return (
+        (allowlist?.groups ?? []).length === 0 &&
+        flows.length > 0 &&
+        flows.every((f) => names(f, type, name))
+      );
+    })
+    .map((client) => client.name ?? client.client_id);
 }
 
 // config with every group and application reference to the flow renamed.

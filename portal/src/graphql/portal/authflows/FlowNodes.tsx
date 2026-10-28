@@ -6,7 +6,7 @@ import { Callout } from "../../../components/v2/Callout/Callout";
 import { FlowStepItem } from "./tree";
 import { ChoiceBox } from "./layout";
 import { FlowRef, NEXT_HANDLE_ID, optionHandleID } from "./graph";
-import { resolveFlow } from "./model";
+import { displayNameOf, resolveFlow } from "./model";
 import Link from "../../../Link";
 import {
   IfNeededMessageIDs,
@@ -16,6 +16,7 @@ import {
   optionLabel,
   pagelessNoteMessageIDs,
   stepTitle,
+  flowDisplayName,
 } from "./labels";
 import { Tooltip } from "../../../components/v2/Tooltip/Tooltip";
 import {
@@ -401,7 +402,13 @@ function FlowRefNode({ data }: NodeProps<FlowNode>): React.ReactElement {
       <span className={styles.cardTitle}>
         {renderToString(flowRefTitleMessageIDs[ref.type])}
       </span>
-      <span className={styles.stepName}>{ref.name}</span>
+      <span className={styles.stepName}>
+        {flowDisplayName(
+          ref.name,
+          renderToString,
+          displayNameOf(custom, ref.type, ref.name)
+        )}
+      </span>
       {exists ? (
         <Link
           to={flowLink(ref)}

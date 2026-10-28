@@ -1,6 +1,11 @@
 import { describe, it, expect } from "@jest/globals";
 import { PortalAPIAppConfig } from "../../../../types";
-import { flowUses, removeFlowUses, renameFlowUses } from "./usage";
+import {
+  flowUses,
+  onlyAllowedBy,
+  removeFlowUses,
+  renameFlowUses,
+} from "./usage";
 
 const config = {
   ui: {
@@ -76,5 +81,39 @@ describe("removeFlowUses", () => {
     expect(
       flowUses(next as unknown as PortalAPIAppConfig, "signup", "shared_2fa")
     ).toEqual([]);
+  });
+});
+
+describe("onlyAllowedBy", () => {
+  it("names the applications that allow nothing but the flow", () => {
+    expect(onlyAllowedBy(config, "signup", "shared_2fa")).toEqual([
+      "Admin app",
+    ]);
+  });
+
+  it("leaves out applications that allow a group or another flow too", () => {
+    const wider = {
+      oauth: {
+        clients: [
+          {
+            client_id: "c1",
+            x_authentication_flow_allowlist: {
+              groups: [{ name: "staff" }],
+              flows: [{ type: "signup", name: "shared_2fa" }],
+            },
+          },
+          {
+            client_id: "c2",
+            x_authentication_flow_allowlist: {
+              flows: [
+                { type: "signup", name: "shared_2fa" },
+                { type: "login", name: "other" },
+              ],
+            },
+          },
+        ],
+      },
+    } as unknown as PortalAPIAppConfig;
+    expect(onlyAllowedBy(wider, "signup", "shared_2fa")).toEqual([]);
   });
 });

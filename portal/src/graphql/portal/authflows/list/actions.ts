@@ -6,11 +6,18 @@ import {
 import { DEFAULT_FLOW_NAME, FlowType, flowListKey } from "../model";
 
 export type FlowAction =
-  | { kind: "rename"; type: FlowType; name: string; newName: string }
+  // displayName, when given, is set too; empty removes it.
+  | {
+      kind: "rename";
+      type: FlowType;
+      name: string;
+      newName: string;
+      displayName?: string;
+    }
   | { kind: "add"; type: FlowType; flow: AuthenticationFlowConfig }
   | { kind: "delete"; type: FlowType; name: string };
 
-const NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+export const NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
 // The signup_login option field that names a flow of this type, if any.
 function handoffKey(type: FlowType): "login_flow" | "signup_flow" | null {
@@ -46,6 +53,16 @@ export function applyFlowAction(
       case "rename": {
         const flow = (d[key] ?? []).find((f) => f.name === action.name);
         if (flow == null) {
+          return;
+        }
+        if (action.displayName != null) {
+          if (action.displayName === "") {
+            delete flow.display_name;
+          } else {
+            flow.display_name = action.displayName;
+          }
+        }
+        if (action.newName === action.name) {
           return;
         }
         flow.name = action.newName;
@@ -111,6 +128,16 @@ export function nameError(
 }
 
 // The first of base_2, base_3, … that no flow of the type has.
+// A flow name made from a display name: lowercase words joined by
+// underscores, not starting with a digit. Empty when nothing is usable.
+export function apiNameFrom(displayName: string): string {
+  const name = displayName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return /^[0-9]/.test(name) ? `_${name}` : name;
+}
+
 export function freeName(
   flows: AuthenticationFlowsConfig | undefined,
   type: FlowType,

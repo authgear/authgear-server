@@ -46,8 +46,24 @@
   align-items: center;
 }
 
+/* The name the config and API use, beside the label. */
+.colFlowName {
+  flex: none;
+  width: 30%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .colActions {
   flex: none;
   justify-content: flex-end;
   width: 56px;
+}
+
+/* A header with a tooltip: its text and an info icon. */
+.headerHint {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  cursor: help;
 }
