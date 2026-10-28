@@ -8,11 +8,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 // The association files list the apps in x_native_apps, so that the operating
 // system allows them to perform passkey ceremonies for the public origin's
-// host. See docs/specs/passkey-webview.md.
+// host. They are served only on a custom domain; PublicOriginMiddleware has
+// already redirected any host other than the public origin's.
+// See docs/specs/passkey-webview.md.
 
 func ConfigureAppleAppSiteAssociationRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -27,7 +30,9 @@ func ConfigureAssetLinksRoute(route httproute.Route) httproute.Route {
 }
 
 type AppleAppSiteAssociationHandler struct {
-	OAuthConfig *config.OAuthConfig
+	AppHostSuffixes config.AppHostSuffixes
+	TrustProxy      config.TrustProxy
+	OAuthConfig     *config.OAuthConfig
 }
 
 type appleAppSiteAssociation struct {
@@ -39,6 +44,11 @@ type appleWebCredentials struct {
 }
 
 func (h *AppleAppSiteAssociationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if h.AppHostSuffixes.CheckIsDefaultDomain(httputil.GetHost(r, bool(h.TrustProxy))) {
+		http.NotFound(w, r)
+		return
+	}
+
 	var appIDs []string
 	for _, app := range passkey.EffectiveNativeApps(h.OAuthConfig) {
 		if app.Platform != config.OAuthClientNativeAppPlatformIOS {
@@ -57,7 +67,9 @@ func (h *AppleAppSiteAssociationHandler) ServeHTTP(w http.ResponseWriter, r *htt
 }
 
 type AssetLinksHandler struct {
-	OAuthConfig *config.OAuthConfig
+	AppHostSuffixes config.AppHostSuffixes
+	TrustProxy      config.TrustProxy
+	OAuthConfig     *config.OAuthConfig
 }
 
 type assetLinksStatement struct {
@@ -79,6 +91,11 @@ var assetLinksRelations = []string{
 }
 
 func (h *AssetLinksHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if h.AppHostSuffixes.CheckIsDefaultDomain(httputil.GetHost(r, bool(h.TrustProxy))) {
+		http.NotFound(w, r)
+		return
+	}
+
 	var statements []assetLinksStatement
 	for _, app := range passkey.EffectiveNativeApps(h.OAuthConfig) {
 		if app.Platform != config.OAuthClientNativeAppPlatformAndroid {

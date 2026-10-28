@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { produce } from "immer";
+import { useParams } from "react-router-dom";
 import { IconButton as RadixIconButton, Text } from "@radix-ui/themes";
 import { Pencil1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { Context, FormattedMessage } from "../../intl";
@@ -17,6 +18,11 @@ import {
 } from "../../types";
 import { nativeAppDisplayID } from "../../util/nativeApps";
 import { NativeAppDialog } from "./NativeAppDialog";
+import { useDomainsQuery } from "../../graphql/portal/query/domainsQuery";
+import { checkIsCustomDomain } from "../../util/domain";
+import { Callout } from "../v2/Callout/Callout";
+import ShowError from "../../ShowError";
+import Link from "../../Link";
 
 const platformMessageIDs: Record<OAuthClientNativeAppPlatform, string> = {
   ios: "NativeAppsSettings.platform.ios",
@@ -72,6 +78,7 @@ interface NativeAppRowProps {
   app: OAuthClientNativeAppConfig;
   index: number;
   clientIndex: number;
+  readOnly: boolean;
   onEdit: (index: number) => void;
   onDelete: (index: number) => void;
 }
@@ -80,6 +87,7 @@ function NativeAppRow({
   app,
   index,
   clientIndex,
+  readOnly,
   onEdit,
   onDelete,
 }: NativeAppRowProps) {
@@ -113,6 +121,7 @@ function NativeAppRow({
           type="button"
           variant="ghost"
           size="1"
+          disabled={readOnly}
           aria-label={renderToString("edit")}
           onClick={() => onEdit(index)}
         >
@@ -123,6 +132,7 @@ function NativeAppRow({
           variant="ghost"
           color="red"
           size="1"
+          disabled={readOnly}
           aria-label={renderToString("delete")}
           onClick={() => onDelete(index)}
         >
@@ -192,6 +202,20 @@ export function NativeAppsSettingsCard(
     onAppsChange,
   } = props;
   const { renderToString } = useContext(Context);
+  const { appID } = useParams() as { appID: string };
+
+  // The association files are served only on a custom domain.
+  const {
+    domains,
+    loading: domainsLoading,
+    error: domainsError,
+    refetch: refetchDomains,
+  } = useDomainsQuery(appID);
+  const isCustomDomain =
+    domains != null && checkIsCustomDomain(domains, publicOrigin);
+  const readOnly = !isCustomDomain;
+  const showCustomDomainWarning =
+    !domainsLoading && domainsError == null && !isCustomDomain;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   // Kept after close so the dialog keeps its content while animating out.
@@ -266,6 +290,29 @@ export function NativeAppsSettingsCard(
       title={<FormattedMessage id="NativeAppsSettings.title" />}
       description={<FormattedMessage id="NativeAppsSettings.description" />}
     >
+      {domainsError != null ? (
+        // eslint-disable-next-line @typescript-eslint/strict-void-return
+        <ShowError error={domainsError} onRetry={refetchDomains} />
+      ) : null}
+      {showCustomDomainWarning ? (
+        <Callout
+          type="warning"
+          showCloseButton={false}
+          text={
+            <FormattedMessage
+              id="NativeAppsSettings.requires-custom-domain"
+              values={{
+                // eslint-disable-next-line react/no-unstable-nested-components
+                reactRouterLink: (chunks: React.ReactNode) => (
+                  <Link to={`/project/${appID}/branding/custom-domains`}>
+                    {chunks}
+                  </Link>
+                ),
+              }}
+            />
+          }
+        />
+      ) : null}
       {apps.length > 0 ? (
         <div className="flex flex-col gap-3">
           {apps.map((app, index) => (
@@ -274,6 +321,7 @@ export function NativeAppsSettingsCard(
               app={app}
               index={index}
               clientIndex={clientIndex}
+              readOnly={readOnly}
               onEdit={onEdit}
               onDelete={onDelete}
             />
@@ -290,6 +338,7 @@ export function NativeAppsSettingsCard(
           <SecondaryButton
             size="2"
             text={<FormattedMessage id="NativeAppsSettings.add-ios" />}
+            disabled={readOnly}
             onClick={onAddIOS}
           />
         ) : null}
@@ -297,12 +346,13 @@ export function NativeAppsSettingsCard(
           <SecondaryButton
             size="2"
             text={<FormattedMessage id="NativeAppsSettings.add-android" />}
+            disabled={readOnly}
             onClick={onAddAndroid}
           />
         ) : null}
       </div>
 
-      {hasIOS ? (
+      {hasIOS && isCustomDomain ? (
         <CopyField
           label={renderToString("NativeAppsSettings.ios-entitlement.label")}
           hint={renderToString("NativeAppsSettings.ios-entitlement.hint")}

@@ -1024,6 +1024,7 @@
   "NativeAppsSettings.add-android": "Add Android app",
   "NativeAppsSettings.ios-entitlement.label": "iOS Associated Domains entry",
   "NativeAppsSettings.ios-entitlement.hint": "Add this entry to the Associated Domains capability of your iOS app in Xcode.",
+  "NativeAppsSettings.requires-custom-domain": "Associated apps take effect only on a <reactRouterLink>custom domain</reactRouterLink>. Activate a custom domain to edit them.",
   "NativeAppDialog.title.add-ios": "Add iOS app",
   "NativeAppDialog.title.edit-ios": "Edit iOS app",
   "NativeAppDialog.title.add-android": "Add Android app",

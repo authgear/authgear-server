@@ -21,6 +21,7 @@ The Relying Party ID is unchanged: it is the host of `http.public_origin`.
 | Sign up, sign in, and add a passkey in AuthUI shown in the app's WebView | Yes |
 | The same, in a Custom UI shown in the app's WebView | Yes |
 | Passkey ceremonies performed by the app natively, without a WebView | No, see [Future works](#future-works) |
+| A project whose `http.public_origin` is on a default domain | No, see [Association files](#association-files) |
 
 ## Configuration
 
@@ -59,14 +60,16 @@ Listing an app trusts it with the project's sign-ins. An app controls whatever i
 
 ## Association files
 
-Authgear serves both files at the host of `http.public_origin`, generated from every client's `x_native_apps`.
+Authgear serves both files at the host of `http.public_origin`, generated from every client's `x_native_apps`, only when that host is a custom domain. A default domain is the domain Authgear assigns to a project, such as `<project-id>.authgear.cloud`; any other domain is a custom domain. A deployment that assigns no default domains treats every domain as custom.
+
+On a default domain neither file is served. The operating system then refuses passkey ceremonies in a listed app's WebView, so `x_native_apps` has no effect until `http.public_origin` is moved to a custom domain.
 
 | Path | Served when | Content |
 |---|---|---|
 | `/.well-known/apple-app-site-association` | at least one `ios` entry | `webcredentials.apps`, one `<team_id>.<bundle_id>` per `ios` entry |
 | `/.well-known/assetlinks.json` | at least one `android` entry | one statement per `android` entry, with the relations `delegate_permission/common.handle_all_urls` and `delegate_permission/common.get_login_creds` |
 
-Both are served over HTTPS with `200` and `Content-Type: application/json`, without a redirect, and without authentication. A path that is not served returns `404`.
+Both are served over HTTPS with `200` and `Content-Type: application/json`, without a redirect, and without authentication. A file that is not served returns `404`.
 
 - Android requires both relations for a passkey sign-in; with `get_login_creds` alone, sign-in is refused on the device.
 - `handle_all_urls` also lets a listed Android app become the handler for URLs on the host and its subdomains, if it declares a verified intent filter for them. These include AuthUI, the authorization endpoint, links in emails, and a Custom UI hosted under the host. An app must not declare one. Check the app's merged manifest, because a library can add an intent filter.
