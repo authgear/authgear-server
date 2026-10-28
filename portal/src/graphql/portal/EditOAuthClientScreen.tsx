@@ -25,6 +25,8 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm, {
   getApplicationTypeMessageID,
+  showExperienceTab,
+  updateClientConfig,
 } from "./EditOAuthClientForm";
 import { EditOAuthClientFormResourcesContent } from "./EditOAuthClientFormResourcesContent";
 import { EditOAuthClientFormQuickStartContent } from "./EditOAuthClientFormQuickStartContent";
@@ -53,6 +55,11 @@ import { AppSecretKey } from "./globalTypes.generated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { useOAuthClientForm, FormState } from "../../hook/useOAuthClientForm";
+import {
+  AuthFlowAllowlistCard,
+  AuthFlowOptions,
+  SignInPagesCard,
+} from "../../components/applications/AuthFlowAllowlistCard";
 import {
   OAuthClientSAMLForm,
   OAuthClientSAMLFormState,
@@ -396,6 +403,7 @@ interface EditOAuthClientContentProps {
   samlIdpEntityID: string;
   samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
   customUIEnabled: boolean;
+  authFlowOptions: AuthFlowOptions | null;
   app2appEnabled: boolean;
   onGeneratedNewIdpSigningCertificate: () => void;
   clientSecretHook: ClientSecretsHook;
@@ -426,6 +434,7 @@ function shouldShowSamlTab(
 
 enum FormTab {
   SETTINGS = "settings",
+  EXPERIENCE = "experience",
   SAML2 = "saml2",
   API_RESOURCES = "api-resources",
   QUICK_START = "quick-start",
@@ -447,6 +456,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       samlIdpSigningCertificates,
       form: { state, setState },
       customUIEnabled,
+      authFlowOptions,
       app2appEnabled,
       onGeneratedNewIdpSigningCertificate,
       clientSecretHook,
@@ -499,6 +509,12 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         value: FormTab.SETTINGS,
         label: renderToString("EditOAuthClientScreen.tabs.settings"),
       });
+      if (showExperienceTab(authFlowOptions, client?.x_application_type)) {
+        tabs.push({
+          value: FormTab.EXPERIENCE,
+          label: renderToString("EditOAuthClientScreen.tabs.experience"),
+        });
+      }
       if (client != null && shouldShowSamlTab(client)) {
         tabs.push({
           value: FormTab.SAML2,
@@ -512,7 +528,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         });
       }
       return tabs;
-    }, [client, renderToString]);
+    }, [client, renderToString, authFlowOptions]);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -526,7 +542,9 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     }
 
     const showSaveBar =
-      formTab === FormTab.SETTINGS || formTab === FormTab.SAML2;
+      formTab === FormTab.SETTINGS ||
+      formTab === FormTab.EXPERIENCE ||
+      formTab === FormTab.SAML2;
 
     return (
       <ScreenContent
@@ -583,8 +601,19 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             state={state}
             app2appEnabled={app2appEnabled}
             customUIEnabled={customUIEnabled}
+            authFlowOptions={authFlowOptions}
             onClientConfigChange={onClientConfigChange}
             clientSecretHook={clientSecretHook}
+          />
+        ) : null}
+        {formTab === FormTab.EXPERIENCE &&
+        showExperienceTab(authFlowOptions, client.x_application_type) ? (
+          <OAuthClientExperienceForm
+            client={client}
+            state={state}
+            customUIEnabled={customUIEnabled}
+            authFlowOptions={authFlowOptions}
+            onClientConfigChange={onClientConfigChange}
           />
         ) : null}
         {formTab === FormTab.SAML2 ? (
@@ -616,6 +645,7 @@ interface OAuthClientSettingsFormProps {
   state: FormState;
   app2appEnabled: boolean;
   customUIEnabled: boolean;
+  authFlowOptions: AuthFlowOptions | null;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   clientSecretHook: ClientSecretsHook;
 }
@@ -625,6 +655,7 @@ function OAuthClientSettingsForm({
   state,
   app2appEnabled,
   customUIEnabled,
+  authFlowOptions,
   onClientConfigChange,
   clientSecretHook,
 }: OAuthClientSettingsFormProps): React.ReactElement {
@@ -646,11 +677,75 @@ function OAuthClientSettingsForm({
         publicOrigin={state.publicOrigin}
         clientConfig={client}
         customUIEnabled={customUIEnabled}
+        authFlowOptions={authFlowOptions}
         app2appEnabled={app2appEnabled}
         clientIndex={clientIndex}
         otherClientsNativeApps={otherClientsNativeApps}
         onClientConfigChange={onClientConfigChange}
         clientSecretHook={clientSecretHook}
+      />
+    </div>
+  );
+}
+
+// The sign-up and login pages, and the auth flow group.
+function OAuthClientExperienceForm({
+  client,
+  state,
+  customUIEnabled,
+  authFlowOptions,
+  onClientConfigChange,
+}: {
+  client: OAuthClientConfig;
+  state: FormState;
+  customUIEnabled: boolean;
+  authFlowOptions: AuthFlowOptions;
+  onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
+}): React.ReactElement {
+  const { appID } = useParams() as { appID: string };
+  const clientIndex = state.clients.findIndex(
+    (c) => c.client_id === client.client_id
+  );
+  // Custom UI needs the plan's feature and an app type that can use it,
+  // as on the Configuration tab without the auth flow builder.
+  const customUISupported =
+    customUIEnabled && client.x_application_type !== "m2m";
+  const usesCustomUI = customUISupported && client.x_custom_ui_uri != null;
+  return (
+    <div
+      className={cn(styles.widget, styles.widgetColumn, styles["widget--wide"])}
+    >
+      {customUISupported ? (
+        <SignInPagesCard
+          contentClassName="flex flex-col gap-4"
+          clientIndex={clientIndex}
+          customUI={{
+            uri: client.x_custom_ui_uri,
+            // Keeps "" while Custom UI is chosen, so saving without a URI
+            // fails on the field instead of falling back to Auth UI.
+            onChange: (uri) =>
+              onClientConfigChange(
+                updateClientConfig(client, "x_custom_ui_uri", uri)
+              ),
+          }}
+        />
+      ) : null}
+      <AuthFlowAllowlistCard
+        contentClassName="flex flex-col gap-4"
+        appID={appID}
+        clientIndex={clientIndex}
+        allowlist={client.x_authentication_flow_allowlist}
+        options={authFlowOptions}
+        usesCustomUI={usesCustomUI}
+        onChange={(allowlist) =>
+          onClientConfigChange(
+            updateClientConfig(
+              client,
+              "x_authentication_flow_allowlist",
+              allowlist
+            )
+          )
+        }
       />
     </div>
   );
@@ -881,6 +976,25 @@ const EditOAuthClientScreen1: React.VFC<{
     featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
   ]);
 
+  // Behind the auth flow builder flag, like the Auth Flows page.
+  const authFlowOptions = useMemo((): AuthFlowOptions | null => {
+    if (
+      featureConfig.isLoading ||
+      featureConfig.effectiveFeatureConfig?.portal
+        ?.auth_flow_builder_enabled !== true
+    ) {
+      return null;
+    }
+    return {
+      groups: rawAppConfig?.ui?.authentication_flow?.groups ?? [],
+      flows: rawAppConfig?.authentication_flow,
+    };
+  }, [
+    featureConfig.isLoading,
+    featureConfig.effectiveFeatureConfig?.portal?.auth_flow_builder_enabled,
+    rawAppConfig,
+  ]);
+
   const app2appEnabled = useMemo(() => {
     if (featureConfig.isLoading) {
       return false;
@@ -918,6 +1032,7 @@ const EditOAuthClientScreen1: React.VFC<{
           samlIdpEntityID={samlIdpEntityID}
           samlIdpSigningCertificates={samlIdPSigningCertificates}
           customUIEnabled={customUIEnabled}
+          authFlowOptions={authFlowOptions}
           app2appEnabled={app2appEnabled}
           // eslint-disable-next-line @typescript-eslint/strict-void-return
           refetchAppAndSecretConfig={refetchAppAndSecretConfig}
@@ -935,6 +1050,7 @@ function FormContainerContent({
   samlIdpEntityID,
   samlIdpSigningCertificates,
   customUIEnabled,
+  authFlowOptions,
   app2appEnabled,
   refetchAppAndSecretConfig,
   clientSecretHook,
@@ -945,6 +1061,7 @@ function FormContainerContent({
   samlIdpEntityID: string | null | undefined;
   samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
   customUIEnabled: boolean;
+  authFlowOptions: AuthFlowOptions | null;
   app2appEnabled: boolean;
   refetchAppAndSecretConfig: () => void;
   clientSecretHook: ClientSecretsHook;
@@ -955,21 +1072,30 @@ function FormContainerContent({
       const client =
         state.editedClient ??
         state.clients.find((c) => c.client_id === clientID);
-      switch (client?.x_application_type) {
-        case "m2m":
-          return [FormTab.QUICK_START, FormTab.SETTINGS, FormTab.API_RESOURCES];
-        case "spa":
-        case "traditional_webapp":
-        case "native":
-          return [FormTab.SETTINGS, FormTab.QUICK_START];
-        case "confidential":
-          return shouldShowSamlTab(client)
-            ? [FormTab.SETTINGS, FormTab.QUICK_START, FormTab.SAML2]
-            : [FormTab.SETTINGS, FormTab.QUICK_START];
-        default:
-          return [FormTab.SETTINGS];
-      }
-    }, [clientID, state.clients, state.editedClient]),
+      const tabs = ((): FormTab[] => {
+        switch (client?.x_application_type) {
+          case "m2m":
+            return [
+              FormTab.QUICK_START,
+              FormTab.SETTINGS,
+              FormTab.API_RESOURCES,
+            ];
+          case "spa":
+          case "traditional_webapp":
+          case "native":
+            return [FormTab.SETTINGS, FormTab.QUICK_START];
+          case "confidential":
+            return shouldShowSamlTab(client)
+              ? [FormTab.SETTINGS, FormTab.QUICK_START, FormTab.SAML2]
+              : [FormTab.SETTINGS, FormTab.QUICK_START];
+          default:
+            return [FormTab.SETTINGS];
+        }
+      })();
+      return showExperienceTab(authFlowOptions, client?.x_application_type)
+        ? [...tabs, FormTab.EXPERIENCE]
+        : tabs;
+    }, [clientID, state.clients, state.editedClient, authFlowOptions]),
     undefined,
     "tab"
   );
@@ -996,6 +1122,7 @@ function FormContainerContent({
           samlIdpEntityID={samlIdpEntityID ?? ""}
           samlIdpSigningCertificates={samlIdpSigningCertificates}
           customUIEnabled={customUIEnabled}
+          authFlowOptions={authFlowOptions}
           app2appEnabled={app2appEnabled}
           onGeneratedNewIdpSigningCertificate={refetchAppAndSecretConfig}
           clientSecretHook={clientSecretHook}

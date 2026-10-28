@@ -34,6 +34,7 @@ import {
   DeleteClientSecretConfirmationDialogData,
 } from "../../components/applications/DeleteClientSecretConfirmationDialog";
 import { NativeAppsSettingsCard } from "../../components/applications/NativeAppsSettingsCard";
+import { AuthFlowOptions } from "../../components/applications/AuthFlowAllowlistCard";
 import { nativeAppPlatformsForFramework } from "../../util/nativeApps";
 import { LocationState } from "./EditOAuthClientScreen";
 import { makeValidationErrorCustomMessageIDRule } from "../../error/parse";
@@ -49,12 +50,22 @@ interface EditOAuthClientFormProps {
   className?: string;
   clientConfig: OAuthClientConfig;
   customUIEnabled: boolean;
+  authFlowOptions: AuthFlowOptions | null;
   app2appEnabled: boolean;
   // The index of this client in oauth.clients, for binding server errors.
   clientIndex: number;
   otherClientsNativeApps: OAuthClientNativeAppConfig[];
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   clientSecretHook: ClientSecretsHook;
+}
+
+// The Experience tab, with the sign-up and login pages and the auth flow
+// group, needs the auth flow builder, and an app type that signs users in.
+export function showExperienceTab(
+  authFlowOptions: AuthFlowOptions | null,
+  applicationType: ApplicationType | undefined
+): authFlowOptions is AuthFlowOptions {
+  return authFlowOptions != null && applicationType !== "m2m";
 }
 
 export function getApplicationTypeMessageID(key?: string): string {
@@ -168,6 +179,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       clientConfig,
       publicOrigin,
       customUIEnabled,
+      authFlowOptions,
       app2appEnabled,
       clientIndex,
       otherClientsNativeApps,
@@ -595,6 +607,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [customUIEnabled, customUISupported]
     );
 
+    // With the auth flow builder, the URI is on the Experience tab.
+    const hasExperienceTab = showExperienceTab(
+      authFlowOptions,
+      clientConfig.x_application_type
+    );
+
     const showClientSecret = useMemo(
       () =>
         (
@@ -933,7 +951,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
           </SettingsSectionCard>
         ) : null}
 
-        {showCustomUISettings ? (
+        {showCustomUISettings && !hasExperienceTab ? (
           <SettingsSectionCard
             className={className}
             contentClassName={CONTENT_CLASSNAME}

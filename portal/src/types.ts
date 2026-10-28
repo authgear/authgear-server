@@ -515,6 +515,22 @@ export interface UIConfig {
   default_post_logout_redirect_uri?: string;
   forgot_password?: UIForgotPasswordConfig;
   passkey_upselling_opt_out_enabled?: boolean;
+  authentication_flow?: UIAuthenticationFlowConfig;
+}
+
+// A flow by type and name, as flow groups and allowlists name it.
+export interface AuthenticationFlowReference {
+  type: string;
+  name: string;
+}
+
+export interface UIAuthenticationFlowGroup {
+  name: string;
+  flows?: AuthenticationFlowReference[];
+}
+
+export interface UIAuthenticationFlowConfig {
+  groups?: UIAuthenticationFlowGroup[];
 }
 
 export interface UIForgotPasswordConfig {
@@ -629,6 +645,12 @@ export interface OAuthClientConfig {
   x_native_apps?: OAuthClientNativeAppConfig[];
   x_app2app_enabled?: boolean;
   x_app2app_insecure_device_key_binding_enabled?: boolean;
+  x_authentication_flow_allowlist?: OAuthClientAuthenticationFlowAllowlist;
+}
+
+export interface OAuthClientAuthenticationFlowAllowlist {
+  groups?: { name: string }[];
+  flows?: AuthenticationFlowReference[];
 }
 
 export interface OAuthConfig {
@@ -795,6 +817,8 @@ export interface AuthenticationFlowStepConfig {
 
 export interface AuthenticationFlowConfig {
   name: string;
+  // A label for the portal; flows are referred to by name.
+  display_name?: string;
   steps?: AuthenticationFlowStepConfig[];
 }
 

@@ -21,6 +21,7 @@ function flowsOf(
 export interface FlowRow {
   type: FlowType;
   name: string;
+  displayName?: string;
   // Named default: the flow AuthUI runs when the app names none.
   isDefault: boolean;
   // Generated from Login methods: the type has no custom default.
@@ -55,10 +56,11 @@ function rowsOf(
       generated: true,
     });
   }
-  for (const { name } of customs) {
+  for (const { name, display_name } of customs) {
     rows.push({
       type,
       name,
+      displayName: display_name,
       isDefault: name === DEFAULT_FLOW_NAME,
       generated: false,
     });

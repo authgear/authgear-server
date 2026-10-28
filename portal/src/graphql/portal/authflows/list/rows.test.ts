@@ -65,3 +65,17 @@ describe("flowSections", () => {
     ]);
   });
 });
+
+describe("display names", () => {
+  it("carries a custom flow's display name", () => {
+    const [login] = flowSections(
+      {
+        login_flows: [
+          { name: "staff", display_name: "Staff login", steps: [] },
+        ],
+      },
+      {}
+    );
+    expect(login.rows[0].displayName).toBe("Staff login");
+  });
+});

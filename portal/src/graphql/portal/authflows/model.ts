@@ -67,6 +67,15 @@ export function generatedFlowsConfig(
   };
 }
 
+// The display_name authgear.yaml gives a flow, if any.
+export function displayNameOf(
+  custom: AuthenticationFlowsConfig | undefined,
+  type: FlowType,
+  name: string
+): string | undefined {
+  return flowsOf(custom, type).find((f) => f.name === name)?.display_name;
+}
+
 export type FlowSource = "custom" | "generated";
 
 export interface ResolvedFlow {

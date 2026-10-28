@@ -7,7 +7,7 @@ import {
   IconButton,
   Text,
 } from "@radix-ui/themes";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { DotsHorizontalIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 import { useNavigate, useParams } from "react-router-dom";
 import Link from "../../Link";
 import { Context, FormattedMessage } from "../../intl";
@@ -18,6 +18,8 @@ import { CardTable } from "../../components/v2/CardTable/CardTable";
 import { ConfirmationDialog } from "../../components/v2/ConfirmationDialog/ConfirmationDialog";
 import { Tooltip } from "../../components/v2/Tooltip/Tooltip";
 import { FormContainerBase } from "../../FormContainerBase";
+import { OverflowTabs } from "../../components/v2/OverflowTabs/OverflowTabs";
+import { usePivotNavigation } from "../../hook/usePivot";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import {
   AppConfigFormModel,
@@ -36,23 +38,33 @@ import {
   FlowAction,
   applyFlowAction,
   deleteBlockers,
+  nameError,
 } from "./authflows/list/actions";
 import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
+import { flowDisplayName } from "./authflows/labels";
+import { FlowGroupsSection } from "./authflows/list/FlowGroupsSection";
+import { GroupAction, applyGroupAction } from "./authflows/list/groups";
 import { NewFlowDialog } from "./authflows/list/NewFlowDialog";
-import { flowUses, removeFlowUses, renameNotice } from "./authflows/list/usage";
+import {
+  flowUses,
+  onlyAllowedBy,
+  removeFlowUses,
+  renameNotice,
+} from "./authflows/list/usage";
 import { renameFlow } from "./authflows/edit/save";
 import { removeStoredDraft } from "./authflows/edit/draftStorage";
 import styles from "./AuthFlowsListScreen.module.css";
 
-// The one action being saved; null otherwise.
+// The one action being saved, on a flow or a flow group; null otherwise.
 interface ListState {
   action: FlowAction | null;
+  groupAction: GroupAction | null;
 }
 
 type ListForm = AppConfigFormModel<ListState>;
 
 function constructFormState(): ListState {
-  return { action: null };
+  return { action: null, groupAction: null };
 }
 
 // Applied to authgear.yaml as written, so defaults (rate limits) are not
@@ -62,12 +74,21 @@ function constructConfig(
   _initial: ListState,
   current: ListState
 ): PortalAPIAppConfig {
-  const { action } = current;
+  const { action, groupAction } = current;
+  if (groupAction != null) {
+    return applyGroupAction(raw, groupAction);
+  }
   if (action == null) {
     return raw;
   }
   if (action.kind === "rename") {
-    return renameFlow(raw, action.type, action.name, action.newName);
+    return renameFlow(
+      raw,
+      action.type,
+      action.name,
+      action.newName,
+      action.displayName
+    );
   }
   const next = produce(raw, (d) => {
     d.authentication_flow = applyFlowAction(raw.authentication_flow, action);
@@ -85,6 +106,9 @@ const sectionTitleMessageIDs: Record<SectionKey, string> = {
   signup: "AuthFlowsScreen.list.section.signup",
   login: "AuthFlowsScreen.list.section.login",
 };
+
+const LIST_TABS: ListTab[] = ["flows", "groups"];
+type ListTab = "flows" | "groups";
 
 type Pending = {
   kind: "rename" | "duplicate" | "delete";
@@ -150,6 +174,12 @@ function ListContent({
     [flows, generated]
   );
   const [pending, setPending] = useState<Pending>(null);
+  const { selectedKey: tab, onChangeKey: setTab } = usePivotNavigation<ListTab>(
+    LIST_TABS,
+    undefined,
+    "tab",
+    true
+  );
   // The section whose New flow was clicked: it sets the flow's type.
   const [creating, setCreating] = useState<SectionKey | null>(null);
   const close = useCallback(() => setPending(null), []);
@@ -162,7 +192,7 @@ function ListContent({
       // A failure shows in the error bar, from the form's updateError. The
       // failed action is dropped so the list is not left with unsaved
       // changes it does not have.
-      saveWith(() => ({ action })).then(
+      saveWith(() => ({ action, groupAction: null })).then(
         () => {
           // A draft kept in this browser for a deleted flow is not offered
           // back if the name is used again.
@@ -171,11 +201,20 @@ function ListContent({
           }
         },
         () => {
-          setState(() => ({ action: null }));
+          setState(() => ({ action: null, groupAction: null }));
         }
       );
     },
     [saveWith, setState, appID]
+  );
+  const runGroup = useCallback(
+    (groupAction: GroupAction) => {
+      // As for flows: a failure shows in the error bar, and is dropped.
+      saveWith(() => ({ action: null, groupAction })).catch(() => {
+        setState(() => ({ action: null, groupAction: null }));
+      });
+    },
+    [saveWith, setState]
   );
 
   // Every place that still names the flow: deleting it would leave them
@@ -194,12 +233,22 @@ function ListContent({
     };
   };
   // A hand-off has no safe stand-in, so it blocks deleting; groups and
-  // applications are cleaned up by the delete itself.
+  // applications are cleaned up by the delete itself, except an application
+  // that allows nothing else: emptied, its allowlist would allow every flow.
   const deleteBlockedReason = (row: FlowRow): string | null => {
     const { handoffs } = usesOf(row);
-    return handoffs.length > 0
-      ? renderToString("AuthFlowsScreen.list.delete.blocked", {
-          names: handoffs.join(", "),
+    if (handoffs.length > 0) {
+      return renderToString("AuthFlowsScreen.list.delete.blocked", {
+        names: handoffs.join(", "),
+      });
+    }
+    const onlyApps =
+      form.rawConfig != null
+        ? onlyAllowedBy(form.rawConfig, row.type, row.name)
+        : [];
+    return onlyApps.length > 0
+      ? renderToString("AuthFlowsScreen.list.delete.blocked.only-allowed", {
+          names: onlyApps.join(", "),
         })
       : null;
   };
@@ -240,13 +289,24 @@ function ListContent({
       .filter((t): t is string => t != null)
       .join(" ");
   };
-  const duplicate = (row: FlowRow, newName: string) => {
+  const duplicate = (row: FlowRow, newName: string, displayName: string) => {
     // A generated row duplicates the generated flow.
     const flow = resolveFlow(flows, generated, row.type, row.name)?.flow;
     if (flow != null) {
-      run({ kind: "add", type: row.type, flow: { ...flow, name: newName } });
+      const { display_name: _, ...rest } = flow;
+      run({
+        kind: "add",
+        type: row.type,
+        flow: {
+          ...rest,
+          name: newName,
+          ...(displayName !== "" ? { display_name: displayName } : {}),
+        },
+      });
     }
   };
+  const rowLabel = (row: FlowRow) =>
+    flowDisplayName(row.name, renderToString, row.displayName);
 
   return (
     <div className={styles.root}>
@@ -273,73 +333,119 @@ function ListContent({
           config={form.effectiveConfig}
         />
       ) : null}
+      <OverflowTabs
+        value={tab}
+        onValueChange={(v) => setTab(v as ListTab)}
+        tabs={[
+          {
+            value: "flows",
+            label: renderToString("AuthFlowsScreen.tabs.flows"),
+          },
+          {
+            value: "groups",
+            label: renderToString("AuthFlowsScreen.groups.title"),
+          },
+        ]}
+      />
       <FormErrorMessageBar />
-      <div className={styles.sections}>
-        {sections.map((section) => (
-          <section key={section.key} className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <Heading size="3" as="h2">
-                {renderToString(sectionTitleMessageIDs[section.key])}
-              </Heading>
-              <Button
-                type="button"
-                size="1"
-                variant="soft"
-                onClick={() => setCreating(section.key)}
-              >
-                <FormattedMessage id="AuthFlowsScreen.new.button" />
-              </Button>
-            </div>
-            <CardTable>
-              {section.rows.map((row) => (
-                <CardTable.Row key={`${row.type}/${row.name}`}>
-                  <CardTable.Cell className={styles.colName}>
-                    <span className={styles.nameLine}>
-                      <Link to={flowPath(appID, row.type, row.name)}>
-                        {row.name}
-                      </Link>
-                      {/* A default flow someone changed: Reset brings back
+      {tab === "groups" ? (
+        <FlowGroupsSection
+          appID={appID}
+          config={form.rawConfig}
+          onRun={runGroup}
+        />
+      ) : null}
+      {tab === "flows" ? (
+        <div className={styles.sections}>
+          {sections.map((section) => (
+            <section key={section.key} className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <Heading size="3" as="h2">
+                  {renderToString(sectionTitleMessageIDs[section.key])}
+                </Heading>
+                <Button
+                  type="button"
+                  size="1"
+                  variant="soft"
+                  onClick={() => setCreating(section.key)}
+                >
+                  <FormattedMessage id="AuthFlowsScreen.new.button" />
+                </Button>
+              </div>
+              <CardTable>
+                <CardTable.Header>
+                  <CardTable.HeaderCell className={styles.colName}>
+                    {renderToString("AuthFlowsScreen.list.column.display-name")}
+                  </CardTable.HeaderCell>
+                  <CardTable.HeaderCell className={styles.colFlowName}>
+                    <Tooltip
+                      content={renderToString(
+                        "AuthFlowsScreen.list.flow-name.hint"
+                      )}
+                    >
+                      <span className={styles.headerHint}>
+                        {renderToString("AuthFlowsScreen.list.flow-name")}
+                        <InfoCircledIcon aria-hidden={true} />
+                      </span>
+                    </Tooltip>
+                  </CardTable.HeaderCell>
+                  <CardTable.HeaderCell className={styles.colActions} />
+                </CardTable.Header>
+                {section.rows.map((row) => (
+                  <CardTable.Row key={`${row.type}/${row.name}`}>
+                    <CardTable.Cell className={styles.colName}>
+                      <span className={styles.nameLine}>
+                        <Link to={flowPath(appID, row.type, row.name)}>
+                          {rowLabel(row)}
+                        </Link>
+                        {/* A default flow someone changed: Reset brings back
                           the one built from Login methods. */}
-                      {row.isDefault && !row.generated ? (
-                        <Tooltip
-                          content={renderToString(
-                            "AuthFlowsScreen.list.edited.tooltip"
-                          )}
-                        >
-                          <span>
-                            <Badge
-                              size="1"
-                              variant="neutral"
-                              text={renderToString(
-                                "AuthFlowsScreen.list.edited"
-                              )}
-                            />
-                          </span>
-                        </Tooltip>
+                        {row.isDefault && !row.generated ? (
+                          <Tooltip
+                            content={renderToString(
+                              "AuthFlowsScreen.list.edited.tooltip"
+                            )}
+                          >
+                            <span>
+                              <Badge
+                                size="1"
+                                variant="neutral"
+                                text={renderToString(
+                                  "AuthFlowsScreen.list.edited"
+                                )}
+                              />
+                            </span>
+                          </Tooltip>
+                        ) : null}
+                      </span>
+                      {usedByLine(row) != null ? (
+                        <Text size="1" color="gray">
+                          {usedByLine(row)}
+                        </Text>
                       ) : null}
-                    </span>
-                    {usedByLine(row) != null ? (
-                      <Text size="1" color="gray">
-                        {usedByLine(row)}
+                    </CardTable.Cell>
+                    <CardTable.Cell className={styles.colFlowName}>
+                      <Text size="2" color="gray">
+                        <code>{row.name}</code>
                       </Text>
-                    ) : null}
-                  </CardTable.Cell>
-                  <CardTable.Cell className={styles.colActions}>
-                    <RowMenu
-                      row={row}
-                      deleteBlockedReason={deleteBlockedReason(row)}
-                      onOpen={() => {
-                        navigate(flowPath(appID, row.type, row.name));
-                      }}
-                      onAction={(kind) => setPending({ kind, row })}
-                    />
-                  </CardTable.Cell>
-                </CardTable.Row>
-              ))}
-            </CardTable>
-          </section>
-        ))}
-      </div>
+                    </CardTable.Cell>
+                    <CardTable.Cell className={styles.colActions}>
+                      <RowMenu
+                        row={row}
+                        deleteBlockedReason={deleteBlockedReason(row)}
+                        onOpen={() => {
+                          navigate(flowPath(appID, row.type, row.name));
+                        }}
+                        onAction={(kind) => setPending({ kind, row })}
+                      />
+                    </CardTable.Cell>
+                  </CardTable.Row>
+                ))}
+              </CardTable>
+            </section>
+          ))}
+        </div>
+      ) : null}
       {pending?.kind === "rename" || pending?.kind === "duplicate" ? (
         <FlowNameDialog
           open={true}
@@ -347,20 +453,31 @@ function ListContent({
             pending.kind === "rename"
               ? "AuthFlowsScreen.list.rename.title"
               : "AuthFlowsScreen.list.duplicate.title",
-            { name: pending.row.name }
+            { name: rowLabel(pending.row) }
           )}
           confirmText={renderToString(
             pending.kind === "rename"
               ? "AuthFlowsScreen.list.rename"
               : "AuthFlowsScreen.list.duplicate"
           )}
-          type={pending.row.type}
           initialName={
             pending.kind === "rename"
               ? pending.row.name
               : `${pending.row.name}_copy`
           }
-          flows={flows}
+          initialDisplayName={
+            pending.kind === "rename"
+              ? pending.row.displayName ?? ""
+              : renderToString("AuthFlowsScreen.list.duplicate.display-name", {
+                  name: rowLabel(pending.row),
+                })
+          }
+          // Renaming may keep the name and change only the display name.
+          validate={(n) =>
+            pending.kind === "rename" && n === pending.row.name
+              ? null
+              : nameError(flows, pending.row.type, n)
+          }
           notice={
             pending.kind === "rename"
               ? renameNotice(
@@ -371,7 +488,7 @@ function ListContent({
                 )
               : null
           }
-          onSubmit={(newName) => {
+          onSubmit={(newName, displayName) => {
             const { row } = pending;
             if (pending.kind === "rename") {
               run({
@@ -379,9 +496,10 @@ function ListContent({
                 type: row.type,
                 name: row.name,
                 newName,
+                displayName,
               });
             } else {
-              duplicate(row, newName);
+              duplicate(row, newName, displayName);
             }
           }}
           onCancel={close}
@@ -403,7 +521,9 @@ function ListContent({
                 ? "AuthFlowsScreen.reset.title"
                 : "AuthFlowsScreen.list.delete.title"
             }
-            values={{ name: pending?.row.name ?? "" }}
+            values={{
+              name: pending != null ? rowLabel(pending.row) : "",
+            }}
           />
         }
         description={

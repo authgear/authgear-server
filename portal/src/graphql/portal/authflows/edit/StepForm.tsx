@@ -91,6 +91,8 @@ export interface StepFormProps {
   knownPointers: readonly string[];
   loginFlowNames: string[];
   signupFlowNames: string[];
+  // A flow's label, for the hand-off pickers.
+  flowLabel: (type: FlowType, name: string) => string;
   // Removes an option, after confirming when steps are nested under it.
   requestRemoveOption: (stepID: string, index: number) => void;
   // Why the option cannot be removed, as rendered text; null when it can.
@@ -324,10 +326,12 @@ function TargetStepSelect({
 function FlowNameSelect({
   names,
   value,
+  labelOf,
   onChange,
 }: {
   names: string[];
   value: string | undefined;
+  labelOf: (name: string) => string;
   onChange: (name: string) => void;
 }) {
   const all =
@@ -338,7 +342,7 @@ function FlowNameSelect({
       <Select.Content>
         {all.map((n) => (
           <Select.Item key={n} value={n}>
-            {n}
+            {labelOf(n)}
           </Select.Item>
         ))}
       </Select.Content>
@@ -512,6 +516,7 @@ function OptionsField(props: StepFormProps) {
           <FlowNameSelect
             names={props.loginFlowNames}
             value={o.login_flow}
+            labelOf={(n) => props.flowLabel("login", n)}
             onChange={(v) =>
               updateOption(j, (d) => {
                 d.login_flow = v;
@@ -527,6 +532,7 @@ function OptionsField(props: StepFormProps) {
           <FlowNameSelect
             names={props.signupFlowNames}
             value={o.signup_flow}
+            labelOf={(n) => props.flowLabel("signup", n)}
             onChange={(v) =>
               updateOption(j, (d) => {
                 d.signup_flow = v;

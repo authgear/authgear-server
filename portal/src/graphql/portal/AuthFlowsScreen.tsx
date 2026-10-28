@@ -44,14 +44,20 @@ import {
   isFlowType,
   listFlowNames,
   DEFAULT_FLOW_NAME,
+  displayNameOf,
   resolveFlow,
 } from "./authflows/model";
 import { NewFlows } from "./authflows/list/starters";
 import { FlowNameDialog } from "./authflows/list/FlowNameDialog";
+import { nameError } from "./authflows/list/actions";
 import { renameNotice } from "./authflows/list/usage";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useLeavePageWarning } from "../../hook/useLeavePageWarning";
-import { flowTypeMessageIDs, optionLabel } from "./authflows/labels";
+import {
+  flowDisplayName,
+  flowTypeMessageIDs,
+  optionLabel,
+} from "./authflows/labels";
 import { formFieldLabel } from "./authflows/sketches";
 import { FlowCanvas } from "./authflows/FlowCanvas";
 import { FlowStepItem, flowToTree } from "./authflows/tree";
@@ -120,7 +126,13 @@ function constructConfig(
   const next = removeFlows(replaceFlows(raw, current.drafts), current.removals);
   const { rename } = current;
   return rename != null
-    ? renameFlow(next, rename.type, rename.name, rename.newName)
+    ? renameFlow(
+        next,
+        rename.type,
+        rename.name,
+        rename.newName,
+        rename.displayName
+      )
     : next;
 }
 
@@ -695,7 +707,7 @@ function AuthFlowsContent({
   // page; until then the old page would find no flow.
   const [renaming, setRenaming] = useState<"dialog" | "saving" | null>(null);
   const onRename = useCallback(
-    (newName: string) => {
+    (newName: string, displayName: string) => {
       if (routeType == null) {
         return;
       }
@@ -706,7 +718,7 @@ function AuthFlowsContent({
             () => ({
               drafts: [],
               removals: [],
-              rename: { type: routeType, name, newName },
+              rename: { type: routeType, name, newName, displayName },
             }),
             ignoreConflict
           );
@@ -721,6 +733,13 @@ function AuthFlowsContent({
       });
     },
     [attemptSave, saveWith, setState, navigate, appID, routeType, name]
+  );
+  const titleLabel = flowDisplayName(
+    name,
+    renderToString,
+    routeType != null
+      ? displayNameOf(form.rawConfig?.authentication_flow, routeType, name)
+      : undefined
   );
   // The default flow keeps its name: AuthUI runs it by that name. A rename
   // saves straight away, so it waits for pending edits to be settled.
@@ -769,8 +788,15 @@ function AuthFlowsContent({
         </Link>
         <Flex gap="3" align="center" wrap="wrap" className={styles.toolbar}>
           <Heading size="6" as="h1">
-            {name}
+            {titleLabel}
           </Heading>
+          {/* The name authgear.yaml and the Authflow API use, when the
+              title shows another. */}
+          {titleLabel !== name ? (
+            <Text size="2" color="gray">
+              <code>{name}</code>
+            </Text>
+          ) : null}
           {resolved != null ? (
             <Tooltip
               content={
@@ -963,6 +989,12 @@ function AuthFlowsContent({
                     knownPointers: knownPointers(appConfig),
                     loginFlowNames: listFlowNames(custom, "login"),
                     signupFlowNames: listFlowNames(custom, "signup"),
+                    flowLabel: (t, n) =>
+                      flowDisplayName(
+                        n,
+                        renderToString,
+                        displayNameOf(custom, t, n)
+                      ),
                     requestRemoveOption,
                     removeOptionBlockedReason:
                       editorValue.removeOptionBlockedReason,
@@ -979,11 +1011,24 @@ function AuthFlowsContent({
       {renaming === "dialog" && routeType != null ? (
         <FlowNameDialog
           open={true}
-          title={renderToString("AuthFlowsScreen.list.rename.title", { name })}
+          title={renderToString("AuthFlowsScreen.list.rename.title", {
+            name: titleLabel,
+          })}
           confirmText={renderToString("AuthFlowsScreen.list.rename")}
-          type={routeType}
           initialName={name}
-          flows={form.rawConfig?.authentication_flow}
+          initialDisplayName={
+            displayNameOf(
+              form.rawConfig?.authentication_flow,
+              routeType,
+              name
+            ) ?? ""
+          }
+          // Keeping the name and changing only the display name is fine.
+          validate={(n) =>
+            n === name
+              ? null
+              : nameError(form.rawConfig?.authentication_flow, routeType, n)
+          }
           notice={renameNotice(renderToString, form.rawConfig, routeType, name)}
           onSubmit={onRename}
           onCancel={() => setRenaming(null)}
@@ -999,7 +1044,7 @@ function AuthFlowsContent({
         title={
           <FormattedMessage
             id="AuthFlowsScreen.reset.title"
-            values={{ name }}
+            values={{ name: titleLabel }}
           />
         }
         description={

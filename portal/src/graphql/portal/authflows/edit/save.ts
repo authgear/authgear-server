@@ -24,7 +24,12 @@ export interface EditorState {
   // Flows to remove on save: an edited default reset to the generated one.
   removals: { type: FlowType; name: string }[];
   // A flow to rename on save.
-  rename?: { type: FlowType; name: string; newName: string };
+  rename?: {
+    type: FlowType;
+    name: string;
+    newName: string;
+    displayName?: string;
+  };
 }
 
 function flowList(
@@ -101,7 +106,9 @@ export function renameFlow(
   raw: PortalAPIAppConfig,
   type: FlowType,
   name: string,
-  newName: string
+  newName: string,
+  // Set with the name; empty removes it, undefined leaves it.
+  displayName?: string
 ): PortalAPIAppConfig {
   const next = produce(raw, (d) => {
     d.authentication_flow = applyFlowAction(raw.authentication_flow, {
@@ -109,9 +116,10 @@ export function renameFlow(
       type,
       name,
       newName,
+      displayName,
     });
   });
-  return renameFlowUses(next, type, name, newName);
+  return newName === name ? next : renameFlowUses(next, type, name, newName);
 }
 
 // Where the flow is, or will be once appended, in the config: the prefix of
