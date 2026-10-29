@@ -1,8 +1,9 @@
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { CheckboxCards, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "./intl";
 import { TextField } from "./components/v2/TextField/TextField";
-import { checkIntegerInput } from "./util/input";
+import { checkNonNegativeIntegerInput } from "./util/input";
+import { makeValidationErrorCustomMessageIDRule } from "./error/parse";
 import {
   ALLOWED_CHARACTERS,
   AllowedCharacter,
@@ -99,12 +100,26 @@ export function StringConstraintsFields({
   parentJSONPointer,
 }: StringConstraintsFieldsProps): React.ReactElement {
   const { renderToString } = useContext(Context);
+  // The server's error for a regex it can't compile is a format error; say
+  // so here only, so other format errors keep their wording.
+  const patternErrorRules = useMemo(
+    () => [
+      makeValidationErrorCustomMessageIDRule(
+        "format",
+        /\/pattern$/,
+        "StringConstraintsFields.pattern.invalid"
+      ),
+    ],
+    []
+  );
   const set = (patch: Partial<StringConstraintsDraft>) =>
     onChange({ ...draft, ...patch });
   const onLength =
     (key: "minLength" | "maxLength") =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (checkIntegerInput(e.target.value)) {
+      // A length is never negative, so "-" is refused rather than kept
+      // and then saved as no limit.
+      if (checkNonNegativeIntegerInput(e.target.value)) {
         set({ [key]: e.target.value });
       }
     };
@@ -182,6 +197,7 @@ export function StringConstraintsFields({
           onChange={(e) => set({ pattern: e.target.value })}
           parentJSONPointer={parentJSONPointer}
           fieldName="pattern"
+          errorRules={patternErrorRules}
           inputClassName={styles.code}
           placeholder={renderToString(
             "StringConstraintsFields.pattern.placeholder"
