@@ -8,7 +8,7 @@ import {
   scratchMissing,
   starterFlows,
   starterMissing,
-  stepSummary,
+  NewFlows,
 } from "./starters";
 
 const config: PortalAPIAppConfig = {
@@ -96,21 +96,53 @@ describe("scratchFlows", () => {
   });
 });
 
+const withPhone: PortalAPIAppConfig = {
+  identity: { login_id: { keys: [{ type: "email" }, { type: "phone" }] } },
+  authentication: {
+    identities: ["login_id", "oauth"],
+    primary_authenticators: ["password", "oob_otp_email", "oob_otp_sms"],
+    secondary_authenticators: ["totp"],
+  },
+} as PortalAPIAppConfig;
+
+const none = { identifications: [], primary: [], secondary: [] };
+
 describe("starterMissing", () => {
   it("names what the project lacks", () => {
     const m = projectMethods(config);
-    expect(starterMissing("email_password", m)).toEqual([]);
-    expect(starterMissing("phone_code", m)).toEqual([
+    expect(starterMissing("current", m)).toEqual([]);
+    expect(starterMissing("otp", m)).toEqual([]);
+    expect(starterMissing("password", m)).toEqual([]);
+    expect(starterMissing("social", m)).toEqual([]);
+    expect(starterMissing("password_2fa", m)).toEqual([]);
+    expect(starterMissing("verified_email_phone", m)).toEqual([
       "phone_login",
       "sms_code",
     ]);
-    expect(starterMissing("current", m)).toEqual([]);
+  });
+
+  it("asks for any one of the methods a template can use", () => {
+    expect(starterMissing("otp", none)).toEqual(["otp_login"]);
+    expect(starterMissing("password", none)).toEqual([
+      "email_or_phone",
+      "password",
+    ]);
+    expect(starterMissing("social", none)).toEqual(["social"]);
   });
 });
 
+const steps = (flows: NewFlows, type: string) =>
+  flows.find((f) => f.type === type)?.flow.steps ?? [];
+
 describe("starterFlows", () => {
   it("copies the generated flow under the new name, hand-offs unchanged", () => {
-    const out = starterFlows("current", "signup_login", "members", generated);
+    const out = starterFlows(
+      "current",
+      "signup_login",
+      "members",
+      generated,
+      projectMethods(config)
+    );
     expect(out.map((f) => [f.type, f.flow.name])).toEqual([
       ["signup_login", "members"],
     ]);
@@ -120,19 +152,83 @@ describe("starterFlows", () => {
     });
   });
 
+  it("offers OTP codes for the login IDs that have them", () => {
+    const login = steps(
+      starterFlows("otp", "login", "x", generated, projectMethods(withPhone)),
+      "login"
+    );
+    expect(login[0].one_of?.map((o) => o.identification)).toEqual([
+      "email",
+      "phone",
+    ]);
+    expect(login[0].one_of?.[1].steps?.[0].one_of).toEqual([
+      { authentication: "primary_oob_otp_sms", target_step: "identify" },
+    ]);
+  });
+
+  it("logs in with a password, or an OTP code when the project has it", () => {
+    const login = steps(
+      starterFlows("password", "login", "x", generated, projectMethods(config)),
+      "login"
+    );
+    expect(login[0].one_of?.[0].steps?.[0].one_of).toEqual([
+      { authentication: "primary_password" },
+      { authentication: "primary_oob_otp_email", target_step: "identify" },
+    ]);
+  });
+
+  it("verifies both email and phone at signup", () => {
+    const signup = steps(
+      starterFlows(
+        "verified_email_phone",
+        "signup",
+        "x",
+        generated,
+        projectMethods(withPhone)
+      ),
+      "signup"
+    );
+    expect(signup.map((s) => [s.type, s.one_of?.[0].identification])).toEqual([
+      ["identify", "email"],
+      ["identify", "phone"],
+    ]);
+  });
+
+  it("makes a signup & login template's signup and login flows too", () => {
+    const out = starterFlows(
+      "password",
+      "signup_login",
+      "members",
+      generated,
+      projectMethods(config)
+    );
+    expect(out.map((f) => [f.type, f.flow.name])).toEqual([
+      ["signup_login", "members"],
+      ["signup", "members"],
+      ["login", "members"],
+    ]);
+    expect(out[0].flow.steps?.[0].one_of?.[0]).toMatchObject({
+      identification: "email",
+      login_flow: "members",
+      signup_flow: "members",
+    });
+  });
+
   it("uses only step types the editor allows", () => {
+    const m = projectMethods(withPhone);
     for (const id of STARTER_IDS.filter((x) => x !== "current")) {
       for (const type of ["signup_login", "signup", "login"] as const) {
         for (const { type: t, flow } of starterFlows(
           id,
           type,
           "x",
-          generated
+          generated,
+          m
         )) {
-          const walk = (steps: typeof flow.steps): string[] =>
-            (steps ?? []).flatMap((s) => [
-              s.type,
-              ...(s.one_of ?? []).flatMap((o) => walk(o.steps)),
+          const walk = (s: typeof flow.steps): string[] =>
+            (s ?? []).flatMap((x) => [
+              x.type,
+              ...(x.one_of ?? []).flatMap((o) => walk(o.steps)),
             ]);
           for (const stepType of walk(flow.steps)) {
             expect(allowedStepTypes(t)).toContain(stepType);
@@ -140,17 +236,6 @@ describe("starterFlows", () => {
         }
       }
     }
-  });
-});
-
-describe("stepSummary", () => {
-  it("follows the first option of each choice", () => {
-    const [signup] = starterFlows("email_password", "signup", "x", generated);
-    expect(stepSummary(signup.flow)).toEqual([
-      "identify",
-      "verify",
-      "create_authenticator",
-    ]);
   });
 });
 

@@ -1,5 +1,13 @@
 import React, { useContext, useMemo, useState } from "react";
-import { Button, Dialog, RadioCards, Text, TextField } from "@radix-ui/themes";
+import cn from "classnames";
+import {
+  Button,
+  Dialog,
+  RadioCards,
+  RadioGroup,
+  Text,
+  TextField,
+} from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
 import Link from "../../../../Link";
 import { Context } from "../../../../intl";
@@ -8,8 +16,21 @@ import {
   PortalAPIAppConfig,
 } from "../../../../types";
 import { SecondaryButton } from "../../../../components/v2/Button/SecondaryButton/SecondaryButton";
+import {
+  ChatBubbleIcon,
+  CheckCircledIcon,
+  CopyIcon,
+  EnvelopeClosedIcon,
+  GlobeIcon,
+  IdCardIcon,
+  LayoutIcon,
+  LockClosedIcon,
+  MobileIcon,
+  PlusIcon,
+  TimerIcon,
+  UploadIcon,
+} from "@radix-ui/react-icons";
 import { flowPath } from "../model";
-import { stepTitle } from "../labels";
 import { CreatableType } from "./rows";
 import { apiNameFrom, freeName, nameError } from "./actions";
 import {
@@ -22,7 +43,9 @@ import {
   scratchMissing,
   starterFlows,
   starterMissing,
-  stepSummary,
+  STARTER_STRIPS,
+  Strip,
+  StripItem,
 } from "./starters";
 import { DISPLAY_NAME_MAX, nameErrorMessageIDs } from "./FlowNameDialog";
 import styles from "./NewFlowDialog.module.css";
@@ -36,10 +59,12 @@ interface Choice<T extends string> {
   title: string;
   subtitle?: string;
   disabled?: boolean;
+  // A tile on the left of the card.
+  icon?: React.ReactNode;
 }
 
-// One full-width card per choice, text left-aligned, so the steps read as a
-// list rather than a grid of tiles.
+// One full-width card per choice, text left-aligned, so the choices read as
+// a list.
 function ChoiceCards<T extends string>({
   choices,
   value,
@@ -58,21 +83,113 @@ function ChoiceCards<T extends string>({
     >
       {choices.map((c) => (
         <RadioCards.Item key={c.value} value={c.value} disabled={c.disabled}>
-          <div className={styles.choice}>
-            <Text size="2" weight="medium">
-              {c.title}
-            </Text>
-            {c.subtitle != null ? (
-              <Text size="2" color="gray">
-                {c.subtitle}
-              </Text>
+          <div className={styles.choiceRow}>
+            {c.icon != null ? (
+              <span className={styles.choiceIcon} aria-hidden={true}>
+                {c.icon}
+              </span>
             ) : null}
+            <div className={styles.choice}>
+              <Text size="2" weight="medium">
+                {c.title}
+              </Text>
+              {c.subtitle != null ? (
+                <Text size="2" color="gray">
+                  {c.subtitle}
+                </Text>
+              ) : null}
+            </div>
           </div>
         </RadioCards.Item>
       ))}
     </RadioCards.Root>
   );
 }
+
+const startIcons: Record<Start, React.ReactNode> = {
+  current: <CopyIcon width={18} height={18} />,
+  scratch: <PlusIcon width={18} height={18} />,
+  template: <LayoutIcon width={18} height={18} />,
+  import: <UploadIcon width={18} height={18} />,
+};
+
+const stripIcons: Record<StripItem, React.ReactNode> = {
+  email: <EnvelopeClosedIcon />,
+  phone: <MobileIcon />,
+  email_or_phone: <IdCardIcon />,
+  otp: <ChatBubbleIcon />,
+  verify: <CheckCircledIcon />,
+  password: <LockClosedIcon />,
+  social: <GlobeIcon />,
+  authenticator: <TimerIcon />,
+};
+
+const stripMessageIDs: Record<StripItem, string> = {
+  email: "AuthFlowsScreen.new.strip.email",
+  phone: "AuthFlowsScreen.new.strip.phone",
+  email_or_phone: "AuthFlowsScreen.new.strip.email_or_phone",
+  otp: "AuthFlowsScreen.new.strip.otp",
+  verify: "AuthFlowsScreen.new.strip.verify",
+  password: "AuthFlowsScreen.new.strip.password",
+  social: "AuthFlowsScreen.new.strip.social",
+  authenticator: "AuthFlowsScreen.new.strip.authenticator",
+};
+
+// A flow's steps, top to bottom: an icon, then what the user does, with
+// alternatives joined by "or".
+function StepList({
+  title,
+  strip,
+}: {
+  title: string;
+  strip: Strip;
+}): React.ReactElement {
+  const { renderToString } = useContext(Context);
+  return (
+    <div className={styles.stepList}>
+      <Text
+        size="1"
+        weight="medium"
+        color="gray"
+        className={styles.stepListTitle}
+      >
+        {title}
+      </Text>
+      <ol className={styles.steps}>
+        {strip.map((choices, i) => (
+          <li key={i} className={styles.stepItem}>
+            <span className={styles.stepIcon} aria-hidden={true}>
+              {stripIcons[choices[0]]}
+            </span>
+            <Text size="2">
+              {choices
+                .map((item) => renderToString(stripMessageIDs[item]))
+                .join(` ${renderToString("AuthFlowsScreen.new.strip.or")} `)}
+            </Text>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+const starterIcons: Record<TemplateID, React.ReactNode> = {
+  otp: <ChatBubbleIcon width={16} height={16} />,
+  password: <LockClosedIcon width={16} height={16} />,
+  verified_email_phone: <CheckCircledIcon width={16} height={16} />,
+  social: <GlobeIcon width={16} height={16} />,
+  password_2fa: <TimerIcon width={16} height={16} />,
+};
+
+const starterDescriptionMessageIDs: Record<TemplateID, string> = {
+  otp: "AuthFlowsScreen.new.starter.otp.description",
+  password: "AuthFlowsScreen.new.starter.password.description",
+  verified_email_phone:
+    "AuthFlowsScreen.new.starter.verified_email_phone.description",
+  social: "AuthFlowsScreen.new.starter.social.description",
+  password_2fa: "AuthFlowsScreen.new.starter.password_2fa.description",
+};
+
 type Step = "start" | "template" | "name";
 
 // The section's New flow button picks the type.
@@ -97,18 +214,22 @@ const startDescriptionMessageIDs: Record<Start, string> = {
 };
 
 const starterMessageIDs: Record<TemplateID, string> = {
-  email_password: "AuthFlowsScreen.new.starter.email_password",
-  email_code: "AuthFlowsScreen.new.starter.email_code",
-  phone_code: "AuthFlowsScreen.new.starter.phone_code",
-  email_password_2fa: "AuthFlowsScreen.new.starter.email_password_2fa",
+  otp: "AuthFlowsScreen.new.starter.otp",
+  password: "AuthFlowsScreen.new.starter.password",
+  verified_email_phone: "AuthFlowsScreen.new.starter.verified_email_phone",
+  social: "AuthFlowsScreen.new.starter.social",
+  password_2fa: "AuthFlowsScreen.new.starter.password_2fa",
 };
 
 const missingMessageIDs: Record<MissingMethod, string> = {
   email_login: "AuthFlowsScreen.new.missing.email_login",
   phone_login: "AuthFlowsScreen.new.missing.phone_login",
+  email_or_phone: "AuthFlowsScreen.new.missing.email_or_phone",
+  otp_login: "AuthFlowsScreen.new.missing.otp_login",
   password: "AuthFlowsScreen.new.missing.password",
   email_code: "AuthFlowsScreen.new.missing.email_code",
   sms_code: "AuthFlowsScreen.new.missing.sms_code",
+  social: "AuthFlowsScreen.new.missing.social",
   totp: "AuthFlowsScreen.new.missing.totp",
 };
 
@@ -139,16 +260,34 @@ export function NewFlowDialog({
   const methods = useMemo(() => projectMethods(config), [config]);
   const [step, setStep] = useState<Step>("start");
   const [start, setStart] = useState<Start>("current");
-  const [starter, setStarter] = useState<TemplateID>("email_password");
+  const [starter, setStarter] = useState<TemplateID>("otp");
   const [displayName, setDisplayName] = useState("");
   // The name follows the display name until it is typed in.
   const [typedName, setTypedName] = useState<string | null>(null);
   const [fallbackName, setFallbackName] = useState("");
   const name = typedName ?? (apiNameFrom(displayName) || fallbackName);
 
-  const error = nameError(flows, type, name);
+  // A signup & login template also makes signup and login flows of the
+  // same name, so the name must be free for those too.
+  const makesAll = type === "signup_login" && start === "template";
+  const error =
+    nameError(flows, type, name) ??
+    (makesAll
+      ? nameError(flows, "signup", name) ?? nameError(flows, "login", name)
+      : null);
   const displayNameTooLong = displayName.trim().length > DISPLAY_NAME_MAX;
 
+  const templateIDs = STARTER_IDS.filter(
+    (id): id is TemplateID => id !== "current"
+  );
+  const missingOf = (id: TemplateID) => starterMissing(id, methods);
+  const toTemplates = () => {
+    const first = templateIDs.find((id) => missingOf(id).length === 0);
+    if (first != null) {
+      setStarter(first);
+    }
+    setStep("template");
+  };
   const toName = () => {
     setFallbackName(freeName(flows, type, type));
     setStep("name");
@@ -159,9 +298,9 @@ export function NewFlowDialog({
     }
     const made: NewFlows =
       start === "current"
-        ? starterFlows("current", type, name, generated)
+        ? starterFlows("current", type, name, generated, methods)
         : start === "template"
-        ? starterFlows(starter, type, name, generated)
+        ? starterFlows(starter, type, name, generated, methods)
         : scratchFlows(type, name, methods);
     const label = displayName.trim();
     // The flow being made gets the display name; flows made with it keep
@@ -185,29 +324,10 @@ export function NewFlowDialog({
         ? renderToString("AuthFlowsScreen.new.start.scratch.missing")
         : renderToString(startDescriptionMessageIDs[s]),
     disabled: s === "import" || (s === "scratch" && scratchMissing(methods)),
+    icon: startIcons[s],
   }));
-  const templateIDs = STARTER_IDS.filter(
-    (id): id is TemplateID => id !== "current"
-  );
-  const starterOptions: Choice<TemplateID>[] = templateIDs.map((id) => {
-    const missing = starterMissing(id, methods);
-    // A template always makes exactly one flow.
-    const [{ flow }] = starterFlows(id, type, "preview", generated);
-    return {
-      value: id,
-      title: renderToString(starterMessageIDs[id]),
-      subtitle:
-        missing.length > 0
-          ? missing.map((m) => renderToString(missingMessageIDs[m])).join(" ")
-          : stepSummary(flow)
-              .map((t) => stepTitle(t, renderToString))
-              .join(" → "),
-      disabled: missing.length > 0,
-    };
-  });
-  const anyMissing = templateIDs.some(
-    (id) => starterMissing(id, methods).length > 0
-  );
+  const selectedMissing = missingOf(starter);
+  const strips = STARTER_STRIPS[starter];
 
   const back: Partial<Record<Step, Step>> = {
     template: "start",
@@ -226,7 +346,10 @@ export function NewFlowDialog({
         }
       }}
     >
-      <Dialog.Content maxWidth="560px" size="3">
+      <Dialog.Content
+        maxWidth={step === "template" ? "760px" : "560px"}
+        size="3"
+      >
         <Dialog.Title>{renderToString(titleMessageIDs[type])}</Dialog.Title>
         {step === "start" ? (
           <ChoiceCards
@@ -236,25 +359,84 @@ export function NewFlowDialog({
           />
         ) : null}
         {step === "template" ? (
-          <>
-            <ChoiceCards
-              choices={starterOptions}
+          <div className={styles.picker}>
+            <RadioGroup.Root
+              className={styles.templateList}
               value={starter}
-              onValueChange={setStarter}
-            />
-            {anyMissing ? (
-              <Text as="p" size="1" color="gray" className={styles.note}>
-                {renderToString("AuthFlowsScreen.new.missing.note")}{" "}
-                <Link
-                  to={`/project/${encodeURIComponent(
-                    appID
-                  )}/configuration/authentication/login-methods`}
-                >
-                  {renderToString("AuthFlowsScreen.new.missing.link")}
-                </Link>
-              </Text>
-            ) : null}
-          </>
+              onValueChange={(v) => setStarter(v as TemplateID)}
+            >
+              {templateIDs.map((id) => {
+                const missing = missingOf(id).length > 0;
+                return (
+                  <label
+                    key={id}
+                    className={cn(
+                      styles.templateItem,
+                      id === starter ? styles.templateItemSelected : null,
+                      missing ? styles.templateItemMissing : null
+                    )}
+                  >
+                    <RadioGroup.Item value={id} className={styles.srOnly} />
+                    <span className={styles.templateIcon} aria-hidden={true}>
+                      {starterIcons[id]}
+                    </span>
+                    <span className={styles.choice}>
+                      <Text size="2" weight="medium">
+                        {renderToString(starterMessageIDs[id])}
+                      </Text>
+                      <Text size="1" color="gray">
+                        {missing
+                          ? renderToString("AuthFlowsScreen.new.unavailable")
+                          : renderToString(starterDescriptionMessageIDs[id])}
+                      </Text>
+                    </span>
+                  </label>
+                );
+              })}
+            </RadioGroup.Root>
+            <div className={styles.preview}>
+              {selectedMissing.length > 0 ? (
+                <div className={styles.previewMissing}>
+                  <Text size="2" weight="medium">
+                    {renderToString("AuthFlowsScreen.new.missing.title")}
+                  </Text>
+                  <ul className={styles.missingList}>
+                    {selectedMissing.map((m) => (
+                      <li key={m}>
+                        <Text size="2" color="gray">
+                          {renderToString(missingMessageIDs[m])}
+                        </Text>
+                      </li>
+                    ))}
+                  </ul>
+                  <Text size="2">
+                    <Link
+                      to={`/project/${encodeURIComponent(
+                        appID
+                      )}/configuration/authentication/login-methods`}
+                    >
+                      {renderToString("AuthFlowsScreen.new.missing.link")}
+                    </Link>
+                  </Text>
+                </div>
+              ) : (
+                <div className={styles.previewSteps}>
+                  {type !== "login" ? (
+                    <StepList
+                      title={renderToString("AuthFlowsScreen.new.strip.signup")}
+                      strip={strips.signup}
+                    />
+                  ) : null}
+                  {type !== "signup" ? (
+                    <StepList
+                      title={renderToString("AuthFlowsScreen.new.strip.login")}
+                      strip={strips.login}
+                    />
+                  ) : null}
+                </div>
+              )}
+            </div>
+          </div>
         ) : null}
         {step === "name" ? (
           <form
@@ -313,9 +495,7 @@ export function NewFlowDialog({
           {step === "start" ? (
             <Button
               size="2"
-              onClick={() =>
-                start === "template" ? setStep("template") : toName()
-              }
+              onClick={() => (start === "template" ? toTemplates() : toName())}
             >
               {renderToString("AuthFlowsScreen.new.next")}
             </Button>
