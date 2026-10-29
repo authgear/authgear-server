@@ -27,8 +27,27 @@ import UserProfileAttributesList, {
 import {
   PortalAPIAppConfig,
   StandardAttributesAccessControlConfig,
+  StandardAttributesValidationConfig,
   UserProfileAttributesAccessControl,
 } from "../../types";
+import {
+  TranslationValuesForm,
+  combineForms,
+  useTranslationValuesForm,
+} from "../../hook/useTranslationValuesForm";
+import {
+  AllowedCharacter,
+  StringConstraints,
+  SummaryPart,
+  applyValidationUpdates,
+  patternErrorKey,
+  summaryParts,
+} from "../../util/stringConstraints";
+import {
+  StandardAttributeValidationDialog,
+  ValidationUpdate,
+  validationPointersOf,
+} from "./StandardAttributeValidationDialog";
 import { parseJSONPointer } from "../../util/jsonpointer";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
@@ -74,11 +93,77 @@ function isDisabled(
 
 interface FormState {
   standardAttributesItems: StandardAttributesAccessControlConfig[];
+  validation: StandardAttributesValidationConfig[];
 }
 
 interface StandardAttributesConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
+  translations: TranslationValuesForm;
 }
+
+// The rows whose values string constraints can be set on.
+const VALIDATION_ROWS = new Set([
+  "/name",
+  "/given_name",
+  "/family_name",
+  "/middle_name",
+  "/nickname",
+  "/address",
+]);
+
+const characterMessageIDs: Record<AllowedCharacter, string> = {
+  letters: "StringConstraintsFields.characters.letters",
+  digits: "StringConstraintsFields.characters.digits",
+  spaces: "StringConstraintsFields.characters.spaces",
+  symbols: "StringConstraintsFields.characters.symbols",
+};
+
+type RenderToString = (id: string, values?: Record<string, unknown>) => string;
+
+function summaryPartText(
+  part: SummaryPart,
+  renderToString: RenderToString
+): string {
+  switch (part.kind) {
+    case "length-range":
+      return renderToString(
+        "StandardAttributesConfigurationScreen.validation.length-range",
+        { min: part.min, max: part.max }
+      );
+    case "length-min":
+      return renderToString(
+        "StandardAttributesConfigurationScreen.validation.length-min",
+        { min: part.min }
+      );
+    case "length-max":
+      return renderToString(
+        "StandardAttributesConfigurationScreen.validation.length-max",
+        { max: part.max }
+      );
+    case "characters":
+      return part.characters
+        .map((c) => renderToString(characterMessageIDs[c]))
+        .join(", ");
+    case "pattern":
+      return renderToString(
+        "StandardAttributesConfigurationScreen.validation.pattern"
+      );
+  }
+}
+
+function constraintsSummary(
+  c: StringConstraints,
+  renderToString: RenderToString
+): string {
+  return summaryParts(c)
+    .map((part) => summaryPartText(part, renderToString))
+    .join(" · ");
+}
+
+// What each row says about its constraints, for ItemComponent.
+const ValidationSummaryContext = React.createContext<
+  (pointer: string) => string | null
+>(() => null);
 
 const standardAttributeSections: UserProfileAttributesListSection[] = [
   {
@@ -138,6 +223,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
   });
   return {
     standardAttributesItems: listedItems,
+    validation: config.user_profile?.standard_attributes?.validation ?? [],
   };
 }
 
@@ -173,6 +259,12 @@ function constructConfig(
     rawConfig.user_profile ??= {};
     rawConfig.user_profile.standard_attributes ??= {};
     rawConfig.user_profile.standard_attributes.access_control = accessControl;
+    if (currentState.validation.length > 0) {
+      rawConfig.user_profile.standard_attributes.validation =
+        currentState.validation;
+    } else {
+      delete rawConfig.user_profile.standard_attributes.validation;
+    }
   });
 }
 
@@ -297,6 +389,8 @@ function ItemComponent(
     return {};
   }, [messageId, renderExternalLink]);
 
+  const summary = useContext(ValidationSummaryContext)(pointer);
+
   return (
     <div className={className}>
       <Text as="p" size="2" weight="medium">
@@ -305,6 +399,11 @@ function ItemComponent(
       <Text as="p" size="1" color="gray">
         <FormattedMessage id={messageId} values={values} />
       </Text>
+      {summary != null ? (
+        <Text as="p" size="1" color="gray" weight="medium">
+          {summary}
+        </Text>
+      ) : null}
     </div>
   );
 }
@@ -312,6 +411,7 @@ function ItemComponent(
 const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributesConfigurationScreenContentProps> =
   function StandardAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
+    const { translations } = props;
     const { getIsDirty } = useFormContainerBaseContext();
     const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
     const { renderToString } = useContext(Context);
@@ -412,6 +512,55 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
       });
     }, [searchKeyword, state.standardAttributesItems, renderToString]);
 
+    // The row whose Validation dialog is open.
+    const [validationRow, setValidationRow] = useState<string | null>(null);
+    const onEditValidation = useCallback(
+      (index: number) => {
+        setValidationRow(filteredItems[index]?.pointer ?? null);
+      },
+      [filteredItems]
+    );
+    const canEditValidation = useCallback(
+      (item: StandardAttributesAccessControlConfig) =>
+        VALIDATION_ROWS.has(item.pointer),
+      []
+    );
+    const onApplyValidation = useCallback(
+      (updates: ValidationUpdate[]) => {
+        setState((prev) => ({
+          ...prev,
+          validation: applyValidationUpdates(prev.validation, updates),
+        }));
+        for (const u of updates) {
+          translations.setValue(
+            patternErrorKey("standard", u.pointer),
+            u.message
+          );
+        }
+        setValidationRow(null);
+      },
+      [setState, translations]
+    );
+    const validationSummary = useCallback(
+      (pointer: string): string | null => {
+        const entries = validationPointersOf(pointer)
+          .map((p) => state.validation.find((v) => v.pointer === p))
+          .filter((v): v is StandardAttributesValidationConfig => v != null);
+        if (entries.length === 0) {
+          return null;
+        }
+        // The address shows how many of its parts are checked.
+        if (pointer === "/address") {
+          return renderToString(
+            "StandardAttributesConfigurationScreen.validation.address",
+            { count: entries.length }
+          );
+        }
+        return constraintsSummary(entries[0], renderToString) || null;
+      },
+      [state.validation, renderToString]
+    );
+
     const onChangeItems = useCallback(
       (newItems: UserProfileAttributesListItem[]) => {
         setState((prev) => {
@@ -494,15 +643,34 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
               <FormattedMessage id="SearchableDropdown.empty" />
             </Text>
           ) : (
-            <UserProfileAttributesList
-              items={filteredItems}
-              onChangeItems={onChangeItems}
-              ItemComponent={ItemComponent}
-              sections={standardAttributeSections}
-            />
+            <ValidationSummaryContext.Provider value={validationSummary}>
+              <UserProfileAttributesList
+                items={filteredItems}
+                onChangeItems={onChangeItems}
+                ItemComponent={ItemComponent}
+                sections={standardAttributeSections}
+                onEditButtonClick={onEditValidation}
+                canEditItem={canEditValidation}
+                editLabel={
+                  <FormattedMessage id="StandardAttributesConfigurationScreen.validation.menu" />
+                }
+              />
+            </ValidationSummaryContext.Provider>
           )}
         </div>
         <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
+
+        {validationRow != null ? (
+          <StandardAttributeValidationDialog
+            rowPointer={validationRow}
+            validation={state.validation}
+            getMessage={(p) =>
+              translations.getValue(patternErrorKey("standard", p))
+            }
+            onApply={onApplyValidation}
+            onCancel={() => setValidationRow(null)}
+          />
+        ) : null}
 
         <EditAttributesDialog
           open={editDialogOpen}
@@ -519,11 +687,18 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
 const StandardAttributesConfigurationScreen: React.VFC =
   function StandardAttributesConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const form = useAppConfigForm({
+    const configForm = useAppConfigForm({
       appID,
       constructFormState,
       constructConfig,
     });
+    const translations = useTranslationValuesForm(
+      appID,
+      configForm.isLoading
+        ? null
+        : configForm.effectiveConfig.localization?.fallback_language ?? "en"
+    );
+    const form = combineForms(configForm, translations.form);
 
     if (form.isLoading) {
       return <ShowLoading />;
@@ -535,7 +710,10 @@ const StandardAttributesConfigurationScreen: React.VFC =
 
     return (
       <FormContainer form={form} canSave={true}>
-        <StandardAttributesConfigurationScreenContent form={form} />
+        <StandardAttributesConfigurationScreenContent
+          form={form}
+          translations={translations}
+        />
       </FormContainer>
     );
   };

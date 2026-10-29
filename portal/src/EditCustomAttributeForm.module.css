@@ -7,10 +7,14 @@
   gap: 16px;
 }
 
-.topFields {
+/* A titled panel: Details, Options. Matches the Validation one. */
+.panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: var(--space-4);
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-3);
 }
 
 .fieldBlock {
@@ -28,54 +32,9 @@
   color: var(--gray-11);
 }
 
-.table {
-  width: 100%;
-  min-width: 24rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border-radius: var(--radius-3);
-  border: 1px solid var(--gray-a6);
-}
-
 /* ── Rows ── */
 
-.tableRow {
-  display: flex;
-  align-items: baseline;
-  border-top: 1px solid var(--gray-a6);
-}
-
-.tableRow:first-child {
-  border-top: none;
-}
-
-.cellLabel {
-  flex: 0 0 220px;
-  min-width: 0;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  border-right: 1px solid var(--gray-a6);
-  background-color: var(--gray-2);
-}
-
-.cellValue {
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 12px 16px;
-}
-
 /* ── Number option ── */
-
-.numberRangeRow {
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 12px 16px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
 
 /* ── Enum option ── */
 

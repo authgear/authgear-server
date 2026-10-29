@@ -1,0 +1,49 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Minimum and maximum, side by side. */
+.minMax {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 160px));
+  gap: var(--space-3);
+}
+
+.code {
+  font-family: var(--code-font-family);
+}
+
+.characterCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-3);
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sectionTitle {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+}
