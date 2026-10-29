@@ -97,6 +97,7 @@ const BLOCK_EVENT_TYPES = [
   "authentication.pre_initialize",
   "authentication.post_identified",
   "authentication.pre_authenticated",
+  "authentication.form.post_submitted",
 ] as const;
 
 type BlockingEvent = (typeof BLOCK_EVENT_TYPES)[number];
@@ -124,6 +125,7 @@ const BLOCK_EVENT_CATEGORIES: Array<{
       "authentication.pre_initialize",
       "authentication.post_identified",
       "authentication.pre_authenticated",
+      "authentication.form.post_submitted",
     ],
   },
 ];
@@ -147,6 +149,8 @@ const BLOCKING_EVENT_DESCRIPTION_MESSAGE_IDS: Record<BlockingEvent, string> = {
     "HookConfigurationScreen.blocking-event.authentication.post_identified.description",
   "authentication.pre_authenticated":
     "HookConfigurationScreen.blocking-event.authentication.pre_authenticated.description",
+  "authentication.form.post_submitted":
+    "HookConfigurationScreen.blocking-event.authentication.form.post_submitted.description",
 };
 
 const BLOCKING_EVENT_NAME_TO_PAYLOAD_TYPE_NAME: Record<BlockingEvent, string> =
@@ -160,6 +164,8 @@ const BLOCKING_EVENT_NAME_TO_PAYLOAD_TYPE_NAME: Record<BlockingEvent, string> =
     "authentication.pre_initialize": "EventAuthenticationPreInitialize",
     "authentication.post_identified": "EventAuthenticationPostIdentified",
     "authentication.pre_authenticated": "EventAuthenticationPreAuthenticated",
+    "authentication.form.post_submitted":
+      "EventAuthenticationFormPostSubmitted",
   };
 
 const BLOCKING_EVENT_NAME_TO_RESPONSE_TYPE_NAME: Record<BlockingEvent, string> =
@@ -177,6 +183,8 @@ const BLOCKING_EVENT_NAME_TO_RESPONSE_TYPE_NAME: Record<BlockingEvent, string> =
       "EventAuthenticationPostIdentifiedHookResponse",
     "authentication.pre_authenticated":
       "EventAuthenticationPreAuthenticatedHookResponse",
+    "authentication.form.post_submitted":
+      "EventAuthenticationFormPostSubmittedHookResponse",
   };
 
 const BLOCKING_HOOK_EXAMPLES: Record<BlockingEvent, string> = {
@@ -226,6 +234,28 @@ const BLOCKING_HOOK_EXAMPLES: Record<BlockingEvent, string> = {
 //     constraints:{
 //       amr: ["mfa"]
 //     }
+//   };
+// }
+// return {
+//   is_allowed: true,
+// };`,
+  "authentication.form.post_submitted": `
+// This event is triggered right after the end-user submits a form in an authentication flow.
+// For example, reject an employee ID that does not exist:
+//
+// const field = e.payload.form.fields.find(
+//   (f) => f.field.user_profile.pointer === "/x_employee_id",
+// );
+// if (field?.value !== "E99999") {
+//   return {
+//     is_allowed: false,
+//     reasons: [
+//       {
+//         type: "invalid_form_field",
+//         field: { user_profile: { pointer: "/x_employee_id" } },
+//         message: "This employee ID does not exist.",
+//       },
+//     ],
 //   };
 // }
 // return {
