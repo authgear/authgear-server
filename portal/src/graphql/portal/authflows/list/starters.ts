@@ -115,165 +115,265 @@ export function scratchFlows(
 
 export type StarterID =
   | "current"
-  | "email_password"
-  | "email_code"
-  | "phone_code"
-  | "email_password_2fa";
+  | "otp"
+  | "password"
+  | "verified_email_phone"
+  | "social"
+  | "password_2fa";
 export const STARTER_IDS: readonly StarterID[] = [
   "current",
-  "email_password",
-  "email_code",
-  "phone_code",
-  "email_password_2fa",
+  "otp",
+  "password",
+  "verified_email_phone",
+  "social",
+  "password_2fa",
 ];
 
 export type MissingMethod =
   | "email_login"
   | "phone_login"
+  | "email_or_phone"
+  | "otp_login"
   | "password"
   | "email_code"
   | "sms_code"
+  | "social"
   | "totp";
 
-const needs: Record<
-  StarterID,
-  { identification?: string; primary?: string; secondary?: string }
-> = {
-  current: {},
-  email_password: { identification: "email", primary: "primary_password" },
-  email_code: { identification: "email", primary: "primary_oob_otp_email" },
-  phone_code: { identification: "phone", primary: "primary_oob_otp_sms" },
-  email_password_2fa: {
-    identification: "email",
-    primary: "primary_password",
-    secondary: "secondary_totp",
-  },
-};
+type Step = NonNullable<AuthenticationFlowConfig["steps"]>[number];
 
-const missingOf: Record<string, MissingMethod> = {
-  email: "email_login",
-  phone: "phone_login",
-  primary_password: "password",
-  primary_oob_otp_email: "email_code",
-  primary_oob_otp_sms: "sms_code",
-  secondary_totp: "totp",
+const LOGIN_IDS = ["email", "phone"] as const;
+type LoginID = (typeof LOGIN_IDS)[number];
+const OTP_OF: Record<LoginID, string> = {
+  email: "primary_oob_otp_email",
+  phone: "primary_oob_otp_sms",
 };
+const PASSWORD = "primary_password";
+const TOTP = "secondary_totp";
+
+// The step every template identifies in; code steps send to what it took.
+const IDENTIFY = "identify";
+
+// The email and phone login IDs the project has, in that order.
+function loginIDs(m: ProjectMethods): LoginID[] {
+  return LOGIN_IDS.filter((id) => m.identifications.includes(id));
+}
+
+function hasOTP(m: ProjectMethods, id: LoginID): boolean {
+  return m.primary.includes(OTP_OF[id]);
+}
 
 export function starterMissing(
   id: StarterID,
-  methods: ProjectMethods
+  m: ProjectMethods
 ): MissingMethod[] {
-  const n = needs[id];
+  const ids = loginIDs(m);
   const out: MissingMethod[] = [];
-  if (
-    n.identification != null &&
-    !methods.identifications.includes(n.identification)
-  )
-    out.push(missingOf[n.identification]);
-  if (n.primary != null && !methods.primary.includes(n.primary))
-    out.push(missingOf[n.primary]);
-  if (n.secondary != null && !methods.secondary.includes(n.secondary))
-    out.push(missingOf[n.secondary]);
+  switch (id) {
+    case "current":
+      break;
+    case "otp":
+      if (!ids.some((i) => hasOTP(m, i))) out.push("otp_login");
+      break;
+    case "password":
+    case "password_2fa":
+      if (ids.length === 0) out.push("email_or_phone");
+      if (!m.primary.includes(PASSWORD)) out.push("password");
+      if (id === "password_2fa" && !m.secondary.includes(TOTP))
+        out.push("totp");
+      break;
+    case "verified_email_phone":
+      if (!ids.includes("email")) out.push("email_login");
+      if (!ids.includes("phone")) out.push("phone_login");
+      if (!hasOTP(m, "email")) out.push("email_code");
+      if (!hasOTP(m, "phone")) out.push("sms_code");
+      break;
+    case "social":
+      if (!m.identifications.includes("oauth")) out.push("social");
+      break;
+  }
   return out;
 }
 
-// The signup and login flows of a starter.
+const otpStep = (type: string, id: LoginID, target = IDENTIFY): Step => ({
+  type,
+  one_of: [{ authentication: OTP_OF[id], target_step: target }],
+});
+const passwordStep = (type: string): Step => ({
+  type,
+  one_of: [{ authentication: PASSWORD }],
+});
+const verify = (target = IDENTIFY): Step => ({
+  type: "verify",
+  target_step: target,
+});
+const identify = (
+  options: { identification: string; steps?: Step[] }[],
+  name = IDENTIFY
+): Step => ({ type: "identify", name, one_of: options });
+
+// Signing up with a login ID and a password: verify it, then set one.
+function passwordSignup(): Step[] {
+  return [verify(), passwordStep("create_authenticator")];
+}
+// Logging in with a password, or an OTP code where the project has it.
+function passwordLogin(m: ProjectMethods, id: LoginID): Step {
+  return {
+    type: "authenticate",
+    one_of: [
+      { authentication: PASSWORD },
+      ...(hasOTP(m, id)
+        ? [{ authentication: OTP_OF[id], target_step: IDENTIFY }]
+        : []),
+    ],
+  };
+}
+const totpSteps: Step[] = [
+  { type: "create_authenticator", one_of: [{ authentication: TOTP }] },
+  { type: "view_recovery_code" },
+];
+const totpLogin: Step = {
+  type: "authenticate",
+  one_of: [{ authentication: TOTP }, { authentication: "recovery_code" }],
+};
+
+// A template's signup and login flows. Only call when starterMissing is
+// empty.
 function starterPair(
   id: Exclude<StarterID, "current">,
-  name: string
-): {
-  identification: string;
-  signup: AuthenticationFlowConfig;
-  login: AuthenticationFlowConfig;
-} {
-  const identify = (
-    identification: string,
-    steps: AuthenticationFlowConfig["steps"]
-  ) => ({
-    type: "identify",
-    name: "identify",
-    one_of: [{ identification, steps }],
-  });
+  name: string,
+  m: ProjectMethods
+): { signup: AuthenticationFlowConfig; login: AuthenticationFlowConfig } {
+  const ids = loginIDs(m);
   switch (id) {
-    case "email_password":
-    case "email_password_2fa": {
-      const twoFA = id === "email_password_2fa";
+    case "otp": {
+      const otpIDs = ids.filter((i) => hasOTP(m, i));
       return {
-        identification: "email",
         signup: {
           name,
           steps: [
-            identify("email", [
-              { type: "verify", target_step: "identify" },
-              {
-                type: "create_authenticator",
-                one_of: [{ authentication: "primary_password" }],
-              },
-              ...(twoFA
-                ? [
-                    {
-                      type: "create_authenticator",
-                      one_of: [{ authentication: "secondary_totp" }],
-                    },
-                    { type: "view_recovery_code" },
-                  ]
-                : []),
-            ]),
+            identify(
+              otpIDs.map((i) => ({
+                identification: i,
+                steps: [otpStep("create_authenticator", i)],
+              }))
+            ),
           ],
         },
         login: {
           name,
           steps: [
-            identify("email", [
-              {
-                type: "authenticate",
-                one_of: [{ authentication: "primary_password" }],
-              },
-              ...(twoFA
-                ? [
-                    {
-                      type: "authenticate",
-                      one_of: [
-                        { authentication: "secondary_totp" },
-                        { authentication: "recovery_code" },
-                      ],
-                    },
-                  ]
-                : []),
-            ]),
+            identify(
+              otpIDs.map((i) => ({
+                identification: i,
+                steps: [otpStep("authenticate", i)],
+              }))
+            ),
           ],
         },
       };
     }
-    case "email_code":
-    case "phone_code": {
-      const identification = id === "email_code" ? "email" : "phone";
-      const authentication =
-        id === "email_code" ? "primary_oob_otp_email" : "primary_oob_otp_sms";
-      const codeStep = (type: string) => ({
-        type,
-        one_of: [{ authentication, target_step: "identify" }],
-      });
+    case "password":
+    case "password_2fa": {
+      const twoFA = id === "password_2fa";
       return {
-        identification,
         signup: {
           name,
-          steps: [identify(identification, [codeStep("create_authenticator")])],
+          steps: [
+            identify(
+              ids.map((i) => ({
+                identification: i,
+                steps: [...passwordSignup(), ...(twoFA ? totpSteps : [])],
+              }))
+            ),
+          ],
         },
         login: {
           name,
-          steps: [identify(identification, [codeStep("authenticate")])],
+          steps: [
+            identify(
+              ids.map((i) => ({
+                identification: i,
+                steps: [passwordLogin(m, i), ...(twoFA ? [totpLogin] : [])],
+              }))
+            ),
+          ],
+        },
+      };
+    }
+    case "verified_email_phone": {
+      const setup = (i: LoginID): Step =>
+        identify(
+          [
+            {
+              identification: i,
+              steps: [
+                verify(`setup_${i}`),
+                otpStep("create_authenticator", i, `setup_${i}`),
+              ],
+            },
+          ],
+          `setup_${i}`
+        );
+      return {
+        signup: { name, steps: [setup("email"), setup("phone")] },
+        login: {
+          name,
+          steps: [
+            identify(
+              (["email", "phone"] as const).map((i) => ({
+                identification: i,
+                steps: [otpStep("authenticate", i)],
+              }))
+            ),
+          ],
+        },
+      };
+    }
+    case "social": {
+      // Email with a password beside social login, when the project has both.
+      const email = ids.includes("email") && m.primary.includes(PASSWORD);
+      return {
+        signup: {
+          name,
+          steps: [
+            identify([
+              { identification: "oauth" },
+              ...(email
+                ? [{ identification: "email", steps: passwordSignup() }]
+                : []),
+            ]),
+          ],
+        },
+        login: {
+          name,
+          steps: [
+            identify([
+              { identification: "oauth" },
+              ...(email
+                ? [
+                    {
+                      identification: "email",
+                      steps: [passwordLogin(m, "email")],
+                    },
+                  ]
+                : []),
+            ]),
+          ],
         },
       };
     }
   }
 }
 
+// A signup & login template makes its signup and login flows too, under the
+// same name, and hands off to them.
 export function starterFlows(
   id: StarterID,
   type: CreatableType,
   name: string,
-  generated: AuthenticationFlowsConfig
+  generated: AuthenticationFlowsConfig,
+  m: ProjectMethods
 ): NewFlows {
   if (id === "current") {
     // Hand-offs keep naming the default flows.
@@ -281,14 +381,69 @@ export function starterFlows(
       .filter((f) => f.name === DEFAULT_FLOW_NAME)
       .map((flow) => ({ type, flow: { ...flow, name } }));
   }
-  const { identification, signup, login } = starterPair(id, name);
+  const { signup, login } = starterPair(id, name, m);
   if (type === "signup") return [{ type, flow: signup }];
   if (type === "login") return [{ type, flow: login }];
-  return signupLogin(name, identification);
+  const identifications = (login.steps?.[0].one_of ?? []).map(
+    (o) => o.identification ?? ""
+  );
+  return [
+    {
+      type: "signup_login",
+      flow: {
+        name,
+        steps: [
+          {
+            type: "identify",
+            one_of: identifications.map((identification) => ({
+              identification,
+              login_flow: name,
+              signup_flow: name,
+            })),
+          },
+        ],
+      },
+    },
+    { type: "signup", flow: signup },
+    { type: "login", flow: login },
+  ];
 }
 
-export function stepSummary(flow: AuthenticationFlowConfig): string[] {
-  const walk = (steps: AuthenticationFlowConfig["steps"]): string[] =>
-    (steps ?? []).flatMap((s) => [s.type, ...walk(s.one_of?.[0]?.steps)]);
-  return walk(flow.steps);
-}
+// What a template's card draws: the steps of signing up and of logging in,
+// each a choice of what the user gives.
+export type StripItem =
+  | "email"
+  | "phone"
+  | "email_or_phone"
+  | "otp"
+  | "verify"
+  | "password"
+  | "social"
+  | "authenticator";
+export type Strip = StripItem[][];
+
+export const STARTER_STRIPS: Record<
+  Exclude<StarterID, "current">,
+  { signup: Strip; login: Strip }
+> = {
+  otp: {
+    signup: [["email_or_phone"], ["otp"]],
+    login: [["email_or_phone"], ["otp"]],
+  },
+  password: {
+    signup: [["email_or_phone"], ["verify"], ["password"]],
+    login: [["email_or_phone"], ["password", "otp"]],
+  },
+  verified_email_phone: {
+    signup: [["email"], ["verify"], ["phone"], ["verify"]],
+    login: [["email_or_phone"], ["otp"]],
+  },
+  social: {
+    signup: [["social", "email"], ["password"]],
+    login: [["social", "email"], ["password"]],
+  },
+  password_2fa: {
+    signup: [["email_or_phone"], ["password"], ["authenticator"]],
+    login: [["email_or_phone"], ["password"], ["authenticator"]],
+  },
+};

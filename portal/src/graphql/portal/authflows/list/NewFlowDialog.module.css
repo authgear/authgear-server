@@ -6,10 +6,6 @@
   text-align: left;
 }
 
-.note {
-  margin-top: 8px;
-}
-
 .actions {
   display: flex;
   gap: var(--space-3);
@@ -26,4 +22,172 @@
   flex-direction: column;
   gap: var(--space-1);
   margin-top: var(--space-3);
+}
+
+.choiceRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* A tinted square holding the choice's icon. */
+.choiceIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-3);
+  background: var(--accent-a3);
+  color: var(--accent-11);
+}
+
+/* Templates: the list on the left, the selected one's steps on the right. */
+.picker {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 600px) {
+  .picker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.templateList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.templateItem {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-3);
+  cursor: pointer;
+}
+
+.templateItem:hover {
+  background: var(--gray-a2);
+}
+
+.templateItemSelected,
+.templateItemSelected:hover {
+  border-color: var(--accent-8);
+  background: var(--accent-a2);
+}
+
+.templateItem:focus-within {
+  outline: 2px solid var(--focus-8);
+  outline-offset: -2px;
+}
+
+.templateIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-2);
+  background: var(--accent-a3);
+  color: var(--accent-11);
+}
+
+.templateItemMissing .templateIcon {
+  background: var(--gray-a3);
+  color: var(--gray-9);
+}
+
+/* The radio stays for keyboard and screen readers; the row shows the state. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.preview {
+  padding: var(--space-4);
+  border-radius: var(--radius-3);
+  background: var(--gray-a2);
+  min-height: 220px;
+}
+
+.previewSteps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+}
+
+.previewMissing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.missingList {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.stepListTitle {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each step: its icon on a line that joins it to the next. */
+.stepItem {
+  position: relative;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding-bottom: var(--space-3);
+}
+
+.stepItem:last-child {
+  padding-bottom: 0;
+}
+
+.stepItem:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 26px;
+  bottom: 2px;
+  left: 12px;
+  border-left: 1px solid var(--gray-a6);
+}
+
+.stepIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-panel-solid);
+  box-shadow: 0 0 0 1px var(--gray-a6);
+  color: var(--gray-11);
 }
