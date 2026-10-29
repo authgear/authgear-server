@@ -18,6 +18,17 @@ import {
 } from "./types";
 import styles from "./EditCustomAttributeForm.module.css";
 import { makeValidationErrorCustomMessageIDRule } from "./error/parse";
+import {
+  NumberRangeFields,
+  StringConstraintsFields,
+  ValidationSection,
+} from "./StringConstraintsFields";
+import {
+  StringConstraintsDraft,
+  draftFromConstraints,
+  patternErrorKey,
+} from "./util/stringConstraints";
+import { TranslationValuesForm } from "./hook/useTranslationValuesForm";
 
 export interface CustomAttributeDraft {
   pointer: string;
@@ -25,7 +36,12 @@ export interface CustomAttributeDraft {
   minimum: string;
   maximum: string;
   enum: string[];
+  // Only for type string.
+  constraints: StringConstraintsDraft;
 }
+
+export const EMPTY_CONSTRAINTS: StringConstraintsDraft =
+  draftFromConstraints(undefined);
 
 export interface EditCustomAttributeFormProps {
   className?: string;
@@ -33,79 +49,31 @@ export interface EditCustomAttributeFormProps {
   draft: CustomAttributeDraft;
   mode: "new" | "edit";
   onChangeDraft: (draft: CustomAttributeDraft) => void;
+  patternMessage: string;
+  onPatternMessageChange: (message: string) => void;
 }
 
-// ---------------------------------------------------------------------------
-// Number option (min / max)
-// ---------------------------------------------------------------------------
-
-interface NumberOptionProps {
-  parentJSONPointer: string;
-  draft: CustomAttributeDraft;
-  onChangeDraft: (draft: CustomAttributeDraft) => void;
-  checkFunction: (value: string) => boolean;
-}
-
-function NumberOption({
-  parentJSONPointer,
-  draft,
-  onChangeDraft,
-  checkFunction,
-}: NumberOptionProps) {
-  const onChangeMinimum = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
-      if (!checkFunction(newValue)) {
-        return;
-      }
-      onChangeDraft({ ...draft, minimum: newValue });
-    },
-    [draft, onChangeDraft, checkFunction]
-  );
-
-  const onChangeMaximum = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
-      if (!checkFunction(newValue)) {
-        return;
-      }
-      onChangeDraft({ ...draft, maximum: newValue });
-    },
-    [draft, onChangeDraft, checkFunction]
-  );
-
-  return (
-    <div className={styles.tableRow}>
-      <div className={styles.numberRangeRow}>
-        <div className={styles.fieldBlock}>
-          <Text as="p" size="2" className={styles.fieldLabel}>
-            <FormattedMessage id="EditCustomAttributeForm.label.min" />
-          </Text>
-          <TextField
-            size="2"
-            type="text"
-            value={draft.minimum}
-            onChange={onChangeMinimum}
-            parentJSONPointer={parentJSONPointer}
-            fieldName="minimum"
-          />
-        </div>
-        <div className={styles.fieldBlock}>
-          <Text as="p" size="2" className={styles.fieldLabel}>
-            <FormattedMessage id="EditCustomAttributeForm.label.max" />
-          </Text>
-          <TextField
-            size="2"
-            type="text"
-            value={draft.maximum}
-            onChange={onChangeMaximum}
-            parentJSONPointer={parentJSONPointer}
-            fieldName="maximum"
-          />
-        </div>
-      </div>
-    </div>
-  );
+// Keeps the pattern's message with the attribute: it follows a renamed
+// attribute, and goes when the pattern or the string type does.
+export function syncPatternMessage(
+  prev: CustomAttributeDraft,
+  next: CustomAttributeDraft,
+  translations: TranslationValuesForm
+): void {
+  const oldKey = patternErrorKey("custom", prev.pointer);
+  const message = translations.getValue(oldKey);
+  if (message === "") {
+    return;
+  }
+  if (next.type !== "string" || next.constraints.pattern === "") {
+    translations.setValue(oldKey, "");
+    return;
+  }
+  const newKey = patternErrorKey("custom", next.pointer);
+  if (newKey !== oldKey) {
+    translations.setValue(oldKey, "");
+    translations.setValue(newKey, message);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -165,8 +133,8 @@ function EnumOption({ draft, onChangeDraft }: EnumOptionProps) {
   );
 
   return (
-    <div className={styles.fieldBlock}>
-      <Text as="p" size="2" className={styles.fieldLabel}>
+    <section className={styles.panel}>
+      <Text as="p" size="3" weight="bold">
         <FormattedMessage id="EditCustomAttributeForm.label.options" />
       </Text>
       <div className={styles.enumContainer}>
@@ -219,7 +187,7 @@ function EnumOption({ draft, onChangeDraft }: EnumOptionProps) {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -229,7 +197,15 @@ function EnumOption({ draft, onChangeDraft }: EnumOptionProps) {
 
 const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
   function EditCustomAttributeForm(props: EditCustomAttributeFormProps) {
-    const { className, draft, index, onChangeDraft, mode } = props;
+    const {
+      className,
+      draft,
+      index,
+      onChangeDraft,
+      mode,
+      patternMessage,
+      onPatternMessageChange,
+    } = props;
     const { renderToString } = useContext(Context);
 
     const parentJSONPointer = useMemo(() => {
@@ -268,14 +244,24 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
         if (!isCustomAttributeType(value)) {
           return;
         }
-        onChangeDraft({ ...draft, type: value });
+        // Only a string carries constraints; the schema refuses them on
+        // other types.
+        onChangeDraft({
+          ...draft,
+          type: value,
+          constraints:
+            value === "string" ? draft.constraints : EMPTY_CONSTRAINTS,
+        });
       },
       [draft, onChangeDraft]
     );
 
     return (
       <div className={cn(styles.tableWrapper, className)}>
-        <div className={styles.topFields}>
+        <section className={styles.panel}>
+          <Text as="p" size="3" weight="bold">
+            <FormattedMessage id="EditCustomAttributeForm.section.details" />
+          </Text>
           <div className={styles.fieldBlock}>
             <Text as="p" size="2" className={styles.fieldLabel}>
               <FormattedMessage id="EditCustomAttributeForm.label.attribute-name" />
@@ -329,27 +315,36 @@ const EditCustomAttributeForm: React.VFC<EditCustomAttributeFormProps> =
               </Select.Content>
             </Select.Root>
           </div>
-        </div>
+        </section>
 
         {draft.type === "number" || draft.type === "integer" ? (
-          <div className={styles.table}>
-            {draft.type === "number" ? (
-              <NumberOption
-                parentJSONPointer={parentJSONPointer}
-                draft={draft}
-                onChangeDraft={onChangeDraft}
-                checkFunction={checkNumberInput}
-              />
-            ) : null}
-            {draft.type === "integer" ? (
-              <NumberOption
-                parentJSONPointer={parentJSONPointer}
-                draft={draft}
-                onChangeDraft={onChangeDraft}
-                checkFunction={checkIntegerInput}
-              />
-            ) : null}
-          </div>
+          <ValidationSection>
+            <NumberRangeFields
+              minimum={draft.minimum}
+              maximum={draft.maximum}
+              onChange={(minimum, maximum) =>
+                onChangeDraft({ ...draft, minimum, maximum })
+              }
+              checkInput={
+                draft.type === "integer" ? checkIntegerInput : checkNumberInput
+              }
+              parentJSONPointer={parentJSONPointer}
+            />
+          </ValidationSection>
+        ) : null}
+
+        {draft.type === "string" ? (
+          <ValidationSection>
+            <StringConstraintsFields
+              draft={draft.constraints}
+              onChange={(constraints) =>
+                onChangeDraft({ ...draft, constraints })
+              }
+              patternMessage={patternMessage}
+              onPatternMessageChange={onPatternMessageChange}
+              parentJSONPointer={parentJSONPointer}
+            />
+          </ValidationSection>
         ) : null}
 
         {draft.type === "enum" ? (

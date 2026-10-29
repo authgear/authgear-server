@@ -18,7 +18,19 @@ import { PortalAPIAppConfig } from "../../types";
 import styles from "./EditCustomAttributeScreen.module.css";
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
+  EMPTY_CONSTRAINTS,
+  syncPatternMessage,
 } from "../../EditCustomAttributeForm";
+import {
+  TranslationValuesForm,
+  combineForms,
+  useTranslationValuesForm,
+} from "../../hook/useTranslationValuesForm";
+import {
+  constraintsFromDraft,
+  draftFromConstraints,
+  patternErrorKey,
+} from "../../util/stringConstraints";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 
@@ -30,10 +42,12 @@ const EMPTY_STATE: FormState = {
   minimum: "",
   maximum: "",
   enum: [],
+  constraints: EMPTY_CONSTRAINTS,
 };
 
 interface EditCustomAttributeContentProps {
   form: AppConfigFormModel<FormState>;
+  translations: TranslationValuesForm;
   index: number;
 }
 
@@ -51,6 +65,7 @@ function makeConstructFormState(
       minimum: c.minimum != null ? String(c.minimum) : "",
       maximum: c.maximum != null ? String(c.maximum) : "",
       enum: c.enum ?? [],
+      constraints: draftFromConstraints(c),
     };
   };
 }
@@ -99,12 +114,21 @@ function makeConstructConfig(
       if (c.type === "enum") {
         c.enum = currentState.enum;
       }
+
+      // The four keys are written fresh, so a cleared one goes.
+      delete c.min_length;
+      delete c.max_length;
+      delete c.allowed_characters;
+      delete c.pattern;
+      if (c.type === "string") {
+        Object.assign(c, constraintsFromDraft(currentState.constraints));
+      }
     });
   };
 }
 
 function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
-  const { index, form } = props;
+  const { index, form, translations } = props;
   const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
   const { getIsDirty } = useFormContainerBaseContext();
@@ -113,7 +137,9 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
 
   const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;
 
+  const patternKey = patternErrorKey("custom", state.pointer);
   const onChangeDraft = (draft: FormState) => {
+    syncPatternMessage(state, draft, translations);
     setState(() => draft);
   };
 
@@ -139,6 +165,8 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
         index={index}
         draft={state}
         onChangeDraft={onChangeDraft}
+        patternMessage={translations.getValue(patternKey)}
+        onPatternMessageChange={(m) => translations.setValue(patternKey, m)}
       />
       <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
     </ScreenContent>
@@ -155,11 +183,18 @@ const EditCustomAttributeScreen: React.VFC =
 
     const index = parseInt(indexString, 10);
 
-    const form = useAppConfigForm({
+    const configForm = useAppConfigForm({
       appID,
       constructFormState: makeConstructFormState(index),
       constructConfig: makeConstructConfig(index),
     });
+    const translations = useTranslationValuesForm(
+      appID,
+      configForm.isLoading
+        ? null
+        : configForm.effectiveConfig.localization?.fallback_language ?? "en"
+    );
+    const form = combineForms(configForm, translations.form);
 
     const afterSave = useCallback(() => {
       navigate("./../..");
@@ -191,7 +226,11 @@ const EditCustomAttributeScreen: React.VFC =
 
     return (
       <FormContainer form={form} afterSave={afterSave}>
-        <EditCustomAttributeContent form={form} index={index} />
+        <EditCustomAttributeContent
+          form={form}
+          translations={translations}
+          index={index}
+        />
       </FormContainer>
     );
   };
