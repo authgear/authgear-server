@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-{{ .Host }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: '{{ .Host }}'
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traefik-{{ .Host }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: authgear-body-limit@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: '{{ .Host }}'
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert-{{ .Host }}
+spec:
+  dnsNames:
+  - {{ .Host }}
+  secretName: tls-{{ .Host }}

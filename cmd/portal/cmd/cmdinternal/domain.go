@@ -107,6 +107,63 @@ var cmdInternalDomainCreateCustom = &cobra.Command{
 	},
 }
 
+var cmdInternalDomainApplyK8SResources = &cobra.Command{
+	Use:   "apply-k8s-resources [app-id]",
+	Short: "Create or update the k8s resources (ingresses, certificates) of the verified domains of all apps, or of a specific app when app-id is given, from the ingress template.",
+	Args:  cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		binder := portalcmd.GetBinder()
+
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
+		if err != nil {
+			return err
+		}
+
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
+		if err != nil {
+			return err
+		}
+
+		kubeConfigPath := binder.GetString(cmd, portalcmd.ArgKubernetesKubeconfig)
+
+		namespace, err := binder.GetRequiredString(cmd, portalcmd.ArgKubernetesAppNamespace)
+		if err != nil {
+			return err
+		}
+
+		templateFile, err := binder.GetRequiredString(cmd, portalcmd.ArgAppKubernetesIngressTemplateFile)
+		if err != nil {
+			return err
+		}
+
+		dryRun, err := cmd.Flags().GetBool("dry-run")
+		if err != nil {
+			return err
+		}
+
+		prune, err := cmd.Flags().GetBool("prune")
+		if err != nil {
+			return err
+		}
+
+		appID := ""
+		if len(args) > 0 {
+			appID = args[0]
+		}
+
+		return internal.ApplyDomainK8SResources(cmd.Context(), internal.ApplyDomainK8SResourcesOptions{
+			DatabaseURL:         dbURL,
+			DatabaseSchema:      dbSchema,
+			AppID:               appID,
+			KubeConfigPath:      kubeConfigPath,
+			Namespace:           namespace,
+			IngressTemplateFile: templateFile,
+			DryRun:              dryRun,
+			Prune:               prune,
+		})
+	},
+}
+
 func validateDomainSuffix(suffix string) error {
 	if !strings.HasPrefix(suffix, ".") {
 		return fmt.Errorf("domain suffix must start with a `.`")

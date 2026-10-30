@@ -67,6 +67,7 @@ func init() {
 
 	cmdInternalDomain.AddCommand(cmdInternalDomainCreateDefault)
 	cmdInternalDomain.AddCommand(cmdInternalDomainCreateCustom)
+	cmdInternalDomain.AddCommand(cmdInternalDomainApplyK8SResources)
 
 	cmdInternalCollaborator.AddCommand(cmdInternalCollaboratorAdd)
 
@@ -90,6 +91,14 @@ func init() {
 	binder.BindString(cmdInternalDomainCreateCustom.Flags(), portalcmd.ArgDatabaseSchema)
 	binder.BindString(cmdInternalDomainCreateCustom.Flags(), portalcmd.ArgDomain)
 	binder.BindString(cmdInternalDomainCreateCustom.Flags(), portalcmd.ArgApexDomain)
+
+	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgKubernetesKubeconfig)
+	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgKubernetesAppNamespace)
+	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgAppKubernetesIngressTemplateFile)
+	cmdInternalDomainApplyK8SResources.Flags().Bool("dry-run", false, "Send every change as a server-side dry run")
+	cmdInternalDomainApplyK8SResources.Flags().Bool("prune", false, "Delete the resources of a domain that the template does not render anymore")
 
 	binder.BindString(cmdInternalCollaboratorAdd.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalCollaboratorAdd.Flags(), portalcmd.ArgDatabaseSchema)
