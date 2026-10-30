@@ -115,6 +115,32 @@ func TestNewFillFormDataForm(t *testing.T) {
 			So(built["/x_employee_id"].Label, ShouldEqual, "Employee ID")
 		})
 
+		Convey("label uses the form's own translation first", func() {
+			translations["standard-attribute-label-/given_name"] = "First name"
+			translations["v2.page.fill-form.names.field-label-/given_name"] = "Your first name"
+			translations["v2.page.fill-form.other.field-label-/x_employee_id"] = "Staff number"
+			built := build(emptyUser, userProfileField("/given_name", true), userProfileField("/x_employee_id", false))
+			So(built["/given_name"].Label, ShouldEqual, "Your first name")
+			So(built["/x_employee_id"].Label, ShouldEqual, "X Employee Id")
+		})
+
+		Convey("unnamed form uses the attribute label", func() {
+			translations["standard-attribute-label-/given_name"] = "First name"
+			translations["v2.page.fill-form..field-label-/given_name"] = "Wrong"
+			form, err := NewFillFormDataForm(ctx, deps, &config.AuthenticationFlowForm{
+				Fields: []*config.AuthenticationFlowFormField{userProfileField("/given_name", true)},
+			}, emptyUser)
+			So(err, ShouldBeNil)
+			So(form.Fields[0].Label, ShouldEqual, "First name")
+		})
+
+		Convey("boolean form label is sanitized", func() {
+			translations["v2.page.fill-form.names.field-label-/x_terms"] = `I accept the <a href="https://example.com/t">Terms</a><script>x</script>`
+			built := build(emptyUser, userProfileField("/x_terms", true))
+			So(built["/x_terms"].Label, ShouldEqual,
+				`I accept the <a href="https://example.com/t" target="_blank" rel="noopener noreferrer">Terms</a>&lt;script&gt;x&lt;/script&gt;`)
+		})
+
 		Convey("boolean label is sanitized", func() {
 			translations["custom-attribute-label-/x_terms"] = `I accept the <a href="https://example.com/t" onclick="x()">Terms</a><script>x</script>`
 			built := build(emptyUser, userProfileField("/x_terms", true))
