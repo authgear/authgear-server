@@ -109,7 +109,7 @@ var cmdInternalDomainCreateCustom = &cobra.Command{
 
 var cmdInternalDomainApplyK8SResources = &cobra.Command{
 	Use:   "apply-k8s-resources [app-id]",
-	Short: "Create or update the k8s resources (ingresses, certificates) of the verified domains of all apps, or of a specific app when app-id is given, from the ingress template.",
+	Short: "Create or update the k8s resources (ingresses, certificates) of the verified domains of all apps, or of a specific app when app-id is given, from the ingress template. With --domain, the domain is added to the app as a verified custom domain if it does not exist, and only its resources are applied.",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := portalcmd.GetBinder()
@@ -151,10 +151,30 @@ var cmdInternalDomainApplyK8SResources = &cobra.Command{
 			appID = args[0]
 		}
 
+		domain := binder.GetString(cmd, portalcmd.ArgDomain)
+		apexDomain := binder.GetString(cmd, portalcmd.ArgApexDomain)
+		if domain != "" {
+			if appID == "" {
+				return fmt.Errorf("app-id is required with --%s", portalcmd.ArgDomain.ArgumentName)
+			}
+			if err := validateDomain(domain); err != nil {
+				return fmt.Errorf("%s: %w", portalcmd.ArgDomain.ArgumentName, err)
+			}
+		} else if apexDomain != "" {
+			return fmt.Errorf("--%s requires --%s", portalcmd.ArgApexDomain.ArgumentName, portalcmd.ArgDomain.ArgumentName)
+		}
+		if apexDomain != "" {
+			if err := validateDomain(apexDomain); err != nil {
+				return fmt.Errorf("%s: %w", portalcmd.ArgApexDomain.ArgumentName, err)
+			}
+		}
+
 		return internal.ApplyDomainK8SResources(cmd.Context(), internal.ApplyDomainK8SResourcesOptions{
 			DatabaseURL:         dbURL,
 			DatabaseSchema:      dbSchema,
 			AppID:               appID,
+			Domain:              domain,
+			ApexDomain:          apexDomain,
 			KubeConfigPath:      kubeConfigPath,
 			Namespace:           namespace,
 			IngressTemplateFile: templateFile,
