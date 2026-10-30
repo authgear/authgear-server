@@ -1,10 +1,12 @@
 package service_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"testing"
 
@@ -13,6 +15,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	fakediscovery "k8s.io/client-go/discovery/fake"
@@ -28,7 +31,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 )
 
-func newKubernetesWithDynamicClient(ingressTemplatePath string) (*service.Kubernetes, error) {
+func newKubernetesWithDynamicClient(ingressTemplatePath string, objects ...runtime.Object) (*service.Kubernetes, error) {
 	fakeDiscoveryClient := &fakediscovery.FakeDiscovery{Fake: &coretesting.Fake{}}
 	fakeDiscoveryClient.Resources = []*metav1.APIResourceList{
 		{
@@ -68,7 +71,7 @@ func newKubernetesWithDynamicClient(ingressTemplatePath string) (*service.Kubern
 			Version:  "v1",
 			Resource: "certificates",
 		}: "CertificateList",
-	})
+	}, objects...)
 
 	return &service.Kubernetes{
 		AppConfig: &portalconfig.AppConfig{
@@ -420,4 +423,139 @@ spec:
 
 	})
 
+}
+
+func TestKubernetesApplyResourcesForDomains(t *testing.T) {
+	ingressGVR := schema.GroupVersionResource{Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"}
+	certGVR := schema.GroupVersionResource{Group: "cert-manager.io", Version: "v1", Resource: "certificates"}
+
+	newObject := func(apiVersion string, kind string, name string, domainID string, annotations map[string]any, spec map[string]any) *unstructured.Unstructured {
+		metadata := map[string]any{
+			"name":      name,
+			"namespace": "test-namespace",
+		}
+		if domainID != "" {
+			metadata["labels"] = map[string]any{
+				service.LabelAppID:    "app-id-1",
+				service.LabelDomainID: domainID,
+			}
+		}
+		if annotations != nil {
+			metadata["annotations"] = annotations
+		}
+		return &unstructured.Unstructured{Object: map[string]any{
+			"apiVersion": apiVersion,
+			"kind":       kind,
+			"metadata":   metadata,
+			"spec":       spec,
+		}}
+	}
+
+	target := service.DomainResourcesTarget{
+		AppID:    "app-id-1",
+		DomainID: "domain-id-1",
+		Domain:   "test.example.com",
+		IsCustom: true,
+	}
+	rules := []any{map[string]any{"host": "test.example.com"}}
+	cert := newObject("cert-manager.io/v1", "Certificate", "cert-test.example.com", "domain-id-1", nil, map[string]any{
+		"dnsNames":   []any{"test.example.com"},
+		"secretName": "tls-test.example.com",
+	})
+
+	Convey("ApplyResourcesForDomains", t, func() {
+		ctx := context.Background()
+
+		Convey("creates missing resources, updates changed ones and leaves the others", func() {
+			// Created by an older template: legacy class annotation, no ingressClassName.
+			legacyIngress := newObject("networking.k8s.io/v1", "Ingress", "nginx-test.example.com", "domain-id-1",
+				map[string]any{
+					"kubernetes.io/ingress.class":                 "nginx",
+					"nginx.ingress.kubernetes.io/proxy-body-size": "10m",
+				},
+				map[string]any{"rules": rules},
+			)
+			kube, err := newKubernetesWithDynamicClient("testdata/apply.tpl.yaml", legacyIngress, cert)
+			So(err, ShouldBeNil)
+
+			var out bytes.Buffer
+			err = kube.ApplyResourcesForDomains(ctx, []service.DomainResourcesTarget{target}, service.ApplyResourcesForDomainsOptions{Output: &out})
+			So(err, ShouldBeNil)
+			So(out.String(), ShouldEqual, `updated Ingress/nginx-test.example.com (app: app-id-1, domain: test.example.com)
+created Ingress/traefik-test.example.com (app: app-id-1, domain: test.example.com)
+unchanged Certificate/cert-test.example.com (app: app-id-1, domain: test.example.com)
+`)
+
+			nginx, err := kube.DynamicClient.Resource(ingressGVR).Namespace(kube.Namespace).Get(ctx, "nginx-test.example.com", metav1.GetOptions{})
+			So(err, ShouldBeNil)
+			So(nginx.GetAnnotations(), ShouldResemble, map[string]string{
+				"nginx.ingress.kubernetes.io/proxy-body-size": "10m",
+			})
+			className, _, _ := unstructured.NestedString(nginx.Object, "spec", "ingressClassName")
+			So(className, ShouldEqual, "nginx")
+
+			traefik, err := kube.DynamicClient.Resource(ingressGVR).Namespace(kube.Namespace).Get(ctx, "traefik-test.example.com", metav1.GetOptions{})
+			So(err, ShouldBeNil)
+			So(traefik.GetLabels(), ShouldResemble, map[string]string{
+				service.LabelAppID:    "app-id-1",
+				service.LabelDomainID: "domain-id-1",
+			})
+
+			out.Reset()
+			err = kube.ApplyResourcesForDomains(ctx, []service.DomainResourcesTarget{target}, service.ApplyResourcesForDomainsOptions{Output: &out})
+			So(err, ShouldBeNil)
+			So(out.String(), ShouldEqual, `unchanged Ingress/nginx-test.example.com (app: app-id-1, domain: test.example.com)
+unchanged Ingress/traefik-test.example.com (app: app-id-1, domain: test.example.com)
+unchanged Certificate/cert-test.example.com (app: app-id-1, domain: test.example.com)
+`)
+		})
+
+		Convey("prune deletes only the resources of the domain that are not rendered", func() {
+			nginx := newObject("networking.k8s.io/v1", "Ingress", "nginx-test.example.com", "domain-id-1", nil, map[string]any{
+				"ingressClassName": "nginx",
+				"rules":            rules,
+			})
+			otherDomain := newObject("networking.k8s.io/v1", "Ingress", "nginx-other.example.com", "domain-id-2", nil, map[string]any{
+				"ingressClassName": "nginx",
+			})
+			unlabeled := newObject("networking.k8s.io/v1", "Ingress", "infrastructure-ingress", "", nil, map[string]any{})
+			kube, err := newKubernetesWithDynamicClient("testdata/apply_traefik_only.tpl.yaml", nginx, otherDomain, unlabeled, cert)
+			So(err, ShouldBeNil)
+
+			var out bytes.Buffer
+			err = kube.ApplyResourcesForDomains(ctx, []service.DomainResourcesTarget{target}, service.ApplyResourcesForDomainsOptions{
+				Prune:  true,
+				Output: &out,
+			})
+			So(err, ShouldBeNil)
+			So(out.String(), ShouldEqual, `created Ingress/traefik-test.example.com (app: app-id-1, domain: test.example.com)
+unchanged Certificate/cert-test.example.com (app: app-id-1, domain: test.example.com)
+deleted Ingress/nginx-test.example.com (app: app-id-1, domain: test.example.com)
+`)
+
+			ingresses, err := kube.DynamicClient.Resource(ingressGVR).Namespace(kube.Namespace).List(ctx, metav1.ListOptions{})
+			So(err, ShouldBeNil)
+			var names []string
+			for _, item := range ingresses.Items {
+				names = append(names, item.GetName())
+			}
+			So(names, ShouldResemble, []string{"infrastructure-ingress", "nginx-other.example.com", "traefik-test.example.com"})
+
+			certs, err := kube.DynamicClient.Resource(certGVR).Namespace(kube.Namespace).List(ctx, metav1.ListOptions{})
+			So(err, ShouldBeNil)
+			So(len(certs.Items), ShouldEqual, 1)
+		})
+
+		Convey("a failed domain does not stop the others", func() {
+			kube, err := newKubernetesWithDynamicClient("testdata/invalid_template.tpl.yaml")
+			So(err, ShouldBeNil)
+
+			var out bytes.Buffer
+			other := target
+			other.Domain = "other.example.com"
+			err = kube.ApplyResourcesForDomains(ctx, []service.DomainResourcesTarget{target, other}, service.ApplyResourcesForDomainsOptions{Output: &out})
+			So(err, ShouldNotBeNil)
+			So(strings.Count(out.String(), "error "), ShouldEqual, 2)
+		})
+	})
 }
