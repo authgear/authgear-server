@@ -458,13 +458,6 @@ func newDomain(appID string, domainName string, createdAt time.Time, isCustom bo
 }
 
 func (d *domain) toModel(isVerified bool) *apimodel.Domain {
-	var prefix string
-	if isVerified {
-		prefix = "verified:"
-	} else {
-		prefix = "pending:"
-	}
-
 	// for default domain, original domain will be used for cookie domain
 	// for custom domain, cookie domain is derived from the
 	// CookieDomainWithoutPort function
@@ -474,8 +467,7 @@ func (d *domain) toModel(isVerified bool) *apimodel.Domain {
 	}
 
 	return &apimodel.Domain{
-		// Base64-encoded to avoid invalid k8s resource label invalid chars
-		ID:                    base64.RawURLEncoding.EncodeToString([]byte(prefix + d.ID)),
+		ID:                    DomainModelID(isVerified, d.ID),
 		AppID:                 d.AppID,
 		CreatedAt:             d.CreatedAt,
 		Domain:                d.Domain,
@@ -485,6 +477,16 @@ func (d *domain) toModel(isVerified bool) *apimodel.Domain {
 		IsCustom:              d.IsCustom,
 		IsVerified:            isVerified,
 	}
+}
+
+// DomainModelID returns the ID of a domain in the API, which is also the value of LabelDomainID.
+func DomainModelID(isVerified bool, id string) string {
+	prefix := "pending:"
+	if isVerified {
+		prefix = "verified:"
+	}
+	// Base64-encoded to avoid invalid k8s resource label invalid chars
+	return base64.RawURLEncoding.EncodeToString([]byte(prefix + id))
 }
 
 func parseDomainID(modelID string) (isVerified bool, id string, ok bool) {

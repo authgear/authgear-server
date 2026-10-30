@@ -73,6 +73,26 @@ var ArgNamespace = &cobraviper.StringArgument{
 	Usage:        "Namespace",
 }
 
+// The following arguments use the environment variables of the portal server,
+// so that commands run in the portal container need no flags.
+var ArgKubernetesKubeconfig = &cobraviper.StringArgument{
+	ArgumentName: "kubernetes-kubeconfig",
+	EnvName:      "KUBERNETES_KUBECONFIG",
+	Usage:        "Path to kubeconfig. If empty, the in-cluster config is used",
+}
+
+var ArgKubernetesAppNamespace = &cobraviper.StringArgument{
+	ArgumentName: "kubernetes-app-namespace",
+	EnvName:      "KUBERNETES_APP_NAMESPACE",
+	Usage:        "Namespace of the k8s resources of the domains",
+}
+
+var ArgAppKubernetesIngressTemplateFile = &cobraviper.StringArgument{
+	ArgumentName: "ingress-template-file",
+	EnvName:      "APP_KUBERNETES_INGRESS_TEMPLATE_FILE",
+	Usage:        "Path to the template of the k8s resources of a domain",
+}
+
 var ArgFeatureConfigFilePath = &cobraviper.StringArgument{
 	ArgumentName: "file",
 	Usage:        "Feature config file path",
