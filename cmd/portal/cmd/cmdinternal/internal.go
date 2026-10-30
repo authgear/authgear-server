@@ -97,6 +97,8 @@ func init() {
 	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgKubernetesKubeconfig)
 	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgKubernetesAppNamespace)
 	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgAppKubernetesIngressTemplateFile)
+	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgDomain)
+	binder.BindString(cmdInternalDomainApplyK8SResources.Flags(), portalcmd.ArgApexDomain)
 	cmdInternalDomainApplyK8SResources.Flags().Bool("dry-run", false, "Send every change as a server-side dry run")
 	cmdInternalDomainApplyK8SResources.Flags().Bool("prune", false, "Delete the resources of a domain that the template does not render anymore")
 
