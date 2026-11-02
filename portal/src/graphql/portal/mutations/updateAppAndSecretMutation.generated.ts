@@ -9,6 +9,7 @@ export type UpdateAppAndSecretConfigMutationMutationVariables = Types.Exact<{
   appConfigChecksum?: Types.InputMaybe<Types.Scalars['String']['input']>;
   secretConfigUpdateInstructions?: Types.InputMaybe<Types.SecretConfigUpdateInstructionsInput>;
   secretConfigUpdateInstructionsChecksum?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  updates?: Types.InputMaybe<Array<Types.AppResourceUpdate> | Types.AppResourceUpdate>;
 }>;
 
 
@@ -16,9 +17,9 @@ export type UpdateAppAndSecretConfigMutationMutation = { __typename?: 'Mutation'
 
 
 export const UpdateAppAndSecretConfigMutationDocument = gql`
-    mutation updateAppAndSecretConfigMutation($appID: ID!, $appConfig: AppConfig, $appConfigChecksum: String, $secretConfigUpdateInstructions: SecretConfigUpdateInstructionsInput, $secretConfigUpdateInstructionsChecksum: String) {
+    mutation updateAppAndSecretConfigMutation($appID: ID!, $appConfig: AppConfig, $appConfigChecksum: String, $secretConfigUpdateInstructions: SecretConfigUpdateInstructionsInput, $secretConfigUpdateInstructionsChecksum: String, $updates: [AppResourceUpdate!]) {
   updateApp(
-    input: {appID: $appID, appConfig: $appConfig, appConfigChecksum: $appConfigChecksum, secretConfigUpdateInstructions: $secretConfigUpdateInstructions, secretConfigUpdateInstructionsChecksum: $secretConfigUpdateInstructionsChecksum}
+    input: {appID: $appID, appConfig: $appConfig, appConfigChecksum: $appConfigChecksum, secretConfigUpdateInstructions: $secretConfigUpdateInstructions, secretConfigUpdateInstructionsChecksum: $secretConfigUpdateInstructionsChecksum, updates: $updates}
   ) {
     app {
       id
@@ -104,6 +105,7 @@ export type UpdateAppAndSecretConfigMutationMutationFn = Apollo.MutationFunction
  *      appConfigChecksum: // value for 'appConfigChecksum'
  *      secretConfigUpdateInstructions: // value for 'secretConfigUpdateInstructions'
  *      secretConfigUpdateInstructionsChecksum: // value for 'secretConfigUpdateInstructionsChecksum'
+ *      updates: // value for 'updates'
  *   },
  * });
  */

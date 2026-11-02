@@ -5,6 +5,7 @@ import { useUpdateAppAndSecretConfigMutation } from "../graphql/portal/mutations
 import { PortalAPIAppConfig } from "../types";
 import { APIError } from "../error/error";
 import { useLiveState } from "./useSyncFormStates";
+import { ResourceUpdate } from "../util/resource";
 
 export interface AppConfigFormModel<State> {
   isLoading: boolean;
@@ -18,7 +19,11 @@ export interface AppConfigFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: (ignoreConflict?: boolean) => Promise<void>;
+  // resourceUpdates are saved in the same request as the config.
+  save: (
+    ignoreConflict?: boolean,
+    resourceUpdates?: ResourceUpdate[]
+  ) => Promise<void>;
   saveWith: (
     fn: (state: State) => State,
     ignoreConflict?: boolean
@@ -142,7 +147,8 @@ export function useAppConfigForm<State>(
     async (
       stateToSave: State,
       ignoreConflict: boolean,
-      stateAfterSave: State | null = null
+      stateAfterSave: State | null = null,
+      resourceUpdates?: ResourceUpdate[]
     ) => {
       const err = validate?.(stateToSave);
       if (err) {
@@ -164,6 +170,7 @@ export function useAppConfigForm<State>(
           appConfig: newConfig,
           appConfigChecksum: rawAppConfigChecksum,
           ignoreConflict,
+          resourceUpdates,
         });
         await reload();
         setCurrentState(stateAfterSave);
@@ -189,14 +196,22 @@ export function useAppConfigForm<State>(
   );
 
   const save = useCallback(
-    async (ignoreConflict: boolean = false) => {
+    async (
+      ignoreConflict: boolean = false,
+      resourceUpdates?: ResourceUpdate[]
+    ) => {
       const allowSave = canSave !== undefined ? canSave : getIsDirty();
       if (!rawConfig || !initialState || secretConfig == null) {
         return;
       } else if (!allowSave || isUpdating) {
         return;
       }
-      await performSave(currentState ?? initialState, ignoreConflict);
+      await performSave(
+        currentState ?? initialState,
+        ignoreConflict,
+        null,
+        resourceUpdates
+      );
     },
     [
       canSave,

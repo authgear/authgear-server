@@ -11,6 +11,7 @@ import {
   unescapeMessageFormatText,
 } from "../util/messageFormat";
 import { FormModel } from "../FormContainerBase";
+import { AppConfigFormModel } from "./useAppConfigForm";
 import {
   ResourceFormModel,
   ResourcesFormState,
@@ -96,20 +97,12 @@ export function useTranslationValuesForm(
   return { form, getValue, setValue };
 }
 
-interface LoadableForm extends FormModel {
-  isLoading: boolean;
-  loadError: unknown;
-  reload: () => void;
-}
-
-// A config form and a resource form saved as one, config first, as the
-// Design screen saves them. They are two requests: a failed resource save
-// leaves the config saved, and the form shows the error with the resource
-// edits still pending.
-export function combineForms<F extends LoadableForm>(
-  configForm: F,
-  resourceForm: LoadableForm
-): F {
+// A config form and a resource form saved as one. With config changes, both
+// go in one request, so neither is saved without the other.
+export function combineForms<State>(
+  configForm: AppConfigFormModel<State>,
+  resourceForm: ResourceFormModel<ResourcesFormState>
+): AppConfigFormModel<State> & FormModel {
   return {
     ...configForm,
     isLoading: configForm.isLoading || resourceForm.isLoading,
@@ -126,11 +119,23 @@ export function combineForms<F extends LoadableForm>(
       resourceForm.reset();
     },
     save: async (ignoreConflict?: boolean) => {
-      if (configForm.getIsDirty()) {
-        await configForm.save(ignoreConflict);
-      }
-      if (resourceForm.getIsDirty()) {
+      if (!configForm.getIsDirty()) {
         await resourceForm.save(ignoreConflict);
+        return;
+      }
+      const diff = resourceForm.diff;
+      const resourceUpdates = diff?.needUpdate
+        ? [
+            ...diff.newResources,
+            ...diff.editedResources,
+            ...diff.deletedResources,
+          ]
+        : undefined;
+      await configForm.save(ignoreConflict, resourceUpdates);
+      // The files were saved with the config, and refetched before save
+      // resolved. A save that did not happen leaves the config dirty.
+      if (resourceUpdates != null && !configForm.getIsDirty()) {
+        resourceForm.reset();
       }
     },
   };

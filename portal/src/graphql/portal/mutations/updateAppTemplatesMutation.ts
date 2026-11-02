@@ -21,6 +21,36 @@ export type AppTemplatesUpdater = (
   ignoreConflict?: boolean
 ) => Promise<PortalAPIApp | null>;
 
+// The updateApp input for resource updates.
+export function toAppResourceUpdates(
+  updates: ResourceUpdate[],
+  ignoreConflict: boolean
+): AppResourceUpdate[] {
+  return updates.map((update) => {
+    let transform: (a: string) => string;
+    switch (update.specifier.def.type) {
+      case "text":
+        transform = encodeForText;
+        break;
+      case "prettified-json":
+        transform = encodeForPrettifiedJSON;
+        break;
+      case "binary":
+        transform = binary;
+        break;
+      default:
+        throw new Error(
+          "unexpected resource type: " + String(update.specifier.def.type)
+        );
+    }
+    return {
+      path: update.path,
+      data: update.value == null ? null : transform(update.value),
+      checksum: !ignoreConflict ? update.checksum : undefined,
+    };
+  });
+}
+
 export function useUpdateAppTemplatesMutation(appID: string): {
   updateAppTemplates: AppTemplatesUpdater;
   loading: boolean;
@@ -41,35 +71,11 @@ export function useUpdateAppTemplatesMutation(appID: string): {
         paths.push(expandSpecifier(specifier));
       }
 
-      const updatePayload: AppResourceUpdate[] = updates.map((update) => {
-        let transform: (a: string) => string;
-        switch (update.specifier.def.type) {
-          case "text":
-            transform = encodeForText;
-            break;
-          case "prettified-json":
-            transform = encodeForPrettifiedJSON;
-            break;
-          case "binary":
-            transform = binary;
-            break;
-          default:
-            throw new Error(
-              "unexpected resource type: " + String(update.specifier.def.type)
-            );
-        }
-        return {
-          path: update.path,
-          data: update.value == null ? null : transform(update.value),
-          checksum: !ignoreConflict ? update.checksum : undefined,
-        };
-      });
-
       const result = await mutationFunction({
         variables: {
           appID,
           paths,
-          updates: updatePayload,
+          updates: toAppResourceUpdates(updates, ignoreConflict),
         },
       });
       return result.data?.updateApp.app ?? null;

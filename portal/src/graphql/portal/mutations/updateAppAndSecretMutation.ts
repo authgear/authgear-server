@@ -12,6 +12,8 @@ import {
   UpdateAppAndSecretConfigMutationDocument,
 } from "./updateAppAndSecretMutation.generated";
 import { useGraphqlMutation } from "../../../hook/graphql";
+import { ResourceUpdate } from "../../../util/resource";
+import { toAppResourceUpdates } from "./updateAppTemplatesMutation";
 
 export function useUpdateAppAndSecretConfigMutation(appID: string): {
   updateAppAndSecretConfig: (options: {
@@ -19,6 +21,8 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
     appConfigChecksum?: string;
     secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction;
     secretConfigUpdateInstructionsChecksum?: string;
+    // Resource files saved in the same request, so both land or neither.
+    resourceUpdates?: ResourceUpdate[];
     ignoreConflict?: boolean;
   }) => Promise<PortalAPIApp | null>;
   loading: boolean;
@@ -36,12 +40,14 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
       appConfigChecksum,
       secretConfigUpdateInstructions,
       secretConfigUpdateInstructionsChecksum,
+      resourceUpdates,
       ignoreConflict = false,
     }: {
       appConfig?: PortalAPIAppConfig;
       appConfigChecksum?: string;
       secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction;
       secretConfigUpdateInstructionsChecksum?: string;
+      resourceUpdates?: ResourceUpdate[];
       ignoreConflict?: boolean;
     }) => {
       const result = await mutationFunction({
@@ -53,8 +59,17 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
           secretConfigUpdateInstructionsChecksum: !ignoreConflict
             ? secretConfigUpdateInstructionsChecksum
             : undefined,
+          updates:
+            resourceUpdates != null
+              ? toAppResourceUpdates(resourceUpdates, ignoreConflict)
+              : undefined,
         },
-        refetchQueries: ["appAndSecretConfigQuery"],
+        // The resource forms read their files from appTemplatesQuery.
+        refetchQueries:
+          resourceUpdates != null
+            ? ["appAndSecretConfigQuery", "appTemplatesQuery"]
+            : ["appAndSecretConfigQuery"],
+        awaitRefetchQueries: resourceUpdates != null,
       });
       return result.data?.updateApp.app ?? null;
     },
