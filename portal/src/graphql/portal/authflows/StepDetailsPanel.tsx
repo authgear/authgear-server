@@ -11,10 +11,13 @@ import { StepProblem } from "./edit/FlowEditorContext";
 import { Callout } from "../../../components/v2/Callout/Callout";
 import { StepYAMLEditor } from "./edit/StepYAMLEditor";
 import { replaceStep } from "./edit/edits";
+import { FormLanguageSelect, FormTextFields } from "./edit/FormTextFields";
+import { FlowType } from "./model";
 import styles from "./StepDetailsPanel.module.css";
 
 export interface StepDetailsPanelProps {
   item: FlowStepItem;
+  flowType: FlowType;
   // How phone codes are sent, to name the channel in the options list.
   phoneOTPMode: AuthenticatorPhoneOTPMode | undefined;
   onClose: () => void;
@@ -27,6 +30,7 @@ export interface StepDetailsPanelProps {
 
 export function StepDetailsPanel({
   item,
+  flowType,
   phoneOTPMode,
   onClose,
   problems,
@@ -82,6 +86,17 @@ export function StepDetailsPanel({
               showCloseButton={false}
             />
           ))}
+          {/* A form step's text, to read in each language. */}
+          {step.type === "fill_form" ? (
+            <>
+              <FormLanguageSelect formName={step.form?.name} />
+              <FormTextFields
+                formName={step.form?.name}
+                flowType={flowType}
+                ensureName={() => step.form?.name ?? ""}
+              />
+            </>
+          ) : null}
           <ReadOnlyDetails
             item={item}
             phoneOTPMode={phoneOTPMode}
@@ -108,7 +123,7 @@ function ReadOnlyDetails({
   const options = step.one_of ?? [];
   return (
     <>
-      {step.name != null ? (
+      {step.name != null && step.type !== "fill_form" ? (
         <dl className={styles.nameList}>
           <dt>
             <FormattedMessage id="AuthFlowsScreen.panel.name" />

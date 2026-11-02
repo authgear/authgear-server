@@ -65,6 +65,8 @@ export interface FlowEditorOptions {
   problems: ReadonlyMap<string, StepProblem>;
   // Attributes a form can ask for.
   fillablePointers: readonly string[];
+  // A name for a new form.
+  newFormName: () => string;
   // Applies an edit; notice is shown in the panel of the step it selects.
   apply: (result: EditResult, notice?: string) => void;
   // Removes a step, after confirming when steps are nested under it.
@@ -79,6 +81,7 @@ export function useFlowEditorValue({
   errorStepIDs,
   problems,
   fillablePointers,
+  newFormName,
   apply,
   requestRemove,
   notify,
@@ -140,7 +143,13 @@ export function useFlowEditorValue({
         insertStep(
           next,
           at,
-          newStep(flowType, type, target, fillablePointers[0] ?? null)
+          newStep(
+            flowType,
+            type,
+            target,
+            fillablePointers[0] ?? null,
+            type === "fill_form" ? newFormName() : null
+          )
         ),
         notice
       );
@@ -252,6 +261,7 @@ export function useFlowEditorValue({
     errorStepIDs,
     problems,
     fillablePointers,
+    newFormName,
     apply,
     requestRemove,
     notify,

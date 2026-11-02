@@ -21,6 +21,12 @@ export interface FlowSketchContextValue {
   // flow's editor.
   flowLink: (ref: FlowRef) => string;
   generated: AuthenticationFlowsConfig;
+  // The form field whose panel is open; clicking a field opens its panel.
+  fieldSelection?: {
+    stepID: string | null;
+    field: number | null;
+    onSelect: (stepID: string, field: number | null) => void;
+  };
 }
 
 export const FlowSketchContext =
