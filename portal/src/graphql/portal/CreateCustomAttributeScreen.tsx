@@ -21,17 +21,14 @@ import {
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
   EMPTY_CONSTRAINTS,
-  syncPatternMessage,
+  writePatternMessage,
 } from "../../EditCustomAttributeForm";
 import {
   TranslationValuesForm,
   combineForms,
   useTranslationValuesForm,
 } from "../../hook/useTranslationValuesForm";
-import {
-  constraintsFromDraft,
-  patternErrorKey,
-} from "../../util/stringConstraints";
+import { constraintsFromDraft } from "../../util/stringConstraints";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -40,6 +37,8 @@ import styles from "./CreateCustomAttributeScreen.module.css";
 interface FormState extends CustomAttributeDraft {
   id: string;
   access_control: UserProfileAttributesAccessControl;
+  // The pattern's message, saved in translation.json.
+  patternMessage: string;
 }
 
 function constructFormState(): FormState {
@@ -51,6 +50,7 @@ function constructFormState(): FormState {
     maximum: "",
     enum: [],
     constraints: EMPTY_CONSTRAINTS,
+    patternMessage: "",
     access_control: {
       portal_ui: "readwrite",
       bearer: "hidden",
@@ -104,15 +104,19 @@ function CreateCustomAttributeContent(
 
   const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;
 
-  const patternKey = patternErrorKey("custom", state.pointer);
   const onChangeDraft = (draft: CustomAttributeDraft) => {
-    syncPatternMessage(state, draft, translations);
+    writePatternMessage(translations, null, draft, state.patternMessage);
     setState((prev) => {
       return {
         ...prev,
         ...draft,
       };
     });
+  };
+
+  const onPatternMessageChange = (patternMessage: string) => {
+    writePatternMessage(translations, null, state, patternMessage);
+    setState((prev) => ({ ...prev, patternMessage }));
   };
 
   const onCancel = useCallback(() => {
@@ -138,8 +142,8 @@ function CreateCustomAttributeContent(
         index={index}
         draft={state}
         onChangeDraft={onChangeDraft}
-        patternMessage={translations.getValue(patternKey)}
-        onPatternMessageChange={(m) => translations.setValue(patternKey, m)}
+        patternMessage={state.patternMessage}
+        onPatternMessageChange={onPatternMessageChange}
       />
       <div className={styles.actions}>
         <PrimaryButton

@@ -19,7 +19,7 @@ import styles from "./EditCustomAttributeScreen.module.css";
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
   EMPTY_CONSTRAINTS,
-  syncPatternMessage,
+  writePatternMessage,
 } from "../../EditCustomAttributeForm";
 import {
   TranslationValuesForm,
@@ -34,7 +34,10 @@ import {
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 
-type FormState = CustomAttributeDraft;
+interface FormState extends CustomAttributeDraft {
+  // The pattern's message; null until edited, which is the saved one.
+  patternMessage: string | null;
+}
 
 const EMPTY_STATE: FormState = {
   pointer: "",
@@ -43,6 +46,7 @@ const EMPTY_STATE: FormState = {
   maximum: "",
   enum: [],
   constraints: EMPTY_CONSTRAINTS,
+  patternMessage: null,
 };
 
 interface EditCustomAttributeContentProps {
@@ -66,6 +70,7 @@ function makeConstructFormState(
       maximum: c.maximum != null ? String(c.maximum) : "",
       enum: c.enum ?? [],
       constraints: draftFromConstraints(c),
+      patternMessage: null,
     };
   };
 }
@@ -130,17 +135,24 @@ function makeConstructConfig(
 function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
   const { index, form, translations } = props;
   const { appID } = useParams() as { appID: string };
-  const { state, setState } = form;
+  const { state, setState, initialState } = form;
   const { getIsDirty } = useFormContainerBaseContext();
   const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
   const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;
 
-  const patternKey = patternErrorKey("custom", state.pointer);
-  const onChangeDraft = (draft: FormState) => {
-    syncPatternMessage(state, draft, translations);
-    setState(() => draft);
+  const savedPointer = initialState.pointer;
+  const patternMessage =
+    state.patternMessage ??
+    translations.getInitialValue(patternErrorKey("custom", savedPointer));
+  const onChangeDraft = (draft: CustomAttributeDraft) => {
+    writePatternMessage(translations, savedPointer, draft, patternMessage);
+    setState((prev) => ({ ...prev, ...draft }));
+  };
+  const onPatternMessageChange = (message: string) => {
+    writePatternMessage(translations, savedPointer, state, message);
+    setState((prev) => ({ ...prev, patternMessage: message }));
   };
 
   return (
@@ -165,8 +177,8 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
         index={index}
         draft={state}
         onChangeDraft={onChangeDraft}
-        patternMessage={translations.getValue(patternKey)}
-        onPatternMessageChange={(m) => translations.setValue(patternKey, m)}
+        patternMessage={patternMessage}
+        onPatternMessageChange={onPatternMessageChange}
       />
       <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
     </ScreenContent>

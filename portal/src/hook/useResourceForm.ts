@@ -20,6 +20,8 @@ export interface ResourceFormModel<State> {
   getIsDirty: () => boolean;
   loadError: unknown;
   updateError: unknown;
+  // The state of the files as loaded, before any edit.
+  initialState: State;
   state: State;
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
@@ -175,6 +177,7 @@ export function useResourceForm<State>(
     getIsDirty,
     loadError,
     updateError,
+    initialState,
     state,
     setState,
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/strict-void-return

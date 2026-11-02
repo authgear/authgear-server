@@ -53,27 +53,28 @@ export interface EditCustomAttributeFormProps {
   onPatternMessageChange: (message: string) => void;
 }
 
-// Keeps the pattern's message with the attribute: it follows a renamed
-// attribute, and goes when the pattern or the string type does.
-export function syncPatternMessage(
-  prev: CustomAttributeDraft,
-  next: CustomAttributeDraft,
-  translations: TranslationValuesForm
+// Writes the pattern's message under the attribute's current name, and
+// removes it from the saved name (null for a new attribute). Rebuilt from the
+// file as loaded, so the names typed on the way never touch another
+// attribute's message.
+export function writePatternMessage(
+  translations: TranslationValuesForm,
+  savedPointer: string | null,
+  draft: CustomAttributeDraft,
+  message: string
 ): void {
-  const oldKey = patternErrorKey("custom", prev.pointer);
-  const message = translations.getValue(oldKey);
-  if (message === "") {
-    return;
+  const edits: Record<string, string> = {};
+  if (savedPointer != null) {
+    edits[patternErrorKey("custom", savedPointer)] = "";
   }
-  if (next.type !== "string" || next.constraints.pattern === "") {
-    translations.setValue(oldKey, "");
-    return;
+  if (
+    draft.type === "string" &&
+    draft.constraints.pattern !== "" &&
+    message !== ""
+  ) {
+    edits[patternErrorKey("custom", draft.pointer)] = message;
   }
-  const newKey = patternErrorKey("custom", next.pointer);
-  if (newKey !== oldKey) {
-    translations.setValue(oldKey, "");
-    translations.setValue(newKey, message);
-  }
+  translations.setEdits(edits);
 }
 
 // ---------------------------------------------------------------------------

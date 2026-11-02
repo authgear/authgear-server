@@ -22,8 +22,13 @@ export interface TranslationValuesForm {
   form: ResourceFormModel<ResourcesFormState>;
   // The value of a key in the language's translation.json; "" when unset.
   getValue: (key: string) => string;
+  // The value of a key as loaded, before any edit.
+  getInitialValue: (key: string) => string;
   // Sets a key; "" removes it.
   setValue: (key: string, value: string) => void;
+  // Replaces all edits with these, applied to the file as loaded; "" removes
+  // a key. Keys not named keep their loaded value.
+  setEdits: (edits: Record<string, string>) => void;
 }
 
 // Plain-text values of a language's translation.json, the file Custom Text
@@ -47,7 +52,7 @@ export function useTranslationValuesForm(
     specifier != null ? appID : undefined,
     specifiers
   );
-  const { state, setState } = form;
+  const { state, initialState, setState } = form;
 
   const read = useCallback(
     (s: ResourcesFormState): Record<string, unknown> => {
@@ -62,26 +67,41 @@ export function useTranslationValuesForm(
     [specifier]
   );
 
-  const getValue = useCallback(
-    (key: string): string => {
-      const value = read(state)[key];
+  const valueOf = useCallback(
+    (s: ResourcesFormState, key: string): string => {
+      const value = read(s)[key];
       return typeof value === "string" ? unescapeMessageFormatText(value) : "";
     },
-    [read, state]
+    [read]
   );
 
-  const setValue = useCallback(
-    (key: string, value: string) => {
+  const getValue = useCallback(
+    (key: string): string => valueOf(state, key),
+    [valueOf, state]
+  );
+
+  const getInitialValue = useCallback(
+    (key: string): string => valueOf(initialState, key),
+    [valueOf, initialState]
+  );
+
+  const write = useCallback(
+    (
+      base: (s: ResourcesFormState) => ResourcesFormState,
+      edits: Record<string, string>
+    ) => {
       if (specifier == null) {
         return;
       }
       setState((s) =>
         produce(s, (draft) => {
-          const json = read(s);
-          if (value === "") {
-            delete json[key];
-          } else {
-            json[key] = escapeMessageFormatText(value);
+          const json = read(base(s));
+          for (const [key, value] of Object.entries(edits)) {
+            if (value === "") {
+              delete json[key];
+            } else {
+              json[key] = escapeMessageFormatText(value);
+            }
           }
           draft.resources[specifierId(specifier)] = {
             specifier,
@@ -94,7 +114,17 @@ export function useTranslationValuesForm(
     [specifier, read, setState]
   );
 
-  return { form, getValue, setValue };
+  const setValue = useCallback(
+    (key: string, value: string) => write((s) => s, { [key]: value }),
+    [write]
+  );
+
+  const setEdits = useCallback(
+    (edits: Record<string, string>) => write(() => initialState, edits),
+    [write, initialState]
+  );
+
+  return { form, getValue, getInitialValue, setValue, setEdits };
 }
 
 // A config form and a resource form saved as one. With config changes, both
