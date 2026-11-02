@@ -1,0 +1,6 @@
+name: authgear-portal internal domain apply-k8s-resources works with the real portal database schema
+steps:
+  - name: run_sql_against_e2e_database
+    action: go_test
+    go_test_package: ./cmd/portal/internal
+    go_test_run: ^TestE2EApplyDomainK8SResources$

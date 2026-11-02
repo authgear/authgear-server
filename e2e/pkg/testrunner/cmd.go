@@ -21,6 +21,8 @@ import (
 	"testing"
 	texttemplate "text/template"
 
+	"github.com/joho/godotenv"
+
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -268,6 +270,34 @@ func (e *End2EndCmd) RunCLI(binary string, args []string) (exitCode int, stdout 
 	}
 
 	return
+}
+
+// RunGoTest runs the Go tests matching run in pkg of the authgear-server module, with the `e2e` build tag
+// and the environment of e2e/.env, so that the tests can use the e2e database.
+// It fails when no test matches, so that a renamed test does not pass silently.
+func (e *End2EndCmd) RunGoTest(pkg string, run string) (output string, err error) {
+	env, err := godotenv.Read("../../.env")
+	if err != nil {
+		return "", fmt.Errorf("failed to read e2e/.env: %w", err)
+	}
+
+	execCmd := exec.Command("go", "test", "-tags", "e2e", "-count", "1", "-v", "-run", run, pkg)
+	// The root of the authgear-server module.
+	execCmd.Dir = "../../../"
+	execCmd.Env = os.Environ()
+	for k, v := range env {
+		execCmd.Env = append(execCmd.Env, k+"="+v)
+	}
+
+	out, err := execCmd.CombinedOutput()
+	output = string(out)
+	if err != nil {
+		return output, fmt.Errorf("go test %s -run %s: %w", pkg, run, err)
+	}
+	if !strings.Contains(output, "--- PASS: ") {
+		return output, fmt.Errorf("go test %s -run %s: no test ran", pkg, run)
+	}
+	return output, nil
 }
 
 func (e *End2EndCmd) resolvePath(p string) string {
