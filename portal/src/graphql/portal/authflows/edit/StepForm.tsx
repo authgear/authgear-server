@@ -1061,9 +1061,15 @@ function FormEditor(props: FormEditorProps) {
                     aria-pressed={selected}
                     onClick={() => rows.onSelect(j)}
                   >
-                    <Text size="2" className={styles.grow} truncate={true}>
-                      {rowLabel(pointer)}
-                    </Text>
+                    {/* The label the end-user reads, and the attribute it fills. */}
+                    <span className={styles.fieldRowText}>
+                      <Text size="2" truncate={true}>
+                        {rowLabel(pointer)}
+                      </Text>
+                      <Text size="1" color="gray" truncate={true}>
+                        <code>{pointer}</code>
+                      </Text>
+                    </span>
                     {f.user_profile?.required === true ? (
                       <Badge size="1" color="gray">
                         {renderToString(
