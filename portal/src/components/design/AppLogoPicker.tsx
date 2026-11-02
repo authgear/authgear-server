@@ -44,7 +44,6 @@ const AppLogoPicker: React.VFC<AppLogoPickerProps> = function AppLogoPicker(
     <BaseImagePicker
       sizeLimitInBytes={100 * 1000}
       className={cn(styles.picker)}
-      base64EncodedData={logo.base64EncodedData}
       onChange={onChange}
     >
       {({ showFilePicker, clearImage }) => (

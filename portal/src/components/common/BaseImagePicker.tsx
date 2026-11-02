@@ -24,7 +24,6 @@ function mediaTypeToExtension(mime: string): ImageFileExtension | null {
 interface BaseImagePickerProps {
   sizeLimitInBytes: number;
   className?: string;
-  base64EncodedData: string | null;
   onChange: (
     image: {
       base64EncodedData: string;
@@ -41,7 +40,7 @@ type BaseImagePickerError = "size" | "load" | "media_type";
 
 const BaseImagePicker: React.VFC<BaseImagePickerProps> =
   function BaseImagePicker(props) {
-    const { sizeLimitInBytes, className, base64EncodedData, onChange } = props;
+    const { sizeLimitInBytes, className, onChange } = props;
     const [error, setError] = useState<BaseImagePickerError | null>(null);
     const [isErrorDialogHidden, setIsErrorDialogHidden] =
       useState<boolean>(true);
@@ -111,11 +110,8 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
     );
 
     const showFilePicker = useCallback(() => {
-      if (base64EncodedData != null) {
-        return;
-      }
       inputRef.current?.click();
-    }, [base64EncodedData]);
+    }, []);
 
     const clearImage = useCallback(() => {
       onChange(null);

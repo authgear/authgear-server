@@ -37,7 +37,6 @@ export const ImagePicker: React.VFC<ImagePickerProps> = function ImagePicker(
     <BaseImagePicker
       sizeLimitInBytes={sizeLimitInBytes}
       className={cn(styles.picker)}
-      base64EncodedData={base64EncodedData}
       onChange={onChange}
     >
       {({ showFilePicker, clearImage }) => (
