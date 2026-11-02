@@ -1804,7 +1804,7 @@
   "FeatureConfig.collaborator.upgrade": "You can only have {maximum, plural, one{1 admin} other{# admins}}. To invite more, <ReactRouterLink>upgrade your project plan</ReactRouterLink>",
   "FeatureConfig.collaborator.contact-us": "Your plan only include {maximum, plural, one{1 member seat} other{# member seats}}, <ExternalLink>contact us to upgrade</ExternalLink>",
   "FeatureConfig.web3-nft.maximum": "You can index {maximum, plural, one{1 collection} other{# collections}} max. <ReactRouterLink>Upgrade your project plan</ReactRouterLink> to add more",
-  "FeatureConfig.edit-template.disabled": "<ReactRouterLink>Upgrade your project plan</ReactRouterLink> to change the templates.",
+  "FeatureConfig.edit-template.disabled": "Customizing templates requires approval. <applicationLink>Complete the application form</applicationLink> to request access.",
   "FeatureConfig.custom-smtp.disabled": "Custom Email Provider is not available for your project plan. <ReactRouterLink>Upgrade your project plan</ReactRouterLink>.",
   "FeatureConfig.custom-sms-provider.disabled": "Custom SMS Provider is not available for your project plan. <ReactRouterLink>Upgrade your project plan</ReactRouterLink>.",
   "SubscriptionCurrentPlanSummary.title.known-plan": "Current Plan: {name} {expiredAt, select, false{(${amount}/mo)} other{(Expire at: {expiredAt})}}",
