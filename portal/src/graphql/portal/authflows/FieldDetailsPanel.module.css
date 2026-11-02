@@ -1,0 +1,40 @@
+/* Beside the step panel: narrower, so the canvas keeps room. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  gap: 16px;
+  width: 320px;
+  padding: 16px;
+  border-left: 1px solid var(--gray-a5);
+  overflow: auto;
+}
+
+.heading {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Attribute and Type: read-only facts about the field. */
+.facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 0;
+  font-size: var(--font-size-2);
+}
+
+.facts dt {
+  color: var(--gray-11);
+}
+
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

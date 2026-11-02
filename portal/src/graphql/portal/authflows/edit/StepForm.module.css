@@ -58,6 +58,49 @@
   color: var(--gray-9);
 }
 
+/* A form step's field; opens the field panel. */
+.fieldRow,
+.fieldRowSelected {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--gray-a6);
+  border-radius: 8px;
+}
+
+.fieldRowSelected {
+  border-color: var(--accent-8);
+  background: var(--accent-a2);
+}
+
+.fieldRowButton {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* A label wrapping its text box: the box takes the full width. */
+.textLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* After a language in the list: the form has its own text in it. */
+.edited {
+  margin-left: 8px;
+}
+
 .grow {
   flex: 1;
   min-width: 0;

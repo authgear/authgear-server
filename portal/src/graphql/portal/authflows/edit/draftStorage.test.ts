@@ -51,3 +51,30 @@ describe("readStoredDraft", () => {
     expect(readStoredDraft("app", "login", "vip")).toBeNull();
   });
 });
+
+describe("stored form text", () => {
+  const text = {
+    edits: { ja: { "v2.page.fill-form.form_1.title": "ようこそ" } },
+    ops: [{ kind: "rename" as const, from: "a", to: "form_1" }],
+  };
+
+  it("keeps the form text with the draft", () => {
+    storeDraft("app", "signup", "vip", flow, 1000, text);
+    expect(readStoredDraft("app", "signup", "vip")?.text).toEqual(text);
+  });
+
+  it("reads a draft stored without text", () => {
+    storeDraft("app", "signup", "vip", flow, 1000);
+    expect(readStoredDraft("app", "signup", "vip")?.text).toBeUndefined();
+  });
+
+  it("drops text it cannot read", () => {
+    window.localStorage.setItem(
+      "authgear-portal-authflow-draft:app:signup:vip",
+      JSON.stringify({ flow, savedAt: 1, text: "nope" })
+    );
+    const read = readStoredDraft("app", "signup", "vip");
+    expect(read?.flow).toEqual(flow);
+    expect(read?.text).toBeUndefined();
+  });
+});

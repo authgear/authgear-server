@@ -1,0 +1,47 @@
+.editor {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--space-6);
+  padding: 4px 8px;
+  border: 1px solid var(--gray-a7);
+  border-radius: var(--radius-2);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.editor:focus {
+  outline: 2px solid var(--accent-8);
+  outline-offset: -1px;
+}
+
+.editor[aria-disabled="true"] {
+  background: var(--gray-a2);
+  color: var(--gray-a11);
+}
+
+/* The text in effect, while the label is unset. */
+.editor[data-empty="true"]::before {
+  content: attr(data-placeholder);
+  color: var(--gray-a10);
+  pointer-events: none;
+}
+
+.editor a {
+  color: var(--accent-11);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.urlLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview {
+  padding: 8px;
+  border: 1px dashed var(--gray-a6);
+  border-radius: var(--radius-2);
+}

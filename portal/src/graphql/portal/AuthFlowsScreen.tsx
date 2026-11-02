@@ -63,6 +63,7 @@ import { FlowCanvas } from "./authflows/FlowCanvas";
 import { FlowStepItem, flowToTree } from "./authflows/tree";
 import { findStep } from "./authflows/findStep";
 import { StepDetailsPanel } from "./authflows/StepDetailsPanel";
+import { FieldDetailsPanel } from "./authflows/FieldDetailsPanel";
 import {
   FlowSketchContext,
   FlowSketchContextValue,
@@ -80,6 +81,12 @@ import {
   storeDraft,
 } from "./authflows/edit/draftStorage";
 import { useFlowEditorValue } from "./authflows/edit/useFlowEditorValue";
+import { FormText, useFormText } from "./authflows/edit/useFormText";
+import {
+  FormTextContext,
+  FormTextContextValue,
+} from "./authflows/edit/FormTextContext";
+import { nextFormName, usedFormNames } from "./authflows/edit/formText";
 import {
   EditResult,
   countNestedSteps,
@@ -178,11 +185,39 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
     variables: { id: appID },
     fetchPolicy: "network-only",
   });
-  const form = useAppConfigForm<EditorState>({
+  const configForm = useAppConfigForm<EditorState>({
     appID,
     constructFormState,
     constructConfig,
   });
+  // Form text, per language; the default language first.
+  const fallbackLanguage =
+    configForm.effectiveConfig.localization?.fallback_language ?? "en";
+  const supportedLanguages =
+    configForm.effectiveConfig.localization?.supported_languages;
+  const languages = useMemo(
+    () => [
+      fallbackLanguage,
+      ...(supportedLanguages ?? []).filter((l) => l !== fallbackLanguage),
+    ],
+    [fallbackLanguage, supportedLanguages]
+  );
+  const formText = useFormText(appID, languages);
+  // The flow and its form text are one unsaved change: either is a reason
+  // to stay, and Discard drops both. Saving writes the config, then the text.
+  const form = useMemo<EditorForm>(
+    () => ({
+      ...configForm,
+      isUpdating: configForm.isUpdating || formText.isUpdating,
+      updateError: configForm.updateError ?? formText.updateError,
+      getIsDirty: () => configForm.getIsDirty() || formText.getIsDirty(),
+      reset: () => {
+        configForm.reset();
+        formText.reset();
+      },
+    }),
+    [configForm, formText]
+  );
   const app = data?.node?.__typename === "App" ? data.node : null;
   const generatedFlows: GeneratedFlows | undefined =
     app?.generatedAuthenticationFlows;
@@ -227,13 +262,24 @@ const AuthFlowsScreen: React.VFC = function AuthFlowsScreen() {
   if (form.loadError != null) {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
+  if (formText.loadError != null) {
+    return <ShowError error={formText.loadError} onRetry={form.reload} />;
+  }
   return (
     <FormContainerBase
       form={form}
       ownConflictDialog={true}
       errorRules={errorRules}
     >
-      <AuthFlowsContent appID={appID} form={form} generated={generated} />
+      <AuthFlowsContent
+        appID={appID}
+        form={form}
+        configIsDirty={configForm.getIsDirty}
+        configReset={configForm.reset}
+        generated={generated}
+        formText={formText}
+        languages={languages}
+      />
     </FormContainerBase>
   );
 };
@@ -248,11 +294,21 @@ interface PendingRemove {
 function AuthFlowsContent({
   appID,
   form,
+  configIsDirty,
+  configReset,
   generated,
+  formText,
+  languages,
 }: {
   appID: string;
+  // getIsDirty and reset cover the form text too.
   form: EditorForm;
+  configIsDirty: () => boolean;
+  configReset: () => void;
   generated: AuthenticationFlowsConfig | undefined;
+  formText: FormText;
+  // The project's languages, the default first.
+  languages: string[];
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
   const { canSave, isUpdating } = useFormContainerBaseContext();
@@ -262,6 +318,26 @@ function AuthFlowsContent({
   const appConfig = form.effectiveConfig;
   const custom = appConfig.authentication_flow;
   const drafts = form.state.drafts;
+
+  const fallbackLanguage = languages[0];
+  const [pickedLanguage, setLanguage] = useState<string | null>(null);
+  const language =
+    pickedLanguage != null && languages.includes(pickedLanguage)
+      ? pickedLanguage
+      : fallbackLanguage;
+  // Form names as they will be saved.
+  const usedNames = useMemo(
+    () =>
+      form.rawConfig != null
+        ? usedFormNames(constructConfig(form.rawConfig, form.state, form.state))
+        : new Set<string>(),
+    [form.rawConfig, form.state]
+  );
+  const { files: textFiles } = formText;
+  const newFormName = useCallback(
+    () => nextFormName(usedNames, textFiles),
+    [usedNames, textFiles]
+  );
 
   const routeType: FlowType | null = isFlowType(params.type)
     ? params.type
@@ -317,11 +393,20 @@ function AuthFlowsContent({
     flowKey: string;
     stepID: string;
     notice?: string;
+    // A form step's field whose panel is open.
+    field?: number;
   } | null>(null);
   const selectedStepID = selected?.flowKey === flowKey ? selected.stepID : null;
+  const selectedField =
+    selected?.flowKey === flowKey ? selected.field ?? null : null;
   const onSelectStep = useCallback(
     (stepID: string | null) =>
       setSelected(stepID != null ? { flowKey, stepID } : null),
+    [flowKey]
+  );
+  const onSelectField = useCallback(
+    (stepID: string, field: number | null) =>
+      setSelected({ flowKey, stepID, field: field ?? undefined }),
     [flowKey]
   );
   const selectedItem = useMemo(
@@ -347,9 +432,24 @@ function AuthFlowsContent({
             custom,
             generated,
             flowLink: (ref) => flowPath(appID, ref.type, ref.name),
+            fieldSelection: {
+              stepID: selectedStepID,
+              field: selectedField,
+              onSelect: onSelectField,
+            },
           }
         : null,
-    [shownType, appConfig, custom, generated, shownFlow, appID]
+    [
+      shownType,
+      appConfig,
+      custom,
+      generated,
+      shownFlow,
+      appID,
+      selectedStepID,
+      selectedField,
+      onSelectField,
+    ]
   );
 
   // Editing.
@@ -363,9 +463,18 @@ function AuthFlowsContent({
             : d
         ),
       }));
-      setSelected(
+      setSelected((prev) =>
         result.selected != null
-          ? { flowKey, stepID: result.selected, notice }
+          ? {
+              flowKey,
+              stepID: result.selected,
+              notice,
+              // An edit to the step keeps its field panel open.
+              field:
+                prev?.flowKey === flowKey && prev.stepID === result.selected
+                  ? prev.field
+                  : undefined,
+            }
           : null
       );
     },
@@ -554,6 +663,7 @@ function AuthFlowsContent({
     errorStepIDs,
     problems,
     fillablePointers: fillable,
+    newFormName,
     apply: applyAndClearNotice,
     requestRemove,
     notify: setDropNotice,
@@ -614,15 +724,30 @@ function AuthFlowsContent({
       : null) ??
     resolved?.flow ??
     null;
+  const { edits: textEdits, ops: textOps } = formText;
   useEffect(() => {
     if (routeType == null || draft == null) {
       return;
     }
-    if (baseline != null && deepEqual(baseline, draft.flow, { strict: true })) {
+    const hasText =
+      textOps.length > 0 ||
+      Object.values(textEdits).some((e) => Object.keys(e).length > 0);
+    if (
+      !hasText &&
+      baseline != null &&
+      deepEqual(baseline, draft.flow, { strict: true })
+    ) {
       return;
     }
-    storeDraft(appID, routeType, name, draft.flow, Date.now());
-  }, [appID, routeType, name, draft, baseline]);
+    storeDraft(
+      appID,
+      routeType,
+      name,
+      draft.flow,
+      Date.now(),
+      hasText ? { edits: textEdits, ops: textOps } : undefined
+    );
+  }, [appID, routeType, name, draft, baseline, textEdits, textOps]);
   // Leaving through "Discard and leave" resets the form before the next
   // page shows; the drafts it threw away are not offered back later. A
   // refresh or closed tab runs no cleanup, so its draft is kept.
@@ -644,6 +769,7 @@ function AuthFlowsContent({
       leftDrafts.current = [];
     };
   }, [appID, flowKey]);
+  const { restore: restoreText } = formText;
   const onRestoreStored = useCallback(() => {
     const flow = stored.draft?.flow;
     if (routeType != null && flow != null) {
@@ -651,8 +777,12 @@ function AuthFlowsContent({
         drafts: [{ type: routeType, name, flow }],
         removals: [],
       }));
+      const text = stored.draft?.text;
+      if (text != null) {
+        restoreText(text.edits, text.ops);
+      }
     }
-  }, [stored, routeType, name, setState]);
+  }, [stored, routeType, name, setState, restoreText]);
 
   // The last save tried, so Overwrite in the conflict dialog can try it
   // again without the checksum check.
@@ -667,24 +797,54 @@ function AuthFlowsContent({
     },
     []
   );
+  const { save: saveText, recordNameOp } = formText;
+  const usedBefore = useMemo(
+    () =>
+      form.rawConfig != null
+        ? usedFormNames(form.rawConfig)
+        : new Set<string>(),
+    [form.rawConfig]
+  );
   const onSaveDrafts = useCallback(() => {
     const saving = drafts;
+    const usedAfter = usedNames;
     attemptSave(async (ignoreConflict) => {
-      await save(ignoreConflict);
+      if (configIsDirty()) {
+        await save(ignoreConflict);
+      }
+      // A form name no form uses any more takes its text with it.
+      for (const n of usedBefore) {
+        if (!usedAfter.has(n)) {
+          recordNameOp({ kind: "delete", name: n });
+        }
+      }
+      await saveText(usedAfter);
       // save() can return without saving, e.g. while another save runs.
       if (!getIsDirty()) {
         forgetStored(saving);
       }
     });
-  }, [drafts, attemptSave, save, getIsDirty, forgetStored]);
+  }, [
+    drafts,
+    usedNames,
+    usedBefore,
+    attemptSave,
+    configIsDirty,
+    save,
+    recordNameOp,
+    saveText,
+    getIsDirty,
+    forgetStored,
+  ]);
   // The latest config, with the flow being edited kept on top, to check and
   // save again.
   const onReloadKeepingDraft = useCallback(() => {
     const keep = form.state;
-    reset();
+    // The config only: the form text edits stay pending.
+    configReset();
     setState(() => keep);
     reload();
-  }, [form.state, reset, setState, reload]);
+  }, [form.state, configReset, setState, reload]);
   const onOverwrite = useCallback(() => {
     lastSave.current?.(true).catch(() => {});
   }, []);
@@ -776,305 +936,359 @@ function AuthFlowsContent({
   const editing = draft != null;
   // Edits made while a save is in flight would be lost when it lands.
   const canEdit = editing && !isUpdating;
+  const formTextValue = useMemo<FormTextContextValue>(
+    () => ({
+      text: formText,
+      languages,
+      defaultLanguage: fallbackLanguage,
+      language,
+      setLanguage,
+      readOnly: !canEdit,
+      usedNames,
+      newFormName,
+    }),
+    [
+      formText,
+      languages,
+      fallbackLanguage,
+      language,
+      canEdit,
+      usedNames,
+      newFormName,
+    ]
+  );
   const flowTypeName =
     routeType != null ? renderToString(flowTypeMessageIDs[routeType]) : "";
   const listPath = flowListPath(appID);
 
   return (
-    <div className={styles.root}>
-      <header className={styles.header}>
-        <Link to={listPath} className={styles.back}>
-          <FormattedMessage id="AuthFlowsScreen.back" />
-        </Link>
-        <Flex gap="3" align="center" wrap="wrap" className={styles.toolbar}>
-          <Heading size="6" as="h1">
-            {titleLabel}
-          </Heading>
-          {/* The name authgear.yaml and the Authflow API use, when the
+    <FormTextContext.Provider value={formTextValue}>
+      <div className={styles.root}>
+        <header className={styles.header}>
+          <Link to={listPath} className={styles.back}>
+            <FormattedMessage id="AuthFlowsScreen.back" />
+          </Link>
+          <Flex gap="3" align="center" wrap="wrap" className={styles.toolbar}>
+            <Heading size="6" as="h1">
+              {titleLabel}
+            </Heading>
+            {/* The name authgear.yaml and the Authflow API use, when the
               title shows another. */}
-          {titleLabel !== name ? (
+            {titleLabel !== name ? (
+              <Text size="2" color="gray">
+                <code>{name}</code>
+              </Text>
+            ) : null}
+            {resolved != null ? (
+              <Tooltip
+                content={
+                  renameDisabledReason ??
+                  renderToString("AuthFlowsScreen.list.rename")
+                }
+              >
+                <span>
+                  <IconButton
+                    type="button"
+                    variant="ghost"
+                    color="gray"
+                    aria-label={renderToString("AuthFlowsScreen.list.rename")}
+                    disabled={renameDisabledReason != null || isUpdating}
+                    onClick={() => setRenaming("dialog")}
+                  >
+                    <Pencil1Icon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            ) : null}
             <Text size="2" color="gray">
-              <code>{name}</code>
+              {flowTypeName}
             </Text>
-          ) : null}
-          {resolved != null ? (
-            <Tooltip
-              content={
-                renameDisabledReason ??
-                renderToString("AuthFlowsScreen.list.rename")
-              }
-            >
-              <span>
-                <IconButton
-                  type="button"
-                  variant="ghost"
-                  color="gray"
-                  aria-label={renderToString("AuthFlowsScreen.list.rename")}
-                  disabled={renameDisabledReason != null || isUpdating}
-                  onClick={() => setRenaming("dialog")}
-                >
-                  <Pencil1Icon />
-                </IconButton>
-              </span>
-            </Tooltip>
-          ) : null}
-          <Text size="2" color="gray">
-            {flowTypeName}
-          </Text>
-          <span className={styles.toolbarSpacer} />
-          {editing ? (
-            <>
-              <Button
-                type="button"
-                variant="soft"
-                color="gray"
-                disabled={isUpdating}
-                onClick={onDiscard}
-              >
-                <FormattedMessage id="AuthFlowsScreen.edit.discard" />
-              </Button>
-              <Button
-                type="button"
-                disabled={!canSave}
-                loading={isUpdating}
-                onClick={onSaveDrafts}
-              >
-                <FormattedMessage id="AuthFlowsScreen.edit.save" />
-              </Button>
-            </>
-          ) : resolved != null ? (
-            <>
-              {canReset ? (
+            <span className={styles.toolbarSpacer} />
+            {editing ? (
+              <>
                 <Button
                   type="button"
                   variant="soft"
                   color="gray"
                   disabled={isUpdating}
-                  onClick={() => setConfirmReset(true)}
+                  onClick={onDiscard}
                 >
-                  <FormattedMessage id="AuthFlowsScreen.reset" />
+                  <FormattedMessage id="AuthFlowsScreen.edit.discard" />
                 </Button>
-              ) : null}
-              <Button type="button" variant="soft" onClick={onEdit}>
-                <FormattedMessage id="AuthFlowsScreen.edit.edit" />
-              </Button>
-            </>
-          ) : null}
-        </Flex>
-      </header>
-      <FormErrorMessageBar />
-      {!editing && !arriving && stored.draft != null ? (
-        <div className={styles.storedDraft} role="status">
-          <Text size="2" className={styles.storedDraftText}>
-            <FormattedMessage id="AuthFlowsScreen.stored-draft.message" />
-          </Text>
-          <Button
-            type="button"
-            size="1"
-            variant="soft"
-            color="gray"
-            onClick={() =>
-              forgetStored(routeType != null ? [{ type: routeType, name }] : [])
-            }
-          >
-            <FormattedMessage id="AuthFlowsScreen.edit.discard" />
-          </Button>
-          <Button type="button" size="1" onClick={onRestoreStored}>
-            <FormattedMessage id="AuthFlowsScreen.stored-draft.restore" />
-          </Button>
-        </div>
-      ) : null}
-      {(errorsByStep.get("") ?? []).length > 0 ? (
-        <div className={styles.flowProblems}>
-          {(errorsByStep.get("") ?? []).map((c, i) => (
-            <Callout
-              key={`e${i}`}
-              type="error"
+                <Button
+                  type="button"
+                  disabled={!canSave}
+                  loading={isUpdating}
+                  onClick={onSaveDrafts}
+                >
+                  <FormattedMessage id="AuthFlowsScreen.edit.save" />
+                </Button>
+              </>
+            ) : resolved != null ? (
+              <>
+                {canReset ? (
+                  <Button
+                    type="button"
+                    variant="soft"
+                    color="gray"
+                    disabled={isUpdating}
+                    onClick={() => setConfirmReset(true)}
+                  >
+                    <FormattedMessage id="AuthFlowsScreen.reset" />
+                  </Button>
+                ) : null}
+                <Button type="button" variant="soft" onClick={onEdit}>
+                  <FormattedMessage id="AuthFlowsScreen.edit.edit" />
+                </Button>
+              </>
+            ) : null}
+          </Flex>
+        </header>
+        <FormErrorMessageBar />
+        {!editing && !arriving && stored.draft != null ? (
+          <div className={styles.storedDraft} role="status">
+            <Text size="2" className={styles.storedDraftText}>
+              <FormattedMessage id="AuthFlowsScreen.stored-draft.message" />
+            </Text>
+            <Button
+              type="button"
               size="1"
-              text={causeText(c, "")}
-            />
-          ))}
-        </div>
-      ) : null}
-      {/* Only while editing, where it can be acted on. */}
-      {draft != null
-        ? flowLevelChecks.map((c) => (
-            <PersistentToast
-              key={c}
-              open={closedFlowCheckFor !== flowKey}
-              onOpenChange={(open) => {
-                if (!open) {
-                  setClosedFlowCheckFor(flowKey);
-                }
-              }}
+              variant="soft"
+              color="gray"
+              onClick={() =>
+                forgetStored(
+                  routeType != null ? [{ type: routeType, name }] : []
+                )
+              }
             >
-              <ToastCallout
-                type="warning"
-                text={
-                  <Flex direction="column" align="start" gap="2">
-                    {renderToString(flowCheckMessageIDs[c])}
-                    {/* The one flow check; it can add the missing step. */}
-                    <Button
-                      type="button"
-                      disabled={!canEdit}
-                      size="1"
-                      variant="soft"
-                      onClick={() =>
-                        applyAndClearNotice(
-                          insertStep(
-                            draft.flow,
-                            checkAccountStatusAt(draft.flow),
-                            {
-                              type: "check_account_status",
-                            }
-                          )
-                        )
-                      }
-                    >
-                      <FormattedMessage id="AuthFlowsScreen.check.add-check-account-status" />
-                    </Button>
-                  </Flex>
-                }
-              />
-            </PersistentToast>
-          ))
-        : null}
-      <div className={styles.canvasArea}>
-        {canEdit && dropNotice != null ? (
-          <div className={styles.dropNotice}>
-            <Callout type="warning" size="1" text={dropNotice} />
+              <FormattedMessage id="AuthFlowsScreen.edit.discard" />
+            </Button>
+            <Button type="button" size="1" onClick={onRestoreStored}>
+              <FormattedMessage id="AuthFlowsScreen.stored-draft.restore" />
+            </Button>
           </div>
         ) : null}
-        {arriving || renaming === "saving" ? null : tree != null &&
-          sketchContext != null ? (
-          <FlowSketchContext.Provider value={sketchContext}>
-            <StepProblemsContext.Provider value={stepProblemsValue}>
-              <FlowEditorContext.Provider value={canEdit ? editorValue : null}>
-                <FlowCanvas
-                  key={flowKey}
-                  tree={tree}
-                  selectedStepID={selectedStepID}
-                  onSelectStep={onSelectStep}
-                />
-              </FlowEditorContext.Provider>
-            </StepProblemsContext.Provider>
-          </FlowSketchContext.Provider>
-        ) : (
-          <Text as="p" size="2" className={styles.notFound}>
-            <FormattedMessage id="AuthFlowsScreen.flow-not-found" />{" "}
-            <Link to={listPath}>
-              <FormattedMessage id="AuthFlowsScreen.back" />
-            </Link>
-          </Text>
-        )}
-        {selectedItem != null ? (
-          <StepDetailsPanel
-            item={selectedItem}
-            phoneOTPMode={appConfig.authenticator?.oob_otp?.sms?.phone_otp_mode}
-            onClose={onClosePanel}
-            problems={selectedProblems}
-            edit={
-              draft != null && canEdit
-                ? {
-                    flowType: draft.type,
-                    flow: draft.flow,
-                    apply,
-                    phoneOTPMode:
-                      appConfig.authenticator?.oob_otp?.sms?.phone_otp_mode,
-                    customAttributes:
-                      appConfig.user_profile?.custom_attributes?.attributes ??
-                      [],
-                    appID,
-                    fillablePointers: fillable,
-                    knownPointers: knownPointers(appConfig),
-                    loginFlowNames: listFlowNames(custom, "login"),
-                    signupFlowNames: listFlowNames(custom, "signup"),
-                    flowLabel: (t, n) =>
-                      flowDisplayName(
-                        n,
-                        renderToString,
-                        displayNameOf(custom, t, n)
-                      ),
-                    requestRemoveOption,
-                    removeOptionBlockedReason:
-                      editorValue.removeOptionBlockedReason,
-                    // A form step's fields show their own problems.
-                    problems: selectedProblems.filter((p) => !p.fieldCheck),
-                    checks: checksByStep.get(selectedItem.id) ?? [],
-                    notice: selected?.notice,
-                  }
-                : undefined
-            }
-          />
+        {(errorsByStep.get("") ?? []).length > 0 ? (
+          <div className={styles.flowProblems}>
+            {(errorsByStep.get("") ?? []).map((c, i) => (
+              <Callout
+                key={`e${i}`}
+                type="error"
+                size="1"
+                text={causeText(c, "")}
+              />
+            ))}
+          </div>
         ) : null}
-      </div>
-      {renaming === "dialog" && routeType != null ? (
-        <FlowNameDialog
-          open={true}
-          title={renderToString("AuthFlowsScreen.list.rename.title", {
-            name: titleLabel,
-          })}
-          confirmText={renderToString("AuthFlowsScreen.list.rename")}
-          initialName={name}
-          initialDisplayName={
-            displayNameOf(
-              form.rawConfig?.authentication_flow,
+        {/* Only while editing, where it can be acted on. */}
+        {draft != null
+          ? flowLevelChecks.map((c) => (
+              <PersistentToast
+                key={c}
+                open={closedFlowCheckFor !== flowKey}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setClosedFlowCheckFor(flowKey);
+                  }
+                }}
+              >
+                <ToastCallout
+                  type="warning"
+                  text={
+                    <Flex direction="column" align="start" gap="2">
+                      {renderToString(flowCheckMessageIDs[c])}
+                      {/* The one flow check; it can add the missing step. */}
+                      <Button
+                        type="button"
+                        disabled={!canEdit}
+                        size="1"
+                        variant="soft"
+                        onClick={() =>
+                          applyAndClearNotice(
+                            insertStep(
+                              draft.flow,
+                              checkAccountStatusAt(draft.flow),
+                              {
+                                type: "check_account_status",
+                              }
+                            )
+                          )
+                        }
+                      >
+                        <FormattedMessage id="AuthFlowsScreen.check.add-check-account-status" />
+                      </Button>
+                    </Flex>
+                  }
+                />
+              </PersistentToast>
+            ))
+          : null}
+        <div className={styles.canvasArea}>
+          {canEdit && dropNotice != null ? (
+            <div className={styles.dropNotice}>
+              <Callout type="warning" size="1" text={dropNotice} />
+            </div>
+          ) : null}
+          {arriving || renaming === "saving" ? null : tree != null &&
+            sketchContext != null ? (
+            <FlowSketchContext.Provider value={sketchContext}>
+              <StepProblemsContext.Provider value={stepProblemsValue}>
+                <FlowEditorContext.Provider
+                  value={canEdit ? editorValue : null}
+                >
+                  <FlowCanvas
+                    key={flowKey}
+                    tree={tree}
+                    selectedStepID={selectedStepID}
+                    onSelectStep={onSelectStep}
+                  />
+                </FlowEditorContext.Provider>
+              </StepProblemsContext.Provider>
+            </FlowSketchContext.Provider>
+          ) : (
+            <Text as="p" size="2" className={styles.notFound}>
+              <FormattedMessage id="AuthFlowsScreen.flow-not-found" />{" "}
+              <Link to={listPath}>
+                <FormattedMessage id="AuthFlowsScreen.back" />
+              </Link>
+            </Text>
+          )}
+          {selectedItem?.step.type === "fill_form" &&
+          selectedField != null &&
+          shownFlow != null ? (
+            <FieldDetailsPanel
+              key={`${selectedItem.id}:${selectedField}`}
+              appID={appID}
+              flow={shownFlow}
+              stepID={selectedItem.id}
+              index={selectedField}
+              customAttributes={
+                appConfig.user_profile?.custom_attributes?.attributes ?? []
+              }
+              apply={draft != null && canEdit ? apply : undefined}
+              onClose={() => onSelectField(selectedItem.id, null)}
+            />
+          ) : null}
+          {selectedItem != null ? (
+            <StepDetailsPanel
+              item={selectedItem}
+              flowType={shownType ?? "signup_login"}
+              phoneOTPMode={
+                appConfig.authenticator?.oob_otp?.sms?.phone_otp_mode
+              }
+              onClose={onClosePanel}
+              problems={selectedProblems}
+              edit={
+                draft != null && canEdit
+                  ? {
+                      flowType: draft.type,
+                      flow: draft.flow,
+                      apply,
+                      phoneOTPMode:
+                        appConfig.authenticator?.oob_otp?.sms?.phone_otp_mode,
+                      customAttributes:
+                        appConfig.user_profile?.custom_attributes?.attributes ??
+                        [],
+                      appID,
+                      fillablePointers: fillable,
+                      knownPointers: knownPointers(appConfig),
+                      loginFlowNames: listFlowNames(custom, "login"),
+                      signupFlowNames: listFlowNames(custom, "signup"),
+                      flowLabel: (t, n) =>
+                        flowDisplayName(
+                          n,
+                          renderToString,
+                          displayNameOf(custom, t, n)
+                        ),
+                      requestRemoveOption,
+                      removeOptionBlockedReason:
+                        editorValue.removeOptionBlockedReason,
+                      // A form step's fields show their own problems.
+                      problems: selectedProblems.filter((p) => !p.fieldCheck),
+                      checks: checksByStep.get(selectedItem.id) ?? [],
+                      notice: selected?.notice,
+                      selectedField,
+                      onSelectField: (i: number | null) =>
+                        onSelectField(selectedItem.id, i),
+                    }
+                  : undefined
+              }
+            />
+          ) : null}
+        </div>
+        {renaming === "dialog" && routeType != null ? (
+          <FlowNameDialog
+            open={true}
+            title={renderToString("AuthFlowsScreen.list.rename.title", {
+              name: titleLabel,
+            })}
+            confirmText={renderToString("AuthFlowsScreen.list.rename")}
+            initialName={name}
+            initialDisplayName={
+              displayNameOf(
+                form.rawConfig?.authentication_flow,
+                routeType,
+                name
+              ) ?? ""
+            }
+            // Keeping the name and changing only the display name is fine.
+            validate={(n) =>
+              n === name
+                ? null
+                : nameError(form.rawConfig?.authentication_flow, routeType, n)
+            }
+            notice={renameNotice(
+              renderToString,
+              form.rawConfig,
               routeType,
               name
-            ) ?? ""
-          }
-          // Keeping the name and changing only the display name is fine.
-          validate={(n) =>
-            n === name
-              ? null
-              : nameError(form.rawConfig?.authentication_flow, routeType, n)
-          }
-          notice={renameNotice(renderToString, form.rawConfig, routeType, name)}
-          onSubmit={onRename}
-          onCancel={() => setRenaming(null)}
+            )}
+            onSubmit={onRename}
+            onCancel={() => setRenaming(null)}
+          />
+        ) : null}
+        <ConflictDialog
+          onReload={onReloadKeepingDraft}
+          onOverwrite={onOverwrite}
         />
-      ) : null}
-      <ConflictDialog
-        onReload={onReloadKeepingDraft}
-        onOverwrite={onOverwrite}
-      />
-      <ConfirmationDialog
-        open={confirmReset}
-        onOpenChange={setConfirmReset}
-        title={
-          <FormattedMessage
-            id="AuthFlowsScreen.reset.title"
-            values={{ name: titleLabel }}
-          />
-        }
-        description={
-          <FormattedMessage id="AuthFlowsScreen.reset.description" />
-        }
-        confirmText={<FormattedMessage id="AuthFlowsScreen.reset" />}
-        cancelText={<FormattedMessage id="AuthFlowsScreen.edit.cancel" />}
-        onConfirm={onReset}
-        onCancel={() => setConfirmReset(false)}
-      />
-      <ConfirmationDialog
-        open={pendingRemove != null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPendingRemove(null);
+        <ConfirmationDialog
+          open={confirmReset}
+          onOpenChange={setConfirmReset}
+          title={
+            <FormattedMessage
+              id="AuthFlowsScreen.reset.title"
+              values={{ name: titleLabel }}
+            />
           }
-        }}
-        title={<FormattedMessage id="AuthFlowsScreen.edit.remove.title" />}
-        description={
-          <FormattedMessage
-            id="AuthFlowsScreen.edit.remove.description"
-            values={{ count: pendingRemove?.nested ?? 0 }}
-          />
-        }
-        confirmText={<FormattedMessage id="AuthFlowsScreen.edit.remove" />}
-        cancelText={<FormattedMessage id="AuthFlowsScreen.edit.cancel" />}
-        onConfirm={confirmRemove}
-        onCancel={() => setPendingRemove(null)}
-      />
-    </div>
+          description={
+            <FormattedMessage id="AuthFlowsScreen.reset.description" />
+          }
+          confirmText={<FormattedMessage id="AuthFlowsScreen.reset" />}
+          cancelText={<FormattedMessage id="AuthFlowsScreen.edit.cancel" />}
+          onConfirm={onReset}
+          onCancel={() => setConfirmReset(false)}
+        />
+        <ConfirmationDialog
+          open={pendingRemove != null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPendingRemove(null);
+            }
+          }}
+          title={<FormattedMessage id="AuthFlowsScreen.edit.remove.title" />}
+          description={
+            <FormattedMessage
+              id="AuthFlowsScreen.edit.remove.description"
+              values={{ count: pendingRemove?.nested ?? 0 }}
+            />
+          }
+          confirmText={<FormattedMessage id="AuthFlowsScreen.edit.remove" />}
+          cancelText={<FormattedMessage id="AuthFlowsScreen.edit.cancel" />}
+          onConfirm={confirmRemove}
+          onCancel={() => setPendingRemove(null)}
+        />
+      </div>
+    </FormTextContext.Provider>
   );
 }
 

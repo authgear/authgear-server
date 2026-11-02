@@ -90,6 +90,15 @@ describe("allowedAuthentications", () => {
 });
 
 describe("newStep", () => {
+  it("names a new form", () => {
+    expect(
+      newStep("signup", "fill_form", null, "/given_name", "form_1").form
+    ).toEqual({
+      name: "form_1",
+      fields: [{ user_profile: { pointer: "/given_name" } }],
+    });
+  });
+
   it("starts a choice step with its first option", () => {
     expect(newStep("login", "identify", null)).toEqual({
       type: "identify",

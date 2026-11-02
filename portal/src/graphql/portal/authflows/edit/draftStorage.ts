@@ -1,5 +1,6 @@
 import { AuthenticationFlowConfig } from "../../../../types";
 import { FlowType } from "../model";
+import { FormNameOp, TextEdits } from "./formText";
 
 // An unsaved flow draft kept in this browser, so a refresh or a closed tab
 // does not lose it. Storage can be unavailable (privacy mode, disabled site
@@ -9,6 +10,13 @@ export interface StoredDraft {
   flow: AuthenticationFlowConfig;
   // When it was stored, in milliseconds since the epoch.
   savedAt: number;
+  // Unsaved form text, kept with the flow.
+  text?: StoredFormText;
+}
+
+export interface StoredFormText {
+  edits: TextEdits;
+  ops: FormNameOp[];
 }
 
 const KEY_PREFIX = "authgear-portal-authflow-draft";
@@ -22,9 +30,10 @@ export function storeDraft(
   type: FlowType,
   name: string,
   flow: AuthenticationFlowConfig,
-  now: number
+  now: number,
+  text?: StoredFormText
 ): void {
-  const value: StoredDraft = { flow, savedAt: now };
+  const value: StoredDraft = { flow, savedAt: now, text };
   try {
     window.localStorage.setItem(
       storageKey(appID, type, name),
@@ -49,7 +58,7 @@ export function readStoredDraft(
     if (typeof parsed !== "object" || parsed == null) {
       return null;
     }
-    const { flow, savedAt } = parsed as Record<string, unknown>;
+    const { flow, savedAt, text } = parsed as Record<string, unknown>;
     if (
       typeof savedAt !== "number" ||
       typeof flow !== "object" ||
@@ -57,7 +66,11 @@ export function readStoredDraft(
     ) {
       return null;
     }
-    return { flow: flow as AuthenticationFlowConfig, savedAt };
+    return {
+      flow: flow as AuthenticationFlowConfig,
+      savedAt,
+      text: isStoredFormText(text) ? text : undefined,
+    };
   } catch {
     return null;
   }
@@ -73,4 +86,12 @@ export function removeStoredDraft(
   } catch {
     // Nothing was kept, or nothing can be removed; either way it is unread.
   }
+}
+
+function isStoredFormText(value: unknown): value is StoredFormText {
+  if (typeof value !== "object" || value == null) {
+    return false;
+  }
+  const { edits, ops } = value as Record<string, unknown>;
+  return typeof edits === "object" && edits != null && Array.isArray(ops);
 }

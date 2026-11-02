@@ -279,6 +279,48 @@
   gap: 4px;
 }
 
+/* A form step's field on the canvas; opens the field panel. */
+.sketchFieldButton,
+.sketchFieldSelected {
+  display: block;
+  width: 100%;
+  margin: -2px;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sketchFieldButton:hover {
+  border-color: var(--gray-a6);
+}
+
+.sketchFieldSelected {
+  border-color: var(--accent-8);
+  background: var(--accent-a2);
+}
+
+/* A form step's title and description, above its fields. */
+.sketchFormHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sketchFormTitle {
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-medium);
+}
+
+.sketchFormDescription {
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+}
+
 .sketchLabel {
   font-size: var(--font-size-1);
   color: var(--gray-11);

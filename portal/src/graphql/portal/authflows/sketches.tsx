@@ -27,6 +27,8 @@ import {
   verifyCodeMessageID,
 } from "./labels";
 import { useFlowSketchContext } from "./FlowSketchContext";
+import { formPageText, useFormFieldLabel } from "./edit/FormTextFields";
+import { useFormTextContext } from "./edit/FormTextContext";
 import { IdentifyGroupGeometry } from "./groupGeometry";
 import styles from "./FlowNodes.module.css";
 
@@ -150,30 +152,94 @@ export function formFieldLabel(
     : renderToString(`standard-attribute.${name}`);
 }
 
-function FormFields({ form }: { form: AuthenticationFlowFormConfig }) {
+function FormFields({
+  form,
+  stepID,
+}: {
+  form: AuthenticationFlowFormConfig;
+  // The form step, whose fields open the field panel; absent for forms that
+  // have no panel, such as an identify option's.
+  stepID?: string;
+}) {
   const { renderToString } = useContext(Context);
-  const { customAttributes } = useFlowSketchContext();
+  const { customAttributes, fieldSelection, flowType } = useFlowSketchContext();
+  const formText = useFormTextContext();
+  const fieldLabel = useFormFieldLabel(form.name);
   const fields = form.fields ?? [];
+  // A form step's page text, in the project's default language.
+  const pageText = (part: "title" | "description") =>
+    stepID != null && formText != null
+      ? formPageText(
+          formText.text,
+          formText.defaultLanguage,
+          form.name,
+          flowType,
+          part
+        )
+      : undefined;
+  const title = pageText("title");
+  const description = pageText("description");
+  const heading =
+    (title ?? "") !== "" || (description ?? "") !== "" ? (
+      <div className={styles.sketchFormHeading}>
+        {(title ?? "") !== "" ? (
+          <span className={styles.sketchFormTitle}>{title}</span>
+        ) : null}
+        {(description ?? "") !== "" ? (
+          <span className={styles.sketchFormDescription}>{description}</span>
+        ) : null}
+      </div>
+    ) : null;
   if (fields.length === 0) {
     return (
-      <SketchLink label={renderToString("AuthFlowsScreen.sketch.no-fields")} />
+      <>
+        {heading}
+        <SketchLink
+          label={renderToString("AuthFlowsScreen.sketch.no-fields")}
+        />
+      </>
     );
   }
   return (
     <>
+      {heading}
       {fields.map((field, i) => {
         const pointer = field.user_profile?.pointer ?? "";
         const required = field.user_profile?.required === true;
         const custom = customAttributes.find((a) => a.pointer === pointer);
         const label =
-          formFieldLabel(pointer, customAttributes, renderToString) +
-          (required ? " *" : "");
-        switch (fieldControl(pointer, custom)) {
-          case "select":
-            return <SketchSelect key={i} label={label} />;
-          default:
-            return <SketchInput key={i} label={label} />;
+          fieldLabel(
+            pointer,
+            formFieldLabel(pointer, customAttributes, renderToString)
+          ) + (required ? " *" : "");
+        const sketch =
+          fieldControl(pointer, custom) === "select" ? (
+            <SketchSelect label={label} />
+          ) : (
+            <SketchInput label={label} />
+          );
+        if (stepID == null || fieldSelection == null) {
+          return <React.Fragment key={i}>{sketch}</React.Fragment>;
         }
+        const selected =
+          fieldSelection.stepID === stepID && fieldSelection.field === i;
+        return (
+          <button
+            key={i}
+            type="button"
+            className={
+              selected ? styles.sketchFieldSelected : styles.sketchFieldButton
+            }
+            aria-pressed={selected}
+            onClick={(e) => {
+              // Opens the field, not only its step.
+              e.stopPropagation();
+              fieldSelection.onSelect(stepID, i);
+            }}
+          >
+            {sketch}
+          </button>
+        );
       })}
     </>
   );
@@ -697,7 +763,7 @@ export function StepSketch({
     case "verify_account_recovery_code":
       return <RecoveryCodeFields />;
     case "fill_form":
-      return <FormFields form={step.form ?? {}} />;
+      return <FormFields form={step.form ?? {}} stepID={item.id} />;
     case "fill_in_user_profile":
       return <FormFields form={legacyProfileForm(step)} />;
     case "change_password":

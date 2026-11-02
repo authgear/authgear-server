@@ -208,12 +208,13 @@ function optionValues(flowType: FlowType, stepType: string): string[] {
 
 // A step as inserted: valid for the schema. targetStep is the name a verify
 // or change_password step targets; formPointer, the attribute a new form
-// asks for first.
+// asks for first; formName, the new form's name.
 export function newStep(
   flowType: FlowType,
   type: string,
   targetStep: string | null,
-  formPointer: string | null = null
+  formPointer: string | null = null,
+  formName: string | null = null
 ): AuthenticationFlowStepConfig {
   if (CHOICE_STEP_TYPES.includes(type)) {
     const [first] = optionValues(flowType, type);
@@ -225,7 +226,10 @@ export function newStep(
   if (type === "fill_form" && formPointer != null) {
     return {
       type,
-      form: { fields: [{ user_profile: { pointer: formPointer } }] },
+      form: {
+        ...(formName != null ? { name: formName } : {}),
+        fields: [{ user_profile: { pointer: formPointer } }],
+      },
     };
   }
   return { type };
