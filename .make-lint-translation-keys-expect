@@ -18,9 +18,9 @@ resources/authgear/templates/en/web/authflowv2/__error.html:168:18: template tra
 resources/authgear/templates/en/web/authflowv2/__error.html:217:20: template translation is forbidden: `authflowv2/__error_account`
 resources/authgear/templates/en/web/authflowv2/__form_fields.html:25:22: translation key not defined: "form-field-label-%s"
 resources/authgear/templates/en/web/authflowv2/__form_fields.html:29:60: translation key not defined: "%s %s"
-resources/authgear/templates/en/web/authflowv2/__form_fields.html:130:35: translation key not defined: "aria-labelledby="%s"
-resources/authgear/templates/en/web/authflowv2/__form_fields.html:139:30: translation key not defined: "aria-labelledby="%s" %s"
-resources/authgear/templates/en/web/authflowv2/__form_fields.html:186:24: translation key not defined: "%s/country"
+resources/authgear/templates/en/web/authflowv2/__form_fields.html:131:35: translation key not defined: "aria-labelledby="%s"
+resources/authgear/templates/en/web/authflowv2/__form_fields.html:140:30: translation key not defined: "aria-labelledby="%s" %s"
+resources/authgear/templates/en/web/authflowv2/__form_fields.html:187:24: translation key not defined: "%s/country"
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:6:16: invalid translation key: "$labelKey"
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:10:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/__new_password_field.html:54:33: translation key not defined: "%s %s"

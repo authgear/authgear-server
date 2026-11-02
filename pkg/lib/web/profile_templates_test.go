@@ -228,6 +228,13 @@ func TestFormFieldsTemplate(t *testing.T) {
 			So(out, ShouldContainSubstring, `e.g. 9123 4567`)
 		})
 
+		Convey("a field with suggestions shows its placeholder in the select", func() {
+			out := render(field("/gender", "string", map[string]any{
+				"Suggestions": []string{"male", "female"}, "Placeholder": "Choose one",
+			}))
+			So(out, ShouldContainSubstring, "Choose one")
+		})
+
 		Convey("InlineLabels shows text-like labels as placeholders", func() {
 			out, err := engine.Render(ctx, formFieldsTestPage, []string{"en"}, map[string]any{
 				"Translations": tr,
