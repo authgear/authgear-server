@@ -101,6 +101,13 @@
   margin-left: 8px;
 }
 
+.fieldRowText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .grow {
   flex: 1;
   min-width: 0;
