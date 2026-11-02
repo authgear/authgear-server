@@ -160,7 +160,7 @@ The developer can override the built-in keys to change the text of every form, o
 
 A form in an `identify` step has no page of its own, so its title and description are not shown; the page keeps the identify page's title.
 
-These keys are used by Auth UI. The Authflow API returns the form's `name`, as `form.name`, instead of the text, so a Custom UI shows its own title and description; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
+Auth UI shows the title and description, and the Authflow API returns them as `form.title` and `form.description`, so a Custom UI can show the same text; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
 
 A field's label is the first of these that is set:
 
@@ -170,6 +170,8 @@ A field's label is the first of these that is set:
 | The attribute's label key                        | The label of the attribute in every form; see [Standard attribute labels](./design.md#standard-attribute-labels) and [Defining custom attributes](./design.md#defining-custom-attributes). |
 
 Without either, the label is derived from the attribute name. A `boolean` field's label may contain links whichever key it comes from.
+
+A field's placeholder, example text shown in an empty field, is `v2.page.fill-form.{name}.field-placeholder-{pointer}`, for example `v2.page.fill-form.marketing.field-placeholder-/given_name`. It applies to fields of type `string`, `email`, `url`, `integer`, `number` and `phone_number`. Unset, the field has none. A form in an `identify` step has no placeholders: its fields show their labels in the inputs, like the login ID.
 
 Other field text uses the translation keys of the attribute: `enum` option labels in [Custom Attribute type enum](./design.md#custom-attribute-type-enum). The message for a failed `pattern` is defined in [String constraints](./design.md#string-constraints).
 
@@ -233,6 +235,8 @@ After the password step, the flow responds:
       "data": {
         "type": "fill_form_data",
         "form": {
+          "title": "Complete your profile",
+          "description": "Please provide the following information to complete your signup.",
           "fields": [
             {
               "key": "/given_name",

@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -36,15 +37,21 @@ type FillFormData struct {
 }
 
 type FillFormDataForm struct {
-	Name   string              `json:"name,omitempty"`
-	Fields []FillFormDataField `json:"fields"`
+	Name string `json:"name,omitempty"`
+	// Title and Description are set for a form step's page only. An empty
+	// Description is hidden.
+	Title       string              `json:"title,omitempty"`
+	Description string              `json:"description,omitempty"`
+	Fields      []FillFormDataField `json:"fields"`
 }
 
 type FillFormDataField struct {
-	Key      string            `json:"key"`
-	Type     FillFormFieldType `json:"type"`
-	Label    string            `json:"label"`
-	Required bool              `json:"required"`
+	Key   string            `json:"key"`
+	Type  FillFormFieldType `json:"type"`
+	Label string            `json:"label"`
+	// Placeholder is set for a form step's page only.
+	Placeholder string `json:"placeholder,omitempty"`
+	Required    bool   `json:"required"`
 	// Value is omitted only when nil. A false is kept.
 	Value       any                           `json:"value,omitempty"`
 	Options     []FillFormDataFieldOption     `json:"options,omitempty"`
@@ -124,6 +131,94 @@ func NewFillFormDataForm(ctx context.Context, deps *authflow.Dependencies, form 
 	}
 
 	return out, nil
+}
+
+// NewFillFormPageDataForm builds a form step's page: the form, with its
+// title, description and field placeholders.
+func NewFillFormPageDataForm(ctx context.Context, deps *authflow.Dependencies, form *config.AuthenticationFlowForm, user *model.User, flowType authflow.FlowType) (FillFormDataForm, error) {
+	out, err := NewFillFormDataForm(ctx, deps, form, user)
+	if err != nil {
+		return FillFormDataForm{}, err
+	}
+	args := map[string]any{"FlowType": string(flowType)}
+
+	titleKey, err := formTextKey(ctx, deps, form.Name, "title", false)
+	if err != nil {
+		return FillFormDataForm{}, err
+	}
+	out.Title, err = deps.Translations.RenderText(ctx, titleKey, args)
+	if err != nil {
+		return FillFormDataForm{}, err
+	}
+
+	// An empty description of the form's own hides it.
+	descriptionKey, err := formTextKey(ctx, deps, form.Name, "description", true)
+	if err != nil {
+		return FillFormDataForm{}, err
+	}
+	description, err := deps.Translations.RenderText(ctx, descriptionKey, args)
+	if err != nil {
+		return FillFormDataForm{}, err
+	}
+	out.Description = strings.TrimSpace(description)
+
+	if form.Name != "" {
+		for i := range out.Fields {
+			f := &out.Fields[i]
+			if !hasPlaceholder(f.Type) {
+				continue
+			}
+			key := fmt.Sprintf("v2.page.fill-form.%s.field-placeholder-%s", form.Name, f.Key)
+			ok, err := deps.Translations.HasKey(ctx, key)
+			if err != nil {
+				return FillFormDataForm{}, err
+			}
+			if ok {
+				f.Placeholder, err = deps.Translations.RenderText(ctx, key, nil)
+				if err != nil {
+					return FillFormDataForm{}, err
+				}
+			}
+		}
+	}
+	return out, nil
+}
+
+// formTextKey is the form's own key for a part of its page when set, else
+// the default form's. emptyIsSet counts an empty translation as set.
+func formTextKey(ctx context.Context, deps *authflow.Dependencies, formName string, part string, emptyIsSet bool) (string, error) {
+	if formName != "" {
+		key := fmt.Sprintf("v2.page.fill-form.%s.%s", formName, part)
+		var ok bool
+		var err error
+		if emptyIsSet {
+			ok, err = deps.Translations.DefinesKey(ctx, key)
+		} else {
+			ok, err = deps.Translations.HasKey(ctx, key)
+		}
+		if err != nil {
+			return "", err
+		}
+		if ok {
+			return key, nil
+		}
+	}
+	return "v2.page.fill-form.default." + part, nil
+}
+
+// hasPlaceholder is whether a field of the type is typed into.
+func hasPlaceholder(typ FillFormFieldType) bool {
+	switch typ {
+	case FillFormFieldTypeString,
+		FillFormFieldTypeEmail,
+		FillFormFieldTypeURL,
+		FillFormFieldTypeInteger,
+		FillFormFieldTypeNumber,
+		FillFormFieldTypePhoneNumber:
+		return true
+	default:
+		return false
+	}
 }
 
 // fillFormFieldType is the type table in the profile filling spec.

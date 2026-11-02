@@ -249,7 +249,9 @@ type UserFacade interface {
 }
 
 type TranslationService interface {
+	// HasKey is false for an empty translation; DefinesKey is not.
 	HasKey(ctx context.Context, key string) (bool, error)
+	DefinesKey(ctx context.Context, key string) (bool, error)
 	RenderText(ctx context.Context, key string, args any) (string, error)
 }
 

@@ -1353,6 +1353,8 @@ When you are in this step of this flow, you will see a response like the followi
       "data": {
         "type": "fill_form_data",
         "form": {
+          "title": "Complete your profile",
+          "description": "Please provide the following information to complete your signup.",
           "fields": [
             {
               "key": "/given_name",
@@ -2224,11 +2226,14 @@ The data contains recovery codes of the user.
 The data describes the fields of a form, so the frontend can render it without knowing where the values are stored.
 
 - `form`: The form to render.
-  - `name`: The form's `name`. Absent when the form has none. It is unrelated to `result.name`, the name of the flow. A Custom UI can use it to choose its own title and description for the page.
+  - `name`: The form's `name`. Absent when the form has none. It is unrelated to `result.name`, the name of the flow.
+  - `title`: The page's title, localized for the request. Present for a `fill_form` step; absent for a form in an `identify` step, which has no page of its own.
+  - `description`: The page's description, localized for the request. Absent when the description is hidden, and for a form in an `identify` step.
   - `fields`: The fields to render, in order. Each field has:
     - `key`: Identifies the field in the input. Treat it as an opaque string.
     - `type`: The kind of value and input. See the table below.
     - `label`: The field label, localized for the request. It may contain `<a href>` links when `type` is `boolean`.
+    - `placeholder`: Optional. Example text to show in the empty field, localized for the request. Only for a `fill_form` step.
     - `required`: Whether the field must be filled to submit the form.
     - `value`: The current value. Absent when there is none.
     - `options`: Present when `type` is `enum`. A list of `{ "value", "label" }`, with localized labels.

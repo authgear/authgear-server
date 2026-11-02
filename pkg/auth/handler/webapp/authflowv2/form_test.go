@@ -190,6 +190,17 @@ func TestNewFormViewModel(t *testing.T) {
 			So(vm.Timezones, ShouldNotBeEmpty)
 		})
 
+		Convey("carries the page text and placeholders", func() {
+			form.Title = "About you"
+			form.Description = "Tell us more."
+			form.Fields[0].Placeholder = "e.g. Jane"
+			vm, err := NewFormViewModel(form, &viewmodels.BaseViewModel{})
+			So(err, ShouldBeNil)
+			So(vm.Title, ShouldEqual, "About you")
+			So(vm.Description, ShouldEqual, "Tell us more.")
+			So(vm.Fields[0].Placeholder, ShouldEqual, "e.g. Jane")
+		})
+
 		Convey("restored values win over current values", func() {
 			base := &viewmodels.BaseViewModel{}
 			base.SetFormJSON(url.Values{"/nickname": {"Changed"}, "/x_terms": {"true", "false"}})

@@ -219,6 +219,15 @@ func TestFormFieldsTemplate(t *testing.T) {
 			So(out, ShouldContainSubstring, `<div class="form__container form__container--employee">`)
 		})
 
+		Convey("a field's placeholder shows in its empty input", func() {
+			out := render(
+				field("/given_name", "string", map[string]any{"Placeholder": "e.g. Jane"}),
+				field("/x_phone", "phone_number", map[string]any{"Placeholder": "e.g. 9123 4567"}),
+			)
+			So(out, ShouldContainSubstring, `aria-labelledby="form-field-label-/given_name" placeholder="e.g. Jane"`)
+			So(out, ShouldContainSubstring, `e.g. 9123 4567`)
+		})
+
 		Convey("InlineLabels shows text-like labels as placeholders", func() {
 			out, err := engine.Render(ctx, formFieldsTestPage, []string{"en"}, map[string]any{
 				"Translations": tr,

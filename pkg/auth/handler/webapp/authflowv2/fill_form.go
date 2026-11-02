@@ -25,8 +25,6 @@ func ConfigureAuthflowV2FillFormRoute(route httproute.Route) httproute.Route {
 
 type AuthflowV2FillFormViewModel struct {
 	Form FormViewModel
-	// FlowType is for the description.
-	FlowType string
 }
 
 type AuthflowV2FillFormHandler struct {
@@ -47,8 +45,7 @@ func (h *AuthflowV2FillFormHandler) GetData(w http.ResponseWriter, r *http.Reque
 		return nil, err
 	}
 	viewmodels.Embed(data, AuthflowV2FillFormViewModel{
-		Form:     form,
-		FlowType: string(screen.StateTokenFlowResponse.Type),
+		Form: form,
 	})
 
 	return data, nil

@@ -83,7 +83,7 @@
               type="text"
               class="block input w-full {{ if $has_error }}input--error{{ end }}"
               name="{{ $field.Key }}"
-              {{ if $inline }}aria-label="{{ $field.Label }}" placeholder="{{ $placeholder }}"{{ else }}aria-labelledby="{{ $label_id }}"{{ end }}
+              {{ if $inline }}aria-label="{{ $field.Label }}" placeholder="{{ $placeholder }}"{{ else }}aria-labelledby="{{ $label_id }}"{{ if $field.Placeholder }} placeholder="{{ $field.Placeholder }}"{{ end }}{{ end }}
               value="{{ showAttributeValue $field.Value }}"
               {{ if $field.Required }}required{{ end }}
             >
@@ -94,7 +94,7 @@
               autocapitalize="none"
               class="block input w-full {{ if $has_error }}input--error{{ end }}"
               name="{{ $field.Key }}"
-              {{ if $inline }}aria-label="{{ $field.Label }}" placeholder="{{ $placeholder }}"{{ else }}aria-labelledby="{{ $label_id }}"{{ end }}
+              {{ if $inline }}aria-label="{{ $field.Label }}" placeholder="{{ $placeholder }}"{{ else }}aria-labelledby="{{ $label_id }}"{{ if $field.Placeholder }} placeholder="{{ $field.Placeholder }}"{{ end }}{{ end }}
               value="{{ showAttributeValue $field.Value }}"
               {{ if $field.Required }}required{{ end }}
             >
@@ -105,7 +105,7 @@
               autocapitalize="none"
               class="block input w-full {{ if $has_error }}input--error{{ end }}"
               name="{{ $field.Key }}"
-              {{ if $inline }}aria-label="{{ $field.Label }}" placeholder="{{ $placeholder }}"{{ else }}aria-labelledby="{{ $label_id }}"{{ end }}
+              {{ if $inline }}aria-label="{{ $field.Label }}" placeholder="{{ $placeholder }}"{{ else }}aria-labelledby="{{ $label_id }}"{{ if $field.Placeholder }} placeholder="{{ $field.Placeholder }}"{{ end }}{{ end }}
               value="{{ showAttributeValue $field.Value }}"
               {{ if $field.Required }}required{{ end }}
             >
@@ -115,15 +115,15 @@
               inputmode="{{ if (eq $field.Type "integer") }}numeric{{ else }}decimal{{ end }}"
               class="block input w-full {{ if $has_error }}input--error{{ end }}"
               name="{{ $field.Key }}"
-              {{ if $inline }}aria-label="{{ $field.Label }}" placeholder="{{ $placeholder }}"{{ else }}aria-labelledby="{{ $label_id }}"{{ end }}
+              {{ if $inline }}aria-label="{{ $field.Label }}" placeholder="{{ $placeholder }}"{{ else }}aria-labelledby="{{ $label_id }}"{{ if $field.Placeholder }} placeholder="{{ $field.Placeholder }}"{{ end }}{{ end }}
               value="{{ showAttributeValue $field.Value }}"
               {{ if $field.Required }}required{{ end }}
             >
           {{ else if (eq $field.Type "phone_number") }}
             {{ template "authflowv2/__phone_input.html"
               (dict
-                "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
-                "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
+                "Placeholder" (or $field.Placeholder (include "v2.component.input.default.placeholder-phone" nil))
+                "PlaceholderWithExample" (or $field.Placeholder (include "v2.component.input.default.placeholder-phone-with-example" nil))
                 "IsError" $has_error
                 "InputName" $field.Key
                 "Value" (showAttributeValue $field.Value)

@@ -141,8 +141,9 @@ type FormFieldViewModel struct {
 	Type  string
 	Label string
 	// LabelHTML is for boolean only. The Authflow API has sanitized it.
-	LabelHTML htmltemplate.HTML
-	Required  bool
+	LabelHTML   htmltemplate.HTML
+	Placeholder string
+	Required    bool
 	// Value is the restored form value if present, else the current value of the field.
 	Value any
 	// Checked is for boolean.
@@ -161,8 +162,11 @@ type FormFieldViewModel struct {
 }
 
 type FormViewModel struct {
-	Name   string
-	Fields []FormFieldViewModel
+	Name string
+	// Title and Description are set for a form step's page.
+	Title       string
+	Description string
+	Fields      []FormFieldViewModel
 	// UnknownError is the error not attributed to a field, as JSON.
 	UnknownError          any
 	HookUnmatchedMessages []string
@@ -176,9 +180,11 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 	restored := base.RestoredForm
 
 	vm := FormViewModel{
-		Name:   form.Name,
-		Fields: make([]FormFieldViewModel, 0, len(form.Fields)),
-		Alpha2: territoryutil.Alpha2,
+		Name:        form.Name,
+		Title:       form.Title,
+		Description: form.Description,
+		Fields:      make([]FormFieldViewModel, 0, len(form.Fields)),
+		Alpha2:      territoryutil.Alpha2,
 	}
 	timezones, err := tzutil.List(time.Unix(int64(base.PageLoadedAt), 0).UTC())
 	if err != nil {
@@ -212,6 +218,7 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 			Key:         f.Key,
 			Type:        string(f.Type),
 			Label:       f.Label,
+			Placeholder: f.Placeholder,
 			Required:    f.Required,
 			Value:       f.Value,
 			Options:     f.Options,
