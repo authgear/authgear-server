@@ -153,6 +153,18 @@ const BLOCKING_EVENT_DESCRIPTION_MESSAGE_IDS: Record<BlockingEvent, string> = {
     "HookConfigurationScreen.blocking-event.authentication.form.post_submitted.description",
 };
 
+// What to know once an event is chosen, with a link to its docs. A tooltip
+// can't hold a link, so this shows under the event list.
+const BLOCKING_EVENT_SELECTED_HINT_MESSAGE_IDS: Partial<
+  Record<BlockingEvent, string>
+> = {
+  "authentication.form.post_submitted":
+    "HookConfigurationScreen.blocking-event.authentication.form.post_submitted.hint",
+};
+
+const BLOCKING_EVENT_DOCS_URL =
+  "https://docs.authgear.com/customization/events-hooks/blocking-events";
+
 const BLOCKING_EVENT_NAME_TO_PAYLOAD_TYPE_NAME: Record<BlockingEvent, string> =
   {
     "user.pre_create": "EventUserPreCreate",
@@ -407,6 +419,36 @@ function BlockingEventInfoIcon({
         aria-hidden={true}
       />
     </RadixTooltip>
+  );
+}
+
+function SelectedBlockingEventHint({
+  event,
+}: {
+  event: string;
+}): React.ReactElement | null {
+  const messageID = isBlockingEvent(event)
+    ? BLOCKING_EVENT_SELECTED_HINT_MESSAGE_IDS[event]
+    : undefined;
+  if (messageID == null) {
+    return null;
+  }
+  return (
+    <RadixText as="p" size="1" color="gray">
+      <FormattedMessage
+        id={messageID}
+        values={{
+          // eslint-disable-next-line react/no-unstable-nested-components
+          code: (chunks: React.ReactNode) => <code>{chunks}</code>,
+          // eslint-disable-next-line react/no-unstable-nested-components
+          docs: (chunks: React.ReactNode) => (
+            <ExternalLink href={`${BLOCKING_EVENT_DOCS_URL}#${event}`}>
+              {chunks}
+            </ExternalLink>
+          ),
+        }}
+      />
+    </RadixText>
   );
 }
 
@@ -908,6 +950,7 @@ function BlockingHooksTable({
                           ))}
                         </Flex>
                       </RadioGroup.Root>
+                      <SelectedBlockingEventHint event={draft.event} />
                     </div>
                     <div className={styles.hookAccordionField}>
                       <RadixText
