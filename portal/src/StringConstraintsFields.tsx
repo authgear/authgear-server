@@ -3,7 +3,10 @@ import { CheckboxCards, Text } from "@radix-ui/themes";
 import { Context, FormattedMessage } from "./intl";
 import { TextField } from "./components/v2/TextField/TextField";
 import { checkNonNegativeIntegerInput } from "./util/input";
-import { makeValidationErrorCustomMessageIDRule } from "./error/parse";
+import {
+  ErrorParseRule,
+  makeValidationErrorCustomMessageIDRule,
+} from "./error/parse";
 import {
   ALLOWED_CHARACTERS,
   AllowedCharacter,
@@ -36,6 +39,7 @@ function MinMaxFields({
   minimumFieldName,
   maximumFieldName,
   parentJSONPointer,
+  minimumErrorRules,
 }: {
   label: string;
   hint: string;
@@ -46,6 +50,7 @@ function MinMaxFields({
   minimumFieldName: string;
   maximumFieldName: string;
   parentJSONPointer: string;
+  minimumErrorRules?: ErrorParseRule[];
 }): React.ReactElement {
   const { renderToString } = useContext(Context);
   return (
@@ -61,6 +66,7 @@ function MinMaxFields({
           onChange={onMinimumChange}
           parentJSONPointer={parentJSONPointer}
           fieldName={minimumFieldName}
+          errorRules={minimumErrorRules}
           placeholder={renderToString("StringConstraintsFields.no-limit")}
         />
         <TextField
@@ -112,6 +118,18 @@ export function StringConstraintsFields({
     ],
     []
   );
+  // The server reports a minimum above the maximum as a maxLength error on
+  // min_length, whose generic message is about a string's length.
+  const minLengthErrorRules = useMemo(
+    () => [
+      makeValidationErrorCustomMessageIDRule(
+        "maxLength",
+        /\/min_length$/,
+        "StringConstraintsFields.length.minimum-above-maximum"
+      ),
+    ],
+    []
+  );
   const set = (patch: Partial<StringConstraintsDraft>) =>
     onChange({ ...draft, ...patch });
   const onLength =
@@ -152,6 +170,7 @@ export function StringConstraintsFields({
         onMaximumChange={onLength("maxLength")}
         minimumFieldName="min_length"
         maximumFieldName="max_length"
+        minimumErrorRules={minLengthErrorRules}
         parentJSONPointer={parentJSONPointer}
       />
 

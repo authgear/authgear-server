@@ -1952,6 +1952,7 @@
   "StringConstraintsFields.optional": "Optional",
   "StringConstraintsFields.length": "Length",
   "StringConstraintsFields.length.hint": "The number of characters in the value. Some emoji count as more than one. Leave empty for no limit.",
+  "StringConstraintsFields.length.minimum-above-maximum": "Must not be more than the maximum, {expected}.",
   "StringConstraintsFields.minimum": "Minimum",
   "StringConstraintsFields.maximum": "Maximum",
   "StringConstraintsFields.no-limit": "No limit",
