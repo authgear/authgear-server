@@ -24,11 +24,13 @@ var housekeepTaskRateLimit = housekeepTask{
 	match: rateLimitKeyRegexp.MatchString,
 	plan: func(ctx context.Context, r housekeepReader, keys []string, now time.Time) ([]housekeepAction, error) {
 		gets := make([]*goredis.StringCmd, len(keys))
-		pttls := make([]*goredis.DurationCmd, len(keys))
+		// PTTL is read as a plain integer, because the wrong expiry is tens of thousands of years away,
+		// which overflows time.Duration.
+		pttls := make([]*goredis.Cmd, len(keys))
 		err := readPipelined(ctx, r, func(pipe goredis.Pipeliner) {
 			for i, key := range keys {
 				gets[i] = pipe.Get(ctx, key)
-				pttls[i] = pipe.PTTL(ctx, key)
+				pttls[i] = pipe.Do(ctx, "PTTL", key)
 			}
 		})
 		if err != nil {
@@ -43,23 +45,16 @@ var housekeepTaskRateLimit = housekeepTask{
 			} else if skip {
 				continue
 			}
-			ms, err := strconv.ParseFloat(value, 64)
-			if err != nil {
-				continue
-			}
-			fullAt := time.UnixMilli(int64(ms)).UTC()
-
-			if fullAt.Before(now) {
-				actions = append(actions, deleteAction(key))
-				continue
-			}
-
-			pttl, err := pttls[i].Result()
+			pttlMs, err := pttls[i].Int64()
 			if err != nil {
 				return nil, err
 			}
-			// -1 means the key has no expiry.
-			if pttl == -1 || now.Add(pttl).After(fullAt.Add(rateLimitExpiryTolerance)) {
+
+			result, fullAt := planRateLimitKey(value, pttlMs, now)
+			switch result {
+			case housekeepResultDeleted:
+				actions = append(actions, deleteAction(key))
+			case housekeepResultExpiryFixed:
 				actions = append(actions, housekeepAction{
 					key:    key,
 					result: housekeepResultExpiryFixed,
@@ -71,4 +66,25 @@ var housekeepTaskRateLimit = housekeepTask{
 		}
 		return actions, nil
 	},
+}
+
+// planRateLimitKey decides what to do with a rate limit key from its value and its PTTL in milliseconds.
+// It returns an empty result if the key is left alone.
+func planRateLimitKey(value string, pttlMs int64, now time.Time) (result string, fullAt time.Time) {
+	ms, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return "", time.Time{}
+	}
+	fullAt = time.UnixMilli(int64(ms)).UTC()
+
+	if fullAt.Before(now) {
+		return housekeepResultDeleted, fullAt
+	}
+
+	// -1 means the key has no expiry.
+	expireAtMs := now.UnixMilli() + pttlMs
+	if pttlMs == -1 || expireAtMs > fullAt.Add(rateLimitExpiryTolerance).UnixMilli() {
+		return housekeepResultExpiryFixed, fullAt
+	}
+	return "", fullAt
 }
