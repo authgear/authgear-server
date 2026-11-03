@@ -2,104 +2,61 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
-	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	goredis "github.com/redis/go-redis/v9"
 )
 
-type housekeepKind struct {
-	name      string
-	keyRegexp *regexp.Regexp
+// housekeepTask cleans up one kind of key.
+// To add a task, implement it in its own file and append it to housekeepTasks.
+type housekeepTask struct {
+	name  string
+	match func(key string) bool
+	// plan reads the keys through tx and returns what should be written.
+	// A key without an action is left unchanged.
+	plan func(ctx context.Context, tx *goredis.Tx, keys []string, now time.Time) ([]housekeepAction, error)
 }
 
-// The key formats are defined in
-// pkg/lib/ratelimit/limiter.go, pkg/lib/session/access (removed in DEV-3995),
-// pkg/lib/lockout/storage_redis.go and pkg/lib/authn/otp/attempt_tracker_redis.go.
-var housekeepKinds = []housekeepKind{
-	{name: "rate-limit", keyRegexp: regexp.MustCompile(`^(rate-limit:|app:[^:]+:rate-limit:)`)},
-	{name: "access-events", keyRegexp: regexp.MustCompile(`^app:[^:]+:access-events:`)},
-	{name: "lockout", keyRegexp: regexp.MustCompile(`^app:[^:]+:lockout:`)},
-	{name: "failed-attempts", keyRegexp: regexp.MustCompile(`^app:[^:]+:failed-attempts:`)},
+type housekeepAction struct {
+	key    string
+	result string
+	apply  func(ctx context.Context, pipe goredis.Pipeliner)
 }
 
 const (
 	housekeepResultDeleted     = "deleted"
 	housekeepResultExpiryFixed = "expiry-fixed"
+	housekeepResultPruned      = "pruned"
 	housekeepResultSkipped     = "skipped"
+	housekeepResultConflict    = "conflict"
 )
 
-// KEYS are the keys of one batch, ARGV[1] is now in milliseconds, ARGV[2] is "1" for dry-run,
-// and ARGV[2+i] is the kind of KEYS[i]. Each key is checked and changed in the same script,
-// so a key written by the application in between is never changed by mistake.
-//
-// rate-limit: The key stores the time in milliseconds when its bucket is full again.
-// Before DEV-3995, it was given to EXPIREAT as seconds, so the key never expired.
-// A key past that time holds no state and is deleted; otherwise it is given the intended expiry.
-//
-// access-events: The stream was written but never read, and is no longer written since DEV-3995.
-//
-// lockout, failed-attempts: The application always gives them an expiry,
-// so a key without one is left over and holds a stale counter.
-var housekeepScript = goredis.NewScript(`
-local now = tonumber(ARGV[1])
-local dry_run = ARGV[2] == "1"
-local results = {}
+var housekeepResults = []string{
+	housekeepResultDeleted,
+	housekeepResultExpiryFixed,
+	housekeepResultPruned,
+	housekeepResultSkipped,
+	housekeepResultConflict,
+}
 
-local function del(key)
-	if not dry_run then
-		redis.call("DEL", key)
-	end
-	return "deleted"
-end
+var housekeepTasks = []housekeepTask{
+	housekeepTaskRateLimit,
+	housekeepTaskAccessEvents,
+	housekeepTaskLockout,
+	housekeepTaskFailedAttempts,
+	housekeepTaskSessionList,
+	housekeepTaskOfflineGrantList,
+}
 
-for i, key in ipairs(KEYS) do
-	local kind = ARGV[i + 2]
-	local result = "skipped"
-
-	if kind == "rate-limit" then
-		local value = redis.pcall("GET", key)
-		local t = nil
-		if type(value) == "string" then
-			t = tonumber(value)
-		end
-		if t then
-			if t < now then
-				result = del(key)
-			else
-				-- A correct expiry is left alone, so a rerun reports nothing.
-				-- The tolerance absorbs clock skew between this machine and Redis.
-				local pttl = redis.call("PTTL", key)
-				if pttl == -1 or now + pttl > t + 60000 then
-					if not dry_run then
-						redis.call("PEXPIREAT", key, math.floor(t))
-					end
-					result = "expiry-fixed"
-				end
-			end
-		end
-	elseif kind == "access-events" then
-		local key_type = redis.call("TYPE", key)
-		if type(key_type) == "table" then
-			key_type = key_type.ok
-		end
-		if key_type == "stream" then
-			result = del(key)
-		end
-	elseif kind == "lockout" or kind == "failed-attempts" then
-		if redis.call("TTL", key) == -1 then
-			result = del(key)
-		end
-	end
-
-	results[i] = result
-end
-return results
-`)
+// Keys are watched in chunks, so a write by the application only makes that chunk retry.
+const housekeepChunkSize = 100
+const housekeepMaxAttempts = 3
 
 type HousekeepOptions struct {
 	ScanCountString string
@@ -107,120 +64,201 @@ type HousekeepOptions struct {
 	Now             time.Time
 }
 
-type housekeepCounts struct {
-	deleted     int
-	expiryFixed int
-	skipped     int
-}
-
-func (c *housekeepCounts) add(result string) {
-	switch result {
-	case housekeepResultDeleted:
-		c.deleted += 1
-	case housekeepResultExpiryFixed:
-		c.expiryFixed += 1
-	default:
-		c.skipped += 1
-	}
-}
+type housekeepCounts map[string]int
 
 func (c housekeepCounts) String() string {
-	return fmt.Sprintf("deleted=%v expiry_fixed=%v skipped=%v", c.deleted, c.expiryFixed, c.skipped)
-}
-
-func classifyHousekeepKey(key string) (kind string, ok bool) {
-	for _, k := range housekeepKinds {
-		if k.keyRegexp.MatchString(key) {
-			return k.name, true
-		}
+	var parts []string
+	for _, result := range housekeepResults {
+		parts = append(parts, fmt.Sprintf("%v=%v", strings.ReplaceAll(result, "-", "_"), c[result]))
 	}
-	return "", false
+	return strings.Join(parts, " ")
 }
 
 // Housekeep scans the whole keyspace once, one SCAN batch at a time, so memory use does not grow with the keyspace.
-// It only changes keys that are known to be safe to change, so it can be run again at any time.
-func Housekeep(ctx context.Context, redisClient *goredis.Client, stdout io.Writer, logger *log.Logger, options HousekeepOptions) (err error) {
+// Every task only changes keys that are safe to change, and the change is applied only if the keys
+// were not written in between, so it can be run again at any time.
+func Housekeep(ctx context.Context, redisClient *goredis.Client, stdout io.Writer, logger *log.Logger, options HousekeepOptions) error {
+	return housekeep(ctx, redisClient, stdout, logger, options, housekeepTasks)
+}
+
+func housekeep(ctx context.Context, redisClient *goredis.Client, stdout io.Writer, logger *log.Logger, options HousekeepOptions, tasks []housekeepTask) error {
 	scanCount, err := strconv.ParseInt(options.ScanCountString, 10, 64)
 	if err != nil {
-		err = fmt.Errorf("SCAN count must be an integer: %v", options.ScanCountString)
-		return
+		return fmt.Errorf("SCAN count must be an integer: %v", options.ScanCountString)
 	}
 	if scanCount < 10 {
-		err = fmt.Errorf("SCAN count must greater than or equal to 10: %v", scanCount)
-		return
+		return fmt.Errorf("SCAN count must greater than or equal to 10: %v", scanCount)
 	}
 
 	if options.Now.IsZero() {
-		err = fmt.Errorf("now cannot be zero")
-		return
+		return fmt.Errorf("now cannot be zero")
 	}
 
-	dryRun := "0"
-	dryRunPrefix := ""
+	run := &housekeepRun{
+		redisClient:  redisClient,
+		stdout:       stdout,
+		logger:       logger,
+		options:      options,
+		tasks:        tasks,
+		total:        housekeepCounts{},
+		countsByTask: make([]housekeepCounts, len(tasks)),
+	}
 	if options.DryRun {
-		dryRun = "1"
-		dryRunPrefix = "(dry-run) "
+		run.prefix = "(dry-run) "
 	}
-	now := strconv.FormatInt(options.Now.UnixMilli(), 10)
-
-	conn := redisClient.Conn()
-	defer func() {
-		_ = conn.Close()
-	}()
+	for i := range tasks {
+		run.countsByTask[i] = housekeepCounts{}
+	}
 
 	var cursor uint64
-	scannedKeyCount := 0
-	total := housekeepCounts{}
-	countsByKind := map[string]*housekeepCounts{}
-	for _, k := range housekeepKinds {
-		countsByKind[k.name] = &housekeepCounts{}
-	}
-
 	for {
-		var keys []string
-		var nextCursor uint64
-		keys, nextCursor, err = conn.Scan(ctx, cursor, "", scanCount).Result()
+		keys, nextCursor, err := redisClient.Scan(ctx, cursor, "", scanCount).Result()
 		if err != nil {
-			return
+			return err
 		}
-		scannedKeyCount += len(keys)
+		run.scannedKeyCount += len(keys)
 
-		var targetKeys []string
-		args := []any{now, dryRun}
-		for _, key := range keys {
-			if kind, ok := classifyHousekeepKey(key); ok {
-				targetKeys = append(targetKeys, key)
-				args = append(args, kind)
+		for i, taskKeys := range run.classify(keys) {
+			if err := run.runTask(ctx, i, taskKeys); err != nil {
+				return err
 			}
 		}
 
-		if len(targetKeys) > 0 {
-			var results []string
-			results, err = housekeepScript.Run(ctx, conn, targetKeys, args...).StringSlice()
-			if err != nil {
-				return
-			}
-			for i, result := range results {
-				kind := args[i+2].(string)
-				countsByKind[kind].add(result)
-				total.add(result)
-				if result != housekeepResultSkipped {
-					fmt.Fprintf(stdout, "%v%v %v\n", dryRunPrefix, result, targetKeys[i])
-				}
-			}
-		}
-
-		logger.Printf("%vSCAN %v scanned_total=%v %v\n", dryRunPrefix, cursor, scannedKeyCount, total)
+		logger.Printf("%vSCAN %v scanned_total=%v %v\n", run.prefix, cursor, run.scannedKeyCount, run.total)
 
 		if nextCursor == 0 {
-			for _, k := range housekeepKinds {
-				logger.Printf("%vdone %v %v\n", dryRunPrefix, k.name, countsByKind[k.name])
-			}
-			logger.Printf("%vdone scanned_total=%v %v\n", dryRunPrefix, scannedKeyCount, total)
-			break
+			run.logSummary()
+			return nil
 		}
 		cursor = nextCursor
 	}
+}
 
+type housekeepRun struct {
+	redisClient     *goredis.Client
+	stdout          io.Writer
+	logger          *log.Logger
+	options         HousekeepOptions
+	tasks           []housekeepTask
+	prefix          string
+	scannedKeyCount int
+	total           housekeepCounts
+	countsByTask    []housekeepCounts
+}
+
+// classify returns the keys of each task, in the order of r.tasks.
+func (r *housekeepRun) classify(keys []string) [][]string {
+	keysByTask := make([][]string, len(r.tasks))
+	for _, key := range keys {
+		for i, task := range r.tasks {
+			if task.match(key) {
+				keysByTask[i] = append(keysByTask[i], key)
+				break
+			}
+		}
+	}
+	return keysByTask
+}
+
+func (r *housekeepRun) runTask(ctx context.Context, taskIndex int, keys []string) error {
+	task := r.tasks[taskIndex]
+	for start := 0; start < len(keys); start += housekeepChunkSize {
+		chunk := keys[start:min(start+housekeepChunkSize, len(keys))]
+		actions, ok, err := runHousekeepChunk(ctx, r.redisClient, task, chunk, r.options)
+		if err != nil {
+			return fmt.Errorf("%v: %w", task.name, err)
+		}
+		if !ok {
+			r.count(taskIndex, housekeepResultConflict, len(chunk))
+			r.logger.Printf("%v%v: keys kept changing, left for the next run: %v\n", r.prefix, task.name, strings.Join(chunk, " "))
+			continue
+		}
+		for _, action := range actions {
+			r.count(taskIndex, action.result, 1)
+			fmt.Fprintf(r.stdout, "%v%v %v\n", r.prefix, action.result, action.key)
+		}
+		r.count(taskIndex, housekeepResultSkipped, len(chunk)-len(actions))
+	}
 	return nil
+}
+
+func (r *housekeepRun) count(taskIndex int, result string, n int) {
+	r.countsByTask[taskIndex][result] += n
+	r.total[result] += n
+}
+
+func (r *housekeepRun) logSummary() {
+	for i, task := range r.tasks {
+		r.logger.Printf("%vdone %v %v\n", r.prefix, task.name, r.countsByTask[i])
+	}
+	r.logger.Printf("%vdone scanned_total=%v %v\n", r.prefix, r.scannedKeyCount, r.total)
+}
+
+// runHousekeepChunk returns ok=false if the keys were written by someone else on every attempt.
+func runHousekeepChunk(ctx context.Context, redisClient *goredis.Client, task housekeepTask, keys []string, options HousekeepOptions) (actions []housekeepAction, ok bool, err error) {
+	for attempt := 0; attempt < housekeepMaxAttempts; attempt++ {
+		err = redisClient.Watch(ctx, func(tx *goredis.Tx) error {
+			var err error
+			actions, err = task.plan(ctx, tx, keys, options.Now)
+			if err != nil {
+				return err
+			}
+			if options.DryRun || len(actions) == 0 {
+				return nil
+			}
+			_, err = tx.TxPipelined(ctx, func(pipe goredis.Pipeliner) error {
+				for _, action := range actions {
+					action.apply(ctx, pipe)
+				}
+				return nil
+			})
+			return err
+		}, keys...)
+		if errors.Is(err, goredis.TxFailedErr) {
+			continue
+		}
+		if err != nil {
+			return nil, false, err
+		}
+		return actions, true, nil
+	}
+	return nil, false, nil
+}
+
+// readPipelined runs the reads in one round trip.
+// The caller checks each command with housekeepCmdErr, so that a missing key or a key of an unexpected type
+// only skips that key, while any other error still fails the run.
+func readPipelined(ctx context.Context, tx *goredis.Tx, fn func(pipe goredis.Pipeliner)) error {
+	_, err := tx.Pipelined(ctx, func(pipe goredis.Pipeliner) error {
+		fn(pipe)
+		return nil
+	})
+	if _, err = housekeepCmdErr(err); err != nil {
+		return err
+	}
+	return nil
+}
+
+// housekeepCmdErr reports skip=true for the errors that only mean the key should be left alone.
+func housekeepCmdErr(err error) (skip bool, _ error) {
+	switch {
+	case err == nil:
+		return false, nil
+	case errors.Is(err, goredis.Nil):
+		return true, nil
+	case strings.HasPrefix(err.Error(), "WRONGTYPE"):
+		return true, nil
+	default:
+		return false, err
+	}
+}
+
+func deleteAction(key string) housekeepAction {
+	return housekeepAction{
+		key:    key,
+		result: housekeepResultDeleted,
+		apply: func(ctx context.Context, pipe goredis.Pipeliner) {
+			pipe.Del(ctx, key)
+		},
+	}
 }
