@@ -65,6 +65,24 @@ func TestGCRA(t *testing.T) {
 		})
 	}
 
+	Convey("GCRA expires the key when the bucket is full again", t, func() {
+		ctx := context.Background()
+		s.FlushAll()
+		s.SetTime(time.UnixMilli(epoch).UTC())
+
+		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
+		conn := cli.Conn()
+
+		// Each token of a 20s/4 bucket takes 5s to refill.
+		_, err := gcra(ctx, conn, testKey, 20*time.Second, 4, 1)
+		So(err, ShouldBeNil)
+		So(s.TTL(testKey), ShouldEqual, 5*time.Second)
+
+		_, err = gcra(ctx, conn, testKey, 20*time.Second, 4, 2)
+		So(err, ShouldBeNil)
+		So(s.TTL(testKey), ShouldEqual, 15*time.Second)
+	})
+
 	Convey("GCRA", t, func() {
 		test("basic", &schedule{
 			period: "20s",
