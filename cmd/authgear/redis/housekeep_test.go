@@ -14,6 +14,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var t_expired = time.Date(2025, 3, 5, 0, 0, 0, 0, time.UTC)
+var t_now = time.Date(2025, 3, 5, 1, 0, 0, 0, time.UTC)
+var t_future = time.Date(2025, 3, 5, 2, 0, 0, 0, time.UTC)
+
 func TestHousekeep(t *testing.T) {
 	Convey("Housekeep", t, func() {
 		memoryRedis := miniredis.RunT(t)
