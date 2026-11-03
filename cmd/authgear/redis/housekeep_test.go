@@ -142,8 +142,12 @@ done offline-grant-list deleted=1 expiry_fixed=0 pruned=1 skipped=0 conflict=0
 		})
 
 		Convey("dry-run=false", func() {
+			hook := &commandCountingHook{counts: map[string]int{}}
+			redisClient.AddHook(hook)
 			err := run(false)
 			So(err, ShouldBeNil)
+			// Only the keys to change are watched, in 1 chunk for each task with changes.
+			So(hook.counts["watch"], ShouldEqual, 6)
 			So(stdout.String(), ShouldEqual, expectedOutput)
 			So(stderr.String(), ShouldContainSubstring, expectedSummary)
 
@@ -174,8 +178,12 @@ done offline-grant-list deleted=1 expiry_fixed=0 pruned=1 skipped=0 conflict=0
 
 			Convey("a rerun changes nothing", func() {
 				keys := memoryRedis.Keys()
+				hook.counts = map[string]int{}
 				err := run(false)
 				So(err, ShouldBeNil)
+				// Nothing to change, so nothing is watched.
+				So(hook.counts["watch"], ShouldEqual, 0)
+				So(hook.counts["multi"], ShouldEqual, 0)
 				So(stdout.String(), ShouldEqual, "")
 				So(stderr.String(), ShouldContainSubstring, "deleted=0 expiry_fixed=0 pruned=0")
 				So(memoryRedis.Keys(), ShouldResemble, keys)
@@ -211,11 +219,26 @@ done offline-grant-list deleted=1 expiry_fixed=0 pruned=1 skipped=0 conflict=0
 
 		writeTimes := 0
 		attempts := 0
+		fixedBeforeWatch := false
 		task := housekeepTask{
 			name:  "test",
 			match: func(key string) bool { return key == "key" },
-			plan: func(ctx context.Context, tx *goredis.Tx, keys []string, now time.Time) ([]housekeepAction, error) {
+			plan: func(ctx context.Context, r housekeepReader, keys []string, now time.Time) ([]housekeepAction, error) {
+				if _, watched := r.(*goredis.Tx); !watched {
+					if fixedBeforeWatch {
+						// Someone else fixes the key between the two reads.
+						_, err := otherClient.Set(ctx, "key", "fixed", 0).Result()
+						So(err, ShouldBeNil)
+					}
+					return []housekeepAction{deleteAction("key")}, nil
+				}
+
 				attempts += 1
+				v, err := otherClient.Get(ctx, "key").Result()
+				So(err, ShouldBeNil)
+				if v == "fixed" {
+					return nil, nil
+				}
 				// Someone else writes the watched key after it is read.
 				if attempts <= writeTimes {
 					_, err := otherClient.Set(ctx, "key", strconv.Itoa(attempts), 0).Result()
@@ -253,7 +276,43 @@ done offline-grant-list deleted=1 expiry_fixed=0 pruned=1 skipped=0 conflict=0
 			So(err, ShouldBeNil)
 			So(v, ShouldEqual, strconv.Itoa(housekeepMaxAttempts))
 		})
+
+		Convey("skips a key that needs no change when read again", func() {
+			fixedBeforeWatch = true
+			err := run()
+			So(err, ShouldBeNil)
+			So(attempts, ShouldEqual, 1)
+			So(stdout.String(), ShouldEqual, "")
+			So(stderr.String(), ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 pruned=0 skipped=1 conflict=0\n")
+			v, err := memoryRedis.Get("key")
+			So(err, ShouldBeNil)
+			So(v, ShouldEqual, "fixed")
+		})
 	})
+}
+
+type commandCountingHook struct {
+	counts map[string]int
+}
+
+func (h *commandCountingHook) DialHook(next goredis.DialHook) goredis.DialHook {
+	return next
+}
+
+func (h *commandCountingHook) ProcessHook(next goredis.ProcessHook) goredis.ProcessHook {
+	return func(ctx context.Context, cmd goredis.Cmder) error {
+		h.counts[cmd.Name()] += 1
+		return next(ctx, cmd)
+	}
+}
+
+func (h *commandCountingHook) ProcessPipelineHook(next goredis.ProcessPipelineHook) goredis.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []goredis.Cmder) error {
+		for _, cmd := range cmds {
+			h.counts[cmd.Name()] += 1
+		}
+		return next(ctx, cmds)
+	}
 }
 
 func prefixLines(prefix string, s string) string {

@@ -26,9 +26,9 @@ var offlineGrantListKeyRegexp = regexp.MustCompile(`^app:([^:]+):offline-grant-l
 var housekeepTaskSessionList = housekeepTask{
 	name:  "session-list",
 	match: sessionListKeyRegexp.MatchString,
-	plan: func(ctx context.Context, tx *goredis.Tx, keys []string, now time.Time) ([]housekeepAction, error) {
+	plan: func(ctx context.Context, r housekeepReader, keys []string, now time.Time) ([]housekeepAction, error) {
 		// The field is the session key itself.
-		return planPruneSessionLists(ctx, tx, keys, now, func(listKey string, field string) string {
+		return planPruneSessionLists(ctx, r, keys, now, func(listKey string, field string) string {
 			return field
 		})
 	},
@@ -37,9 +37,9 @@ var housekeepTaskSessionList = housekeepTask{
 var housekeepTaskOfflineGrantList = housekeepTask{
 	name:  "offline-grant-list",
 	match: offlineGrantListKeyRegexp.MatchString,
-	plan: func(ctx context.Context, tx *goredis.Tx, keys []string, now time.Time) ([]housekeepAction, error) {
+	plan: func(ctx context.Context, r housekeepReader, keys []string, now time.Time) ([]housekeepAction, error) {
 		// The field is the offline grant ID.
-		return planPruneSessionLists(ctx, tx, keys, now, func(listKey string, field string) string {
+		return planPruneSessionLists(ctx, r, keys, now, func(listKey string, field string) string {
 			appID := offlineGrantListKeyRegexp.FindStringSubmatch(listKey)[1]
 			return fmt.Sprintf("app:%s:offline-grant:%s", appID, field)
 		})
@@ -60,12 +60,12 @@ type sessionListEntry struct {
 
 func planPruneSessionLists(
 	ctx context.Context,
-	tx *goredis.Tx,
+	r housekeepReader,
 	keys []string,
 	now time.Time,
 	sessionKeyOf func(listKey string, field string) string,
 ) ([]housekeepAction, error) {
-	lists, err := readSessionLists(ctx, tx, keys, now, sessionKeyOf)
+	lists, err := readSessionLists(ctx, r, keys, now, sessionKeyOf)
 	if err != nil {
 		return nil, err
 	}
@@ -101,13 +101,13 @@ func planPruneSessionLists(
 // A key that is not a hash is left out.
 func readSessionLists(
 	ctx context.Context,
-	tx *goredis.Tx,
+	r housekeepReader,
 	keys []string,
 	now time.Time,
 	sessionKeyOf func(listKey string, field string) string,
 ) ([]*sessionList, error) {
 	hgetalls := make([]*goredis.MapStringStringCmd, len(keys))
-	err := readPipelined(ctx, tx, func(pipe goredis.Pipeliner) {
+	err := readPipelined(ctx, r, func(pipe goredis.Pipeliner) {
 		for i, key := range keys {
 			hgetalls[i] = pipe.HGetAll(ctx, key)
 		}
@@ -117,7 +117,7 @@ func readSessionLists(
 	}
 
 	var lists []*sessionList
-	err = readPipelined(ctx, tx, func(pipe goredis.Pipeliner) {
+	err = readPipelined(ctx, r, func(pipe goredis.Pipeliner) {
 		for i, key := range keys {
 			entries, err := hgetalls[i].Result()
 			if err != nil {

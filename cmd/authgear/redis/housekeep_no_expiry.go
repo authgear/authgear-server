@@ -26,9 +26,9 @@ var housekeepTaskFailedAttempts = housekeepTask{
 	plan:  planDeleteKeysWithoutExpiry,
 }
 
-func planDeleteKeysWithoutExpiry(ctx context.Context, tx *goredis.Tx, keys []string, now time.Time) ([]housekeepAction, error) {
+func planDeleteKeysWithoutExpiry(ctx context.Context, r housekeepReader, keys []string, now time.Time) ([]housekeepAction, error) {
 	ttls := make([]*goredis.DurationCmd, len(keys))
-	err := readPipelined(ctx, tx, func(pipe goredis.Pipeliner) {
+	err := readPipelined(ctx, r, func(pipe goredis.Pipeliner) {
 		for i, key := range keys {
 			ttls[i] = pipe.TTL(ctx, key)
 		}

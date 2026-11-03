@@ -16,9 +16,9 @@ var accessEventsKeyRegexp = regexp.MustCompile(`^app:[^:]+:access-events:`)
 var housekeepTaskAccessEvents = housekeepTask{
 	name:  "access-events",
 	match: accessEventsKeyRegexp.MatchString,
-	plan: func(ctx context.Context, tx *goredis.Tx, keys []string, now time.Time) ([]housekeepAction, error) {
+	plan: func(ctx context.Context, r housekeepReader, keys []string, now time.Time) ([]housekeepAction, error) {
 		types := make([]*goredis.StatusCmd, len(keys))
-		err := readPipelined(ctx, tx, func(pipe goredis.Pipeliner) {
+		err := readPipelined(ctx, r, func(pipe goredis.Pipeliner) {
 			for i, key := range keys {
 				types[i] = pipe.Type(ctx, key)
 			}

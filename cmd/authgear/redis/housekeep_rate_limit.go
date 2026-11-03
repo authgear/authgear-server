@@ -22,10 +22,10 @@ const rateLimitExpiryTolerance = time.Minute
 var housekeepTaskRateLimit = housekeepTask{
 	name:  "rate-limit",
 	match: rateLimitKeyRegexp.MatchString,
-	plan: func(ctx context.Context, tx *goredis.Tx, keys []string, now time.Time) ([]housekeepAction, error) {
+	plan: func(ctx context.Context, r housekeepReader, keys []string, now time.Time) ([]housekeepAction, error) {
 		gets := make([]*goredis.StringCmd, len(keys))
 		pttls := make([]*goredis.DurationCmd, len(keys))
-		err := readPipelined(ctx, tx, func(pipe goredis.Pipeliner) {
+		err := readPipelined(ctx, r, func(pipe goredis.Pipeliner) {
 			for i, key := range keys {
 				gets[i] = pipe.Get(ctx, key)
 				pttls[i] = pipe.PTTL(ctx, key)

@@ -18,9 +18,16 @@ import (
 type housekeepTask struct {
 	name  string
 	match func(key string) bool
-	// plan reads the keys through tx and returns what should be written.
+	// plan reads the keys through r and returns what should be written.
 	// A key without an action is left unchanged.
-	plan func(ctx context.Context, tx *goredis.Tx, keys []string, now time.Time) ([]housekeepAction, error)
+	// plan is called once without WATCH to find the keys to change,
+	// and again under WATCH on those keys only, right before the change is written.
+	plan func(ctx context.Context, r housekeepReader, keys []string, now time.Time) ([]housekeepAction, error)
+}
+
+// housekeepReader is either the client, or the transaction that watches the keys.
+type housekeepReader interface {
+	Pipelined(ctx context.Context, fn func(goredis.Pipeliner) error) ([]goredis.Cmder, error)
 }
 
 type housekeepAction struct {
@@ -54,8 +61,12 @@ var housekeepTasks = []housekeepTask{
 	housekeepTaskOfflineGrantList,
 }
 
-// Keys are watched in chunks, so a write by the application only makes that chunk retry.
-const housekeepChunkSize = 100
+// Keys are read in pipelines of this size to find the keys to change.
+const housekeepReadChunkSize = 1000
+
+// The keys to change are watched in chunks of this size,
+// so a write by the application only makes that chunk retry.
+const housekeepWriteChunkSize = 100
 const housekeepMaxAttempts = 3
 
 type HousekeepOptions struct {
@@ -160,11 +171,40 @@ func (r *housekeepRun) classify(keys []string) [][]string {
 	return keysByTask
 }
 
+// runTask first reads the keys without WATCH to find the keys to change.
+// Only those keys are then watched and read again before the change is written,
+// so a run with nothing to change sends no WATCH at all.
 func (r *housekeepRun) runTask(ctx context.Context, taskIndex int, keys []string) error {
 	task := r.tasks[taskIndex]
-	for start := 0; start < len(keys); start += housekeepChunkSize {
-		chunk := keys[start:min(start+housekeepChunkSize, len(keys))]
-		actions, ok, err := runHousekeepChunk(ctx, r.redisClient, task, chunk, r.options)
+	for start := 0; start < len(keys); start += housekeepReadChunkSize {
+		chunk := keys[start:min(start+housekeepReadChunkSize, len(keys))]
+		planned, err := task.plan(ctx, r.redisClient, chunk, r.options.Now)
+		if err != nil {
+			return fmt.Errorf("%v: %w", task.name, err)
+		}
+		r.count(taskIndex, housekeepResultSkipped, len(chunk)-len(planned))
+
+		if r.options.DryRun {
+			r.report(taskIndex, planned)
+			continue
+		}
+
+		candidates := make([]string, len(planned))
+		for i, action := range planned {
+			candidates[i] = action.key
+		}
+		if err := r.applyTask(ctx, taskIndex, candidates); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *housekeepRun) applyTask(ctx context.Context, taskIndex int, keys []string) error {
+	task := r.tasks[taskIndex]
+	for start := 0; start < len(keys); start += housekeepWriteChunkSize {
+		chunk := keys[start:min(start+housekeepWriteChunkSize, len(keys))]
+		actions, ok, err := applyHousekeepChunk(ctx, r.redisClient, task, chunk, r.options.Now)
 		if err != nil {
 			return fmt.Errorf("%v: %w", task.name, err)
 		}
@@ -173,13 +213,18 @@ func (r *housekeepRun) runTask(ctx context.Context, taskIndex int, keys []string
 			r.logger.Printf("%v%v: keys kept changing, left for the next run: %v\n", r.prefix, task.name, strings.Join(chunk, " "))
 			continue
 		}
-		for _, action := range actions {
-			r.count(taskIndex, action.result, 1)
-			fmt.Fprintf(r.stdout, "%v%v %v\n", r.prefix, action.result, action.key)
-		}
+		r.report(taskIndex, actions)
+		// A key may need no change any more when it is read again.
 		r.count(taskIndex, housekeepResultSkipped, len(chunk)-len(actions))
 	}
 	return nil
+}
+
+func (r *housekeepRun) report(taskIndex int, actions []housekeepAction) {
+	for _, action := range actions {
+		r.count(taskIndex, action.result, 1)
+		fmt.Fprintf(r.stdout, "%v%v %v\n", r.prefix, action.result, action.key)
+	}
 }
 
 func (r *housekeepRun) count(taskIndex int, result string, n int) {
@@ -194,16 +239,17 @@ func (r *housekeepRun) logSummary() {
 	r.logger.Printf("%vdone scanned_total=%v %v\n", r.prefix, r.scannedKeyCount, r.total)
 }
 
-// runHousekeepChunk returns ok=false if the keys were written by someone else on every attempt.
-func runHousekeepChunk(ctx context.Context, redisClient *goredis.Client, task housekeepTask, keys []string, options HousekeepOptions) (actions []housekeepAction, ok bool, err error) {
+// applyHousekeepChunk watches the keys, plans again with fresh reads, and writes the actions in MULTI/EXEC.
+// It returns ok=false if the keys were written by someone else on every attempt.
+func applyHousekeepChunk(ctx context.Context, redisClient *goredis.Client, task housekeepTask, keys []string, now time.Time) (actions []housekeepAction, ok bool, err error) {
 	for attempt := 0; attempt < housekeepMaxAttempts; attempt++ {
 		err = redisClient.Watch(ctx, func(tx *goredis.Tx) error {
 			var err error
-			actions, err = task.plan(ctx, tx, keys, options.Now)
+			actions, err = task.plan(ctx, tx, keys, now)
 			if err != nil {
 				return err
 			}
-			if options.DryRun || len(actions) == 0 {
+			if len(actions) == 0 {
 				return nil
 			}
 			_, err = tx.TxPipelined(ctx, func(pipe goredis.Pipeliner) error {
@@ -228,8 +274,8 @@ func runHousekeepChunk(ctx context.Context, redisClient *goredis.Client, task ho
 // readPipelined runs the reads in one round trip.
 // The caller checks each command with housekeepCmdErr, so that a missing key or a key of an unexpected type
 // only skips that key, while any other error still fails the run.
-func readPipelined(ctx context.Context, tx *goredis.Tx, fn func(pipe goredis.Pipeliner)) error {
-	_, err := tx.Pipelined(ctx, func(pipe goredis.Pipeliner) error {
+func readPipelined(ctx context.Context, r housekeepReader, fn func(pipe goredis.Pipeliner)) error {
+	_, err := r.Pipelined(ctx, func(pipe goredis.Pipeliner) error {
 		fn(pipe)
 		return nil
 	})
