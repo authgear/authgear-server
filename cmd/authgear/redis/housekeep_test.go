@@ -18,208 +18,221 @@ var t_expired = time.Date(2025, 3, 5, 0, 0, 0, 0, time.UTC)
 var t_now = time.Date(2025, 3, 5, 1, 0, 0, 0, time.UTC)
 var t_future = time.Date(2025, 3, 5, 2, 0, 0, 0, time.UTC)
 
+// housekeepFixture is an in-memory Redis at t_now, with helpers to write keys the way the application does.
+type housekeepFixture struct {
+	ctx         context.Context
+	memoryRedis *miniredis.Miniredis
+	redisClient *goredis.Client
+	hook        *commandCountingHook
+}
+
+func newHousekeepFixture(t *testing.T) *housekeepFixture {
+	memoryRedis := miniredis.RunT(t)
+	memoryRedis.SetTime(t_now)
+	redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
+	hook := &commandCountingHook{counts: map[string]int{}}
+	redisClient.AddHook(hook)
+	return &housekeepFixture{
+		ctx:         context.Background(),
+		memoryRedis: memoryRedis,
+		redisClient: redisClient,
+		hook:        hook,
+	}
+}
+
+func (f *housekeepFixture) set(key string, value string, ttl time.Duration) {
+	_, err := f.redisClient.Set(f.ctx, key, value, ttl).Result()
+	So(err, ShouldBeNil)
+}
+
+func (f *housekeepFixture) xadd(key string) {
+	_, err := f.redisClient.XAdd(f.ctx, &goredis.XAddArgs{Stream: key, Values: map[string]any{"access": "{}"}}).Result()
+	So(err, ShouldBeNil)
+}
+
+// hset writes a session list entry, whose value is the expiry in time.Time.MarshalText format.
+func (f *housekeepFixture) hset(key string, field string, expireAt time.Time) {
+	b, err := expireAt.MarshalText()
+	So(err, ShouldBeNil)
+	f.hsetRaw(key, field, string(b))
+}
+
+func (f *housekeepFixture) hsetRaw(key string, field string, value string) {
+	_, err := f.redisClient.HSet(f.ctx, key, field, value).Result()
+	So(err, ShouldBeNil)
+}
+
+func (f *housekeepFixture) expire(key string, ttl time.Duration) {
+	ok, err := f.redisClient.Expire(f.ctx, key, ttl).Result()
+	So(err, ShouldBeNil)
+	So(ok, ShouldBeTrue)
+}
+
+func (f *housekeepFixture) hkeys(key string) []string {
+	fields, err := f.memoryRedis.HKeys(key)
+	So(err, ShouldBeNil)
+	return fields
+}
+
+// run runs the given tasks, or every task if none is given, and returns stdout and stderr.
+func (f *housekeepFixture) run(dryRun bool, tasks ...housekeepTask) (string, string) {
+	if len(tasks) == 0 {
+		tasks = housekeepTasks
+	}
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	f.hook.counts = map[string]int{}
+	err := housekeep(f.ctx, f.redisClient, stdout, log.New(stderr, "", 0), HousekeepOptions{
+		ScanCountString: "100",
+		DryRun:          dryRun,
+		Now:             t_now,
+	}, tasks)
+	So(err, ShouldBeNil)
+	return stdout.String(), stderr.String()
+}
+
+func unixMilliString(t time.Time) string {
+	return strconv.FormatInt(t.UnixMilli(), 10)
+}
+
 func TestHousekeep(t *testing.T) {
+	Convey("Housekeep validates options", t, func() {
+		f := newHousekeepFixture(t)
+		logger := log.New(&bytes.Buffer{}, "", 0)
+
+		err := Housekeep(f.ctx, f.redisClient, &bytes.Buffer{}, logger, HousekeepOptions{
+			ScanCountString: "a",
+			DryRun:          true,
+			Now:             t_now,
+		})
+		So(err, ShouldBeError, "SCAN count must be an integer: a")
+
+		err = Housekeep(f.ctx, f.redisClient, &bytes.Buffer{}, logger, HousekeepOptions{
+			ScanCountString: "100",
+			DryRun:          true,
+			Now:             time.Time{},
+		})
+		So(err, ShouldBeError, "now cannot be zero")
+	})
+
 	Convey("Housekeep", t, func() {
-		memoryRedis := miniredis.RunT(t)
-		memoryRedis.SetTime(t_now)
-		ctx := context.Background()
-		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
-		stdout := &bytes.Buffer{}
-		stderr := &bytes.Buffer{}
-		logger := log.New(stderr, "", 0)
+		f := newHousekeepFixture(t)
 
-		set := func(key string, value string, ttl time.Duration) {
-			_, err := redisClient.Set(ctx, key, value, ttl).Result()
-			So(err, ShouldBeNil)
-		}
-		xadd := func(key string) {
-			_, err := redisClient.XAdd(ctx, &goredis.XAddArgs{Stream: key, Values: map[string]any{"access": "{}"}}).Result()
-			So(err, ShouldBeNil)
-		}
-		hset := func(key string, field string, expireAt time.Time) {
-			b, err := expireAt.MarshalText()
-			So(err, ShouldBeNil)
-			_, err = redisClient.HSet(ctx, key, field, string(b)).Result()
-			So(err, ShouldBeNil)
-		}
-		ms := func(t time.Time) string {
-			return strconv.FormatInt(t.UnixMilli(), 10)
-		}
-		run := func(dryRun bool) error {
-			stdout.Reset()
-			stderr.Reset()
-			return Housekeep(ctx, redisClient, stdout, logger, HousekeepOptions{
-				ScanCountString: "100",
-				DryRun:          dryRun,
-				Now:             t_now,
-			})
-		}
+		// One key for each task to change, and keys no task matches.
+		f.set("app:accounts:rate-limit:SignupPerIP:127.0.0.1", unixMilliString(t_expired), 0)
+		f.xadd("app:accounts:access-events:session")
+		f.set("app:accounts:lockout:AccountAuthentication:user", "1", 0)
+		f.set("app:accounts:failed-attempts:oob-otp:+85200000000", "1", 0)
+		f.hset("app:accounts:session-list:user", "app:accounts:session:dead", t_expired)
+		f.hset("app:accounts:offline-grant-list:user", "grant-dead", t_expired)
+		f.set("app:accounts:session:live", "{}", time.Hour)
+		f.set("app:accounts:offline-grant:live", "{}", time.Hour)
+		f.set("app:accounts:unrelated", "value", 0)
 
-		// rate-limit
-		set("rate-limit:MessagingSMSPerTarget:+85200000000", ms(t_expired), 0)
-		set("app:accounts:rate-limit:SignupPerIP:127.0.0.1", ms(t_expired), 0)
-		set("app:accounts:rate-limit:OAuthTokenPerIP:127.0.0.1", ms(t_future), 0)
-		set("app:accounts:rate-limit:AuthflowAPIPerIP:127.0.0.1", "not-a-timestamp", 0)
-		_, err := redisClient.HSet(ctx, "app:accounts:rate-limit:VerifyPasswordPerIP:127.0.0.1", "field", "value").Result()
-		So(err, ShouldBeNil)
-
-		// access-events
-		xadd("app:accounts:access-events:session-a")
-		set("app:accounts:access-events:not-a-stream", "value", 0)
-
-		// lockout and failed-attempts
-		set("app:accounts:lockout:old", "1", 0)
-		set("app:accounts:lockout:new", "1", time.Hour)
-		set("app:accounts:failed-attempts:purpose:old", "1", 0)
-		set("app:accounts:failed-attempts:purpose:new", "1", time.Hour)
-
-		// session-list: the field is the session key.
-		set("app:accounts:session:live", "{}", time.Hour)
-		set("app:accounts:session:stale-expiry", "{}", time.Hour)
-		hset("app:accounts:session-list:all-dead", "app:accounts:session:dead-1", t_expired)
-		hset("app:accounts:session-list:mixed", "app:accounts:session:dead-2", t_expired)
-		hset("app:accounts:session-list:mixed", "app:accounts:session:live", t_future)
-		// The application writes the entry before the session key.
-		hset("app:accounts:session-list:mixed", "app:accounts:session:being-created", t_future)
-		// The session key still exists, so the entry is kept.
-		hset("app:accounts:session-list:mixed", "app:accounts:session:stale-expiry", t_expired)
-		_, err = redisClient.HSet(ctx, "app:accounts:session-list:unreadable", "app:accounts:session:dead-3", "not-a-time").Result()
-		So(err, ShouldBeNil)
-		set("app:accounts:session-list:not-a-hash", "value", 0)
-
-		// offline-grant-list: the field is the bare offline grant ID.
-		set("app:accounts:offline-grant:grant-live", "{}", time.Hour)
-		hset("app:accounts:offline-grant-list:user-a", "grant-live", t_future)
-		hset("app:accounts:offline-grant-list:user-a", "grant-dead-1", t_expired)
-		hset("app:accounts:offline-grant-list:user-b", "grant-dead-2", t_expired)
-
-		// Keys that are not housekept.
-		set("app:accounts:session:rate-limit:a", ms(t_expired), 0)
-		xadd("app:accounts:session:access-events:a")
-
-		allKeys := memoryRedis.Keys()
-
-		Convey("validate SCAN count", func() {
-			err := Housekeep(ctx, redisClient, stdout, logger, HousekeepOptions{
-				ScanCountString: "a",
-				DryRun:          true,
-				Now:             t_now,
-			})
-			So(err, ShouldBeError, "SCAN count must be an integer: a")
-		})
-
-		Convey("validate now", func() {
-			err := Housekeep(ctx, redisClient, stdout, logger, HousekeepOptions{
-				ScanCountString: "100",
-				DryRun:          true,
-				Now:             time.Time{},
-			})
-			So(err, ShouldBeError, "now cannot be zero")
-		})
-
-		expectedOutput := `expiry-fixed app:accounts:rate-limit:OAuthTokenPerIP:127.0.0.1
-deleted app:accounts:rate-limit:SignupPerIP:127.0.0.1
-deleted rate-limit:MessagingSMSPerTarget:+85200000000
-deleted app:accounts:access-events:session-a
-deleted app:accounts:lockout:old
-deleted app:accounts:failed-attempts:purpose:old
-deleted app:accounts:session-list:all-dead
-pruned app:accounts:session-list:mixed
-pruned app:accounts:offline-grant-list:user-a
-deleted app:accounts:offline-grant-list:user-b
+		expectedOutput := `deleted app:accounts:rate-limit:SignupPerIP:127.0.0.1
+deleted app:accounts:access-events:session
+deleted app:accounts:lockout:AccountAuthentication:user
+deleted app:accounts:failed-attempts:oob-otp:+85200000000
+deleted app:accounts:session-list:user
+deleted app:accounts:offline-grant-list:user
 `
-		expectedSummary := `done rate-limit deleted=2 expiry_fixed=1 pruned=0 skipped=2 conflict=0
-done access-events deleted=1 expiry_fixed=0 pruned=0 skipped=1 conflict=0
-done lockout deleted=1 expiry_fixed=0 pruned=0 skipped=1 conflict=0
-done failed-attempts deleted=1 expiry_fixed=0 pruned=0 skipped=1 conflict=0
-done session-list deleted=1 expiry_fixed=0 pruned=1 skipped=2 conflict=0
-done offline-grant-list deleted=1 expiry_fixed=0 pruned=1 skipped=0 conflict=0
-`
+		keysLeft := []string{
+			"app:accounts:offline-grant:live",
+			"app:accounts:session:live",
+			"app:accounts:unrelated",
+		}
 
-		Convey("dry-run=true changes nothing", func() {
-			err := run(true)
-			So(err, ShouldBeNil)
-			So(stdout.String(), ShouldEqual, prefixLines("(dry-run) ", expectedOutput))
-			So(stderr.String(), ShouldContainSubstring, prefixLines("(dry-run) ", expectedSummary))
-			So(memoryRedis.Keys(), ShouldResemble, allKeys)
-			So(memoryRedis.TTL("app:accounts:rate-limit:OAuthTokenPerIP:127.0.0.1"), ShouldEqual, 0)
+		Convey("gives each key to its task and leaves the other keys alone", func() {
+			stdout, stderr := f.run(false)
+			So(stdout, ShouldEqual, expectedOutput)
+			So(f.memoryRedis.Keys(), ShouldResemble, keysLeft)
+			So(stderr, ShouldContainSubstring, "done scanned_total=9 deleted=6 expiry_fixed=0 pruned=0 skipped=0 conflict=0\n")
 		})
 
-		Convey("dry-run=false", func() {
-			hook := &commandCountingHook{counts: map[string]int{}}
-			redisClient.AddHook(hook)
-			err := run(false)
-			So(err, ShouldBeNil)
-			// Only the keys to change are watched, in 1 chunk for each task with changes.
-			So(hook.counts["watch"], ShouldEqual, 6)
-			So(stdout.String(), ShouldEqual, expectedOutput)
-			So(stderr.String(), ShouldContainSubstring, expectedSummary)
-
-			So(memoryRedis.Exists("app:accounts:rate-limit:SignupPerIP:127.0.0.1"), ShouldBeFalse)
-			So(memoryRedis.Exists("rate-limit:MessagingSMSPerTarget:+85200000000"), ShouldBeFalse)
-			So(memoryRedis.TTL("app:accounts:rate-limit:OAuthTokenPerIP:127.0.0.1"), ShouldEqual, t_future.Sub(t_now))
-			So(memoryRedis.Exists("app:accounts:access-events:session-a"), ShouldBeFalse)
-			So(memoryRedis.Exists("app:accounts:lockout:old"), ShouldBeFalse)
-			So(memoryRedis.Exists("app:accounts:failed-attempts:purpose:old"), ShouldBeFalse)
-
-			So(memoryRedis.Exists("app:accounts:session-list:all-dead"), ShouldBeFalse)
-			mixed, err := memoryRedis.HKeys("app:accounts:session-list:mixed")
-			So(err, ShouldBeNil)
-			So(mixed, ShouldResemble, []string{
-				"app:accounts:session:being-created",
-				"app:accounts:session:live",
-				"app:accounts:session:stale-expiry",
-			})
-			So(memoryRedis.Exists("app:accounts:session-list:unreadable"), ShouldBeTrue)
-
-			userA, err := memoryRedis.HKeys("app:accounts:offline-grant-list:user-a")
-			So(err, ShouldBeNil)
-			So(userA, ShouldResemble, []string{"grant-live"})
-			So(memoryRedis.Exists("app:accounts:offline-grant-list:user-b"), ShouldBeFalse)
-
-			So(memoryRedis.Exists("app:accounts:session:rate-limit:a"), ShouldBeTrue)
-			So(memoryRedis.Exists("app:accounts:session:access-events:a"), ShouldBeTrue)
-
-			Convey("a rerun changes nothing", func() {
-				keys := memoryRedis.Keys()
-				hook.counts = map[string]int{}
-				err := run(false)
-				So(err, ShouldBeNil)
-				// Nothing to change, so nothing is watched.
-				So(hook.counts["watch"], ShouldEqual, 0)
-				So(hook.counts["multi"], ShouldEqual, 0)
-				So(stdout.String(), ShouldEqual, "")
-				So(stderr.String(), ShouldContainSubstring, "deleted=0 expiry_fixed=0 pruned=0")
-				So(memoryRedis.Keys(), ShouldResemble, keys)
-			})
+		Convey("dry-run reports the changes but makes none", func() {
+			keys := f.memoryRedis.Keys()
+			stdout, _ := f.run(true)
+			So(stdout, ShouldEqual, prefixLines("(dry-run) ", expectedOutput))
+			So(f.memoryRedis.Keys(), ShouldResemble, keys)
+			So(f.hook.counts["watch"], ShouldEqual, 0)
+			So(f.hook.counts["multi"], ShouldEqual, 0)
 		})
 
-		Convey("handles the keyspace in batches", func() {
-			stdout.Reset()
-			stderr.Reset()
-			err := Housekeep(ctx, redisClient, stdout, logger, HousekeepOptions{
-				ScanCountString: "10",
-				DryRun:          true,
-				Now:             t_now,
-			})
-			So(err, ShouldBeNil)
-			So(strings.Count(stderr.String(), "SCAN "), ShouldBeGreaterThan, 1)
-			So(stderr.String(), ShouldContainSubstring, prefixLines("(dry-run) ", expectedSummary))
+		Convey("only watches the keys to change, and a rerun changes nothing", func() {
+			f.run(false)
+			// 1 chunk for each task with changes.
+			So(f.hook.counts["watch"], ShouldEqual, 6)
+
+			stdout, stderr := f.run(false)
+			So(stdout, ShouldEqual, "")
+			So(stderr, ShouldContainSubstring, "deleted=0 expiry_fixed=0 pruned=0")
+			So(f.memoryRedis.Keys(), ShouldResemble, keysLeft)
+			So(f.hook.counts["watch"], ShouldEqual, 0)
+			So(f.hook.counts["multi"], ShouldEqual, 0)
 		})
 	})
 
-	Convey("housekeep with a key written during the run", t, func() {
-		memoryRedis := miniredis.RunT(t)
-		memoryRedis.SetTime(t_now)
-		ctx := context.Background()
-		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
-		otherClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
-		stdout := &bytes.Buffer{}
-		stderr := &bytes.Buffer{}
-		logger := log.New(stderr, "", 0)
+	Convey("Housekeep handles the keyspace in batches and chunks", t, func() {
+		readChunkSize, writeChunkSize := housekeepReadChunkSize, housekeepWriteChunkSize
+		housekeepReadChunkSize, housekeepWriteChunkSize = 4, 3
+		defer func() {
+			housekeepReadChunkSize, housekeepWriteChunkSize = readChunkSize, writeChunkSize
+		}()
 
-		_, err := redisClient.Set(ctx, "key", "0", 0).Result()
-		So(err, ShouldBeNil)
+		f := newHousekeepFixture(t)
+		var deleted []string
+		var keysLeft []string
+		for i := 0; i < 25; i++ {
+			key := "rate-limit:SignupPerIP:full-" + strconv.Itoa(100+i)
+			f.set(key, unixMilliString(t_expired), 0)
+			deleted = append(deleted, key)
+		}
+		for i := 0; i < 5; i++ {
+			key := "rate-limit:SignupPerIP:not-full-" + strconv.Itoa(100+i)
+			f.set(key, unixMilliString(t_future), t_future.Sub(t_now))
+			keysLeft = append(keysLeft, key)
+		}
+
+		run := func(scanCount string, dryRun bool) (string, string) {
+			stdout := &bytes.Buffer{}
+			stderr := &bytes.Buffer{}
+			err := Housekeep(f.ctx, f.redisClient, stdout, log.New(stderr, "", 0), HousekeepOptions{
+				ScanCountString: scanCount,
+				DryRun:          dryRun,
+				Now:             t_now,
+			})
+			So(err, ShouldBeNil)
+			return stdout.String(), stderr.String()
+		}
+
+		// The miniredis SCAN cursor is an offset into the sorted keys, so deleting keys during a scan skips keys.
+		// Real Redis does not skip keys that exist for the whole scan, so a real run over many SCAN batches
+		// is tested against real Redis instead. Here SCAN batches are tested with a dry run,
+		// and chunks with one SCAN batch.
+
+		Convey("SCAN batches", func() {
+			keys := f.memoryRedis.Keys()
+			stdout, stderr := run("10", true)
+			So(strings.Count(stderr, "SCAN "), ShouldBeGreaterThan, 1)
+			So(stdout, ShouldEqual, "(dry-run) deleted "+strings.Join(deleted, "\n(dry-run) deleted ")+"\n")
+			So(f.memoryRedis.Keys(), ShouldResemble, keys)
+		})
+
+		Convey("read and write chunks", func() {
+			stdout, stderr := run("100", false)
+			So(strings.Count(stderr, "SCAN "), ShouldEqual, 1)
+			So(stdout, ShouldEqual, "deleted "+strings.Join(deleted, "\ndeleted ")+"\n")
+			So(f.memoryRedis.Keys(), ShouldResemble, keysLeft)
+			// 30 keys in read chunks of 4: 6 full chunks of 4 to delete, and 1 chunk of 1.
+			// They are written in write chunks of 3: 2 for each full chunk, and 1 for the last.
+			So(f.hook.counts["watch"], ShouldEqual, 13)
+		})
+	})
+
+	Convey("Housekeep with a key written during the run", t, func() {
+		f := newHousekeepFixture(t)
+		otherClient := goredis.NewClient(&goredis.Options{Addr: f.memoryRedis.Addr()})
+		f.set("key", "0", 0)
 
 		writeTimes := 0
 		attempts := 0
@@ -251,44 +264,34 @@ done offline-grant-list deleted=1 expiry_fixed=0 pruned=1 skipped=0 conflict=0
 				return []housekeepAction{deleteAction("key")}, nil
 			},
 		}
-		run := func() error {
-			return housekeep(ctx, redisClient, stdout, logger, HousekeepOptions{
-				ScanCountString: "100",
-				DryRun:          false,
-				Now:             t_now,
-			}, []housekeepTask{task})
-		}
 
 		Convey("retries and applies the change", func() {
 			writeTimes = 1
-			err := run()
-			So(err, ShouldBeNil)
+			stdout, _ := f.run(false, task)
 			So(attempts, ShouldEqual, 2)
-			So(stdout.String(), ShouldEqual, "deleted key\n")
-			So(memoryRedis.Exists("key"), ShouldBeFalse)
+			So(stdout, ShouldEqual, "deleted key\n")
+			So(f.memoryRedis.Exists("key"), ShouldBeFalse)
 		})
 
 		Convey("gives up and leaves the key unchanged", func() {
 			writeTimes = housekeepMaxAttempts
-			err := run()
-			So(err, ShouldBeNil)
+			stdout, stderr := f.run(false, task)
 			So(attempts, ShouldEqual, housekeepMaxAttempts)
-			So(stdout.String(), ShouldEqual, "")
-			So(stderr.String(), ShouldContainSubstring, "test: keys kept changing, left for the next run: key\n")
-			So(stderr.String(), ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 pruned=0 skipped=0 conflict=1\n")
-			v, err := memoryRedis.Get("key")
+			So(stdout, ShouldEqual, "")
+			So(stderr, ShouldContainSubstring, "test: keys kept changing, left for the next run: key\n")
+			So(stderr, ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 pruned=0 skipped=0 conflict=1\n")
+			v, err := f.memoryRedis.Get("key")
 			So(err, ShouldBeNil)
 			So(v, ShouldEqual, strconv.Itoa(housekeepMaxAttempts))
 		})
 
 		Convey("skips a key that needs no change when read again", func() {
 			fixedBeforeWatch = true
-			err := run()
-			So(err, ShouldBeNil)
+			stdout, stderr := f.run(false, task)
 			So(attempts, ShouldEqual, 1)
-			So(stdout.String(), ShouldEqual, "")
-			So(stderr.String(), ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 pruned=0 skipped=1 conflict=0\n")
-			v, err := memoryRedis.Get("key")
+			So(stdout, ShouldEqual, "")
+			So(stderr, ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 pruned=0 skipped=1 conflict=0\n")
+			v, err := f.memoryRedis.Get("key")
 			So(err, ShouldBeNil)
 			So(v, ShouldEqual, "fixed")
 		})

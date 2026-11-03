@@ -62,11 +62,12 @@ var housekeepTasks = []housekeepTask{
 }
 
 // Keys are read in pipelines of this size to find the keys to change.
-const housekeepReadChunkSize = 1000
+var housekeepReadChunkSize = 1000
 
 // The keys to change are watched in chunks of this size,
 // so a write by the application only makes that chunk retry.
-const housekeepWriteChunkSize = 100
+var housekeepWriteChunkSize = 100
+
 const housekeepMaxAttempts = 3
 
 type HousekeepOptions struct {
