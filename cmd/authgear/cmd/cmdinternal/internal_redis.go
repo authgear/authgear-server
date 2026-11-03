@@ -24,6 +24,11 @@ func init() {
 	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().String("scan-count", "100", "Redis SCAN count")
 	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().String("expiration", "", "A Go duration literal.")
 	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().String("key-pattern", "", fmt.Sprintf("One of %v", strings.Join(cmdredis.KnownKeyPatterns, ",")))
+
+	cmdInternalRedis.AddCommand(cmdInternalRedisCleanUpRateLimitKeys)
+	binder.BindString(cmdInternalRedisCleanUpRateLimitKeys.Flags(), authgearcmd.ArgRedisURL)
+	_ = cmdInternalRedisCleanUpRateLimitKeys.Flags().Bool("dry-run", true, "Dry-run or not.")
+	_ = cmdInternalRedisCleanUpRateLimitKeys.Flags().String("scan-count", "1000", "Redis SCAN count")
 }
 
 var cmdInternalRedis = &cobra.Command{
@@ -66,5 +71,34 @@ var cmdInternalRedisCleanUpNonExpiringKeys = &cobra.Command{
 		}
 
 		return nil
+	},
+}
+
+// See https://linear.app/authgear/issue/DEV-3995
+var cmdInternalRedisCleanUpRateLimitKeys = &cobra.Command{
+	Use:   "clean-up-rate-limit-keys",
+	Short: "Delete rate limit keys whose bucket is full again, and fix the expiry of the others.",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		binder := authgearcmd.GetBinder()
+
+		redisURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgRedisURL)
+		if err != nil {
+			return err
+		}
+
+		redisClient, err := cmdredis.NewClient(redisURL)
+		if err != nil {
+			return err
+		}
+
+		scanCountString := cmd.Flags().Lookup("scan-count").Value.String()
+		dryRun := cmd.Flags().Lookup("dry-run").Value.String() == "true"
+		now := time.Now().UTC()
+
+		return cmdredis.CleanUpRateLimitKeys(cmd.Context(), redisClient, os.Stdout, log.Default(), cmdredis.CleanUpRateLimitKeysOptions{
+			ScanCountString: scanCountString,
+			DryRun:          dryRun,
+			Now:             now,
+		})
 	},
 }
