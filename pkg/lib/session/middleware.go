@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -30,7 +29,6 @@ type Middleware struct {
 	Cookies                    CookieManager
 	IDPSessionResolver         IDPSessionResolver
 	AccessTokenSessionResolver AccessTokenSessionResolver
-	AccessEvents               *access.EventProvider
 	Users                      UserQuery
 	Database                   *appdb.Handle
 	MeterService               MeterService

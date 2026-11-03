@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -27,11 +26,6 @@ const (
 	tokenLength   = 32
 )
 
-type AccessEventProvider interface {
-	InitStream(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error
-	RecordAccess(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error
-}
-
 type ProviderMeterService interface {
 	TrackActiveUser(ctx context.Context, userID string) error
 }
@@ -44,7 +38,6 @@ type Provider struct {
 	AppID           config.AppID
 	Redis           *appredis.Handle
 	Store           Store
-	AccessEvents    AccessEventProvider
 	MeterService    ProviderMeterService
 	TrustProxy      config.TrustProxy
 	Config          *config.SessionConfig
@@ -96,11 +89,6 @@ func (p *Provider) Create(ctx context.Context, session *IDPSession) error {
 	err := p.Store.Create(ctx, session, session.ExpireAtForResolvedSession)
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w", err)
-	}
-
-	err = p.AccessEvents.InitStream(ctx, session.ID, session.ExpireAtForResolvedSession, &session.AccessInfo.InitialAccess)
-	if err != nil {
-		return fmt.Errorf("failed to access session: %w", err)
 	}
 
 	return nil
@@ -176,19 +164,13 @@ func (p *Provider) accessWithID(ctx context.Context, id string, accessEvent acce
 		}
 
 		s = session
-		return p.accessSideEffects(ctx, session, accessEvent)
+		return p.accessSideEffects(ctx, session)
 	})
 	return
 }
 
-func (p *Provider) accessSideEffects(ctx context.Context, session *IDPSession, accessEvent access.Event) error {
-
-	err := p.AccessEvents.RecordAccess(ctx, session.SessionID(), session.GetExpireAt(), &accessEvent)
-	if err != nil {
-		return err
-	}
-
-	err = p.MeterService.TrackActiveUser(ctx, session.GetAuthenticationInfo().UserID)
+func (p *Provider) accessSideEffects(ctx context.Context, session *IDPSession) error {
+	err := p.MeterService.TrackActiveUser(ctx, session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return err
 	}

@@ -7,9 +7,7 @@ package oauth
 import (
 	context "context"
 	reflect "reflect"
-	time "time"
 
-	access "github.com/authgear/authgear-server/pkg/lib/session/access"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -64,43 +62,6 @@ func (m *MockServiceIDPSessionProvider) Get(ctx context.Context, id string) (*id
 func (mr *MockServiceIDPSessionProviderMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockServiceIDPSessionProvider)(nil).Get), ctx, id)
-}
-
-// MockOfflineGrantServiceAccessEventProvider is a mock of OfflineGrantServiceAccessEventProvider interface.
-type MockOfflineGrantServiceAccessEventProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockOfflineGrantServiceAccessEventProviderMockRecorder
-}
-
-// MockOfflineGrantServiceAccessEventProviderMockRecorder is the mock recorder for MockOfflineGrantServiceAccessEventProvider.
-type MockOfflineGrantServiceAccessEventProviderMockRecorder struct {
-	mock *MockOfflineGrantServiceAccessEventProvider
-}
-
-// NewMockOfflineGrantServiceAccessEventProvider creates a new mock instance.
-func NewMockOfflineGrantServiceAccessEventProvider(ctrl *gomock.Controller) *MockOfflineGrantServiceAccessEventProvider {
-	mock := &MockOfflineGrantServiceAccessEventProvider{ctrl: ctrl}
-	mock.recorder = &MockOfflineGrantServiceAccessEventProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockOfflineGrantServiceAccessEventProvider) EXPECT() *MockOfflineGrantServiceAccessEventProviderMockRecorder {
-	return m.recorder
-}
-
-// RecordAccess mocks base method.
-func (m *MockOfflineGrantServiceAccessEventProvider) RecordAccess(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecordAccess", ctx, sessionID, expiry, event)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RecordAccess indicates an expected call of RecordAccess.
-func (mr *MockOfflineGrantServiceAccessEventProviderMockRecorder) RecordAccess(ctx, sessionID, expiry, event interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordAccess", reflect.TypeOf((*MockOfflineGrantServiceAccessEventProvider)(nil).RecordAccess), ctx, sessionID, expiry, event)
 }
 
 // MockOfflineGrantServiceMeterService is a mock of OfflineGrantServiceMeterService interface.

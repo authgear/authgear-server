@@ -65,7 +65,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -155,13 +154,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Clock: clock,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: handle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
 	analyticredisHandle := appProvider.AnalyticRedis
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
@@ -178,7 +170,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:           appID,
 		Redis:           handle,
 		Store:           storeRedis,
-		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		TrustProxy:      trustProxy,
 		Config:          sessionConfig,
@@ -980,7 +971,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:           clock,
 		IDPSessions:     provider,
 		ClientResolver:  oauthclientResolver,
-		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   store,
 	}
@@ -1051,7 +1041,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:           clock,
 		IDPSessions:     provider,
 		ClientResolver:  oauthclientResolver,
-		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   store,
 	}
@@ -1073,7 +1062,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Cookies:                    cookieManager,
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
-		AccessEvents:               eventProvider,
 		Users:                      userQueries,
 		Database:                   appdbHandle,
 		MeterService:               meterService,

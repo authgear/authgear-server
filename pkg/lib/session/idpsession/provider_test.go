@@ -23,7 +23,6 @@ func TestProvider(t *testing.T) {
 		defer ctrl.Finish()
 
 		store := NewMockStore(ctrl)
-		accessEvents := NewMockAccessEventProvider(ctrl)
 
 		clock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
 		initialTime := clock.Time
@@ -34,9 +33,8 @@ func TestProvider(t *testing.T) {
 
 		disabled := false
 		provider := &Provider{
-			Store:        store,
-			AccessEvents: accessEvents,
-			TrustProxy:   true,
+			Store:      store,
+			TrustProxy: true,
 			Config: &config.SessionConfig{
 				IdleTimeoutEnabled: &disabled,
 			},
@@ -47,7 +45,6 @@ func TestProvider(t *testing.T) {
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
 				store.EXPECT().Create(gomock.Any(), gomock.Any(), initialTime).Return(nil)
-				accessEvents.EXPECT().InitStream(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				s, token := provider.MakeSession(&session.Attrs{
 					UserID: "user-id",
