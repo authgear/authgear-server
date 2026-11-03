@@ -25,10 +25,10 @@ func init() {
 	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().String("expiration", "", "A Go duration literal.")
 	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().String("key-pattern", "", fmt.Sprintf("One of %v", strings.Join(cmdredis.KnownKeyPatterns, ",")))
 
-	cmdInternalRedis.AddCommand(cmdInternalRedisCleanUpRateLimitKeys)
-	binder.BindString(cmdInternalRedisCleanUpRateLimitKeys.Flags(), authgearcmd.ArgRedisURL)
-	_ = cmdInternalRedisCleanUpRateLimitKeys.Flags().Bool("dry-run", true, "Dry-run or not.")
-	_ = cmdInternalRedisCleanUpRateLimitKeys.Flags().String("scan-count", "1000", "Redis SCAN count")
+	cmdInternalRedis.AddCommand(cmdInternalRedisHousekeep)
+	binder.BindString(cmdInternalRedisHousekeep.Flags(), authgearcmd.ArgRedisURL)
+	_ = cmdInternalRedisHousekeep.Flags().Bool("dry-run", true, "Dry-run or not.")
+	_ = cmdInternalRedisHousekeep.Flags().String("scan-count", "10000", "Redis SCAN count, which is roughly the number of keys handled per batch")
 }
 
 var cmdInternalRedis = &cobra.Command{
@@ -75,9 +75,9 @@ var cmdInternalRedisCleanUpNonExpiringKeys = &cobra.Command{
 }
 
 // See https://linear.app/authgear/issue/DEV-3995
-var cmdInternalRedisCleanUpRateLimitKeys = &cobra.Command{
-	Use:   "clean-up-rate-limit-keys",
-	Short: "Delete rate limit keys whose bucket is full again, and fix the expiry of the others.",
+var cmdInternalRedisHousekeep = &cobra.Command{
+	Use:   "housekeep",
+	Short: "Delete or fix the expiry of Redis keys that are known to leak. Safe to run again.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := authgearcmd.GetBinder()
 
@@ -95,7 +95,7 @@ var cmdInternalRedisCleanUpRateLimitKeys = &cobra.Command{
 		dryRun := cmd.Flags().Lookup("dry-run").Value.String() == "true"
 		now := time.Now().UTC()
 
-		return cmdredis.CleanUpRateLimitKeys(cmd.Context(), redisClient, os.Stdout, log.Default(), cmdredis.CleanUpRateLimitKeysOptions{
+		return cmdredis.Housekeep(cmd.Context(), redisClient, os.Stdout, log.Default(), cmdredis.HousekeepOptions{
 			ScanCountString: scanCountString,
 			DryRun:          dryRun,
 			Now:             now,
