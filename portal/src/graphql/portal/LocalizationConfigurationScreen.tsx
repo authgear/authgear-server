@@ -89,6 +89,10 @@ import FormContainer from "../../FormContainer";
 import styles from "./LocalizationConfigurationScreen.module.css";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
+import ExternalLink from "../../ExternalLink";
+import { useAppContext } from "../../context/AppContext";
+import { makeHelpDeskURL } from "../../util/helpDesk";
+import { useViewerQuery } from "./query/viewerQuery";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -222,6 +226,27 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
     const isTemplateCustomizationDisabled =
       messagingFeatureConfig?.template_customization_disabled ?? false;
+
+    // The header already loads the viewer; without it the help desk form
+    // just asks for email and name.
+    const { viewer } = useViewerQuery({ fetchPolicy: "cache-first" });
+    // The help desk wants the plain project ID, not the GraphQL node ID.
+    const { appID: rawAppID } = useAppContext();
+    const helpDeskURL = makeHelpDeskURL({
+      purpose: "custom-messages",
+      projectID: rawAppID,
+      email: viewer?.email,
+      fullName: viewer?.formattedName,
+    });
+    const templateDisabledMessageValues = useMemo(
+      () => ({
+        // eslint-disable-next-line react/no-unstable-nested-components
+        applicationLink: (chunks: React.ReactNode) => (
+          <ExternalLink href={helpDeskURL}>{chunks}</ExternalLink>
+        ),
+      }),
+      [helpDeskURL]
+    );
 
     const setSelectedLanguage = useCallback(
       (selectedLanguage: LanguageTag) => {
@@ -1262,7 +1287,10 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
 
         {isTemplateCustomizationDisabled ? (
           <div className={styles.widget}>
-            <FeatureDisabledMessageBar messageID="FeatureConfig.edit-template.disabled" />
+            <FeatureDisabledMessageBar
+              messageID="FeatureConfig.edit-template.disabled"
+              messageValues={templateDisabledMessageValues}
+            />
           </div>
         ) : null}
 

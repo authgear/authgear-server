@@ -4,6 +4,7 @@ const HELP_DESK_URL = "https://go.authgear.com/portal-support";
 export type HelpDeskPurpose =
   | "project-limit"
   | "sms-otp"
+  | "custom-messages"
   | "resume-suspended"
   | "other";
 
