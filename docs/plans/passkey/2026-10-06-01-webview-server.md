@@ -2,7 +2,7 @@
 
 Spec: [docs/specs/passkey-webview.md](../../specs/passkey-webview.md). Origin rule: [docs/specs/webauthn.md](../../specs/webauthn.md#where-a-ceremony-may-run).
 
-Parts: **1 server** · [2 Android SDK](./2026-10-06-02-android-sdk.md)
+Parts: **1 server** · [2 Android SDK](./2026-10-06-02-webview-android-sdk.md)
 
 ## 1. Goal and scope
 

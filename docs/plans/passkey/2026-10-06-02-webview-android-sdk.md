@@ -2,7 +2,7 @@
 
 Spec: [docs/specs/passkey-webview.md](../../specs/passkey-webview.md#sdk). Repository: `authgear-sdk-android`.
 
-Parts: [1 server](./2026-10-06-01-server.md) · **2 Android SDK**
+Parts: [1 server](./2026-10-06-01-webview-server.md) · **2 Android SDK**
 
 ## 1. Goal and scope
 
