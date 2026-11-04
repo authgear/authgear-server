@@ -43,7 +43,28 @@ const topErrorRules: ErrorParseRule[] = [
       description: (err as APISMSGatewayError).info.Description || "__empty__",
     })
   ),
+  makeReasonErrorParseRule(
+    "SMSGatewayTimeout",
+    "TestSMSDialog.errors.gateway-timeout-error",
+    (err) => ({
+      code: (err as APISMSGatewayError).info.ProviderErrorCode || "__empty__",
+      description: (err as APISMSGatewayError).info.Description || "__empty__",
+    })
+  ),
+  makeReasonErrorParseRule(
+    "SMSGatewayUnsupportedRequest",
+    "TestSMSDialog.errors.gateway-unsupported-request-error",
+    (err) => ({
+      code: (err as APISMSGatewayError).info.ProviderErrorCode || "__empty__",
+      description: (err as APISMSGatewayError).info.Description || "__empty__",
+    })
+  ),
+  // Any other gateway error. Everything else, such as a failing Deno script
+  // or webhook, falls through to the shared messages.
   (apiError: APIError): ErrorParseRuleResult => {
+    if (!apiError.reason.startsWith("SMSGateway")) {
+      return { parsedAPIErrors: [], fullyHandled: false };
+    }
     const info = (apiError as Partial<APISMSGatewayError> | null)?.info;
     return {
       parsedAPIErrors: [

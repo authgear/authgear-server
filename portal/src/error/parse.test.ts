@@ -141,3 +141,35 @@ describe("parseAPIErrors with a screen rule", () => {
     expect(topErrors.map((e) => e.messageID)).toEqual(["custom"]);
   });
 });
+
+describe("parseAPIErrors for specific reasons", () => {
+  it("reports an email usage limit instead of asking to retry", () => {
+    const [e] = topErrorsOf({
+      errorName: "TooManyRequest",
+      reason: "UsageLimitExceeded",
+      info: { usage_name: "email", period: "month" },
+    });
+    expect(e.messageID).toEqual("errors.usage-limit-exceeded");
+    expect(e.arguments).toMatchObject({ usageName: "email", period: "month" });
+  });
+
+  it("shows the script's error for a failed Deno run", () => {
+    const [e] = topErrorsOf({
+      errorName: "BadRequest",
+      reason: "DenoRunError",
+      message: "TypeError: x is undefined",
+    });
+    expect(e.messageID).toEqual("errors.deno-hook.run");
+    expect(e.arguments).toMatchObject({
+      message: "TypeError: x is undefined",
+    });
+  });
+
+  it("names a duplicated scope", () => {
+    expect(
+      topErrorsOf({ errorName: "BadRequest", reason: "ScopeDuplicate" }).map(
+        (e) => e.messageID
+      )
+    ).toEqual(["errors.scope-duplicate"]);
+  });
+});

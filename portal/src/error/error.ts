@@ -94,6 +94,35 @@ export interface APIDenoCheckError {
   reason: "DenoCheckError";
 }
 
+export interface APIDenoRunError {
+  errorName: string;
+  reason: "DenoRunError";
+}
+
+export interface APIHookDeliveryUnknownFailureError {
+  errorName: string;
+  reason: "HookDeliveryUnknownFailure";
+}
+
+export interface APIUsageLimitExceededError {
+  errorName: string;
+  reason: "UsageLimitExceeded";
+  info: {
+    usage_name: string;
+    period?: string;
+  };
+}
+
+export interface APIMFAGracePeriodInvalidError {
+  errorName: string;
+  reason: "MFAGracePeriodInvalid";
+}
+
+export interface APIScopeDuplicateError {
+  errorName: string;
+  reason: "ScopeDuplicate";
+}
+
 export interface APIRoleDuplicateKeyError {
   errorName: string;
   reason: "RoleDuplicateKey";
@@ -125,7 +154,9 @@ export interface APISMSGatewayError {
     | "SMSGatewayInvalidPhoneNumber"
     | "SMSGatewayAuthenticationFailed"
     | "SMSGatewayDeliveryRejected"
-    | "SMSGatewayRateLimited";
+    | "SMSGatewayRateLimited"
+    | "SMSGatewayTimeout"
+    | "SMSGatewayUnsupportedRequest";
   info: {
     ProviderErrorCode: string;
     ProviderName: string;
@@ -176,6 +207,11 @@ export type APIError = { message?: string } & (
   | APIBadNFTCollectionError
   | APIAlchemyProtocolError
   | APIDenoCheckError
+  | APIDenoRunError
+  | APIHookDeliveryUnknownFailureError
+  | APIUsageLimitExceededError
+  | APIMFAGracePeriodInvalidError
+  | APIScopeDuplicateError
   | APIResourceUpdateConflictError
   | APIRoleDuplicateKeyError
   | APIGroupDuplicateKeyError

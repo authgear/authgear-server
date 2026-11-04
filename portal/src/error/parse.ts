@@ -352,6 +352,41 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     }
+    case "HookDeliveryUnknownFailure": {
+      errors.push({ messageID: "errors.webhook.unknown-failure" });
+      break;
+    }
+    case "DenoRunError": {
+      // The message is the script's own error, which is what the developer
+      // needs to fix it.
+      errors.push({
+        messageID: "errors.deno-hook.run",
+        arguments: {
+          message: error.message ?? "",
+          pre: (chunks: React.ReactNode) =>
+            React.createElement("pre", null, chunks),
+        },
+      });
+      break;
+    }
+    case "UsageLimitExceeded": {
+      errors.push({
+        messageID: "errors.usage-limit-exceeded",
+        arguments: {
+          usageName: error.info.usage_name,
+          period: error.info.period ?? "other",
+        },
+      });
+      break;
+    }
+    case "MFAGracePeriodInvalid": {
+      errors.push({ messageID: "errors.mfa-grace-period-invalid" });
+      break;
+    }
+    case "ScopeDuplicate": {
+      errors.push({ messageID: "errors.scope-duplicate" });
+      break;
+    }
     case "HookInvalidResponse": {
       errors.push({
         messageID: "errors.webhook.invalid-response",
