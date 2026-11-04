@@ -101,6 +101,12 @@ func (i *Info) ToPublicClaims() map[string]any {
 		claims[AuthenticatorClaimOOBOTPPhone] = i.OOBOTP.Phone
 	case model.AuthenticatorTypePasskey:
 		claims[AuthenticatorClaimPasskeyCredentialID] = i.Passkey.CredentialID
+		if i.Passkey.AAGUID != "" {
+			claims[AuthenticatorClaimPasskeyAAGUID] = i.Passkey.AAGUID
+		}
+		if providerName := i.Passkey.ProviderName(); providerName != "" {
+			claims[AuthenticatorClaimPasskeyProviderName] = providerName
+		}
 	default:
 		// no claims to add
 		break

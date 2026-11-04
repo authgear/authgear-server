@@ -160,6 +160,12 @@ func (i *Info) ToModel() model.Identity {
 	case model.IdentityTypePasskey:
 		claims[IdentityClaimPasskeyCredentialID] = i.Passkey.CredentialID
 		claims[IdentityClaimPasskeyDisplayName] = i.Passkey.CreationOptions.PublicKey.User.DisplayName
+		if i.Passkey.AAGUID != "" {
+			claims[IdentityClaimPasskeyAAGUID] = i.Passkey.AAGUID
+		}
+		if providerName := i.Passkey.ProviderName(); providerName != "" {
+			claims[IdentityClaimPasskeyProviderName] = providerName
+		}
 
 	case model.IdentityTypeSIWE:
 		claims[IdentityClaimSIWEAddress] = i.SIWE.Address

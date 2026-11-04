@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/passkeyprovider"
 )
 
 type Passkey struct {
@@ -28,4 +29,11 @@ func (i *Passkey) ToInfo() *Info {
 
 		Passkey: i,
 	}
+}
+
+// ProviderName returns the name of the provider that stores the passkey,
+// or an empty string when it is unknown.
+func (i *Passkey) ProviderName() string {
+	name, _ := passkeyprovider.Name(i.AAGUID)
+	return name
 }

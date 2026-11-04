@@ -16,4 +16,11 @@ const (
 	// AuthenticatorClaimPasskeyCredentialID is a claim with a string value.
 	// nolint: gosec
 	AuthenticatorClaimPasskeyCredentialID string = "https://authgear.com/claims/passkey/credential_id"
+	// AuthenticatorClaimPasskeyAAGUID is a claim with a string value like `fbfc3007-154e-4ecc-8c0b-6e020557d7bd`.
+	// nolint: gosec
+	AuthenticatorClaimPasskeyAAGUID string = "https://authgear.com/claims/passkey/aaguid"
+	// AuthenticatorClaimPasskeyProviderName is a claim with a string value like `Apple Passwords`.
+	// It is absent when the AAGUID is unknown.
+	// nolint: gosec
+	AuthenticatorClaimPasskeyProviderName string = "https://authgear.com/claims/passkey/provider_name"
 )
