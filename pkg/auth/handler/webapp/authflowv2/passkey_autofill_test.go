@@ -71,6 +71,24 @@ func renderPasskeyAutofillPage(t *testing.T, tpl *template.HTML, overrides map[s
 	return result.String
 }
 
+var passkeyAutofillTestPhoneData = map[string]any{
+	"IdentityCandidates": []map[string]any{
+		{"type": "login_id", "login_id_key": "phone", "login_id_type": "phone", "login_id_input_type": "phone"},
+	},
+	"EmailLoginIDEnabled": false,
+	"PhoneLoginIDEnabled": true,
+	"LoginIDKey":          "phone",
+	"LoginIDInputType":    "phone",
+}
+
+func withPasskeyAutofillTestData(datas ...map[string]any) map[string]any {
+	out := map[string]any{}
+	for _, m := range datas {
+		maps.Copy(out, m)
+	}
+	return out
+}
+
 func TestPasskeyAutofillTemplates(t *testing.T) {
 	autofillController := `data-controller="passkey-autofill"`
 	autofillOptions := `data-passkey-autofill-options-value="{&#34;publicKey&#34;:{&#34;challenge&#34;:&#34;AQID&#34;}}"`
@@ -81,6 +99,14 @@ func TestPasskeyAutofillTemplates(t *testing.T) {
 			So(html, ShouldContainSubstring, autofillController)
 			So(html, ShouldContainSubstring, autofillOptions)
 			So(html, ShouldContainSubstring, `autocomplete="username webauthn"`)
+		})
+
+		Convey("offers passkey autofill on the phone input", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowLoginHTML, passkeyAutofillTestPhoneData)
+			So(html, ShouldContainSubstring, autofillController)
+			So(html, ShouldContainSubstring, `inputmode="tel"`)
+			So(html, ShouldContainSubstring, `autocomplete="username webauthn"`)
+			So(html, ShouldNotContainSubstring, `autocomplete="username"`)
 		})
 
 		Convey("does not offer passkey autofill without the passkey button", func() {
@@ -105,6 +131,16 @@ func TestPasskeyAutofillTemplates(t *testing.T) {
 			So(html, ShouldContainSubstring, `autocomplete="username webauthn"`)
 		})
 
+		Convey("offers passkey autofill on the phone input in the signup login variant", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowV2SignupHTML, withPasskeyAutofillTestData(passkeyAutofillTestPhoneData, map[string]any{
+				"UIVariant": AuthflowV2SignupUIVariantSignupLogin,
+			}))
+			So(html, ShouldContainSubstring, autofillController)
+			So(html, ShouldContainSubstring, `inputmode="tel"`)
+			So(html, ShouldContainSubstring, `autocomplete="username webauthn"`)
+			So(html, ShouldNotContainSubstring, `autocomplete="username"`)
+		})
+
 		Convey("does not offer passkey autofill without the passkey button", func() {
 			for _, overrides := range []map[string]any{
 				{"PasskeyEnabled": false},
@@ -122,6 +158,15 @@ func TestPasskeyAutofillTemplates(t *testing.T) {
 				"UIVariant": AuthflowV2SignupUIVariantSignup,
 			})
 			So(html, ShouldNotContainSubstring, autofillController)
+			So(html, ShouldNotContainSubstring, "webauthn")
+			So(html, ShouldContainSubstring, `autocomplete="username"`)
+		})
+
+		Convey("does not offer passkey autofill on the phone input of the signup page", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowV2SignupHTML, withPasskeyAutofillTestData(passkeyAutofillTestPhoneData, map[string]any{
+				"UIVariant": AuthflowV2SignupUIVariantSignup,
+			}))
+			So(html, ShouldContainSubstring, `inputmode="tel"`)
 			So(html, ShouldNotContainSubstring, "webauthn")
 			So(html, ShouldContainSubstring, `autocomplete="username"`)
 		})
