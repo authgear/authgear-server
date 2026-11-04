@@ -70,6 +70,10 @@ export interface UserProfileAttributesListProps<
   ItemComponent: React.ComponentType<ItemComponentProps<T>>;
   onChangeItems: (items: T[]) => void;
   onEditButtonClick?: (index: number) => void;
+  // Which rows have the edit menu; every row when absent.
+  canEditItem?: (item: T) => boolean;
+  // The edit menu item's label; "Edit" when absent.
+  editLabel?: React.ReactNode;
   onReorderItems?: (items: T[]) => void;
   /**
    * When provided, items are grouped under section title rows with a
@@ -282,12 +286,14 @@ interface ItemActionsMenuProps {
   index: number;
   onEditButtonClick: (index: number) => void;
   menuLabel: string;
+  editLabel: React.ReactNode;
 }
 
 function ItemActionsMenu({
   index,
   onEditButtonClick,
   menuLabel,
+  editLabel,
 }: ItemActionsMenuProps) {
   return (
     <DropdownMenu.Root>
@@ -310,7 +316,7 @@ function ItemActionsMenu({
           }}
         >
           <Pencil1Icon />
-          <FormattedMessage id="edit" />
+          {editLabel}
         </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
@@ -383,6 +389,8 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     onChangeItems,
     ItemComponent,
     onEditButtonClick,
+    canEditItem,
+    editLabel,
     onReorderItems,
     sections,
   } = props;
@@ -613,13 +621,16 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
         </div>
         {onEditButtonClick != null ? (
           <div className={styles.cellSmall}>
-            <ItemActionsMenu
-              index={index}
-              onEditButtonClick={onEditButtonClick}
-              menuLabel={renderToString(
-                "UserProfileAttributesList.row-actions"
-              )}
-            />
+            {canEditItem == null || canEditItem(item) ? (
+              <ItemActionsMenu
+                index={index}
+                onEditButtonClick={onEditButtonClick}
+                menuLabel={renderToString(
+                  "UserProfileAttributesList.row-actions"
+                )}
+                editLabel={editLabel ?? <FormattedMessage id="edit" />}
+              />
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -631,6 +642,8 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
       gridClassName,
       makeSelectOnChange,
       onEditButtonClick,
+      canEditItem,
+      editLabel,
       renderToString,
       reorder,
     ]

@@ -712,13 +712,34 @@ export interface StandardAttributesAccessControlConfig {
 export interface StandardAttributesConfig {
   population?: StandardAttributesPopulationConfig;
   access_control?: StandardAttributesAccessControlConfig[];
+  validation?: StandardAttributesValidationConfig[];
+}
+
+export type AttributeAllowedCharacter =
+  | "letters"
+  | "digits"
+  | "spaces"
+  | "symbols";
+
+// Constraints on a string attribute's value.
+export interface AttributeStringConstraints {
+  min_length?: number;
+  max_length?: number;
+  allowed_characters?: AttributeAllowedCharacter[];
+  pattern?: string;
+}
+
+export interface StandardAttributesValidationConfig
+  extends AttributeStringConstraints {
+  pointer: string;
 }
 
 export interface CustomAttributesConfig {
   attributes?: CustomAttributesAttributeConfig[];
 }
 
-export interface CustomAttributesAttributeConfig {
+export interface CustomAttributesAttributeConfig
+  extends AttributeStringConstraints {
   id: string;
   pointer: string;
   type: CustomAttributeType;

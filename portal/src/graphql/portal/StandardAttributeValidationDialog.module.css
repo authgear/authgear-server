@@ -1,0 +1,14 @@
+.description {
+  margin-bottom: var(--space-4);
+}
+
+.tab {
+  padding-top: var(--space-4);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}

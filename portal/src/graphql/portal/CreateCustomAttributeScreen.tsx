@@ -20,7 +20,15 @@ import {
 } from "../../types";
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
+  EMPTY_CONSTRAINTS,
+  writePatternMessage,
 } from "../../EditCustomAttributeForm";
+import {
+  TranslationValuesForm,
+  combineForms,
+  useTranslationValuesForm,
+} from "../../hook/useTranslationValuesForm";
+import { constraintsFromDraft } from "../../util/stringConstraints";
 import { PrimaryButton } from "../../components/v2/Button/PrimaryButton/PrimaryButton";
 import { SecondaryButton } from "../../components/v2/Button/SecondaryButton/SecondaryButton";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
@@ -29,6 +37,8 @@ import styles from "./CreateCustomAttributeScreen.module.css";
 interface FormState extends CustomAttributeDraft {
   id: string;
   access_control: UserProfileAttributesAccessControl;
+  // The pattern's message, saved in translation.json.
+  patternMessage: string;
 }
 
 function constructFormState(): FormState {
@@ -39,6 +49,8 @@ function constructFormState(): FormState {
     minimum: "",
     maximum: "",
     enum: [],
+    constraints: EMPTY_CONSTRAINTS,
+    patternMessage: "",
     access_control: {
       portal_ui: "readwrite",
       bearer: "hidden",
@@ -67,6 +79,9 @@ function constructConfig(
       minimum: !isNaN(minimum) ? minimum : undefined,
       maximum: !isNaN(maximum) ? maximum : undefined,
       enum: currentState.type === "enum" ? currentState.enum : undefined,
+      ...(currentState.type === "string"
+        ? constraintsFromDraft(currentState.constraints)
+        : {}),
       access_control: currentState.access_control,
     });
   });
@@ -74,13 +89,14 @@ function constructConfig(
 
 interface CreateCustomAttributeContentProps {
   form: AppConfigFormModel<FormState>;
+  translations: TranslationValuesForm;
   index: number;
 }
 
 function CreateCustomAttributeContent(
   props: CreateCustomAttributeContentProps
 ) {
-  const { index, form } = props;
+  const { index, form, translations } = props;
   const { appID } = useParams() as { appID: string };
   const { state, setState } = form;
   const { canSave, isUpdating } = useFormContainerBaseContext();
@@ -89,12 +105,18 @@ function CreateCustomAttributeContent(
   const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;
 
   const onChangeDraft = (draft: CustomAttributeDraft) => {
+    writePatternMessage(translations, null, draft, state.patternMessage);
     setState((prev) => {
       return {
         ...prev,
         ...draft,
       };
     });
+  };
+
+  const onPatternMessageChange = (patternMessage: string) => {
+    writePatternMessage(translations, null, state, patternMessage);
+    setState((prev) => ({ ...prev, patternMessage }));
   };
 
   const onCancel = useCallback(() => {
@@ -120,6 +142,8 @@ function CreateCustomAttributeContent(
         index={index}
         draft={state}
         onChangeDraft={onChangeDraft}
+        patternMessage={state.patternMessage}
+        onPatternMessageChange={onPatternMessageChange}
       />
       <div className={styles.actions}>
         <PrimaryButton
@@ -150,11 +174,18 @@ const CreateCustomAttributeScreen: React.VFC =
       navigate("./..");
     }, [navigate]);
 
-    const form = useAppConfigForm({
+    const configForm = useAppConfigForm({
       appID,
       constructFormState,
       constructConfig,
     });
+    const translations = useTranslationValuesForm(
+      appID,
+      configForm.isLoading
+        ? null
+        : configForm.effectiveConfig.localization?.fallback_language ?? "en"
+    );
+    const form = combineForms(configForm, translations.form);
 
     if (form.isLoading) {
       return <ShowLoading />;
@@ -170,7 +201,11 @@ const CreateCustomAttributeScreen: React.VFC =
 
     return (
       <FormContainer form={form} afterSave={afterSave} canSave={true}>
-        <CreateCustomAttributeContent form={form} index={index} />
+        <CreateCustomAttributeContent
+          form={form}
+          translations={translations}
+          index={index}
+        />
       </FormContainer>
     );
   };

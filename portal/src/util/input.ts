@@ -30,6 +30,11 @@ export function checkIntegerInput(value: string): boolean {
   return /^-?(|0|[1-9][0-9]*)$/.test(value);
 }
 
+export function checkNonNegativeIntegerInput(value: string): boolean {
+  // Allow "" or a whole number from 0, as for lengths and counts.
+  return /^(|0|[1-9][0-9]*)$/.test(value);
+}
+
 export function parseNumber(value: string | undefined): number | undefined {
   if (value == null || value === "") {
     return undefined;

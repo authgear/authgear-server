@@ -18,11 +18,26 @@ import { PortalAPIAppConfig } from "../../types";
 import styles from "./EditCustomAttributeScreen.module.css";
 import EditCustomAttributeForm, {
   CustomAttributeDraft,
+  EMPTY_CONSTRAINTS,
+  writePatternMessage,
 } from "../../EditCustomAttributeForm";
+import {
+  TranslationValuesForm,
+  combineForms,
+  useTranslationValuesForm,
+} from "../../hook/useTranslationValuesForm";
+import {
+  constraintsFromDraft,
+  draftFromConstraints,
+  patternErrorKey,
+} from "../../util/stringConstraints";
 import { SaveFunctionBar } from "../../components/v2/SaveFunctionBar/SaveFunctionBar";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 
-type FormState = CustomAttributeDraft;
+interface FormState extends CustomAttributeDraft {
+  // The pattern's message; null until edited, which is the saved one.
+  patternMessage: string | null;
+}
 
 const EMPTY_STATE: FormState = {
   pointer: "",
@@ -30,10 +45,13 @@ const EMPTY_STATE: FormState = {
   minimum: "",
   maximum: "",
   enum: [],
+  constraints: EMPTY_CONSTRAINTS,
+  patternMessage: null,
 };
 
 interface EditCustomAttributeContentProps {
   form: AppConfigFormModel<FormState>;
+  translations: TranslationValuesForm;
   index: number;
 }
 
@@ -51,6 +69,8 @@ function makeConstructFormState(
       minimum: c.minimum != null ? String(c.minimum) : "",
       maximum: c.maximum != null ? String(c.maximum) : "",
       enum: c.enum ?? [],
+      constraints: draftFromConstraints(c),
+      patternMessage: null,
     };
   };
 }
@@ -99,22 +119,40 @@ function makeConstructConfig(
       if (c.type === "enum") {
         c.enum = currentState.enum;
       }
+
+      // The four keys are written fresh, so a cleared one goes.
+      delete c.min_length;
+      delete c.max_length;
+      delete c.allowed_characters;
+      delete c.pattern;
+      if (c.type === "string") {
+        Object.assign(c, constraintsFromDraft(currentState.constraints));
+      }
     });
   };
 }
 
 function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
-  const { index, form } = props;
+  const { index, form, translations } = props;
   const { appID } = useParams() as { appID: string };
-  const { state, setState } = form;
+  const { state, setState, initialState } = form;
   const { getIsDirty } = useFormContainerBaseContext();
   const isDirty = useMemo(() => getIsDirty(), [getIsDirty]);
   const contentWidthAnchorRef = useRef<HTMLDivElement>(null);
 
   const backURL = `/project/${appID}/configuration/user-profile/custom-attributes`;
 
-  const onChangeDraft = (draft: FormState) => {
-    setState(() => draft);
+  const savedPointer = initialState.pointer;
+  const patternMessage =
+    state.patternMessage ??
+    translations.getInitialValue(patternErrorKey("custom", savedPointer));
+  const onChangeDraft = (draft: CustomAttributeDraft) => {
+    writePatternMessage(translations, savedPointer, draft, patternMessage);
+    setState((prev) => ({ ...prev, ...draft }));
+  };
+  const onPatternMessageChange = (message: string) => {
+    writePatternMessage(translations, savedPointer, state, message);
+    setState((prev) => ({ ...prev, patternMessage: message }));
   };
 
   return (
@@ -139,6 +177,8 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
         index={index}
         draft={state}
         onChangeDraft={onChangeDraft}
+        patternMessage={patternMessage}
+        onPatternMessageChange={onPatternMessageChange}
       />
       <SaveFunctionBar anchorRef={contentWidthAnchorRef} />
     </ScreenContent>
@@ -155,11 +195,18 @@ const EditCustomAttributeScreen: React.VFC =
 
     const index = parseInt(indexString, 10);
 
-    const form = useAppConfigForm({
+    const configForm = useAppConfigForm({
       appID,
       constructFormState: makeConstructFormState(index),
       constructConfig: makeConstructConfig(index),
     });
+    const translations = useTranslationValuesForm(
+      appID,
+      configForm.isLoading
+        ? null
+        : configForm.effectiveConfig.localization?.fallback_language ?? "en"
+    );
+    const form = combineForms(configForm, translations.form);
 
     const afterSave = useCallback(() => {
       navigate("./../..");
@@ -191,7 +238,11 @@ const EditCustomAttributeScreen: React.VFC =
 
     return (
       <FormContainer form={form} afterSave={afterSave}>
-        <EditCustomAttributeContent form={form} index={index} />
+        <EditCustomAttributeContent
+          form={form}
+          translations={translations}
+          index={index}
+        />
       </FormContainer>
     );
   };
