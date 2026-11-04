@@ -409,6 +409,11 @@ export class AuthflowV2PasskeyErrorController extends Controller {
   };
 }
 
+// Dispatched on document by AuthflowPasskeyRequestController around its modal
+// navigator.credentials.get, so that PasskeyAutofillController can step aside.
+const PASSKEY_MODAL_START = "passkey:modal-start";
+const PASSKEY_MODAL_END = "passkey:modal-end";
+
 export class AuthflowPasskeyRequestController extends Controller {
   static targets = ["button", "submit", "input"];
   static values = {
@@ -455,6 +460,10 @@ export class AuthflowPasskeyRequestController extends Controller {
       );
       return;
     }
+    // A page can only have one pending navigator.credentials.get.
+    // Abort the pending autofill request, otherwise this request would be
+    // rejected with NotAllowedError immediately.
+    document.dispatchEvent(new CustomEvent(PASSKEY_MODAL_START));
     try {
       const optionsJSON = JSON.parse(this.optionsValue);
       const options = deserializeRequestOptions(optionsJSON);
@@ -475,6 +484,8 @@ export class AuthflowPasskeyRequestController extends Controller {
           detail: e,
         })
       );
+    } finally {
+      document.dispatchEvent(new CustomEvent(PASSKEY_MODAL_END));
     }
   }
 }
@@ -561,6 +572,9 @@ export class AuthflowPasskeyCreationController extends Controller {
 // The promise can be aborted with AbortController.
 // In connect(), we call start(). In disconnect(), we call stop().
 // Since Stimulus will call connect(), we do not need to call start() if the promise is aborted.
+//
+// While AuthflowPasskeyRequestController shows the modal dialog,
+// it dispatches PASSKEY_MODAL_START and PASSKEY_MODAL_END, and we stop() in between.
 export class PasskeyAutofillController extends Controller {
   static targets = ["submit", "input"];
   static values = {
@@ -576,12 +590,25 @@ export class PasskeyAutofillController extends Controller {
   retryEventTarget: RetryEventTarget | null = null;
 
   connect() {
+    document.addEventListener(PASSKEY_MODAL_START, this.onModalStart);
+    document.addEventListener(PASSKEY_MODAL_END, this.onModalEnd);
     this.start();
   }
 
   disconnect() {
+    document.removeEventListener(PASSKEY_MODAL_START, this.onModalStart);
+    document.removeEventListener(PASSKEY_MODAL_END, this.onModalEnd);
     this.stop();
   }
+
+  onModalStart = () => {
+    this.stop();
+  };
+
+  onModalEnd = () => {
+    this.stop();
+    this.start();
+  };
 
   start() {
     if (!passkeyIsAvailable()) {

@@ -10,7 +10,10 @@ import {
 } from "@jest/globals";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
-import { PasskeyAutofillController } from "./passkey";
+import {
+  AuthflowPasskeyRequestController,
+  PasskeyAutofillController,
+} from "./passkey";
 
 jest.mock("axios");
 
@@ -31,6 +34,9 @@ interface PendingRequest {
   options: CredentialRequestOptions;
   resolve: (credential: unknown) => void;
   reject: (err: unknown) => void;
+  settled: boolean;
+  // The number of other requests still pending when this one was made.
+  othersPending: number;
 }
 
 let application: Application;
@@ -42,6 +48,10 @@ beforeAll(() => {
   jest.useFakeTimers();
   application = Application.start();
   application.register("passkey-autofill", PasskeyAutofillController);
+  application.register(
+    "authflow-passkey-request",
+    AuthflowPasskeyRequestController
+  );
 });
 
 afterAll(() => {
@@ -65,9 +75,22 @@ beforeEach(() => {
       get: jest.fn(
         async (options: CredentialRequestOptions) =>
           new Promise((resolve, reject) => {
-            requests.push({ options, resolve, reject });
+            const request: PendingRequest = {
+              options,
+              resolve: (credential) => {
+                request.settled = true;
+                resolve(credential);
+              },
+              reject: (err) => {
+                request.settled = true;
+                reject(err);
+              },
+              settled: false,
+              othersPending: requests.filter((r) => !r.settled).length,
+            };
+            requests.push(request);
             options.signal?.addEventListener("abort", () => {
-              reject(
+              request.reject(
                 new DOMException("The operation was aborted.", "AbortError")
               );
             });
@@ -100,6 +123,11 @@ async function render(): Promise<void> {
     <div data-controller="passkey-autofill" data-passkey-autofill-options-value='${OPTIONS_JSON}'>
       <input type="hidden" data-passkey-autofill-target="input">
       <button type="button" data-passkey-autofill-target="submit"></button>
+    </div>
+    <div data-controller="authflow-passkey-request" data-authflow-passkey-request-options-value='${OPTIONS_JSON}'>
+      <button type="button" id="use-passkey" data-action="click->authflow-passkey-request#use" data-authflow-passkey-request-target="button"></button>
+      <input type="hidden" data-authflow-passkey-request-target="input">
+      <button type="button" data-authflow-passkey-request-target="submit"></button>
     </div>
   `;
   document
@@ -236,5 +264,26 @@ describe("PasskeyAutofillController", () => {
     await advance(60000);
 
     expect(requests).toHaveLength(0);
+  });
+
+  it("steps aside while the passkey dialog is open", async () => {
+    await render();
+    expect(requests).toHaveLength(1);
+
+    document.getElementById("use-passkey")?.click();
+    await flush();
+
+    expect(requests).toHaveLength(2);
+    expect(requests[0].options.signal?.aborted).toEqual(true);
+    expect(requests[1].options.mediation).toBeUndefined();
+    expect(requests[1].othersPending).toEqual(0);
+
+    // Cancel the dialog.
+    requests[1].reject(notAllowed());
+    await flush();
+
+    expect(requests).toHaveLength(3);
+    expect(requests[2].options.mediation).toEqual("conditional");
+    expect(requests[2].othersPending).toEqual(0);
   });
 });
