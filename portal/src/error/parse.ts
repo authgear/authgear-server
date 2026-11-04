@@ -15,6 +15,8 @@ import {
 } from "../util/jsonpointer";
 import { APIResourceUpdateConflictError } from "./resourceUpdateConflict";
 import ExternalLink from "../ExternalLink";
+import SupportLink from "./SupportLink";
+import { APIInvariantViolationError } from "./invariant";
 
 export interface FormField {
   parentJSONPointer: string | RegExp;
@@ -219,6 +221,86 @@ function parseResourceTooLargeError(
   };
 }
 
+const lineBreak = React.createElement("br");
+
+function errorCodeArguments(code: string): Values {
+  return {
+    code,
+    br: lineBreak,
+    supportLink: (chunks: React.ReactNode) =>
+      React.createElement(SupportLink, null, chunks),
+  };
+}
+
+// The values for errors.invariant.duplicated-identity.
+export function duplicatedIdentityArguments(
+  error: APIInvariantViolationError
+): Values {
+  const { LoginIDTypeIncoming, IdentityTypeIncoming } = error.info;
+  return {
+    type: LoginIDTypeIncoming ?? IdentityTypeIncoming ?? "other",
+  };
+}
+
+function parseInvariantViolatedError(
+  error: APIInvariantViolationError
+): ParsedAPIError {
+  const kind = error.info.cause.kind;
+  switch (kind) {
+    case "DuplicatedIdentity":
+      return {
+        messageID: "errors.invariant.duplicated-identity",
+        arguments: duplicatedIdentityArguments(error),
+      };
+    case "RemoveLastIdentity":
+      return { messageID: "errors.invariant.remove-last-identity" };
+    default:
+      return {
+        messageID: "errors.unknown",
+        arguments: errorCodeArguments(`InvariantViolated: ${String(kind)}`),
+      };
+  }
+}
+
+// For a reason with no specific message, pick one from its kind so the user
+// never sees a raw reason as the whole message.
+function parseErrorByKind(error: APIError): ParsedAPIError {
+  switch (error.errorName) {
+    case "Invalid":
+      // apierrors.NewInvalid has no reason of its own; its message is written
+      // to be read, e.g. "custom domain is not supported".
+      if (error.reason === "Invalid" && error.message) {
+        return { message: error.message };
+      }
+      break;
+    case "NotFound":
+      return {
+        messageID: "errors.not-found",
+        arguments: errorCodeArguments(error.reason),
+      };
+    case "Forbidden":
+      return {
+        messageID: "errors.forbidden",
+        arguments: errorCodeArguments(error.reason),
+      };
+    case "AlreadyExists":
+      return {
+        messageID: "errors.already-exists",
+        arguments: errorCodeArguments(error.reason),
+      };
+    case "TooManyRequest":
+      return { messageID: "errors.rate-limited" };
+    case "ServiceUnavailable":
+      return { messageID: "errors.service-unavailable" };
+    default:
+      break;
+  }
+  return {
+    messageID: "errors.unknown",
+    arguments: errorCodeArguments(error.reason),
+  };
+}
+
 function parseError(error: APIError): ParsedAPIError[] {
   const errors: ParsedAPIError[] = [];
   switch (error.reason) {
@@ -236,10 +318,14 @@ function parseError(error: APIError): ParsedAPIError[] {
       errors.push({ messageID: "errors.rate-limited" });
       break;
     case "Unknown":
+      // Not an API error (e.g. a script error), so there is no code to show.
       errors.push({
-        messageID: "errors.unknown",
-        arguments: { message: error.message ?? "" },
+        messageID: "errors.unexpected",
+        arguments: errorCodeArguments(""),
       });
+      break;
+    case "InvariantViolated":
+      errors.push(parseInvariantViolatedError(error));
       break;
     case "ResourceTooLarge": {
       errors.push(parseResourceTooLargeError(error));
@@ -321,10 +407,7 @@ function parseError(error: APIError): ParsedAPIError[] {
       break;
     }
     default:
-      errors.push({
-        messageID: "errors.unknown",
-        arguments: { message: error.reason },
-      });
+      errors.push(parseErrorByKind(error));
   }
   return errors;
 }
@@ -427,13 +510,16 @@ export function makeValidationErrorCustomMessageIDRule(
 
 export function makeInvariantViolatedErrorParseRule(
   kind: string,
-  errorMessageID: string
+  errorMessageID: string,
+  values?: (apiError: APIInvariantViolationError) => Values
 ): ErrorParseRule {
   return (apiError: APIError): ErrorParseRuleResult => {
     if (apiError.reason === "InvariantViolated") {
       if (apiError.info.cause.kind === kind) {
         return {
-          parsedAPIErrors: [{ messageID: errorMessageID }],
+          parsedAPIErrors: [
+            { messageID: errorMessageID, arguments: values?.(apiError) },
+          ],
           fullyHandled: true,
         };
       }

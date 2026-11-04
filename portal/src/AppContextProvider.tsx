@@ -4,9 +4,30 @@ import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretC
 import { AppContext } from "./context/AppContext";
 import ShowLoading from "./ShowLoading";
 import ShowError from "./ShowError";
+import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
+import { SupportLinkHrefProvider } from "./error/SupportLink";
+import { makeHelpDeskURL } from "./util/helpDesk";
 
 export interface AppContextProviderProps {
   children?: React.ReactNode;
+}
+
+// cache-only: the header already loads the viewer, so this only waits for it.
+function ProjectSupportLinkProvider(props: {
+  appID: string;
+  children?: React.ReactNode;
+}): ReactElement {
+  const { appID, children } = props;
+  const { viewer } = useViewerQuery({ fetchPolicy: "cache-only" });
+  const href = makeHelpDeskURL({
+    purpose: "other",
+    projectID: appID,
+    email: viewer?.email,
+    fullName: viewer?.formattedName,
+  });
+  return (
+    <SupportLinkHrefProvider value={href}>{children}</SupportLinkHrefProvider>
+  );
 }
 
 export default function AppContextProvider(
@@ -50,7 +71,9 @@ export default function AppContextProvider(
 
   return (
     <AppContext.Provider key={appNodeID} value={appContextValue}>
-      {children}
+      <ProjectSupportLinkProvider appID={appContextValue.appID}>
+        {children}
+      </ProjectSupportLinkProvider>
     </AppContext.Provider>
   );
 }

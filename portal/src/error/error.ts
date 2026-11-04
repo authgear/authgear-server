@@ -70,6 +70,12 @@ export interface ServiceUnavailableError {
   reason: "ServiceUnavailable";
 }
 
+// apierrors.NewInvalid uses the kind as the reason.
+export interface GenericInvalidError {
+  errorName: "Invalid";
+  reason: "Invalid";
+}
+
 export interface UnknownError {
   errorName: "Unknown";
   reason: "Unknown";
@@ -138,6 +144,7 @@ export type APIError = { message?: string } & (
   | RequestEntityTooLargeError
   | ForbiddenError
   | UnknownError
+  | GenericInvalidError
   | LocalError
   | TooManyRequestError
   | RateLimitedError

@@ -164,10 +164,6 @@ const ERROR_RULES = [
     "RemoveLastIdentity",
     "errors.invariant.remove-last-identity"
   ),
-  makeInvariantViolatedErrorParseRule(
-    "RemoveLastPrimaryAuthenticator",
-    "errors.invariant.remove-last-primary-authenticator"
-  ),
 ];
 
 function makeStandardAttributesState(

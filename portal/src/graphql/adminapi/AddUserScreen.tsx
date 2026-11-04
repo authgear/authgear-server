@@ -29,6 +29,7 @@ import {
 import {
   ErrorParseRule,
   makeInvariantViolatedErrorParseRule,
+  duplicatedIdentityArguments,
 } from "../../error/parse";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormPhoneTextField from "../../FormPhoneTextField";
@@ -191,7 +192,8 @@ function getEnabledLoginIDTypes(
 const errorRules: ErrorParseRule[] = [
   makeInvariantViolatedErrorParseRule(
     "DuplicatedIdentity",
-    "AddUserScreen.error.duplicated-identity"
+    "errors.invariant.duplicated-identity",
+    duplicatedIdentityArguments
   ),
 ];
 

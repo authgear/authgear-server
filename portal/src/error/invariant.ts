@@ -4,6 +4,9 @@ export interface APIInvariantViolationError {
     cause: {
       kind: InvariantViolatedErrorInfoCauseKind;
     };
+    // Set on DuplicatedIdentity.
+    IdentityTypeIncoming?: string;
+    LoginIDTypeIncoming?: string;
   };
   reason: "InvariantViolated";
 }
