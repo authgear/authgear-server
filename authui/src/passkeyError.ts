@@ -2,16 +2,7 @@ export function isEmptyAllowCredentialsError(err: unknown) {
   return err instanceof DOMException && /allowCredentials/i.test(err.message);
 }
 
-export function isSafariCancel(err: unknown) {
-  return (
-    err instanceof DOMException &&
-    err.name === "NotAllowedError" &&
-    // "This request has been cancelled by the user."
-    /cancel/i.test(err.message)
-  );
-}
-
-export function isSafariTimeout(err: unknown) {
+function isSafariTimeout(err: unknown) {
   return (
     err instanceof DOMException &&
     err.name === "HierarchyRequestError" &&
@@ -35,28 +26,6 @@ export function isOperationFailError(err: unknown) {
   );
 }
 
-export function isChromeCancelOrTimeout(err: unknown) {
-  return (
-    err instanceof DOMException &&
-    err.name === "NotAllowedError" &&
-    // "The operation either timed out or was not allowed. See: https://www.w3.org/TR/webauthn-2/#sctn-privacy-considerations-client."
-    /time.*out/i.test(err.message)
-  );
-}
-
-export function isFirefoxCancel(err: unknown) {
-  return (
-    err instanceof DOMException &&
-    err.name === "AbortError" &&
-    // "The operation was aborted. "
-    /operation.*abort/i.test(err.message)
-  );
-}
-
-export function isAbortControllerError(err: unknown) {
-  return err instanceof DOMException && err.name === "AbortError";
-}
-
 export function isFirefoxSecurityKeyError(err: unknown) {
   return (
     err instanceof DOMException &&
@@ -66,20 +35,51 @@ export function isFirefoxSecurityKeyError(err: unknown) {
   );
 }
 
-export function isSafariDuplicateError(err: unknown) {
+export function isDuplicateError(err: unknown) {
   return (
     err instanceof DOMException &&
     err.name === "InvalidStateError" &&
-    // "At least one credential matches an entry of the excludeCredentials list in the platform attached authenticator."
-    /excludeCredentials/i.test(err.message)
+    // Safari: "At least one credential matches an entry of the excludeCredentials list in the platform attached authenticator."
+    // Chrome: "The user attempted to register an authenticator that contains one of the credentials already registered with the relying party."
+    (/excludeCredentials/i.test(err.message) ||
+      /already register/i.test(err.message))
   );
 }
 
-export function isChromeDuplicateError(err: unknown) {
-  return (
-    err instanceof DOMException &&
-    err.name === "InvalidStateError" &&
-    // "The user attempted to register an authenticator that contains one of the credentials already registered with the relying party."
-    /already register/i.test(err.message)
-  );
+// The WebAuthn spec deliberately reports cancel, timeout and "not allowed" as
+// the same NotAllowedError, and the message differs across browsers and
+// versions (e.g. iOS 17 Safari says "...AuthorizationError error 1001."),
+// so do not rely on the message to recognize a cancel.
+export function isCancelOrTimeout(err: unknown) {
+  if (!(err instanceof DOMException)) {
+    return false;
+  }
+  switch (err.name) {
+    case "NotAllowedError":
+      return !isOperationFailError(err) && !isEmptyAllowCredentialsError(err);
+    // Firefox cancel, or our own AbortController.
+    case "AbortError":
+      return true;
+    default:
+      return isSafariTimeout(err);
+  }
+}
+
+// Returns the data attribute of the alert message to show, or null to show nothing.
+export function getAuthflowV2PasskeyErrorMessageID(
+  err: unknown
+): string | null {
+  if (isCancelOrTimeout(err)) {
+    return null;
+  }
+  if (isOperationFailError(err)) {
+    return "data-invalid-passkey-or-not-supported";
+  }
+  if (isFirefoxSecurityKeyError(err)) {
+    return "data-no-passkey";
+  }
+  if (isDuplicateError(err)) {
+    return "data-passkey-duplicate";
+  }
+  return "data-passkey-not-supported";
 }

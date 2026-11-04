@@ -6,16 +6,12 @@ import { base64URLToBase64, trimNewline, base64ToBase64URL } from "./base64url";
 import { RetryEventTarget } from "./retry";
 import { setErrorMessage } from "./authflowv2/alert-message";
 import {
-  isAbortControllerError,
-  isChromeCancelOrTimeout,
-  isChromeDuplicateError,
+  getAuthflowV2PasskeyErrorMessageID,
+  isCancelOrTimeout,
+  isDuplicateError,
   isEmptyAllowCredentialsError,
-  isFirefoxCancel,
   isFirefoxSecurityKeyError,
   isOperationFailError,
-  isSafariCancel,
-  isSafariDuplicateError,
-  isSafariTimeout,
 } from "./passkeyError";
 
 function passkeyIsAvailable(): boolean {
@@ -238,41 +234,26 @@ function serializeAssertionResponse(
 }
 
 function handleError(err: unknown) {
-  console.error(err);
-
-  const errorThatCanSimplyBeIgnored = [
-    isSafariCancel,
-    isSafariTimeout,
-    isChromeCancelOrTimeout,
-    isFirefoxCancel,
-    // Firefox timeout was not observed.
-    isAbortControllerError,
-  ];
-  for (const p of errorThatCanSimplyBeIgnored) {
-    if (p(err)) {
-      return;
-    }
-  }
-
-  if (isOperationFailError(err)) {
-    showErrorMessage("error-message-no-passkey");
+  // Cancel and timeout are expected, so do not log them as errors.
+  if (isCancelOrTimeout(err)) {
+    console.info(err);
     return;
   }
+  console.error(err);
 
-  if (isFirefoxSecurityKeyError(err)) {
+  if (isOperationFailError(err) || isFirefoxSecurityKeyError(err)) {
     showErrorMessage("error-message-no-passkey");
     return;
   }
 
   if (isEmptyAllowCredentialsError(err)) {
     showErrorMessage("error-message-passkey-empty-allow-credentials");
+    return;
   }
 
-  if (isSafariDuplicateError(err) || isChromeDuplicateError(err)) {
+  if (isDuplicateError(err)) {
     showErrorMessage("error-message-passkey-duplicate");
   }
-
-  return false;
 }
 
 // We want to prompt the modal dialog to create passkey.
@@ -418,32 +399,13 @@ export class AuthflowV2PasskeyErrorController extends Controller {
 
   onPasskeyError = (event: Event) => {
     const err: unknown = (event as CustomEvent).detail;
-    const errorThatCanSimplyBeIgnored = [
-      isSafariCancel,
-      isSafariTimeout,
-      isChromeCancelOrTimeout,
-      isFirefoxCancel,
-      // Firefox timeout was not observed.
-      isAbortControllerError,
-    ];
-    for (const p of errorThatCanSimplyBeIgnored) {
-      if (p(err)) {
-        return;
-      }
+    const messageID = getAuthflowV2PasskeyErrorMessageID(err);
+    if (messageID == null) {
+      console.info(err);
+      return;
     }
-    let errMessage = "data-passkey-not-supported";
-    if (isOperationFailError(err)) {
-      errMessage = "data-invalid-passkey-or-not-supported";
-    }
-
-    if (isFirefoxSecurityKeyError(err)) {
-      errMessage = "data-no-passkey";
-    }
-
-    if (isSafariDuplicateError(err) || isChromeDuplicateError(err)) {
-      errMessage = "data-passkey-duplicate";
-    }
-    setErrorMessage(errMessage);
+    console.error(err);
+    setErrorMessage(messageID);
   };
 }
 
