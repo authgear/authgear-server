@@ -181,6 +181,7 @@
 .passkeyCell {
   grid-template:
     "icon label remove"
+    "empty name remove"
     "empty desc remove"
     / min-content auto min-content;
   column-gap: 8px;
@@ -196,6 +197,10 @@
 .passkeyCellLabel {
   grid-area: label;
   font-weight: 600;
+}
+
+.passkeyCellDisplayName {
+  grid-area: name;
 }
 
 .passkeyCellDesc {
