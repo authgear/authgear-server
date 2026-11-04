@@ -31,6 +31,7 @@ import {
   AuthflowPasskeyRequestController,
   AuthflowPasskeyCreationController,
   AuthflowV2PasskeyErrorController,
+  PasskeyAutofillController,
 } from "./passkey";
 import { NewPasswordFieldController } from "./authflowv2/new-password-field";
 import { AlertMessageController } from "./authflowv2/alert-message";
@@ -131,6 +132,7 @@ Stimulus.register(
   AuthflowPasskeyCreationController
 );
 Stimulus.register("authflow-passkey-error", AuthflowV2PasskeyErrorController);
+Stimulus.register("passkey-autofill", PasskeyAutofillController);
 Stimulus.register("alert-message", AlertMessageController);
 Stimulus.register(
   "dismiss-keyboard-on-scroll",

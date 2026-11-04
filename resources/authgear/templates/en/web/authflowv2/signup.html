@@ -146,6 +146,12 @@
   {{ if $.InlinePreview }}
     {{ $formController = "" }}
   {{ end }}
+  {{/* Passkey autofill is for the signup login flow only. */}}
+  {{ $passkey_autofill := (and (eq $.UIVariant "signup_login") $show_input_form $.PasskeyEnabled (not $.AlternativesDisabled) (not $.InlinePreview)) }}
+  {{ $login_id_autocomplete := "username" }}
+  {{ if eq $.UIVariant "signup_login" }}
+    {{ $login_id_autocomplete = "username webauthn" }}
+  {{ end }}
   {{ if $has_login_id }}
     <form
       class="flex flex-col gap-4 mt-8"
@@ -193,7 +199,7 @@
               class="block input w-full {{ if $display_input_error }}input--error{{end}}"
               type="{{ $.NonPhoneLoginIDInputType }}"
               name="q_login_id"
-              autocomplete="username"
+              autocomplete="{{ $login_id_autocomplete }}"
               autocapitalize="none"
               placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" $.LoginIDKey) }}"
               data-controller="retain-form-input"
@@ -234,6 +240,23 @@
         data-authgear-event="authgear.button.sign_up"
       >{{ include "v2.component.button.default.label-continue" nil }}</button>
     </form>
+
+    {{/* Passkey autofill for the login ID input above. A separate form, since forms cannot be nested. */}}
+    {{ if $passkey_autofill }}
+      <div class="hidden"
+        data-controller="passkey-autofill"
+        data-passkey-autofill-options-value="{{ $.PasskeyRequestOptionsJSON }}">
+        <form
+          method="post"
+          novalidate
+          data-controller="turbo-form"
+          data-action="submit->turbo-form#submitForm"
+        >
+          <input type="hidden" name="x_assertion_response" data-passkey-autofill-target="input">
+          <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-autofill-target="submit"></button>
+        </form>
+      </div>
+    {{ end }}
   {{ end }}
 
   {{ if and $.CanSwitchToLogin (not $isContinue) }}

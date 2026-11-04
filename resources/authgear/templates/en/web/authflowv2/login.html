@@ -188,6 +188,23 @@
             data-authgear-event="authgear.button.sign_in"
           >{{ include "v2.component.button.default.label-login" nil }}</button>
       </form>
+
+      {{/* Passkey autofill for the login ID input above. A separate form, since forms cannot be nested. */}}
+      {{ if (and $show_input_form $.PasskeyEnabled (not $.AlternativesDisabled) (not $.InlinePreview)) }}
+        <div class="hidden"
+          data-controller="passkey-autofill"
+          data-passkey-autofill-options-value="{{ $.PasskeyRequestOptionsJSON }}">
+          <form
+            method="post"
+            novalidate
+            data-controller="turbo-form"
+            data-action="submit->turbo-form#submitForm"
+          >
+            <input type="hidden" name="x_assertion_response" data-passkey-autofill-target="input">
+            <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-autofill-target="submit"></button>
+          </form>
+        </div>
+      {{ end }}
     {{ end }}
 
     {{ if (not $is_login_only) }}
