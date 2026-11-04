@@ -1,6 +1,7 @@
 package testrunner
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -63,6 +64,28 @@ func TestGeneratePasskeyAttestation(t *testing.T) {
 	)
 	if err != nil {
 		t.Fatalf("verify: %v", err)
+	}
+}
+
+func TestGeneratePasskeyAttestationWithAAGUID(t *testing.T) {
+	const aaguid = "fbfc3007-154e-4ecc-8c0b-6e020557d7bd"
+	raw, err := GeneratePasskeyAttestationWithAAGUID(creationOptions(), testOrigin, aaguid)
+	if err != nil {
+		t.Fatalf("generate: %v", err)
+	}
+
+	parsed, err := protocol.ParseCredentialCreationResponseBody(strings.NewReader(raw))
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	got := hex.EncodeToString(parsed.Response.AttestationObject.AuthData.AttData.AAGUID)
+	if want := strings.ReplaceAll(aaguid, "-", ""); got != want {
+		t.Fatalf("AAGUID = %s, want %s", got, want)
+	}
+
+	if _, err := GeneratePasskeyAttestationWithAAGUID(creationOptions(), testOrigin, "not-a-uuid"); err == nil {
+		t.Fatalf("expected an error for an invalid AAGUID")
 	}
 }
 

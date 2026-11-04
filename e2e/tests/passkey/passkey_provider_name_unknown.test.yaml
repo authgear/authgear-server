@@ -1,0 +1,163 @@
+name: Give no provider name to a passkey with the all-zero AAGUID
+# An authenticator that does not identify itself reports the all-zero AAGUID.
+# The AAGUID is still exposed, but there is no provider name to show.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - passkey
+      primary_authenticators:
+      - password
+      - passkey
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: username
+            steps:
+            - name: authenticate_primary_username
+              type: authenticate
+              one_of:
+              - authentication: primary_password
+          - identification: passkey
+        - type: check_account_status
+        - type: terminate_other_sessions
+        - type: prompt_create_passkey
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: upsell
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "prompt_create_passkey",
+            "data": {
+              "creation_options": "[[object]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "creation_response": {{ generatePasskeyAttestation .steps.upsell.result.action.data.creation_options (printf "http://%s.authgeare2e.localhost:4000" .AppID) }}
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT "id" FROM "_auth_user"
+      WHERE "app_id" = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query getUser($userID: ID!) {
+          node(id: $userID) {
+            ... on User {
+              identities(identityType: PASSKEY) {
+                edges {
+                  node {
+                    claims
+                  }
+                }
+              }
+              authenticators(authenticatorType: PASSKEY) {
+                edges {
+                  node {
+                    claims
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "node": {
+              "identities": {
+                "edges": [
+                  {
+                    "node": {
+                      "claims": {
+                        "https://authgear.com/claims/passkey/aaguid": "00000000-0000-0000-0000-000000000000",
+                        "https://authgear.com/claims/passkey/provider_name": "[[never]]"
+                      }
+                    }
+                  }
+                ]
+              },
+              "authenticators": {
+                "edges": [
+                  {
+                    "node": {
+                      "claims": {
+                        "https://authgear.com/claims/passkey/aaguid": "00000000-0000-0000-0000-000000000000",
+                        "https://authgear.com/claims/passkey/provider_name": "[[never]]"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "errors": null
+        }

@@ -7,8 +7,10 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/fxamacker/cbor/v2"
@@ -98,8 +100,8 @@ func coseKey(pub *ecdsa.PublicKey) ([]byte, error) {
 }
 
 // authenticatorData is rpIdHash ‖ flags ‖ signCount, optionally followed by
-// attested credential data during registration.
-func authenticatorData(rpID string, includeCredential bool) ([]byte, error) {
+// attested credential data during registration. aaguid is used only then.
+func authenticatorData(rpID string, includeCredential bool, aaguid []byte) ([]byte, error) {
 	rpIDHash := sha256.Sum256([]byte(rpID))
 
 	flags := byte(flagUserPresent | flagUserVerified)
@@ -121,8 +123,7 @@ func authenticatorData(rpID string, includeCredential bool) ([]byte, error) {
 
 	credential := getPasskeyCredential(rpID)
 
-	// AAGUID is all zeroes, which is what a platform authenticator reports.
-	data = append(data, make([]byte, 16)...)
+	data = append(data, aaguid...)
 
 	credentialIDLength := make([]byte, 2)
 	binary.BigEndian.PutUint16(credentialIDLength, uint16(len(credential.credentialID)))
@@ -179,9 +180,38 @@ func stringField(m map[string]any, key string) (string, error) {
 	return v, nil
 }
 
+// parseAAGUID parses an AAGUID written as a UUID.
+func parseAAGUID(s string) ([]byte, error) {
+	b, err := hex.DecodeString(strings.ReplaceAll(s, "-", ""))
+	if err != nil {
+		return nil, fmt.Errorf("passkey: invalid AAGUID %q: %w", s, err)
+	}
+	if len(b) != 16 {
+		return nil, fmt.Errorf("passkey: invalid AAGUID %q: want 16 bytes", s)
+	}
+	return b, nil
+}
+
 // GeneratePasskeyAttestation performs a registration ceremony against the given
 // creation_options and returns the creation_response as JSON.
+//
+// The AAGUID is all zeroes, which is what an authenticator that does not
+// identify itself reports.
 func GeneratePasskeyAttestation(options any, origin string) (string, error) {
+	return generatePasskeyAttestation(options, origin, make([]byte, 16))
+}
+
+// GeneratePasskeyAttestationWithAAGUID is GeneratePasskeyAttestation reporting
+// the given AAGUID, so a test can pose as a known passkey provider.
+func GeneratePasskeyAttestationWithAAGUID(options any, origin string, aaguid string) (string, error) {
+	b, err := parseAAGUID(aaguid)
+	if err != nil {
+		return "", err
+	}
+	return generatePasskeyAttestation(options, origin, b)
+}
+
+func generatePasskeyAttestation(options any, origin string, aaguid []byte) (string, error) {
 	publicKey, err := publicKeyOf(options)
 	if err != nil {
 		return "", err
@@ -201,7 +231,7 @@ func GeneratePasskeyAttestation(options any, origin string) (string, error) {
 		return "", err
 	}
 
-	authData, err := authenticatorData(rpID, true)
+	authData, err := authenticatorData(rpID, true, aaguid)
 	if err != nil {
 		return "", err
 	}
@@ -251,7 +281,7 @@ func GeneratePasskeyAssertion(options any, origin string) (string, error) {
 		return "", err
 	}
 
-	authData, err := authenticatorData(rpID, false)
+	authData, err := authenticatorData(rpID, false, nil)
 	if err != nil {
 		return "", err
 	}
