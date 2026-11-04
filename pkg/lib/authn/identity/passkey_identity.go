@@ -14,6 +14,8 @@ type Passkey struct {
 	CredentialID        string                         `json:"credential_id"`
 	CreationOptions     *model.WebAuthnCreationOptions `json:"creation_options,omitempty"`
 	AttestationResponse []byte                         `json:"attestation_response,omitempty"`
+	// AAGUID is read from AttestationResponse, and is not stored on its own.
+	AAGUID string `json:"aaguid,omitempty"`
 }
 
 func (i *Passkey) ToInfo() *Info {

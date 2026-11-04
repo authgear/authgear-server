@@ -19,6 +19,8 @@ type Passkey struct {
 	// SignCount of 0 means sign count is not supported by the authenticator.
 	// So we do not include omitempty here.
 	SignCount int64 `json:"sign_count"`
+	// AAGUID is read from AttestationResponse, and is not stored on its own.
+	AAGUID string `json:"aaguid,omitempty"`
 }
 
 func (a *Passkey) ToInfo() *Info {

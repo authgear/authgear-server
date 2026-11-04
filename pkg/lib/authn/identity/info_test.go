@@ -134,6 +134,7 @@ func TestInfoJSON(t *testing.T) {
 					PublicKey: model.PublicKeyCredentialCreationOptions{},
 				},
 				AttestationResponse: []byte("abc"),
+				AAGUID:              "fbfc3007-154e-4ecc-8c0b-6e020557d7bd",
 			},
 		})
 	})

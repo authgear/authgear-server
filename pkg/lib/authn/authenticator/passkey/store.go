@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/util/passkeyprovider"
 )
 
 type Store struct {
@@ -60,6 +61,11 @@ func (s *Store) scan(scanner db.Scanner) (*authenticator.Passkey, error) {
 	}
 
 	err = json.Unmarshal(creationOptionsBytes, &a.CreationOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	a.AAGUID, err = passkeyprovider.AAGUIDFromAttestationResponse(a.AttestationResponse)
 	if err != nil {
 		return nil, err
 	}
