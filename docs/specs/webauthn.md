@@ -60,6 +60,13 @@ This implies passkeys are replacement for passwords.
 Passkeys DO NOT replace username.
 The end-users still have their username for their account.
 
+AuthUI offers AutoFill on the login ID input (email, username or phone) where the user can sign in with a passkey. Choosing a passkey signs the user in.
+
+- The request uses the passkey request options of the authentication flow on the page, with `mediation` set to `conditional`. No other challenge is issued. A passkey the server rejects does not use up the challenge, so AutoFill is offered again with the same options.
+- If the request fails or times out, AutoFill is offered again.
+- A page has at most one pending passkey request, so AutoFill is paused while another passkey dialog is open.
+- Where conditional mediation is unavailable, AutoFill is not offered.
+
 ## Use cases
 
 ### Use case 1: Sign up with a passkey
