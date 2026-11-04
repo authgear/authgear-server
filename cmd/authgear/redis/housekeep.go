@@ -243,7 +243,7 @@ func (r *housekeepRun) logSummary() {
 // applyHousekeepChunk watches the keys, plans again with fresh reads, and writes the actions in MULTI/EXEC.
 // It returns ok=false if the keys were written by someone else on every attempt.
 func applyHousekeepChunk(ctx context.Context, redisClient *goredis.Client, task housekeepTask, keys []string, now time.Time) (actions []housekeepAction, ok bool, err error) {
-	for attempt := 0; attempt < housekeepMaxAttempts; attempt++ {
+	for range housekeepMaxAttempts {
 		err = redisClient.Watch(ctx, func(tx *goredis.Tx) error {
 			var err error
 			actions, err = task.plan(ctx, tx, keys, now)

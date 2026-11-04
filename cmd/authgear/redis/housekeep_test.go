@@ -182,12 +182,12 @@ deleted app:accounts:offline-grant-list:user
 		f := newHousekeepFixture(t)
 		var deleted []string
 		var keysLeft []string
-		for i := 0; i < 25; i++ {
+		for i := range 25 {
 			key := "rate-limit:SignupPerIP:full-" + strconv.Itoa(100+i)
 			f.set(key, unixMilliString(t_expired), 0)
 			deleted = append(deleted, key)
 		}
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			key := "rate-limit:SignupPerIP:not-full-" + strconv.Itoa(100+i)
 			f.set(key, unixMilliString(t_future), t_future.Sub(t_now))
 			keysLeft = append(keysLeft, key)
