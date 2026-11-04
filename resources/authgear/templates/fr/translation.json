@@ -900,6 +900,7 @@
   "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp-or-sms": "+ Ajouter un numéro de téléphone WhatsApp/SMS",
   "v2.page.settings-passkey.default.add-passkey-button-label": "+ Ajouter une clé d''accès",
   "v2.page.settings-passkey.default.item-description": "Ajouté à <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
+  "v2.page.settings-passkey.default.item-label-unknown-provider": "Clé d''accès",
   "v2.page.settings-passkey.default.remove-passkey-dialog-description": "Êtes-vous sûr de vouloir supprimer cette clé d''accès ?",
   "v2.page.settings-passkey.default.remove-passkey-dialog-title": "Supprimer la clé d''accès",
   "v2.page.settings-passkey.default.title": "Clé d''accès",

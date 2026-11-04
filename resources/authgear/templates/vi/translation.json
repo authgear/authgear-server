@@ -900,6 +900,7 @@
   "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp-or-sms": "+ Thêm số điện thoại WhatsApp/SMS",
   "v2.page.settings-passkey.default.add-passkey-button-label": "+ Thêm Passkey",
   "v2.page.settings-passkey.default.item-description": "Đã thêm vào <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
+  "v2.page.settings-passkey.default.item-label-unknown-provider": "Passkey",
   "v2.page.settings-passkey.default.remove-passkey-dialog-description": "Bạn có chắc chắn muốn xóa Passkey này không?",
   "v2.page.settings-passkey.default.remove-passkey-dialog-title": "Xóa Passkey",
   "v2.page.settings-passkey.default.title": "Passkey",
