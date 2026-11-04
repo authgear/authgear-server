@@ -1,8 +1,10 @@
 /* global process */
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Button, Callout } from "@radix-ui/themes";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { FormattedMessage } from "./intl";
+import { parseAPIErrors, parseRawError } from "./error/parse";
+import ErrorRenderer from "./ErrorRenderer";
 
 interface ShowErrorProps {
   error: unknown;
@@ -25,19 +27,27 @@ const ShowError: React.VFC<ShowErrorProps> = function ShowError(
     [onRetry]
   );
 
-  const children: React.ReactNode[] = [];
-  if (error instanceof Error) {
+  const topErrors = useMemo(() => {
+    const parsed = parseAPIErrors(parseRawError(error), [], []).topErrors;
+    // Never render an empty box.
+    return parsed.length > 0
+      ? parsed
+      : parseAPIErrors(parseRawError(new Error()), [], []).topErrors;
+  }, [error]);
+
+  const children: React.ReactNode[] = [
+    <ErrorRenderer key="message" errors={topErrors} />,
+  ];
+  // The raw error is for developers only; users get the parsed message.
+  if (showErrorStack && error instanceof Error) {
+    children.push(<br key="br" />);
     children.push(
-      <React.Fragment key="1">
+      <React.Fragment key="raw">
         {error.name}: {error.message}
+        <br />
+        {error.stack}
       </React.Fragment>
     );
-    if (showErrorStack) {
-      children.push(<br key="2" />);
-      children.push(<React.Fragment key="3">{error.stack}</React.Fragment>);
-    }
-  } else {
-    children.push(<React.Fragment key="4">{String(error)}</React.Fragment>);
   }
 
   return (

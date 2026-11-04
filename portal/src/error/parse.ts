@@ -410,20 +410,6 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     }
-    case "AlchemyProtocol": {
-      errors.push({
-        messageID: "errors.alchemy-protocol",
-        arguments: {
-          externalLink: (chunks: React.ReactNode) =>
-            React.createElement(
-              ExternalLink,
-              { href: "mailto:hello@authgear.com" },
-              chunks
-            ),
-        },
-      });
-      break;
-    }
     case "DenoCheckError": {
       errors.push({
         messageID: "errors.deno-hook.typecheck",

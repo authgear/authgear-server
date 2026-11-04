@@ -33,7 +33,6 @@ import {
   HookDeliveryTimeoutError,
   HookInvalidResponseError,
 } from "./webhook";
-import { APIBadNFTCollectionError, APIAlchemyProtocolError } from "./web3";
 import type { ParsedAPIError } from "./parse";
 import { APIResourceUpdateConflictError } from "./resourceUpdateConflict";
 
@@ -204,8 +203,6 @@ export type APIError = { message?: string } & (
   | APIResourceNotFoundError
   | APIResourceTooLargeError
   | APIUnsupportedImageFileError
-  | APIBadNFTCollectionError
-  | APIAlchemyProtocolError
   | APIDenoCheckError
   | APIDenoRunError
   | APIHookDeliveryUnknownFailureError
