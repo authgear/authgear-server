@@ -543,29 +543,47 @@ export class AuthflowPasskeyCreationController extends Controller {
   }
 }
 
-// TODO(passkey): autofill is buggy on iOS 16 Beta 4.
-// The call navigator.credentials.get will have a high possibility of resulting in
+// Passkey autofill (WebAuthn conditional mediation) on the login ID input,
+// which has "webauthn" in its autocomplete attribute.
+//
+// It was once disabled because it was buggy on iOS 16 Beta 4.
+// The call navigator.credentials.get had a high possibility of resulting in
 // DOMException with name NotAllowedError instantly.
-// The exception WILL cause subsequent call to navigator.credentials.get to fail as well.
-// So autofill is disabled for now.
+// The exception caused subsequent calls to navigator.credentials.get to fail as well.
+// So retries back off when the request fails instantly.
+//
+// The options are the passkey request options of the authflow on the page.
+// Every attempt reuses them, since the challenge is consumed only when the flow finishes.
 //
 // The lifecycle of the autofill
 //
-// setupAutofill() creates a pending promise to receive the result of the autofill.
+// start() creates a pending promise to receive the result of the autofill.
 // The promise can be aborted with AbortController.
-// In disconnect(), we abort the promise.
-// In connect(), we call setupAutofill().
-// Since Stimulus will call connect(), we do not need to call setupAutofill if the promise is aborted.
+// In connect(), we call start(). In disconnect(), we call stop().
+// Since Stimulus will call connect(), we do not need to call start() if the promise is aborted.
 export class PasskeyAutofillController extends Controller {
   static targets = ["submit", "input"];
+  static values = {
+    options: String,
+  };
 
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
+
+  declare optionsValue: string;
 
   abortController: AbortController | null = null;
   retryEventTarget: RetryEventTarget | null = null;
 
   connect() {
+    this.start();
+  }
+
+  disconnect() {
+    this.stop();
+  }
+
+  start() {
     if (!passkeyIsAvailable()) {
       return;
     }
@@ -581,66 +599,73 @@ export class PasskeyAutofillController extends Controller {
     this.setupAutofill();
   }
 
-  disconnect() {
+  stop() {
     this.abortController?.abort();
     this.abortController = null;
     this.retryEventTarget = null;
   }
 
   async setupAutofill() {
+    // Capture the current run, so that a run stopped while awaiting
+    // neither starts navigator.credentials.get nor schedules a retry.
+    const abortController = this.abortController;
+    const retryEventTarget = this.retryEventTarget;
+    if (abortController == null || retryEventTarget == null) {
+      return;
+    }
+    const signal = abortController.signal;
+
     if (
       typeof PublicKeyCredential.isConditionalMediationAvailable === "function"
     ) {
       const available =
         await PublicKeyCredential.isConditionalMediationAvailable();
 
-      if (available) {
+      if (available && !signal.aborted) {
+        const options = deserializeRequestOptions(
+          JSON.parse(this.optionsValue)
+        );
+        const t0 = new Date().getTime();
         try {
-          const params = new URLSearchParams();
-          params.set("conditional", "true");
-          const resp = await axios("/_internals/passkey/request_options", {
-            method: "post",
-            data: params,
+          const rawResponse = await window.navigator.credentials.get({
+            ...options,
+            mediation: "conditional",
+            signal,
           });
-          this.retryEventTarget?.markSuccess();
-          const options = deserializeRequestOptions(resp.data.result);
-          const t0 = new Date().getTime();
-          try {
-            const signal = this.abortController?.signal;
-            const rawResponse = await window.navigator.credentials.get({
-              ...options,
-              signal,
-            });
-            if (isPublicKeyCredentialWithAssertionResponse(rawResponse)) {
-              const response = serializeAssertionResponse(rawResponse);
-              const responseString = JSON.stringify(response);
-              this.inputTarget.value = responseString;
-              // It seems that we should use form.submit() to submit the form.
-              // but form.submit() does NOT trigger submit event,
-              // which is essential for XHR form submission to work.
-              // Therefore, we emulate form submission here by clicking the submit button.
-              this.submitTarget.click();
-            }
-            this.retryEventTarget?.scheduleRetry();
-          } catch (e: unknown) {
-            const t1 = new Date().getTime();
-            if (
-              e instanceof DOMException &&
-              e.name === "NotAllowedError" &&
-              t1 - t0 < 500
-            ) {
-              console.warn("passkey autofill weird error detected", e);
-            }
-            if (e instanceof DOMException && e.name === "AbortError") {
-              // Aborted. Let connect() to be called again.
-            } else {
-              this.retryEventTarget?.scheduleRetry();
-            }
-            handleError(e);
+          if (isPublicKeyCredentialWithAssertionResponse(rawResponse)) {
+            const response = serializeAssertionResponse(rawResponse);
+            const responseString = JSON.stringify(response);
+            this.inputTarget.value = responseString;
+            // It seems that we should use form.submit() to submit the form.
+            // but form.submit() does NOT trigger submit event,
+            // which is essential for XHR form submission to work.
+            // Therefore, we emulate form submission here by clicking the submit button.
+            this.submitTarget.click();
+          }
+          if (!signal.aborted) {
+            retryEventTarget.scheduleRetry();
           }
         } catch (e: unknown) {
-          handleAxiosError(e);
-          this.retryEventTarget?.scheduleRetry();
+          const t1 = new Date().getTime();
+          const failedInstantly = t1 - t0 < 500;
+          if (
+            e instanceof DOMException &&
+            e.name === "NotAllowedError" &&
+            failedInstantly
+          ) {
+            console.warn("passkey autofill weird error detected", e);
+          }
+          if (e instanceof DOMException && e.name === "AbortError") {
+            // Aborted. Let start() be called again.
+          } else if (!signal.aborted) {
+            // Back off only when the request keeps failing instantly,
+            // so that suggestions come back soon after the user cancels.
+            if (!failedInstantly) {
+              retryEventTarget.markSuccess();
+            }
+            retryEventTarget.scheduleRetry();
+          }
+          handleError(e);
         }
       }
     }

@@ -1,0 +1,240 @@
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
+import { Application } from "@hotwired/stimulus";
+import axios from "axios";
+import { PasskeyAutofillController } from "./passkey";
+
+jest.mock("axios");
+
+const axiosMock = jest.mocked(axios);
+
+// "AQID" is [1, 2, 3] in base64url.
+const OPTIONS_JSON = JSON.stringify({
+  publicKey: {
+    challenge: "AQID",
+    timeout: 3600000,
+    rpId: "localhost",
+    userVerification: "preferred",
+    extensions: { uvm: true },
+  },
+});
+
+interface PendingRequest {
+  options: CredentialRequestOptions;
+  resolve: (credential: unknown) => void;
+  reject: (err: unknown) => void;
+}
+
+let application: Application;
+let requests: PendingRequest[];
+let isConditionalMediationAvailable: jest.Mock<() => Promise<boolean>>;
+let submitClicks: number;
+
+beforeAll(() => {
+  jest.useFakeTimers();
+  application = Application.start();
+  application.register("passkey-autofill", PasskeyAutofillController);
+});
+
+afterAll(() => {
+  application.stop();
+  jest.useRealTimers();
+});
+
+beforeEach(() => {
+  requests = [];
+  submitClicks = 0;
+  isConditionalMediationAvailable = jest.fn(async () => true);
+  Object.defineProperty(window, "PublicKeyCredential", {
+    configurable: true,
+    value: class {
+      static isConditionalMediationAvailable = isConditionalMediationAvailable;
+    },
+  });
+  Object.defineProperty(window.navigator, "credentials", {
+    configurable: true,
+    value: {
+      get: jest.fn(
+        async (options: CredentialRequestOptions) =>
+          new Promise((resolve, reject) => {
+            requests.push({ options, resolve, reject });
+            options.signal?.addEventListener("abort", () => {
+              reject(
+                new DOMException("The operation was aborted.", "AbortError")
+              );
+            });
+          })
+      ),
+    },
+  });
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, "warn").mockImplementation(() => {});
+});
+
+afterEach(async () => {
+  document.body.innerHTML = "";
+  await flush();
+  jest.clearAllTimers();
+  jest.restoreAllMocks();
+  axiosMock.mockReset();
+});
+
+// Stimulus connects controllers from a MutationObserver,
+// and the controller awaits a few promises before calling navigator.credentials.get.
+async function flush(): Promise<void> {
+  for (let i = 0; i < 10; i++) {
+    await Promise.resolve();
+  }
+}
+
+async function render(): Promise<void> {
+  document.body.innerHTML = `
+    <div data-controller="passkey-autofill" data-passkey-autofill-options-value='${OPTIONS_JSON}'>
+      <input type="hidden" data-passkey-autofill-target="input">
+      <button type="button" data-passkey-autofill-target="submit"></button>
+    </div>
+  `;
+  document
+    .querySelector("button")
+    ?.addEventListener("click", () => (submitClicks += 1));
+  await flush();
+}
+
+async function advance(ms: number): Promise<void> {
+  jest.advanceTimersByTime(ms);
+  await flush();
+}
+
+function makeCredential() {
+  return {
+    id: "credential-id",
+    type: "public-key",
+    response: {
+      authenticatorData: new Uint8Array([1]).buffer,
+      clientDataJSON: new Uint8Array([2]).buffer,
+      signature: new Uint8Array([3]).buffer,
+      userHandle: null,
+    },
+    getClientExtensionResults: () => ({}),
+  };
+}
+
+function notAllowed(): DOMException {
+  return new DOMException("The operation is not allowed.", "NotAllowedError");
+}
+
+describe("PasskeyAutofillController", () => {
+  it("requests with the options on the page and conditional mediation", async () => {
+    await render();
+
+    expect(requests).toHaveLength(1);
+    const options = requests[0].options;
+    expect(options.mediation).toEqual("conditional");
+    expect(options.signal).toBeDefined();
+    expect(Array.from(options.publicKey?.challenge as Uint8Array)).toEqual([
+      1, 2, 3,
+    ]);
+    expect(options.publicKey?.rpId).toEqual("localhost");
+    expect(axiosMock).not.toHaveBeenCalled();
+  });
+
+  it("submits the chosen passkey", async () => {
+    await render();
+
+    requests[0].resolve(makeCredential());
+    await flush();
+
+    const input = document.querySelector("input");
+    expect(JSON.parse(input?.value ?? "")).toMatchObject({
+      id: "credential-id",
+      type: "public-key",
+    });
+    expect(submitClicks).toEqual(1);
+  });
+
+  it("retries with the same options after the request fails", async () => {
+    await render();
+
+    await advance(10000);
+    requests[0].reject(notAllowed());
+    await flush();
+    expect(requests).toHaveLength(1);
+
+    await advance(1000);
+    expect(requests).toHaveLength(2);
+    expect(requests[1].options.mediation).toEqual("conditional");
+    expect(
+      Array.from(requests[1].options.publicKey?.challenge as Uint8Array)
+    ).toEqual([1, 2, 3]);
+    expect(axiosMock).not.toHaveBeenCalled();
+  });
+
+  it("backs off while the request fails instantly", async () => {
+    await render();
+
+    requests[0].reject(notAllowed());
+    await flush();
+    await advance(1000);
+    expect(requests).toHaveLength(2);
+
+    requests[1].reject(notAllowed());
+    await flush();
+    await advance(1999);
+    expect(requests).toHaveLength(2);
+    await advance(1);
+    expect(requests).toHaveLength(3);
+
+    // A request that was pending for a while resets the backoff.
+    await advance(10000);
+    requests[2].reject(notAllowed());
+    await flush();
+    await advance(1000);
+    expect(requests).toHaveLength(4);
+  });
+
+  it("aborts the request and stops retrying when disconnected", async () => {
+    await render();
+    const signal = requests[0].options.signal;
+
+    document.body.innerHTML = "";
+    await flush();
+
+    expect(signal?.aborted).toEqual(true);
+    await advance(60000);
+    expect(requests).toHaveLength(1);
+  });
+
+  it("does not request when disconnected before the availability check resolves", async () => {
+    let resolveAvailable: (available: boolean) => void = () => {};
+    isConditionalMediationAvailable.mockImplementation(
+      async () =>
+        new Promise((resolve) => {
+          resolveAvailable = resolve;
+        })
+    );
+    await render();
+
+    document.body.innerHTML = "";
+    await flush();
+    resolveAvailable(true);
+    await advance(60000);
+
+    expect(requests).toHaveLength(0);
+  });
+
+  it("does not request when conditional mediation is unavailable", async () => {
+    isConditionalMediationAvailable.mockResolvedValue(false);
+    await render();
+    await advance(60000);
+
+    expect(requests).toHaveLength(0);
+  });
+});
