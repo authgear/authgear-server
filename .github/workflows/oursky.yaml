@@ -47,6 +47,15 @@ jobs:
         (set -x && cat "$METADATA_FILE")
         export SOURCE_DIGESTS="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
         make -C custombuild tag-image
+        echo "SOURCE_IMAGE=$IMAGE_NAME@$SOURCE_DIGESTS" >> "$GITHUB_ENV"
+    - name: Push to registry.oursky.dev
+      env:
+        AGENTIC_IMAGE_NAME: registry.oursky.dev/authgear-server
+      run: |
+        GIT_HASH="$(make -C custombuild --no-print-directory --eval='print-%: ; @echo $($*)' print-GIT_HASH)"
+        docker buildx imagetools create \
+          --tag "$AGENTIC_IMAGE_NAME:$GIT_HASH" \
+          "$SOURCE_IMAGE"
     - name: Clean up SSH key
       if: ${{ always() }}
       run: |
@@ -90,6 +99,15 @@ jobs:
         (set -x && cat "$METADATA_FILE")
         export SOURCE_DIGESTS="$(jq < "$METADATA_FILE" '.["containerimage.digest"]' -r)"
         make -C custombuild tag-image
+        echo "SOURCE_IMAGE=$IMAGE_NAME@$SOURCE_DIGESTS" >> "$GITHUB_ENV"
+    - name: Push to registry.oursky.dev
+      env:
+        AGENTIC_IMAGE_NAME: registry.oursky.dev/authgear-portal
+      run: |
+        GIT_HASH="$(make -C custombuild --no-print-directory --eval='print-%: ; @echo $($*)' print-GIT_HASH)"
+        docker buildx imagetools create \
+          --tag "$AGENTIC_IMAGE_NAME:$GIT_HASH" \
+          "$SOURCE_IMAGE"
     - name: Clean up SSH key
       if: ${{ always() }}
       run: |
