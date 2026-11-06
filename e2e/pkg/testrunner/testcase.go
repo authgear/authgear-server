@@ -922,6 +922,17 @@ func (tc *TestCase) executeStep(
 			}
 		}
 
+	case StepActionGoTest:
+		output, err := cmd.RunGoTest(step.GoTestPackage, step.GoTestRun)
+		if err != nil {
+			t.Errorf("go test in '%s' failed: %v\n%s", step.Name, err, output)
+			return nil, state, false
+		}
+		result = &StepResult{
+			Result: nil,
+			Error:  nil,
+		}
+
 	default:
 		t.Errorf("unknown action in '%s': %s", step.Name, step.Action)
 		return nil, state, false

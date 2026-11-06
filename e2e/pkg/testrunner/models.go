@@ -276,7 +276,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"generate_refresh_token",
 			"generate_pkce",
 			"clear_cookies",
-			"run_cli"
+			"run_cli",
+			"go_test"
 		]},
 		"sleep_for": { "type": "string", "format": "x_duration_string" },
 		"input": { "type": "string" },
@@ -351,7 +352,9 @@ var _ = TestCaseSchema.Add("Step", `
 			"type": "array",
 			"items": { "type": "string" }
 		},
-		"run_cli_output": { "$ref": "#/$defs/CLIOutput" }
+		"run_cli_output": { "$ref": "#/$defs/CLIOutput" },
+		"go_test_package": { "type": "string" },
+		"go_test_run": { "type": "string" }
 	},
 	"allOf": [
 		{
@@ -601,6 +604,19 @@ var _ = TestCaseSchema.Add("Step", `
 							"run_cli_args"
 						]
 					}
+				},
+				{
+					"if": {
+						"properties": {
+							"action": { "const": "go_test" }
+						}
+					},
+					"then": {
+						"required": [
+							"go_test_package",
+							"go_test_run"
+						]
+					}
 				}
     ]
 }
@@ -720,6 +736,10 @@ type Step struct {
 	RunCLIBinary string     `json:"run_cli_binary"`
 	RunCLIArgs   []string   `json:"run_cli_args"`
 	RunCLIOutput *CLIOutput `json:"run_cli_output"`
+
+	// `action` == "go_test"
+	GoTestPackage string `json:"go_test_package"`
+	GoTestRun     string `json:"go_test_run"`
 }
 
 func (s Step) ResolveHTTPRequestFollowRedirects() bool {
@@ -756,6 +776,7 @@ const (
 	StepActionGeneratePKCE             StepAction = "generate_pkce"
 	StepActionClearCookies             StepAction = "clear_cookies"
 	StepActionRunCLI                   StepAction = "run_cli"
+	StepActionGoTest                   StepAction = "go_test"
 )
 
 var _ = TestCaseSchema.Add("SessionCookie", `

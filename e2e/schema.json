@@ -713,6 +713,21 @@
               "run_cli_args"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "go_test"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "go_test_package",
+              "go_test_run"
+            ]
+          }
         }
       ],
       "properties": {
@@ -741,7 +756,8 @@
             "generate_refresh_token",
             "generate_pkce",
             "clear_cookies",
-            "run_cli"
+            "run_cli",
+            "go_test"
           ],
           "type": "string"
         },
@@ -779,6 +795,12 @@
           "type": "string"
         },
         "generate_refresh_token_user_id": {
+          "type": "string"
+        },
+        "go_test_package": {
+          "type": "string"
+        },
+        "go_test_run": {
           "type": "string"
         },
         "hook_server_min_count": {

@@ -161,6 +161,7 @@ Each step is an API call to the Authflow API. The following steps are available:
 - `action: oauth_redirect`: Redirects to an OAuth provider
 - `action: query`: Query from database
 - `action: http_request`: Sends an HTTP request with the shared cookie jar
+- `action: go_test`: Runs Go tests of the authgear-server module against the e2e environment
 
 #### OAuth redirect
 
@@ -212,6 +213,16 @@ The `query` action is used to query from database. The results can be accessed b
       "identification": "id_token",
       "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
     }
+```
+
+#### Go test
+
+The `go_test` action runs `go test -tags e2e -run <go_test_run> <go_test_package>` from the root of the authgear-server module, with the environment of `e2e/.env`. Use it for code that needs the real database schema, e.g. the SQL of a CLI command. Put such tests in files with `//go:build e2e`, so that `make test` skips them. The step fails if the tests fail or if no test matches `go_test_run`.
+
+```yaml
+- action: go_test
+  go_test_package: ./cmd/portal/internal
+  go_test_run: ^TestE2EApplyDomainK8SResources$
 ```
 
 #### HTTP request
