@@ -13,12 +13,10 @@ authgear.yaml:
             format: rfc5424
             framing: newline
 steps:
-  # Admin API's createUser, with sendPassword true, persists three
-  # entries: email.sent (the password notification), user.created, and
-  # admin_api.mutation.create_user.executed -- the mutation call itself is
-  # also audited. user.created and the mutation event are triggered_by
-  # admin_api; email.sent is always triggered_by user regardless of who
-  # asked for it, by that event's own design. Nothing in the producer or
+  # Admin API's createUser persists two entries, both triggered_by
+  # admin_api: user.created and admin_api.mutation.create_user.executed.
+  # sendPassword is left off: email.sent is dispatched from an async
+  # goroutine, so its delivery order is nondeterministic. Nothing in the producer or
   # the encoder reads triggered_by, so this is the direct proof that
   # streaming is not accidentally gated on how an entry was triggered.
   - name: create_user
@@ -28,15 +26,11 @@ steps:
         mutation createUserMutation(
           $identityDefinition: IdentityDefinitionLoginID!
           $password: String
-          $sendPassword: Boolean
-          $setPasswordExpired: Boolean
         ) {
           createUser(
             input: {
               definition: { loginID: $identityDefinition }
               password: $password
-              sendPassword: $sendPassword
-              setPasswordExpired: $setPasswordExpired
             }
           ) {
             user {
@@ -47,9 +41,7 @@ steps:
       variables: |
         {
           "identityDefinition": { "key": "email", "value": "{{ .AppID }}@example.com" },
-          "password": "SuperSecret123",
-          "sendPassword": true,
-          "setPasswordExpired": true
+          "password": "SuperSecret123"
         }
     admin_api_output:
       result: |
@@ -75,23 +67,16 @@ steps:
       rows: |
         [
           { "activity_type": "admin_api.mutation.create_user.executed" },
-          { "activity_type": "email.sent" },
           { "activity_type": "user.created" }
         ]
 
   - name: wait_for_delivery
     action: syslog_server_query
     syslog_server_port: 5140
-    syslog_server_min_count: 3
+    syslog_server_min_count: 2
     syslog_server_output:
       rows: |
         [
-          {
-            "structured_data": {
-              "app_id": "{{ .AppID }}",
-              "activity_type": "email.sent"
-            }
-          },
           {
             "structured_data": {
               "app_id": "{{ .AppID }}",
