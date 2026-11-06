@@ -15,7 +15,14 @@ import (
 // fakeTranslationService is hand-written because the generated mocks are in package declarative_test.
 type fakeTranslationService map[string]string
 
+// Like the real service, HasKey is false for an empty translation and
+// DefinesKey is not.
 func (s fakeTranslationService) HasKey(ctx context.Context, key string) (bool, error) {
+	v, ok := s[key]
+	return ok && v != "", nil
+}
+
+func (s fakeTranslationService) DefinesKey(ctx context.Context, key string) (bool, error) {
 	_, ok := s[key]
 	return ok, nil
 }
@@ -115,6 +122,32 @@ func TestNewFillFormDataForm(t *testing.T) {
 			So(built["/x_employee_id"].Label, ShouldEqual, "Employee ID")
 		})
 
+		Convey("label uses the form's own translation first", func() {
+			translations["standard-attribute-label-/given_name"] = "First name"
+			translations["v2.page.fill-form.names.field-label-/given_name"] = "Your first name"
+			translations["v2.page.fill-form.other.field-label-/x_employee_id"] = "Staff number"
+			built := build(emptyUser, userProfileField("/given_name", true), userProfileField("/x_employee_id", false))
+			So(built["/given_name"].Label, ShouldEqual, "Your first name")
+			So(built["/x_employee_id"].Label, ShouldEqual, "X Employee Id")
+		})
+
+		Convey("unnamed form uses the attribute label", func() {
+			translations["standard-attribute-label-/given_name"] = "First name"
+			translations["v2.page.fill-form..field-label-/given_name"] = "Wrong"
+			form, err := NewFillFormDataForm(ctx, deps, &config.AuthenticationFlowForm{
+				Fields: []*config.AuthenticationFlowFormField{userProfileField("/given_name", true)},
+			}, emptyUser)
+			So(err, ShouldBeNil)
+			So(form.Fields[0].Label, ShouldEqual, "First name")
+		})
+
+		Convey("boolean form label is sanitized", func() {
+			translations["v2.page.fill-form.names.field-label-/x_terms"] = `I accept the <a href="https://example.com/t">Terms</a><script>x</script>`
+			built := build(emptyUser, userProfileField("/x_terms", true))
+			So(built["/x_terms"].Label, ShouldEqual,
+				`I accept the <a href="https://example.com/t" target="_blank" rel="noopener noreferrer">Terms</a>&lt;script&gt;x&lt;/script&gt;`)
+		})
+
 		Convey("boolean label is sanitized", func() {
 			translations["custom-attribute-label-/x_terms"] = `I accept the <a href="https://example.com/t" onclick="x()">Terms</a><script>x</script>`
 			built := build(emptyUser, userProfileField("/x_terms", true))
@@ -202,5 +235,74 @@ func TestNewFillFormDataForm(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(b), ShouldEqualJSON, `{"type": "fill_form_data", "form": {"fields": []}}`)
 		})
+	})
+}
+
+func TestNewFillFormPageDataForm(t *testing.T) {
+	Convey("NewFillFormPageDataForm", t, func() {
+		ctx := context.Background()
+		translations := fakeTranslationService{
+			"v2.page.fill-form.default.title":       "Complete your profile",
+			"v2.page.fill-form.default.description": "Please provide the following information.",
+		}
+		deps := &authflow.Dependencies{Config: newTestFormConfig(), Translations: translations}
+		emptyUser := &model.User{StandardAttributes: map[string]any{}, CustomAttributes: map[string]any{}}
+		build := func(name string, fields ...*config.AuthenticationFlowFormField) FillFormDataForm {
+			form, err := NewFillFormPageDataForm(ctx, deps, &config.AuthenticationFlowForm{Name: name, Fields: fields}, emptyUser, authflow.FlowTypeSignup)
+			So(err, ShouldBeNil)
+			return form
+		}
+
+		Convey("uses the default form's text", func() {
+			form := build("about", userProfileField("/given_name", true))
+			So(form.Title, ShouldEqual, "Complete your profile")
+			So(form.Description, ShouldEqual, "Please provide the following information.")
+		})
+
+		Convey("prefers the form's own text", func() {
+			translations["v2.page.fill-form.about.title"] = "About you"
+			translations["v2.page.fill-form.about.description"] = "Tell us more."
+			form := build("about", userProfileField("/given_name", true))
+			So(form.Title, ShouldEqual, "About you")
+			So(form.Description, ShouldEqual, "Tell us more.")
+		})
+
+		Convey("an empty description of the form's own hides it", func() {
+			translations["v2.page.fill-form.about.description"] = ""
+			form := build("about", userProfileField("/given_name", true))
+			So(form.Description, ShouldEqual, "")
+			b, err := json.Marshal(form)
+			So(err, ShouldBeNil)
+			So(string(b), ShouldNotContainSubstring, `"description"`)
+		})
+
+		Convey("an unnamed form uses the default form's text", func() {
+			form := build("", userProfileField("/given_name", true))
+			So(form.Title, ShouldEqual, "Complete your profile")
+		})
+
+		Convey("placeholder on fields you type into", func() {
+			translations["v2.page.fill-form.about.field-placeholder-/given_name"] = "e.g. Jane"
+			translations["v2.page.fill-form.about.field-placeholder-/birthdate"] = "ignored"
+			form := build("about", userProfileField("/given_name", true), userProfileField("/birthdate", false))
+			So(form.Fields[0].Placeholder, ShouldEqual, "e.g. Jane")
+			So(form.Fields[1].Placeholder, ShouldEqual, "")
+		})
+	})
+
+	Convey("NewFillFormDataForm, for a form on an identify option", t, func() {
+		translations := fakeTranslationService{
+			"v2.page.fill-form.default.title":                       "Complete your profile",
+			"v2.page.fill-form.about.field-placeholder-/given_name": "e.g. Jane",
+		}
+		deps := &authflow.Dependencies{Config: newTestFormConfig(), Translations: translations}
+		emptyUser := &model.User{StandardAttributes: map[string]any{}, CustomAttributes: map[string]any{}}
+		form, err := NewFillFormDataForm(context.Background(), deps, &config.AuthenticationFlowForm{
+			Name:   "about",
+			Fields: []*config.AuthenticationFlowFormField{userProfileField("/given_name", true)},
+		}, emptyUser)
+		So(err, ShouldBeNil)
+		So(form.Title, ShouldEqual, "")
+		So(form.Fields[0].Placeholder, ShouldEqual, "")
 	})
 }

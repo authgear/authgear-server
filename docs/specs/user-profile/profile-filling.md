@@ -160,9 +160,20 @@ The developer can override the built-in keys to change the text of every form, o
 
 A form in an `identify` step has no page of its own, so its title and description are not shown; the page keeps the identify page's title.
 
-These keys are used by Auth UI. The Authflow API returns the form's `name`, as `form.name`, instead of the text, so a Custom UI shows its own title and description; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
+Auth UI shows the title and description, and the Authflow API returns them as `form.title` and `form.description`, so a Custom UI can show the same text; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
 
-Fields use the translation keys of their attributes. Labels are defined in [Standard attribute labels](./design.md#standard-attribute-labels) and [Defining custom attributes](./design.md#defining-custom-attributes); `enum` option labels in [Custom Attribute type enum](./design.md#custom-attribute-type-enum). The message for a failed `pattern` is defined in [String constraints](./design.md#string-constraints).
+A field's label is the first of these that is set:
+
+| Key                                              | Meaning                                                                                                                                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `v2.page.fill-form.{name}.field-label-{pointer}` | The label of the field in the forms with that `name`, for example `v2.page.fill-form.marketing.field-label-/given_name`. A form without a `name` has no such key.                          |
+| The attribute's label key                        | The label of the attribute in every form; see [Standard attribute labels](./design.md#standard-attribute-labels) and [Defining custom attributes](./design.md#defining-custom-attributes). |
+
+Without either, the label is derived from the attribute name. A `boolean` field's label may contain links whichever key it comes from.
+
+A field's placeholder, example text shown in an empty field, is `v2.page.fill-form.{name}.field-placeholder-{pointer}`, for example `v2.page.fill-form.marketing.field-placeholder-/given_name`. It applies to fields of type `string`, `email`, `url`, `integer`, `number` and `phone_number`. Unset, the field has none. A form in an `identify` step has no placeholders: its fields show their labels in the inputs, like the login ID.
+
+Other field text uses the translation keys of the attribute: `enum` option labels in [Custom Attribute type enum](./design.md#custom-attribute-type-enum). The message for a failed `pattern` is defined in [String constraints](./design.md#string-constraints).
 
 The hook response and the Authflow API are not configuration; see [Validation hook](#validation-hook) and [the API reference](../authentication-flow-api-reference.md#type-signup-actiontype-fill_form).
 
@@ -224,6 +235,8 @@ After the password step, the flow responds:
       "data": {
         "type": "fill_form_data",
         "form": {
+          "title": "Complete your profile",
+          "description": "Please provide the following information to complete your signup.",
           "fields": [
             {
               "key": "/given_name",
@@ -944,7 +957,7 @@ In the Authflow API, the field's `key` is its pointer, and its `type` is:
 | Custom attribute of type `string`, `integer`, `number`, `enum`, `phone_number`, `email`, `url`, or `boolean` | The same name                                               |
 | Custom attribute of type [`alpha2`](./design.md#custom-attribute-type-alpha2)                                | `country_code`                                              |
 
-The `label` and `enum` option labels use the attribute's [translations](#translations). `constraints` are the attribute's [string constraints](./design.md#string-constraints) or its `minimum` and `maximum`.
+The `label` and `enum` option labels use the [translations](#translations). `constraints` are the attribute's [string constraints](./design.md#string-constraints) or its `minimum` and `maximum`.
 
 #### Fillable attributes
 
@@ -1079,7 +1092,7 @@ A backend must not assume a user has an attribute because a flow requires it. Se
 
 - Each `fill_form` step is one page. The page shows the form's [title and description](#translations), then its fields in order.
 - A form in an `identify` step is shown below the login ID input, without its title and description. When the step has several branches with forms, each branch's input shows its own fields.
-- Each field's input follows its `type`; see [user_profile field](#user_profile-field) and [fill_form_data](../authentication-flow-api-reference.md#fill_form_data). Labels use the attribute's [translations](#translations).
+- Each field's input follows its `type`; see [user_profile field](#user_profile-field) and [fill_form_data](../authentication-flow-api-reference.md#fill_form_data). Labels use the [translations](#translations).
 - Required fields are marked. The page cannot be submitted until they are filled.
 - A page whose fields are all optional can be submitted with every field empty.
 - Constraint errors and the hook's rejected attributes are shown under their field. The hook's `title` and `reason`, when present, are shown above the form.

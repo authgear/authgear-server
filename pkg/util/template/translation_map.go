@@ -18,6 +18,12 @@ func (t *TranslationMap) HasKey(key string) bool {
 	return ok && !messageformat.IsEmptyParseTree(tree)
 }
 
+// DefinesKey reports whether the key is set, an empty translation included.
+func (t *TranslationMap) DefinesKey(key string) bool {
+	_, ok := t.items[key]
+	return ok
+}
+
 func (t *TranslationMap) RenderText(key string, args any) (string, error) {
 	tree, ok := t.items[key]
 	if !ok {

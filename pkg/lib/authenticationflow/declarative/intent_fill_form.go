@@ -134,7 +134,8 @@ func (i *IntentFillForm) OutputData(ctx context.Context, deps *authflow.Dependen
 		return nil, err
 	}
 
-	dataForm, err := NewFillFormDataForm(ctx, deps, form, user)
+	flowType := flows.Root.Intent.(authflow.PublicFlow).FlowType()
+	dataForm, err := NewFillFormPageDataForm(ctx, deps, form, user, flowType)
 	if err != nil {
 		return nil, err
 	}
