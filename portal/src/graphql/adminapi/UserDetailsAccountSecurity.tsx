@@ -1065,6 +1065,20 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       return true;
     }, [authenticationConfig, globalGracePeriodEndAt, userMFAGracePeriodEndAt]);
 
+    // The server rejects a grace period ending more than 90 days from now, so
+    // offer "extend" only while another 10 days stays within that.
+    const extensionWithinLimit = useMemo(() => {
+      if (userMFAGracePeriodEndAt == null) {
+        return true;
+      }
+      const now = DateTime.now();
+      const fromDate = DateTime.max(
+        now,
+        DateTime.fromISO(userMFAGracePeriodEndAt)
+      );
+      return fromDate.plus({ days: 10 }) <= now.plus({ days: 90 });
+    }, [userMFAGracePeriodEndAt]);
+
     const showConfirmationDialog = useCallback(
       (options: RemoveConfirmationDialogData) => {
         setConfirmationDialogData(options);
@@ -1474,7 +1488,11 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 {canExtendMFAGracePeriod ? (
                   <div className={styles.updateMFAGracePeriodContainer}>
                     <FormattedMessage
-                      id="UserDetails.account-security.secondary.update-existing-grace-period"
+                      id={
+                        extensionWithinLimit
+                          ? "UserDetails.account-security.secondary.update-existing-grace-period"
+                          : "UserDetails.account-security.secondary.cancel-existing-grace-period"
+                      }
                       values={{
                         extend: onRenderExtendedMFAGracePeriod,
                         cancel: onRenderCancelMFAGracePeriod,
@@ -1683,7 +1701,11 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 {canExtendMFAGracePeriod ? (
                   <div className={styles.updateMFAGracePeriodContainer}>
                     <FormattedMessage
-                      id="UserDetails.account-security.secondary.update-existing-grace-period"
+                      id={
+                        extensionWithinLimit
+                          ? "UserDetails.account-security.secondary.update-existing-grace-period"
+                          : "UserDetails.account-security.secondary.cancel-existing-grace-period"
+                      }
                       values={{
                         extend: onRenderExtendedMFAGracePeriod,
                         cancel: onRenderCancelMFAGracePeriod,

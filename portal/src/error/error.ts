@@ -33,7 +33,6 @@ import {
   HookDeliveryTimeoutError,
   HookInvalidResponseError,
 } from "./webhook";
-import { APIBadNFTCollectionError, APIAlchemyProtocolError } from "./web3";
 import type { ParsedAPIError } from "./parse";
 import { APIResourceUpdateConflictError } from "./resourceUpdateConflict";
 
@@ -70,6 +69,12 @@ export interface ServiceUnavailableError {
   reason: "ServiceUnavailable";
 }
 
+// apierrors.NewInvalid uses the kind as the reason.
+export interface GenericInvalidError {
+  errorName: "Invalid";
+  reason: "Invalid";
+}
+
 export interface UnknownError {
   errorName: "Unknown";
   reason: "Unknown";
@@ -86,6 +91,35 @@ export interface LocalError {
 export interface APIDenoCheckError {
   errorName: string;
   reason: "DenoCheckError";
+}
+
+export interface APIDenoRunError {
+  errorName: string;
+  reason: "DenoRunError";
+}
+
+export interface APIHookDeliveryUnknownFailureError {
+  errorName: string;
+  reason: "HookDeliveryUnknownFailure";
+}
+
+export interface APIUsageLimitExceededError {
+  errorName: string;
+  reason: "UsageLimitExceeded";
+  info: {
+    usage_name: string;
+    period?: string;
+  };
+}
+
+export interface APIMFAGracePeriodInvalidError {
+  errorName: string;
+  reason: "MFAGracePeriodInvalid";
+}
+
+export interface APIScopeDuplicateError {
+  errorName: string;
+  reason: "ScopeDuplicate";
 }
 
 export interface APIRoleDuplicateKeyError {
@@ -119,7 +153,9 @@ export interface APISMSGatewayError {
     | "SMSGatewayInvalidPhoneNumber"
     | "SMSGatewayAuthenticationFailed"
     | "SMSGatewayDeliveryRejected"
-    | "SMSGatewayRateLimited";
+    | "SMSGatewayRateLimited"
+    | "SMSGatewayTimeout"
+    | "SMSGatewayUnsupportedRequest";
   info: {
     ProviderErrorCode: string;
     ProviderName: string;
@@ -138,6 +174,7 @@ export type APIError = { message?: string } & (
   | RequestEntityTooLargeError
   | ForbiddenError
   | UnknownError
+  | GenericInvalidError
   | LocalError
   | TooManyRequestError
   | RateLimitedError
@@ -166,9 +203,12 @@ export type APIError = { message?: string } & (
   | APIResourceNotFoundError
   | APIResourceTooLargeError
   | APIUnsupportedImageFileError
-  | APIBadNFTCollectionError
-  | APIAlchemyProtocolError
   | APIDenoCheckError
+  | APIDenoRunError
+  | APIHookDeliveryUnknownFailureError
+  | APIUsageLimitExceededError
+  | APIMFAGracePeriodInvalidError
+  | APIScopeDuplicateError
   | APIResourceUpdateConflictError
   | APIRoleDuplicateKeyError
   | APIGroupDuplicateKeyError
