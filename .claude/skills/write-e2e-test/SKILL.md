@@ -188,7 +188,7 @@ To expect an error response:
 
 **Important:** The `_audit_log.data` column stores the full serialized `event.Event`. JSON paths must include the `payload` level: `data->'payload'->'field'`.
 
-**Ordering tip:** When multiple rows can land in the same second, `ORDER BY created_at` is non-deterministic. Add a secondary sort on a stable column (e.g., `ORDER BY decision, created_at`).
+**Ordering tip:** `created_at` has second precision, so `ORDER BY created_at` is non-deterministic for rows from the same request. Sort first on a column whose values differ across the expected rows. See [Avoiding Flaky Tests](#avoiding-flaky-tests).
 
 ### `http_request` — Raw HTTP request
 ```yaml
@@ -337,6 +337,18 @@ go test ./pkg/testrunner -count 1 -v -timeout 10m -run "TestAuthflow/<folder>/<f
 
 If a test fails, read the error output, fix the test file, and re-run. Do not report the tests as done until they pass.
 
+If the test asserts an order (multiple rows, delivered events), or waits on async work, run it several times (`-count 5`) before reporting it done. One local pass does not prove the order is deterministic; CI is slower and loses races that pass locally.
+
+## Avoiding Flaky Tests
+
+Array matching is positional: there is no "any order" matcher. Every row list you assert must have exactly one possible order.
+
+- **SQL ordering must be total.** `_audit_log.created_at` has second precision and `id` is a random UUID, so `ORDER BY created_at, id` is random for rows from the same request. Order by a column whose values differ across the rows you expect (e.g. `ORDER BY activity_type`). If two expected rows could tie on every sort column, the test is flaky.
+- **Delivered events arrive in dispatch order, not causal order.** `hook_server_query` and `syslog_server_query` return rows as the server received them. `hook_server_query` sorts by a top-level `seq` only when every row has one (non-blocking webhooks); audit-log streaming payloads (Datadog, syslog) are not sorted.
+- **Know which events are async.** Email delivery runs in a goroutine (`Sender.SendEmailInNewGoroutine`) and dispatches `email.sent` / `email.error` when the SMTP send finishes, i.e. after the HTTP response may already be back. Its position relative to events from the same request (e.g. Admin API `createUser` with `sendPassword: true` → `user.created`) is random. Events dispatched with `DispatchEventOnCommit` in one request are ordered.
+- **Remove the race rather than assert around it.** Do not trigger async side effects the test is not about (leave out `sendPassword`, etc.). If the async event is the subject, put it in its own step and wait for it (`*_min_count`) before triggering the next event.
+- **Wait, do not sleep.** For async delivery use `hook_server_min_count` / `syslog_server_min_count`, which poll until the rows exist. `sleep` is a guess that CI will eventually lose.
+
 ## Common Mistakes
 
 ### ❌ Testing Only Endpoint Existence, Not Functionality
@@ -455,7 +467,7 @@ steps:
 3. OTP codes in test mode are always `111111` — no need to fetch them dynamically for phone/email OTP.
 4. Each test case gets a fully isolated app (unique `AppID`) — no cleanup needed.
 5. When testing audit events, always check the JSON path includes `payload`: `data->'payload'->'...'`.
-6. Prefer `ORDER BY <stable_column>, created_at` over `ORDER BY created_at` alone to avoid flaky ordering.
+6. Every asserted row list must have exactly one possible order. See [Avoiding Flaky Tests](#avoiding-flaky-tests).
 7. To focus on one test during development, pass `-run "TestAuthflow/path/to/test"` to the test command.
 8. After environment changes, run `make teardown && make setup` to apply latest migrations.
 9. Always write JSON values in `input`, `output`, `query_output`, and `audit_query_output` as multi-line for readability. Prefer:

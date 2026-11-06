@@ -11,12 +11,10 @@ authgear.yaml:
           http:
             endpoint: http://127.0.0.1:2626/[[.AppID]]/logs
 steps:
-  # Admin API's createUser, with sendPassword true, persists three
-  # entries: email.sent (the password notification), user.created, and
-  # admin_api.mutation.create_user.executed -- the mutation call itself is
-  # also audited. user.created and the mutation event are triggered_by
-  # admin_api; email.sent is always triggered_by user regardless of who
-  # asked for it, by that event's own design. The datadog log object is
+  # Admin API's createUser persists two entries, both triggered_by
+  # admin_api: user.created and admin_api.mutation.create_user.executed.
+  # sendPassword is left off: email.sent is dispatched from an async
+  # goroutine, so its delivery order is nondeterministic. The datadog log object is
   # the one encoding that can prove triggered_by directly: authgear.event
   # carries the event verbatim, including context.triggered_by, which
   # neither the syslog structured data nor any other mapped field
@@ -28,15 +26,11 @@ steps:
         mutation createUserMutation(
           $identityDefinition: IdentityDefinitionLoginID!
           $password: String
-          $sendPassword: Boolean
-          $setPasswordExpired: Boolean
         ) {
           createUser(
             input: {
               definition: { loginID: $identityDefinition }
               password: $password
-              sendPassword: $sendPassword
-              setPasswordExpired: $setPasswordExpired
             }
           ) {
             user {
@@ -47,9 +41,7 @@ steps:
       variables: |
         {
           "identityDefinition": { "key": "email", "value": "{{ .AppID }}@example.com" },
-          "password": "SuperSecret123",
-          "sendPassword": true,
-          "setPasswordExpired": true
+          "password": "SuperSecret123"
         }
     admin_api_output:
       result: |
@@ -75,20 +67,16 @@ steps:
       rows: |
         [
           { "activity_type": "admin_api.mutation.create_user.executed" },
-          { "activity_type": "email.sent" },
           { "activity_type": "user.created" }
         ]
 
   - name: wait_for_delivery
     action: hook_server_query
     hook_server_path: "{{ .AppID }}/logs"
-    hook_server_min_count: 3
+    hook_server_min_count: 2
     hook_server_output:
       rows: |
         [
-          {
-            "evt": { "name": "email.sent" }
-          },
           {
             "evt": { "name": "user.created" },
             "authgear": {
