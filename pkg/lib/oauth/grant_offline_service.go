@@ -19,10 +19,6 @@ type ServiceIDPSessionProvider interface {
 	Get(ctx context.Context, id string) (*idpsession.IDPSession, error)
 	CheckSessionExpired(session *idpsession.IDPSession) (expired bool)
 }
-type OfflineGrantServiceAccessEventProvider interface {
-	RecordAccess(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error
-}
-
 type OfflineGrantServiceMeterService interface {
 	TrackActiveUser(ctx context.Context, userID string) error
 }
@@ -35,16 +31,14 @@ type OfflineGrantService struct {
 	Clock          clock.Clock
 	IDPSessions    ServiceIDPSessionProvider
 	ClientResolver OAuthClientResolver
-	AccessEvents   OfflineGrantServiceAccessEventProvider
 	MeterService   OfflineGrantServiceMeterService
 
 	OfflineGrants OfflineGrantStore
 }
 
-// AccessOfflineGrant accesses oauth offline grant with 3 targeted side effects
+// AccessOfflineGrant accesses oauth offline grant with 2 targeted side effects
 // 1. set grant.AccessInfo.LastAccess to new accessEvent
-// 2. call RecordAccess
-// 3. call TrackActiveUser
+// 2. call TrackActiveUser
 func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, initialRefreshTokenHash string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
 	grant, err := s.OfflineGrants.UpdateOfflineGrantWithMutator(ctx, grantID, expireAt, func(grant *OfflineGrant) *OfflineGrant {
 		grant.AccessInfo.LastAccess = *accessEvent
@@ -65,11 +59,6 @@ func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID st
 		}
 		return grant
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.AccessEvents.RecordAccess(ctx, grant.ID, grant.ExpireAtForResolvedSession, accessEvent)
 	if err != nil {
 		return nil, err
 	}

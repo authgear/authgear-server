@@ -1,10 +1,8 @@
 package cmdinternal
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -17,13 +15,11 @@ func init() {
 	binder := authgearcmd.GetBinder()
 
 	cmdInternal.AddCommand(cmdInternalRedis)
-	cmdInternalRedis.AddCommand(cmdInternalRedisCleanUpNonExpiringKeys)
 
-	binder.BindString(cmdInternalRedisCleanUpNonExpiringKeys.Flags(), authgearcmd.ArgRedisURL)
-	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().Bool("dry-run", true, "Dry-run or not.")
-	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().String("scan-count", "100", "Redis SCAN count")
-	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().String("expiration", "", "A Go duration literal.")
-	_ = cmdInternalRedisCleanUpNonExpiringKeys.Flags().String("key-pattern", "", fmt.Sprintf("One of %v", strings.Join(cmdredis.KnownKeyPatterns, ",")))
+	cmdInternalRedis.AddCommand(cmdInternalRedisHousekeep)
+	binder.BindString(cmdInternalRedisHousekeep.Flags(), authgearcmd.ArgRedisURL)
+	_ = cmdInternalRedisHousekeep.Flags().Bool("dry-run", true, "Dry-run or not.")
+	_ = cmdInternalRedisHousekeep.Flags().String("scan-count", "10000", "Redis SCAN count, which is roughly the number of keys handled per batch")
 }
 
 var cmdInternalRedis = &cobra.Command{
@@ -31,10 +27,10 @@ var cmdInternalRedis = &cobra.Command{
 	Short: "Redis commands",
 }
 
-// See https://linear.app/authgear/issue/DEV-1325/properly-clean-up-redis-keys
-var cmdInternalRedisCleanUpNonExpiringKeys = &cobra.Command{
-	Use:   "clean-up-non-expiring-keys",
-	Short: "Clean up non-expiring keys.",
+// See https://linear.app/authgear/issue/DEV-3995
+var cmdInternalRedisHousekeep = &cobra.Command{
+	Use:   "housekeep",
+	Short: "Delete or fix the expiry of Redis keys that are known to leak. Safe to run again.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := authgearcmd.GetBinder()
 
@@ -49,22 +45,13 @@ var cmdInternalRedisCleanUpNonExpiringKeys = &cobra.Command{
 		}
 
 		scanCountString := cmd.Flags().Lookup("scan-count").Value.String()
-		expirationString := cmd.Flags().Lookup("expiration").Value.String()
-		keyPattern := cmd.Flags().Lookup("key-pattern").Value.String()
 		dryRun := cmd.Flags().Lookup("dry-run").Value.String() == "true"
 		now := time.Now().UTC()
 
-		err = cmdredis.CleanUpNonExpiringKeys(cmd.Context(), redisClient, os.Stdout, log.Default(), cmdredis.CleanUpNonExpiringKeysOptions{
-			ScanCountString:  scanCountString,
-			KeyPattern:       keyPattern,
-			ExpirationString: expirationString,
-			DryRun:           dryRun,
-			Now:              now,
+		return cmdredis.Housekeep(cmd.Context(), redisClient, os.Stdout, log.Default(), cmdredis.HousekeepOptions{
+			ScanCountString: scanCountString,
+			DryRun:          dryRun,
+			Now:             now,
 		})
-		if err != nil {
-			return err
-		}
-
-		return nil
 	},
 }
