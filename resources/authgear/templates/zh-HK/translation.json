@@ -900,6 +900,7 @@
   "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp-or-sms": "+ 新增 WhatsApp/SMS 電話號碼",
   "v2.page.settings-passkey.default.add-passkey-button-label": "+ 新增通行密匙",
   "v2.page.settings-passkey.default.item-description": "新增時間： <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
+  "v2.page.settings-passkey.default.item-label-unknown-provider": "通行密鑰",
   "v2.page.settings-passkey.default.remove-passkey-dialog-description": "您確定要刪除此密鑰嗎？",
   "v2.page.settings-passkey.default.remove-passkey-dialog-title": "移除 Passkey",
   "v2.page.settings-passkey.default.title": "通行密鑰",

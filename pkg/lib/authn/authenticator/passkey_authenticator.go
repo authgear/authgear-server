@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/passkeyprovider"
 )
 
 type Passkey struct {
@@ -19,6 +20,8 @@ type Passkey struct {
 	// SignCount of 0 means sign count is not supported by the authenticator.
 	// So we do not include omitempty here.
 	SignCount int64 `json:"sign_count"`
+	// AAGUID is read from AttestationResponse, and is not stored on its own.
+	AAGUID string `json:"aaguid,omitempty"`
 }
 
 func (a *Passkey) ToInfo() *Info {
@@ -33,4 +36,11 @@ func (a *Passkey) ToInfo() *Info {
 
 		Passkey: a,
 	}
+}
+
+// ProviderName returns the name of the provider that stores the passkey,
+// or an empty string when it is unknown.
+func (a *Passkey) ProviderName() string {
+	name, _ := passkeyprovider.Name(a.AAGUID)
+	return name
 }

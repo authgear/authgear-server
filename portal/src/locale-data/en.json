@@ -366,6 +366,7 @@
   "UserDetails.account-security.header": "Account Security",
   "UserDetails.account-security.last-updated": "Last updated on {datetime}",
   "UserDetails.account-security.added-on": "Added: {datetime}",
+  "UserDetails.account-security.passkey.unknown-provider": "Passkey",
   "UserDetails.account-security.change-password": "Change Password",
   "UserDetails.account-security.remove-password": "Remove Password",
   "UserDetails.account-security.primary": "Primary Authenticators",

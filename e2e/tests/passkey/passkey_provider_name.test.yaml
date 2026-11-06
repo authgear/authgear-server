@@ -1,0 +1,163 @@
+name: Name a passkey by the provider its AAGUID identifies
+# The software authenticator reports the AAGUID of Apple Passwords, and the
+# passkey identity and authenticator both carry the provider name.
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      - passkey
+      primary_authenticators:
+      - password
+      - passkey
+    authentication_flow:
+      login_flows:
+      - name: default
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: username
+            steps:
+            - name: authenticate_primary_username
+              type: authenticate
+              one_of:
+              - authentication: primary_password
+          - identification: passkey
+        - type: check_account_status
+        - type: terminate_other_sessions
+        - type: prompt_create_passkey
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: upsell
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "prompt_create_passkey",
+            "data": {
+              "creation_options": "[[object]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "creation_response": {{ generatePasskeyAttestationWithAAGUID .steps.upsell.result.action.data.creation_options (printf "http://%s.authgeare2e.localhost:4000" .AppID) "fbfc3007-154e-4ecc-8c0b-6e020557d7bd" }}
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: get_user_id
+    action: query
+    query: |
+      SELECT "id" FROM "_auth_user"
+      WHERE "app_id" = '{{ .AppID }}'
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
+
+  - action: admin_api_graphql
+    admin_api_request:
+      query: |
+        query getUser($userID: ID!) {
+          node(id: $userID) {
+            ... on User {
+              identities(identityType: PASSKEY) {
+                edges {
+                  node {
+                    claims
+                  }
+                }
+              }
+              authenticators(authenticatorType: PASSKEY) {
+                edges {
+                  node {
+                    claims
+                  }
+                }
+              }
+            }
+          }
+        }
+      variables: |
+        {
+          "userID": "{{ nodeID "User" (index .steps.get_user_id.result.rows 0).id }}"
+        }
+    admin_api_output:
+      result: |
+        {
+          "data": {
+            "node": {
+              "identities": {
+                "edges": [
+                  {
+                    "node": {
+                      "claims": {
+                        "https://authgear.com/claims/passkey/aaguid": "fbfc3007-154e-4ecc-8c0b-6e020557d7bd",
+                        "https://authgear.com/claims/passkey/provider_name": "Apple Passwords"
+                      }
+                    }
+                  }
+                ]
+              },
+              "authenticators": {
+                "edges": [
+                  {
+                    "node": {
+                      "claims": {
+                        "https://authgear.com/claims/passkey/aaguid": "fbfc3007-154e-4ecc-8c0b-6e020557d7bd",
+                        "https://authgear.com/claims/passkey/provider_name": "Apple Passwords"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "errors": null
+        }

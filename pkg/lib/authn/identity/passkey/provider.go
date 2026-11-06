@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/passkeyprovider"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -70,12 +71,18 @@ func (p *Provider) New(
 		return nil, err
 	}
 
+	aaguid, err := passkeyprovider.AAGUIDFromAttestationResponse(attestationResponse)
+	if err != nil {
+		return nil, err
+	}
+
 	i := &identity.Passkey{
 		ID:                  uuid.New(),
 		UserID:              userID,
 		CredentialID:        credentialID,
 		CreationOptions:     creationOptions,
 		AttestationResponse: attestationResponse,
+		AAGUID:              aaguid,
 	}
 	return i, nil
 }

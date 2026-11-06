@@ -900,6 +900,7 @@
   "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp-or-sms": "+ 添加 WhatsApp/短信手机号码",
   "v2.page.settings-passkey.default.add-passkey-button-label": "+ 添加 Passkey",
   "v2.page.settings-passkey.default.item-description": "添加于 <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
+  "v2.page.settings-passkey.default.item-label-unknown-provider": "Passkey",
   "v2.page.settings-passkey.default.remove-passkey-dialog-description": "您确定要移除此 Passkey 吗?",
   "v2.page.settings-passkey.default.remove-passkey-dialog-title": "移除 Passkey",
   "v2.page.settings-passkey.default.title": "Passkey",

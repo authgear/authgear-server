@@ -34,6 +34,13 @@ const (
 	IdentityClaimPasskeyCredentialID string = "https://authgear.com/claims/passkey/credential_id"
 	// nolint: gosec
 	IdentityClaimPasskeyDisplayName string = "https://authgear.com/claims/passkey/display_name"
+	// IdentityClaimPasskeyAAGUID is a claim with a string value like `fbfc3007-154e-4ecc-8c0b-6e020557d7bd`.
+	// nolint: gosec
+	IdentityClaimPasskeyAAGUID string = "https://authgear.com/claims/passkey/aaguid"
+	// IdentityClaimPasskeyProviderName is a claim with a string value like `Apple Passwords`.
+	// It is absent when the AAGUID is unknown.
+	// nolint: gosec
+	IdentityClaimPasskeyProviderName string = "https://authgear.com/claims/passkey/provider_name"
 
 	// IdentityClaimSIWEAddress is a claim with a string value.
 	IdentityClaimSIWEAddress string = "https://authgear.com/claims/siwe/address"

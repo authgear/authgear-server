@@ -900,6 +900,7 @@
   "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp-or-sms": "+ WhatsApp/SMS-Telefonnummer hinzufügen",
   "v2.page.settings-passkey.default.add-passkey-button-label": "+ Passkey hinzufügen",
   "v2.page.settings-passkey.default.item-description": "Hinzugefügt um <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
+  "v2.page.settings-passkey.default.item-label-unknown-provider": "Passkey",
   "v2.page.settings-passkey.default.remove-passkey-dialog-description": "Sind Sie sicher, dass Sie diese Passkey entfernen möchten?",
   "v2.page.settings-passkey.default.remove-passkey-dialog-title": "Passkey entfernen",
   "v2.page.settings-passkey.default.title": "Passkey",

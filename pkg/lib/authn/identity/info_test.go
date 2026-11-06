@@ -134,7 +134,46 @@ func TestInfoJSON(t *testing.T) {
 					PublicKey: model.PublicKeyCredentialCreationOptions{},
 				},
 				AttestationResponse: []byte("abc"),
+				AAGUID:              "fbfc3007-154e-4ecc-8c0b-6e020557d7bd",
 			},
+		})
+	})
+}
+
+func TestInfoToModelPasskey(t *testing.T) {
+	Convey("Info.ToModel of a passkey", t, func() {
+		makeInfo := func(aaguid string) *Info {
+			return (&Passkey{
+				ID:           "id",
+				UserID:       "userid",
+				CredentialID: "credentialid",
+				CreationOptions: &model.WebAuthnCreationOptions{
+					PublicKey: model.PublicKeyCredentialCreationOptions{
+						User: model.PublicKeyCredentialUserEntity{
+							DisplayName: "user@example.com",
+						},
+					},
+				},
+				AAGUID: aaguid,
+			}).ToInfo()
+		}
+
+		Convey("has the AAGUID and the provider name of a known AAGUID", func() {
+			claims := makeInfo("fbfc3007-154e-4ecc-8c0b-6e020557d7bd").ToModel().Claims
+			So(claims[IdentityClaimPasskeyAAGUID], ShouldEqual, "fbfc3007-154e-4ecc-8c0b-6e020557d7bd")
+			So(claims[IdentityClaimPasskeyProviderName], ShouldEqual, "Apple Passwords")
+		})
+
+		Convey("has no provider name for the all-zero AAGUID", func() {
+			claims := makeInfo("00000000-0000-0000-0000-000000000000").ToModel().Claims
+			So(claims[IdentityClaimPasskeyAAGUID], ShouldEqual, "00000000-0000-0000-0000-000000000000")
+			So(claims, ShouldNotContainKey, IdentityClaimPasskeyProviderName)
+		})
+
+		Convey("has neither claim without an AAGUID", func() {
+			claims := makeInfo("").ToModel().Claims
+			So(claims, ShouldNotContainKey, IdentityClaimPasskeyAAGUID)
+			So(claims, ShouldNotContainKey, IdentityClaimPasskeyProviderName)
 		})
 	})
 }

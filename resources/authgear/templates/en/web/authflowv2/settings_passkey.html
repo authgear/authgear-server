@@ -19,9 +19,13 @@
 >
   {{ $ctx := . }}
   {{ range $.PasskeyIdentities }}
+    {{ $label := .Passkey.ProviderName }}
+    {{ if not $label }}
+      {{ $label = translate "v2.page.settings-passkey.default.item-label-unknown-provider" nil }}
+    {{ end }}
     {{ template "authflowv2/__settings_item.html"
       (dict
-        "Label" .Passkey.CreationOptions.PublicKey.User.DisplayName
+        "Label" $label
         "WithArrow" false
         "ActionButton" (include "__settings_passkey_item_remove_btn.html" (dict "DialogID" .ID))
         "SupplementaryNote" ( include "__settings_passkey_item_description.html" . )

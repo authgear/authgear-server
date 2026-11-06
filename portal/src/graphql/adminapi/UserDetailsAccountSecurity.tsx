@@ -66,6 +66,7 @@ interface UserDetailsAccountSecurityProps {
 interface PasskeyIdentityData {
   id: string;
   displayName: string;
+  providerName: string | null;
   addedOn: string;
 }
 
@@ -175,6 +176,9 @@ function constructPasskeyIdentityData(
     displayName: (identity.claims[
       "https://authgear.com/claims/passkey/display_name"
     ] ?? "") as string,
+    providerName: (identity.claims[
+      "https://authgear.com/claims/passkey/provider_name"
+    ] ?? null) as string | null,
     addedOn,
   };
 }
@@ -570,8 +574,14 @@ const SecondaryAuthenticatorTableCell: React.VFC<SecondaryAuthenticatorTableCell
 
 const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
   function PasskeyIdentityCell(props: PasskeyIdentityCellProps) {
-    const { id, displayName, addedOn, showConfirmationDialog, withTopSpacing } =
-      props;
+    const {
+      id,
+      displayName,
+      providerName,
+      addedOn,
+      showConfirmationDialog,
+      withTopSpacing,
+    } = props;
     const onRemoveClicked = useCallback(() => {
       showConfirmationDialog({
         id,
@@ -597,6 +607,15 @@ const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
           size="2"
           weight="medium"
           className={cn(styles.cellLabel, styles.passkeyCellLabel)}
+        >
+          {providerName ?? (
+            <FormattedMessage id="UserDetails.account-security.passkey.unknown-provider" />
+          )}
+        </Text>
+        <Text
+          size="2"
+          color="gray"
+          className={cn(styles.cellDesc, styles.passkeyCellDisplayName)}
         >
           {displayName}
         </Text>

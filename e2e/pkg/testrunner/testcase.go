@@ -1076,6 +1076,13 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 		}
 		return response
 	}
+	templateFuncMap["generatePasskeyAttestationWithAAGUID"] = func(options any, origin string, aaguid string) string {
+		response, err := GeneratePasskeyAttestationWithAAGUID(options, origin, aaguid)
+		if err != nil {
+			panic(err)
+		}
+		return response
+	}
 	templateFuncMap["generatePasskeyAssertion"] = func(options any, origin string) string {
 		response, err := GeneratePasskeyAssertion(options, origin)
 		if err != nil {

@@ -900,6 +900,7 @@
   "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp-or-sms": "+ WhatsApp/SMS 전화번호 추가",
   "v2.page.settings-passkey.default.add-passkey-button-label": "+ Passkey 추가",
   "v2.page.settings-passkey.default.item-description": "<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>에 추가됨",
+  "v2.page.settings-passkey.default.item-label-unknown-provider": "Passkey",
   "v2.page.settings-passkey.default.remove-passkey-dialog-description": "이 Passkey를 제거하시겠습니까?",
   "v2.page.settings-passkey.default.remove-passkey-dialog-title": "Passkey 제거",
   "v2.page.settings-passkey.default.title": "Passkey",

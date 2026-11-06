@@ -13,8 +13,10 @@
   * [Future works](#future-works)
     + [Allow the user to remove their password](#allow-the-user-to-remove-their-password)
     + [Ensure passkey support for syncing cross-platform authenticator](#ensure-passkey-support-for-syncing-cross-platform-authenticator)
+    + [Name passkeys from the FIDO Convenience Metadata Service](#name-passkeys-from-the-fido-convenience-metadata-service)
   * [Configuration](#configuration)
   * [Where a ceremony may run](#where-a-ceremony-may-run)
+  * [Passkey provider](#passkey-provider)
   * [Implementation Details](#implementation-details)
     + [Credential ID](#credential-id)
     + [PublicKeyCredentialCreationOptions](#publickeycredentialcreationoptions)
@@ -165,6 +167,10 @@ It seems that 1Password will take care of syncing the passkeys across devices in
 
 We should keep an eye of the progress of 1Password passkey support to ensure it works seamlessly with Authgear.
 
+### Name passkeys from the FIDO Convenience Metadata Service
+
+The community list of AAGUIDs used in [Passkey provider](#passkey-provider) is deprecated in favour of the FIDO [Convenience Metadata Service](https://fidoalliance.org/specs/mds/fido-convenience-metadata-service-v1.0-ps-20250521.html). Move to it once it lists the major providers and its terms allow this use.
+
 ## Configuration
 
 The following configuration are added.
@@ -190,6 +196,21 @@ The page performing a ceremony must satisfy both of these.
 **It may claim the Relying Party ID.** The Relying Party ID is the host of `http.public_origin`. A page may only claim its own domain or a registrable domain suffix of it, so with Authgear at `auth.example.com`, a page at `ui.auth.example.com` qualifies and one at `ui-b.example.com` does not. The browser refuses before any request is made.
 
 **Its origin is accepted.** Origins are compared exactly; a differing port is a differing origin. The public origin is always accepted, and a Custom UI's origin is accepted once registered as that client's `x_custom_ui_uri`. For each certificate of an `android` entry in any client's [`x_native_apps`](./passkey-webview.md#configuration), `android:apk-key-hash:<hash>` is accepted, where `<hash>` is the unpadded base64url encoding of the certificate's SHA-256 digest; an Android app may report it instead of the page's origin. When such a ceremony also reports the app's package name (`androidPackageName`, which Android adds and WebAuthn does not define), it must be the `package_name` of an entry listing that certificate. A ceremony that does not report it is accepted on its origin alone; the certificate is what identifies the app. An unregistered origin is rejected only after the ceremony completes, leaving a credential on the device that was never stored.
+
+## Passkey provider
+
+A passkey is labelled by the provider that stores it, such as Apple Passwords or Google Password Manager, on the settings page and in the portal.
+
+The provider is identified by the [AAGUID](https://www.w3.org/TR/webauthn-3/#aaguid) in the registration of the passkey, and named from a list of known AAGUIDs in Authgear, a copy of the names in the [community list](https://github.com/passkeydeveloper/passkey-authenticator-aaguids). The name is for display only, since the AAGUID is not verified.
+
+A passkey whose AAGUID is not on the list, or is all zeros, is labelled "Passkey". Passkeys registered before this are named too.
+
+Passkey identities and authenticators carry these claims in the Admin API, and passkey identities also in webhook event payloads:
+
+|Claim|Value|
+|---|---|
+|`https://authgear.com/claims/passkey/aaguid`|The AAGUID, as a lowercase UUID.|
+|`https://authgear.com/claims/passkey/provider_name`|The provider name. Absent when the AAGUID has none.|
 
 ## Implementation Details
 

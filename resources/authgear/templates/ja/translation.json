@@ -900,6 +900,7 @@
   "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp-or-sms": "+ WhatsApp/SMS電話番号を追加",
   "v2.page.settings-passkey.default.add-passkey-button-label": "+ Passkeyを追加",
   "v2.page.settings-passkey.default.item-description": "<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>に追加されました",
+  "v2.page.settings-passkey.default.item-label-unknown-provider": "Passkey",
   "v2.page.settings-passkey.default.remove-passkey-dialog-description": "本当にこのPasskeyを削除しますか?",
   "v2.page.settings-passkey.default.remove-passkey-dialog-title": "Passkeyを削除",
   "v2.page.settings-passkey.default.title": "Passkey",

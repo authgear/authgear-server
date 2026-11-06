@@ -216,3 +216,35 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 		}
 	})
 }
+
+func TestInfoToPublicClaimsPasskey(t *testing.T) {
+	Convey("Info.ToPublicClaims of a passkey", t, func() {
+		makeInfo := func(aaguid string) *Info {
+			return (&Passkey{
+				ID:           "id",
+				UserID:       "userid",
+				Kind:         string(KindPrimary),
+				CredentialID: "credentialid",
+				AAGUID:       aaguid,
+			}).ToInfo()
+		}
+
+		Convey("has the AAGUID and the provider name of a known AAGUID", func() {
+			claims := makeInfo("ea9b8d66-4d01-1d21-3ce4-b6b48cb575d4").ToPublicClaims()
+			So(claims[AuthenticatorClaimPasskeyAAGUID], ShouldEqual, "ea9b8d66-4d01-1d21-3ce4-b6b48cb575d4")
+			So(claims[AuthenticatorClaimPasskeyProviderName], ShouldEqual, "Google Password Manager")
+		})
+
+		Convey("has no provider name for the all-zero AAGUID", func() {
+			claims := makeInfo("00000000-0000-0000-0000-000000000000").ToPublicClaims()
+			So(claims[AuthenticatorClaimPasskeyAAGUID], ShouldEqual, "00000000-0000-0000-0000-000000000000")
+			So(claims, ShouldNotContainKey, AuthenticatorClaimPasskeyProviderName)
+		})
+
+		Convey("has neither claim without an AAGUID", func() {
+			claims := makeInfo("").ToPublicClaims()
+			So(claims, ShouldNotContainKey, AuthenticatorClaimPasskeyAAGUID)
+			So(claims, ShouldNotContainKey, AuthenticatorClaimPasskeyProviderName)
+		})
+	})
+}
