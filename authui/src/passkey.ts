@@ -616,7 +616,13 @@ export class AuthflowPasskeyCreationController extends Controller {
 // aborts, including requests that have ended, and a request made during a cancel waits for it.
 //
 // While AuthflowPasskeyRequestController shows the modal dialog,
-// it dispatches PASSKEY_MODAL_START and PASSKEY_MODAL_END, and we stop() in between.
+// it dispatches PASSKEY_MODAL_START and we stop().
+// We do not start again on PASSKEY_MODAL_END. On iOS, a request made while another is
+// being cancelled waits for the cancel, so if the user taps the button again, its dialog
+// would be delayed by a request we had just started. Starting later, for example when the
+// login ID input is tapped, depends on when each browser builds its suggestions.
+// The user has just seen the same passkeys in the dialog, and the button is still there.
+// AutoFill is offered again when the page is loaded or restored from the cache.
 //
 // When the request ends without a passkey, for example the user cancels Face ID,
 // we start again after AUTOFILL_RETRY_DELAY_MS, so that the suggestions come back.
@@ -684,7 +690,6 @@ export class PasskeyAutofillController extends Controller {
 
   onModalEnd = () => {
     this.stop();
-    this.start();
   };
 
   start() {

@@ -364,13 +364,25 @@ describe("PasskeyAutofillController", () => {
     expect(requests[1].options.mediation).toBeUndefined();
     expect(requests[1].othersPending).toEqual(0);
 
-    // Cancel the dialog.
+    // Cancel the dialog. Autofill does not start again on this page.
     requests[1].reject(notAllowed());
     await flush();
+    await advance(60000);
+    expect(requests).toHaveLength(2);
 
+    // The button opens its dialog again without cancelling an autofill request.
+    document.getElementById("use-passkey")?.click();
+    await flush();
     expect(requests).toHaveLength(3);
-    expect(requests[2].options.mediation).toEqual("conditional");
+    expect(requests[2].options.mediation).toBeUndefined();
     expect(requests[2].othersPending).toEqual(0);
+
+    // Autofill is offered again when the page is restored from the cache.
+    requests[2].reject(notAllowed());
+    await flush();
+    await showPage(true);
+    expect(requests).toHaveLength(4);
+    expect(requests[3].options.mediation).toEqual("conditional");
   });
 });
 
