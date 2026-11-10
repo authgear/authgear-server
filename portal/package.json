@@ -33,7 +33,32 @@
     "postcss-nested": {
       "postcss-selector-parser": "^7.1.6"
     },
-    "@graphql-tools/utils": "^12.0.3"
+    "@graphql-tools/utils": "^12.0.3",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.4"
+    },
+    "graphql-config": {
+      "minimatch": "^11.0.4"
+    },
+    "eslint-plugin-sonarjs": {
+      "minimatch": "^11.0.4"
+    },
+    "@joshwooding/vite-plugin-react-docgen-typescript": {
+      "glob": "^14.0.3"
+    },
+    "@jest/reporters": {
+      "glob": "^14.0.3"
+    },
+    "jest-config": {
+      "glob": "^14.0.3"
+    },
+    "jest-runtime": {
+      "glob": "^14.0.3"
+    },
+    "test-exclude": {
+      "glob": "^14.0.3",
+      "minimatch": "^11.0.4"
+    }
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.2.1",
