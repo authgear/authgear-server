@@ -155,6 +155,11 @@ function makeCredential() {
   };
 }
 
+async function showPage(persisted: boolean): Promise<void> {
+  window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted }));
+  await flush();
+}
+
 function notAllowed(): DOMException {
   return new DOMException("The operation is not allowed.", "NotAllowedError");
 }
@@ -302,6 +307,20 @@ describe("PasskeyAutofillController", () => {
     expect(requests).toHaveLength(0);
   });
 
+  it("starts again when the page is restored from the cache", async () => {
+    await render();
+    expect(requests).toHaveLength(1);
+
+    await showPage(false);
+    expect(requests).toHaveLength(1);
+
+    await showPage(true);
+    expect(requests).toHaveLength(2);
+    expect(requests[0].options.signal?.aborted).toEqual(true);
+    expect(requests[1].options.mediation).toEqual("conditional");
+    expect(requests[1].othersPending).toEqual(0);
+  });
+
   it("steps aside while the passkey dialog is open", async () => {
     await render();
     expect(requests).toHaveLength(1);
@@ -361,5 +380,27 @@ describe("AuthflowPasskeyRequestController", () => {
     await flush();
 
     expect(button.disabled).toEqual(true);
+  });
+
+  it("enables the button when the page is restored from the cache", async () => {
+    await render();
+    const button = document.getElementById("use-passkey") as HTMLButtonElement;
+
+    button.click();
+    await flush();
+    requests[1].resolve(makeCredential());
+    await flush();
+    expect(button.disabled).toEqual(true);
+
+    await showPage(false);
+    expect(button.disabled).toEqual(true);
+
+    await showPage(true);
+    expect(button.disabled).toEqual(false);
+
+    button.click();
+    await flush();
+    expect(button.disabled).toEqual(true);
+    expect(requests.filter((r) => r.options.mediation == null)).toHaveLength(2);
   });
 });

@@ -434,6 +434,8 @@ export class AuthflowPasskeyRequestController extends Controller {
   requesting = false;
 
   connect() {
+    window.addEventListener("pageshow", this.onPageShow);
+
     if (this.hasButtonTarget) {
       this.buttonTarget.disabled = false;
       // Disable the button if PublicKeyCredential is unavailable.
@@ -447,6 +449,23 @@ export class AuthflowPasskeyRequestController extends Controller {
       this._use();
     }
   }
+
+  disconnect() {
+    window.removeEventListener("pageshow", this.onPageShow);
+  }
+
+  // The page can be restored from the back-forward cache, for example when the user goes
+  // back after a passkey was chosen. Stimulus does not call connect() again then,
+  // so the button would stay disabled.
+  onPageShow = (e: PageTransitionEvent) => {
+    if (!e.persisted) {
+      return;
+    }
+    this.requesting = false;
+    if (this.hasButtonTarget && passkeyIsAvailable()) {
+      this.buttonTarget.disabled = false;
+    }
+  };
 
   use(e: MouseEvent) {
     e.preventDefault();
@@ -630,14 +649,26 @@ export class PasskeyAutofillController extends Controller {
   connect() {
     document.addEventListener(PASSKEY_MODAL_START, this.onModalStart);
     document.addEventListener(PASSKEY_MODAL_END, this.onModalEnd);
+    window.addEventListener("pageshow", this.onPageShow);
     this.start();
   }
 
   disconnect() {
     document.removeEventListener(PASSKEY_MODAL_START, this.onModalStart);
     document.removeEventListener(PASSKEY_MODAL_END, this.onModalEnd);
+    window.removeEventListener("pageshow", this.onPageShow);
     this.stop();
   }
+
+  // A page restored from the back-forward cache is not connected again,
+  // and its pending request is gone, so start again.
+  onPageShow = (e: PageTransitionEvent) => {
+    if (!e.persisted) {
+      return;
+    }
+    this.stop();
+    this.start();
+  };
 
   onModalStart = () => {
     this.stop();
