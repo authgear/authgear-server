@@ -34,3 +34,13 @@ jobs:
     - run: make outdated
       working-directory: ./portal
       if: ${{ !cancelled() }}
+  packagetracker-check:
+    # Only need to run in the source repository.
+    if: ${{ github.repository == 'authgear/authgear-server' }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
+      with:
+        go-version-file: "./go.mod"
+    - run: make -C packagetracker check-if-new-version-available

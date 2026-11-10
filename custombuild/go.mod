@@ -55,7 +55,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.33.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.38.0 // indirect
 	github.com/aws/smithy-go v1.24.2 // indirect
-	github.com/beevik/etree v1.6.0 // indirect
+	github.com/beevik/etree v1.7.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
@@ -134,7 +134,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
-	github.com/klauspost/compress v1.19.1 // indirect
+	github.com/klauspost/compress v1.20.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
@@ -175,7 +175,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/rubenv/sql-migrate v1.8.0 // indirect
-	github.com/russellhaering/goxmldsig v1.6.0 // indirect
+	github.com/russellhaering/goxmldsig v1.6.1 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect

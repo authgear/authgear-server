@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -259,6 +260,39 @@ func TestSAMLService(t *testing.T) {
 			err := svc.VerifyEmbeddedSignature(sp, requestXml)
 			expectedErr := &samlprotocol.InvalidSignatureError{}
 			So(err, ShouldHaveSameTypeAs, expectedErr)
+		})
+
+		Convey("rejects deeply nested SignedInfo quickly", func() {
+			// Inclusive c14n of a deeply nested SignedInfo used to cost quadratic CPU.
+			const depth = 20000
+			deepXml := `<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" ID="id" Version="2.0">` +
+				`<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><ds:SignedInfo>` +
+				`<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>` +
+				`<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>` +
+				`<ds:Reference URI="#id"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></ds:Transforms>` +
+				`<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><ds:DigestValue>AAAA</ds:DigestValue></ds:Reference>` +
+				strings.Repeat("<a>", depth) + strings.Repeat("</a>", depth) +
+				`</ds:SignedInfo><ds:SignatureValue>AAAA</ds:SignatureValue></ds:Signature></samlp:AuthnRequest>`
+
+			svc := createService()
+			svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
+				config.SAMLSpSigningCertificate{
+					ServiceProviderID: spID,
+					Certificates: []config.X509Certificate{
+						{
+							Pem: config.X509CertificatePem(pemCert),
+						},
+					},
+				},
+			}
+			sp := svc.SAMLConfig.ServiceProviders[0]
+			sp.SignatureVerificationEnabled = true
+
+			start := time.Now()
+			err := svc.VerifyEmbeddedSignature(sp, deepXml)
+			elapsed := time.Since(start)
+			So(err, ShouldNotBeNil)
+			So(elapsed, ShouldBeLessThan, 2*time.Second)
 		})
 
 	})

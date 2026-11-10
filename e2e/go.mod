@@ -10,7 +10,7 @@ replace github.com/iawaknahc/gomessageformat => github.com/oursky/gomessageforma
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/authgear/authgear-server v0.0.0
-	github.com/beevik/etree v1.6.0
+	github.com/beevik/etree v1.7.0
 	github.com/fxamacker/cbor/v2 v2.9.0
 	github.com/go-webauthn/webauthn v0.15.0
 	github.com/google/martian v2.1.0+incompatible
@@ -124,7 +124,7 @@ require (
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/klauspost/compress v1.19.1 // indirect
+	github.com/klauspost/compress v1.20.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.11 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
@@ -158,7 +158,7 @@ require (
 	github.com/redis/go-redis/v9 v9.11.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/xid v1.6.0 // indirect
-	github.com/russellhaering/goxmldsig v1.6.0 // indirect
+	github.com/russellhaering/goxmldsig v1.6.1 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect

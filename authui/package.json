@@ -28,7 +28,7 @@
       "ajv": "^8.18.0"
     },
     "eslint-plugin-sonarjs": {
-      "minimatch": "^10.2.4"
+      "minimatch": "^11.0.4"
     },
     "ts-jest": {
       "handlebars": "^4.7.10"
@@ -38,6 +38,22 @@
     },
     "postcss-nested": {
       "postcss-selector-parser": "^7.1.6"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.4"
+    },
+    "@jest/reporters": {
+      "glob": "^14.0.3"
+    },
+    "jest-config": {
+      "glob": "^14.0.3"
+    },
+    "jest-runtime": {
+      "glob": "^14.0.3"
+    },
+    "test-exclude": {
+      "glob": "^14.0.3",
+      "minimatch": "^11.0.4"
     }
   },
   "devDependencies": {
