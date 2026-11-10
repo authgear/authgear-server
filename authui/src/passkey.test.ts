@@ -307,6 +307,37 @@ describe("PasskeyAutofillController", () => {
     expect(requests).toHaveLength(0);
   });
 
+  it("gives each request its own abort signal", async () => {
+    await render();
+    await advance(10000);
+    requests[0].reject(notAllowed());
+    await flush();
+    await advance(1000);
+    expect(requests).toHaveLength(2);
+
+    expect(requests[1].options.signal).not.toBe(requests[0].options.signal);
+
+    // The first request ended, so nothing aborts its signal again.
+    document.body.innerHTML = "";
+    await flush();
+    expect(requests[0].options.signal?.aborted).toEqual(false);
+    expect(requests[1].options.signal?.aborted).toEqual(true);
+  });
+
+  it("aborts nothing when it stops while waiting to retry", async () => {
+    await render();
+    await advance(10000);
+    requests[0].reject(notAllowed());
+    await flush();
+
+    document.body.innerHTML = "";
+    await flush();
+    await advance(60000);
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0].options.signal?.aborted).toEqual(false);
+  });
+
   it("starts again when the page is restored from the cache", async () => {
     await render();
     expect(requests).toHaveLength(1);

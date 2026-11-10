@@ -606,10 +606,14 @@ export class AuthflowPasskeyCreationController extends Controller {
 //
 // The lifecycle of the autofill
 //
-// start() creates a pending promise to receive the result of the autofill.
-// The promise can be aborted with AbortController.
-// In connect(), we call start(). In disconnect(), we call stop().
-// Since Stimulus will call connect(), we do not need to call start() if the promise is aborted.
+// start() begins a run, which makes a request, and again after each retry.
+// In connect(), we call start(). In disconnect(), we call stop(), which ends the run
+// and aborts the request that is pending.
+// Since Stimulus will call connect(), we do not need to call start() if the request is aborted.
+//
+// Each request has its own AbortController, and it is aborted only while the request is pending.
+// WebKit asks the platform to cancel once for every request made with a signal when the signal
+// aborts, including requests that have ended, and a request made during a cancel waits for it.
 //
 // While AuthflowPasskeyRequestController shows the modal dialog,
 // it dispatches PASSKEY_MODAL_START and PASSKEY_MODAL_END, and we stop() in between.
@@ -642,7 +646,11 @@ export class PasskeyAutofillController extends Controller {
 
   declare optionsValue: string;
 
-  abortController: AbortController | null = null;
+  // The current run. stop() sets it to null, so that a run that is stopped while awaiting
+  // neither starts a request nor schedules a retry.
+  run: object | null = null;
+  // Set only while a request is pending.
+  requestAbortController: AbortController | null = null;
   retryTimer: ReturnType<typeof setTimeout> | null = null;
   instantFailures = 0;
 
@@ -684,14 +692,15 @@ export class PasskeyAutofillController extends Controller {
       return;
     }
 
-    this.abortController = new AbortController();
+    this.run = {};
     this.instantFailures = 0;
     void this.setupAutofill();
   }
 
   stop() {
-    this.abortController?.abort();
-    this.abortController = null;
+    this.run = null;
+    this.requestAbortController?.abort();
+    this.requestAbortController = null;
     if (this.retryTimer != null) {
       clearTimeout(this.retryTimer);
       this.retryTimer = null;
@@ -706,13 +715,10 @@ export class PasskeyAutofillController extends Controller {
   }
 
   async setupAutofill() {
-    // Capture the current run, so that a run stopped while awaiting
-    // neither starts navigator.credentials.get nor schedules a retry.
-    const abortController = this.abortController;
-    if (abortController == null) {
+    const run = this.run;
+    if (run == null) {
       return;
     }
-    const signal = abortController.signal;
 
     if (
       typeof PublicKeyCredential.isConditionalMediationAvailable !== "function"
@@ -721,17 +727,19 @@ export class PasskeyAutofillController extends Controller {
     }
     const available =
       await PublicKeyCredential.isConditionalMediationAvailable();
-    if (!available || signal.aborted) {
+    if (!available || this.run !== run) {
       return;
     }
 
     const options = deserializeRequestOptions(JSON.parse(this.optionsValue));
+    const requestAbortController = new AbortController();
+    this.requestAbortController = requestAbortController;
     const t0 = new Date().getTime();
     try {
       const rawResponse = await window.navigator.credentials.get({
         ...options,
         mediation: "conditional",
-        signal,
+        signal: requestAbortController.signal,
       });
       if (isPublicKeyCredentialWithAssertionResponse(rawResponse)) {
         const response = serializeAssertionResponse(rawResponse);
@@ -745,12 +753,12 @@ export class PasskeyAutofillController extends Controller {
         this.submitTarget.click();
         return;
       }
-      if (!signal.aborted) {
+      if (this.run === run) {
         this.scheduleRetry();
       }
     } catch (e: unknown) {
       handleError(e);
-      if (signal.aborted) {
+      if (this.run !== run) {
         // Aborted. Let start() be called again.
         return;
       }
@@ -771,6 +779,10 @@ export class PasskeyAutofillController extends Controller {
         this.instantFailures = 0;
       }
       this.scheduleRetry();
+    } finally {
+      if (this.requestAbortController === requestAbortController) {
+        this.requestAbortController = null;
+      }
     }
   }
 }
