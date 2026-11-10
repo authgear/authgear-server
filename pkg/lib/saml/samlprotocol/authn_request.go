@@ -8,6 +8,10 @@ import (
 )
 
 func (a *AuthnRequest) GetProtocolBinding() SAMLBinding {
+	if a.ProtocolBinding == "" {
+		// ProtocolBinding is optional (saml-core-2.0 3.4.1). Default to HTTP-POST, as docs/specs/saml.md says.
+		return SAMLBindingHTTPPost
+	}
 	return SAMLBinding(a.ProtocolBinding)
 }
 
