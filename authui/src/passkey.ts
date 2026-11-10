@@ -3,7 +3,6 @@ import axios from "axios";
 import { handleAxiosError, showErrorMessage } from "./messageBar";
 import { base64DecToArr, base64EncArr } from "./base64";
 import { base64URLToBase64, trimNewline, base64ToBase64URL } from "./base64url";
-import { RetryEventTarget } from "./retry";
 import { setErrorMessage } from "./authflowv2/alert-message";
 import {
   getAuthflowV2PasskeyErrorMessageID,
@@ -561,7 +560,7 @@ export class AuthflowPasskeyCreationController extends Controller {
 // The call navigator.credentials.get had a high possibility of resulting in
 // DOMException with name NotAllowedError instantly.
 // The exception caused subsequent calls to navigator.credentials.get to fail as well.
-// So retries back off when the request fails instantly.
+// So when the request keeps failing instantly, we stop retrying on this page.
 //
 // The options are the passkey request options of the authflow on the page.
 // Every attempt reuses them, since the challenge is consumed only when the flow finishes.
@@ -575,6 +574,24 @@ export class AuthflowPasskeyCreationController extends Controller {
 //
 // While AuthflowPasskeyRequestController shows the modal dialog,
 // it dispatches PASSKEY_MODAL_START and PASSKEY_MODAL_END, and we stop() in between.
+//
+// When the request ends without a passkey, for example the user cancels Face ID,
+// we start again after AUTOFILL_RETRY_DELAY_MS, so that the suggestions come back.
+// The options are on the page, so a retry makes no network request and needs no backoff.
+const AUTOFILL_RETRY_DELAY_MS = 1000;
+// A request that ends within this time failed instantly, without the user doing anything.
+const AUTOFILL_INSTANT_FAILURE_MS = 500;
+// The number of instant failures in a row after which we stop retrying.
+const AUTOFILL_MAX_INSTANT_FAILURES = 3;
+
+// Errors that a retry cannot fix, such as a page that cannot claim the RP ID.
+function isAutofillErrorFinal(err: unknown): boolean {
+  return (
+    err instanceof DOMException &&
+    (err.name === "SecurityError" || err.name === "NotSupportedError")
+  );
+}
+
 export class PasskeyAutofillController extends Controller {
   static targets = ["submit", "input"];
   static values = {
@@ -587,7 +604,8 @@ export class PasskeyAutofillController extends Controller {
   declare optionsValue: string;
 
   abortController: AbortController | null = null;
-  retryEventTarget: RetryEventTarget | null = null;
+  retryTimer: ReturnType<typeof setTimeout> | null = null;
+  instantFailures = 0;
 
   connect() {
     document.addEventListener(PASSKEY_MODAL_START, this.onModalStart);
@@ -616,85 +634,92 @@ export class PasskeyAutofillController extends Controller {
     }
 
     this.abortController = new AbortController();
-    this.retryEventTarget = new RetryEventTarget({
-      abortController: this.abortController,
-    });
-    this.retryEventTarget.addEventListener("retry", () => {
-      this.setupAutofill();
-    });
-
-    this.setupAutofill();
+    this.instantFailures = 0;
+    void this.setupAutofill();
   }
 
   stop() {
     this.abortController?.abort();
     this.abortController = null;
-    this.retryEventTarget = null;
+    if (this.retryTimer != null) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+  }
+
+  scheduleRetry() {
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = null;
+      void this.setupAutofill();
+    }, AUTOFILL_RETRY_DELAY_MS);
   }
 
   async setupAutofill() {
     // Capture the current run, so that a run stopped while awaiting
     // neither starts navigator.credentials.get nor schedules a retry.
     const abortController = this.abortController;
-    const retryEventTarget = this.retryEventTarget;
-    if (abortController == null || retryEventTarget == null) {
+    if (abortController == null) {
       return;
     }
     const signal = abortController.signal;
 
     if (
-      typeof PublicKeyCredential.isConditionalMediationAvailable === "function"
+      typeof PublicKeyCredential.isConditionalMediationAvailable !== "function"
     ) {
-      const available =
-        await PublicKeyCredential.isConditionalMediationAvailable();
+      return;
+    }
+    const available =
+      await PublicKeyCredential.isConditionalMediationAvailable();
+    if (!available || signal.aborted) {
+      return;
+    }
 
-      if (available && !signal.aborted) {
-        const options = deserializeRequestOptions(
-          JSON.parse(this.optionsValue)
-        );
-        const t0 = new Date().getTime();
-        try {
-          const rawResponse = await window.navigator.credentials.get({
-            ...options,
-            mediation: "conditional",
-            signal,
-          });
-          if (isPublicKeyCredentialWithAssertionResponse(rawResponse)) {
-            const response = serializeAssertionResponse(rawResponse);
-            const responseString = JSON.stringify(response);
-            this.inputTarget.value = responseString;
-            // It seems that we should use form.submit() to submit the form.
-            // but form.submit() does NOT trigger submit event,
-            // which is essential for XHR form submission to work.
-            // Therefore, we emulate form submission here by clicking the submit button.
-            this.submitTarget.click();
-          }
-          if (!signal.aborted) {
-            retryEventTarget.scheduleRetry();
-          }
-        } catch (e: unknown) {
-          const t1 = new Date().getTime();
-          const failedInstantly = t1 - t0 < 500;
-          if (
-            e instanceof DOMException &&
-            e.name === "NotAllowedError" &&
-            failedInstantly
-          ) {
-            console.warn("passkey autofill weird error detected", e);
-          }
-          if (e instanceof DOMException && e.name === "AbortError") {
-            // Aborted. Let start() be called again.
-          } else if (!signal.aborted) {
-            // Back off only when the request keeps failing instantly,
-            // so that suggestions come back soon after the user cancels.
-            if (!failedInstantly) {
-              retryEventTarget.markSuccess();
-            }
-            retryEventTarget.scheduleRetry();
-          }
-          handleError(e);
-        }
+    const options = deserializeRequestOptions(JSON.parse(this.optionsValue));
+    const t0 = new Date().getTime();
+    try {
+      const rawResponse = await window.navigator.credentials.get({
+        ...options,
+        mediation: "conditional",
+        signal,
+      });
+      if (isPublicKeyCredentialWithAssertionResponse(rawResponse)) {
+        const response = serializeAssertionResponse(rawResponse);
+        const responseString = JSON.stringify(response);
+        this.inputTarget.value = responseString;
+        // It seems that we should use form.submit() to submit the form.
+        // but form.submit() does NOT trigger submit event,
+        // which is essential for XHR form submission to work.
+        // Therefore, we emulate form submission here by clicking the submit button.
+        // The page changes, so there is no retry.
+        this.submitTarget.click();
+        return;
       }
+      if (!signal.aborted) {
+        this.scheduleRetry();
+      }
+    } catch (e: unknown) {
+      handleError(e);
+      if (signal.aborted) {
+        // Aborted. Let start() be called again.
+        return;
+      }
+      if (isAutofillErrorFinal(e)) {
+        return;
+      }
+      const t1 = new Date().getTime();
+      if (t1 - t0 < AUTOFILL_INSTANT_FAILURE_MS) {
+        this.instantFailures += 1;
+        if (this.instantFailures >= AUTOFILL_MAX_INSTANT_FAILURES) {
+          console.warn(
+            "passkey autofill keeps failing instantly, stop retrying",
+            e
+          );
+          return;
+        }
+      } else {
+        this.instantFailures = 0;
+      }
+      this.scheduleRetry();
     }
   }
 }

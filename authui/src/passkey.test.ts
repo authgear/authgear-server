@@ -186,6 +186,10 @@ describe("PasskeyAutofillController", () => {
       type: "public-key",
     });
     expect(submitClicks).toEqual(1);
+
+    // The page changes, so there is no retry.
+    await advance(60000);
+    expect(requests).toHaveLength(1);
   });
 
   it("retries with the same options after the request fails", async () => {
@@ -205,7 +209,7 @@ describe("PasskeyAutofillController", () => {
     expect(axiosMock).not.toHaveBeenCalled();
   });
 
-  it("backs off while the request fails instantly", async () => {
+  it("stops retrying after the request fails instantly three times in a row", async () => {
     await render();
 
     requests[0].reject(notAllowed());
@@ -215,17 +219,49 @@ describe("PasskeyAutofillController", () => {
 
     requests[1].reject(notAllowed());
     await flush();
-    await advance(1999);
-    expect(requests).toHaveLength(2);
-    await advance(1);
+    await advance(1000);
     expect(requests).toHaveLength(3);
 
-    // A request that was pending for a while resets the backoff.
+    requests[2].reject(notAllowed());
+    await flush();
+    await advance(60000);
+    expect(requests).toHaveLength(3);
+  });
+
+  it("counts instant failures in a row only", async () => {
+    await render();
+
+    requests[0].reject(notAllowed());
+    await flush();
+    await advance(1000);
+    requests[1].reject(notAllowed());
+    await flush();
+    await advance(1000);
+    expect(requests).toHaveLength(3);
+
+    // A request that was pending for a while resets the count.
     await advance(10000);
     requests[2].reject(notAllowed());
     await flush();
     await advance(1000);
     expect(requests).toHaveLength(4);
+
+    requests[3].reject(notAllowed());
+    await flush();
+    await advance(1000);
+    expect(requests).toHaveLength(5);
+  });
+
+  it("does not retry an error that a retry cannot fix", async () => {
+    await render();
+
+    requests[0].reject(
+      new DOMException("The RP ID is not valid.", "SecurityError")
+    );
+    await flush();
+    await advance(60000);
+
+    expect(requests).toHaveLength(1);
   });
 
   it("aborts the request and stops retrying when disconnected", async () => {
