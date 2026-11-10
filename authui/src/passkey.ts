@@ -428,6 +428,11 @@ export class AuthflowPasskeyRequestController extends Controller {
   declare autoValue: string;
   declare hasButtonTarget: boolean;
 
+  // True while the request is pending, so that more taps do not start more requests.
+  // On iOS, the dialog can take a few seconds to open after the previous one is cancelled,
+  // and a second request at that time is rejected.
+  requesting = false;
+
   connect() {
     if (this.hasButtonTarget) {
       this.buttonTarget.disabled = false;
@@ -459,10 +464,18 @@ export class AuthflowPasskeyRequestController extends Controller {
       );
       return;
     }
+    if (this.requesting) {
+      return;
+    }
+    this.requesting = true;
+    if (this.hasButtonTarget) {
+      this.buttonTarget.disabled = true;
+    }
     // A page can only have one pending navigator.credentials.get.
     // Abort the pending autofill request, otherwise this request would be
     // rejected with NotAllowedError immediately.
     document.dispatchEvent(new CustomEvent(PASSKEY_MODAL_START));
+    let submitted = false;
     try {
       const optionsJSON = JSON.parse(this.optionsValue);
       const options = deserializeRequestOptions(optionsJSON);
@@ -476,6 +489,7 @@ export class AuthflowPasskeyRequestController extends Controller {
         // which is essential for XHR form submission to work.
         // Therefore, we emulate form submission here by clicking the submit button.
         this.submitTarget.click();
+        submitted = true;
       }
     } catch (e: unknown) {
       document.dispatchEvent(
@@ -484,6 +498,12 @@ export class AuthflowPasskeyRequestController extends Controller {
         })
       );
     } finally {
+      this.requesting = false;
+      // After a passkey is chosen, the form is submitted and the page changes,
+      // so the button stays disabled.
+      if (this.hasButtonTarget && !submitted) {
+        this.buttonTarget.disabled = false;
+      }
       document.dispatchEvent(new CustomEvent(PASSKEY_MODAL_END));
     }
   }

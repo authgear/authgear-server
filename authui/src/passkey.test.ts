@@ -323,3 +323,43 @@ describe("PasskeyAutofillController", () => {
     expect(requests[2].othersPending).toEqual(0);
   });
 });
+
+describe("AuthflowPasskeyRequestController", () => {
+  it("disables the button while the request is pending", async () => {
+    await render();
+    const button = document.getElementById("use-passkey") as HTMLButtonElement;
+    expect(button.disabled).toEqual(false);
+
+    button.click();
+    await flush();
+    expect(requests).toHaveLength(2);
+    expect(button.disabled).toEqual(true);
+
+    // More taps do not start more requests.
+    button.click();
+    button.click();
+    await flush();
+    expect(requests).toHaveLength(2);
+
+    // Cancel the dialog.
+    requests[1].reject(notAllowed());
+    await flush();
+    expect(button.disabled).toEqual(false);
+
+    button.click();
+    await flush();
+    expect(requests.filter((r) => r.options.mediation == null)).toHaveLength(2);
+  });
+
+  it("keeps the button disabled after a passkey is chosen", async () => {
+    await render();
+    const button = document.getElementById("use-passkey") as HTMLButtonElement;
+
+    button.click();
+    await flush();
+    requests[1].resolve(makeCredential());
+    await flush();
+
+    expect(button.disabled).toEqual(true);
+  });
+});
