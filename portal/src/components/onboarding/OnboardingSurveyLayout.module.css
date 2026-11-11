@@ -14,6 +14,14 @@
   min-height: 100vh;
 }
 
+/* Above the mobile breakpoint the document does not scroll (index.css), so the
+   survey must, or a short window cuts off the buttons. */
+@media (min-width: 641px) {
+  .onboardingSurveyLayout__root {
+    @apply flex-1 min-h-0 overflow-y-auto;
+  }
+}
+
 .onboardingSurveyLayout__bg {
   @apply flex-1-0-auto;
   @apply flex flex-col;
