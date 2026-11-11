@@ -50,13 +50,6 @@ func (f *housekeepFixture) xadd(key string) {
 	So(err, ShouldBeNil)
 }
 
-// hset writes a session list entry, whose value is the expiry in time.Time.MarshalText format.
-func (f *housekeepFixture) hset(key string, field string, expireAt time.Time) {
-	b, err := expireAt.MarshalText()
-	So(err, ShouldBeNil)
-	f.hsetRaw(key, field, string(b))
-}
-
 func (f *housekeepFixture) hsetRaw(key string, field string, value string) {
 	_, err := f.redisClient.HSet(f.ctx, key, field, value).Result()
 	So(err, ShouldBeNil)
@@ -66,12 +59,6 @@ func (f *housekeepFixture) expire(key string, ttl time.Duration) {
 	ok, err := f.redisClient.Expire(f.ctx, key, ttl).Result()
 	So(err, ShouldBeNil)
 	So(ok, ShouldBeTrue)
-}
-
-func (f *housekeepFixture) hkeys(key string) []string {
-	fields, err := f.memoryRedis.HKeys(key)
-	So(err, ShouldBeNil)
-	return fields
 }
 
 // run runs the given tasks, or every task if none is given, and returns stdout and stderr.
@@ -123,22 +110,14 @@ func TestHousekeep(t *testing.T) {
 		f.xadd("app:accounts:access-events:session")
 		f.set("app:accounts:lockout:AccountAuthentication:user", "1", 0)
 		f.set("app:accounts:failed-attempts:oob-otp:+85200000000", "1", 0)
-		f.hset("app:accounts:session-list:user", "app:accounts:session:dead", t_expired)
-		f.hset("app:accounts:offline-grant-list:user", "grant-dead", t_expired)
-		f.set("app:accounts:session:live", "{}", time.Hour)
-		f.set("app:accounts:offline-grant:live", "{}", time.Hour)
 		f.set("app:accounts:unrelated", "value", 0)
 
 		expectedOutput := `deleted app:accounts:rate-limit:SignupPerIP:127.0.0.1
 deleted app:accounts:access-events:session
 deleted app:accounts:lockout:AccountAuthentication:user
 deleted app:accounts:failed-attempts:oob-otp:+85200000000
-deleted app:accounts:session-list:user
-deleted app:accounts:offline-grant-list:user
 `
 		keysLeft := []string{
-			"app:accounts:offline-grant:live",
-			"app:accounts:session:live",
 			"app:accounts:unrelated",
 		}
 
@@ -146,7 +125,7 @@ deleted app:accounts:offline-grant-list:user
 			stdout, stderr := f.run(false)
 			So(stdout, ShouldEqual, expectedOutput)
 			So(f.memoryRedis.Keys(), ShouldResemble, keysLeft)
-			So(stderr, ShouldContainSubstring, "done scanned_total=9 deleted=6 expiry_fixed=0 pruned=0 skipped=0 conflict=0\n")
+			So(stderr, ShouldContainSubstring, "done scanned_total=5 deleted=4 expiry_fixed=0 skipped=0 conflict=0\n")
 		})
 
 		Convey("dry-run reports the changes but makes none", func() {
@@ -161,11 +140,11 @@ deleted app:accounts:offline-grant-list:user
 		Convey("only watches the keys to change, and a rerun changes nothing", func() {
 			f.run(false)
 			// 1 chunk for each task with changes.
-			So(f.hook.counts["watch"], ShouldEqual, 6)
+			So(f.hook.counts["watch"], ShouldEqual, 4)
 
 			stdout, stderr := f.run(false)
 			So(stdout, ShouldEqual, "")
-			So(stderr, ShouldContainSubstring, "deleted=0 expiry_fixed=0 pruned=0")
+			So(stderr, ShouldContainSubstring, "deleted=0 expiry_fixed=0 skipped")
 			So(f.memoryRedis.Keys(), ShouldResemble, keysLeft)
 			So(f.hook.counts["watch"], ShouldEqual, 0)
 			So(f.hook.counts["multi"], ShouldEqual, 0)
@@ -279,7 +258,7 @@ deleted app:accounts:offline-grant-list:user
 			So(attempts, ShouldEqual, housekeepMaxAttempts)
 			So(stdout, ShouldEqual, "")
 			So(stderr, ShouldContainSubstring, "test: keys kept changing, left for the next run: key\n")
-			So(stderr, ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 pruned=0 skipped=0 conflict=1\n")
+			So(stderr, ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 skipped=0 conflict=1\n")
 			v, err := f.memoryRedis.Get("key")
 			So(err, ShouldBeNil)
 			So(v, ShouldEqual, strconv.Itoa(housekeepMaxAttempts))
@@ -290,7 +269,7 @@ deleted app:accounts:offline-grant-list:user
 			stdout, stderr := f.run(false, task)
 			So(attempts, ShouldEqual, 1)
 			So(stdout, ShouldEqual, "")
-			So(stderr, ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 pruned=0 skipped=1 conflict=0\n")
+			So(stderr, ShouldContainSubstring, "done test deleted=0 expiry_fixed=0 skipped=1 conflict=0\n")
 			v, err := f.memoryRedis.Get("key")
 			So(err, ShouldBeNil)
 			So(v, ShouldEqual, "fixed")

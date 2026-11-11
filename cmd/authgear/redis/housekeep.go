@@ -39,7 +39,6 @@ type housekeepAction struct {
 const (
 	housekeepResultDeleted     = "deleted"
 	housekeepResultExpiryFixed = "expiry-fixed"
-	housekeepResultPruned      = "pruned"
 	housekeepResultSkipped     = "skipped"
 	housekeepResultConflict    = "conflict"
 )
@@ -47,7 +46,6 @@ const (
 var housekeepResults = []string{
 	housekeepResultDeleted,
 	housekeepResultExpiryFixed,
-	housekeepResultPruned,
 	housekeepResultSkipped,
 	housekeepResultConflict,
 }
@@ -57,8 +55,6 @@ var housekeepTasks = []housekeepTask{
 	housekeepTaskAccessEvents,
 	housekeepTaskLockout,
 	housekeepTaskFailedAttempts,
-	housekeepTaskSessionList,
-	housekeepTaskOfflineGrantList,
 }
 
 // Keys are read in pipelines of this size to find the keys to change.
