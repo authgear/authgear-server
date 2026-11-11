@@ -2,7 +2,7 @@ module github.com/authgear/authgear-server/packagetracker
 
 // go1.21 supports toolchain
 // See https://go.dev/doc/toolchain
-go 1.26.10
+go 1.26.11
 
 require (
 	// We copy some files from crewjam/saml into pkg/lib/saml.

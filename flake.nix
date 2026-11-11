@@ -19,10 +19,10 @@
             (final: prev: {
               go = (
                 prev.go.overrideAttrs {
-                  version = "1.26.10";
+                  version = "1.26.11";
                   src = prev.fetchurl {
-                    url = "https://go.dev/dl/go1.26.10.src.tar.gz";
-                    hash = "sha256-/WPog7ovK/ypPBZGsx6+9j4rHk0rMXyXidl2po2B828=";
+                    url = "https://go.dev/dl/go1.26.11.src.tar.gz";
+                    hash = "sha256-1EEBsP8n7SpMda1GwXucdDWSCeLrLKfJ32y0/baOGWk=";
                   };
                 }
               );
