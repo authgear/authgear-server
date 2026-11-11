@@ -108,6 +108,9 @@ afterEach(async () => {
   jest.clearAllTimers();
   jest.restoreAllMocks();
   axiosMock.mockReset();
+  delete (window as any).webkit;
+  delete (window as any).authgearBridge;
+  window.sessionStorage.clear();
 });
 
 // Stimulus connects controllers from a MutationObserver,
@@ -158,6 +161,44 @@ function makeCredential() {
 async function showPage(persisted: boolean): Promise<void> {
   window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted }));
   await flush();
+}
+
+type BridgeHandler = (
+  message: Record<string, any>
+) => Promise<Record<string, unknown>>;
+
+// The messages sent through the fake bridge, parsed.
+let bridgeMessages: Record<string, any>[];
+
+// Installs a fake WebView bridge on window, in the shape of the platform.
+// handler answers each message with the reply, without the id.
+function installBridge(platform: "ios" | "android", handler: BridgeHandler) {
+  bridgeMessages = [];
+  const answer = async (text: string): Promise<string> => {
+    const message = JSON.parse(text);
+    bridgeMessages.push(message);
+    const reply = await handler(message);
+    return JSON.stringify({ id: message.id, ...reply });
+  };
+  if (platform === "ios") {
+    (window as any).webkit = {
+      messageHandlers: { authgearBridge: { postMessage: answer } },
+    };
+    return;
+  }
+  const android: {
+    postMessage: (text: string) => void;
+    onmessage: ((event: MessageEvent) => void) | null;
+  } = {
+    postMessage: (text) => {
+      void answer(text).then(
+        (data) => android.onmessage?.(new MessageEvent("message", { data })),
+        () => {}
+      );
+    },
+    onmessage: null,
+  };
+  (window as any).authgearBridge = android;
 }
 
 function notAllowed(): DOMException {
@@ -446,4 +487,19 @@ describe("AuthflowPasskeyRequestController", () => {
     expect(button.disabled).toEqual(true);
     expect(requests.filter((r) => r.options.mediation == null)).toHaveLength(2);
   });
+});
+
+describe("PasskeyAutofillController with the WebView bridge", () => {
+  for (const platform of ["ios", "android"] as const) {
+    it(`does not offer autofill on ${platform}`, async () => {
+      installBridge(platform, async () => ({ status: "unsupported" }));
+      await render();
+      await advance(60000);
+      expect(requests).toHaveLength(0);
+
+      await showPage(true);
+      await advance(60000);
+      expect(requests).toHaveLength(0);
+    });
+  }
 });
