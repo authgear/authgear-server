@@ -1440,8 +1440,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                 <FormattedMessage id="UserDetails.account-security.secondary" />
               </Heading>
             </div>
-            {secondaryAuthicatorIsRequired &&
-            !secondaryAuthenticatorLists.hasVisibleList ? (
+            {!secondaryAuthenticatorLists.hasVisibleList ? (
               <div className={styles.secondaryEmpty}>
                 <Text
                   as="p"
@@ -1457,7 +1456,12 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                   color="gray"
                   className={styles.secondaryEmptyDescription}
                 >
-                  {!isWithinMFAGracePeriod ? (
+                  {authenticationConfig?.secondary_authentication_mode ===
+                  "disabled" ? (
+                    <FormattedMessage id="UserDetails.account-security.secondary.empty-description.disabled" />
+                  ) : !secondaryAuthicatorIsRequired ? (
+                    <FormattedMessage id="UserDetails.account-security.secondary.empty-description.optional" />
+                  ) : !isWithinMFAGracePeriod ? (
                     <FormattedMessage
                       id="UserDetails.account-security.secondary.empty-description"
                       values={{
@@ -1485,7 +1489,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
                     <FormattedMessage id="UserDetails.account-security.secondary.within-grace-period.no-deadline" />
                   )}
                 </Text>
-                {canExtendMFAGracePeriod ? (
+                {secondaryAuthicatorIsRequired && canExtendMFAGracePeriod ? (
                   <div className={styles.updateMFAGracePeriodContainer}>
                     <FormattedMessage
                       id={
