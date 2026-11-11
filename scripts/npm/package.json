@@ -9,7 +9,18 @@
     "import-v2-translations": "node import-v2-translations.mjs",
     "check-spell-translations": "cspell ../../resources/authgear/templates/en/translation.json"
   },
-  "overrides": {},
+  "overrides": {
+    "mjml-cli": {
+      "glob": "^14.0.3",
+      "minimatch": "^11.0.4"
+    },
+    "js-beautify": {
+      "glob": "^14.0.3"
+    },
+    "editorconfig": {
+      "minimatch": "^11.0.4"
+    }
+  },
   "devDependencies": {
     "cldr-localenames-modern": "45.0.0",
     "cspell": "^9.2.1",
