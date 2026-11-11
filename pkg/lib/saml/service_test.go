@@ -143,6 +143,13 @@ func TestSAMLService(t *testing.T) {
 			})
 		})
 
+		Convey("missing binding defaults to HTTP-POST", func() {
+			authnRequest := makeValidRequest()
+			authnRequest.ProtocolBinding = ""
+			err := createService().ValidateAuthnRequest(spID, authnRequest)
+			So(err, ShouldBeNil)
+		})
+
 		Convey("unsupported binding", func() {
 			authnRequest := makeValidRequest()
 			authnRequest.ProtocolBinding = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
