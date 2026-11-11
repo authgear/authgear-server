@@ -835,9 +835,9 @@ export function OAuthClientSAMLForm({
                       "OAuthClientSAMLForm.sso.audienceIncludesACSURL.label"
                     )}
                     textWeight="medium"
-                    disabled={formState.audience === ""}
+                    disabled={formState.audience.trim() === ""}
                     checked={
-                      formState.audience === "" ||
+                      formState.audience.trim() === "" ||
                       formState.audienceIncludesACSURL
                     }
                     onCheckedChange={onAudienceIncludesACSURLChange}
