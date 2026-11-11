@@ -36,6 +36,7 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"destination": { "type": "string", "format": "uri" },
 		"recipient": { "type": "string", "format": "uri" },
 		"audience": { "type": "string", "format": "uri" },
+		"audience_includes_acs_url": { "type": "boolean" },
 		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" },
 		"slo_enabled": { "type": "boolean" },
 		"slo_callback_url": { "type": "string", "format": "uri" },
@@ -56,6 +57,19 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 			},
 			"then": {
 				"required": ["slo_callback_url"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"audience_includes_acs_url": {
+						"const": false
+					}
+				},
+				"required": ["audience_includes_acs_url"]
+			},
+			"then": {
+				"required": ["audience"]
 			}
 		}
 	]
@@ -127,6 +141,7 @@ type SAMLServiceProviderConfig struct {
 	Destination                  string                        `json:"destination,omitempty"`
 	Recipient                    string                        `json:"recipient,omitempty"`
 	Audience                     string                        `json:"audience,omitempty"`
+	AudienceIncludesACSURL       *bool                         `json:"audience_includes_acs_url,omitempty"`
 	AssertionValidDuration       DurationString                `json:"assertion_valid_duration,omitempty"`
 	SLOEnabled                   bool                          `json:"slo_enabled,omitempty"`
 	SLOCallbackURL               string                        `json:"slo_callback_url,omitempty"`
@@ -155,6 +170,11 @@ func (c *SAMLServiceProviderConfig) SetDefaults() {
 
 func (c *SAMLServiceProviderConfig) DefaultAcsURL() string {
 	return c.AcsURLs[0]
+}
+
+// ShouldIncludeACSURLInAudience defaults to true when the field is absent.
+func (c *SAMLServiceProviderConfig) ShouldIncludeACSURLInAudience() bool {
+	return c.AudienceIncludesACSURL == nil || *c.AudienceIncludesACSURL
 }
 
 func (c *SAMLServiceProviderConfig) GetID() string {
