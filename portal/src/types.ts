@@ -1310,6 +1310,7 @@ export interface SAMLServiceProviderConfig {
   destination?: string;
   recipient?: string;
   audience?: string;
+  audience_includes_acs_url?: boolean;
   assertion_valid_duration?: DurationString;
   slo_enabled?: boolean;
   slo_callback_url?: string;

@@ -1182,6 +1182,8 @@
   "OAuthClientSAMLForm.sso.recipient.description": "If empty, the ACS URL will be used.",
   "OAuthClientSAMLForm.sso.audience.label": "Assertion Audience",
   "OAuthClientSAMLForm.sso.audience.description": "If empty, the ACS URL will be used.",
+  "OAuthClientSAMLForm.sso.audienceIncludesACSURL.label": "Also include ACS URL as Assertion Audience",
+  "OAuthClientSAMLForm.sso.audienceIncludesACSURL.description": "When on, the ACS URL is sent as an extra Audience. Turn this off for service providers that accept only one Audience.",
   "OAuthClientSAMLForm.sso.assertionValidDuration.label": "Assertion Valid Duration (seconds)",
   "OAuthClientSAMLForm.logout.title": "Logout Settings",
   "OAuthClientSAMLForm.logout.enable.label": "Single Logout",
