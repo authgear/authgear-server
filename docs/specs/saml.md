@@ -109,7 +109,8 @@ saml:
 
 - `saml.service_providers`: Required. A list of objects containing the configurations of a Service Provider. The objects in the list contains the following fields:
   - `client_id`: Required. ID of the service provider, and must match id of one of the items in `oauth.clients`. Conceptually, every service provider must be attached to an oauth client by pointing to that oauth client using this `client_id`. Note that this is not the entity ID of the service provider.
-  - `audience`: Optional. `Audience` condition of the `<Assertion>` generated at the end of Browser SSO flow. If not set, the `Audience` will be the Assertion Consumer Service URL.
+  - `audience`: Optional. An `Audience` in the `<AudienceRestriction>` of the `<Assertion>` generated at the end of Browser SSO flow. The Assertion Consumer Service URL is always an `Audience` too, unless `audience_includes_acs_url` is `false`.
+  - `audience_includes_acs_url`: Optional. Boolean. Default `true`. If `false`, the Assertion Consumer Service URL is not added as an `Audience`. Set it to `false` for service providers that reject an `<AudienceRestriction>` with more than one `Audience`. It MUST NOT be `false` when `audience` is not set.
   - `destination`: Optional. `Destination` of the `<Response>` generated at the end of Browser SSO flow. If not set, the `Destination` will be the Assertion Consumer Service URL.
   - `recipient`: Optional. `Recipient` of the `<Subject>` generated at the end of Browser SSO flow. If not set, the `Recipient` will be the Assertion Consumer Service URL.
   - `acs_urls`: Required. A list of strings. The minimum number of items is 1. The list of allowed `AssertionConsumerServiceURL`s to be used in an `<AuthnRequest>` issued by a SP. If `AssertionConsumerServiceURL` is not set in `<AuthnRequest>`, or it is an IdP-initiated flow, the first item in the list will be picked as the `AssertionConsumerServiceURL`.
