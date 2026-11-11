@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "Mogą one służyć do upewnienia się, że to naprawdę Ty się logujesz",
   "v2.page.settings.default.email-button-label": "Email",
   "v2.page.settings.default.link-label-edit-profile": "Edytuj profil",
+  "v2.page.settings.default.link-label-view-profile": "Zobacz profil",
   "v2.page.settings.default.mfa-button-label": "Uwierzytelnianie dwuskładnikowe",
   "v2.page.settings.default.passkey-button-label": "Passkey",
   "v2.page.settings.default.password-button-label": "Hasło",

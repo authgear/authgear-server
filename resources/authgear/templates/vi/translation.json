@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "Những thứ này có thể được sử dụng để đảm bảo rằng thực sự là bạn đang đăng nhập",
   "v2.page.settings.default.email-button-label": "Email",
   "v2.page.settings.default.link-label-edit-profile": "Chỉnh sửa Hồ sơ",
+  "v2.page.settings.default.link-label-view-profile": "Xem Hồ sơ",
   "v2.page.settings.default.mfa-button-label": "Xác thực 2 Yếu tố",
   "v2.page.settings.default.passkey-button-label": "Passkey",
   "v2.page.settings.default.password-button-label": "Mật khẩu",

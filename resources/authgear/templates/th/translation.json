@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "สิ่งเหล่านี้สามารถใช้เพื่อให้แน่ใจว่าเป็นคุณจริงๆ ที่เข้าสู่ระบบ",
   "v2.page.settings.default.email-button-label": "อีเมล",
   "v2.page.settings.default.link-label-edit-profile": "แก้ไขโปรไฟล์",
+  "v2.page.settings.default.link-label-view-profile": "ดูโปรไฟล์",
   "v2.page.settings.default.mfa-button-label": "การรับรองความถูกต้องสองปัจจัย",
   "v2.page.settings.default.passkey-button-label": "Passkey",
   "v2.page.settings.default.password-button-label": "รหัสผ่าน",

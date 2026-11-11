@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "Ang mga ito ay magagamit para matiyak na ikaw talaga ang nag-sign in",
   "v2.page.settings.default.email-button-label": "Email",
   "v2.page.settings.default.link-label-edit-profile": "I-edit ang Profile",
+  "v2.page.settings.default.link-label-view-profile": "Tingnan ang Profile",
   "v2.page.settings.default.mfa-button-label": "2-Factor Awtentikasyon",
   "v2.page.settings.default.passkey-button-label": "Passkey",
   "v2.page.settings.default.password-button-label": "Password",

@@ -18,12 +18,18 @@
         {{ if (and $any_name_readable $.FormattedName) }}<span class="truncate">{{ $.FormattedName }}</span>{{ end }}
         {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="truncate">{{ $.EndUserAccountID }}</span>{{ end }}
       </h1>
+      {{ if $.IsAnyProfileAttributeReadable }}
       <p class="body-text--lg">
         {{ $editProfileHref := call $.MakeURL "/settings/profile"}}
         <a href="{{ $editProfileHref }}" >
-          {{ include "v2.page.settings.default.link-label-edit-profile" . }}
+          {{ if $.IsAnyProfileAttributeEditable }}
+            {{ include "v2.page.settings.default.link-label-edit-profile" . }}
+          {{ else }}
+            {{ include "v2.page.settings.default.link-label-view-profile" . }}
+          {{ end }}
         </a>
       </p>
+      {{ end }}
 
     </div>
   </div>

@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "Deze kunnen worden gebruikt om ervoor te zorgen dat het echt u bent die inlogt",
   "v2.page.settings.default.email-button-label": "E-mail",
   "v2.page.settings.default.link-label-edit-profile": "Profiel bewerken",
+  "v2.page.settings.default.link-label-view-profile": "Profiel bekijken",
   "v2.page.settings.default.mfa-button-label": "2-Factor Authenticatie",
   "v2.page.settings.default.passkey-button-label": "Passkey",
   "v2.page.settings.default.password-button-label": "Wachtwoord",
