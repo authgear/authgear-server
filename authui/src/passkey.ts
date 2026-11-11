@@ -12,6 +12,7 @@ import {
   isFirefoxSecurityKeyError,
   isOperationFailError,
 } from "./passkeyError";
+import { hasWebViewBridge } from "./webviewBridge";
 
 function passkeyIsAvailable(): boolean {
   return (
@@ -694,6 +695,10 @@ export class PasskeyAutofillController extends Controller {
 
   start() {
     if (!passkeyIsAvailable()) {
+      return;
+    }
+    // iOS allows one passkey request per app, so autofill would block the bridge's request.
+    if (hasWebViewBridge()) {
       return;
     }
 
