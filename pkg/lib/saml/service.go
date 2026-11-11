@@ -383,27 +383,11 @@ func (s *Service) IssueLoginSuccessResponse(
 			conditions.NotOnOrAfter = inResponseToAuthnRequest.Conditions.NotOnOrAfter
 		}
 	}
-	audiences := setutil.Set[string]{}
-	// Callback url is always included
-	audiences.Add(callbackURL)
-
-	// Include audience set in config
-	if sp.Audience != "" {
-		audiences.Add(sp.Audience)
-	}
-
-	// Include audiences requested
-	if inResponseToAuthnRequest != nil {
-		for _, aud := range inResponseToAuthnRequest.CollectAudiences() {
-			audiences.Add(aud)
-		}
-	}
-
 	audienceRestriction := samlprotocol.AudienceRestriction{
 		Audience: []samlprotocol.Audience{},
 	}
 
-	for _, aud := range audiences.Keys() {
+	for _, aud := range resolveAudiences(sp, callbackURL, inResponseToAuthnRequest) {
 		audienceRestriction.Audience = append(audienceRestriction.Audience,
 			samlprotocol.Audience{
 				Value: aud,
@@ -492,6 +476,31 @@ func (s *Service) IssueLoginSuccessResponse(
 	}
 
 	return response, nil
+}
+
+func resolveAudiences(
+	sp *config.SAMLServiceProviderConfig,
+	callbackURL string,
+	inResponseToAuthnRequest *samlprotocol.AuthnRequest,
+) []string {
+	audiences := setutil.Set[string]{}
+
+	if sp.Audience != "" {
+		audiences.Add(sp.Audience)
+	}
+
+	// The ACS URL is the only audience when none is configured.
+	if sp.Audience == "" || sp.ShouldIncludeACSURLInAudience() {
+		audiences.Add(callbackURL)
+	}
+
+	if inResponseToAuthnRequest != nil {
+		for _, aud := range inResponseToAuthnRequest.CollectAudiences() {
+			audiences.Add(aud)
+		}
+	}
+
+	return audiences.Keys()
 }
 
 func (s *Service) dispatchUserAuthenticatedEvent(ctx context.Context, userID string, authInfo authenticationinfo.T) error {

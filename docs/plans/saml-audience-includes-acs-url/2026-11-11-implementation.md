@@ -167,9 +167,10 @@ Next to the existing `saml-service-provider*` cases:
 - `saml-service-provider-audience-includes-acs-url-false-without-audience`: no `audience`,
   `audience_includes_acs_url: false` → the real schema error, captured by running the case, not guessed.
 
-### Unit test — `pkg/lib/saml/service_test.go`
+### Unit test — `pkg/lib/saml/service_audience_test.go`
 
-Package uses Convey. Add `Convey("resolveAudiences", t, ...)` inside `TestSAMLService`, with
+New internal test file (`package saml`), because `service_test.go` is the external `saml_test`
+package and cannot call the unexported `resolveAudiences`. Convey style, `TestResolveAudiences`, with
 `callbackURL = "https://sp.example.com/acs"`:
 
 | Case | `audience` | flag | AuthnRequest audiences | Expected |
@@ -215,7 +216,7 @@ Existing cases are unchanged: they do not set the flag, so they still get two au
    - Config only; runtime ignores it until commit 3.
 3. **`[SAML] Respect audience_includes_acs_url in SAML response`**
    - `pkg/lib/saml/service.go` (`resolveAudiences`, call site in `IssueLoginSuccessResponse`).
-   - `pkg/lib/saml/service_test.go`.
+   - `pkg/lib/saml/service_audience_test.go`.
    - `.vettedpositions` via `make update-vettedpositions` if line numbers move.
 4. **`[SAML] Add e2e test for audience_includes_acs_url`**
    - `e2e/tests/saml/sso.test.yaml`.
