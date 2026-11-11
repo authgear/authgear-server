@@ -53,6 +53,7 @@ export interface OAuthClientSAMLFormState {
   destination: string;
   recipient: string;
   audience: string;
+  audienceIncludesACSURL: boolean;
   assertionValidDurationSeconds: number;
   // Logout
   isSLOEnabled: boolean;
@@ -74,6 +75,7 @@ export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
     destination: "",
     recipient: "",
     audience: "",
+    audienceIncludesACSURL: true,
     assertionValidDurationSeconds: 1200,
     isSLOEnabled: false,
     sloCallbackURL: "",
@@ -563,6 +565,13 @@ export function OAuthClientSAMLForm({
     [formState, onFormStateChange]
   );
 
+  const onAudienceIncludesACSURLChange = useCallback(
+    (checked: boolean) => {
+      onFormStateChange({ ...formState, audienceIncludesACSURL: checked });
+    },
+    [formState, onFormStateChange]
+  );
+
   const onIsSLOEnabledChange = useCallback(
     (checked: boolean) => {
       onFormStateChange({ ...formState, isSLOEnabled: checked });
@@ -819,6 +828,26 @@ export function OAuthClientSAMLForm({
                   value={formState.audience}
                   onChange={onTextfieldChange.audience}
                 />
+                <div className="grid gap-y-2 grid-cols-1">
+                  {/* With no audience, the ACS URL is the only audience. */}
+                  <Toggle
+                    text={renderToString(
+                      "OAuthClientSAMLForm.sso.audienceIncludesACSURL.label"
+                    )}
+                    textWeight="medium"
+                    disabled={formState.audience.trim() === ""}
+                    checked={
+                      formState.audience.trim() === "" ||
+                      formState.audienceIncludesACSURL
+                    }
+                    onCheckedChange={onAudienceIncludesACSURLChange}
+                  />
+                  <Text as="p" size="2" className={styles.toggleDescription}>
+                    {renderToString(
+                      "OAuthClientSAMLForm.sso.audienceIncludesACSURL.description"
+                    )}
+                  </Text>
+                </div>
                 <TextField
                   size="2"
                   parentJSONPointer={parentJSONPointer}

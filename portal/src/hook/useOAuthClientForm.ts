@@ -27,6 +27,7 @@ interface FormStateSAMLServiceProviderConfig {
   desitination?: string;
   recipient?: string;
   audience?: string;
+  audienceIncludesACSURL?: boolean;
   assertionValidDurationSeconds?: number;
   isSLOEnabled?: boolean;
   sloCallbackURL?: string;
@@ -45,7 +46,7 @@ export interface FormState {
   samlServiceProviders: FormStateSAMLServiceProviderConfig[];
 }
 
-function constructFormState(
+export function constructFormState(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig
 ): FormState {
@@ -74,6 +75,7 @@ function constructFormState(
       desitination: sp.destination,
       recipient: sp.recipient,
       audience: sp.audience,
+      audienceIncludesACSURL: sp.audience_includes_acs_url,
       assertionValidDurationSeconds: sp.assertion_valid_duration
         ? parseDuration(sp.assertion_valid_duration)
         : undefined,
@@ -123,6 +125,11 @@ function updateSAMLServiceProviders(
     updatedSP.destination = toOptionalText(editedSP.desitination);
     updatedSP.recipient = toOptionalText(editedSP.recipient);
     updatedSP.audience = toOptionalText(editedSP.audience);
+    // Write only false; unset already means true.
+    updatedSP.audience_includes_acs_url =
+      updatedSP.audience != null && editedSP.audienceIncludesACSURL === false
+        ? false
+        : undefined;
     updatedSP.assertion_valid_duration = editedSP.assertionValidDurationSeconds
       ? formatDuration(editedSP.assertionValidDurationSeconds, "s")
       : undefined;
@@ -139,7 +146,7 @@ function updateSAMLServiceProviders(
   config.saml.service_providers = updatedSPs;
 }
 
-function constructConfig(
+export function constructConfig(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig,
   _initialState: FormState,

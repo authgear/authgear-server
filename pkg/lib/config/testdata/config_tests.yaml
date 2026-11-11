@@ -1485,6 +1485,52 @@ config:
               to:
                 saml_attribute: "phone"
 ---
+name: saml-service-provider-audience-includes-acs-url-false
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: testclient
+        redirect_uris:
+          - "https://example.com"
+  saml:
+    signing:
+      key_id: asdfasdf
+    service_providers:
+      - client_id: testclient
+        acs_urls:
+          - http://localhost:3000/acs
+        audience: http://localhost:3000/audience
+        audience_includes_acs_url: false
+---
+name: saml-service-provider-audience-includes-acs-url-false-without-audience
+error: |-
+  invalid configuration:
+  /saml/service_providers/0: required
+    map[actual:[acs_urls audience_includes_acs_url client_id] expected:[audience] missing:[audience]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: testclient
+        redirect_uris:
+          - "https://example.com"
+  saml:
+    signing:
+      key_id: asdfasdf
+    service_providers:
+      - client_id: testclient
+        acs_urls:
+          - http://localhost:3000/acs
+        audience_includes_acs_url: false
+---
 name: saml-signing
 error: null
 config:

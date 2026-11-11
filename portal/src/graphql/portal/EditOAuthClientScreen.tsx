@@ -693,6 +693,8 @@ function OAuthClientSAML2Content({
         destination: samlConfig.desitination ?? defaults.destination,
         recipient: samlConfig.recipient ?? defaults.recipient,
         audience: samlConfig.audience ?? defaults.audience,
+        audienceIncludesACSURL:
+          samlConfig.audienceIncludesACSURL ?? defaults.audienceIncludesACSURL,
         assertionValidDurationSeconds:
           samlConfig.assertionValidDurationSeconds ??
           defaults.assertionValidDurationSeconds,
@@ -721,6 +723,7 @@ function OAuthClientSAML2Content({
           desitination: newState.destination,
           recipient: newState.recipient,
           audience: newState.audience,
+          audienceIncludesACSURL: newState.audienceIncludesACSURL,
           assertionValidDurationSeconds: newState.assertionValidDurationSeconds,
           isSLOEnabled: newState.isSLOEnabled,
           sloCallbackURL: newState.sloCallbackURL,
