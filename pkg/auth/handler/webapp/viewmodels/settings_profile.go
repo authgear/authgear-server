@@ -66,7 +66,6 @@ type SettingsProfileViewModel struct {
 	IsReadable                    func(jsonpointer string) bool
 	IsEditable                    func(jsonpointer string) bool
 	GetCustomAttributeByPointer   func(jsonpointer string) *CustomAttribute
-	IsStandardAttributesAllHidden bool
 	IsAnyProfileAttributeReadable bool
 	IsAnyProfileAttributeEditable bool
 
@@ -307,7 +306,6 @@ func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID strin
 		IsReadable:                    isReadable,
 		IsEditable:                    isEditable,
 		GetCustomAttributeByPointer:   getCustomAttributeByPointer,
-		IsStandardAttributesAllHidden: m.UserProfileConfig.StandardAttributes.IsEndUserAllHidden(),
 		IsAnyProfileAttributeReadable: isAnyReadable,
 		IsAnyProfileAttributeEditable: isAnyEditable,
 

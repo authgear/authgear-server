@@ -61,7 +61,7 @@ func (h *AuthflowV2SettingsProfileHandler) ServeHTTP(w http.ResponseWriter, r *h
 			return err
 		}
 
-		if viewModelPtr.IsStandardAttributesAllHidden {
+		if !viewModelPtr.IsAnyProfileAttributeReadable {
 			http.Redirect(w, r, "/settings", http.StatusFound)
 			return nil
 		}

@@ -639,18 +639,6 @@ func (c *StandardAttributesConfig) GetAccessControl() accesscontrol.T {
 	return t
 }
 
-func (c *StandardAttributesConfig) IsEndUserAllHidden() bool {
-	if len(c.AccessControl) <= 0 {
-		return false
-	}
-	for _, a := range c.AccessControl {
-		if a.AccessControl.EndUser.Level() != AccessControlLevelHidden {
-			return false
-		}
-	}
-	return true
-}
-
 type StandardAttributesAccessControlConfig struct {
 	Pointer       string                              `json:"pointer,omitempty"`
 	AccessControl *UserProfileAttributesAccessControl `json:"access_control,omitempty"`
