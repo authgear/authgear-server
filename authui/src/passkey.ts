@@ -12,7 +12,11 @@ import {
   isFirefoxSecurityKeyError,
   isOperationFailError,
 } from "./passkeyError";
-import { hasWebViewBridge } from "./webviewBridge";
+import {
+  getWebViewBridge,
+  getWebViewBridgeCapabilities,
+  hasWebViewBridge,
+} from "./webviewBridge";
 
 function passkeyIsAvailable(): boolean {
   return (
@@ -793,6 +797,118 @@ export class PasskeyAutofillController extends Controller {
       if (this.requestAbortController === requestAbortController) {
         this.requestAbortController = null;
       }
+    }
+  }
+}
+
+// Asked once per WebView: a new WebView has a new sessionStorage.
+// See docs/specs/passkey-webview.md, "Passkey on page load".
+const WEBVIEW_CHECK_STORAGE_KEY = "authgear.passkey.webview_check";
+const WEBVIEW_CHECK_CAPABILITIES = [
+  "credentials.get",
+  "credentials.get:publicKey",
+  "credentials.get:immediate",
+];
+// Used when sessionStorage is unavailable. It survives Turbo visits.
+let webViewCheckAskedInMemory = false;
+
+function isWebViewCheckAsked(): boolean {
+  try {
+    return window.sessionStorage.getItem(WEBVIEW_CHECK_STORAGE_KEY) != null;
+  } catch {
+    return webViewCheckAskedInMemory;
+  }
+}
+
+// Returns true and sets the mark if the check has not been made in this WebView.
+function markWebViewCheckAsked(): boolean {
+  try {
+    if (window.sessionStorage.getItem(WEBVIEW_CHECK_STORAGE_KEY) != null) {
+      return false;
+    }
+    window.sessionStorage.setItem(WEBVIEW_CHECK_STORAGE_KEY, "true");
+    return true;
+  } catch {
+    if (webViewCheckAskedInMemory) {
+      return false;
+    }
+    webViewCheckAskedInMemory = true;
+    return true;
+  }
+}
+
+export class PasskeyWebViewCheckController extends Controller {
+  static targets = ["submit", "input"];
+  static values = {
+    options: String,
+  };
+
+  declare submitTarget: HTMLButtonElement;
+  declare inputTarget: HTMLInputElement;
+
+  declare optionsValue: string;
+
+  // Set while connected, so that a reply that arrives after the page changed is ignored.
+  run: object | null = null;
+
+  connect() {
+    const run = {};
+    this.run = run;
+    void this.check(run);
+  }
+
+  disconnect() {
+    this.run = null;
+  }
+
+  async check(run: object) {
+    const bridge = getWebViewBridge();
+    if (bridge == null || isWebViewCheckAsked()) {
+      return;
+    }
+
+    const capabilities = await getWebViewBridgeCapabilities(bridge);
+    if (this.run !== run) {
+      return;
+    }
+    if (!WEBVIEW_CHECK_CAPABILITIES.every((c) => capabilities.includes(c))) {
+      return;
+    }
+    // Marked only now, so that a page that is gone before asking does not use up the check.
+    if (!markWebViewCheckAsked()) {
+      return;
+    }
+
+    let reply;
+    try {
+      reply = await bridge.request("credentials.get", {
+        mediation: "immediate",
+        // The JSON as it is, with base64url strings.
+        publicKey: JSON.parse(this.optionsValue).publicKey,
+      });
+    } catch (e: unknown) {
+      console.warn("passkey webview check failed", e);
+      return;
+    }
+    if (this.run !== run) {
+      return;
+    }
+
+    const credential = reply.credential;
+    if (
+      reply.status === "ok" &&
+      credential != null &&
+      typeof credential === "object" &&
+      (credential as { type?: unknown }).type === "public-key"
+    ) {
+      this.inputTarget.value = JSON.stringify(credential);
+      // Click the submit button so that the form is submitted with XHR,
+      // as the other passkey controllers do.
+      this.submitTarget.click();
+      return;
+    }
+    if (reply.status === "error") {
+      console.warn("passkey webview check failed", reply.message);
     }
   }
 }

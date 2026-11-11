@@ -13,6 +13,7 @@ import axios from "axios";
 import {
   AuthflowPasskeyRequestController,
   PasskeyAutofillController,
+  PasskeyWebViewCheckController,
 } from "./passkey";
 
 jest.mock("axios");
@@ -43,6 +44,7 @@ let application: Application;
 let requests: PendingRequest[];
 let isConditionalMediationAvailable: jest.Mock<() => Promise<boolean>>;
 let submitClicks: number;
+let requestSubmitClicks: number;
 
 beforeAll(() => {
   jest.useFakeTimers();
@@ -52,6 +54,7 @@ beforeAll(() => {
     "authflow-passkey-request",
     AuthflowPasskeyRequestController
   );
+  application.register("passkey-webview-check", PasskeyWebViewCheckController);
 });
 
 afterAll(() => {
@@ -62,6 +65,7 @@ afterAll(() => {
 beforeEach(() => {
   requests = [];
   submitClicks = 0;
+  requestSubmitClicks = 0;
   isConditionalMediationAvailable = jest.fn(async () => true);
   Object.defineProperty(window, "PublicKeyCredential", {
     configurable: true,
@@ -127,15 +131,18 @@ async function render(): Promise<void> {
       <input type="hidden" data-passkey-autofill-target="input">
       <button type="button" data-passkey-autofill-target="submit"></button>
     </div>
-    <div data-controller="authflow-passkey-request" data-authflow-passkey-request-options-value='${OPTIONS_JSON}'>
+    <div data-controller="authflow-passkey-request passkey-webview-check" data-authflow-passkey-request-options-value='${OPTIONS_JSON}' data-passkey-webview-check-options-value='${OPTIONS_JSON}'>
       <button type="button" id="use-passkey" data-action="click->authflow-passkey-request#use" data-authflow-passkey-request-target="button"></button>
-      <input type="hidden" data-authflow-passkey-request-target="input">
-      <button type="button" data-authflow-passkey-request-target="submit"></button>
+      <input type="hidden" id="passkey-request-input" data-authflow-passkey-request-target="input" data-passkey-webview-check-target="input">
+      <button type="button" id="passkey-request-submit" data-authflow-passkey-request-target="submit" data-passkey-webview-check-target="submit"></button>
     </div>
   `;
   document
     .querySelector("button")
     ?.addEventListener("click", () => (submitClicks += 1));
+  document
+    .getElementById("passkey-request-submit")
+    ?.addEventListener("click", () => (requestSubmitClicks += 1));
   await flush();
 }
 
@@ -502,4 +509,243 @@ describe("PasskeyAutofillController with the WebView bridge", () => {
       expect(requests).toHaveLength(0);
     });
   }
+});
+
+describe("PasskeyWebViewCheckController", () => {
+  const ALL_CAPABILITIES = [
+    "credentials.get",
+    "credentials.get:publicKey",
+    "credentials.get:immediate",
+  ];
+  const BRIDGE_CREDENTIAL = {
+    id: "bridge-credential-id",
+    rawId: "bridge-credential-id",
+    type: "public-key",
+    authenticatorAttachment: "platform",
+    response: {
+      clientDataJSON: "Y2xpZW50",
+      authenticatorData: "YXV0aA",
+      signature: "c2ln",
+      userHandle: "dXNlcg",
+    },
+    clientExtensionResults: {},
+  };
+
+  // Answers bridge.capabilities with capabilities, and credentials.get with credentialsGet.
+  function installCheckBridge(
+    platform: "ios" | "android",
+    credentialsGet: BridgeHandler,
+    capabilities: unknown = ALL_CAPABILITIES
+  ) {
+    installBridge(platform, async (message) => {
+      if (message.type === "bridge.capabilities") {
+        return { status: "ok", capabilities };
+      }
+      if (message.type === "credentials.get") {
+        return credentialsGet(message);
+      }
+      return { status: "unsupported" };
+    });
+  }
+
+  function credentialsGetMessages() {
+    return bridgeMessages.filter((m) => m.type === "credentials.get");
+  }
+
+  function requestInputValue(): string {
+    return (
+      document.getElementById("passkey-request-input") as HTMLInputElement
+    ).value;
+  }
+
+  for (const platform of ["ios", "android"] as const) {
+    describe(platform, () => {
+      it("asks for a passkey of this device with the options on the page", async () => {
+        installCheckBridge(platform, async () => ({ status: "no_credential" }));
+        await render();
+
+        expect(bridgeMessages.map((m) => m.type)).toEqual([
+          "bridge.capabilities",
+          "credentials.get",
+        ]);
+        const message = credentialsGetMessages()[0];
+        expect(message.mediation).toEqual("immediate");
+        // The challenge is still the base64url string.
+        expect(message.publicKey).toEqual(JSON.parse(OPTIONS_JSON).publicKey);
+      });
+
+      it("submits the passkey", async () => {
+        installCheckBridge(platform, async () => ({
+          status: "ok",
+          credential: BRIDGE_CREDENTIAL,
+        }));
+        await render();
+        // The Android bridge takes a few more promises to reply.
+        await flush();
+
+        expect(JSON.parse(requestInputValue())).toEqual(BRIDGE_CREDENTIAL);
+        expect(requestSubmitClicks).toEqual(1);
+      });
+    });
+  }
+
+  it("does not ask without every capability it needs", async () => {
+    for (const missing of ALL_CAPABILITIES) {
+      window.sessionStorage.clear();
+      installCheckBridge(
+        "ios",
+        async () => ({ status: "ok", credential: BRIDGE_CREDENTIAL }),
+        ALL_CAPABILITIES.filter((c) => c !== missing)
+      );
+      await render();
+
+      expect(bridgeMessages.map((m) => m.type)).toEqual([
+        "bridge.capabilities",
+      ]);
+      expect(requestSubmitClicks).toEqual(0);
+      document.body.innerHTML = "";
+      await flush();
+    }
+  });
+
+  it("does not ask when bridge.capabilities is rejected", async () => {
+    bridgeMessages = [];
+    (window as any).webkit = {
+      messageHandlers: {
+        authgearBridge: {
+          postMessage: async (text: string) => {
+            bridgeMessages.push(JSON.parse(text));
+            throw new Error("origin is not allowed");
+          },
+        },
+      },
+    };
+    await render();
+
+    expect(bridgeMessages.map((m) => m.type)).toEqual(["bridge.capabilities"]);
+    expect(requestSubmitClicks).toEqual(0);
+  });
+
+  it("does not submit a credential that is not a passkey", async () => {
+    installCheckBridge("ios", async () => ({
+      status: "ok",
+      credential: { ...BRIDGE_CREDENTIAL, type: "password" },
+    }));
+    await render();
+
+    expect(credentialsGetMessages()).toHaveLength(1);
+    expect(requestSubmitClicks).toEqual(0);
+    expect(requestInputValue()).toEqual("");
+  });
+
+  it("does nothing visible without a passkey", async () => {
+    const replies: (() => Promise<Record<string, unknown>>)[] = [
+      async () => ({ status: "no_credential" }),
+      async () => ({ status: "cancelled" }),
+      async () => ({ status: "unsupported" }),
+      async () => ({ status: "error", message: "failed" }),
+      async () => {
+        throw new Error("transport failed");
+      },
+    ];
+    for (const reply of replies) {
+      window.sessionStorage.clear();
+      installCheckBridge("ios", reply);
+      await render();
+
+      expect(credentialsGetMessages()).toHaveLength(1);
+      expect(requestSubmitClicks).toEqual(0);
+      expect(requestInputValue()).toEqual("");
+      document.body.innerHTML = "";
+      await flush();
+    }
+  });
+
+  it("asks once per WebView", async () => {
+    installCheckBridge("ios", async () => ({ status: "no_credential" }));
+    await render();
+    expect(credentialsGetMessages()).toHaveLength(1);
+
+    document.body.innerHTML = "";
+    await flush();
+    await render();
+    await showPage(true);
+    await advance(60000);
+
+    expect(bridgeMessages).toHaveLength(2);
+    expect(credentialsGetMessages()).toHaveLength(1);
+  });
+
+  it("asks on the next page when the page was gone before asking", async () => {
+    let resolveCapabilities: () => void = () => {};
+    let first = true;
+    installBridge("ios", async (message) => {
+      if (message.type === "bridge.capabilities") {
+        if (first) {
+          first = false;
+          await new Promise<void>((resolve) => {
+            resolveCapabilities = resolve;
+          });
+        }
+        return { status: "ok", capabilities: ALL_CAPABILITIES };
+      }
+      return { status: "no_credential" };
+    });
+    await render();
+
+    document.body.innerHTML = "";
+    await flush();
+    resolveCapabilities();
+    await flush();
+    expect(credentialsGetMessages()).toHaveLength(0);
+
+    await render();
+    expect(credentialsGetMessages()).toHaveLength(1);
+  });
+
+  it("ignores the reply after the page changed", async () => {
+    let resolveReply: (reply: Record<string, unknown>) => void = () => {};
+    installCheckBridge(
+      "ios",
+      async () =>
+        new Promise((resolve) => {
+          resolveReply = resolve;
+        })
+    );
+    await render();
+    const input = document.getElementById(
+      "passkey-request-input"
+    ) as HTMLInputElement;
+    expect(credentialsGetMessages()).toHaveLength(1);
+
+    document.body.innerHTML = "";
+    await flush();
+    resolveReply({ status: "ok", credential: BRIDGE_CREDENTIAL });
+    await flush();
+
+    expect(input.value).toEqual("");
+    expect(requestSubmitClicks).toEqual(0);
+  });
+
+  it("leaves the passkey button as it is", async () => {
+    installCheckBridge("ios", async () => ({ status: "no_credential" }));
+    await render();
+    expect(requests).toHaveLength(0);
+
+    document.getElementById("use-passkey")?.click();
+    await flush();
+
+    expect(requests).toHaveLength(1);
+    expect(requests[0].options.mediation).toBeUndefined();
+    expect(
+      Array.from(requests[0].options.publicKey?.challenge as Uint8Array)
+    ).toEqual([1, 2, 3]);
+  });
+
+  it("does nothing without the bridge", async () => {
+    await render();
+
+    expect(window.sessionStorage.length).toEqual(0);
+    expect(requestSubmitClicks).toEqual(0);
+  });
 });
