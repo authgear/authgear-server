@@ -46,7 +46,7 @@ export interface FormState {
   samlServiceProviders: FormStateSAMLServiceProviderConfig[];
 }
 
-function constructFormState(
+export function constructFormState(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig
 ): FormState {
@@ -146,7 +146,7 @@ function updateSAMLServiceProviders(
   config.saml.service_providers = updatedSPs;
 }
 
-function constructConfig(
+export function constructConfig(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig,
   _initialState: FormState,
