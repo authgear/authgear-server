@@ -6,17 +6,16 @@ A developer sets everything an end-user reads on a form, in every language the p
 
 The typical moment: open the form node, pick Chinese, fill in the Chinese text.
 
-Tracked in DEV-3918. Builds on the editor (`2026-10-15-01-editor-design.md`) in PR #6008. Needs DEV-3989 (#6029, per-form labels) and DEV-3990 (placeholders and the Authflow API), which ship first as separate server PRs.
+Tracked in DEV-3918. Builds on the editor (`2026-10-15-01-editor-design.md`) in PR #6008. Needs DEV-3989 (#6053, per-form labels) and DEV-3990 (#6033, placeholders and hiding an empty description), which ship first as separate server PRs.
 
 ## Scope
 
-- In: the form panel's text and language dropdown, the field panel, link editing in checkbox labels, a name for every new form, saving text with the flow.
+- In: the form panel's text and language dropdown with a note that the text is for Auth UI only, the field panel, link editing in checkbox labels, a name for every new form, saving text with the flow.
 - Out:
   - Editing an attribute's own label, which shows on the settings page and in every form.
   - Pattern error messages: edited on the attribute (DEV-3913, #6026).
   - Custom Text: stays a raw JSON editor.
   - Text on a form attached to an identify option. Its fields stay edited inline in the identify step's panel as today; only its name is prefilled.
-  - Any note that the text is for Auth UI only. Custom UIs receive the same text through the Authflow API (DEV-3990), so there is none.
 
 ## Server contract (DEV-3989, DEV-3990)
 
@@ -26,14 +25,14 @@ The builder only reads and writes these keys, per language, in `templates/{langu
 |---|---|---|
 | Title | `v2.page.fill-form.{name}.title` | `v2.page.fill-form.default.title`, then the built-in title |
 | Description | `v2.page.fill-form.{name}.description` | `v2.page.fill-form.default.description`, then the built-in description. An empty value hides it (see below) |
-| Field label | `v2.page.fill-form.{name}.field-label-{pointer}` | The attribute's label key, then the label derived from the attribute name |
-| Field placeholder | `v2.page.fill-form.{name}.field-placeholder-{pointer}` | No placeholder |
+| Field label | `v2.page.fill-form.{name}.field-label-{key}` | The attribute's label key, then the label derived from the attribute name |
+| Field placeholder | `v2.page.fill-form.{name}.field-placeholder-{key}` | No placeholder |
 
-Auth UI shows all four; the Authflow API returns them as `form.title`, `form.description`, `fields[].label` and `fields[].placeholder`. A form attached to an identify option has no title, description or placeholder: its fields sit next to the login ID with labels inside the inputs.
+`{key}` is the field's key; for a user profile field, its pointer. Auth UI shows all four. The Authflow API returns none of them: a Custom UI keys its own text off `form.name` and each field's `key`, so the language dropdown carries a note that the text is shown in Auth UI only. A form attached to an identify option has no title, description or placeholder: its fields sit next to the login ID with labels inside the inputs.
 
 Every key is per form name, so forms sharing a name share their text.
 
-An empty named description must hide the description. Today it does not: the template treats an empty key as unset and shows the `default` description. DEV-3990 fixes this, in Auth UI and in the API (`form.description` absent).
+An empty named description must hide the description. Today it does not: the template treats an empty key as unset and shows the `default` description. DEV-3990 fixes this in Auth UI.
 
 ## Form names
 

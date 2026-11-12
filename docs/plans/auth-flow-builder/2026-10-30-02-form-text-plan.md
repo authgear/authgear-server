@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 18, Radix Themes, immer, Jest (`@jest/globals`), Apollo (`useAppTemplatesQuery`, `useUpdateAppTemplatesMutation`).
 
-**Spec:** `docs/plans/auth-flow-builder/2026-10-30-01-form-text-design.md` (DEV-3918). Builds on `2026-10-15-01-editor-design.md` and `2026-10-19-01-flow-list-design.md`. Server keys from DEV-3989 (#6029) and DEV-3990.
+**Spec:** `docs/plans/auth-flow-builder/2026-10-30-01-form-text-design.md` (DEV-3918). Builds on `2026-10-15-01-editor-design.md` and `2026-10-19-01-flow-list-design.md`. Server keys from DEV-3989 (#6053) and DEV-3990 (#6033).
 
 ## Global Constraints
 
@@ -17,8 +17,8 @@
 - Keys, exactly:
   - `v2.page.fill-form.{name}.title`
   - `v2.page.fill-form.{name}.description` (empty string = hidden)
-  - `v2.page.fill-form.{name}.field-label-{pointer}`
-  - `v2.page.fill-form.{name}.field-placeholder-{pointer}`
+  - `v2.page.fill-form.{name}.field-label-{key}` (`{key}` is the pointer for a user profile field)
+  - `v2.page.fill-form.{name}.field-placeholder-{key}`
 - Form names match `^[a-zA-Z_][a-zA-Z0-9_]*$` and are never `default`.
 - Placeholder only for field types `string`, `email`, `url`, `integer`, `number`, `phone_number`.
 - Forms attached to an identify option get no text editing and no field panel; only their name is prefilled.
