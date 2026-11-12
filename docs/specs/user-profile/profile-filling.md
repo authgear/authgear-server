@@ -172,7 +172,7 @@ A form without a `name` uses the attribute's label. Unlike the title and descrip
 
 Other field text uses the translation keys of the attribute only: `enum` option labels are defined in [Custom Attribute type enum](./design.md#custom-attribute-type-enum), and the message for a failed `pattern` in [String constraints](./design.md#string-constraints).
 
-The title, description, field labels, and `enum` option labels are used by Auth UI only. The Authflow API returns the form's `name`, each field's `key`, and each option's `value` instead of the text, so a Custom UI shows its own text; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
+The title, description, field labels, `enum` option labels, and `pattern` messages are used by Auth UI only. The Authflow API returns the form's `name`, each field's `key`, and each option's `value` instead of the text, so a Custom UI shows its own text; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
 
 The hook response and the Authflow API are not configuration; see [Validation hook](#validation-hook) and [the API reference](../authentication-flow-api-reference.md#type-signup-actiontype-fill_form).
 

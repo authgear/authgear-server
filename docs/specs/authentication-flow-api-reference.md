@@ -2229,7 +2229,7 @@ The data describes the fields of a form, so the frontend can render it without k
     - `value`: The current value. Absent when there is none.
     - `options`: Present when `type` is `enum`. A list of `{ "value" }`. A Custom UI shows its own label for each value.
     - `suggestions`: Optional. Values to offer for a `string` field; other values are also accepted.
-    - `constraints`: Optional. Any of `min_length`, `max_length`, `allowed_characters`, `pattern`, and `pattern_message` for `string`; `minimum` and `maximum` for `integer` and `number`. `pattern_message` is the localized message to show when `pattern` fails, present when the developer provides one.
+    - `constraints`: Optional. Any of `min_length`, `max_length`, `allowed_characters`, and `pattern` for `string`; `minimum` and `maximum` for `integer` and `number`. A Custom UI shows its own message when `pattern` fails.
 
 | `type` | `value` | Suggested input |
 |---|---|---|
