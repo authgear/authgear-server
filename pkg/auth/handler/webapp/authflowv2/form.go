@@ -142,8 +142,9 @@ type FormFieldViewModel struct {
 	Type  string
 	Label string
 	// LabelHTML is for boolean only. Links are kept; the rest is escaped.
-	LabelHTML htmltemplate.HTML
-	Required  bool
+	LabelHTML   htmltemplate.HTML
+	Placeholder string
+	Required    bool
 	// Value is the restored form value if present, else the current value of the field.
 	Value any
 	// Checked is for boolean.

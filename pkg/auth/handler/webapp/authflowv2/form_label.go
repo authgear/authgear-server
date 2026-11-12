@@ -57,6 +57,56 @@ func formFieldOptions(t viewmodels.TranslationsCompat, key string, options []dec
 	return out, nil
 }
 
+// formFieldPlaceholder resolves the placeholder of the field with key in the form named formName.
+// Only a named form has placeholders, and only on fields that are typed into.
+func formFieldPlaceholder(t viewmodels.TranslationsCompat, formName string, key string, fieldType declarative.FillFormFieldType) (string, error) {
+	if formName == "" || !hasPlaceholder(fieldType) {
+		return "", nil
+	}
+	return translatedOrDefault(t, "v2.page.fill-form."+formName+".field-placeholder-"+key, "")
+}
+
+func hasPlaceholder(fieldType declarative.FillFormFieldType) bool {
+	switch fieldType {
+	case declarative.FillFormFieldTypeString,
+		declarative.FillFormFieldTypeEmail,
+		declarative.FillFormFieldTypeURL,
+		declarative.FillFormFieldTypeInteger,
+		declarative.FillFormFieldTypeNumber,
+		declarative.FillFormFieldTypePhoneNumber:
+		return true
+	default:
+		return false
+	}
+}
+
+// formPageTextKeys resolves the translation keys of the title and description of a fill_form page.
+// An empty description of a named form is kept, so it hides the description.
+func formPageTextKeys(t viewmodels.TranslationsCompat, formName string) (titleKey string, descriptionKey string, err error) {
+	titleKey = "v2.page.fill-form.default.title"
+	descriptionKey = "v2.page.fill-form.default.description"
+	if formName == "" {
+		return
+	}
+	named := "v2.page.fill-form." + formName + ".title"
+	ok, err := t.HasKey(named)
+	if err != nil {
+		return "", "", err
+	}
+	if ok {
+		titleKey = named
+	}
+	named = "v2.page.fill-form." + formName + ".description"
+	ok, err = t.DefinesKey(named)
+	if err != nil {
+		return "", "", err
+	}
+	if ok {
+		descriptionKey = named
+	}
+	return
+}
+
 func translatedOrDefault(t viewmodels.TranslationsCompat, key string, defaultText string) (string, error) {
 	ok, err := t.HasKey(key)
 	if err != nil {

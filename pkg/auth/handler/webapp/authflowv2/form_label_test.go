@@ -10,7 +10,13 @@ import (
 
 type fakeTranslations map[string]string
 
+// HasKey is false for an empty translation, as in TranslationMap.
 func (t fakeTranslations) HasKey(key string) (bool, error) {
+	v, ok := t[key]
+	return ok && v != "", nil
+}
+
+func (t fakeTranslations) DefinesKey(key string) (bool, error) {
 	_, ok := t[key]
 	return ok, nil
 }
@@ -92,6 +98,69 @@ func TestFormFieldOptions(t *testing.T) {
 			options, err := formFieldOptions(fakeTranslations{}, "/given_name", nil)
 			So(err, ShouldBeNil)
 			So(options, ShouldBeNil)
+		})
+	})
+}
+
+func TestFormFieldPlaceholder(t *testing.T) {
+	Convey("formFieldPlaceholder", t, func() {
+		tr := fakeTranslations{
+			"v2.page.fill-form.names.field-placeholder-/given_name": "e.g. Jane",
+			"v2.page.fill-form.names.field-placeholder-/x_terms":    "Unused",
+		}
+
+		Convey("uses the form's own placeholder", func() {
+			p, err := formFieldPlaceholder(tr, "names", "/given_name", declarative.FillFormFieldTypeString)
+			So(err, ShouldBeNil)
+			So(p, ShouldEqual, "e.g. Jane")
+		})
+
+		Convey("none for a form without a name or without the key", func() {
+			p, err := formFieldPlaceholder(tr, "", "/given_name", declarative.FillFormFieldTypeString)
+			So(err, ShouldBeNil)
+			So(p, ShouldEqual, "")
+			p, err = formFieldPlaceholder(tr, "other", "/given_name", declarative.FillFormFieldTypeString)
+			So(err, ShouldBeNil)
+			So(p, ShouldEqual, "")
+		})
+
+		Convey("none for a field that is not typed into", func() {
+			p, err := formFieldPlaceholder(tr, "names", "/x_terms", declarative.FillFormFieldTypeBoolean)
+			So(err, ShouldBeNil)
+			So(p, ShouldEqual, "")
+		})
+	})
+}
+
+func TestFormPageTextKeys(t *testing.T) {
+	Convey("formPageTextKeys", t, func() {
+		Convey("a form without a name uses the default text", func() {
+			title, description, err := formPageTextKeys(fakeTranslations{"v2.page.fill-form.names.title": "Names"}, "")
+			So(err, ShouldBeNil)
+			So(title, ShouldEqual, "v2.page.fill-form.default.title")
+			So(description, ShouldEqual, "v2.page.fill-form.default.description")
+		})
+
+		Convey("a named form uses its own text when set", func() {
+			title, description, err := formPageTextKeys(fakeTranslations{
+				"v2.page.fill-form.names.title":       "Names",
+				"v2.page.fill-form.names.description": "Tell us more.",
+			}, "names")
+			So(err, ShouldBeNil)
+			So(title, ShouldEqual, "v2.page.fill-form.names.title")
+			So(description, ShouldEqual, "v2.page.fill-form.names.description")
+		})
+
+		Convey("an empty description of a named form is kept, so it hides the description", func() {
+			_, description, err := formPageTextKeys(fakeTranslations{"v2.page.fill-form.names.description": ""}, "names")
+			So(err, ShouldBeNil)
+			So(description, ShouldEqual, "v2.page.fill-form.names.description")
+		})
+
+		Convey("an empty title of a named form falls back to the default title", func() {
+			title, _, err := formPageTextKeys(fakeTranslations{"v2.page.fill-form.names.title": ""}, "names")
+			So(err, ShouldBeNil)
+			So(title, ShouldEqual, "v2.page.fill-form.default.title")
 		})
 	})
 }

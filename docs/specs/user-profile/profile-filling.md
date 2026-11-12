@@ -157,7 +157,7 @@ Each form page shows a title and a description above its fields:
 | `v2.page.fill-form.{name}.title`        | The title of the forms with that `name`. Falls back to `v2.page.fill-form.default.title`.                                                                                                                                                                          |
 | `v2.page.fill-form.{name}.description`  | The description of the forms with that `name`. Falls back to `v2.page.fill-form.default.description`.                                                                                                                                                              |
 
-The developer can override the built-in keys to change the text of every form, or set the `{name}` keys for one form. An empty translation hides the description.
+The developer can override the built-in keys to change the text of every form, or set the `{name}` keys for one form. An empty translation hides the description; an empty `{name}` description hides it for that form instead of falling back.
 
 A form in an `identify` step has no page of its own, so its title and description are not shown; the page keeps the identify page's title.
 
@@ -170,9 +170,11 @@ A field's label is the first of these translations that exists:
 
 A form without a `name` uses the attribute's label. Unlike the title and description, field labels are also shown in forms in an `identify` step.
 
+A field can show an example answer in its empty input, from `v2.page.fill-form.{name}.field-placeholder-{key}`; for example, `v2.page.fill-form.names.field-placeholder-/given_name`. Only fields typed into have one: `string`, `email`, `url`, `integer`, `number`, and `phone_number`. A form without a `name` and a form in an `identify` step show no placeholders.
+
 Other field text uses the translation keys of the attribute only: `enum` option labels are defined in [Custom Attribute type enum](./design.md#custom-attribute-type-enum), and the message for a failed `pattern` in [String constraints](./design.md#string-constraints).
 
-The title, description, field labels, `enum` option labels, and `pattern` messages are used by Auth UI only. The Authflow API returns the form's `name`, each field's `key`, and each option's `value` instead of the text, so a Custom UI shows its own text; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
+The title, description, field labels, placeholders, `enum` option labels, and `pattern` messages are used by Auth UI only. The Authflow API returns the form's `name`, each field's `key`, and each option's `value` instead of the text, so a Custom UI shows its own text; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
 
 The hook response and the Authflow API are not configuration; see [Validation hook](#validation-hook) and [the API reference](../authentication-flow-api-reference.md#type-signup-actiontype-fill_form).
 
