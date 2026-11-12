@@ -84,10 +84,10 @@ func NewFillFormDataForm(deps *authflow.Dependencies, form *config.Authenticatio
 		custom := findCustomAttribute(deps.Config, pointer)
 
 		field := FillFormDataField{
-			Key:      pointer,
-			Type:     fillFormFieldType(custom, pointer),
-			Required: formFieldRequired(f),
-			Value:    formFieldCurrentValue(user, pointer, custom),
+			Key:         pointer,
+			Type:        fillFormFieldType(custom, pointer),
+			Required:    formFieldRequired(f),
+			Value:       formFieldCurrentValue(user, pointer, custom),
 			Options:     formFieldOptions(deps, pointer, custom),
 			Constraints: formFieldConstraints(deps, pointer, custom),
 		}
