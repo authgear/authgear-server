@@ -99,7 +99,7 @@ func (s *AdminAPIService) Director(ctx context.Context, appID string, p string, 
 	}
 	endpoint.Path = p
 
-	host, err := s.DefaultDomains.GetLatestAppHost(appID)
+	publicOrigin, err := url.Parse(cfg.AppConfig.HTTP.PublicOrigin)
 	if err != nil {
 		return
 	}
@@ -109,7 +109,7 @@ func (s *AdminAPIService) Director(ctx context.Context, appID string, p string, 
 		rawQuery := r.URL.RawQuery
 		r.URL = endpoint
 		r.URL.RawQuery = rawQuery
-		r.Host = host
+		r.Host = publicOrigin.Host
 		r.Header.Set("X-Forwarded-Host", r.Host)
 		r.Header.Set("X-Authgear-Portal-Is-Proxied", "true")
 
