@@ -2226,7 +2226,7 @@ The data describes the fields of a form, so the frontend can render it without k
 - `form`: The form to render.
   - `name`: The form's `name`. Absent when the form has none. It is unrelated to `result.name`, the name of the flow. A Custom UI can use it to choose its own title and description for the page.
   - `fields`: The fields to render, in order. Each field has:
-    - `key`: Identifies the field in the input. Treat it as an opaque string.
+    - `key`: Identifies the field in the input. Treat it as an opaque string. How it is composed for each kind of field is in [Field keys](./user-profile/profile-filling.md#field-keys).
     - `type`: The kind of value and input. See the table below.
     - `label`: The field label, localized for the request. It may contain `<a href>` links when `type` is `boolean`.
     - `required`: Whether the field must be filled to submit the form.
