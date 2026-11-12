@@ -17,6 +17,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/tzutil"
 )
 
+var settingsProfileStdAttrKeys = []string{
+	stdattrs.Picture,
+	stdattrs.Name,
+	stdattrs.GivenName,
+	stdattrs.FamilyName,
+	stdattrs.MiddleName,
+	stdattrs.Nickname,
+	stdattrs.Gender,
+	stdattrs.Birthdate,
+	stdattrs.Address,
+	stdattrs.Zoneinfo,
+	stdattrs.Locale,
+}
+
 type CustomAttribute struct {
 	Value          any
 	Label          string
@@ -52,7 +66,8 @@ type SettingsProfileViewModel struct {
 	IsReadable                    func(jsonpointer string) bool
 	IsEditable                    func(jsonpointer string) bool
 	GetCustomAttributeByPointer   func(jsonpointer string) *CustomAttribute
-	IsStandardAttributesAllHidden bool
+	IsAnyProfileAttributeReadable bool
+	IsAnyProfileAttributeEditable bool
 
 	Name                 string
 	GivenName            string
@@ -246,6 +261,18 @@ func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID strin
 		}
 	}
 
+	isAnyReadable := false
+	isAnyEditable := false
+	for _, key := range settingsProfileStdAttrKeys {
+		ptr := jsonpointer.T{key}.String()
+		isAnyReadable = isAnyReadable || isReadable(ptr)
+		isAnyEditable = isAnyEditable || isEditable(ptr)
+	}
+	for _, ca := range m.UserProfileConfig.CustomAttributes.Attributes {
+		isAnyReadable = isAnyReadable || isReadable(ca.Pointer)
+		isAnyEditable = isAnyEditable || isEditable(ca.Pointer)
+	}
+
 	getCustomAttributeByPointer := func(jsonpointer string) *CustomAttribute {
 		for _, ca := range customAttrs {
 			if ca.Pointer == jsonpointer {
@@ -279,7 +306,8 @@ func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID strin
 		IsReadable:                    isReadable,
 		IsEditable:                    isEditable,
 		GetCustomAttributeByPointer:   getCustomAttributeByPointer,
-		IsStandardAttributesAllHidden: m.UserProfileConfig.StandardAttributes.IsEndUserAllHidden(),
+		IsAnyProfileAttributeReadable: isAnyReadable,
+		IsAnyProfileAttributeEditable: isAnyEditable,
 
 		Name:                 str(stdattrs.Name),
 		GivenName:            str(stdattrs.GivenName),

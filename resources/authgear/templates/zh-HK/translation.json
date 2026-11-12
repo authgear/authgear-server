@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "這些可用於確保確實是您在登入",
   "v2.page.settings.default.email-button-label": "電郵",
   "v2.page.settings.default.link-label-edit-profile": "更改個人資料",
+  "v2.page.settings.default.link-label-view-profile": "檢視個人資料",
   "v2.page.settings.default.mfa-button-label": "多重驗證",
   "v2.page.settings.default.passkey-button-label": "通行密匙",
   "v2.page.settings.default.password-button-label": "密碼",

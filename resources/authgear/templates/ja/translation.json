@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "これらは本当にあなたがサインインしていることを確認するために使用できます",
   "v2.page.settings.default.email-button-label": "メール",
   "v2.page.settings.default.link-label-edit-profile": "プロフィールを編集",
+  "v2.page.settings.default.link-label-view-profile": "プロフィールを表示",
   "v2.page.settings.default.mfa-button-label": "2要素認証",
   "v2.page.settings.default.passkey-button-label": "Passkey",
   "v2.page.settings.default.password-button-label": "パスワード",

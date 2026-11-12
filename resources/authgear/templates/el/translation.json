@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "Αυτά μπορούν να χρησιμοποιηθούν για να βεβαιωθείτε ότι είστε πραγματικά εσείς που συνδέεστε",
   "v2.page.settings.default.email-button-label": "Email",
   "v2.page.settings.default.link-label-edit-profile": "Επεξεργασία Προφίλ",
+  "v2.page.settings.default.link-label-view-profile": "Προβολή Προφίλ",
   "v2.page.settings.default.mfa-button-label": "Έλεγχος Ταυτότητας Δύο Παραγόντων",
   "v2.page.settings.default.passkey-button-label": "Passkey",
   "v2.page.settings.default.password-button-label": "Κωδικός Πρόσβασης (Passkey)",

@@ -964,6 +964,7 @@
   "v2.page.settings.default.description-security": "Ini dapat digunakan untuk memastikan bahwa Anda benar-benar yang masuk",
   "v2.page.settings.default.email-button-label": "Email",
   "v2.page.settings.default.link-label-edit-profile": "Edit Profil",
+  "v2.page.settings.default.link-label-view-profile": "Lihat Profil",
   "v2.page.settings.default.mfa-button-label": "Otentikasi 2-Faktor",
   "v2.page.settings.default.passkey-button-label": "Passkey",
   "v2.page.settings.default.password-button-label": "Kata Sandi",
