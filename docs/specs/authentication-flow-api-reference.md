@@ -350,7 +350,6 @@ In signup and promote flows, an `email`, `phone`, or `username` option may conta
       {
         "key": "/given_name",
         "type": "string",
-        "label": "Given name",
         "required": true
       }
     ]
@@ -1357,7 +1356,6 @@ When you are in this step of this flow, you will see a response like the followi
             {
               "key": "/given_name",
               "type": "string",
-              "label": "Given name",
               "required": true,
               "value": "John",
               "constraints": { "max_length": 50 }
@@ -1365,11 +1363,10 @@ When you are in this step of this flow, you will see a response like the followi
             {
               "key": "/x_plan",
               "type": "enum",
-              "label": "Plan",
               "required": false,
               "options": [
-                { "value": "free", "label": "Free" },
-                { "value": "pro", "label": "Pro" }
+                { "value": "free" },
+                { "value": "pro" }
               ]
             }
           ]
@@ -2224,14 +2221,13 @@ The data contains recovery codes of the user.
 The data describes the fields of a form, so the frontend can render it without knowing where the values are stored.
 
 - `form`: The form to render.
-  - `name`: The form's `name`. Absent when the form has none. It is unrelated to `result.name`, the name of the flow. A Custom UI can use it to choose its own title and description for the page.
+  - `name`: The form's `name`. Absent when the form has none. It is unrelated to `result.name`, the name of the flow. A Custom UI can use it to choose its own title, description, and field labels for the page.
   - `fields`: The fields to render, in order. Each field has:
-    - `key`: Identifies the field in the input. Treat it as an opaque string. How it is composed for each kind of field is in [Field keys](./user-profile/profile-filling.md#field-keys).
+    - `key`: Identifies the field in the input. A Custom UI can use it to choose its own label for the field. How it is composed for each kind of field is in [Field keys](./user-profile/profile-filling.md#field-keys).
     - `type`: The kind of value and input. See the table below.
-    - `label`: The field label, localized for the request. It may contain `<a href>` links when `type` is `boolean`.
     - `required`: Whether the field must be filled to submit the form.
     - `value`: The current value. Absent when there is none.
-    - `options`: Present when `type` is `enum`. A list of `{ "value", "label" }`, with localized labels.
+    - `options`: Present when `type` is `enum`. A list of `{ "value" }`. A Custom UI shows its own label for each value.
     - `suggestions`: Optional. Values to offer for a `string` field; other values are also accepted.
     - `constraints`: Optional. Any of `min_length`, `max_length`, `allowed_characters`, `pattern`, and `pattern_message` for `string`; `minimum` and `maximum` for `integer` and `number`. `pattern_message` is the localized message to show when `pattern` fails, present when the developer provides one.
 

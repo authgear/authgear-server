@@ -161,8 +161,6 @@ The developer can override the built-in keys to change the text of every form, o
 
 A form in an `identify` step has no page of its own, so its title and description are not shown; the page keeps the identify page's title.
 
-These keys are used by Auth UI. The Authflow API returns the form's `name`, as `form.name`, instead of the text, so a Custom UI shows its own title and description; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
-
 A field's label is the first of these translations that exists:
 
 | Key                                                          | Meaning                                                                                                                                                                                                                           |
@@ -170,9 +168,11 @@ A field's label is the first of these translations that exists:
 | `v2.page.fill-form.{name}.field-label-{key}`                 | The label of the field with that [`key`](#field-keys), in the forms with that `name`. For example, `v2.page.fill-form.newsletter.field-label-/x_marketing_consent`.                                                        |
 | `standard-attribute-label-{pointer}` or `custom-attribute-label-{pointer}` | The attribute's label, used by every form and the settings page. Defined in [Standard attribute labels](./design.md#standard-attribute-labels) and [Defining custom attributes](./design.md#defining-custom-attributes). |
 
-A form without a `name` uses the attribute's label. Unlike the title and description, the label is shown in forms in an `identify` step too, and the Authflow API returns the resolved text in the field's `label`.
+A form without a `name` uses the attribute's label. Unlike the title and description, field labels are also shown in forms in an `identify` step.
 
 Other field text uses the translation keys of the attribute only: `enum` option labels are defined in [Custom Attribute type enum](./design.md#custom-attribute-type-enum), and the message for a failed `pattern` in [String constraints](./design.md#string-constraints).
+
+The title, description, field labels, and `enum` option labels are used by Auth UI only. The Authflow API returns the form's `name`, each field's `key`, and each option's `value` instead of the text, so a Custom UI shows its own text; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
 
 The hook response and the Authflow API are not configuration; see [Validation hook](#validation-hook) and [the API reference](../authentication-flow-api-reference.md#type-signup-actiontype-fill_form).
 
@@ -238,13 +238,11 @@ After the password step, the flow responds:
             {
               "key": "/given_name",
               "type": "string",
-              "label": "Given name",
               "required": true
             },
             {
               "key": "/family_name",
               "type": "string",
-              "label": "Family name",
               "required": true
             }
           ]
@@ -340,13 +338,11 @@ The `identify` action carries the form in the option:
           {
             "key": "/given_name",
             "type": "string",
-            "label": "Given name",
             "required": true
           },
           {
             "key": "/family_name",
             "type": "string",
-            "label": "Family name",
             "required": false
           }
         ]
@@ -675,21 +671,18 @@ After the OAuth callback, `data.form.fields` carries the populated values:
   {
     "key": "/given_name",
     "type": "string",
-    "label": "Given name",
     "required": true,
     "value": "John"
   },
   {
     "key": "/family_name",
     "type": "string",
-    "label": "Family name",
     "required": true,
     "value": "Doe"
   },
   {
     "key": "/gender",
     "type": "string",
-    "label": "Gender",
     "required": false,
     "suggestions": ["male", "female"]
   }
@@ -801,7 +794,7 @@ authentication_flow:
                   required: false
 ```
 
-Labels, in `templates/en/translation.json`. They use the existing [label key](./design.md#defining-custom-attributes) `custom-attribute-label-{pointer}`:
+Auth UI labels, in `templates/en/translation.json`. They use the existing [label key](./design.md#defining-custom-attributes) `custom-attribute-label-{pointer}`:
 
 ```json
 {
@@ -828,13 +821,11 @@ The pointer includes the terms version, so a later version gets a new attribute.
   {
     "key": "/x_accepted_terms_2026_01",
     "type": "boolean",
-    "label": "I agree to the <a href=\"https://booking.example.com/terms\">Terms of Service</a> and <a href=\"https://booking.example.com/privacy\">Privacy Policy</a>",
     "required": true
   },
   {
     "key": "/x_marketing_consent",
     "type": "boolean",
-    "label": "Send me offers and news by email",
     "required": false
   }
 ]
@@ -853,7 +844,7 @@ Input:
 
 Sending `"value": false` for `/x_accepted_terms_2026_01` fails with `ValidationFailed`.
 
-A Custom UI receives the same translated label, links included, in the field's `label`.
+A Custom UI shows its own text for each checkbox, including the links.
 
 **Where the attribute appears**
 
@@ -964,7 +955,7 @@ In the Authflow API, the field's `type` is:
 | Custom attribute of type `string`, `integer`, `number`, `enum`, `phone_number`, `email`, `url`, or `boolean` | The same name                                               |
 | Custom attribute of type [`alpha2`](./design.md#custom-attribute-type-alpha2)                                | `country_code`                                              |
 
-The `label` and `enum` option labels use the field's [translations](#translations). `constraints` are the attribute's [string constraints](./design.md#string-constraints) or its `minimum` and `maximum`.
+`constraints` are the attribute's [string constraints](./design.md#string-constraints) or its `minimum` and `maximum`.
 
 #### Fillable attributes
 
