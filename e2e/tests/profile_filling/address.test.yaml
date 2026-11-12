@@ -72,7 +72,6 @@ steps:
                   {
                     "key": "/address",
                     "type": "address",
-                    "label": "Address",
                     "required": true
                   }
                 ]

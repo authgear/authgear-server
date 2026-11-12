@@ -84,13 +84,11 @@ steps:
                   {
                     "key": "/x_terms",
                     "type": "boolean",
-                    "label": "I accept the <a href=\"https://example.com/terms\" target=\"_blank\" rel=\"noopener noreferrer\">Terms</a>",
                     "required": true
                   },
                   {
                     "key": "/x_newsletter",
                     "type": "boolean",
-                    "label": "X Newsletter",
                     "required": false
                   }
                 ]

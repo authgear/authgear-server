@@ -9,8 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/htmlutil"
-	"github.com/authgear/authgear-server/pkg/util/labelutil"
 )
 
 type FillFormFieldType string
@@ -43,7 +41,6 @@ type FillFormDataForm struct {
 type FillFormDataField struct {
 	Key      string            `json:"key"`
 	Type     FillFormFieldType `json:"type"`
-	Label    string            `json:"label"`
 	Required bool              `json:"required"`
 	// Value is omitted only when nil. A false is kept.
 	Value       any                           `json:"value,omitempty"`
@@ -54,7 +51,6 @@ type FillFormDataField struct {
 
 type FillFormDataFieldOption struct {
 	Value string `json:"value"`
-	Label string `json:"label"`
 }
 
 type FillFormDataFieldConstraints struct {
@@ -78,7 +74,7 @@ var _ authflow.Data = FillFormData{}
 
 func (FillFormData) Data() {}
 
-// NewFillFormDataForm builds the localized form for user. user carries the current values.
+// NewFillFormDataForm builds the form for user. user carries the current values.
 func NewFillFormDataForm(ctx context.Context, deps *authflow.Dependencies, form *config.AuthenticationFlowForm, user *model.User) (FillFormDataForm, error) {
 	out := FillFormDataForm{
 		Name:   form.Name,
@@ -86,36 +82,21 @@ func NewFillFormDataForm(ctx context.Context, deps *authflow.Dependencies, form 
 	}
 
 	for _, f := range form.Fields {
-		key := formFieldKey(f)
-		pointer := key
+		pointer := formFieldKey(f)
 		custom := findCustomAttribute(deps.Config, pointer)
 
-		typ := fillFormFieldType(custom, pointer)
-		label, err := formFieldLabel(ctx, deps, form.Name, key, pointer, custom)
-		if err != nil {
-			return FillFormDataForm{}, err
-		}
-		if custom != nil && custom.Type == config.CustomAttributeTypeBoolean {
-			// The label may contain links, which are sanitized.
-			label = string(htmlutil.SanitizeLinksHTML(label))
-		}
-
 		field := FillFormDataField{
-			Key:      key,
-			Type:     typ,
-			Label:    label,
+			Key:      pointer,
+			Type:     fillFormFieldType(custom, pointer),
 			Required: formFieldRequired(f),
 			Value:    formFieldCurrentValue(user, pointer, custom),
+			Options:  formFieldOptions(deps, pointer, custom),
 		}
 		if pointer == "/gender" {
 			field.Suggestions = []string{"male", "female"}
 		}
 
-		field.Options, err = formFieldOptions(ctx, deps, pointer, custom)
-		if err != nil {
-			return FillFormDataForm{}, err
-		}
-
+		var err error
 		field.Constraints, err = formFieldConstraints(ctx, deps, pointer, custom)
 		if err != nil {
 			return FillFormDataForm{}, err
@@ -172,43 +153,6 @@ func fillFormFieldType(custom *config.CustomAttributesAttributeConfig, pointer s
 	panic(fmt.Errorf("unexpected form field: %v", pointer))
 }
 
-// formFieldLabel looks up the label of the field fieldKey in the form formName first,
-// then the label of the attribute at pointer.
-func formFieldLabel(ctx context.Context, deps *authflow.Dependencies, formName string, fieldKey string, pointer string, custom *config.CustomAttributesAttributeConfig) (string, error) {
-	if formName != "" {
-		key := "v2.page.fill-form." + formName + ".field-label-" + fieldKey
-		ok, err := deps.Translations.HasKey(ctx, key)
-		if err != nil {
-			return "", err
-		}
-		if ok {
-			return deps.Translations.RenderText(ctx, key, nil)
-		}
-	}
-
-	prefix := "standard-attribute-label-"
-	if custom != nil {
-		prefix = "custom-attribute-label-"
-	}
-	key := prefix + pointer
-	ok, err := deps.Translations.HasKey(ctx, key)
-	if err != nil {
-		return "", err
-	}
-	if ok {
-		return deps.Translations.RenderText(ctx, key, nil)
-	}
-	return labelutil.Label(firstPointerToken(pointer)), nil
-}
-
-func firstPointerToken(pointer string) string {
-	ptr, err := jsonpointer.Parse(pointer)
-	if err != nil || len(ptr) == 0 {
-		return pointer
-	}
-	return ptr[0]
-}
-
 func formFieldCurrentValue(user *model.User, pointer string, custom *config.CustomAttributesAttributeConfig) any {
 	ptr, err := jsonpointer.Parse(pointer)
 	if err != nil {
@@ -225,30 +169,22 @@ func formFieldCurrentValue(user *model.User, pointer string, custom *config.Cust
 	return v
 }
 
-func formFieldOptions(ctx context.Context, deps *authflow.Dependencies, pointer string, custom *config.CustomAttributesAttributeConfig) ([]FillFormDataFieldOption, error) {
+func formFieldOptions(deps *authflow.Dependencies, pointer string, custom *config.CustomAttributesAttributeConfig) []FillFormDataFieldOption {
 	var options []FillFormDataFieldOption
 
 	if custom != nil && custom.Type == config.CustomAttributeTypeEnum {
 		for _, value := range custom.Enum {
-			label, err := translatedOrDefault(ctx, deps, "custom-attribute-enum-label-"+pointer+"-"+value, labelutil.Label(value))
-			if err != nil {
-				return nil, err
-			}
-			options = append(options, FillFormDataFieldOption{Value: value, Label: label})
+			options = append(options, FillFormDataFieldOption{Value: value})
 		}
 	}
 
 	if custom == nil && pointer == "/locale" {
 		for _, tag := range deps.Config.Localization.SupportedLanguages {
-			label, err := translatedOrDefault(ctx, deps, "language-"+tag, tag)
-			if err != nil {
-				return nil, err
-			}
-			options = append(options, FillFormDataFieldOption{Value: tag, Label: label})
+			options = append(options, FillFormDataFieldOption{Value: tag})
 		}
 	}
 
-	return options, nil
+	return options
 }
 
 func translatedOrDefault(ctx context.Context, deps *authflow.Dependencies, key string, defaultText string) (string, error) {

@@ -56,13 +56,11 @@ steps:
                       {
                         "key": "/given_name",
                         "type": "string",
-                        "label": "Given name",
                         "required": true
                       },
                       {
                         "key": "/family_name",
                         "type": "string",
-                        "label": "Family name",
                         "required": false
                       }
                     ]

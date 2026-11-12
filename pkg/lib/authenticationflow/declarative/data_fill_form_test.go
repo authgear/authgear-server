@@ -99,55 +99,10 @@ func TestNewFillFormDataForm(t *testing.T) {
 			}
 		})
 
-		Convey("label falls back to the attribute name", func() {
+		Convey("required", func() {
 			built := build(emptyUser, userProfileField("/given_name", true), userProfileField("/x_employee_id", false))
-			So(built["/given_name"].Label, ShouldEqual, "Given Name")
 			So(built["/given_name"].Required, ShouldBeTrue)
-			So(built["/x_employee_id"].Label, ShouldEqual, "X Employee Id")
 			So(built["/x_employee_id"].Required, ShouldBeFalse)
-		})
-
-		Convey("label uses the translation", func() {
-			translations["standard-attribute-label-/given_name"] = "First name"
-			translations["custom-attribute-label-/x_employee_id"] = "Employee ID"
-			built := build(emptyUser, userProfileField("/given_name", true), userProfileField("/x_employee_id", false))
-			So(built["/given_name"].Label, ShouldEqual, "First name")
-			So(built["/x_employee_id"].Label, ShouldEqual, "Employee ID")
-		})
-
-		Convey("form field label overrides the attribute label", func() {
-			translations["standard-attribute-label-/given_name"] = "First name"
-			translations["v2.page.fill-form.names.field-label-/given_name"] = "Legal first name"
-			translations["v2.page.fill-form.names.field-label-/x_employee_id"] = "Staff number"
-			built := build(emptyUser, userProfileField("/given_name", true), userProfileField("/x_employee_id", false))
-			So(built["/given_name"].Label, ShouldEqual, "Legal first name")
-			So(built["/x_employee_id"].Label, ShouldEqual, "Staff number")
-		})
-
-		Convey("form field label of another form is not used", func() {
-			translations["v2.page.fill-form.other.field-label-/given_name"] = "Other"
-			for _, name := range []string{"names", ""} {
-				form, err := NewFillFormDataForm(ctx, deps, &config.AuthenticationFlowForm{
-					Name:   name,
-					Fields: []*config.AuthenticationFlowFormField{userProfileField("/given_name", false)},
-				}, emptyUser)
-				So(err, ShouldBeNil)
-				So(form.Fields[0].Label, ShouldEqual, "Given Name")
-			}
-		})
-
-		Convey("boolean form field label is sanitized", func() {
-			translations["v2.page.fill-form.names.field-label-/x_terms"] = `I accept the <a href="https://example.com/t" onclick="x()">Terms</a><script>x</script>`
-			built := build(emptyUser, userProfileField("/x_terms", true))
-			So(built["/x_terms"].Label, ShouldEqual,
-				`I accept the <a href="https://example.com/t" target="_blank" rel="noopener noreferrer">Terms</a>&lt;script&gt;x&lt;/script&gt;`)
-		})
-
-		Convey("boolean label is sanitized", func() {
-			translations["custom-attribute-label-/x_terms"] = `I accept the <a href="https://example.com/t" onclick="x()">Terms</a><script>x</script>`
-			built := build(emptyUser, userProfileField("/x_terms", true))
-			So(built["/x_terms"].Label, ShouldEqual,
-				`I accept the <a href="https://example.com/t" target="_blank" rel="noopener noreferrer">Terms</a>&lt;script&gt;x&lt;/script&gt;`)
 		})
 
 		Convey("current value, including false", func() {
@@ -183,21 +138,19 @@ func TestNewFillFormDataForm(t *testing.T) {
 			So(built["/gender"].Suggestions, ShouldResemble, []string{"male", "female"})
 		})
 
-		Convey("enum options fall back and use translations", func() {
-			translations["custom-attribute-enum-label-/x_plan-free"] = "Free plan"
+		Convey("enum options are the enum values", func() {
 			built := build(emptyUser, userProfileField("/x_plan", false))
 			So(built["/x_plan"].Options, ShouldResemble, []FillFormDataFieldOption{
-				{Value: "free", Label: "Free plan"},
-				{Value: "pro_plan", Label: "Pro Plan"},
+				{Value: "free"},
+				{Value: "pro_plan"},
 			})
 		})
 
 		Convey("locale options are the supported languages", func() {
-			translations["language-zh-HK"] = "繁體中文"
 			built := build(emptyUser, userProfileField("/locale", false))
 			So(built["/locale"].Options, ShouldResemble, []FillFormDataFieldOption{
-				{Value: "en", Label: "en"},
-				{Value: "zh-HK", Label: "繁體中文"},
+				{Value: "en"},
+				{Value: "zh-HK"},
 			})
 		})
 

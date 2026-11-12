@@ -82,7 +82,6 @@ steps:
                 "fields": [
                   {
                     "key": "/given_name",
-                    "label": "Given name",
                     "constraints": {
                       "min_length": 3,
                       "max_length": 10,
@@ -91,7 +90,6 @@ steps:
                   },
                   {
                     "key": "/x_employee_id",
-                    "label": "Employee ID",
                     "constraints": {
                       "pattern": "^E[0-9]{5}$",
                       "pattern_message": "Start with E, then 5 digits"
