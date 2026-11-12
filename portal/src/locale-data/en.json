@@ -277,6 +277,7 @@
   "AuthFlowsScreen.edit.form.form-name.shared-text": "This name already has text. The form will share it.",
   "AuthFlowsScreen.form-text.language": "Language",
   "AuthFlowsScreen.form-text.language.edited": "Edited",
+  "AuthFlowsScreen.form-text.auth-ui-only": "Shown in Auth UI only. A Custom UI uses its own text.",
   "AuthFlowsScreen.form-text.title": "Title",
   "AuthFlowsScreen.form-text.description": "Description",
   "AuthFlowsScreen.form-text.hide-description": "Hide description",

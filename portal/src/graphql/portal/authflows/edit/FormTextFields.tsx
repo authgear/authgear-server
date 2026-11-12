@@ -84,7 +84,8 @@ export function formPageText(
 }
 
 // The language the form's text is edited in. The list labels languages
-// with text of the form's own.
+// with text of the form's own. The Authflow API returns no text, so the
+// note says a Custom UI is not affected.
 export function FormLanguageSelect({
   formName,
 }: {
@@ -119,6 +120,9 @@ export function FormLanguageSelect({
           ))}
         </Select.Content>
       </Select.Root>
+      <Text as="p" size="1" color="gray">
+        {renderToString("AuthFlowsScreen.form-text.auth-ui-only")}
+      </Text>
     </div>
   );
 }
