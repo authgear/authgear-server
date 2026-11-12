@@ -86,11 +86,12 @@ func NewFillFormDataForm(ctx context.Context, deps *authflow.Dependencies, form 
 	}
 
 	for _, f := range form.Fields {
-		pointer := formFieldKey(f)
+		key := formFieldKey(f)
+		pointer := key
 		custom := findCustomAttribute(deps.Config, pointer)
 
 		typ := fillFormFieldType(custom, pointer)
-		label, err := formFieldLabel(ctx, deps, pointer, custom)
+		label, err := formFieldLabel(ctx, deps, form.Name, key, pointer, custom)
 		if err != nil {
 			return FillFormDataForm{}, err
 		}
@@ -100,7 +101,7 @@ func NewFillFormDataForm(ctx context.Context, deps *authflow.Dependencies, form 
 		}
 
 		field := FillFormDataField{
-			Key:      pointer,
+			Key:      key,
 			Type:     typ,
 			Label:    label,
 			Required: formFieldRequired(f),
@@ -171,7 +172,20 @@ func fillFormFieldType(custom *config.CustomAttributesAttributeConfig, pointer s
 	panic(fmt.Errorf("unexpected form field: %v", pointer))
 }
 
-func formFieldLabel(ctx context.Context, deps *authflow.Dependencies, pointer string, custom *config.CustomAttributesAttributeConfig) (string, error) {
+// formFieldLabel looks up the label of the field fieldKey in the form formName first,
+// then the label of the attribute at pointer.
+func formFieldLabel(ctx context.Context, deps *authflow.Dependencies, formName string, fieldKey string, pointer string, custom *config.CustomAttributesAttributeConfig) (string, error) {
+	if formName != "" {
+		key := "v2.page.fill-form." + formName + ".field-label-" + fieldKey
+		ok, err := deps.Translations.HasKey(ctx, key)
+		if err != nil {
+			return "", err
+		}
+		if ok {
+			return deps.Translations.RenderText(ctx, key, nil)
+		}
+	}
+
 	prefix := "standard-attribute-label-"
 	if custom != nil {
 		prefix = "custom-attribute-label-"
