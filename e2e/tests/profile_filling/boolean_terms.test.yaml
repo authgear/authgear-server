@@ -1,5 +1,4 @@
 name: Boolean attributes, such as agreeing to terms (UC8)
-extra_files_directory: ./var_translations
 authgear.yaml:
   override: |
     user_profile:

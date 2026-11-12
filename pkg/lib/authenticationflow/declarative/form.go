@@ -249,10 +249,7 @@ func identificationOptionsWithForms(
 		if !ok {
 			continue
 		}
-		dataForm, err := NewFillFormDataForm(ctx, deps, form, user)
-		if err != nil {
-			return nil, err
-		}
+		dataForm := NewFillFormDataForm(deps, form, user)
 		out[i].Form = &dataForm
 	}
 	return out, nil

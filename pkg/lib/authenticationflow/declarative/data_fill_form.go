@@ -1,7 +1,6 @@
 package declarative
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -58,7 +57,6 @@ type FillFormDataFieldConstraints struct {
 	MaxLength         *int     `json:"max_length,omitempty"`
 	AllowedCharacters []string `json:"allowed_characters,omitempty"`
 	Pattern           string   `json:"pattern,omitempty"`
-	PatternMessage    string   `json:"pattern_message,omitempty"`
 	Minimum           *float64 `json:"minimum,omitempty"`
 	Maximum           *float64 `json:"maximum,omitempty"`
 }
@@ -75,7 +73,7 @@ var _ authflow.Data = FillFormData{}
 func (FillFormData) Data() {}
 
 // NewFillFormDataForm builds the form for user. user carries the current values.
-func NewFillFormDataForm(ctx context.Context, deps *authflow.Dependencies, form *config.AuthenticationFlowForm, user *model.User) (FillFormDataForm, error) {
+func NewFillFormDataForm(deps *authflow.Dependencies, form *config.AuthenticationFlowForm, user *model.User) FillFormDataForm {
 	out := FillFormDataForm{
 		Name:   form.Name,
 		Fields: []FillFormDataField{},
@@ -90,22 +88,17 @@ func NewFillFormDataForm(ctx context.Context, deps *authflow.Dependencies, form 
 			Type:     fillFormFieldType(custom, pointer),
 			Required: formFieldRequired(f),
 			Value:    formFieldCurrentValue(user, pointer, custom),
-			Options:  formFieldOptions(deps, pointer, custom),
+			Options:     formFieldOptions(deps, pointer, custom),
+			Constraints: formFieldConstraints(deps, pointer, custom),
 		}
 		if pointer == "/gender" {
 			field.Suggestions = []string{"male", "female"}
 		}
 
-		var err error
-		field.Constraints, err = formFieldConstraints(ctx, deps, pointer, custom)
-		if err != nil {
-			return FillFormDataForm{}, err
-		}
-
 		out.Fields = append(out.Fields, field)
 	}
 
-	return out, nil
+	return out
 }
 
 // fillFormFieldType is the type table in the profile filling spec.
@@ -187,23 +180,10 @@ func formFieldOptions(deps *authflow.Dependencies, pointer string, custom *confi
 	return options
 }
 
-func translatedOrDefault(ctx context.Context, deps *authflow.Dependencies, key string, defaultText string) (string, error) {
-	ok, err := deps.Translations.HasKey(ctx, key)
-	if err != nil {
-		return "", err
-	}
-	if !ok {
-		return defaultText, nil
-	}
-	return deps.Translations.RenderText(ctx, key, nil)
-}
-
-func formFieldConstraints(ctx context.Context, deps *authflow.Dependencies, pointer string, custom *config.CustomAttributesAttributeConfig) (*FillFormDataFieldConstraints, error) {
+func formFieldConstraints(deps *authflow.Dependencies, pointer string, custom *config.CustomAttributesAttributeConfig) *FillFormDataFieldConstraints {
 	var stringConstraints *config.StringConstraints
-	patternMessageKey := "standard-attribute-pattern-error-" + pointer
 	if custom != nil {
 		stringConstraints = custom.StringConstraints()
-		patternMessageKey = "custom-attribute-pattern-error-" + pointer
 	} else {
 		stringConstraints = deps.Config.UserProfile.StandardAttributes.GetStringConstraints(pointer)
 	}
@@ -216,13 +196,6 @@ func formFieldConstraints(ctx context.Context, deps *authflow.Dependencies, poin
 			out.AllowedCharacters = append(out.AllowedCharacters, string(c))
 		}
 		out.Pattern = stringConstraints.Pattern
-		if stringConstraints.Pattern != "" {
-			message, err := translatedOrDefault(ctx, deps, patternMessageKey, "")
-			if err != nil {
-				return nil, err
-			}
-			out.PatternMessage = message
-		}
 	}
 	if custom != nil {
 		out.Minimum = custom.Minimum
@@ -230,9 +203,9 @@ func formFieldConstraints(ctx context.Context, deps *authflow.Dependencies, poin
 	}
 
 	if out.isEmpty() {
-		return nil, nil
+		return nil
 	}
-	return out, nil
+	return out
 }
 
 func (c *FillFormDataFieldConstraints) isEmpty() bool {
@@ -240,7 +213,6 @@ func (c *FillFormDataFieldConstraints) isEmpty() bool {
 		c.MaxLength == nil &&
 		len(c.AllowedCharacters) == 0 &&
 		c.Pattern == "" &&
-		c.PatternMessage == "" &&
 		c.Minimum == nil &&
 		c.Maximum == nil
 }

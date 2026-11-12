@@ -1,7 +1,6 @@
 package declarative
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -12,21 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-// fakeTranslationService is hand-written because the generated mocks are in package declarative_test.
-type fakeTranslationService map[string]string
-
-func (s fakeTranslationService) HasKey(ctx context.Context, key string) (bool, error) {
-	_, ok := s[key]
-	return ok, nil
-}
-
-func (s fakeTranslationService) RenderText(ctx context.Context, key string, args any) (string, error) {
-	return s[key], nil
-}
-
 func TestNewFillFormDataForm(t *testing.T) {
 	Convey("NewFillFormDataForm", t, func() {
-		ctx := context.Background()
 		cfg := newTestFormConfig()
 		cfg.UserProfile.CustomAttributes.Attributes = append(cfg.UserProfile.CustomAttributes.Attributes,
 			&config.CustomAttributesAttributeConfig{
@@ -40,12 +26,10 @@ func TestNewFillFormDataForm(t *testing.T) {
 				Minimum: new(float64(0)), Maximum: new(float64(10)),
 			},
 		)
-		translations := fakeTranslationService{}
-		deps := &authflow.Dependencies{Config: cfg, Translations: translations}
+		deps := &authflow.Dependencies{Config: cfg}
 
 		build := func(user *model.User, fields ...*config.AuthenticationFlowFormField) map[string]FillFormDataField {
-			form, err := NewFillFormDataForm(ctx, deps, &config.AuthenticationFlowForm{Name: "names", Fields: fields}, user)
-			So(err, ShouldBeNil)
+			form := NewFillFormDataForm(deps, &config.AuthenticationFlowForm{Name: "names", Fields: fields}, user)
 			So(form.Name, ShouldEqual, "names")
 			out := map[string]FillFormDataField{}
 			for _, f := range form.Fields {
@@ -155,15 +139,11 @@ func TestNewFillFormDataForm(t *testing.T) {
 		})
 
 		Convey("constraints", func() {
-			Convey("string constraints, and pattern_message only with a translation", func() {
+			Convey("string constraints", func() {
 				built := build(emptyUser, userProfileField("/x_employee_id", false), userProfileField("/given_name", false))
 				So(built["/x_employee_id"].Constraints, ShouldResemble, &FillFormDataFieldConstraints{Pattern: "^E[0-9]+$"})
 				two := 2
 				So(built["/given_name"].Constraints, ShouldResemble, &FillFormDataFieldConstraints{MinLength: &two})
-
-				translations["custom-attribute-pattern-error-/x_employee_id"] = "Start with E"
-				built = build(emptyUser, userProfileField("/x_employee_id", false))
-				So(built["/x_employee_id"].Constraints.PatternMessage, ShouldEqual, "Start with E")
 			})
 
 			Convey("minimum and maximum", func() {
