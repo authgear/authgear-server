@@ -24,7 +24,9 @@ func ConfigureAuthflowV2FillFormRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowV2FillFormViewModel struct {
-	Form FormViewModel
+	Form           FormViewModel
+	TitleKey       string
+	DescriptionKey string
 	// FlowType is for the description.
 	FlowType string
 }
@@ -46,9 +48,22 @@ func (h *AuthflowV2FillFormHandler) GetData(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		return nil, err
 	}
+	// Only a fill_form page has placeholders; a form in an identify step shows its labels in the inputs.
+	for i, f := range form.Fields {
+		form.Fields[i].Placeholder, err = formFieldPlaceholder(baseViewModel.Translations, form.Name, f.Key, declarative.FillFormFieldType(f.Type))
+		if err != nil {
+			return nil, err
+		}
+	}
+	titleKey, descriptionKey, err := formPageTextKeys(baseViewModel.Translations, form.Name)
+	if err != nil {
+		return nil, err
+	}
 	viewmodels.Embed(data, AuthflowV2FillFormViewModel{
-		Form:     form,
-		FlowType: string(screen.StateTokenFlowResponse.Type),
+		Form:           form,
+		TitleKey:       titleKey,
+		DescriptionKey: descriptionKey,
+		FlowType:       string(screen.StateTokenFlowResponse.Type),
 	})
 
 	return data, nil

@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/util/htmlutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
 	"github.com/authgear/authgear-server/pkg/util/tzutil"
@@ -140,16 +141,17 @@ type FormFieldViewModel struct {
 	Key   string
 	Type  string
 	Label string
-	// LabelHTML is for boolean only. The Authflow API has sanitized it.
-	LabelHTML htmltemplate.HTML
-	Required  bool
+	// LabelHTML is for boolean only. Links are kept; the rest is escaped.
+	LabelHTML   htmltemplate.HTML
+	Placeholder string
+	Required    bool
 	// Value is the restored form value if present, else the current value of the field.
 	Value any
 	// Checked is for boolean.
 	Checked bool
 	// Address is for address. It is never nil there.
 	Address     map[string]string
-	Options     []declarative.FillFormDataFieldOption
+	Options     []FormFieldOptionViewModel
 	Suggestions []string
 	Constraints *declarative.FillFormDataFieldConstraints
 
@@ -208,13 +210,22 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 	hasMissingRequiredCause := hasFieldsCause(rawErr)
 
 	for _, f := range form.Fields {
+		label, err := formFieldLabel(base.Translations, form.Name, f.Key)
+		if err != nil {
+			return FormViewModel{}, err
+		}
+		options, err := formFieldOptions(base.Translations, f.Key, f.Options)
+		if err != nil {
+			return FormViewModel{}, err
+		}
+
 		fvm := FormFieldViewModel{
 			Key:         f.Key,
 			Type:        string(f.Type),
-			Label:       f.Label,
+			Label:       label,
 			Required:    f.Required,
 			Value:       f.Value,
-			Options:     f.Options,
+			Options:     options,
 			Suggestions: f.Suggestions,
 			Constraints: f.Constraints,
 			Error:       fieldErrors[f.Key],
@@ -236,7 +247,7 @@ func NewFormViewModel(form declarative.FillFormDataForm, base *viewmodels.BaseVi
 		switch f.Type {
 		case declarative.FillFormFieldTypeBoolean:
 			fvm.Checked, _ = fvm.Value.(bool)
-			fvm.LabelHTML = htmltemplate.HTML(f.Label) // nolint:gosec
+			fvm.LabelHTML = htmlutil.SanitizeLinksHTML(label)
 		case declarative.FillFormFieldTypeAddress:
 			fvm.Address = map[string]string{}
 			current, _ := f.Value.(map[string]any)

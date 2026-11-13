@@ -115,7 +115,7 @@ func isFillableUserProfilePointer(up *UserProfileConfig, pointer string) bool {
 		return false
 	}
 
-	if isStandardAttributePointer(pointer) {
+	if IsStandardAttributePointer(pointer) {
 		level := up.StandardAttributes.GetAccessControl().GetLevel(
 			accesscontrol.Subject(pointer),
 			RoleEndUser,
@@ -132,7 +132,7 @@ func isFillableUserProfilePointer(up *UserProfileConfig, pointer string) bool {
 	return false
 }
 
-func isStandardAttributePointer(pointer string) bool {
+func IsStandardAttributePointer(pointer string) bool {
 	if slices.Contains(defaultReadwriteStandardAttributesPointers, pointer) {
 		return true
 	}
