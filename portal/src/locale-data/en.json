@@ -380,6 +380,8 @@
   "UserDetails.account-security.primary.password.add": "Add Password",
   "UserDetails.account-security.secondary.empty": "No 2-Factor Authenticator Yet",
   "UserDetails.account-security.secondary.empty-description": "The user cannot log in until they set up 2FA. <gracePeriod>Grant a grace period</gracePeriod> to unblock login temporarily.",
+  "UserDetails.account-security.secondary.empty-description.disabled": "2FA is disabled in this project.",
+  "UserDetails.account-security.secondary.empty-description.optional": "2FA is optional in this project, so the user can log in without it.",
   "UserDetails.account-security.secondary.within-grace-period": "The user can login and setup 2FA before {gracePeriodEndAt}.",
   "UserDetails.account-security.secondary.within-grace-period.no-deadline": "The user can login and setup 2FA on their next login.",
   "UserDetails.account-security.secondary.no-enabled-authenticators": "The user’s 2-Factor Authenticator does not match the project’s settings.",
