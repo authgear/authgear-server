@@ -125,6 +125,7 @@
                   "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
                   "IsError" $display_input_error
                   "AutoFocus" $.ShouldFocusInput
+                  "Autocomplete" "username webauthn"
                   "PhoneInputAttrs" `
                     data-text-field-target="input"
                   `
@@ -188,6 +189,23 @@
             data-authgear-event="authgear.button.sign_in"
           >{{ include "v2.component.button.default.label-login" nil }}</button>
       </form>
+
+      {{/* Passkey autofill for the login ID input above. A separate form, since forms cannot be nested. */}}
+      {{ if (and $show_input_form $.PasskeyEnabled (not $.AlternativesDisabled) (not $.InlinePreview)) }}
+        <div class="hidden"
+          data-controller="passkey-autofill"
+          data-passkey-autofill-options-value="{{ $.PasskeyRequestOptionsJSON }}">
+          <form
+            method="post"
+            novalidate
+            data-controller="turbo-form"
+            data-action="submit->turbo-form#submitForm"
+          >
+            <input type="hidden" name="x_assertion_response" data-passkey-autofill-target="input">
+            <button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-autofill-target="submit"></button>
+          </form>
+        </div>
+      {{ end }}
     {{ end }}
 
     {{ if (not $is_login_only) }}
@@ -299,9 +317,14 @@
         {{ end }}
 
         {{ if $.PasskeyEnabled }}
+          {{/* Ask the SDK's WebView for a passkey of this device when the page loads. */}}
+          {{ $passkey_webview_check := (not $.InlinePreview) }}
           <div class="block w-full"
-            data-controller="authflow-passkey-request"
+            data-controller="authflow-passkey-request{{ if $passkey_webview_check }} passkey-webview-check{{ end }}"
             data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+            {{ if $passkey_webview_check }}
+            data-passkey-webview-check-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+            {{ end }}
             data-authflow-passkey-request-auto-value="false">
             <button class="secondary-btn w-full"
               type="button"
@@ -326,8 +349,8 @@
               data-controller="turbo-form"
               data-action="submit->turbo-form#submitForm"
             >
-              <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
-              <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
+              <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input"{{ if $passkey_webview_check }} data-passkey-webview-check-target="input"{{ end }}>
+              <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"{{ if $passkey_webview_check }} data-passkey-webview-check-target="submit"{{ end }}></button>
             </form>
           </div>
         {{ end }}

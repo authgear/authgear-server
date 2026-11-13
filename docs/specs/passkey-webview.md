@@ -3,6 +3,7 @@
   * [Configuration](#configuration)
   * [Association files](#association-files)
   * [SDK](#sdk)
+  * [Passkey on page load](#passkey-on-page-load)
   * [Limitations](#limitations)
   * [Future works](#future-works)
 
@@ -20,6 +21,7 @@ The Relying Party ID is unchanged: it is the host of `http.public_origin`.
 |---|---|
 | Sign up, sign in, and add a passkey in AuthUI shown in the app's WebView | Yes |
 | The same, in a Custom UI shown in the app's WebView | Yes |
+| The login page offers this device's passkey as soon as it loads, without a tap | Yes, see [Passkey on page load](#passkey-on-page-load) |
 | Passkey ceremonies performed by the app natively, without a WebView | No, see [Future works](#future-works) |
 | A project whose `http.public_origin` is on a default domain | No, see [Association files](#association-files) |
 
@@ -80,14 +82,23 @@ The origin an Android app reports is accepted as specified in [webauthn.md](./we
 
 | Platform | UI implementation | What the SDK does | What the app does |
 |---|---|---|---|
-| iOS | `WKWebViewUIImplementation` | Nothing new | Declares `webcredentials:<host of http.public_origin>` in its Associated Domains entitlement |
-| Android | `WebKitWebViewUIImplementation` | Enables WebAuthn in its WebView for the app's associated domains, when the device's WebView supports it | Nothing |
+| iOS | `WKWebViewUIImplementation` | Provides the [WebView bridge](./webview-bridge.md) | Declares `webcredentials:<host of http.public_origin>` in its Associated Domains entitlement |
+| Android | `WebKitWebViewUIImplementation` | Enables WebAuthn in its WebView for the app's associated domains, when the device's WebView supports it. Provides the [WebView bridge](./webview-bridge.md) | Nothing |
 
-AuthUI offers no passkey autofill in an Android WebView, because the WebView does not support it; the passkey button is used instead.
+AuthUI offers no passkey AutoFill in a WebView that has the WebView bridge. On Android the WebView does not support it. On iOS, AutoFill keeps a passkey request pending for the app, and the operating system allows one passkey request per app at a time, so it would block the bridge's passkey requests. The passkey on page load and the passkey button are used instead.
 
 A Custom UI in a WebView follows [Where a ceremony may run](./webauthn.md#where-a-ceremony-may-run), as it does in a browser, and needs no listing beyond `x_native_apps`: the operating system checks the app against the Relying Party ID, not against the Custom UI's host.
 
 The SDK does not switch to a Custom Tab when passkeys are unavailable. The user signs in with another method, and an app that prefers Custom Tabs chooses `CustomTabsUIImplementation`.
+
+## Passkey on page load
+
+When AuthUI's login page loads in the SDK's WebView, it asks the app for a passkey that is on this device, with `credentials.get` and `mediation: "immediate"` through the [WebView bridge](./webview-bridge.md). It asks only when the bridge lists `credentials.get`, `credentials.get:publicKey` and `credentials.get:immediate`.
+
+- This device has a passkey for the project: the operating system's passkey sheet appears without a tap. Choosing a passkey signs the user in.
+- This device has none: nothing appears.
+- AuthUI asks once per WebView. Coming back to the login page, or loading it again after an error, does not ask again. The next sign-in in a new WebView asks again.
+- Closing the sheet leaves the user on the login page, where every sign-in method is still offered, including the passkey button.
 
 ## Limitations
 
@@ -97,6 +108,7 @@ The SDK does not switch to a Custom Tab when passkeys are unavailable. The user 
 - Where the WebView cannot perform a ceremony, AuthUI still shows its passkey options, and using one fails with an error. This is today's behaviour in every Android WebView.
 - Changing `http.public_origin` changes the Relying Party ID, which makes existing passkeys unusable. This is existing behaviour. The association files follow the new public origin without further configuration.
 - Removing an app from `x_native_apps` takes effect at once on Android, because its origin is no longer accepted. On iOS the server cannot tell which app performed a ceremony, so the removal takes effect only when devices fetch the updated `apple-app-site-association`.
+- On iOS, the passkey on page load cannot tell the user closing the sheet from this device having no passkey.
 - Apple fetches `apple-app-site-association` through its own CDN, so a change can take time to reach devices. During development, the app can append `?mode=developer` to the entitlement to fetch it directly.
 
 ## Future works
