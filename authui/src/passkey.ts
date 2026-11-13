@@ -3,7 +3,6 @@ import axios from "axios";
 import { handleAxiosError, showErrorMessage } from "./messageBar";
 import { base64DecToArr, base64EncArr } from "./base64";
 import { base64URLToBase64, trimNewline, base64ToBase64URL } from "./base64url";
-import { RetryEventTarget } from "./retry";
 import { setErrorMessage } from "./authflowv2/alert-message";
 import {
   getAuthflowV2PasskeyErrorMessageID,
@@ -409,6 +408,11 @@ export class AuthflowV2PasskeyErrorController extends Controller {
   };
 }
 
+// Dispatched on document by AuthflowPasskeyRequestController around its modal
+// navigator.credentials.get, so that PasskeyAutofillController can step aside.
+const PASSKEY_MODAL_START = "passkey:modal-start";
+const PASSKEY_MODAL_END = "passkey:modal-end";
+
 export class AuthflowPasskeyRequestController extends Controller {
   static targets = ["button", "submit", "input"];
   static values = {
@@ -424,7 +428,14 @@ export class AuthflowPasskeyRequestController extends Controller {
   declare autoValue: string;
   declare hasButtonTarget: boolean;
 
+  // True while the request is pending, so that more taps do not start more requests.
+  // On iOS, the dialog can take a few seconds to open after the previous one is cancelled,
+  // and a second request at that time is rejected.
+  requesting = false;
+
   connect() {
+    window.addEventListener("pageshow", this.onPageShow);
+
     if (this.hasButtonTarget) {
       this.buttonTarget.disabled = false;
       // Disable the button if PublicKeyCredential is unavailable.
@@ -438,6 +449,23 @@ export class AuthflowPasskeyRequestController extends Controller {
       this._use();
     }
   }
+
+  disconnect() {
+    window.removeEventListener("pageshow", this.onPageShow);
+  }
+
+  // The page can be restored from the back-forward cache, for example when the user goes
+  // back after a passkey was chosen. Stimulus does not call connect() again then,
+  // so the button would stay disabled.
+  onPageShow = (e: PageTransitionEvent) => {
+    if (!e.persisted) {
+      return;
+    }
+    this.requesting = false;
+    if (this.hasButtonTarget && passkeyIsAvailable()) {
+      this.buttonTarget.disabled = false;
+    }
+  };
 
   use(e: MouseEvent) {
     e.preventDefault();
@@ -455,6 +483,18 @@ export class AuthflowPasskeyRequestController extends Controller {
       );
       return;
     }
+    if (this.requesting) {
+      return;
+    }
+    this.requesting = true;
+    if (this.hasButtonTarget) {
+      this.buttonTarget.disabled = true;
+    }
+    // A page can only have one pending navigator.credentials.get.
+    // Abort the pending autofill request, otherwise this request would be
+    // rejected with NotAllowedError immediately.
+    document.dispatchEvent(new CustomEvent(PASSKEY_MODAL_START));
+    let submitted = false;
     try {
       const optionsJSON = JSON.parse(this.optionsValue);
       const options = deserializeRequestOptions(optionsJSON);
@@ -468,6 +508,7 @@ export class AuthflowPasskeyRequestController extends Controller {
         // which is essential for XHR form submission to work.
         // Therefore, we emulate form submission here by clicking the submit button.
         this.submitTarget.click();
+        submitted = true;
       }
     } catch (e: unknown) {
       document.dispatchEvent(
@@ -475,6 +516,14 @@ export class AuthflowPasskeyRequestController extends Controller {
           detail: e,
         })
       );
+    } finally {
+      this.requesting = false;
+      // After a passkey is chosen, the form is submitted and the page changes,
+      // so the button stays disabled.
+      if (this.hasButtonTarget && !submitted) {
+        this.buttonTarget.disabled = false;
+      }
+      document.dispatchEvent(new CustomEvent(PASSKEY_MODAL_END));
     }
   }
 }
@@ -543,105 +592,201 @@ export class AuthflowPasskeyCreationController extends Controller {
   }
 }
 
-// TODO(passkey): autofill is buggy on iOS 16 Beta 4.
-// The call navigator.credentials.get will have a high possibility of resulting in
+// Passkey autofill (WebAuthn conditional mediation) on the login ID input,
+// which has "webauthn" in its autocomplete attribute.
+//
+// It was once disabled because it was buggy on iOS 16 Beta 4.
+// The call navigator.credentials.get had a high possibility of resulting in
 // DOMException with name NotAllowedError instantly.
-// The exception WILL cause subsequent call to navigator.credentials.get to fail as well.
-// So autofill is disabled for now.
+// The exception caused subsequent calls to navigator.credentials.get to fail as well.
+// So when the request keeps failing instantly, we stop retrying on this page.
+//
+// The options are the passkey request options of the authflow on the page.
+// Every attempt reuses them, since the challenge is consumed only when the flow finishes.
 //
 // The lifecycle of the autofill
 //
-// setupAutofill() creates a pending promise to receive the result of the autofill.
-// The promise can be aborted with AbortController.
-// In disconnect(), we abort the promise.
-// In connect(), we call setupAutofill().
-// Since Stimulus will call connect(), we do not need to call setupAutofill if the promise is aborted.
+// start() begins a run, which makes a request, and again after each retry.
+// In connect(), we call start(). In disconnect(), we call stop(), which ends the run
+// and aborts the request that is pending.
+// Since Stimulus will call connect(), we do not need to call start() if the request is aborted.
+//
+// Each request has its own AbortController, and it is aborted only while the request is pending.
+// WebKit asks the platform to cancel once for every request made with a signal when the signal
+// aborts, including requests that have ended, and a request made during a cancel waits for it.
+//
+// While AuthflowPasskeyRequestController shows the modal dialog,
+// it dispatches PASSKEY_MODAL_START and we stop().
+// We do not start again on PASSKEY_MODAL_END. On iOS, a request made while another is
+// being cancelled waits for the cancel, so if the user taps the button again, its dialog
+// would be delayed by a request we had just started. Starting later, for example when the
+// login ID input is tapped, depends on when each browser builds its suggestions.
+// The user has just seen the same passkeys in the dialog, and the button is still there.
+// AutoFill is offered again when the page is loaded or restored from the cache.
+//
+// When the request ends without a passkey, for example the user cancels Face ID,
+// we start again after AUTOFILL_RETRY_DELAY_MS, so that the suggestions come back.
+// The options are on the page, so a retry makes no network request and needs no backoff.
+const AUTOFILL_RETRY_DELAY_MS = 1000;
+// A request that ends within this time failed instantly, without the user doing anything.
+const AUTOFILL_INSTANT_FAILURE_MS = 500;
+// The number of instant failures in a row after which we stop retrying.
+const AUTOFILL_MAX_INSTANT_FAILURES = 3;
+
+// Errors that a retry cannot fix, such as a page that cannot claim the RP ID.
+function isAutofillErrorFinal(err: unknown): boolean {
+  return (
+    err instanceof DOMException &&
+    (err.name === "SecurityError" || err.name === "NotSupportedError")
+  );
+}
+
 export class PasskeyAutofillController extends Controller {
   static targets = ["submit", "input"];
+  static values = {
+    options: String,
+  };
 
   declare submitTarget: HTMLButtonElement;
   declare inputTarget: HTMLInputElement;
 
-  abortController: AbortController | null = null;
-  retryEventTarget: RetryEventTarget | null = null;
+  declare optionsValue: string;
+
+  // The current run. stop() sets it to null, so that a run that is stopped while awaiting
+  // neither starts a request nor schedules a retry.
+  run: object | null = null;
+  // Set only while a request is pending.
+  requestAbortController: AbortController | null = null;
+  retryTimer: ReturnType<typeof setTimeout> | null = null;
+  instantFailures = 0;
 
   connect() {
+    document.addEventListener(PASSKEY_MODAL_START, this.onModalStart);
+    document.addEventListener(PASSKEY_MODAL_END, this.onModalEnd);
+    window.addEventListener("pageshow", this.onPageShow);
+    this.start();
+  }
+
+  disconnect() {
+    document.removeEventListener(PASSKEY_MODAL_START, this.onModalStart);
+    document.removeEventListener(PASSKEY_MODAL_END, this.onModalEnd);
+    window.removeEventListener("pageshow", this.onPageShow);
+    this.stop();
+  }
+
+  // A page restored from the back-forward cache is not connected again,
+  // and its pending request is gone, so start again.
+  onPageShow = (e: PageTransitionEvent) => {
+    if (!e.persisted) {
+      return;
+    }
+    this.stop();
+    this.start();
+  };
+
+  onModalStart = () => {
+    this.stop();
+  };
+
+  onModalEnd = () => {
+    this.stop();
+  };
+
+  start() {
     if (!passkeyIsAvailable()) {
       return;
     }
 
-    this.abortController = new AbortController();
-    this.retryEventTarget = new RetryEventTarget({
-      abortController: this.abortController,
-    });
-    this.retryEventTarget.addEventListener("retry", () => {
-      this.setupAutofill();
-    });
-
-    this.setupAutofill();
+    this.run = {};
+    this.instantFailures = 0;
+    void this.setupAutofill();
   }
 
-  disconnect() {
-    this.abortController?.abort();
-    this.abortController = null;
-    this.retryEventTarget = null;
+  stop() {
+    this.run = null;
+    this.requestAbortController?.abort();
+    this.requestAbortController = null;
+    if (this.retryTimer != null) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+  }
+
+  scheduleRetry() {
+    this.retryTimer = setTimeout(() => {
+      this.retryTimer = null;
+      void this.setupAutofill();
+    }, AUTOFILL_RETRY_DELAY_MS);
   }
 
   async setupAutofill() {
-    if (
-      typeof PublicKeyCredential.isConditionalMediationAvailable === "function"
-    ) {
-      const available =
-        await PublicKeyCredential.isConditionalMediationAvailable();
+    const run = this.run;
+    if (run == null) {
+      return;
+    }
 
-      if (available) {
-        try {
-          const params = new URLSearchParams();
-          params.set("conditional", "true");
-          const resp = await axios("/_internals/passkey/request_options", {
-            method: "post",
-            data: params,
-          });
-          this.retryEventTarget?.markSuccess();
-          const options = deserializeRequestOptions(resp.data.result);
-          const t0 = new Date().getTime();
-          try {
-            const signal = this.abortController?.signal;
-            const rawResponse = await window.navigator.credentials.get({
-              ...options,
-              signal,
-            });
-            if (isPublicKeyCredentialWithAssertionResponse(rawResponse)) {
-              const response = serializeAssertionResponse(rawResponse);
-              const responseString = JSON.stringify(response);
-              this.inputTarget.value = responseString;
-              // It seems that we should use form.submit() to submit the form.
-              // but form.submit() does NOT trigger submit event,
-              // which is essential for XHR form submission to work.
-              // Therefore, we emulate form submission here by clicking the submit button.
-              this.submitTarget.click();
-            }
-            this.retryEventTarget?.scheduleRetry();
-          } catch (e: unknown) {
-            const t1 = new Date().getTime();
-            if (
-              e instanceof DOMException &&
-              e.name === "NotAllowedError" &&
-              t1 - t0 < 500
-            ) {
-              console.warn("passkey autofill weird error detected", e);
-            }
-            if (e instanceof DOMException && e.name === "AbortError") {
-              // Aborted. Let connect() to be called again.
-            } else {
-              this.retryEventTarget?.scheduleRetry();
-            }
-            handleError(e);
-          }
-        } catch (e: unknown) {
-          handleAxiosError(e);
-          this.retryEventTarget?.scheduleRetry();
+    if (
+      typeof PublicKeyCredential.isConditionalMediationAvailable !== "function"
+    ) {
+      return;
+    }
+    const available =
+      await PublicKeyCredential.isConditionalMediationAvailable();
+    if (!available || this.run !== run) {
+      return;
+    }
+
+    const options = deserializeRequestOptions(JSON.parse(this.optionsValue));
+    const requestAbortController = new AbortController();
+    this.requestAbortController = requestAbortController;
+    const t0 = new Date().getTime();
+    try {
+      const rawResponse = await window.navigator.credentials.get({
+        ...options,
+        mediation: "conditional",
+        signal: requestAbortController.signal,
+      });
+      if (isPublicKeyCredentialWithAssertionResponse(rawResponse)) {
+        const response = serializeAssertionResponse(rawResponse);
+        const responseString = JSON.stringify(response);
+        this.inputTarget.value = responseString;
+        // It seems that we should use form.submit() to submit the form.
+        // but form.submit() does NOT trigger submit event,
+        // which is essential for XHR form submission to work.
+        // Therefore, we emulate form submission here by clicking the submit button.
+        // The page changes, so there is no retry.
+        this.submitTarget.click();
+        return;
+      }
+      if (this.run === run) {
+        this.scheduleRetry();
+      }
+    } catch (e: unknown) {
+      handleError(e);
+      if (this.run !== run) {
+        // Aborted. Let start() be called again.
+        return;
+      }
+      if (isAutofillErrorFinal(e)) {
+        return;
+      }
+      const t1 = new Date().getTime();
+      if (t1 - t0 < AUTOFILL_INSTANT_FAILURE_MS) {
+        this.instantFailures += 1;
+        if (this.instantFailures >= AUTOFILL_MAX_INSTANT_FAILURES) {
+          console.warn(
+            "passkey autofill keeps failing instantly, stop retrying",
+            e
+          );
+          return;
         }
+      } else {
+        this.instantFailures = 0;
+      }
+      this.scheduleRetry();
+    } finally {
+      if (this.requestAbortController === requestAbortController) {
+        this.requestAbortController = null;
       }
     }
   }
