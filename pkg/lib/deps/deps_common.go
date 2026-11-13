@@ -88,7 +88,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
@@ -255,10 +254,7 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		access.DependencySet,
 		session.DependencySet,
-		wire.Bind(new(idpsession.AccessEventProvider), new(*access.EventProvider)),
-		wire.Bind(new(oauth.OfflineGrantServiceAccessEventProvider), new(*access.EventProvider)),
 		wire.Bind(new(oidchandler.LogoutSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
 		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),

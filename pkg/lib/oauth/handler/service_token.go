@@ -111,7 +111,6 @@ type TokenService struct {
 	OfflineGrants       TokenServiceOfflineGrantStore
 	AccessGrants        TokenServiceAccessGrantStore
 	OfflineGrantService TokenServiceOfflineGrantService
-	AccessEvents        *access.EventProvider
 	AccessTokenIssuer   TokenServiceAccessTokenIssuer
 	GenerateToken       TokenGenerator
 	Clock               clock.Clock
@@ -190,11 +189,6 @@ func (s *TokenService) IssueOfflineGrant(
 	offlineGrant.ExpireAtForResolvedSession = expiry
 
 	err = s.OfflineGrants.CreateOfflineGrant(ctx, offlineGrant)
-	if err != nil {
-		return nil, "", err
-	}
-
-	err = s.AccessEvents.InitStream(ctx, offlineGrant.ID, expiry, &offlineGrant.AccessInfo.InitialAccess)
 	if err != nil {
 		return nil, "", err
 	}

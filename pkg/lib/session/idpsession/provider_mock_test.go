@@ -7,62 +7,9 @@ package idpsession
 import (
 	context "context"
 	reflect "reflect"
-	time "time"
 
-	access "github.com/authgear/authgear-server/pkg/lib/session/access"
 	gomock "github.com/golang/mock/gomock"
 )
-
-// MockAccessEventProvider is a mock of AccessEventProvider interface.
-type MockAccessEventProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockAccessEventProviderMockRecorder
-}
-
-// MockAccessEventProviderMockRecorder is the mock recorder for MockAccessEventProvider.
-type MockAccessEventProviderMockRecorder struct {
-	mock *MockAccessEventProvider
-}
-
-// NewMockAccessEventProvider creates a new mock instance.
-func NewMockAccessEventProvider(ctrl *gomock.Controller) *MockAccessEventProvider {
-	mock := &MockAccessEventProvider{ctrl: ctrl}
-	mock.recorder = &MockAccessEventProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockAccessEventProvider) EXPECT() *MockAccessEventProviderMockRecorder {
-	return m.recorder
-}
-
-// InitStream mocks base method.
-func (m *MockAccessEventProvider) InitStream(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InitStream", ctx, sessionID, expiry, event)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// InitStream indicates an expected call of InitStream.
-func (mr *MockAccessEventProviderMockRecorder) InitStream(ctx, sessionID, expiry, event interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitStream", reflect.TypeOf((*MockAccessEventProvider)(nil).InitStream), ctx, sessionID, expiry, event)
-}
-
-// RecordAccess mocks base method.
-func (m *MockAccessEventProvider) RecordAccess(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecordAccess", ctx, sessionID, expiry, event)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RecordAccess indicates an expected call of RecordAccess.
-func (mr *MockAccessEventProviderMockRecorder) RecordAccess(ctx, sessionID, expiry, event interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordAccess", reflect.TypeOf((*MockAccessEventProvider)(nil).RecordAccess), ctx, sessionID, expiry, event)
-}
 
 // MockProviderMeterService is a mock of ProviderMeterService interface.
 type MockProviderMeterService struct {

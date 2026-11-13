@@ -61,7 +61,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -916,13 +915,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -938,7 +930,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AppID:           appID,
 		Redis:           appredisHandle,
 		Store:           storeRedis,
-		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		TrustProxy:      trustProxy,
 		Config:          sessionConfig,
@@ -952,7 +943,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
 		ClientResolver:  oauthclientResolver,
-		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
 	}

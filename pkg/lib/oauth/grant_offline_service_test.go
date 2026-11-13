@@ -34,7 +34,6 @@ func TestOfflineGrantService(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
-			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
 			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
 			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
 			mockClock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
@@ -50,7 +49,6 @@ func TestOfflineGrantService(t *testing.T) {
 
 			svc := &OfflineGrantService{
 				IDPSessions:    mockIDPSessionProvider,
-				AccessEvents:   mockAccessEventProvider,
 				MeterService:   mockMeterService,
 				OfflineGrants:  mockOfflineGrantStore,
 				Clock:          mockClock,
@@ -137,7 +135,6 @@ func TestOfflineGrantService(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
-			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
 			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
 			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
 			mockClock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
@@ -152,7 +149,6 @@ func TestOfflineGrantService(t *testing.T) {
 
 			svc := &OfflineGrantService{
 				IDPSessions:    mockIDPSessionProvider,
-				AccessEvents:   mockAccessEventProvider,
 				MeterService:   mockMeterService,
 				OfflineGrants:  mockOfflineGrantStore,
 				Clock:          mockClock,
@@ -227,7 +223,6 @@ func TestOfflineGrantService(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
-			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
 			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
 			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
 			mockClock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
@@ -242,7 +237,6 @@ func TestOfflineGrantService(t *testing.T) {
 
 			svc := &OfflineGrantService{
 				IDPSessions:    mockIDPSessionProvider,
-				AccessEvents:   mockAccessEventProvider,
 				MeterService:   mockMeterService,
 				OfflineGrants:  mockOfflineGrantStore,
 				Clock:          mockClock,
@@ -312,7 +306,6 @@ func TestOfflineGrantService(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
-			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
 			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
 			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
 
@@ -328,7 +321,6 @@ func TestOfflineGrantService(t *testing.T) {
 
 			svc := &OfflineGrantService{
 				IDPSessions:    mockIDPSessionProvider,
-				AccessEvents:   mockAccessEventProvider,
 				MeterService:   mockMeterService,
 				OfflineGrants:  mockOfflineGrantStore,
 				Clock:          mockClock,
@@ -420,7 +412,6 @@ func TestOfflineGrantService(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
-			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
 			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
 			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
 
@@ -436,7 +427,6 @@ func TestOfflineGrantService(t *testing.T) {
 
 			svc := &OfflineGrantService{
 				IDPSessions:    mockIDPSessionProvider,
-				AccessEvents:   mockAccessEventProvider,
 				MeterService:   mockMeterService,
 				OfflineGrants:  mockOfflineGrantStore,
 				Clock:          mockClock,
@@ -556,7 +546,6 @@ func TestOfflineGrantService(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
-			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
 			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
 			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
 
@@ -572,7 +561,6 @@ func TestOfflineGrantService(t *testing.T) {
 
 			svc := &OfflineGrantService{
 				IDPSessions:    mockIDPSessionProvider,
-				AccessEvents:   mockAccessEventProvider,
 				MeterService:   mockMeterService,
 				OfflineGrants:  mockOfflineGrantStore,
 				Clock:          mockClock,
@@ -737,14 +725,12 @@ func TestOfflineGrantService(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
-			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
 			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
 			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
 			mockClock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
 
 			svc := &OfflineGrantService{
 				IDPSessions:   mockIDPSessionProvider,
-				AccessEvents:  mockAccessEventProvider,
 				MeterService:  mockMeterService,
 				OfflineGrants: mockOfflineGrantStore,
 				Clock:         mockClock,
@@ -785,10 +771,6 @@ func TestOfflineGrantService(t *testing.T) {
 				UpdateOfflineGrantWithMutator(gomock.Any(), "grant-id", grant.ExpireAtForResolvedSession, gomock.Any()).
 				DoAndReturn(createMockedUpdateOfflineGrantWithMutator(grant))
 
-			mockAccessEventProvider.EXPECT().
-				RecordAccess(gomock.Any(), "grant-id", grant.ExpireAtForResolvedSession, &accessEvent).
-				Return(nil)
-
 			mockMeterService.EXPECT().
 				TrackActiveUser(gomock.Any(), userID).
 				Return(nil)
@@ -809,14 +791,12 @@ func TestOfflineGrantService(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockIDPSessionProvider := NewMockServiceIDPSessionProvider(ctrl)
-			mockAccessEventProvider := NewMockOfflineGrantServiceAccessEventProvider(ctrl)
 			mockMeterService := NewMockOfflineGrantServiceMeterService(ctrl)
 			mockOfflineGrantStore := NewMockOfflineGrantStore(ctrl)
 			mockClock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
 
 			svc := &OfflineGrantService{
 				IDPSessions:   mockIDPSessionProvider,
-				AccessEvents:  mockAccessEventProvider,
 				MeterService:  mockMeterService,
 				OfflineGrants: mockOfflineGrantStore,
 				Clock:         mockClock,
@@ -855,10 +835,6 @@ func TestOfflineGrantService(t *testing.T) {
 			mockOfflineGrantStore.EXPECT().
 				UpdateOfflineGrantWithMutator(gomock.Any(), "grant-id", grant.ExpireAtForResolvedSession, gomock.Any()).
 				DoAndReturn(createMockedUpdateOfflineGrantWithMutator(grant))
-
-			mockAccessEventProvider.EXPECT().
-				RecordAccess(gomock.Any(), "grant-id", grant.ExpireAtForResolvedSession, &accessEvent).
-				Return(nil)
 
 			mockMeterService.EXPECT().
 				TrackActiveUser(gomock.Any(), userID).

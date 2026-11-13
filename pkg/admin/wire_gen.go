@@ -83,7 +83,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/telemetry/auditlogstreaming"
@@ -1031,13 +1030,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
 	writeStoreRedis := &meter.WriteStoreRedis{
 		Redis: analyticredisHandle,
 		AppID: appID,
@@ -1053,7 +1045,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:           appID,
 		Redis:           appredisHandle,
 		Store:           storeRedis,
-		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		TrustProxy:      trustProxy,
 		Config:          sessionConfig,
@@ -1067,7 +1058,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
 		ClientResolver:  resolver,
-		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
 	}
@@ -1304,7 +1294,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		IDPSessions:     idpsessionProvider,
 		ClientResolver:  resolver,
-		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		OfflineGrants:   redisStore,
 	}
@@ -1366,7 +1355,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrants:       redisStore,
 		AccessGrants:        redisStore,
 		OfflineGrantService: oauthOfflineGrantService,
-		AccessEvents:        eventProvider,
 		AccessTokenIssuer:   accessTokenEncoding,
 		GenerateToken:       tokenGenerator,
 		Clock:               clockClock,
