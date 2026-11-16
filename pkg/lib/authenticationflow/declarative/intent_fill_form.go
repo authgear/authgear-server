@@ -134,11 +134,7 @@ func (i *IntentFillForm) OutputData(ctx context.Context, deps *authflow.Dependen
 		return nil, err
 	}
 
-	dataForm, err := NewFillFormDataForm(ctx, deps, form, user)
-	if err != nil {
-		return nil, err
-	}
-	return NewFillFormData(dataForm), nil
+	return NewFillFormData(NewFillFormDataForm(deps, form, user)), nil
 }
 
 func (i *IntentFillForm) rootObjectAndForm(deps *authflow.Dependencies, flows authflow.Flows) (config.AuthenticationFlowObject, *config.AuthenticationFlowForm, error) {

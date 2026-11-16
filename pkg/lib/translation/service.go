@@ -259,6 +259,14 @@ func (s *Service) HasKey(ctx context.Context, key string) (bool, error) {
 	return t.HasKey(key), nil
 }
 
+func (s *Service) DefinesKey(ctx context.Context, key string) (bool, error) {
+	t, err := s.translationMap(ctx)
+	if err != nil {
+		return false, err
+	}
+	return t.DefinesKey(key), nil
+}
+
 func (s *Service) RenderText(ctx context.Context, key string, args any) (string, error) {
 	t, err := s.translationMap(ctx)
 	if err != nil {

@@ -103,11 +103,10 @@ steps:
                   {
                     "key": "/x_plan",
                     "type": "enum",
-                    "label": "X Plan",
                     "required": false,
                     "options": [
-                      { "value": "free", "label": "Free" },
-                      { "value": "pro", "label": "Pro" }
+                      { "value": "free" },
+                      { "value": "pro" }
                     ]
                   }
                 ]

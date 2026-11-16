@@ -29,11 +29,14 @@ import (
 
 type TranslationService interface {
 	HasKey(ctx context.Context, key string) (bool, error)
+	DefinesKey(ctx context.Context, key string) (bool, error)
 	RenderText(ctx context.Context, key string, args any) (string, error)
 }
 
 type TranslationsCompat interface {
 	HasKey(key string) (bool, error)
+	// DefinesKey is HasKey, but true for an empty translation too.
+	DefinesKey(key string) (bool, error)
 	RenderText(key string, args any) (string, error)
 }
 
@@ -46,6 +49,10 @@ var _ TranslationsCompat = &TranslationsCompatImpl{}
 
 func (t *TranslationsCompatImpl) HasKey(key string) (bool, error) {
 	return t.TranslationService.HasKey(t.Context, key)
+}
+
+func (t *TranslationsCompatImpl) DefinesKey(key string) (bool, error) {
+	return t.TranslationService.DefinesKey(t.Context, key)
 }
 
 func (t *TranslationsCompatImpl) RenderText(key string, args any) (string, error) {

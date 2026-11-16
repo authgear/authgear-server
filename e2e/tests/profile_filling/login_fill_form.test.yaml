@@ -55,7 +55,6 @@ steps:
                   {
                     "key": "/given_name",
                     "type": "string",
-                    "label": "Given name",
                     "required": true,
                     "value": "[[never]]"
                   }

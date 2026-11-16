@@ -1,7 +1,6 @@
 package declarative
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -12,21 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-// fakeTranslationService is hand-written because the generated mocks are in package declarative_test.
-type fakeTranslationService map[string]string
-
-func (s fakeTranslationService) HasKey(ctx context.Context, key string) (bool, error) {
-	_, ok := s[key]
-	return ok, nil
-}
-
-func (s fakeTranslationService) RenderText(ctx context.Context, key string, args any) (string, error) {
-	return s[key], nil
-}
-
 func TestNewFillFormDataForm(t *testing.T) {
 	Convey("NewFillFormDataForm", t, func() {
-		ctx := context.Background()
 		cfg := newTestFormConfig()
 		cfg.UserProfile.CustomAttributes.Attributes = append(cfg.UserProfile.CustomAttributes.Attributes,
 			&config.CustomAttributesAttributeConfig{
@@ -40,12 +26,10 @@ func TestNewFillFormDataForm(t *testing.T) {
 				Minimum: new(float64(0)), Maximum: new(float64(10)),
 			},
 		)
-		translations := fakeTranslationService{}
-		deps := &authflow.Dependencies{Config: cfg, Translations: translations}
+		deps := &authflow.Dependencies{Config: cfg}
 
 		build := func(user *model.User, fields ...*config.AuthenticationFlowFormField) map[string]FillFormDataField {
-			form, err := NewFillFormDataForm(ctx, deps, &config.AuthenticationFlowForm{Name: "names", Fields: fields}, user)
-			So(err, ShouldBeNil)
+			form := NewFillFormDataForm(deps, &config.AuthenticationFlowForm{Name: "names", Fields: fields}, user)
 			So(form.Name, ShouldEqual, "names")
 			out := map[string]FillFormDataField{}
 			for _, f := range form.Fields {
@@ -99,27 +83,10 @@ func TestNewFillFormDataForm(t *testing.T) {
 			}
 		})
 
-		Convey("label falls back to the attribute name", func() {
+		Convey("required", func() {
 			built := build(emptyUser, userProfileField("/given_name", true), userProfileField("/x_employee_id", false))
-			So(built["/given_name"].Label, ShouldEqual, "Given Name")
 			So(built["/given_name"].Required, ShouldBeTrue)
-			So(built["/x_employee_id"].Label, ShouldEqual, "X Employee Id")
 			So(built["/x_employee_id"].Required, ShouldBeFalse)
-		})
-
-		Convey("label uses the translation", func() {
-			translations["standard-attribute-label-/given_name"] = "First name"
-			translations["custom-attribute-label-/x_employee_id"] = "Employee ID"
-			built := build(emptyUser, userProfileField("/given_name", true), userProfileField("/x_employee_id", false))
-			So(built["/given_name"].Label, ShouldEqual, "First name")
-			So(built["/x_employee_id"].Label, ShouldEqual, "Employee ID")
-		})
-
-		Convey("boolean label is sanitized", func() {
-			translations["custom-attribute-label-/x_terms"] = `I accept the <a href="https://example.com/t" onclick="x()">Terms</a><script>x</script>`
-			built := build(emptyUser, userProfileField("/x_terms", true))
-			So(built["/x_terms"].Label, ShouldEqual,
-				`I accept the <a href="https://example.com/t" target="_blank" rel="noopener noreferrer">Terms</a>&lt;script&gt;x&lt;/script&gt;`)
 		})
 
 		Convey("current value, including false", func() {
@@ -155,34 +122,28 @@ func TestNewFillFormDataForm(t *testing.T) {
 			So(built["/gender"].Suggestions, ShouldResemble, []string{"male", "female"})
 		})
 
-		Convey("enum options fall back and use translations", func() {
-			translations["custom-attribute-enum-label-/x_plan-free"] = "Free plan"
+		Convey("enum options are the enum values", func() {
 			built := build(emptyUser, userProfileField("/x_plan", false))
 			So(built["/x_plan"].Options, ShouldResemble, []FillFormDataFieldOption{
-				{Value: "free", Label: "Free plan"},
-				{Value: "pro_plan", Label: "Pro Plan"},
+				{Value: "free"},
+				{Value: "pro_plan"},
 			})
 		})
 
 		Convey("locale options are the supported languages", func() {
-			translations["language-zh-HK"] = "繁體中文"
 			built := build(emptyUser, userProfileField("/locale", false))
 			So(built["/locale"].Options, ShouldResemble, []FillFormDataFieldOption{
-				{Value: "en", Label: "en"},
-				{Value: "zh-HK", Label: "繁體中文"},
+				{Value: "en"},
+				{Value: "zh-HK"},
 			})
 		})
 
 		Convey("constraints", func() {
-			Convey("string constraints, and pattern_message only with a translation", func() {
+			Convey("string constraints", func() {
 				built := build(emptyUser, userProfileField("/x_employee_id", false), userProfileField("/given_name", false))
 				So(built["/x_employee_id"].Constraints, ShouldResemble, &FillFormDataFieldConstraints{Pattern: "^E[0-9]+$"})
 				two := 2
 				So(built["/given_name"].Constraints, ShouldResemble, &FillFormDataFieldConstraints{MinLength: &two})
-
-				translations["custom-attribute-pattern-error-/x_employee_id"] = "Start with E"
-				built = build(emptyUser, userProfileField("/x_employee_id", false))
-				So(built["/x_employee_id"].Constraints.PatternMessage, ShouldEqual, "Start with E")
 			})
 
 			Convey("minimum and maximum", func() {

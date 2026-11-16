@@ -182,7 +182,7 @@ func TestNewFormViewModel(t *testing.T) {
 		form.Fields[2].Value = "Johnny"
 
 		Convey("without an error", func() {
-			vm, err := NewFormViewModel(form, &viewmodels.BaseViewModel{})
+			vm, err := NewFormViewModel(form, &viewmodels.BaseViewModel{Translations: fakeTranslations{}})
 			So(err, ShouldBeNil)
 			So(vm.Fields, ShouldHaveLength, 4)
 			So(vm.Fields[2].Value, ShouldEqual, "Johnny")
@@ -191,7 +191,7 @@ func TestNewFormViewModel(t *testing.T) {
 		})
 
 		Convey("restored values win over current values", func() {
-			base := &viewmodels.BaseViewModel{}
+			base := &viewmodels.BaseViewModel{Translations: fakeTranslations{}}
 			base.SetFormJSON(url.Values{"/nickname": {"Changed"}, "/x_terms": {"true", "false"}})
 			vm, err := NewFormViewModel(form, base)
 			So(err, ShouldBeNil)
@@ -202,7 +202,8 @@ func TestNewFormViewModel(t *testing.T) {
 		Convey("a cause is attributed to the field by its position among the submitted fields", func() {
 			// Only the 2nd and 3rd form fields were submitted, so /fields/0 is /family_name.
 			base := &viewmodels.BaseViewModel{
-				RawError: validationError(map[string]any{"location": "/fields/0/value", "kind": "minLength", "details": map[string]any{"expected": 2, "actual": 1}}),
+				Translations: fakeTranslations{},
+				RawError:     validationError(map[string]any{"location": "/fields/0/value", "kind": "minLength", "details": map[string]any{"expected": 2, "actual": 1}}),
 			}
 			base.RestoredForm = url.Values{"/family_name": {"D"}, "/nickname": {"x"}}
 			vm, err := NewFormViewModel(form, base)
@@ -215,7 +216,8 @@ func TestNewFormViewModel(t *testing.T) {
 
 		Convey("a cause at /fields marks the missing required fields", func() {
 			base := &viewmodels.BaseViewModel{
-				RawError: validationError(map[string]any{"location": "/fields", "kind": "contains"}),
+				Translations: fakeTranslations{},
+				RawError:     validationError(map[string]any{"location": "/fields", "kind": "contains"}),
 			}
 			base.RestoredForm = url.Values{"/given_name": {"John"}}
 			vm, err := NewFormViewModel(form, base)
@@ -230,6 +232,7 @@ func TestNewFormViewModel(t *testing.T) {
 		Convey("causes at /fields/<i>/key mark the missing required fields and no submitted field", func() {
 			// With /given_name submitted and /family_name missing, the validator reports a cause per submitted field.
 			base := &viewmodels.BaseViewModel{
+				Translations: fakeTranslations{},
 				RawError: validationError(map[string]any{"location": "/fields/0/key", "kind": "const", "details": map[string]any{"expected": "/family_name", "actual": "/given_name"}},
 					map[string]any{"location": "/fields/0/value", "kind": "minLength", "details": map[string]any{"expected": 1, "actual": 0}}),
 			}
@@ -248,6 +251,7 @@ func TestNewFormViewModel(t *testing.T) {
 				f("/x_terms", declarative.FillFormFieldTypeBoolean, true),
 			)
 			base := &viewmodels.BaseViewModel{
+				Translations: fakeTranslations{},
 				RawError: validationError(map[string]any{"location": "/fields/0/key", "kind": "const", "details": map[string]any{"expected": "/x_terms", "actual": "/given_name"}},
 					map[string]any{"location": "/fields/0/value", "kind": "const", "details": map[string]any{"expected": true, "actual": "John"}},
 					map[string]any{"location": "/fields/1/value", "kind": "const", "details": map[string]any{"expected": true, "actual": false}}),
@@ -266,7 +270,8 @@ func TestNewFormViewModel(t *testing.T) {
 				f("/x_privacy", declarative.FillFormFieldTypeBoolean, true),
 			)
 			base := &viewmodels.BaseViewModel{
-				RawError: validationError(map[string]any{"location": "/fields/0/value", "kind": "const", "details": map[string]any{"expected": true, "actual": false}}),
+				Translations: fakeTranslations{},
+				RawError:     validationError(map[string]any{"location": "/fields/0/value", "kind": "const", "details": map[string]any{"expected": true, "actual": false}}),
 			}
 			base.RestoredForm = url.Values{"/x_terms": {"false"}, "/x_privacy": {"true", "false"}}
 			vm, err := NewFormViewModel(form, base)
@@ -277,6 +282,7 @@ func TestNewFormViewModel(t *testing.T) {
 
 		Convey("hook messages", func() {
 			base := &viewmodels.BaseViewModel{
+				Translations: fakeTranslations{},
 				RawError: hookError(
 					map[string]any{"type": "invalid_form_field", "key": "/nickname", "message": "bad nickname"},
 					map[string]any{"type": "invalid_form_field", "key": "/other", "message": "bad other"},
@@ -288,6 +294,19 @@ func TestNewFormViewModel(t *testing.T) {
 			So(vm.HookUnmatchedMessages, ShouldResemble, []string{"bad other"})
 			// The hook title and reason are in the general error.
 			So(vm.UnknownError, ShouldNotBeNil)
+		})
+
+		Convey("labels are resolved, and a boolean label is sanitized", func() {
+			base := &viewmodels.BaseViewModel{Translations: fakeTranslations{
+				"standard-attribute-label-/given_name": "First name",
+				"custom-attribute-label-/x_terms":      `I accept the <a href="https://example.com/t" onclick="x()">Terms</a><script>x</script>`,
+			}}
+			vm, err := NewFormViewModel(form, base)
+			So(err, ShouldBeNil)
+			So(vm.Fields[0].Label, ShouldEqual, "First name")
+			So(vm.Fields[1].Label, ShouldEqual, "Family Name")
+			So(string(vm.Fields[3].LabelHTML), ShouldEqual,
+				`I accept the <a href="https://example.com/t" target="_blank" rel="noopener noreferrer">Terms</a>&lt;script&gt;x&lt;/script&gt;`)
 		})
 	})
 }

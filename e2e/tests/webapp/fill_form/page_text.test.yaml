@@ -1,0 +1,145 @@
+name: A named form can have its own title, an empty description and placeholders via webapp
+extra_files_directory: ./var_page_text
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - key: username
+          type: username
+    user_profile:
+      standard_attributes:
+        access_control:
+        - pointer: /given_name
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+      custom_attributes:
+        attributes:
+        - id: "0000"
+          pointer: /x_terms
+          type: boolean
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+        - id: "0001"
+          pointer: /x_newsletter
+          type: boolean
+          access_control:
+            end_user: readwrite
+            bearer: readonly
+            portal_ui: readwrite
+    authentication_flow:
+      signup_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: username
+            steps:
+            - type: create_authenticator
+              one_of:
+              - authentication: primary_password
+        - type: fill_form
+          form:
+            name: consent
+            fields:
+            - user_profile:
+                pointer: /x_terms
+                required: true
+            - user_profile:
+                pointer: /x_newsletter
+        - type: fill_form
+          form:
+            fields:
+            - user_profile:
+                pointer: /x_newsletter
+steps:
+  - name: oauth_setup
+    action: oauth_setup
+  - name: get_signup_page
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://127.0.0.1:4000/signup?{{ .steps.oauth_setup.result.query }}&q_login_id_key=username&q_login_id_input_type=text
+    http_output:
+      http_status: 200
+      redirect_path: /signup
+  - name: submit_signup_id
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.get_signup_page.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      q_login_id_key: username
+      q_login_id: webapp_page_text_user
+      x_action: login_id
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/create_password
+  - name: named_form_uses_its_own_text
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.submit_signup_id.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_password: password
+      x_confirm_password: password
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/fill_form
+      html_text_contains:
+        - About you
+        - placeholder="e.g. Jane"
+      html_text_not_contains:
+        - Complete your profile
+        - Please provide the following information
+        - Not shown
+  - name: unnamed_form_uses_default_text
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.named_form_uses_its_own_text.result.http_final_url }}"
+    http_request_form_urlencoded_body:
+      x_action: submit
+      "/given_name": "Jane"
+      "/x_terms": "true"
+    http_output:
+      http_status: 200
+      redirect_path: /authflow/v2/fill_form
+      html_text_contains:
+        - name="/x_newsletter"
+        - Complete your profile
+        - Please provide the following information to complete your signup.
+      html_text_not_contains:
+        - About you
+  - name: submit_page_2
+    action: http_request
+    http_request_method: POST
+    http_request_url: "{{ .steps.unnamed_form_uses_default_text.result.http_final_url }}"
+    http_request_follow_redirects: false
+    http_request_form_urlencoded_body:
+      x_action: submit
+      "/x_newsletter": "true"
+    http_output:
+      http_status: 302
+  - name: finish_flow
+    action: http_request
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000{{ .steps.submit_page_2.result.http_response_headers.location }}"
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+  - action: oauth_exchange_code
+    oauth_exchange_code_code_verifier: "{{ .steps.oauth_setup.result.code_verifier }}"
+    oauth_exchange_code_redirect_uri: "{{ .steps.finish_flow.result.http_response_headers.location }}"
+    output:
+      result: |
+        {
+          "id_token": {
+            "sub": "[[string]]"
+          }
+        }
