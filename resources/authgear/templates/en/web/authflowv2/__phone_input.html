@@ -10,8 +10,10 @@
     "PhoneInputAttrs" `data-foo="bar"`
     "Value" "+12345678"
     "ReadOnly" true
+    "Autocomplete" "username webauthn"
   )
 }}
+"Autocomplete" defaults to "username".
 -->
 
 {{ define "authflowv2/__phone_input.html" }}
@@ -132,7 +134,7 @@
       type="text"
       inputmode="tel"
       autocapitalize="none"
-      autocomplete="username"
+      autocomplete="{{ or $.Autocomplete "username" }}"
       pattern="^[\+0-9]*$"
       data-action="input->phone-input#handleNumberInput"
       data-phone-input-target="phoneInput"
