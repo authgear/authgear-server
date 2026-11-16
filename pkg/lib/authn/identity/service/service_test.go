@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
@@ -665,5 +666,22 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
+	})
+}
+
+func TestSortInfosByCreatedAt(t *testing.T) {
+	Convey("sortInfosByCreatedAt", t, func() {
+		t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+		infos := []*identity.Info{
+			{ID: "c", CreatedAt: t0.Add(time.Second)},
+			{ID: "b", CreatedAt: t0},
+			{ID: "a", CreatedAt: t0},
+		}
+
+		var ids []string
+		for _, i := range sortInfosByCreatedAt(infos) {
+			ids = append(ids, i.ID)
+		}
+		So(ids, ShouldResemble, []string{"a", "b", "c"})
 	})
 }
