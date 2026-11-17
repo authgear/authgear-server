@@ -39,9 +39,10 @@ export function createCache(): ApolloCache<NormalizedCacheObject> {
           },
         },
       },
-      // AppResource does not have id, so we must teach Apollo what is the key of AppResource.
+      // AppResource has no id, and path is not unique across apps.
+      // Store it inside its App instead of normalizing it.
       AppResource: {
-        keyFields: ["path"],
+        keyFields: false,
       },
       // AppListItem doe snot have id, so we must teach Apollo what is the key of AppListItem.
       AppListItem: {

@@ -9,6 +9,7 @@ import {
 } from "./updateAppTemplatesMutation.generated";
 import { PortalAPIApp } from "../../../types";
 import {
+  ResourceSpecifier,
   ResourceUpdate,
   binary,
   encodeForText,
@@ -51,7 +52,12 @@ export function toAppResourceUpdates(
   });
 }
 
-export function useUpdateAppTemplatesMutation(appID: string): {
+// specifiers must be those of the form's query, so that the response
+// updates the same cached field.
+export function useUpdateAppTemplatesMutation(
+  appID: string,
+  specifiers: ResourceSpecifier[]
+): {
   updateAppTemplates: AppTemplatesUpdater;
   loading: boolean;
   error: unknown;
@@ -66,11 +72,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
   });
   const updateAppTemplates = useCallback(
     async (updates: ResourceUpdate[], ignoreConflict: boolean = false) => {
-      const paths: string[] = [];
-      for (const specifier of updates.map((u) => u.specifier)) {
-        paths.push(expandSpecifier(specifier));
-      }
-
+      const paths = specifiers.map(expandSpecifier);
       const result = await mutationFunction({
         variables: {
           appID,
@@ -80,7 +82,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
       });
       return result.data?.updateApp.app ?? null;
     },
-    [appID, mutationFunction]
+    [appID, specifiers, mutationFunction]
   );
   return { updateAppTemplates, error, loading, resetError };
 }
