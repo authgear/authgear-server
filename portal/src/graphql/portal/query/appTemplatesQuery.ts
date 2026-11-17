@@ -56,6 +56,9 @@ export function useAppTemplatesQuery(
       paths: pairs.map((pair) => pair.path),
     },
     skip: appID == null,
+    // Resources are not normalized, so a save from another screen does not
+    // update this query's cached copy.
+    fetchPolicy: "network-only",
   });
 
   const resources = useMemo(() => {
