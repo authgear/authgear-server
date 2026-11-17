@@ -6,6 +6,16 @@ import path from "path";
 import fs from "fs/promises";
 
 const fontFileExtensions = [".woff2"];
+// Preloading downloads a font even if no character needs it, defeating unicode-range.
+// Only Inter's latin subset is needed on (almost) every page; the rest load on demand.
+const fontPreloadExcludes = new Set([
+  "inter-cyrillic-ext.woff2",
+  "inter-cyrillic.woff2",
+  "inter-greek-ext.woff2",
+  "inter-greek.woff2",
+  "inter-vietnamese.woff2",
+  "inter-latin-ext.woff2",
+]);
 
 const templateBase = "../resources/authgear/templates/en/web/";
 const templateNameByAssetName: Record<string, string> = {
@@ -303,7 +313,10 @@ function buildPlugin({ input }: AuthgearAuthUIPluginOptions): Plugin {
         const assetName = nameWithoutHash(bundleName);
         const assetBaseName = path.basename(assetName);
         const assetExt = path.extname(assetBaseName);
-        if (fontFileExtensions.includes(assetExt)) {
+        if (
+          fontFileExtensions.includes(assetExt) &&
+          !fontPreloadExcludes.has(assetBaseName)
+        ) {
           fontPreloadElements.push({
             type: "fontpreload",
             name: assetBaseName,
