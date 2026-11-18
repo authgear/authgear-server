@@ -400,8 +400,9 @@ type OAuthClientConfig struct {
 	DynamicSource model.OAuthClientSource `json:"-"`
 }
 
-func (c *OAuthClientConfig) UseHTTP200() bool {
-	return c.CustomUIURI != ""
+// UseHTTP200 is true when the client uses a Custom UI.
+func (c *OAuthClientConfig) UseHTTP200(ui *UIConfig) bool {
+	return ui.ResolveCustomUIAuthenticationURI(c) != ""
 }
 
 func (c *OAuthClientConfig) IsDynamicClient() bool {

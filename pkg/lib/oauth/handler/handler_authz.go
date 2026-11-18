@@ -151,6 +151,7 @@ var AuthorizationHandlerLogger = slogutil.NewLogger("oauth-authz")
 type AuthorizationHandler struct {
 	AppID                 config.AppID
 	Config                *config.OAuthConfig
+	UIConfig              *config.UIConfig
 	AccountDeletionConfig *config.AccountDeletionConfig
 	HTTPConfig            *config.HTTPConfig
 	HTTPProto             httputil.HTTPProto
@@ -761,7 +762,7 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURLAfterTx(
 	return authorizationResultCode{
 		RedirectURI:  redirectURI,
 		ResponseMode: r.ResponseMode(),
-		UseHTTP200:   client.UseHTTP200(),
+		UseHTTP200:   client.UseHTTP200(h.UIConfig),
 		Response:     resp,
 		Cookies:      []*http.Cookie{cookie},
 	}, nil
@@ -830,7 +831,7 @@ func (h *AuthorizationHandler) finishSettingsAction(
 	return authorizationResultCode{
 		RedirectURI:  redirectURI,
 		ResponseMode: r.ResponseMode(),
-		UseHTTP200:   client.UseHTTP200(),
+		UseHTTP200:   client.UseHTTP200(h.UIConfig),
 		Response:     resp,
 		Cookies:      cookies,
 	}, nil
@@ -912,7 +913,7 @@ func (h *AuthorizationHandler) finishAuthorization(
 	return authorizationResultCode{
 		RedirectURI:  opts.RedirectURI,
 		ResponseMode: opts.AuthorizationRequest.ResponseMode(),
-		UseHTTP200:   opts.Client.UseHTTP200(),
+		UseHTTP200:   opts.Client.UseHTTP200(h.UIConfig),
 		Response:     resp,
 		Cookies:      opts.Cookies,
 	}, nil

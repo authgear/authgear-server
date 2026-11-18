@@ -138,8 +138,10 @@ func validateRedirectURI(
 	}
 
 	// Implicitly allow URIs at same origin as the custom ui uri.
-	if client.CustomUIURI != "" {
-		customUIURI, err := url.Parse(client.CustomUIURI)
+	// Only the client's own Custom UI, not the project's, so a client never gains
+	// a redirect URI it did not configure.
+	if customUIURIString := client.CustomUIAuthenticationURI(); customUIURIString != "" {
+		customUIURI, err := url.Parse(customUIURIString)
 		if err != nil {
 			return errors.New("invalid custom ui URI")
 		}

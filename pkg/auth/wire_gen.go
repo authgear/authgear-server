@@ -291,6 +291,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	accountDeletionConfig := appConfig.AccountDeletion
 	httpConfig := appConfig.HTTP
 	request := p.Request
@@ -308,7 +309,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		HTTPProto:              httpProto,
 		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
-	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -324,6 +324,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	uiurlBuilder := &oidc.UIURLBuilder{
 		Endpoints:      endpointsEndpoints,
 		IdentityConfig: identityConfig,
+		UIConfig:       uiConfig,
 	}
 	clockClock := _wireSystemClockValue
 	promptResolver := &oauth.PromptResolver{
@@ -1316,6 +1317,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
 		Config:                                  oAuthConfig,
+		UIConfig:                                uiConfig,
 		AccountDeletionConfig:                   accountDeletionConfig,
 		HTTPConfig:                              httpConfig,
 		HTTPProto:                               httpProto,
@@ -1360,6 +1362,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	accountDeletionConfig := appConfig.AccountDeletion
 	httpConfig := appConfig.HTTP
 	request := p.Request
@@ -1376,7 +1379,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		HTTPProto:              httpProto,
 		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
-	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -1392,6 +1394,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	uiurlBuilder := &oidc.UIURLBuilder{
 		Endpoints:      endpointsEndpoints,
 		IdentityConfig: identityConfig,
+		UIConfig:       uiConfig,
 	}
 	clockClock := _wireSystemClockValue
 	promptResolver := &oauth.PromptResolver{
@@ -2384,6 +2387,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
 		Config:                                  oAuthConfig,
+		UIConfig:                                uiConfig,
 		AccountDeletionConfig:                   accountDeletionConfig,
 		HTTPConfig:                              httpConfig,
 		HTTPProto:                               httpProto,
@@ -6616,6 +6620,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -6628,7 +6633,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		HTTPProto:              httpProto,
 		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
-	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -7512,6 +7516,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
 		Config:              oAuthConfig,
+		UIConfig:            uiConfig,
 		OAuthClientResolver: resolver,
 		Endpoints:           endpointsEndpoints,
 		URLs:                endpointsEndpoints,
@@ -8732,6 +8737,7 @@ func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -8742,6 +8748,7 @@ func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
 	appDomains := appContext.Domains
 	proxyRedirectHandler := &handler.ProxyRedirectHandler{
 		OAuthConfig: oAuthConfig,
+		UIConfig:    uiConfig,
 		HTTPOrigin:  httpOrigin,
 		HTTPProto:   httpProto,
 		AppDomains:  appDomains,

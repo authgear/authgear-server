@@ -11,6 +11,7 @@ import (
 
 type ProxyRedirectHandler struct {
 	OAuthConfig *config.OAuthConfig
+	UIConfig    *config.UIConfig
 	HTTPOrigin  httputil.HTTPOrigin
 	HTTPProto   httputil.HTTPProto
 	AppDomains  config.AppDomains
@@ -44,7 +45,7 @@ func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) (*oauth.Wri
 		if err == nil {
 			isValid = true
 
-			if client.UseHTTP200() {
+			if client.UseHTTP200(h.UIConfig) {
 				useHTTP200 = true
 			}
 		}

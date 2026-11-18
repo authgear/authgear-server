@@ -264,14 +264,16 @@ type UIURLBuilderAuthUIEndpointsProvider interface {
 type UIURLBuilder struct {
 	Endpoints      UIURLBuilderAuthUIEndpointsProvider
 	IdentityConfig *config.IdentityConfig
+	UIConfig       *config.UIConfig
 }
 
 func (b *UIURLBuilder) BuildAuthenticationURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	var endpoint *url.URL
-	isCustomUI := client != nil && client.CustomUIURI != ""
+	customUIURI := b.UIConfig.ResolveCustomUIAuthenticationURI(client)
+	isCustomUI := customUIURI != ""
 	if isCustomUI {
 		var err error
-		endpoint, err = BuildCustomUIEndpoint(client.CustomUIURI)
+		endpoint, err = BuildCustomUIEndpoint(customUIURI)
 		if err != nil {
 			return nil, ErrInvalidCustomURI.New(fmt.Sprintf("invalid custom ui uri: %v", err.Error()))
 		}

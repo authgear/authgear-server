@@ -74,6 +74,7 @@ type EndSessionHandlerOAuthClientResolver interface {
 
 type EndSessionHandler struct {
 	Config              *config.OAuthConfig
+	UIConfig            *config.UIConfig
 	OAuthClientResolver EndSessionHandlerOAuthClientResolver
 	Endpoints           oidc.EndpointsProvider
 	URLs                WebAppURLsProvider
@@ -199,7 +200,7 @@ func (h *EndSessionHandler) Handle(ctx context.Context, s session.ResolvedSessio
 	writeResponseOptions := oauth.WriteResponseOptions{
 		RedirectURI:  redirectURIURL,
 		ResponseMode: "query",
-		UseHTTP200:   client.UseHTTP200(),
+		UseHTTP200:   client.UseHTTP200(h.UIConfig),
 		Response:     make(map[string]string),
 	}
 	oauth.WriteResponse(rw, r, writeResponseOptions)
