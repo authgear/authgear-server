@@ -1122,6 +1122,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)

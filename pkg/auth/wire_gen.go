@@ -3424,6 +3424,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -8526,6 +8527,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -9657,6 +9659,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -10770,6 +10773,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -12468,6 +12472,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -13688,6 +13693,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -14915,6 +14921,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -16158,6 +16165,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -17274,6 +17282,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -18400,6 +18409,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -19545,6 +19555,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -20683,6 +20694,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -21836,6 +21848,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -22961,6 +22974,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -24113,6 +24127,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -25264,6 +25279,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -26415,6 +26431,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -27555,6 +27572,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -28715,6 +28733,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -29866,6 +29885,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -31018,6 +31038,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -32179,6 +32200,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -33330,6 +33352,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -34473,6 +34496,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -35646,6 +35670,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -36787,6 +36812,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -37939,6 +37965,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -39094,6 +39121,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -40234,6 +40262,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -41370,6 +41399,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -42486,6 +42516,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -43598,6 +43629,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -44814,6 +44846,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -45927,6 +45960,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -47147,6 +47181,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -48366,6 +48401,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -49494,6 +49530,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -50547,6 +50584,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -52115,6 +52153,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -53227,6 +53266,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -54507,6 +54547,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -55572,6 +55613,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -56588,6 +56630,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -57638,6 +57681,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -58708,6 +58752,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -59849,6 +59894,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -60961,6 +61007,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -62110,6 +62157,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -63053,6 +63101,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -63998,6 +64047,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -65242,6 +65292,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -66479,6 +66530,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -67706,6 +67758,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -68930,6 +68983,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -70158,6 +70212,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -71384,6 +71439,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -72608,6 +72664,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -73828,6 +73885,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -75048,6 +75106,7 @@ func newWebAppAuthflowV2FillFormHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -76268,6 +76327,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -77493,6 +77553,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -78719,6 +78780,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -79939,6 +80001,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -81163,6 +81226,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -82383,6 +82447,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -83603,6 +83668,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -84823,6 +84889,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -86043,6 +86110,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -87270,6 +87338,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -88492,6 +88561,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -89713,6 +89783,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -90931,6 +91002,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -92246,6 +92318,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -94026,6 +94099,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -95246,6 +95320,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -96466,6 +96541,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -97826,6 +97902,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -99048,6 +99125,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -104031,6 +104109,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -105159,6 +105238,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -106303,6 +106383,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -107446,6 +107527,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -108578,6 +108660,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -109727,6 +109810,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -110882,6 +110966,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -112019,6 +112104,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -113164,6 +113250,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -114308,6 +114395,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -115440,6 +115528,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -116590,6 +116679,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -117727,6 +117817,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -118872,6 +118963,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -119992,6 +120084,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -121137,6 +121230,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -122285,6 +122379,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -123429,6 +123524,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -126151,6 +126247,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
