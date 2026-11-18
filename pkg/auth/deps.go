@@ -24,6 +24,7 @@ import (
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/cimd"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -251,6 +252,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthenticationFlowWebsocketEventStore), new(*authenticationflow.WebsocketEventStore)),
+	wire.Bind(new(handlerapi.LoginLinkV1ApproveEventStore), new(*authenticationflow.WebsocketEventStore)),
+	wire.Bind(new(handlerapi.LoginLinkV1ApproveOTPCodeService), new(*otp.Service)),
 	wire.Bind(new(handlerwebapp.TesterAuthTokensIssuer), new(*oauthhandler.TokenHandler)),
 	wire.Bind(new(handlerwebapp.TesterCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.TesterAppSessionTokenService), new(*oauth.AppSessionTokenService)),

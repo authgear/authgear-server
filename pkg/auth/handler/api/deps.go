@@ -20,6 +20,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthenticationFlowV1GetHandler), "*"),
 	wire.Struct(new(AuthenticationFlowV1WebsocketHandler), "*"),
 
+	wire.Struct(new(LoginLinkV1ApproveHandler), "*"),
+
 	wire.Struct(new(AccountManagementV1IdentificationHandler), "*"),
 	wire.Struct(new(AccountManagementV1IdentificationOAuthHandler), "*"),
 )
