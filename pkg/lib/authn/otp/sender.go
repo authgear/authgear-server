@@ -193,6 +193,12 @@ func (s *MessageSender) sendEmail(ctx context.Context, opts SendOptions) error {
 		TextBody:  data.TextBody.String,
 		HTMLBody:  data.HTMLBody.String,
 	}
+	if opts.Form == FormCode {
+		mailSendOptions.OTPToken = &mail.OTPToken{
+			Code:   opts.OTP,
+			Origin: s.Endpoints.Origin(),
+		}
+	}
 
 	err = s.Sender.SendEmailInNewGoroutine(ctx, msgType, mailSendOptions)
 	return err
