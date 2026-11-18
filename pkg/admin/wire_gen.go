@@ -350,6 +350,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -1658,6 +1659,7 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -2178,6 +2180,7 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -2699,6 +2702,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,

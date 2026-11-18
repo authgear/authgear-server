@@ -54,6 +54,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	samlConfig := appConfig.SAML
 	rootProvider := appProvider.RootProvider
 	environmentConfig := &rootProvider.EnvironmentConfig
@@ -61,6 +62,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	corsMatcher := &middleware.CORSMatcher{
 		Config:             httpConfig,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}

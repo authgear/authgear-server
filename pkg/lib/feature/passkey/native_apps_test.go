@@ -145,3 +145,35 @@ func TestCheckAndroidPackageName(t *testing.T) {
 		})
 	})
 }
+
+func TestMakeRPOriginsCustomUI(t *testing.T) {
+	Convey("makeRPOrigins with Custom UI", t, func() {
+		req := httptest.NewRequest("GET", "https://auth.example.com", nil)
+		req.TLS = &tls.ConnectionState{}
+		publicOrigin := url.URL{Scheme: "https", Host: "auth.example.com"}
+
+		s := &ConfigService{
+			Request:            req,
+			TranslationService: &testTranslationService{},
+			OAuthConfig: &config.OAuthConfig{Clients: []config.OAuthClientConfig{
+				{ClientID: "a", CustomUIURI: "https://legacy.example.com/auth"},
+				{ClientID: "b", CustomUIURI: "https://client.example.com:8443/auth"},
+			}},
+			UIConfig: &config.UIConfig{CustomUIEndpoints: &config.CustomUIEndpointsConfig{
+				Authentication:  "https://project.example.com/auth",
+				LoginLink:       "https://loginlink.example.com/login-link",
+				AccountRecovery: "https://reset.example.com/reset",
+			}},
+		}
+
+		Convey("accepts the origin of every authentication page only", func() {
+			origins, _ := s.makeRPOrigins(publicOrigin)
+			So(origins, ShouldResemble, []string{
+				"https://auth.example.com",
+				"https://project.example.com",
+				"https://legacy.example.com",
+				"https://client.example.com:8443",
+			})
+		})
+	})
+}

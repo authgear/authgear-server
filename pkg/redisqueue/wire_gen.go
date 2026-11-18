@@ -250,6 +250,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -1144,6 +1145,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -1490,6 +1492,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,

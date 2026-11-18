@@ -41,7 +41,14 @@ func TestCORSMiddleware(t *testing.T) {
 							PreAuthenticatedURLAllowedOrigins: []string{
 								"http://preauthenticatedurl.example.com",
 							},
+							CustomUIURI: "http://clientui.example.com/auth",
 						},
+					},
+				},
+				UIConfig: &config.UIConfig{
+					CustomUIEndpoints: &config.CustomUIEndpointsConfig{
+						LoginLink:       "http://loginlink.example.com/login-link",
+						AccountRecovery: "http://reset.example.com/reset",
 					},
 				},
 				SAMLConfig: &config.SAMLConfig{
@@ -292,6 +299,23 @@ func TestCORSMiddleware(t *testing.T) {
 			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://slo.example.com")
 			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
 			So(resp.Body.Bytes(), ShouldResemble, testBody)
+		})
+
+		Convey("should allow origins of Custom UI pages", func() {
+			for _, origin := range []string{"http://loginlink.example.com", "http://reset.example.com", "http://clientui.example.com"} {
+				req, handler := fixture(FixtureConfig{
+					Method: "POST",
+					URL:    "http://www.example.com",
+					Origin: origin,
+					Specs:  []string{""},
+					Env:    "",
+				})
+
+				resp := httptest.NewRecorder()
+				handler.ServeHTTP(resp, req)
+
+				So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, origin)
+			}
 		})
 	})
 }

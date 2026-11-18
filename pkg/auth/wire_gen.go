@@ -466,6 +466,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -1536,6 +1537,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -2717,6 +2719,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -3869,6 +3872,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -4395,6 +4399,7 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -4997,6 +5002,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -5889,6 +5895,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -6847,6 +6854,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -7813,6 +7821,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -8942,6 +8951,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -10054,6 +10064,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -11165,6 +11176,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -11737,6 +11749,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -12956,6 +12969,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -14182,6 +14196,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -15439,6 +15454,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -16542,6 +16558,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -17679,6 +17696,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -18823,6 +18841,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -19960,6 +19979,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -21112,6 +21132,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -22236,6 +22257,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -23387,6 +23409,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -24537,6 +24560,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -25687,6 +25711,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -26826,6 +26851,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -27985,6 +28011,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -29135,6 +29162,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -30286,6 +30314,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -31446,6 +31475,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -32596,6 +32626,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -33738,6 +33769,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -34910,6 +34942,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -36050,6 +36083,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -37201,6 +37235,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -38355,6 +38390,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -39494,6 +39530,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -40629,6 +40666,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -41744,6 +41782,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -42855,6 +42894,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -44070,6 +44110,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -45167,6 +45208,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -46386,6 +46428,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -47619,6 +47662,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -48746,6 +48790,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -49798,6 +49843,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -50837,6 +50883,7 @@ func newWebAppClientLogoHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -51364,6 +51411,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -52475,6 +52523,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -53744,6 +53793,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -54806,6 +54856,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -55821,6 +55872,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -56670,6 +56722,7 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	eventStoreImpl := workflow.NewEventStore(appID, handle, storeImpl)
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	samlConfig := appConfig.SAML
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -56677,6 +56730,7 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	corsMatcher := &middleware.CORSMatcher{
 		Config:             httpConfig,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
@@ -56870,6 +56924,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -57934,6 +57989,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -59074,6 +59130,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -60183,6 +60240,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -61121,6 +61179,7 @@ func newAPIAuthenticationFlowV1WebsocketHandler(p *deps.RequestProvider) http.Ha
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	samlConfig := appConfig.SAML
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -61128,6 +61187,7 @@ func newAPIAuthenticationFlowV1WebsocketHandler(p *deps.RequestProvider) http.Ha
 	corsMatcher := &middleware.CORSMatcher{
 		Config:             httpConfig,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
@@ -61324,6 +61384,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -62266,6 +62327,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -63217,6 +63279,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -64460,6 +64523,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -65696,6 +65760,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -66922,6 +66987,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -68145,6 +68211,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -69372,6 +69439,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -70597,6 +70665,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -71820,6 +71889,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -73039,6 +73109,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -74258,6 +74329,7 @@ func newWebAppAuthflowV2FillFormHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -75477,6 +75549,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -76701,6 +76774,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -77926,6 +78000,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -79145,6 +79220,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -80368,6 +80444,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -81587,6 +81664,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -82806,6 +82884,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -84025,6 +84104,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -85244,6 +85324,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -86470,6 +86551,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -87691,6 +87773,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -88911,6 +88994,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -90143,6 +90227,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -91442,6 +91527,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -93221,6 +93307,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -94440,6 +94527,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -95659,6 +95747,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -97018,6 +97107,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -98239,6 +98329,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -99445,6 +99536,7 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -100365,6 +100457,7 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -101315,6 +101408,7 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -102258,6 +102352,7 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -103232,6 +103327,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -104314,6 +104410,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -105457,6 +105554,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -106604,6 +106702,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -107730,6 +107829,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -108878,6 +108978,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -110032,6 +110133,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -111168,6 +111270,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -112312,6 +112415,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -113460,6 +113564,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -114586,6 +114691,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -115735,6 +115841,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -116871,6 +116978,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -118031,6 +118139,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -119135,6 +119244,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -120279,6 +120389,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -121426,6 +121537,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -122613,6 +122725,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -123846,6 +123959,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	samlConfig := appConfig.SAML
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -123853,6 +123967,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	corsMatcher := &middleware.CORSMatcher{
 		Config:             httpConfig,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
@@ -123879,10 +123994,12 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider, allowFrameAncestorsFromEnv
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	allowedFrameAncestors := environmentConfig.AllowedFrameAncestors
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
 		Cookies:                         cookieManager,
 		OAuthConfig:                     oAuthConfig,
+		UIConfig:                        uiConfig,
 		AllowedFrameAncestorsFromEnv:    allowedFrameAncestors,
 		AllowFrameAncestorsFromEnv:      allowFrameAncestorsFromEnv,
 		AllowFrameAncestorsFromCustomUI: allowFrameAncestorsFromCustomUI,
@@ -124412,6 +124529,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -125329,6 +125447,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -126419,6 +126538,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -127410,6 +127530,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -128376,6 +128497,7 @@ func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -128872,6 +128994,7 @@ func newAccountManagementRateLimitMiddleware(p *deps.RequestProvider) httproute.
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
