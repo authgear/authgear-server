@@ -330,7 +330,7 @@ CIMD fields map onto `OAuthClient` (see [client.md](./client.md)) as follows:
 | —                                                         | `registeredAt`: always `null` — there is no registration event, only a fetch |
 | —                                                         | `lastFetchedAt`: timestamp of the most recent successful fetch (see [Where resolution happens](#where-resolution-happens)) |
 
-All Authgear-only extension fields (`app2appEnabled`, `dpopDisabled`, `customUIURI`, `authenticationFlowAllowlist`, `preAuthenticatedURLEnabled`, ...) are fixed at their zero values.
+All Authgear-only extension fields (`app2appEnabled`, `dpopDisabled`, `customUIURI`, `customUIEndpoints`, `authenticationFlowAllowlist`, `preAuthenticatedURLEnabled`, ...) are fixed at their zero values.
 
 ## Redirect URI Validation
 

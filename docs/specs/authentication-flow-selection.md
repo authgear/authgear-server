@@ -118,7 +118,8 @@ oauth:
       - type: reauth
         name: email_password_2fa
   - client_id: custom_app
-    x_custom_ui_uri: "https://custom.app"
+    x_custom_ui_endpoints:
+      authentication: "https://custom.app"
     x_authentication_flow_allowlist:
       flows:
       - type: login

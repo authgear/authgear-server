@@ -73,7 +73,4 @@ Errors:
 
 ## Custom UI
 
-To approve links in a Custom UI:
-
-1. Host an [approval page](#approval-page) that calls the [API](#api).
-2. Customize the [`login_link` templates](./templates.md#login_link) so the link points to that page, building the URL from the `Code` variable, for example `https://custom.app/login-link?code={{ .Code }}`. The templates are project-wide, so every client of the project gets the same link.
+To approve links in a Custom UI, host an [approval page](#approval-page) that calls the [API](#api), and set it as the [`login_link` page](./custom-ui.md#pages) of the Custom UI. The link then points to that page.

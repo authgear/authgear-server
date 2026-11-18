@@ -59,13 +59,14 @@ This is a design boundary, not a corner case within a supported flow — genuine
 
 Two OAuth clients, `client_a` and `client_b`, belong to the same Authgear project and each have a same-site Custom UI (`ui-a.example.com`, `ui-b.example.com`, both under the same registrable domain as Authgear, `auth.example.com`). The end-user has already signed in through `client_a`'s Custom UI. They now open `client_b`'s app for the first time in this browser. Because the Authgear session cookie is shared across the whole registrable domain, `client_b`'s Custom UI can offer to continue as the same account without the end-user re-entering credentials.
 
-**Required configuration** — `client_b` needs `x_custom_ui_uri` set, and its `login` flow needs `select_account` added to `identify`:
+**Required configuration** — `client_b` needs its [Custom UI](./custom-ui.md) `authentication` page set, and its `login` flow needs `select_account` added to `identify`:
 
 ```yaml
 oauth:
   clients:
   - client_id: client_b
-    x_custom_ui_uri: "https://ui-b.example.com/auth"
+    x_custom_ui_endpoints:
+      authentication: "https://ui-b.example.com/auth"
 
 authentication_flow:
   login_flows:
@@ -492,7 +493,7 @@ Access-Control-Allow-Origin: https://ui.example.com
 Access-Control-Allow-Credentials: true
 ```
 
-reflecting the caller's origin (never a wildcard), whenever it matches **any** OAuth client's `x_custom_ui_uri` in the project — the check is "is this origin a known Custom UI at all", not "is this origin the Custom UI of the specific `client_id` this request happens to target". Matching against a project-wide set rather than a single client is deliberate: origin and `client_id` are independent pieces of information (an origin either is or isn't a registered Custom UI, regardless of which client's flow it's about to call), and this project already checks it that way for every other endpoint using this same allow-list.
+reflecting the caller's origin (never a wildcard), whenever it matches **any** [Custom UI origin](./custom-ui.md#origins) in the project — the check is "is this origin a known Custom UI at all", not "is this origin the Custom UI of the specific `client_id` this request happens to target". Matching against a project-wide set rather than a single client is deliberate: origin and `client_id` are independent pieces of information (an origin either is or isn't a registered Custom UI, regardless of which client's flow it's about to call), and this project already checks it that way for every other endpoint using this same allow-list.
 
 This must also apply to the `OPTIONS` preflight `fetch()` triggers first, which despite having no body isn't a problem: a preflight always carries the `Origin` header, and matching only ever depends on that header against the allow-list above — never on `client_id` or anything else the body would carry. This project already has this infrastructure, including for preflight, on other endpoints.
 
@@ -540,7 +541,7 @@ One constraint worth calling out before the diagram: the Custom UI's **first** f
 App
   │
   ├─▶ GET /oauth2/authorize?client_id=...&redirect_uri=...&code_challenge=...
-  │       Authgear sees x_custom_ui_uri configured for this client
+  │       Authgear resolves the Custom UI authentication page for this client
   ├─◀ 302 → https://ui.example.com/auth?x_ref=oauthsession_abc&client_id=...&redirect_uri=...
   │
 Custom UI (same-site with Authgear)

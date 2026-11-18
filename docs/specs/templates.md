@@ -134,6 +134,6 @@ The message carrying a [login link](./login-link.md). Used when authenticating w
 - Context:
     - `Email`: The recipient email of the message; empty if not sending an email message.
     - `Phone`: The recipient phone number of the message; empty if not sending an SMS message.
-    - `Code`: The code embedded in `Link`. Use it to build a link to your own approval page.
-    - `Link`: The login link, pointing to the approval page of Auth UI.
+    - `Code`: The code embedded in `Link`.
+    - `Link`: The login link, pointing to the approval page. See [Custom UI](./custom-ui.md#pages).
     - `Host`: Host of authgear, usually used for [Web OTP](https://web.dev/web-otp/) API.

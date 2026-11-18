@@ -2143,6 +2143,8 @@ In previous steps, you should have selected the destination to receive the accou
 }
 ```
 
+The link opens the `account_recovery` page of your Custom UI when one is set, with the code in the `code` query parameter. See [Custom UI](./custom-ui.md#pages).
+
 Note that `state_token` can be omitted in this step, if and only if your selected destination have `otp_form=link`. Using only the `account_recovery_code` is enough for proceeding to the next step in this case:
 
 ```jsonc

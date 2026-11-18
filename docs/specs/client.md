@@ -129,10 +129,16 @@ type OAuthClient {
   maxConcurrentSession: Int!
 
   """
-  URI of a custom auth UI. When set, the auth server responds HTTP 200 instead
-  of redirecting. Static clients only; always null for DCR clients.
+  Deprecated. Use customUIEndpoints.authentication. Static clients only;
+  always null for DCR clients.
   """
   customUIURI: String
+
+  """
+  The client's Custom UI pages, overriding the project's. See custom-ui.md.
+  Static clients only; always null for DCR clients.
+  """
+  customUIEndpoints: OAuthClientCustomUIEndpoints
 
   """Whether App2App is enabled. Static clients only; always false for DCR clients."""
   app2appEnabled: Boolean!
@@ -182,6 +188,12 @@ type AuthenticationFlowAllowlistFlow {
   """One of: signup, promote, login, signup_login, reauth, account_recovery."""
   type: String!
   name: String!
+}
+
+type OAuthClientCustomUIEndpoints {
+  authentication: String
+  loginLink: String
+  accountRecovery: String
 }
 
 enum OAuthClientKind {
@@ -262,6 +274,7 @@ The resulting `OAuthClient` object is:
   "issueJWTAccessToken": true,
   "maxConcurrentSession": 0,
   "customUIURI": null,
+  "customUIEndpoints": null,
   "app2appEnabled": false,
   "app2appInsecureDeviceKeyBindingEnabled": false,
   "dpopDisabled": false,
@@ -329,6 +342,7 @@ The resulting `OAuthClient` object is:
   "issueJWTAccessToken": true,
   "maxConcurrentSession": 0,
   "customUIURI": null,
+  "customUIEndpoints": null,
   "app2appEnabled": false,
   "app2appInsecureDeviceKeyBindingEnabled": false,
   "dpopDisabled": false,

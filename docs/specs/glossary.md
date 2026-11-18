@@ -12,6 +12,7 @@
     + [Authentication](#authentication)
     + [Login Link](#login-link)
     + [Form](#form)
+  * [Custom UI](#custom-ui)
 
 # Glossary
 
@@ -70,3 +71,7 @@ Read the [authentication flow API reference](./authentication-flow-api-reference
 ### Form
 
 A form is a list of fields shown in an authentication flow, on its own page or with the login ID, defined by the [Form object](./user-profile/profile-filling.md#form-object). It is not a general term for any page of Auth UI.
+
+## Custom UI
+
+[Custom UI](./custom-ui.md#custom-ui)
