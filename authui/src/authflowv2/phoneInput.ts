@@ -59,6 +59,18 @@ interface PhoneInputCountry {
 type Territories =
   typeof CLDR_TERRITORIES_JSON_EN.main.en.localeDisplayNames.territories;
 
+function getTerritoryName(
+  territories: Territories,
+  code: string
+): string | undefined {
+  const t: Record<string, string | undefined> = territories;
+  // Prefer the short name, except where it is an abbreviation
+  if (!["GB", "US", "UN"].includes(code)) {
+    return t[`${code}-alt-short`] ?? t[code];
+  }
+  return t[code];
+}
+
 function getOnlyCountryCodes(): CountryCode[] {
   const onlyCountries: CountryCode[] =
     JSON.parse(
@@ -114,10 +126,12 @@ async function compileCountryList(
 
   function countryCodeToCountry(countryCode: CountryCode): PhoneInputCountry {
     const countryName =
-      CLDR_TERRITORIES_JSON_EN.main.en.localeDisplayNames.territories[
+      getTerritoryName(
+        CLDR_TERRITORIES_JSON_EN.main.en.localeDisplayNames.territories,
         countryCode
-      ];
-    const countryLocalizedName = territories[countryCode] || countryName;
+      ) ?? countryCode;
+    const countryLocalizedName =
+      getTerritoryName(territories, countryCode) ?? countryName;
     const countryFlag = getEmojiFlag(countryCode);
     const countryCallingCode = getCountryCallingCode(countryCode);
     return {
