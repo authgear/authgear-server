@@ -391,21 +391,7 @@ the configuration.
 
 ##### Login Link
 
-Login link is a sub-category under OOB-OTP authenticator. User receives a link instead of OTP code, which authenticates user on visit.
-
-```yaml
-authentication:
-  oob_otp:
-    email:
-      email_otp_mode: "login_link" # default "code"
-
-verification:
-  code_expiry_seconds: 3600
-```
-
-The login link message is rendered by a [customizable template](./templates.md#oob_magic_link).
-
-Unlike other OTP modes, login link can be opened on another device. Login will proceed on original device upon approval success.
+An email OOB-OTP authenticator can deliver the OTP as a link instead of a code. See [Login Link](./login-link.md).
 
 ### Device Token
 

@@ -9,6 +9,7 @@
   * [Pass an input to a state of an authentication flow](#pass-an-input-to-a-state-of-an-authentication-flow)
   * [Retrieve a state again](#retrieve-a-state-again)
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
+- [Login link](#login-link)
 - [Reference on input and output](#reference-on-input-and-output)
   * [type: signup; action.type: identify](#type-signup-actiontype-identify)
     + [Bot protection](#bot-protection)
@@ -228,6 +229,68 @@ Connection: Upgrade
 ```
 
 Connect to the websocket by specifying `flow_id`. The only message you will receive is `{"kind":"refresh"}`. Upon receiving the message, you should retrieve the state again with [Retrieve a state again](#retrieve-a-state-again). The `step.data` should contain updated information.
+
+# Login link
+
+When a project uses [login link](./login-link.md), an email OOB-OTP is sent as a link instead of a code. A step sends a link when its data is `verify_oob_otp_data` with `otp_form: link`:
+
+| `action.type` | When |
+|---|---|
+| `authenticate` | Authenticating with `primary_oob_otp_email` or `secondary_oob_otp_email`. |
+| `create_authenticator` | Setting up `primary_oob_otp_email` or `secondary_oob_otp_email` when the email address is not verified yet. |
+
+The `verify` step of a `signup` flow always sends a code.
+
+Such a step returns a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "authenticate",
+      "data": {
+        "type": "verify_oob_otp_data",
+        "channel": "email",
+        "otp_form": "link",
+        "websocket_url": "wss://...",
+        "masked_claim_value": "john******@example.com",
+        "code_length": 32,
+        "can_resend_at": "2023-09-21T00:00:00+08:00",
+        "can_check": false,
+        "failed_attempt_rate_limit_exceeded": false
+      }
+    }
+  }
+}
+```
+
+To complete the step:
+
+1. Connect to `websocket_url`, and tell the end-user to open the link sent to `masked_claim_value`.
+2. The end-user opens the link and approves it on an approval page, provided by Auth UI or by your Custom UI. See [Login Link](./login-link.md#approval-page) for building your own, and [its API](./login-link.md#api).
+3. Once the link is approved, the websocket receives `{"kind": "refresh"}`. [Retrieve the state again](#retrieve-a-state-again); `can_check` is now `true`.
+4. Pass this input to complete the step:
+
+```json
+{
+  "check": true
+}
+```
+
+Pass it only when `can_check` is `true`. Before the link is approved, the input fails with `InvalidCredentials` and counts as a failed attempt; too many failed attempts invalidate the link. Without a websocket, [retrieve the state again](#retrieve-a-state-again), for example when the end-user taps a button in your UI, and check `can_check`.
+
+To request a resend, pass this input
+
+```json
+{
+  "resend": true
+}
+```
+
+`can_resend_at` tells you the earliest time you can trigger resend without encountering rate limit error. `code_length` can be ignored, because the end-user never types the code.
 
 # Reference on input and output
 
@@ -642,7 +705,7 @@ It is asking how to deliver the OTP. You pass the following input
 }
 ```
 
-When you are in this step, you WILL see a response like the following if the otp is a code.
+When you are in this step, you WILL see a response like the following. The OTP in this step is always a code. For `verify_oob_otp_data` with `otp_form: link` in other steps, see [Login link](#login-link).
 
 ```json
 {
@@ -667,7 +730,7 @@ When you are in this step, you WILL see a response like the following if the otp
 }
 ```
 
-If `otp_form` is `code`, a OTP will be sent to the end-user at `masked_claim_value`.
+A OTP will be sent to the end-user at `masked_claim_value`.
 
 To request a resend, pass this input
 
@@ -685,60 +748,9 @@ After the end-user has entered the code in your UI, pass this input
 }
 ```
 
-Or you WILL see a response like the following if the otp is a link.
-
-```json
-{
-  "result": {
-    "state_token": "authflowstate_blahblahblah",
-    "type": "signup",
-    "name": "default",
-    "action": {
-      "type": "verify",
-      "data": {
-        "type": "verify_oob_otp_data",
-        "channel": "email",
-        "otp_form": "link",
-        "websocket_url": "wss://...",
-        "masked_claim_value": "john******@example.com",
-        "code_length": 32,
-        "can_resend_at": "2023-09-21T00:00:00+08:00",
-        "can_check": false,
-        "failed_attempt_rate_limit_exceeded": false
-      }
-    }
-  }
-}
-```
-
-if `otp_form` is `link`, `can_check` initially is `false` and `websocket_url` will be present in `data`.
-You can connect to a websocket with this URL to listen for the event of the link being approved.
-
-The link will be sent to the end-user at `masked_claim_value`. Clicking the link will open an approval page in Auth UI.
-When the user has approved the link, a websocket message of a JSON object `{"type": "refresh"}` is sent.
-Upon receiving the message, you can [retrieve a state again](#retrieve-a-state-again).
-The retrieved state should have `can_check=true`.
-Now you can pass this input to check if the link has been approved.
-
-```json
-{
-  "check": true
-}
-```
-
-Alternatively, you can have a button in the UI to send the above input per tap.
-
-To request a resend, pass this input
-
-```json
-{
-  "resend": true
-}
-```
-
 `can_resend_at` tells you the earliest time you can trigger resend without encountering rate limit error. Use this information to implement a cooldown counter in your UI.
 
-`code_length` tells you the length of the OTP. It is typically relevant when `otp_form` is `code`, because it gives an hint to the end-user how long the OTP is. When `otp_form` is `link`, the OTP is included in the link, the length is not an important information to the end-user.
+`code_length` tells you the length of the OTP, as a hint to the end-user.
 
 ## type: signup; action.type: create_authenticator
 
@@ -906,7 +918,7 @@ The corresponding input is
 }
 ```
 
-In case `target` is present and `target.verification_required` is false, you do not need to verify the email address. Otherwise, you **MAY** enter a state where you need to verify the email address.
+In case `target` is present and `target.verification_required` is false, you do not need to verify the email address. Otherwise, you **MAY** enter a state where you need to verify the email address. If `otp_form` is `link`, see [Login link](#login-link).
 
 ### authentication: primary_oob_otp_sms
 
@@ -981,7 +993,7 @@ The corresponding input is
 
 `target` can be different (and is usually different) from the email address the end-user uses to sign in.
 
-After passing the input, you **WILL** enter a state where you need to verify the email address.
+After passing the input, you **WILL** enter a state where you need to verify the email address. If `otp_form` is `link`, see [Login link](#login-link).
 
 ### authentication: secondary_oob_otp_sms
 
@@ -1601,7 +1613,7 @@ The corresponding input is
 }
 ```
 
-After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; action.type: verify](#type-signup-actiontype-verify)
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; action.type: verify](#type-signup-actiontype-verify). If `otp_form` is `link`, see [Login link](#login-link) instead.
 
 ### authentication: primary_oob_otp_sms
 
@@ -1865,7 +1877,7 @@ The corresponding input is
 }
 ```
 
-After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; action.type: verify](#type-signup-actiontype-verify)
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; action.type: verify](#type-signup-actiontype-verify). If `otp_form` is `link`, see [Login link](#login-link) instead.
 
 ### authentication: secondary_oob_otp_sms
 
@@ -2267,7 +2279,7 @@ The data contains information about the otp verification step.
 - `masked_claim_value`: The masked phone number or email address that is going to recieve the OTP.
 - `code_length`: The length of the sent code.
 - `can_resend_at`: A timestamp. Resend can be triggered after this timestamp.
-- `can_check`: Used when otp_form is `link` only. If `true`, you can check the latest verification state.
+- `can_check`: Used when otp_form is `link` only. If `true`, the link has been approved and you can pass `{"check": true}`. See [Login link](#login-link).
 - `failed_attempt_rate_limit_exceeded`: If `true`, the maximum number of fail attempt has been exceeded, therefore the OTP becomes invalid. You should request for a new OTP.
 
 ## create_passkey_data
