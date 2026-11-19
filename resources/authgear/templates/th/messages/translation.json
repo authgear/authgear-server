@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "เข้าสู่ระบบ {{ template \"app.name\" }}",
     "Body": "โปรดทำตามลิงก์ด้านล่างเพื่อเข้าสู่ระบบ {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "ถ้าคุณไม่ได้ทำการเข้าสู่ระบบ โปรดละเลยอีเมลนี้."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "เข้าสู่ระบบ {{ template \"app.name\" }}",
     "Body": "โปรดทำตามลิงก์ด้านล่างเพื่อเข้าสู่ระบบ {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "ถ้าคุณไม่ได้ทำการเข้าสู่ระบบ โปรดละเลยอีเมลนี้."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "ยืนยันอีเมลของคุณใน {{ template \"app.name\" }}",
     "Body": "โปรดเข้าชมลิงก์ด้านล่างเพื่อดำเนินการลงทะเบียนใน {{ template \"app.name\" }} ให้เสร็จสมบูรณ์.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "หากคุณไม่ได้เริ่มการตั้งค่านี้ โปรดละเว้นอีเมลนี้"
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "ยืนยันอีเมลและตั้งค่าการยืนยันสองขั้นตอนใน {{ template \"app.name\" }}",
     "Body": "โปรดคลิกลิงก์ด้านล่างเพื่อตั้งค่าการยืนยันสองขั้นตอนใน {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "หากคุณไม่ได้เริ่มการตั้งค่านี้ โปรดละเว้นอีเมลนี้"
   },
   "SetupSecondaryOOBEmailTXT": {

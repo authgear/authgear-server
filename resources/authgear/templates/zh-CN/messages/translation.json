@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "登录到 {{ template \"app.name\" }}",
     "Body": "请点击下面的链接登录到 {{ template \"app.name\" }}。",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "如果您没有触发登录，请忽略此电子邮件。"
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "登录到 {{ template \"app.name\" }}",
     "Body": "请点击下面的链接登录到 {{ template \"app.name\" }}。",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "如果您没有触发登录，请忽略此电子邮件。"
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "在 {{ template \"app.name\" }} 上验证您的电子邮箱",
     "Body": "请访问下面的链接以完成在 {{ template \"app.name\" }} 上的注册过程。",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "如果您没有触发此设置,请忽略此电子邮件。"
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "在 {{ template \"app.name\" }} 上验证您的电子邮箱并设置双重验证",
     "Body": "请单击下面的链接以在 {{ template \"app.name\" }} 上设置双重验证。",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "如果您没有触发此设置,请忽略此电子邮件。"
   },
   "SetupSecondaryOOBEmailTXT": {
