@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"net/url"
 
@@ -17,7 +18,7 @@ type ProxyRedirectHandler struct {
 	AppDomains  config.AppDomains
 }
 
-func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) (*oauth.WriteResponseOptions, error) {
+func (h *ProxyRedirectHandler) Validate(ctx context.Context, redirectURIWithQuery string) (*oauth.WriteResponseOptions, error) {
 	u, err := url.Parse(redirectURIWithQuery)
 	if err != nil {
 		return nil, errors.New("invalid redirect URI")
@@ -38,12 +39,19 @@ func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) (*oauth.Wri
 
 	useHTTP200 := false
 	isValid := false
+	allowedByOtherRules := false
+	var customUIOriginClientIDs []string
 	for _, c := range h.OAuthConfig.Clients {
 		client := c
 
-		err = validateRedirectURI(&client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, redirectURI)
+		onlyCustomUIOrigin, err := validateRedirectURI(&client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, redirectURI)
 		if err == nil {
 			isValid = true
+			if onlyCustomUIOrigin {
+				customUIOriginClientIDs = append(customUIOriginClientIDs, client.ClientID)
+			} else {
+				allowedByOtherRules = true
+			}
 
 			if client.UseHTTP200(h.UIConfig) {
 				useHTTP200 = true
@@ -53,6 +61,10 @@ func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) (*oauth.Wri
 
 	if !isValid {
 		return nil, errors.New("redirect URI is not allowed")
+	}
+
+	if !allowedByOtherRules {
+		logCustomUIOriginRedirectURI(ctx, customUIOriginClientIDs, redirectURI)
 	}
 
 	return &oauth.WriteResponseOptions{

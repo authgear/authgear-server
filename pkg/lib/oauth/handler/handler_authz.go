@@ -477,7 +477,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *h
 	// Restore uiparam into context.
 	uiparam.WithUIParam(ctx, &uiParam)
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, r)
+	redirectURI, errResp := parseRedirectURI(ctx, client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, r)
 	if errResp != nil {
 		err = protocol.NewErrorWithErrorResponse(errResp)
 		return ctx, nil, err
@@ -1062,7 +1062,7 @@ func (h *AuthorizationHandler) ValidateRequestWithoutTx(
 		originWhitelist = client.PreAuthenticatedURLAllowedOrigins
 	}
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
+	redirectURI, errResp := parseRedirectURI(ctx, client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, originWhitelist, r)
 	if errResp != nil {
 		return ctx, nil, &AuthorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -1328,8 +1328,11 @@ func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(ctx context
 	if oauthError.Type() == "invalid_request" && client != nil {
 		redirectURI, err := url.Parse(req.URL.Query().Get("redirect_uri"))
 		if err == nil {
-			err = validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, redirectURI)
+			onlyCustomUIOrigin, err := validateRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, redirectURI)
 			if err == nil {
+				if onlyCustomUIOrigin {
+					logCustomUIOriginRedirectURI(ctx, []string{client.ClientID}, redirectURI)
+				}
 				resultErr.RedirectURI = redirectURI
 			}
 		}

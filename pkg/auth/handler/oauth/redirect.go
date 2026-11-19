@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -14,7 +15,7 @@ func ConfigureProxyRedirectRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolProxyRedirectHandler interface {
-	Validate(redirectURIWithQuery string) (*oauth.WriteResponseOptions, error)
+	Validate(ctx context.Context, redirectURIWithQuery string) (*oauth.WriteResponseOptions, error)
 }
 
 type ProxyRedirectHandler struct {
@@ -23,7 +24,7 @@ type ProxyRedirectHandler struct {
 
 func (h *ProxyRedirectHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	redirectURI := r.URL.Query().Get("redirect_uri")
-	options, err := h.ProxyRedirectHandler.Validate(redirectURI)
+	options, err := h.ProxyRedirectHandler.Validate(r.Context(), redirectURI)
 
 	if err == nil {
 		oauth.WriteResponse(rw, r, *options)

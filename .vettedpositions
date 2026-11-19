@@ -39,6 +39,7 @@
 /pkg/auth/handler/oauth/end_session.go:50:31: requestcontext
 /pkg/auth/handler/oauth/jwks.go:30:9: requestcontext
 /pkg/auth/handler/oauth/jwks.go:34:31: requestcontext
+/pkg/auth/handler/oauth/redirect.go:27:50: requestcontext
 /pkg/auth/handler/oauth/register.go:31:44: requestcontext
 /pkg/auth/handler/oauth/revoke.go:42:9: requestcontext
 /pkg/auth/handler/oauth/token.go:44:9: requestcontext
