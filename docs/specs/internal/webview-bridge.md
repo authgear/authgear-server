@@ -29,7 +29,7 @@ Each message type has its own requirements, which may be stricter. An SDK provid
 
 The bridge is available only to the top-level page, never to a frame, and only to a page whose origin is the origin of the SDK's `endpoint`. Origins are compared exactly; a differing port is a differing origin.
 
-On Android, any other page has no `window.authgearBridge`. On iOS, `window.webkit.messageHandlers.authgearBridge` exists on every page, and a message from any other page is rejected. A page treats a rejected message as no bridge.
+On Android, a page that isn't allowed (a frame, or a page on another origin, such as a social login provider's page) has no `window.authgearBridge`. On iOS, `window.webkit.messageHandlers.authgearBridge` exists on every page, and a message from a page that isn't allowed is rejected. A page treats a rejected message as no bridge.
 
 When the top-level page starts loading another page, every pending request is cancelled, and its reply, if any, is never delivered to the new page.
 
