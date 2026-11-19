@@ -21,7 +21,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="300" align="left">Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail.</mj-text>
     </mj-column>
   </mj-section>
 </mjml>

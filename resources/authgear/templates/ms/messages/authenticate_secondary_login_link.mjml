@@ -21,7 +21,7 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">Jika anda tidak memulakan log masuk, sila abaikan e-mel ini.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="300" align="left">Jika anda tidak memulakan log masuk, sila abaikan e-mel ini.</mj-text>
     </mj-column>
   </mj-section>
 </mjml>
