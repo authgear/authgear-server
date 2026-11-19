@@ -82,8 +82,8 @@ The origin an Android app reports is accepted as specified in [webauthn.md](./we
 
 | Platform | UI implementation | What the SDK does | What the app does |
 |---|---|---|---|
-| iOS | `WKWebViewUIImplementation` | Provides the [WebView bridge](./webview-bridge.md) | Declares `webcredentials:<host of http.public_origin>` in its Associated Domains entitlement |
-| Android | `WebKitWebViewUIImplementation` | Enables WebAuthn in its WebView for the app's associated domains, when the device's WebView supports it. Provides the [WebView bridge](./webview-bridge.md) | Nothing |
+| iOS | `WKWebViewUIImplementation` | Provides the [WebView bridge](./internal/webview-bridge.md) | Declares `webcredentials:<host of http.public_origin>` in its Associated Domains entitlement |
+| Android | `WebKitWebViewUIImplementation` | Enables WebAuthn in its WebView for the app's associated domains, when the device's WebView supports it. Provides the [WebView bridge](./internal/webview-bridge.md) | Nothing |
 
 AuthUI offers no passkey AutoFill in a WebView that has the WebView bridge. On Android the WebView does not support it. On iOS, AutoFill keeps a passkey request pending for the app, and the operating system allows one passkey request per app at a time, so it would block the bridge's passkey requests. The passkey on page load and the passkey button are used instead.
 
@@ -93,7 +93,7 @@ The SDK does not switch to a Custom Tab when passkeys are unavailable. The user 
 
 ## Passkey on page load
 
-When AuthUI's login page loads in the SDK's WebView, it asks the app for a passkey that is on this device, with `credentials.get` and `mediation: "immediate"` through the [WebView bridge](./webview-bridge.md). It asks only when the bridge lists `credentials.get`, `credentials.get:publicKey` and `credentials.get:immediate`.
+When AuthUI's login page loads in the SDK's WebView, it asks the app for a passkey that is on this device, with `credentials.get` and `mediation: "immediate"` through the [WebView bridge](./internal/webview-bridge.md). It asks only when the bridge lists `credentials.get`, `credentials.get:publicKey` and `credentials.get:immediate`.
 
 - This device has a passkey for the project: the operating system's passkey sheet appears without a tap. Choosing a passkey signs the user in.
 - This device has none: nothing appears.

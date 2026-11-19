@@ -1,6 +1,6 @@
 # Passkey check in the SDK WebView — part 1: the bridge
 
-Specs: [docs/specs/webview-bridge.md](../../specs/webview-bridge.md) (the bridge), [docs/specs/passkey-webview.md](../../specs/passkey-webview.md#passkey-on-page-load) (the passkey on page load).
+Specs: [docs/specs/internal/webview-bridge.md](../../specs/internal/webview-bridge.md) (the bridge), [docs/specs/passkey-webview.md](../../specs/passkey-webview.md#passkey-on-page-load) (the passkey on page load).
 
 Parts: **1 bridge** · [2 AuthUI](./2026-11-10-02-webview-check-authui.md) · [3 iOS SDK](./2026-11-10-03-webview-check-ios-sdk.md) · [4 Android SDK](./2026-11-10-04-webview-check-android-sdk.md)
 

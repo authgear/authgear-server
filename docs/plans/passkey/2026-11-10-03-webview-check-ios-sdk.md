@@ -1,6 +1,6 @@
 # Passkey check in the SDK WebView — part 3: iOS SDK
 
-Specs: [docs/specs/webview-bridge.md](../../specs/webview-bridge.md), [docs/specs/passkey-webview.md](../../specs/passkey-webview.md). Repository: `authgear-sdk-ios`.
+Specs: [docs/specs/internal/webview-bridge.md](../../specs/internal/webview-bridge.md), [docs/specs/passkey-webview.md](../../specs/passkey-webview.md). Repository: `authgear-sdk-ios`.
 
 Parts: [1 bridge](./2026-11-10-01-webview-check-bridge.md) · [2 AuthUI](./2026-11-10-02-webview-check-authui.md) · **3 iOS SDK** · [4 Android SDK](./2026-11-10-04-webview-check-android-sdk.md)
 

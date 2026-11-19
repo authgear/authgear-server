@@ -1,6 +1,6 @@
 # Passkey check in the SDK WebView — part 4: Android SDK
 
-Specs: [docs/specs/webview-bridge.md](../../specs/webview-bridge.md), [docs/specs/passkey-webview.md](../../specs/passkey-webview.md). Repository: `authgear-sdk-android`.
+Specs: [docs/specs/internal/webview-bridge.md](../../specs/internal/webview-bridge.md), [docs/specs/passkey-webview.md](../../specs/passkey-webview.md). Repository: `authgear-sdk-android`.
 
 Parts: [1 bridge](./2026-11-10-01-webview-check-bridge.md) · [2 AuthUI](./2026-11-10-02-webview-check-authui.md) · [3 iOS SDK](./2026-11-10-03-webview-check-ios-sdk.md) · **4 Android SDK**
 

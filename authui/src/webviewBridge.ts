@@ -1,5 +1,5 @@
 // The client of the WebView bridge, which the Authgear SDKs provide in their own WebView.
-// See docs/specs/webview-bridge.md.
+// See docs/specs/internal/webview-bridge.md.
 
 export interface WebViewBridgeReply {
   status: string;
