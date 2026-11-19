@@ -17,6 +17,7 @@
     - [UC8. Agree to terms and conditions at signup](#uc8-agree-to-terms-and-conditions-at-signup)
     - [UC9. Customizing the additional form order](#uc9-customizing-the-additional-form-order)
   - [The fill_form step](#the-fill_form-step)
+    - [Field keys](#field-keys)
     - [user_profile field](#user_profile-field)
       - [Fillable attributes](#fillable-attributes)
     - [Meaning of required](#meaning-of-required)
@@ -70,7 +71,7 @@ A Form is a list of fields. It is the `form` of a [fill_form step](#new-authenti
 
 | Key                              | Type                                                      | Default | Meaning                                                                                                                                                         | Rules                                       |
 | -------------------------------- | --------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| `name`                           | string matching `^[a-zA-Z_][a-zA-Z0-9_]*$`, not `default` | none    | Names the form, so it can have its own [title and description](#translations), and so a [hook](#validation-hook) can tell forms apart. Names need not be unique. | [Translations](#translations)               |
+| `name`                           | string matching `^[a-zA-Z_][a-zA-Z0-9_]*$`, not `default` | none    | Names the form, so it can have its own [title, description, and field labels](#translations), and so a [hook](#validation-hook) can tell forms apart. Names need not be unique. | [Translations](#translations)               |
 | `fields`                         | list, non-empty                                           | —       | The fields of the form, in display order. Each item has exactly one key, which names the kind of field.                                                         | [The fill_form step](#the-fill_form-step)   |
 | `fields[].user_profile`          | object                                                    | —       | A field that reads and writes one attribute.                                                                                                                    | [user_profile field](#user_profile-field)   |
 | `fields[].user_profile.pointer`  | JSON pointer                                              | —       | The attribute. It must be [fillable](#fillable-attributes).                                                                                                     | [Fillable attributes](#fillable-attributes) |
@@ -160,9 +161,18 @@ The developer can override the built-in keys to change the text of every form, o
 
 A form in an `identify` step has no page of its own, so its title and description are not shown; the page keeps the identify page's title.
 
-These keys are used by Auth UI. The Authflow API returns the form's `name`, as `form.name`, instead of the text, so a Custom UI shows its own title and description; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
+A field's label is the first of these translations that exists:
 
-Fields use the translation keys of their attributes. Labels are defined in [Standard attribute labels](./design.md#standard-attribute-labels) and [Defining custom attributes](./design.md#defining-custom-attributes); `enum` option labels in [Custom Attribute type enum](./design.md#custom-attribute-type-enum). The message for a failed `pattern` is defined in [String constraints](./design.md#string-constraints).
+| Key                                                          | Meaning                                                                                                                                                                                                                           |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `v2.page.fill-form.{name}.field-label-{key}`                 | The label of the field with that [`key`](#field-keys), in the forms with that `name`. For example, `v2.page.fill-form.newsletter.field-label-/x_marketing_consent`.                                                        |
+| `standard-attribute-label-{pointer}` or `custom-attribute-label-{pointer}` | The attribute's label, used by every form and the settings page. Defined in [Standard attribute labels](./design.md#standard-attribute-labels) and [Defining custom attributes](./design.md#defining-custom-attributes). |
+
+A form without a `name` uses the attribute's label. Unlike the title and description, field labels are also shown in forms in an `identify` step.
+
+Other field text uses the translation keys of the attribute only: `enum` option labels are defined in [Custom Attribute type enum](./design.md#custom-attribute-type-enum), and the message for a failed `pattern` in [String constraints](./design.md#string-constraints).
+
+The title, description, field labels, `enum` option labels, and `pattern` messages are used by Auth UI only. The Authflow API returns the form's `name`, each field's `key`, and each option's `value` instead of the text, so a Custom UI shows its own text; see [fill_form_data](../authentication-flow-api-reference.md#fill_form_data).
 
 The hook response and the Authflow API are not configuration; see [Validation hook](#validation-hook) and [the API reference](../authentication-flow-api-reference.md#type-signup-actiontype-fill_form).
 
@@ -228,13 +238,11 @@ After the password step, the flow responds:
             {
               "key": "/given_name",
               "type": "string",
-              "label": "Given name",
               "required": true
             },
             {
               "key": "/family_name",
               "type": "string",
-              "label": "Family name",
               "required": true
             }
           ]
@@ -330,13 +338,11 @@ The `identify` action carries the form in the option:
           {
             "key": "/given_name",
             "type": "string",
-            "label": "Given name",
             "required": true
           },
           {
             "key": "/family_name",
             "type": "string",
-            "label": "Family name",
             "required": false
           }
         ]
@@ -665,21 +671,18 @@ After the OAuth callback, `data.form.fields` carries the populated values:
   {
     "key": "/given_name",
     "type": "string",
-    "label": "Given name",
     "required": true,
     "value": "John"
   },
   {
     "key": "/family_name",
     "type": "string",
-    "label": "Family name",
     "required": true,
     "value": "Doe"
   },
   {
     "key": "/gender",
     "type": "string",
-    "label": "Gender",
     "required": false,
     "suggestions": ["male", "female"]
   }
@@ -791,7 +794,7 @@ authentication_flow:
                   required: false
 ```
 
-Labels, in `templates/en/translation.json`. They use the existing [label key](./design.md#defining-custom-attributes) `custom-attribute-label-{pointer}`:
+Auth UI labels, in `templates/en/translation.json`. They use the existing [label key](./design.md#defining-custom-attributes) `custom-attribute-label-{pointer}`:
 
 ```json
 {
@@ -818,13 +821,11 @@ The pointer includes the terms version, so a later version gets a new attribute.
   {
     "key": "/x_accepted_terms_2026_01",
     "type": "boolean",
-    "label": "I agree to the <a href=\"https://booking.example.com/terms\">Terms of Service</a> and <a href=\"https://booking.example.com/privacy\">Privacy Policy</a>",
     "required": true
   },
   {
     "key": "/x_marketing_consent",
     "type": "boolean",
-    "label": "Send me offers and news by email",
     "required": false
   }
 ]
@@ -843,7 +844,7 @@ Input:
 
 Sending `"value": false` for `/x_accepted_terms_2026_01` fails with `ValidationFailed`.
 
-A Custom UI receives the same translated label, links included, in the field's `label`.
+A Custom UI shows its own text for each checkbox, including the links.
 
 **Where the attribute appears**
 
@@ -924,13 +925,23 @@ The Authflow API input and output of this step are in [the API reference](../aut
 
 The rules in this section apply to every form, including a form in an [`identify` step](#forms-in-the-identify-step), except where that section says otherwise.
 
+### Field keys
+
+Each field has a `key`, which identifies it in the [Authflow API](../authentication-flow-api-reference.md#fill_form_data), in [hook reasons](#validation-hook), and in [field label translations](#translations). It is composed from the field's config:
+
+| Field kind                          | `key`                  | Example                |
+| ----------------------------------- | ---------------------- | ---------------------- |
+| [`user_profile`](#user_profile-field) | The field's `pointer`. | `/x_marketing_consent` |
+
+Keys are unique within a form.
+
 ### user_profile field
 
 A `user_profile` field reads and writes one attribute. It follows the [User Profile Pointer](../convention.md#user-profile-pointer) convention.
 
 Its keys, `pointer` and `required`, are listed in the [configuration reference](#form-object).
 
-In the Authflow API, the field's `key` is its pointer, and its `type` is:
+In the Authflow API, the field's `type` is:
 
 | Attribute                                                                                                    | `type`                                                      |
 | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
@@ -944,7 +955,7 @@ In the Authflow API, the field's `key` is its pointer, and its `type` is:
 | Custom attribute of type `string`, `integer`, `number`, `enum`, `phone_number`, `email`, `url`, or `boolean` | The same name                                               |
 | Custom attribute of type [`alpha2`](./design.md#custom-attribute-type-alpha2)                                | `country_code`                                              |
 
-The `label` and `enum` option labels use the attribute's [translations](#translations). `constraints` are the attribute's [string constraints](./design.md#string-constraints) or its `minimum` and `maximum`.
+`constraints` are the attribute's [string constraints](./design.md#string-constraints) or its `minimum` and `maximum`.
 
 #### Fillable attributes
 
@@ -1079,7 +1090,7 @@ A backend must not assume a user has an attribute because a flow requires it. Se
 
 - Each `fill_form` step is one page. The page shows the form's [title and description](#translations), then its fields in order.
 - A form in an `identify` step is shown below the login ID input, without its title and description. When the step has several branches with forms, each branch's input shows its own fields.
-- Each field's input follows its `type`; see [user_profile field](#user_profile-field) and [fill_form_data](../authentication-flow-api-reference.md#fill_form_data). Labels use the attribute's [translations](#translations).
+- Each field's input follows its `type`; see [user_profile field](#user_profile-field) and [fill_form_data](../authentication-flow-api-reference.md#fill_form_data). Labels use the field's [translations](#translations).
 - Required fields are marked. The page cannot be submitted until they are filled.
 - A page whose fields are all optional can be submitted with every field empty.
 - Constraint errors and the hook's rejected attributes are shown under their field. The hook's `title` and `reason`, when present, are shown above the form.

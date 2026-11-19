@@ -1,5 +1,4 @@
 name: String constraints of standard and custom attributes (UC4, UC7)
-extra_files_directory: ./var_translations
 authgear.yaml:
   override: |
     user_profile:
@@ -82,7 +81,6 @@ steps:
                 "fields": [
                   {
                     "key": "/given_name",
-                    "label": "Given name",
                     "constraints": {
                       "min_length": 3,
                       "max_length": 10,
@@ -91,10 +89,8 @@ steps:
                   },
                   {
                     "key": "/x_employee_id",
-                    "label": "Employee ID",
                     "constraints": {
-                      "pattern": "^E[0-9]{5}$",
-                      "pattern_message": "Start with E, then 5 digits"
+                      "pattern": "^E[0-9]{5}$"
                     }
                   }
                 ]
