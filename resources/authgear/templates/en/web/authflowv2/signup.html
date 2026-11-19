@@ -59,6 +59,12 @@
       {{ end }}
     {{ end }}
   {{ end }}
+
+  {{/* Passkey is for login only, so it is offered in the signup login flow only. */}}
+  {{ $show_passkey := (and (eq $.UIVariant "signup_login") $.PasskeyEnabled) }}
+  {{ if $show_passkey }}
+    {{ $has_alternatives = true }}
+  {{ end }}
   {{ $appName := (translate "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
   {{ $isContinue := $.HasXStep }}
@@ -369,8 +375,7 @@
         {{ end }}
       {{ end }}
 
-      <!-- For signup login flow -->
-      {{ if $.PasskeyEnabled }}
+      {{ if $show_passkey }}
         <div class="block w-full"
           data-controller="authflow-passkey-request"
           data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
