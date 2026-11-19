@@ -371,9 +371,14 @@
 
       <!-- For signup login flow -->
       {{ if $.PasskeyEnabled }}
+        {{/* Ask the SDK's WebView for a passkey of this device when the signup login page loads. */}}
+        {{ $passkey_webview_check := (and (eq $.UIVariant "signup_login") (not $.InlinePreview)) }}
         <div class="block w-full"
-          data-controller="authflow-passkey-request"
+          data-controller="authflow-passkey-request{{ if $passkey_webview_check }} passkey-webview-check{{ end }}"
           data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+          {{ if $passkey_webview_check }}
+          data-passkey-webview-check-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+          {{ end }}
           data-authflow-passkey-request-auto-value="false">
           <button class="secondary-btn w-full"
             type="button"
@@ -398,8 +403,8 @@
             data-controller="turbo-form"
             data-action="submit->turbo-form#submitForm"
           >
-            <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
-            <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
+            <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input"{{ if $passkey_webview_check }} data-passkey-webview-check-target="input"{{ end }}>
+            <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"{{ if $passkey_webview_check }} data-passkey-webview-check-target="submit"{{ end }}></button>
           </form>
         </div>
       {{ end }}

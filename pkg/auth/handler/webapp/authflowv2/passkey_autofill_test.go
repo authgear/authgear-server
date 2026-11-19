@@ -172,3 +172,90 @@ func TestPasskeyAutofillTemplates(t *testing.T) {
 		})
 	})
 }
+
+func TestPasskeyWebViewCheckTemplates(t *testing.T) {
+	checkController := `data-controller="authflow-passkey-request passkey-webview-check"`
+	checkOptions := `data-passkey-webview-check-options-value="{&#34;publicKey&#34;:{&#34;challenge&#34;:&#34;AQID&#34;}}"`
+	checkInput := `name="x_assertion_response" data-authflow-passkey-request-target="input" data-passkey-webview-check-target="input"`
+	checkSubmit := `name="x_action" value="passkey" data-authflow-passkey-request-target="submit" data-passkey-webview-check-target="submit"`
+
+	shouldCheck := func(html string) {
+		So(html, ShouldContainSubstring, checkController)
+		So(html, ShouldContainSubstring, checkOptions)
+		So(html, ShouldContainSubstring, checkInput)
+		So(html, ShouldContainSubstring, checkSubmit)
+	}
+	shouldNotCheck := func(html string) {
+		So(html, ShouldNotContainSubstring, "passkey-webview-check")
+	}
+
+	Convey("login.html", t, func() {
+		Convey("asks the WebView for a passkey with the options of the flow", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowLoginHTML, nil)
+			shouldCheck(html)
+		})
+
+		Convey("asks the WebView for a passkey on a page without a login ID input", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowLoginHTML, map[string]any{
+				"IdentityCandidates": []map[string]any{
+					{"type": "passkey"},
+				},
+				"EmailLoginIDEnabled": false,
+			})
+			shouldCheck(html)
+			So(html, ShouldNotContainSubstring, `data-controller="passkey-autofill"`)
+		})
+
+		Convey("does not ask the WebView for a passkey in inline preview", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowLoginHTML, map[string]any{
+				"InlinePreview": true,
+			})
+			So(html, ShouldContainSubstring, `data-controller="authflow-passkey-request"`)
+			shouldNotCheck(html)
+		})
+
+		Convey("does not ask the WebView for a passkey without the passkey button", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowLoginHTML, map[string]any{
+				"PasskeyEnabled": false,
+			})
+			shouldNotCheck(html)
+		})
+	})
+
+	Convey("signup.html", t, func() {
+		// signup.html shows the passkey button among other alternatives only.
+		withAlternatives := func(overrides map[string]any) map[string]any {
+			return withPasskeyAutofillTestData(map[string]any{
+				"IdentityCandidates": []map[string]any{
+					{"type": "login_id", "login_id_key": "email", "login_id_type": "email", "login_id_input_type": "email"},
+					{"type": "login_id", "login_id_key": "username", "login_id_type": "username", "login_id_input_type": "text"},
+				},
+				"UsernameLoginIDEnabled": true,
+			}, overrides)
+		}
+
+		Convey("asks the WebView for a passkey in the signup login variant", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowV2SignupHTML, withAlternatives(map[string]any{
+				"UIVariant": AuthflowV2SignupUIVariantSignupLogin,
+			}))
+			shouldCheck(html)
+		})
+
+		Convey("does not ask the WebView for a passkey in inline preview", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowV2SignupHTML, withAlternatives(map[string]any{
+				"UIVariant":     AuthflowV2SignupUIVariantSignupLogin,
+				"InlinePreview": true,
+			}))
+			So(html, ShouldContainSubstring, `data-controller="authflow-passkey-request"`)
+			shouldNotCheck(html)
+		})
+
+		Convey("does not ask the WebView for a passkey on the signup page", func() {
+			html := renderPasskeyAutofillPage(t, TemplateWebAuthflowV2SignupHTML, withAlternatives(map[string]any{
+				"UIVariant": AuthflowV2SignupUIVariantSignup,
+			}))
+			So(html, ShouldContainSubstring, `data-controller="authflow-passkey-request"`)
+			shouldNotCheck(html)
+		})
+	})
+}

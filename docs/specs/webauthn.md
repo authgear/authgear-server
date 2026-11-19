@@ -66,6 +66,7 @@ AuthUI offers AutoFill on the login ID input (email, username or phone) where th
 - If the request ends without a passkey, for example the user cancels, AutoFill is offered again. It is not offered again on the page if the request keeps failing at once.
 - A page has at most one pending passkey request, so AutoFill is stopped when another passkey dialog opens. It is not offered again until the page is loaded again.
 - Where conditional mediation is unavailable, AutoFill is not offered.
+- AutoFill is not offered in the SDK's WebView.
 
 ## Use cases
 
