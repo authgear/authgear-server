@@ -58,6 +58,7 @@ import (
 	captcha2 "github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	"github.com/authgear/authgear-server/pkg/lib/feature/loginlink"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -124357,10 +124358,16 @@ func newAPILoginLinkV1ApproveHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 	}
 	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, authenticationflowStoreImpl)
-	loginLinkV1ApproveHandler := &api.LoginLinkV1ApproveHandler{
+	loginlinkService := &loginlink.Service{
 		Config:   appConfig,
 		OTPCodes: otpService,
 		Events:   websocketEventStore,
+	}
+	apiController := &api2.APIController{
+		LoginLinks: loginlinkService,
+	}
+	loginLinkV1ApproveHandler := &api.LoginLinkV1ApproveHandler{
+		Controller: apiController,
 	}
 	return loginLinkV1ApproveHandler
 }

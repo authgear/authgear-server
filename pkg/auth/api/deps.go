@@ -6,4 +6,5 @@ import (
 
 var DependencySet = wire.NewSet(
 	wire.Struct(new(RequireAuthenticatedMiddleware), "*"),
+	wire.Struct(new(APIController), "*"),
 )

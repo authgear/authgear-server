@@ -17,7 +17,7 @@
 /pkg/auth/handler/api/authenticationflow_v1_create.go:81:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_get.go:40:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_input.go:68:9: requestcontext
-/pkg/auth/handler/api/login_link_v1_approve.go:61:9: requestcontext
+/pkg/auth/handler/api/login_link_v1_approve.go:29:9: requestcontext
 /pkg/auth/handler/api/presign_images_upload.go:54:9: requestcontext
 /pkg/auth/handler/api/workflow_get.go:34:9: requestcontext
 /pkg/auth/handler/api/workflow_input.go:59:9: requestcontext
