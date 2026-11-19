@@ -506,6 +506,7 @@ func NewRouter(ctx context.Context, p *deps.RootProvider, configSource *configso
 	router.Add(apihandler.ConfigureAuthenticationFlowV1InputRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1InputHandler))
 	router.Add(apihandler.ConfigureAuthenticationFlowV1GetRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1GetHandler))
 	router.Add(apihandler.ConfigureAuthenticationFlowV1WebsocketRoute(authenticationFlowRoute), p.Handler(newAPIAuthenticationFlowV1WebsocketHandler))
+	router.Add(apihandler.ConfigureLoginLinkV1InspectRoute(authenticationFlowRoute), p.Handler(newAPILoginLinkV1InspectHandler))
 	router.Add(apihandler.ConfigureLoginLinkV1ApproveRoute(authenticationFlowRoute), p.Handler(newAPILoginLinkV1ApproveHandler))
 
 	router.Add(apihandler.ConfigureAccountManagementV1IdentificationRoute(accountManagementRoute), p.Handler(newAPIAccountManagementV1IdentificationHandler))
