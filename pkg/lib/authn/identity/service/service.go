@@ -1,9 +1,11 @@
 package service
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
@@ -600,9 +602,11 @@ func (s *Service) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, 
 			if err != nil {
 				return nil, err
 			}
+			group := []*identity.Info{}
 			for _, i := range loginIDs {
-				infos = append(infos, i.ToInfo())
+				group = append(group, i.ToInfo())
 			}
+			infos = append(infos, sortInfosByCreatedAt(group)...)
 		}
 	}
 
@@ -618,9 +622,11 @@ func (s *Service) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, 
 			if err != nil {
 				return nil, err
 			}
+			group := []*identity.Info{}
 			for _, i := range oauths {
-				infos = append(infos, i.ToInfo())
+				group = append(group, i.ToInfo())
 			}
+			infos = append(infos, sortInfosByCreatedAt(group)...)
 		}
 	}
 
@@ -636,13 +642,26 @@ func (s *Service) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, 
 			if err != nil {
 				return nil, err
 			}
+			group := []*identity.Info{}
 			for _, i := range ldaps {
-				infos = append(infos, i.ToInfo())
+				group = append(group, i.ToInfo())
 			}
+			infos = append(infos, sortInfosByCreatedAt(group)...)
 		}
 	}
 
 	return infos, nil
+}
+
+// GetMany queries have no ORDER BY, so sort to give callers a stable order.
+func sortInfosByCreatedAt(infos []*identity.Info) []*identity.Info {
+	slices.SortFunc(infos, func(a, b *identity.Info) int {
+		if c := a.CreatedAt.Compare(b.CreatedAt); c != 0 {
+			return c
+		}
+		return cmp.Compare(a.ID, b.ID)
+	})
+	return infos
 }
 
 func (s *Service) Count(ctx context.Context, userID string) (uint64, error) {
