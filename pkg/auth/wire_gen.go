@@ -16374,11 +16374,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
-	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	clockClock := _wireSystemClockValue
 	appID := appConfig.ID
 	testModeConfig := appConfig.TestMode
 	featureConfig := config.FeatureConfig
@@ -16956,9 +16956,18 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
-	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
-		Clock:       clockClock,
-		RedisHandle: handle,
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis: handle,
+		AppID: appID,
+	}
+	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, authenticationflowStoreImpl)
+	loginlinkService := &loginlink.Service{
+		Config:   appConfig,
+		OTPCodes: otpService,
+		Events:   websocketEventStore,
+	}
+	apiController := &api2.APIController{
+		LoginLinks: loginlinkService,
 	}
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
@@ -17486,20 +17495,12 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
 	}
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis: handle,
-		AppID: appID,
-	}
-	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, authenticationflowStoreImpl)
 	authflowV2VerifyLoginLinkOTPHandler := &authflowv2.AuthflowV2VerifyLoginLinkOTPHandler{
-		LoginLinkOTPCodeService:     otpService,
-		GlobalSessionServiceFactory: globalSessionServiceFactory,
-		ControllerFactory:           controllerFactory,
-		BaseViewModel:               baseViewModeler,
-		AuthenticationViewModel:     authenticationViewModeler,
-		Renderer:                    responseRenderer,
-		AuthenticationFlowEvents:    websocketEventStore,
-		Config:                      appConfig,
+		APIController:           apiController,
+		ControllerFactory:       controllerFactory,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		Renderer:                responseRenderer,
 	}
 	return authflowV2VerifyLoginLinkOTPHandler
 }
