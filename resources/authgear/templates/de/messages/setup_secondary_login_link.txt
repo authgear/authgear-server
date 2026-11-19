@@ -2,6 +2,6 @@ Verifizieren Sie Ihre E-Mail-Adresse und richten Sie die 2-Faktor-Authentifizier
 
 Bitte klicken Sie auf den Link unten, um die 2-Faktor-Authentifizierung bei {{ template "app.name" }} einzurichten.
 
-{{ .URL }}
+{{ .Link }}
 
 Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail.

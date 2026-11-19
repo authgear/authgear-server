@@ -2,6 +2,6 @@ Inicia sesión en {{ template "app.name" }}
 
 Sigue el enlace de abajo para iniciar sesión en {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Si no iniciaste un inicio de sesión, ignora este correo electrónico.

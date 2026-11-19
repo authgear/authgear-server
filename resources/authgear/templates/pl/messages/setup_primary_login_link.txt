@@ -2,6 +2,6 @@ Zweryfikuj swój e-mail na {{ template "app.name" }}
 
 Odwiedź poniższy link, aby ukończyć proces rejestracji na {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Jeśli nie wywołałeś tej konfiguracji, zignoruj ten e-mail.

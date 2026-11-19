@@ -2,6 +2,6 @@ Verify your email on {{ template "app.name" }}
 
 Please visit the link below to complete your sign up process on {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 If you didn't trigger this setup, please ignore this email.
