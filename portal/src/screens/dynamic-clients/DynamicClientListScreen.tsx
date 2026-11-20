@@ -6,6 +6,7 @@ import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import { useParams, useSearchParams } from "react-router-dom";
 import Link from "../../Link";
 import ScreenContent from "../../ScreenContent";
+import DefaultLayout from "../../DefaultLayout";
 import ShowError from "../../ShowError";
 import {
   ErrorMessageBar,
@@ -293,7 +294,11 @@ function DynamicClientListScreenContent(): React.ReactElement {
 const DynamicClientListScreen: React.VFC = function DynamicClientListScreen() {
   return (
     <ErrorMessageBarContextProvider>
-      <DynamicClientListScreenContent />
+      {/* No FormContainer here, so the scroll pane it would provide is added
+          directly; the shell clips overflow. */}
+      <DefaultLayout>
+        <DynamicClientListScreenContent />
+      </DefaultLayout>
     </ErrorMessageBarContextProvider>
   );
 };
