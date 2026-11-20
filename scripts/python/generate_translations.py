@@ -133,8 +133,8 @@ def apply_cldr_territories(locale, translation, cldr_localnames_path):
         if re.match(r"^[A-Z]{2}$", maybe_alpha2):
             alpha2 = maybe_alpha2
 
-            # Prefer the short name if alpha2 is HK or MO
-            if alpha2 in ["HK", "MO"]:
+            # Prefer the short name, except where it is an abbreviation
+            if alpha2 not in ["GB", "US", "UN"]:
                 short = f"{alpha2}-alt-short"
                 if short in alpha2_to_localized_name:
                     value = alpha2_to_localized_name[short]
