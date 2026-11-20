@@ -33,6 +33,13 @@
   width: 100%;
 }
 
+.selectContent {
+  width: var(--radix-select-trigger-width);
+  /* Cap the menu so it stays next to the trigger instead of filling the
+     viewport and flipping to the opposite edge. */
+  max-height: min(16rem, var(--radix-select-content-available-height));
+}
+
 .birthdateTextField {
   position: relative;
 }

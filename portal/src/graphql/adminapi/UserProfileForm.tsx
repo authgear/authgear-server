@@ -154,7 +154,7 @@ function ProfileSelectField({
           disabled={disabled}
         >
           <Select.Trigger variant="surface" className={styles.selectTrigger} />
-          <Select.Content>
+          <Select.Content position="popper" className={styles.selectContent}>
             {options.map((option) => {
               const optionValue = String(option.key);
               return (
@@ -927,7 +927,10 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
         }
       }
 
-      if (!found) {
+      // An empty locale is already the first option. A second hidden item with
+      // the same value makes Radix align the menu to a display:none item, so
+      // the list opens away from the trigger.
+      if (!found && locale != null && locale !== "") {
         options.push({
           key: locale,
           text: locale,
