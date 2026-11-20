@@ -149,21 +149,24 @@ func (Github) exchangeCode(ctx context.Context, deps oauthrelyingparty.Dependenc
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 200 {
-		err = json.NewDecoder(resp.Body).Decode(&accessTokenResp)
-		if err != nil {
-			return
-		}
-	} else {
-		var errResp oauthrelyingparty.ErrorResponse
-		err = json.NewDecoder(resp.Body).Decode(&errResp)
-		if err != nil {
-			return
-		}
+	var rawResp json.RawMessage
+	err = json.NewDecoder(resp.Body).Decode(&rawResp)
+	if err != nil {
+		return
+	}
+
+	var errResp oauthrelyingparty.ErrorResponse
+	err = json.Unmarshal(rawResp, &errResp)
+	if err != nil {
+		return
+	}
+	// GitHub also returns OAuth errors with HTTP 200.
+	if resp.StatusCode != http.StatusOK || errResp.Error_ != "" {
 		err = &errResp
 		return
 	}
 
+	err = json.Unmarshal(rawResp, &accessTokenResp)
 	return
 }
 
