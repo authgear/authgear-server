@@ -1,0 +1,31 @@
+.canvas {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.minimap {
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.minimapVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dragHint {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 10;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--gray-12);
+  color: var(--gray-1);
+  font-size: var(--font-size-1);
+  transform: translateX(-50%);
+  pointer-events: none;
+}

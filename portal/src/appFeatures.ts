@@ -33,6 +33,10 @@ export const APP_FEATURES = {
     isAvailable: ({ featureConfig }) =>
       featureConfig?.oauth?.client?.app2app_enabled ?? false,
   },
+  authFlowBuilder: {
+    isAvailable: ({ featureConfig }) =>
+      featureConfig?.portal?.auth_flow_builder_enabled ?? false,
+  },
   customUI: {
     isAvailable: ({ featureConfig }) =>
       featureConfig?.oauth?.client?.custom_ui_enabled ?? false,

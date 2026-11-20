@@ -1,0 +1,50 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The Custom UI URI, under its radio button. */
+.indent {
+  padding-left: var(--space-5);
+}
+
+.radio {
+  margin-top: 2px;
+}
+
+/* An option's name, with its description under it. */
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.groupList {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-2);
+  max-width: 480px;
+}
+
+.groupRow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+}
+
+.groupRow + .groupRow {
+  border-top: 1px solid var(--gray-a5);
+}
+
+/* The group's name takes the row, pushing its actions to the right. */
+.rowName {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: baseline;
+  min-width: 0;
+}

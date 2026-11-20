@@ -1,0 +1,12 @@
+/* What groups are, above the list. */
+.about {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-3);
+  background: var(--gray-a2);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
