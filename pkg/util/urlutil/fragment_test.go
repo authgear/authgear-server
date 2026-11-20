@@ -23,7 +23,7 @@ func TestWithQueryParamsSetToFragment(t *testing.T) {
 
 		test("http://example.com?a=b", map[string]string{
 			"c": "#",
-		}, "http://example.com?a=b#c=%2523")
+		}, "http://example.com?a=b#c=%23")
 	})
 
 }

@@ -10,6 +10,9 @@ func WithQueryParamsSetToFragment(u *url.URL, params map[string]string) *url.URL
 		q.Set(name, value)
 	}
 	newU := *u
-	newU.Fragment = q.Encode()
+	// Fragment holds the decoded form, so the encoded params go in RawFragment
+	// to avoid percent-encoding them a second time.
+	newU.RawFragment = q.Encode()
+	newU.Fragment, _ = url.PathUnescape(newU.RawFragment)
 	return &newU
 }
