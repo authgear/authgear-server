@@ -35,3 +35,14 @@ fi
 
 cp "$MMDB" "$DEST"
 echo "Done: $DEST"
+
+# The test asserts the build time of the embedded file, so keep it in sync.
+TEST_FILE="$REPO_ROOT/pkg/util/geoip/geoip_test.go"
+BUILD="$(cd "$REPO_ROOT" && go run ./scripts/geolite2buildepoch "$DEST")"
+sed -i.bak -E "s/(So\(build, ShouldEqual, \")[^\"]*(\"\))/\1$BUILD\2/" "$TEST_FILE"
+rm -f "$TEST_FILE.bak"
+if ! grep -q "So(build, ShouldEqual, \"$BUILD\")" "$TEST_FILE"; then
+  echo "Error: failed to update build time in $TEST_FILE." >&2
+  exit 1
+fi
+echo "Updated build time in $TEST_FILE to $BUILD"
