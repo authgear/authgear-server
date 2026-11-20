@@ -3,7 +3,10 @@ package mail
 import (
 	"errors"
 	"fmt"
+	"net"
 	netmail "net/mail"
+	"net/url"
+	"strings"
 
 	"gopkg.in/gomail.v2"
 
@@ -20,6 +23,13 @@ type SendOptions struct {
 	Recipient string
 	TextBody  string
 	HTMLBody  string
+	// OTPToken, when set, is sent as the OTP-Token header (draft-goto-otp-token).
+	OTPToken *OTPToken
+}
+
+type OTPToken struct {
+	Code   string
+	Origin *url.URL
 }
 
 type Sender struct {
@@ -57,6 +67,7 @@ func (s *Sender) PrepareMessage(opts SendOptions) (message *gomail.Message, err 
 		s.applySubject,
 		applyTextBody,
 		applyHTMLBody,
+		applyOTPToken,
 	}
 
 	for _, f := range funcs {
@@ -154,4 +165,41 @@ func applyHTMLBody(opts *SendOptions, message *gomail.Message) error {
 
 	message.AddAlternative("text/html", opts.HTMLBody)
 	return nil
+}
+
+func applyOTPToken(opts *SendOptions, message *gomail.Message) error {
+	if opts.OTPToken == nil {
+		return nil
+	}
+	message.SetHeader("OTP-Token", FormatOTPTokenHeader(opts.OTPToken.Code, opts.OTPToken.Origin))
+	return nil
+}
+
+// FormatOTPTokenHeader formats the value as an RFC 9651 sf-string item
+// with an origin parameter in the canonical form the draft requires.
+func FormatOTPTokenHeader(code string, origin *url.URL) string {
+	return fmt.Sprintf("%s; origin=%s", sfString(code), sfString(canonicalOrigin(origin)))
+}
+
+func canonicalOrigin(u *url.URL) string {
+	scheme := strings.ToLower(u.Scheme)
+	host := strings.ToLower(u.Hostname())
+	port := u.Port()
+	if (scheme == "https" && port == "443") || (scheme == "http" && port == "80") {
+		port = ""
+	}
+	switch {
+	case port != "":
+		host = net.JoinHostPort(host, port)
+	case strings.Contains(host, ":"):
+		// Hostname() strips the brackets of an IPv6 literal.
+		host = "[" + host + "]"
+	}
+	return scheme + "://" + host
+}
+
+func sfString(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `"`, `\"`)
+	return `"` + s + `"`
 }

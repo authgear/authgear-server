@@ -1,6 +1,7 @@
 package mail
 
 import (
+	"net/url"
 	"strings"
 	"testing"
 
@@ -88,6 +89,49 @@ func TestSetFromHeader(t *testing.T) {
 			msg := newMsg()
 			err := SetFromHeader(msg, "not-an-email-address")
 			So(err, ShouldNotBeNil)
+		})
+	})
+}
+
+func TestFormatOTPTokenHeader(t *testing.T) {
+	Convey("FormatOTPTokenHeader", t, func() {
+		mustParse := func(s string) *url.URL {
+			u, err := url.Parse(s)
+			So(err, ShouldBeNil)
+			return u
+		}
+
+		So(FormatOTPTokenHeader("123456", mustParse("https://auth.example.com")), ShouldEqual, `"123456"; origin="https://auth.example.com"`)
+		So(FormatOTPTokenHeader("123456", mustParse("HTTPS://Auth.Example.COM:443")), ShouldEqual, `"123456"; origin="https://auth.example.com"`)
+		So(FormatOTPTokenHeader("123456", mustParse("http://localhost:3000")), ShouldEqual, `"123456"; origin="http://localhost:3000"`)
+		So(FormatOTPTokenHeader("123456", mustParse("http://[::1]")), ShouldEqual, `"123456"; origin="http://[::1]"`)
+		So(FormatOTPTokenHeader(`a"b\c`, mustParse("https://auth.example.com")), ShouldEqual, `"a\"b\\c"; origin="https://auth.example.com"`)
+	})
+}
+
+func TestPrepareMessageOTPToken(t *testing.T) {
+	Convey("PrepareMessage OTP-Token header", t, func() {
+		s := &Sender{GomailDialer: gomail.NewDialer("localhost", 25, "", "")}
+		opts := SendOptions{
+			Sender:    "noreply@example.com",
+			Subject:   "Code",
+			Recipient: "user@example.com",
+			TextBody:  "123456",
+		}
+
+		Convey("absent by default", func() {
+			msg, err := s.PrepareMessage(opts)
+			So(err, ShouldBeNil)
+			So(msg.GetHeader("OTP-Token"), ShouldBeEmpty)
+		})
+
+		Convey("set when OTPToken is given", func() {
+			origin, err := url.Parse("https://auth.example.com")
+			So(err, ShouldBeNil)
+			opts.OTPToken = &OTPToken{Code: "123456", Origin: origin}
+			msg, err := s.PrepareMessage(opts)
+			So(err, ShouldBeNil)
+			So(msg.GetHeader("OTP-Token"), ShouldResemble, []string{`"123456"; origin="https://auth.example.com"`})
 		})
 	})
 }
