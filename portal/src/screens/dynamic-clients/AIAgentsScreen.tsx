@@ -9,6 +9,7 @@ import ShowLoading from "../../ShowLoading";
 import PortalLink from "../../Link";
 import ExternalLink from "../../ExternalLink";
 import FormContainer from "../../FormContainer";
+import DefaultLayout from "../../DefaultLayout";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { useAppFeatureConfigQuery } from "../../graphql/portal/query/appFeatureConfigQuery";
@@ -301,13 +302,16 @@ const AIAgentsScreen: React.VFC = function AIAgentsScreen() {
     case "dcr":
       return <DCRTab tabBarProps={tabBarProps} />;
     default:
-      // Overview owns no form, so it needs no FormContainer and no guard.
+      // Overview owns no form, so it needs no FormContainer and no guard,
+      // but still needs the scroll pane FormContainer would have provided.
       return (
-        <ScreenContent layout="list">
-          <PageHeader />
-          <TabBar {...tabBarProps} />
-          <OverviewTab />
-        </ScreenContent>
+        <DefaultLayout>
+          <ScreenContent layout="list">
+            <PageHeader />
+            <TabBar {...tabBarProps} />
+            <OverviewTab />
+          </ScreenContent>
+        </DefaultLayout>
       );
   }
 };
