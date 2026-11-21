@@ -68,6 +68,7 @@ function setup {( set -e
     fi
 
     echo "[ ] Starting e2e-smtp..."
+    : > ./logs/e2e-smtp-mail.jsonl
     e2e-smtp > ./logs/e2e-smtp.log 2>&1 &
     success=false
     for i in $(seq 10); do \

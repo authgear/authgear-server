@@ -2,6 +2,6 @@ Accedi a {{ template "app.name" }}
 
 Segui il link sottostante per accedere a {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Se non hai richiesto l''accesso, ignora questa email.

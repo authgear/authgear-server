@@ -44,6 +44,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	"github.com/authgear/authgear-server/pkg/lib/feature/loginlink"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -561,6 +562,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(forgotpassword.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(accountmanagement.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(loginlink.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(workflow.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(authenticationflow.OTPSender), new(*otp.MessageSender)),
@@ -677,6 +679,11 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		authenticationflow.DependencySet,
+		wire.Bind(new(loginlink.EventStore), new(*authenticationflow.WebsocketEventStore)),
+	),
+
+	wire.NewSet(
+		loginlink.DependencySet,
 	),
 
 	wire.NewSet(

@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "Mag-log in sa {{ template \"app.name\" }}",
     "Body": "Mangyaring sundin ang link sa ibaba para mag-sign in sa {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "Mag-log in sa {{ template \"app.name\" }}",
     "Body": "Mangyaring sundin ang link sa ibaba para mag-sign in sa {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Kung hindi mo pinagana ang pag-log in, pakiignore na lang ang email na ito."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "I-verify ang iyong email sa {{ template \"app.name\" }}",
     "Body": "Mangyaring bisitahin ang link sa ibaba para makumpleto ang iyong proseso ng pag-sign up sa {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "I-verify ang iyong email at i-setup ang 2-step verification sa {{ template \"app.name\" }}",
     "Body": "Mangyaring i-click ang link sa ibaba para i-setup ang 2-step verification sa {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito."
   },
   "SetupSecondaryOOBEmailTXT": {

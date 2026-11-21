@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -307,7 +308,11 @@ func (e *End2EndCmd) resolvePath(p string) string {
 	return path.Join("./tests", path.Dir(e.TestCase.Path), p)
 }
 
-func (e *End2EndCmd) QuerySMTPLog(subject string, recipient string) ([]interface{}, error) {
+func (e *End2EndCmd) QuerySMTPLog(subject string, recipient string, textContains []string) ([]interface{}, error) {
+	if len(textContains) > 0 {
+		return e.querySMTPMailLog(subject, recipient, textContains)
+	}
+
 	file, err := os.Open(filepath.Join("../../logs", "e2e-smtp.log"))
 	if err != nil {
 		return nil, err
@@ -319,6 +324,53 @@ func (e *End2EndCmd) QuerySMTPLog(subject string, recipient string) ([]interface
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.Contains(line, "Subject:["+subject) && strings.Contains(line, "To:["+recipient) {
+			rows = append(rows, map[string]interface{}{
+				"subject":   subject,
+				"recipient": recipient,
+			})
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return rows, nil
+}
+
+// querySMTPMailLog reads the mail log written by cmd/smtp, which has the
+// decoded text body of each mail, and returns the same rows as QuerySMTPLog.
+func (e *End2EndCmd) querySMTPMailLog(subject string, recipient string, textContains []string) ([]interface{}, error) {
+	file, err := os.Open(filepath.Join("../../logs", "e2e-smtp-mail.jsonl"))
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var rows []interface{}
+	scanner := bufio.NewScanner(file)
+	scanner.Buffer(make([]byte, 0, 64*1024), 10*1024*1024)
+	for scanner.Scan() {
+		var entry struct {
+			Subject string   `json:"subject"`
+			To      []string `json:"to"`
+			Text    string   `json:"text"`
+		}
+		if err := json.Unmarshal(scanner.Bytes(), &entry); err != nil {
+			return nil, err
+		}
+		if !strings.HasPrefix(entry.Subject, subject) || !slices.Contains(entry.To, recipient) {
+			continue
+		}
+		matched := true
+		for _, s := range textContains {
+			if !strings.Contains(entry.Text, s) {
+				matched = false
+				break
+			}
+		}
+		if matched {
 			rows = append(rows, map[string]interface{}{
 				"subject":   subject,
 				"recipient": recipient,

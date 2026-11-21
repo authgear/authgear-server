@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "{{ template \"app.name\" }}에 로그인",
     "Body": "아래 링크를 따라 {{ template \"app.name\" }}에 로그인하세요.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "{{ template \"app.name\" }}에 로그인",
     "Body": "아래 링크를 따라 {{ template \"app.name\" }}에 로그인하세요.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "로그인을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "{{ template \"app.name\" }}에서 이메일을 확인하세요",
     "Body": "{{ template \"app.name\" }}의 가입 프로세스를 완료하려면 아래 링크를 방문하세요.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "{{ template \"app.name\" }}에서 이메일을 확인하고 2단계 인증을 설정하세요",
     "Body": "{{ template \"app.name\" }}에서 2단계 인증을 설정하려면 아래 링크를 클릭하세요.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "이 설정을 요청하지 않으셨다면 이 이메일을 무시해 주세요."
   },
   "SetupSecondaryOOBEmailTXT": {

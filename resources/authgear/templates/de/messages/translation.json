@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
     "Body": "Bitte folgen Sie dem Link unten, um sich bei {{ template \"app.name\" }} anzumelden.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "Melden Sie sich bei {{ template \"app.name\" }} an",
     "Body": "Bitte folgen Sie dem Link unten, um sich bei {{ template \"app.name\" }} anzumelden.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Wenn Sie sich nicht angemeldet haben, ignorieren Sie bitte diese E-Mail."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "Verifizieren Sie Ihre E-Mail-Adresse bei {{ template \"app.name\" }}",
     "Body": "Bitte besuchen Sie den Link unten, um den Registrierungsprozess bei {{ template \"app.name\" }} abzuschließen.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "Verifizieren Sie Ihre E-Mail-Adresse und richten Sie die 2-Faktor-Authentifizierung bei {{ template \"app.name\" }} ein",
     "Body": "Bitte klicken Sie auf den Link unten, um die 2-Faktor-Authentifizierung bei {{ template \"app.name\" }} einzurichten.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail."
   },
   "SetupSecondaryOOBEmailTXT": {

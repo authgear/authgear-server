@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "登入至 {{ template \"app.name\" }}",
     "Body": "請按以下連結登入至 {{ template \"app.name\" }}。",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "如你未曾登入，則無需理會此電郵。"
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "登入至 {{ template \"app.name\" }}",
     "Body": "請按以下連結登入至 {{ template \"app.name\" }}。",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "如你未曾登入，則無需理會此電郵。"
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "驗證你在 {{ template \"app.name\" }} 的電郵",
     "Body": "請按以下連結完成註冊",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "如你未曾註冊，則無需理會此電郵。"
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "驗證你在 {{ template \"app.name\" }} 的電郵",
     "Body": "請按以下連結設定雙重驗證",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "如你未曾進行設定，則無需理會此電郵。"
   },
   "SetupSecondaryOOBEmailTXT": {

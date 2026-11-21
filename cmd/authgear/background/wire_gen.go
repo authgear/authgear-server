@@ -345,6 +345,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,

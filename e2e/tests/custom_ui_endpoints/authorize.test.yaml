@@ -1,0 +1,82 @@
+name: Authorize sends the end-user to the project Custom UI authentication page
+authgear.yaml:
+  override: |
+    ui:
+      custom_ui_endpoints:
+        authentication: http://project-ui.example.com/auth?tenant=a
+steps:
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      scope: openid
+      code_challenge_method: S256
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+      location_contains:
+        - http://project-ui.example.com/auth?
+        - tenant=a
+        - client_id=e2e
+---
+name: A client's x_custom_ui_uri overrides the project page
+authgear.yaml:
+  override: |
+    ui:
+      custom_ui_endpoints:
+        authentication: http://project-ui.example.com/auth
+    oauth:
+      clients:
+      - client_id: e2e
+        name: e2e
+        x_application_type: spa
+        redirect_uris:
+        - http://localhost:4000
+        x_custom_ui_uri: http://legacy-ui.example.com/auth
+steps:
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://localhost:4000
+      response_type: code
+      scope: openid
+      code_challenge_method: S256
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+      location_contains:
+        - http://legacy-ui.example.com/auth?
+---
+name: The project authentication page does not allow redirect URIs on its origin
+# So a client never gains a redirect URI it did not register.
+authgear.yaml:
+  override: |
+    ui:
+      custom_ui_endpoints:
+        authentication: http://project-ui.example.com/auth
+steps:
+  - name: authorize
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/oauth2/authorize
+    http_request_query:
+      client_id: e2e
+      redirect_uri: http://project-ui.example.com/callback
+      response_type: code
+      scope: openid
+      code_challenge_method: S256
+      code_challenge: E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 400
+      html_text_contains:
+        - redirect URI is not allowed

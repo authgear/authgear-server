@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "Đăng nhập vào {{ template \"app.name\" }}",
     "Body": "Vui lòng truy cập vào liên kết bên dưới để đăng nhập vào {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "Đăng nhập vào {{ template \"app.name\" }}",
     "Body": "Vui lòng truy cập vào liên kết bên dưới để đăng nhập vào {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "Xác minh email của bạn trên {{ template \"app.name\" }}",
     "Body": "Vui lòng truy cập vào liên kết bên dưới để hoàn tất quá trình đăng ký của bạn trên {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "Xác minh email của bạn và thiết lập xác minh 2 bước trên {{ template \"app.name\" }}",
     "Body": "Vui lòng nhấp vào liên kết bên dưới để thiết lập xác minh 2 bước trên {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này."
   },
   "SetupSecondaryOOBEmailTXT": {

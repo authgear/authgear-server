@@ -23,6 +23,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 		type TestCase struct {
 			AllowedFrameAncestorsFromEnv    config.AllowedFrameAncestors
 			OAuthConfig                     *config.OAuthConfig
+			UIConfig                        *config.UIConfig
 			AllowFrameAncestorsFromEnv      bool
 			AllowFrameAncestorsFromCustomUI bool
 			ExpectedHeaders                 map[string][]string
@@ -30,6 +31,28 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 
 		Convey("CSP Directives", func() {
 			testcases := []TestCase{
+				{
+					OAuthConfig: &config.OAuthConfig{
+						Clients: []config.OAuthClientConfig{
+							{
+								CustomUIURI: "http://clientui.com/auth",
+							},
+						},
+					},
+					UIConfig: &config.UIConfig{
+						CustomUIEndpoints: &config.CustomUIEndpointsConfig{
+							Authentication:  "http://projectui.com/auth",
+							LoginLink:       "http://loginlink.com/login-link",
+							AccountRecovery: "http://reset.com/reset",
+						},
+					},
+					AllowFrameAncestorsFromCustomUI: true,
+					ExpectedHeaders: map[string][]string{
+						"Content-Security-Policy": {
+							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://projectui.com http://clientui.com",
+						},
+					},
+				},
 				{
 					AllowedFrameAncestorsFromEnv: config.AllowedFrameAncestors{"http://authgearportal.com"},
 					OAuthConfig: &config.OAuthConfig{
@@ -199,6 +222,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					Cookies:                         cookieManager,
 					AllowedFrameAncestorsFromEnv:    testcase.AllowedFrameAncestorsFromEnv,
 					OAuthConfig:                     testcase.OAuthConfig,
+					UIConfig:                        testcase.UIConfig,
 					AllowFrameAncestorsFromEnv:      AllowFrameAncestorsFromEnv(testcase.AllowFrameAncestorsFromEnv),
 					AllowFrameAncestorsFromCustomUI: AllowFrameAncestorsFromCustomUI(testcase.AllowFrameAncestorsFromCustomUI),
 				}

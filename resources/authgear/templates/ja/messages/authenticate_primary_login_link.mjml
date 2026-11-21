@@ -16,7 +16,7 @@
   </mj-section>
   <mj-section padding="0 20px">
     <mj-column>
-      <mj-button href="{{ .URL }}" width="300px" padding="24px 0">{{ template "app.name" }}にサインイン</mj-button>
+      <mj-button href="{{ .Link }}" width="300px" padding="24px 0">{{ template "app.name" }}にサインイン</mj-button>
     </mj-column>
   </mj-section>
   <mj-section>

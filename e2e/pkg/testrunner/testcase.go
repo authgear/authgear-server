@@ -446,7 +446,15 @@ func (tc *TestCase) executeStep(
 		if !ok {
 			return nil, state, false
 		}
-		rows, err := cmd.QuerySMTPLog(subject, recipient)
+		var textContains []string
+		for _, s := range step.SMTPLogTextContains {
+			rendered, ok := renderTemplateString(t, cmd, prevSteps, s)
+			if !ok {
+				return nil, state, false
+			}
+			textContains = append(textContains, rendered)
+		}
+		rows, err := cmd.QuerySMTPLog(subject, recipient, textContains)
 		if err != nil {
 			t.Errorf("failed to query smtp log: %v", err)
 			return nil, state, false

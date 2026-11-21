@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "Log masuk ke {{ template \"app.name\" }}",
     "Body": "Sila ikuti pautan di bawah untuk log masuk ke {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "Log masuk ke {{ template \"app.name\" }}",
     "Body": "Sila ikuti pautan di bawah untuk log masuk ke {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Jika anda tidak memulakan log masuk, sila abaikan e-mel ini."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "Sahkan e-mel anda di {{ template \"app.name\" }}",
     "Body": "Sila lawati pautan di bawah untuk melengkapkan proses pendaftaran anda di {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "Sahkan e-mel anda dan sediakan pengesahan dua langkah di {{ template \"app.name\" }}",
     "Body": "Sila klik pautan di bawah untuk menyediakan pengesahan dua langkah di {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Jika anda tidak memulakan persediaan ini, sila abaikan e-mel ini."
   },
   "SetupSecondaryOOBEmailTXT": {

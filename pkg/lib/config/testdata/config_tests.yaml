@@ -1617,6 +1617,44 @@ config:
     passkey_upselling_opt_out_enabled: true
 
 ---
+name: custom-ui-endpoints-valid
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  ui:
+    custom_ui_endpoints:
+      authentication: https://custom.app/auth
+      login_link: https://custom.app/login-link?a=b
+      account_recovery: https://custom.app/reset
+  oauth:
+    clients:
+    - client_id: client_b
+      name: Client B
+      x_application_type: spa
+      redirect_uris:
+      - https://custom.app/callback
+      x_custom_ui_uri: https://legacy.custom.app/auth
+
+---
+name: custom-ui-endpoints-invalid
+error: |-
+  invalid configuration:
+  /ui/custom_ui_endpoints/authentication: format
+    map[error:input URL must be absolute format:uri]
+  /ui/custom_ui_endpoints/login_link: format
+    map[error:input URL must be absolute format:uri]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  ui:
+    custom_ui_endpoints:
+      authentication: /relative
+      login_link: not a uri
+
+---
 name: oauth-m2m-client-no-redirect-uris
 error: null
 config:

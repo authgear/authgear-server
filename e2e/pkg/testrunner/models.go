@@ -315,6 +315,7 @@ var _ = TestCaseSchema.Add("Step", `
 		"hook_server_output": { "$ref": "#/$defs/QueryOutput" },
 		"smtp_log_subject": { "type": "string" },
 		"smtp_log_recipient": { "type": "string" },
+		"smtp_log_text_contains": { "type": "array", "items": { "type": "string" } },
 		"smtp_log_output": { "$ref": "#/$defs/QueryOutput" },
 		"syslog_server_port": { "type": "integer" },
 		"syslog_server_min_count": { "type": "integer" },
@@ -678,9 +679,12 @@ type Step struct {
 	HookServerOutput   *QueryOutput `json:"hook_server_output"`
 
 	// `action` == "smtp_log_query"
-	SMTPLogSubject   string       `json:"smtp_log_subject"`
-	SMTPLogRecipient string       `json:"smtp_log_recipient"`
-	SMTPLogOutput    *QueryOutput `json:"smtp_log_output"`
+	SMTPLogSubject   string `json:"smtp_log_subject"`
+	SMTPLogRecipient string `json:"smtp_log_recipient"`
+	// SMTPLogTextContains, when set, matches only mails whose text body
+	// contains every string. cmd/smtp records the bodies.
+	SMTPLogTextContains []string     `json:"smtp_log_text_contains"`
+	SMTPLogOutput       *QueryOutput `json:"smtp_log_output"`
 
 	// `action` == "syslog_server_query"
 	SyslogServerPort     int          `json:"syslog_server_port"`

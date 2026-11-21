@@ -19,6 +19,7 @@ type AllowFrameAncestorsFromCustomUI bool
 type DynamicCSPMiddleware struct {
 	Cookies                         CookieManager
 	OAuthConfig                     *config.OAuthConfig
+	UIConfig                        *config.UIConfig
 	AllowedFrameAncestorsFromEnv    config.AllowedFrameAncestors
 	AllowFrameAncestorsFromEnv      AllowFrameAncestorsFromEnv
 	AllowFrameAncestorsFromCustomUI AllowFrameAncestorsFromCustomUI
@@ -35,14 +36,12 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 			}
 		}
 		if m.AllowFrameAncestorsFromCustomUI {
-			for _, oauthClient := range m.OAuthConfig.Clients {
-				if oauthClient.CustomUIURI != "" {
-					u, err := url.Parse(oauthClient.CustomUIURI)
-					if err != nil {
-						panic(err)
-					}
-					frameAncestors = append(frameAncestors, urlutil.ExtractOrigin(u).String())
+			for _, uri := range config.CustomUIAuthenticationURIs(m.UIConfig, m.OAuthConfig) {
+				u, err := url.Parse(uri)
+				if err != nil {
+					panic(err)
 				}
+				frameAncestors = append(frameAncestors, urlutil.ExtractOrigin(u).String())
 			}
 		}
 

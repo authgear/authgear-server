@@ -2,6 +2,6 @@ Xác minh email của bạn và thiết lập xác minh 2 bước trên {{ templ
 
 Vui lòng nhấp vào liên kết bên dưới để thiết lập xác minh 2 bước trên {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Nếu bạn không khởi động cài đặt này, vui lòng bỏ qua email này.

@@ -1,0 +1,293 @@
+name: A login link points to the project Custom UI login_link page
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: login_link
+    ui:
+      custom_ui_endpoints:
+        login_link: http://project-ui.example.com/login-link?tenant=a
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_cuie_project_link@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 1,
+        "channel": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "otp_form": "link"
+            }
+          }
+        }
+
+  - name: wait_for_email_delivery
+    action: sleep
+    sleep_for: 2s
+
+  - name: the_link_opens_the_project_page
+    action: smtp_log_query
+    smtp_log_subject: "Log in to Authgear"
+    smtp_log_recipient: "e2e_cuie_project_link@example.com"
+    smtp_log_text_contains:
+      - 'http://project-ui.example.com/login-link?code={{ linkOTPCode "email" "e2e_cuie_project_link@example.com" }}&tenant=a'
+    smtp_log_output:
+      rows: |
+        [
+          {
+            "subject": "Log in to Authgear",
+            "recipient": "e2e_cuie_project_link@example.com"
+          }
+        ]
+
+  # The page approves the code with the API, and the flow completes.
+  - name: approve
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/approve
+    http_request_headers:
+      Content-Type: application/json
+      Origin: http://project-ui.example.com
+    http_request_body: |
+      {
+        "code": "{{ linkOTPCode "email" "e2e_cuie_project_link@example.com" }}"
+      }
+    http_output:
+      http_status: 200
+      headers:
+        Access-Control-Allow-Origin: http://project-ui.example.com
+      json_body: |
+        {
+          "result": {}
+        }
+
+  - action: input
+    input: |
+      {
+        "check": true
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+---
+name: A login link points to Auth UI without a Custom UI login_link page
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: login_link
+    ui:
+      custom_ui_endpoints:
+        authentication: http://project-ui.example.com/auth
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_cuie_authui_link@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 1,
+        "channel": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "otp_form": "link"
+            }
+          }
+        }
+
+  - name: wait_for_email_delivery
+    action: sleep
+    sleep_for: 2s
+
+  - name: the_link_opens_auth_ui
+    action: smtp_log_query
+    smtp_log_subject: "Log in to Authgear"
+    smtp_log_recipient: "e2e_cuie_authui_link@example.com"
+    smtp_log_text_contains:
+      - '/authflow/v2/verify_login_link?code={{ linkOTPCode "email" "e2e_cuie_authui_link@example.com" }}'
+    smtp_log_output:
+      rows: |
+        [
+          {
+            "subject": "Log in to Authgear",
+            "recipient": "e2e_cuie_authui_link@example.com"
+          }
+        ]
+---
+name: An account recovery link points to the project Custom UI account_recovery page
+authgear.yaml:
+  override: |
+    ui:
+      custom_ui_endpoints:
+        account_recovery: http://project-ui.example.com/reset
+    authentication_flow:
+      account_recovery_flows:
+      - name: default
+        steps:
+        - type: identify
+          one_of:
+          - identification: email
+            steps:
+            - type: select_destination
+              allowed_channels:
+              - channel: email
+                otp_form: link
+        - type: verify_account_recovery_code
+        - type: reset_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "account_recovery",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_cuie_recovery@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "select_destination"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "index": 0
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "verify_account_recovery_code",
+            "data": {
+              "otp_form": "link"
+            }
+          }
+        }
+
+  - name: wait_for_email_delivery
+    action: sleep
+    sleep_for: 2s
+
+  - name: the_link_opens_the_project_page
+    action: smtp_log_query
+    smtp_log_subject: "[Authgear] Reset password instruction"
+    smtp_log_recipient: "e2e_cuie_recovery@example.com"
+    smtp_log_text_contains:
+      - 'http://project-ui.example.com/reset?code={{ linkOTPCode "email" "e2e_cuie_recovery@example.com" }}'
+    smtp_log_output:
+      rows: |
+        [
+          {
+            "subject": "[Authgear] Reset password instruction",
+            "recipient": "e2e_cuie_recovery@example.com"
+          }
+        ]
+
+  - action: input
+    input: |
+      {
+        "account_recovery_code": "{{ linkOTPCode "email" "e2e_cuie_recovery@example.com" }}"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "reset_password"
+          }
+        }

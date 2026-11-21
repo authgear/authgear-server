@@ -2,6 +2,6 @@ Log in to {{ template "app.name" }}
 
 Please follow the link below to sign in to {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 If you didn't trigger a login, please ignore this email.

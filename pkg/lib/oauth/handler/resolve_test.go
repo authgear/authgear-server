@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+	"net/url"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -39,8 +41,10 @@ func TestParseRedirectURI(t *testing.T) {
 	}
 
 	Convey("parseRedirectURI", t, func() {
+		ctx := context.Background()
+
 		Convey("should use default redirect uri", func() {
-			u, err := parseRedirectURI(&config.OAuthClientConfig{
+			u, err := parseRedirectURI(ctx, &config.OAuthClientConfig{
 				RedirectURIs: []string{
 					"http://app.example.com/handle_auth",
 				},
@@ -51,7 +55,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow allowlisted redirect uri", func() {
-			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"com.example.myapp://host/path",
 			})
 
@@ -60,7 +64,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should exact match", func() {
-			_, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
+			_, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://app.example.com/handle_auth/",
 			})
 
@@ -68,7 +72,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow URIs at same origin as the authgear server", func() {
-			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://auth.example.com/settings",
 			})
 
@@ -77,7 +81,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow URIs at same origin as the custom ui uri", func() {
-			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://authui.example.com/auth/complete",
 			})
 
@@ -86,14 +90,14 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow URIs with domain in whitelist in same protocol", func() {
-			u1, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
+			u1, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://auth.example2.com/auth/complete",
 			})
 
 			So(u1.String(), ShouldResemble, "http://auth.example2.com/auth/complete")
 			So(err, ShouldBeNil)
 
-			u2, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
+			u2, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://auth.example3.com/auth/complete",
 			})
 
@@ -102,7 +106,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should reject URIs not in the allowlist", func() {
-			_, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
+			_, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, &mockOAuthRequestImpl{
 				"http://unknown.com",
 			})
 
@@ -122,7 +126,7 @@ func TestParseRedirectURI(t *testing.T) {
 			}
 
 			Convey("should allow an ephemeral port on the IPv4 loopback", func() {
-				u, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				u, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://127.0.0.1:53412/callback",
 				})
 
@@ -131,7 +135,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should allow an ephemeral port on the IPv6 loopback", func() {
-				u, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				u, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://[::1]:61023/callback",
 				})
 
@@ -140,7 +144,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should allow a different port than the registered one", func() {
-				u, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				u, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://localhost:53412/callback",
 				})
 
@@ -149,7 +153,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should still allow the registered loopback uri itself", func() {
-				u, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				u, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://127.0.0.1/callback",
 				})
 
@@ -163,7 +167,7 @@ func TestParseRedirectURI(t *testing.T) {
 			// by host alone -- a rejection there would prove nothing about the
 			// host comparison, since the path would reject it anyway.
 			Convey("should reject a loopback host that is not registered, even on a registered path", func() {
-				_, err := parseRedirectURI(&config.OAuthClientConfig{
+				_, err := parseRedirectURI(ctx, &config.OAuthClientConfig{
 					RedirectURIs: []string{"http://127.0.0.1/callback"},
 				}, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://localhost:8000/callback",
@@ -173,7 +177,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should reject a registered loopback host on an unregistered path", func() {
-				_, err := parseRedirectURI(&config.OAuthClientConfig{
+				_, err := parseRedirectURI(ctx, &config.OAuthClientConfig{
 					RedirectURIs: []string{"http://127.0.0.1/callback"},
 				}, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://127.0.0.1:53412/other",
@@ -183,7 +187,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should reject a different path", func() {
-				_, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				_, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://127.0.0.1:53412/other",
 				})
 
@@ -191,7 +195,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should reject a different query", func() {
-				_, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				_, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://127.0.0.1:53412/callback?evil=1",
 				})
 
@@ -199,7 +203,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should reject the https scheme", func() {
-				_, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				_, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"https://127.0.0.1:53412/callback",
 				})
 
@@ -207,7 +211,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should reject a host that merely looks like the loopback", func() {
-				_, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				_, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://127.0.0.1.evil.com:53412/callback",
 				})
 
@@ -215,7 +219,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should not ignore the port of a non-loopback redirect uri", func() {
-				_, err := parseRedirectURI(loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				_, err := parseRedirectURI(ctx, loopbackClientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"https://app.example.com:9000/callback",
 				})
 
@@ -223,7 +227,7 @@ func TestParseRedirectURI(t *testing.T) {
 			})
 
 			Convey("should not ignore the port of a non-loopback redirect uri over http", func() {
-				_, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
+				_, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, []string{}, []string{}, &mockOAuthRequestImpl{
 					"http://app.example.com:9000/handle_auth",
 				})
 
@@ -232,7 +236,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow origins in allowlist", func() {
-			u, err := parseRedirectURI(clientConfig, httpProto, httpOrigin, []string{}, []string{
+			u, err := parseRedirectURI(ctx, clientConfig, httpProto, httpOrigin, []string{}, []string{
 				"http://anotheroriginexample.com",
 			}, &mockOAuthRequestImpl{
 				"http://anotheroriginexample.com/?q=test#test",
@@ -241,5 +245,29 @@ func TestParseRedirectURI(t *testing.T) {
 			So(u.String(), ShouldResemble, "http://anotheroriginexample.com/?q=test#test")
 			So(err, ShouldBeNil)
 		})
+	})
+
+	Convey("validateRedirectURI reports when only the Custom UI origin allows the URI", t, func() {
+		check := func(raw string) (bool, error) {
+			u, err := url.Parse(raw)
+			So(err, ShouldBeNil)
+			return validateRedirectURI(clientConfig, httpProto, httpOrigin, whitelistedDomains, []string{}, u)
+		}
+
+		only, err := check("http://authui.example.com/callback")
+		So(err, ShouldBeNil)
+		So(only, ShouldBeTrue)
+
+		only, err = check("http://app.example.com/handle_auth")
+		So(err, ShouldBeNil)
+		So(only, ShouldBeFalse)
+
+		only, err = check("http://auth.example.com/settings")
+		So(err, ShouldBeNil)
+		So(only, ShouldBeFalse)
+
+		only, err = check("http://evil.example.com/callback")
+		So(err, ShouldBeError, "redirect URI is not allowed")
+		So(only, ShouldBeFalse)
 	})
 }

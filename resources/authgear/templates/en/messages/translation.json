@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "Log in to {{ template \"app.name\" }}",
     "Body": "Please follow the link below to sign in to {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "If you didn't trigger a login, please ignore this email."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "Log in to {{ template \"app.name\" }}",
     "Body": "Please follow the link below to sign in to {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "If you didn't trigger a login, please ignore this email."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "Verify your email on {{ template \"app.name\" }}",
     "Body": "Please visit the link below to complete your sign up process on {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "If you didn't trigger this setup, please ignore this email."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "Verify your email and setup 2-step verification on {{ template \"app.name\" }}",
     "Body": "Please click the link below to setup 2-step verification on {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "If you didn't trigger this setup, please ignore this email."
   },
   "SetupSecondaryOOBEmailTXT": {

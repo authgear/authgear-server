@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "Masuk ke {{ template \"app.name\" }}",
     "Body": "Silakan ikuti tautan di bawah ini untuk masuk ke {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Jika Anda tidak memicu login, abaikan email ini."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "Masuk ke {{ template \"app.name\" }}",
     "Body": "Silakan ikuti tautan di bawah ini untuk masuk ke {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Jika Anda tidak memicu login, abaikan email ini."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "Verifikasi email Anda di {{ template \"app.name\" }}",
     "Body": "Silakan kunjungi tautan di bawah ini untuk menyelesaikan proses pendaftaran Anda di {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Jika Anda tidak memicu penyiapan ini, abaikan email ini."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "Verifikasi email Anda dan siapkan verifikasi 2 langkah di {{ template \"app.name\" }}",
     "Body": "Silakan klik tautan di bawah ini untuk menyiapkan verifikasi 2 langkah di {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Jika Anda tidak memicu penyiapan ini, abaikan email ini."
   },
   "SetupSecondaryOOBEmailTXT": {

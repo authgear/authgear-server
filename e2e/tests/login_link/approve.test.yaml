@@ -1,0 +1,146 @@
+name: Approve a login link with the API
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: login_link
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_login_link@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 1,
+        "channel": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "authentication": "primary_oob_otp_email",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "otp_form": "link",
+              "can_check": false
+            }
+          }
+        }
+
+  - name: approve
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/approve
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "{{ linkOTPCode "email" "e2e_login_link@example.com" }}"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {}
+        }
+
+  - name: approve_again
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/approve
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "{{ linkOTPCode "email" "e2e_login_link@example.com" }}"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {}
+        }
+
+  - action: input
+    input: |
+      {
+        "check": true
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: approve_consumed
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/approve
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "{{ linkOTPCode "email" "e2e_login_link@example.com" }}"
+      }
+    http_output:
+      http_status: 403
+      json_body: |
+        {
+          "error": {
+            "reason": "InvalidOTPCode"
+          }
+        }
+---
+name: Approve an unknown login link
+steps:
+  - name: approve_unknown
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/approve
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "UNKNOWN"
+      }
+    http_output:
+      http_status: 403
+      json_body: |
+        {
+          "error": {
+            "reason": "InvalidOTPCode"
+          }
+        }

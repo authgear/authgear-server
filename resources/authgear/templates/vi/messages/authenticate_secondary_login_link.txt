@@ -2,6 +2,6 @@
 
 Vui lòng truy cập vào liên kết bên dưới để đăng nhập vào {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Nếu bạn không khởi động đăng nhập, vui lòng bỏ qua email này.

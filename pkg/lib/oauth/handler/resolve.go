@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/slogutil"
 )
 
 type oauthRequest interface {
@@ -30,7 +32,20 @@ func resolveClient(ctx context.Context, resolver OAuthClientResolver, clientID s
 	return ctx, client
 }
 
+var RedirectURILogger = slogutil.NewLogger("oauth-redirect-uri")
+
+// logCustomUIOriginRedirectURI records a redirect URI accepted only because it
+// is on the Custom UI origin, to find out who relies on that rule before removing it.
+func logCustomUIOriginRedirectURI(ctx context.Context, clientIDs []string, redirectURI *url.URL) {
+	logger := RedirectURILogger.GetLogger(ctx)
+	logger.Warn(ctx, "redirect URI allowed only by the Custom UI origin",
+		slog.Any("client_ids", clientIDs),
+		slog.String("redirect_uri", redirectURI.String()),
+	)
+}
+
 func parseRedirectURI(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	httpProto httputil.HTTPProto,
 	httpOrigin httputil.HTTPOrigin,
@@ -50,9 +65,12 @@ func parseRedirectURI(
 		return nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
 	}
 
-	err = validateRedirectURI(client, httpProto, httpOrigin, domainWhitelist, originWhitelist, redirectURI)
+	onlyCustomUIOrigin, err := validateRedirectURI(client, httpProto, httpOrigin, domainWhitelist, originWhitelist, redirectURI)
 	if err != nil {
 		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
+	}
+	if onlyCustomUIOrigin {
+		logCustomUIOriginRedirectURI(ctx, []string{client.ClientID}, redirectURI)
 	}
 
 	return redirectURI, nil
@@ -107,6 +125,8 @@ func redirectURIWithoutPort(u *url.URL) string {
 	return withoutPort.String()
 }
 
+// validateRedirectURI reports onlyCustomUIOrigin when no rule other than the
+// Custom UI origin allows redirectURI.
 func validateRedirectURI(
 	client *config.OAuthClientConfig,
 	httpProto httputil.HTTPProto,
@@ -114,8 +134,9 @@ func validateRedirectURI(
 	domainWhitelist []string,
 	originWhitelist []string,
 	redirectURI *url.URL,
-) error {
+) (onlyCustomUIOrigin bool, err error) {
 	allowed := false
+	allowedByCustomUIOrigin := false
 	redirectURIString := redirectURI.String()
 
 	for _, allowedURIString := range client.RedirectURIs {
@@ -138,14 +159,16 @@ func validateRedirectURI(
 	}
 
 	// Implicitly allow URIs at same origin as the custom ui uri.
-	if client.CustomUIURI != "" {
-		customUIURI, err := url.Parse(client.CustomUIURI)
+	// Only the client's own Custom UI, not the project's, so a client never gains
+	// a redirect URI it did not configure.
+	if customUIURIString := client.CustomUIAuthenticationURI(); customUIURIString != "" {
+		customUIURI, err := url.Parse(customUIURIString)
 		if err != nil {
-			return errors.New("invalid custom ui URI")
+			return false, errors.New("invalid custom ui URI")
 		}
 		customUIURIOrigin := fmt.Sprintf("%s://%s", customUIURI.Scheme, customUIURI.Host)
 		if customUIURIOrigin == redirectURIOrigin {
-			allowed = true
+			allowedByCustomUIOrigin = true
 		}
 	}
 
@@ -168,9 +191,12 @@ func validateRedirectURI(
 		}
 	}
 
-	if !allowed {
-		return errors.New("redirect URI is not allowed")
+	switch {
+	case allowed:
+		return false, nil
+	case allowedByCustomUIOrigin:
+		return true, nil
+	default:
+		return false, errors.New("redirect URI is not allowed")
 	}
-
-	return nil
 }

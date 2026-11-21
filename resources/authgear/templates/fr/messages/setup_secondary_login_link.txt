@@ -2,6 +2,6 @@ Vérifiez votre e-mail et configurez la vérification en deux étapes sur {{ tem
 
 Veuillez cliquer sur le lien ci-dessous pour configurer la vérification en deux étapes sur {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail.
