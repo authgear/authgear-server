@@ -62,7 +62,7 @@ Pure, unit-testable helpers in the same file. JVM unit tests in this SDK run aga
 
 1. `mediation` must be `"immediate"`, else `unsupported`. `publicKey` must be present, else `unsupported` (it is the only member this version supports; other members, such as `password`, are ignored).
 2. If a `credentials.get` is pending, reply `error` with message `"a passkey request is in progress"`.
-3. Take `publicKey` (a JSON object, else `error`). Remove `extensions` from a copy: they are meant for browsers.
+3. Take `publicKey` (a JSON object, else `error`). Its `rpId` must be the host of `sourceOrigin` or a parent domain of it, else `error`. Pass only `challenge`, `rpId`, `userVerification` and a non-empty `allowCredentials` to Credential Manager.
 4. Call:
 
    ```kotlin

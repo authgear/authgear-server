@@ -43,7 +43,7 @@ Files:
 
 1. `mediation` must be `"immediate"`, else `unsupported`. `publicKey` must be present, else `unsupported` (it is the only member this version supports; other members, such as `password`, are ignored).
 2. If a request is pending, reply `error` with message `"a passkey request is in progress"`. Don't touch the pending one.
-3. Read `publicKey`: `rpId` (string), `challenge` (base64url), optional `userVerification`, optional `allowCredentials`. Missing `rpId` or `challenge`: `error`.
+3. Read `publicKey`: `rpId` (string), `challenge` (base64url), optional `userVerification`, optional `allowCredentials`. Missing `rpId` or `challenge`: `error`. An `rpId` that is not the page's host or a parent domain of it: `error`.
 4. Build the request:
    - `ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: rpId).createCredentialAssertionRequest(challenge:)`;
    - `userVerificationPreference` from `userVerification` when present;

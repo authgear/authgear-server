@@ -121,7 +121,7 @@ Requires iOS 16 on iOS. On Android, it requires a device whose Credential Manage
 | Field | Meaning |
 |---|---|
 | `mediation` | Required. `immediate`: show the sheet only if this device has a credential for the request right now; otherwise end at once without showing anything. A value the app does not support is answered with `unsupported` |
-| `publicKey` | `PublicKeyCredentialRequestOptionsJSON` as defined by WebAuthn Level 3, with binary values as base64url without padding. The app uses `challenge`, `rpId`, `userVerification`, and `allowCredentials` when it is not empty; other fields are ignored |
+| `publicKey` | `PublicKeyCredentialRequestOptionsJSON` as defined by WebAuthn Level 3, with binary values as base64url without padding. The app uses `challenge`, `rpId`, `userVerification`, and `allowCredentials` when it is not empty; other fields are ignored. As in a browser, `rpId` must be the page's host or a parent domain of it, compared without case; otherwise the request is answered with `error` |
 
 A request has at least one supported credential member, or it is answered with `unsupported`. Members the app does not support are ignored.
 
