@@ -19,6 +19,12 @@ import RequireAPIResource from "./RequireAPIResource";
 import RequireRole from "./RequireRole";
 import RequireGroup from "./RequireGroup";
 
+const AuthFlowsListScreen = lazy(
+  async () => import("./graphql/portal/AuthFlowsListScreen")
+);
+const AuthFlowsScreen = lazy(
+  async () => import("./graphql/portal/AuthFlowsScreen")
+);
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
   async () => import("./graphql/adminapi/AddRoleScreen")
@@ -668,6 +674,26 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
+              <AppRoute feature="authFlowBuilder" path="flows">
+                <AppRoute
+                  feature={null}
+                  index={true}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AuthFlowsListScreen />
+                    </Suspense>
+                  }
+                />
+                <AppRoute
+                  feature={null}
+                  path=":type/:name"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AuthFlowsScreen />
+                    </Suspense>
+                  }
+                />
+              </AppRoute>
               <AppRoute
                 feature={null}
                 path="anonymous-users"

@@ -249,6 +249,12 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
           {
             type: "link" as const,
+            textKey: "ScreenNav.auth-flows",
+            url: `/project/${appID}/configuration/authentication/flows`,
+            feature: "authFlowBuilder",
+          },
+          {
+            type: "link" as const,
             textKey: "ScreenNav.anonymous-users",
             url: `/project/${appID}/configuration/authentication/anonymous-users`,
           },

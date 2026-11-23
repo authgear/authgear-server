@@ -46,6 +46,15 @@ var _ = Schema.Add("AuthenticationFlowConfig", `
 }
 `)
 
+// A label for the portal; flows are found by name, never by this.
+var _ = Schema.Add("AuthenticationFlowDisplayName", `
+{
+	"type": "string",
+	"minLength": 1,
+	"maxLength": 100
+}
+`)
+
 var _ = Schema.Add("AuthenticationFlowObjectName", `
 {
 	"type": "string",
@@ -59,6 +68,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"display_name": { "$ref": "#/$defs/AuthenticationFlowDisplayName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -305,6 +315,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"display_name": { "$ref": "#/$defs/AuthenticationFlowDisplayName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -469,6 +480,7 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"display_name": { "$ref": "#/$defs/AuthenticationFlowDisplayName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -545,6 +557,23 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 			"then": {
 				"required": ["login_flow"],
 				"not": { "required": ["signup_flow"] }
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identification": { "const": "passkey" }
+				}
+			},
+			"then": {
+				"required": ["login_flow"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"identification": { "enum": ["select_account", "passkey"] }
+				}
 			},
 			"else": {
 				"required": ["signup_flow", "login_flow"]
@@ -560,6 +589,7 @@ var _ = Schema.Add("AuthenticationFlowReauthFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"display_name": { "$ref": "#/$defs/AuthenticationFlowDisplayName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -677,6 +707,7 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlow", `
 	"required": ["name", "steps"],
 	"properties": {
 		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"display_name": { "$ref": "#/$defs/AuthenticationFlowDisplayName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -890,8 +921,9 @@ type AuthenticationFlowConfig struct {
 }
 
 type AuthenticationFlowSignupFlow struct {
-	Name  string                              `json:"name,omitempty"`
-	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
+	Name        string                              `json:"name,omitempty"`
+	DisplayName string                              `json:"display_name,omitempty"`
+	Steps       []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupFlow{}
@@ -1059,8 +1091,9 @@ type AuthenticationFlowSignupFlowUserProfile struct {
 }
 
 type AuthenticationFlowLoginFlow struct {
-	Name  string                             `json:"name,omitempty"`
-	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
+	Name        string                             `json:"name,omitempty"`
+	DisplayName string                             `json:"display_name,omitempty"`
+	Steps       []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowLoginFlow{}
@@ -1217,8 +1250,9 @@ func (f *AuthenticationFlowLoginFlowOneOf) GetTargetStepName() string {
 }
 
 type AuthenticationFlowSignupLoginFlow struct {
-	Name  string                                   `json:"name,omitempty"`
-	Steps []*AuthenticationFlowSignupLoginFlowStep `json:"steps,omitempty"`
+	Name        string                                   `json:"name,omitempty"`
+	DisplayName string                                   `json:"display_name,omitempty"`
+	Steps       []*AuthenticationFlowSignupLoginFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupLoginFlow{}
@@ -1296,8 +1330,9 @@ func (s *AuthenticationFlowSignupLoginFlowOneOf) GetBotProtectionConfig() *Authe
 }
 
 type AuthenticationFlowReauthFlow struct {
-	Name  string                              `json:"name,omitempty"`
-	Steps []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
+	Name        string                              `json:"name,omitempty"`
+	DisplayName string                              `json:"display_name,omitempty"`
+	Steps       []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowReauthFlow{}
@@ -1392,8 +1427,9 @@ func (f *AuthenticationFlowReauthFlowOneOf) GetBotProtectionConfig() *Authentica
 }
 
 type AuthenticationFlowAccountRecoveryFlow struct {
-	Name  string                                       `json:"name,omitempty"`
-	Steps []*AuthenticationFlowAccountRecoveryFlowStep `json:"steps,omitempty"`
+	Name        string                                       `json:"name,omitempty"`
+	DisplayName string                                       `json:"display_name,omitempty"`
+	Steps       []*AuthenticationFlowAccountRecoveryFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowAccountRecoveryFlow{}
