@@ -75,7 +75,9 @@ func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *authflow.Depend
 }
 
 func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (authflow.ReactToResult, error) {
-	if deps.Config.Authentication.PublicSignupDisabled {
+	// A switched flow may still be linked to an existing user by account linking,
+	// so it is rejected later, once it is certain to create a new user.
+	if deps.Config.Authentication.PublicSignupDisabled && len(flows.Nearest.Nodes) == 0 && !authflow.IsSwitchedFlow(ctx) {
 		return nil, ErrNoPublicSignup
 	}
 
@@ -108,6 +110,9 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 		}), nil
 	case len(flows.Nearest.Nodes) == 3:
 		userID, createUser := i.userID(flows)
+		if createUser && deps.Config.Authentication.PublicSignupDisabled {
+			return nil, ErrNoPublicSignup
+		}
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
 			UserID:       userID,
 			CreateReason: session.CreateReasonSignup,

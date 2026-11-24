@@ -64,6 +64,10 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 		}
 		spec := i.getIdenitySpec()
 		if len(conflicts) == 0 {
+			// Without a conflict, account linking cannot switch the flow to an existing user.
+			if deps.Config.Authentication.PublicSignupDisabled && isCreatingNewUser(flows) {
+				return nil, ErrNoPublicSignup
+			}
 			info, err := newIdentityInfo(ctx, deps, i.UserID, spec)
 			if err != nil {
 				return nil, err
