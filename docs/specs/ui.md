@@ -48,6 +48,8 @@ Login with a phone number instead.
 Forgot password?
 ```
 
+After the user is identified, the UI takes the first option of the `authenticate` step by default. If the user has a passkey, the UI takes the `primary_passkey` option instead and prompts for the passkey. The other options are still shown as alternatives. This is a UI choice only: the Authentication Flow API returns the options in the same order as before.
+
 ## The enter password page
 
 The enter password page displays a visibility toggleable password field.
