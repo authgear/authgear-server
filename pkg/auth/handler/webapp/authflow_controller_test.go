@@ -42,6 +42,8 @@ func (*NoopNavigator) Navigate(ctx context.Context, screen *webapp.AuthflowScree
 				screen.Advance("/authflow/v2/enter_password", result)
 			case model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 				screen.Advance("/authflow/v2/enter_oob_otp", result)
+			case model.AuthenticationFlowAuthenticationPrimaryPasskey:
+				screen.Advance("/authflow/v2/use_passkey", result)
 			}
 		case declarative.VerifyOOBOTPData:
 			switch data.OTPForm {
@@ -495,6 +497,80 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 			result, err := c.AdvanceWithInput(ctx, r, s, screen, input, nil)
 			So(err, ShouldBeNil)
 			So(strings.HasPrefix(result.RedirectURI, "/authflow/v2/enter_oob_otp?x_step="), ShouldBeTrue)
+		})
+
+		Convey("the passkey branch is taken by default if the user has a passkey", func() {
+			r, _ := http.NewRequest("POST", "", nil)
+			s := &webapp.Session{
+				Authflow: &webapp.Authflow{
+					AllScreens: map[string]*webapp.AuthflowScreen{},
+				},
+			}
+
+			screen := &webapp.AuthflowScreenWithFlowResponse{
+				Screen: &webapp.AuthflowScreen{
+					StateToken: &webapp.AuthflowStateToken{
+						XStep:      "step_0",
+						StateToken: "authflowstate_0",
+					},
+					BranchStateToken: &webapp.AuthflowStateToken{
+						XStep:      "step_0",
+						StateToken: "authflowstate_0",
+					},
+				},
+				StateTokenFlowResponse: &authflow.FlowResponse{
+					StateToken: "authflowstate_0",
+					Type:       authflow.FlowTypeLogin,
+					Name:       "default",
+					Action: &authflow.FlowAction{
+
+						Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeIdentify),
+					},
+				},
+			}
+
+			input := map[string]any{
+				"identification": "email",
+				"login_id":       "johndoe@example.com",
+			}
+
+			// The OOB OTP branch comes first, but it must not be taken,
+			// so no OTP is sent.
+			mockAuthflows.EXPECT().FeedInput(gomock.Any(), "authflowstate_0", gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
+				Flow: &authflow.Flow{
+					FlowID:     "authflow_id",
+					StateToken: "authflowstate_1",
+				},
+				FlowReference: &authflow.FlowReference{
+					Type: authflow.FlowTypeLogin,
+					Name: "default",
+				},
+				FlowAction: &authflow.FlowAction{
+					Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
+					Data: declarative.StepAuthenticateData{
+						Options: []declarative.AuthenticateOptionForOutput{
+							{
+								Authentication: model.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+								Channels: []model.AuthenticatorOOBChannel{
+									model.AuthenticatorOOBChannelEmail,
+								},
+							},
+							{
+								Authentication: model.AuthenticationFlowAuthenticationPrimaryPassword,
+							},
+							{
+								Authentication: model.AuthenticationFlowAuthenticationPrimaryPasskey,
+							},
+						},
+					},
+				},
+			}, nil)
+			mockSessionStore.EXPECT().Update(gomock.Any(), s).Times(1).Return(nil)
+
+			ctx := context.Background()
+			result, err := c.AdvanceWithInput(ctx, r, s, screen, input, nil)
+			So(err, ShouldBeNil)
+			So(strings.HasPrefix(result.RedirectURI, "/authflow/v2/use_passkey?x_step="), ShouldBeTrue)
 		})
 	})
 }
