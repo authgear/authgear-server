@@ -67,7 +67,7 @@ RUN set -eux; \
             libmagic-mgc \
             ca-certificates \
             media-types \
-            tzdata=2026e\*; \
+            tzdata=2026f\*; \
         rm -rf /var/lib/apt/lists/*
 COPY --from=authgear-stage-1 /src/authgear /usr/local/bin/
 # There is no need to run update-ca-certificates
