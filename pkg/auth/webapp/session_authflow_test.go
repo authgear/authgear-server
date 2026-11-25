@@ -57,8 +57,16 @@ func TestAuthflowScreenWithFlowResponseDefaultBranchIndex(t *testing.T) {
 			So(s.DefaultBranchIndex(), ShouldEqual, 0)
 		})
 
-		Convey("take the first branch in other flow types", func() {
+		Convey("prefer passkey in reauth authenticate step", func() {
 			s := makeScreen(authflow.FlowTypeReauth, config.AuthenticationFlowStepTypeAuthenticate, makeData(
+				model.AuthenticationFlowAuthenticationPrimaryPassword,
+				model.AuthenticationFlowAuthenticationPrimaryPasskey,
+			))
+			So(s.DefaultBranchIndex(), ShouldEqual, 1)
+		})
+
+		Convey("take the first branch in other flow types", func() {
+			s := makeScreen(authflow.FlowTypeSignup, config.AuthenticationFlowStepTypeAuthenticate, makeData(
 				model.AuthenticationFlowAuthenticationPrimaryPassword,
 				model.AuthenticationFlowAuthenticationPrimaryPasskey,
 			))

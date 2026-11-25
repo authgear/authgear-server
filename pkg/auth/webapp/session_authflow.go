@@ -373,11 +373,15 @@ func (s *AuthflowScreenWithFlowResponse) HasBranchToTake() bool {
 }
 
 // DefaultBranchIndex returns the index of the branch to take when the user has not chosen one.
-// It is the first branch, except in the authenticate step of a login flow,
+// It is the first branch, except in the authenticate step of a login or reauth flow,
 // where the passkey branch is preferred.
 // The flow offers the passkey branch only when the user has a passkey.
+// Other flow types keep the first branch until they opt in here.
 func (s *AuthflowScreenWithFlowResponse) DefaultBranchIndex() int {
-	if s.StateTokenFlowResponse.Type != authflow.FlowTypeLogin {
+	switch s.StateTokenFlowResponse.Type {
+	case authflow.FlowTypeLogin, authflow.FlowTypeReauth:
+		break
+	default:
 		return 0
 	}
 	if config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) != config.AuthenticationFlowStepTypeAuthenticate {
