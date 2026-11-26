@@ -2,6 +2,6 @@ I-verify ang iyong email sa {{ template "app.name" }}
 
 Mangyaring bisitahin ang link sa ibaba para makumpleto ang iyong proseso ng pag-sign up sa {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito.

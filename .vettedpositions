@@ -17,6 +17,8 @@
 /pkg/auth/handler/api/authenticationflow_v1_create.go:81:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_get.go:40:9: requestcontext
 /pkg/auth/handler/api/authenticationflow_v1_input.go:68:9: requestcontext
+/pkg/auth/handler/api/login_link_v1_approve.go:29:9: requestcontext
+/pkg/auth/handler/api/login_link_v1_inspect.go:29:9: requestcontext
 /pkg/auth/handler/api/presign_images_upload.go:54:9: requestcontext
 /pkg/auth/handler/api/workflow_get.go:34:9: requestcontext
 /pkg/auth/handler/api/workflow_input.go:59:9: requestcontext
@@ -38,6 +40,7 @@
 /pkg/auth/handler/oauth/end_session.go:50:31: requestcontext
 /pkg/auth/handler/oauth/jwks.go:30:9: requestcontext
 /pkg/auth/handler/oauth/jwks.go:34:31: requestcontext
+/pkg/auth/handler/oauth/redirect.go:27:50: requestcontext
 /pkg/auth/handler/oauth/register.go:31:44: requestcontext
 /pkg/auth/handler/oauth/revoke.go:42:9: requestcontext
 /pkg/auth/handler/oauth/token.go:44:9: requestcontext
@@ -164,7 +167,7 @@
 /pkg/auth/handler/webapp/authflowv2/terminate_other_sessions.go:74:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/use_passkey.go:150:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/verify_bot_protection.go:67:26: requestcontext
-/pkg/auth/handler/webapp/authflowv2/verify_login_link.go:113:30: requestcontext
+/pkg/auth/handler/webapp/authflowv2/verify_login_link.go:106:30: requestcontext
 /pkg/auth/handler/webapp/authflowv2/view_recovery_code.go:86:26: requestcontext
 /pkg/auth/handler/webapp/authflowv2/wechat.go:148:26: requestcontext
 /pkg/auth/handler/webapp/change_password.go:72:27: requestcontext

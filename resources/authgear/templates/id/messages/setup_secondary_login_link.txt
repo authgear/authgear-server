@@ -2,6 +2,6 @@ Verifikasi email Anda dan siapkan verifikasi 2 langkah di {{ template "app.name"
 
 Silakan klik tautan di bawah ini untuk menyiapkan verifikasi 2 langkah di {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Jika Anda tidak memicu penyiapan ini, abaikan email ini.

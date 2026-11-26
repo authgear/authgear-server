@@ -2,6 +2,6 @@ Verifica la tua email e configura la verifica in 2 passaggi su {{ template "app.
 
 Per favore clicca sul link sottostante per configurare la verifica in 2 passaggi su {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Se non hai avviato questa configurazione, ignora questa email.

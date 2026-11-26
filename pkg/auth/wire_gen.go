@@ -58,6 +58,7 @@ import (
 	captcha2 "github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	"github.com/authgear/authgear-server/pkg/lib/feature/loginlink"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -291,6 +292,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	accountDeletionConfig := appConfig.AccountDeletion
 	httpConfig := appConfig.HTTP
 	request := p.Request
@@ -308,7 +310,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		HTTPProto:              httpProto,
 		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
-	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -324,6 +325,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	uiurlBuilder := &oidc.UIURLBuilder{
 		Endpoints:      endpointsEndpoints,
 		IdentityConfig: identityConfig,
+		UIConfig:       uiConfig,
 	}
 	clockClock := _wireSystemClockValue
 	promptResolver := &oauth.PromptResolver{
@@ -465,6 +467,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -1316,6 +1319,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
 		Config:                                  oAuthConfig,
+		UIConfig:                                uiConfig,
 		AccountDeletionConfig:                   accountDeletionConfig,
 		HTTPConfig:                              httpConfig,
 		HTTPProto:                               httpProto,
@@ -1360,6 +1364,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	accountDeletionConfig := appConfig.AccountDeletion
 	httpConfig := appConfig.HTTP
 	request := p.Request
@@ -1376,7 +1381,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		HTTPProto:              httpProto,
 		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
-	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -1392,6 +1396,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	uiurlBuilder := &oidc.UIURLBuilder{
 		Endpoints:      endpointsEndpoints,
 		IdentityConfig: identityConfig,
+		UIConfig:       uiConfig,
 	}
 	clockClock := _wireSystemClockValue
 	promptResolver := &oauth.PromptResolver{
@@ -1533,6 +1538,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -2384,6 +2390,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	authorizationHandler := &handler.AuthorizationHandler{
 		AppID:                                   appID,
 		Config:                                  oAuthConfig,
+		UIConfig:                                uiConfig,
 		AccountDeletionConfig:                   accountDeletionConfig,
 		HTTPConfig:                              httpConfig,
 		HTTPProto:                               httpProto,
@@ -2713,6 +2720,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -3417,6 +3425,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -3865,6 +3874,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -4391,6 +4401,7 @@ func newOAuthRegisterHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -4993,6 +5004,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -5885,6 +5897,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -6616,6 +6629,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -6628,7 +6642,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		HTTPProto:              httpProto,
 		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
 	}
-	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
 	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
@@ -6843,6 +6856,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -7512,6 +7526,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
 		Config:              oAuthConfig,
+		UIConfig:            uiConfig,
 		OAuthClientResolver: resolver,
 		Endpoints:           endpointsEndpoints,
 		URLs:                endpointsEndpoints,
@@ -7808,6 +7823,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -8512,6 +8528,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -8732,6 +8749,7 @@ func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -8742,6 +8760,7 @@ func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
 	appDomains := appContext.Domains
 	proxyRedirectHandler := &handler.ProxyRedirectHandler{
 		OAuthConfig: oAuthConfig,
+		UIConfig:    uiConfig,
 		HTTPOrigin:  httpOrigin,
 		HTTPProto:   httpProto,
 		AppDomains:  appDomains,
@@ -8935,6 +8954,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -9640,6 +9660,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -10047,6 +10068,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -10752,6 +10774,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -11158,6 +11181,7 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -11730,6 +11754,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -12448,6 +12473,7 @@ func newWebAppAuthflowV2VerifyBotProtectionHandler(p *deps.RequestProvider) http
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -12949,6 +12975,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -13667,6 +13694,7 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -14175,6 +14203,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -14893,6 +14922,7 @@ func newWebAppAuthflowV2SSOCallbackHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -15432,6 +15462,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -16135,6 +16166,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -16342,11 +16374,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
-	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
+	clockClock := _wireSystemClockValue
 	appID := appConfig.ID
 	testModeConfig := appConfig.TestMode
 	featureConfig := config.FeatureConfig
@@ -16535,6 +16567,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -16923,9 +16956,18 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		FeatureConfig:         featureConfig,
 		EnvConfig:             rateLimitsEnvironmentConfig,
 	}
-	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
-		Clock:       clockClock,
-		RedisHandle: handle,
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis: handle,
+		AppID: appID,
+	}
+	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, authenticationflowStoreImpl)
+	loginlinkService := &loginlink.Service{
+		Config:   appConfig,
+		OTPCodes: otpService,
+		Events:   websocketEventStore,
+	}
+	apiController := &api2.APIController{
+		LoginLinks: loginlinkService,
 	}
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
@@ -17250,6 +17292,7 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -17452,20 +17495,12 @@ func newWebAppAuthflowV2VerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
 	}
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis: handle,
-		AppID: appID,
-	}
-	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, authenticationflowStoreImpl)
 	authflowV2VerifyLoginLinkOTPHandler := &authflowv2.AuthflowV2VerifyLoginLinkOTPHandler{
-		LoginLinkOTPCodeService:     otpService,
-		GlobalSessionServiceFactory: globalSessionServiceFactory,
-		ControllerFactory:           controllerFactory,
-		BaseViewModel:               baseViewModeler,
-		AuthenticationViewModel:     authenticationViewModeler,
-		Renderer:                    responseRenderer,
-		AuthenticationFlowEvents:    websocketEventStore,
-		Config:                      appConfig,
+		APIController:           apiController,
+		ControllerFactory:       controllerFactory,
+		BaseViewModel:           baseViewModeler,
+		AuthenticationViewModel: authenticationViewModeler,
+		Renderer:                responseRenderer,
 	}
 	return authflowV2VerifyLoginLinkOTPHandler
 }
@@ -17672,6 +17707,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -18375,6 +18411,7 @@ func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -18816,6 +18853,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -19519,6 +19557,7 @@ func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -19953,6 +19992,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -20656,6 +20696,7 @@ func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.H
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -21105,6 +21146,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -21808,6 +21850,7 @@ func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -22229,6 +22272,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -22932,6 +22976,7 @@ func newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -23380,6 +23425,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -24083,6 +24129,7 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -24530,6 +24577,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -25233,6 +25281,7 @@ func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -25680,6 +25729,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -26383,6 +26433,7 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -26819,6 +26870,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -27522,6 +27574,7 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -27978,6 +28031,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -28681,6 +28735,7 @@ func newWebAppAuthflowV2SettingsMFACreateTOTPHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -29128,6 +29183,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -29831,6 +29887,7 @@ func newWebAppAuthflowV2SettingsMFAEnterTOTPHandler(p *deps.RequestProvider) htt
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -30279,6 +30336,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -30982,6 +31040,7 @@ func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -31439,6 +31498,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -32142,6 +32202,7 @@ func newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler(p *deps.RequestProvider) 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -32589,6 +32650,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -33292,6 +33354,7 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -33731,6 +33794,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -34434,6 +34498,7 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -34903,6 +34968,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -35606,6 +35672,7 @@ func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Ha
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -36043,6 +36110,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -36746,6 +36814,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppsHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -37194,6 +37263,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -37897,6 +37967,7 @@ func newWebAppAuthflowV2SettingsAuthorizedAppHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -38348,6 +38419,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -39051,6 +39123,7 @@ func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -39487,6 +39560,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -40190,6 +40264,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -40622,6 +40697,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -41325,6 +41401,7 @@ func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvi
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -41737,6 +41814,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -42440,6 +42518,7 @@ func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider)
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -42848,6 +42927,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -43551,6 +43631,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -44063,6 +44144,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -44766,6 +44848,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -45160,6 +45243,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -45878,6 +45962,7 @@ func newWebAppAuthflowV2ErrorHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -46379,6 +46464,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -47097,6 +47183,7 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -47612,6 +47699,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -48315,6 +48403,7 @@ func newWebAppAuthflowV2NotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -48739,6 +48828,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -49442,6 +49532,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -49791,6 +49882,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -50494,6 +50586,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -50830,6 +50923,7 @@ func newWebAppClientLogoHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -51357,6 +51451,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -52060,6 +52155,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -52468,6 +52564,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -53171,6 +53268,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -53737,6 +53835,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -54450,6 +54549,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -54799,6 +54899,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -55514,6 +55615,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -55814,6 +55916,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -56529,6 +56632,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -56663,6 +56767,7 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	eventStoreImpl := workflow.NewEventStore(appID, handle, storeImpl)
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	samlConfig := appConfig.SAML
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -56670,6 +56775,7 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	corsMatcher := &middleware.CORSMatcher{
 		Config:             httpConfig,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
@@ -56863,6 +56969,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -57576,6 +57683,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -57927,6 +58035,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -58645,6 +58754,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -59067,6 +59177,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -59785,6 +59896,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -60176,6 +60288,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -60896,6 +61009,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -61114,6 +61228,7 @@ func newAPIAuthenticationFlowV1WebsocketHandler(p *deps.RequestProvider) http.Ha
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	samlConfig := appConfig.SAML
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -61121,6 +61236,7 @@ func newAPIAuthenticationFlowV1WebsocketHandler(p *deps.RequestProvider) http.Ha
 	corsMatcher := &middleware.CORSMatcher{
 		Config:             httpConfig,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
@@ -61317,6 +61433,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -62042,6 +62159,7 @@ func newAPIAccountManagementV1IdentificationHandler(p *deps.RequestProvider) htt
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -62259,6 +62377,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -62984,6 +63103,7 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -63210,6 +63330,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -63928,6 +64049,7 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -64453,6 +64575,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -65171,6 +65294,7 @@ func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -65689,6 +65813,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -66407,6 +66532,7 @@ func newWebAppAuthflowV2PromoteHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -66915,6 +67041,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -67633,6 +67760,7 @@ func newWebAppAuthflowV2EnterPasswordHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -68138,6 +68266,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -68856,6 +68985,7 @@ func newWebAppAuthflowV2EnterOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -69365,6 +69495,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -70083,6 +70214,7 @@ func newWebAppAuthflowV2CreatePasswordHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -70590,6 +70722,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -71308,6 +71441,7 @@ func newWebAppAuthflowV2EnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -71813,6 +71947,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -72531,6 +72666,7 @@ func newWebAppAuthflowV2SetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -73032,6 +73168,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -73750,6 +73887,7 @@ func newWebAppAuthflowV2ViewRecoveryCodeHandler(p *deps.RequestProvider) http.Ha
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -74251,6 +74389,7 @@ func newWebAppAuthflowV2FillFormHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -74969,6 +75108,7 @@ func newWebAppAuthflowV2FillFormHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -75470,6 +75610,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -76188,6 +76329,7 @@ func newWebAppAuthflowV2OOBOTPLinkHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -76694,6 +76836,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -77412,6 +77555,7 @@ func newWebAppAuthflowV2ChangePasswordHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -77919,6 +78063,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -78637,6 +78782,7 @@ func newWebAppAuthflowV2ChangePasswordSuccessHandler(p *deps.RequestProvider) ht
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -79138,6 +79284,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -79856,6 +80003,7 @@ func newWebAppAuthflowV2UsePasskeyHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -80361,6 +80509,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -81079,6 +81228,7 @@ func newWebAppAuthflowV2PromptCreatePasskeyHandler(p *deps.RequestProvider) http
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -81580,6 +81730,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -82298,6 +82449,7 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -82799,6 +82951,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -83517,6 +83670,7 @@ func newWebAppAuthflowV2SetupOOBOTPHandler(p *deps.RequestProvider) http.Handler
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -84018,6 +84172,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -84736,6 +84891,7 @@ func newWebAppAuthflowV2TerminateOtherSessionsHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -85237,6 +85393,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -85955,6 +86112,7 @@ func newWebAppAuthflowV2ForgotPasswordHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -86463,6 +86621,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -87181,6 +87340,7 @@ func newWebAppAuthflowV2ForgotPasswordOTPHandler(p *deps.RequestProvider) http.H
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -87684,6 +87844,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -88402,6 +88563,7 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -88904,6 +89066,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -89622,6 +89785,7 @@ func newWebAppAuthflowV2ReauthHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -90136,6 +90300,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -90839,6 +91004,7 @@ func newWebAppAuthflowV2ResetPasswordHandler(p *deps.RequestProvider) http.Handl
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -91435,6 +91601,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -92153,6 +92320,7 @@ func newWebAppAuthflowV2ResetPasswordSuccessHandler(p *deps.RequestProvider) htt
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -93214,6 +93382,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -93932,6 +94101,7 @@ func newWebAppAuthflowV2OAuthProviderDemoCredentialHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -94433,6 +94603,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -95151,6 +95322,7 @@ func newWebAppAuthflowV2FinishFlowHandler(p *deps.RequestProvider) http.Handler 
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -95652,6 +95824,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -96370,6 +96543,7 @@ func newWebAppAuthflowV2AccountLinkingHandler(p *deps.RequestProvider) http.Hand
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -97011,6 +97185,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -97729,6 +97904,7 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -98232,6 +98408,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -98950,6 +99127,7 @@ func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -99438,6 +99616,7 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -100358,6 +100537,7 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -101308,6 +101488,7 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -102251,6 +102432,7 @@ func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -103225,6 +103407,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -103928,6 +104111,7 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -104307,6 +104491,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -105055,6 +105240,7 @@ func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider)
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -105450,6 +105636,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -106198,6 +106385,7 @@ func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -106597,6 +106785,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -107340,6 +107529,7 @@ func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -107723,6 +107913,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -108471,6 +108662,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -108871,6 +109063,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -109619,6 +109812,7 @@ func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -110025,6 +110219,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -110773,6 +110968,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -111161,6 +111357,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -111909,6 +112106,7 @@ func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider)
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -112305,6 +112503,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -113053,6 +113252,7 @@ func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -113453,6 +113653,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -114196,6 +114397,7 @@ func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -114579,6 +114781,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -115327,6 +115530,7 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -115728,6 +115932,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -116476,6 +116681,7 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.Reques
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -116864,6 +117070,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -117612,6 +117819,7 @@ func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -118024,6 +118232,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -118756,6 +118965,7 @@ func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvi
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -119128,6 +119338,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -119875,6 +120086,7 @@ func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvid
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -120272,6 +120484,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -121019,6 +121232,7 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -121419,6 +121633,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -122166,6 +122381,7 @@ func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvi
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
@@ -122606,6 +122822,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -123309,6 +123526,7 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -123551,6 +123769,1210 @@ func newWebAppAuthflowV2SettingsIdentityListOAuthHandler(p *deps.RequestProvider
 func newWebAppAuthflowV2SettingsIdentityDeprecatedRedirectHandler(p *deps.RequestProvider) http.Handler {
 	authflowV2SettingsIdentityDeprecatedRedirectHandler := &authflowv2.AuthflowV2SettingsIdentityDeprecatedRedirectHandler{}
 	return authflowV2SettingsIdentityDeprecatedRedirectHandler
+}
+
+func newAPILoginLinkV1ApproveHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	clockClock := _wireSystemClockValue
+	appID := appConfig.ID
+	testModeConfig := appConfig.TestMode
+	featureConfig := config.FeatureConfig
+	testModeFeatureConfig := featureConfig.TestMode
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	handle := appProvider.Redis
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	attemptTrackerRedis := &otp.AttemptTrackerRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	appdbHandle := appProvider.AppDatabase
+	storageRedis := ratelimit.NewAppStorageRedis(handle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
+	manager := appContext.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		UIConfig:      uiConfig,
+		LoginIDConfig: loginIDConfig,
+		Resources:     manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth2.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth2.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Redis: handle,
+		AppID: appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	translationService := &translation.Service{
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthClientResolver:             oauthclientResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clockClock,
+	}
+	ldapStore := &ldap.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	normalizer := &stdattrs.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	ldapProvider := &ldap.Provider{
+		Store:                        ldapStore,
+		Clock:                        clockClock,
+		StandardAttributesNormalizer: normalizer,
+	}
+	serviceService := &service.Service{
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Expiry:          expiry,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	oobProvider := &oob.Provider{
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
+	}
+	readOnlyService := &service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		ClaimStore:        storePQ,
+	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs2.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsQueries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     readOnlyService,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     rolesgroupsQueries,
+		Clock:              clockClock,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: userQueries,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	webHookImpl := hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	httpFeatureConfig := featureConfig.HTTP
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig, httpFeatureConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient(httpFeatureConfig)
+	eventWebHookImpl := &hook.EventWebHookImpl{
+		WebHookImpl: webHookImpl,
+		SyncHTTP:    syncHTTPClient,
+		AsyncHTTP:   asyncHTTPClient,
+	}
+	denoHook := hook.DenoHook{
+		ResourceManager: manager,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	eventDenoHookImpl := &hook.EventDenoHookImpl{
+		DenoHook:        denoHook,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
+	sink := &hook.Sink{
+		Config:             hookConfig,
+		Clock:              clockClock,
+		EventWebHook:       eventWebHookImpl,
+		EventDenoHook:      eventDenoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
+	}
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
+	auditSink := &audit.Sink{
+		Database: writeHandle,
+		Store:    writeStore,
+		Producer: producer,
+	}
+	searchConfig := appConfig.Search
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           appID,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		Clock:           clockClock,
+		Database:        appdbHandle,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	configAppID := &appConfig.ID
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := appProvider.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := &pgsearch.Service{
+		AppID:    configAppID,
+		Store:    pgsearchStore,
+		Database: searchdbHandle,
+	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
+	reindexer := &reindex.Reindexer{
+		AppID:                      appID,
+		SearchConfig:               searchConfig,
+		Clock:                      clockClock,
+		Database:                   appdbHandle,
+		UserStore:                  store,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
+	}
+	reindexSink := &reindex.Sink{
+		Reindexer: reindexer,
+		Database:  appdbHandle,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaReadOnlyService := &mfa.ReadOnlyService{
+		RecoveryCodes: storeRecoveryCodePQ,
+	}
+	userInfoService := &userinfo.UserInfoService{
+		Redis:                 handle,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
+		AuthenticatorService:  readOnlyService,
+		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
+	}
+	userinfoSink := &userinfo.Sink{
+		UserInfoService: userInfoService,
+	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
+	limiter := &ratelimit.Limiter{
+		Database:     appdbHandle,
+		Storage:      storageRedis,
+		AppID:        appID,
+		Config:       rateLimitsFeatureConfig,
+		EventService: eventService,
+	}
+	messagingConfig := appConfig.Messaging
+	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
+	messageStore := &whatsapp.MessageStore{
+		Redis:       globalredisHandle,
+		Credentials: whatsappCloudAPICredentials,
+	}
+	whatsappService := &whatsapp.Service{
+		Clock:                 clockClock,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
+		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
+	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	httpReferer := deps.ProvideHTTPReferer(request)
+	fraudprotectionService := &fraudprotection.Service{
+		AppID:           appID,
+		Metrics:         metricsStore,
+		LeakyBucket:     leakyBucketStore,
+		Config:          fraudProtectionConfig,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		HTTPRequestURL:  httpRequestURL,
+		HTTPReferer:     httpReferer,
+		Clock:           clockClock,
+		Database:        appdbHandle,
+		EventService:    eventService,
+		VerifiedClaims:  storePQ,
+	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	otpService := &otp.Service{
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		RateLimiter:           limiter,
+		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
+	}
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis: handle,
+		AppID: appID,
+	}
+	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, authenticationflowStoreImpl)
+	loginlinkService := &loginlink.Service{
+		Config:   appConfig,
+		OTPCodes: otpService,
+		Events:   websocketEventStore,
+	}
+	apiController := &api2.APIController{
+		LoginLinks: loginlinkService,
+	}
+	loginLinkV1ApproveHandler := &api.LoginLinkV1ApproveHandler{
+		Controller: apiController,
+	}
+	return loginLinkV1ApproveHandler
+}
+
+func newAPILoginLinkV1InspectHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	clockClock := _wireSystemClockValue
+	appID := appConfig.ID
+	testModeConfig := appConfig.TestMode
+	featureConfig := config.FeatureConfig
+	testModeFeatureConfig := featureConfig.TestMode
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	handle := appProvider.Redis
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	attemptTrackerRedis := &otp.AttemptTrackerRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	appdbHandle := appProvider.AppDatabase
+	storageRedis := ratelimit.NewAppStorageRedis(handle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	userAgentString := deps.ProvideUserAgentString(request)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpRequestURL := httputil.GetRequestURL(request, httpProto, httpHost)
+	localizationConfig := appConfig.Localization
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
+	ssooAuthDemoCredentials := deps.ProvideSSOOAuthDemoCredentials(secretConfig)
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
+	manager := appContext.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		UIConfig:      uiConfig,
+		LoginIDConfig: loginIDConfig,
+		Resources:     manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth2.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth2.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Redis: handle,
+		AppID: appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	smtpServerCredentialsSecretItem := deps.ProvideSMTPServerCredentialsItem(secretConfig)
+	oAuthConfig := appConfig.OAuth
+	sharedAuthgearEndpoint := environmentConfig.SharedAuthgearEndpoint
+	oAuthEndpoints := &endpoints.OAuthEndpoints{
+		HTTPHost:               httpHost,
+		HTTPProto:              httpProto,
+		SharedAuthgearEndpoint: sharedAuthgearEndpoint,
+	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		OAuthEndpoints:          oAuthEndpoints,
+		UIImplementationService: uiImplementationService,
+	}
+	oauthclientStore := &oauthclient.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+		AppID:       appID,
+	}
+	clientCache := &oauthclient.ClientCache{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	queries := &oauthclient.Queries{
+		Store:       oauthclientStore,
+		OAuthConfig: oAuthConfig,
+		Database:    appdbHandle,
+		Cache:       clientCache,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+		Queries:         queries,
+	}
+	translationService := &translation.Service{
+		TemplateEngine:                  engine,
+		StaticAssets:                    staticAssetResolver,
+		SMTPServerCredentialsSecretItem: smtpServerCredentialsSecretItem,
+		OAuthClientResolver:             oauthclientResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clockClock,
+	}
+	ldapStore := &ldap.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	normalizer := &stdattrs.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	ldapProvider := &ldap.Provider{
+		Store:                        ldapStore,
+		Clock:                        clockClock,
+		StandardAttributesNormalizer: normalizer,
+	}
+	serviceService := &service.Service{
+		Authentication:          authenticationConfig,
+		Identity:                identityConfig,
+		IdentityFeatureConfig:   identityFeatureConfig,
+		SSOOAuthDemoCredentials: ssooAuthDemoCredentials,
+		Store:                   serviceStore,
+		LoginID:                 provider,
+		OAuth:                   oauthProvider,
+		Anonymous:               anonymousProvider,
+		Biometric:               biometricProvider,
+		Passkey:                 passkeyProvider,
+		SIWE:                    siweProvider,
+		LDAP:                    ldapProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	expiry := password.ProvideExpiry(authenticatorPasswordConfig, clockClock)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Expiry:          expiry,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	oobProvider := &oob.Provider{
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
+		UIConfig:                 uiConfig,
+	}
+	readOnlyService := &service2.ReadOnlyService{
+		Store:    store3,
+		Password: passwordProvider,
+		Passkey:  provider2,
+		TOTP:     totpProvider,
+		OOBOTP:   oobProvider,
+	}
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		ClaimStore:        storePQ,
+	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs2.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	rolesgroupsStore := &rolesgroups.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rolesgroupsQueries := &rolesgroups.Queries{
+		Store: rolesgroupsStore,
+	}
+	userQueries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     readOnlyService,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     rolesgroupsQueries,
+		Clock:              clockClock,
+	}
+	resolverImpl := &event.ResolverImpl{
+		Users: userQueries,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	webHookImpl := hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	httpFeatureConfig := featureConfig.HTTP
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig, httpFeatureConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient(httpFeatureConfig)
+	eventWebHookImpl := &hook.EventWebHookImpl{
+		WebHookImpl: webHookImpl,
+		SyncHTTP:    syncHTTPClient,
+		AsyncHTTP:   asyncHTTPClient,
+	}
+	denoHook := hook.DenoHook{
+		ResourceManager: manager,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint)
+	eventDenoHookImpl := &hook.EventDenoHookImpl{
+		DenoHook:        denoHook,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+	}
+	commands := &rolesgroups.Commands{
+		Store: rolesgroupsStore,
+	}
+	sink := &hook.Sink{
+		Config:             hookConfig,
+		Clock:              clockClock,
+		EventWebHook:       eventWebHookImpl,
+		EventDenoHook:      eventDenoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		RolesAndGroups:     commands,
+	}
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	pool := rootProvider.RedisPool
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	globalRedisCredentialsEnvironmentConfig := &environmentConfig.GlobalRedis
+	globalredisHandle := globalredis.NewHandle(pool, redisEnvironmentConfig, globalRedisCredentialsEnvironmentConfig)
+	telemetryConfig := appConfig.Telemetry
+	durationString := environmentConfig.AuditLogStreamingInterval
+	producer := auditlogstreaming.NewProducer(globalredisHandle, appID, telemetryConfig, featureConfig, durationString)
+	auditSink := &audit.Sink{
+		Database: writeHandle,
+		Store:    writeStore,
+		Producer: producer,
+	}
+	searchConfig := appConfig.Search
+	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clockClock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           appID,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		Clock:           clockClock,
+		Database:        appdbHandle,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	configAppID := &appConfig.ID
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := appProvider.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := &pgsearch.Service{
+		AppID:    configAppID,
+		Store:    pgsearchStore,
+		Database: searchdbHandle,
+	}
+	globalSearchImplementation := environmentConfig.SearchImplementation
+	reindexer := &reindex.Reindexer{
+		AppID:                      appID,
+		SearchConfig:               searchConfig,
+		Clock:                      clockClock,
+		Database:                   appdbHandle,
+		UserStore:                  store,
+		Producer:                   userReindexProducer,
+		SourceProvider:             sourceProvider,
+		ElasticsearchReindexer:     elasticsearchService,
+		PostgresqlReindexer:        pgsearchService,
+		GlobalSearchImplementation: globalSearchImplementation,
+	}
+	reindexSink := &reindex.Sink{
+		Reindexer: reindexer,
+		Database:  appdbHandle,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaReadOnlyService := &mfa.ReadOnlyService{
+		RecoveryCodes: storeRecoveryCodePQ,
+	}
+	userInfoService := &userinfo.UserInfoService{
+		Redis:                 handle,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		AuthenticationConfig:  authenticationConfig,
+		UserQueries:           userQueries,
+		RolesAndGroupsQueries: rolesgroupsQueries,
+		AuthenticatorService:  readOnlyService,
+		MFAService:            mfaReadOnlyService,
+		IdentityService:       serviceService,
+	}
+	userinfoSink := &userinfo.Sink{
+		UserInfoService: userInfoService,
+	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticConfig := deps.ProvideAnalyticConfig(environmentConfig)
+	posthogCredentials := analytic.NewPosthogCredentials(analyticConfig)
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
+	posthogService := &analytic.PosthogService{
+		PosthogCredentials: posthogCredentials,
+		HTTPClient:         posthogHTTPClient,
+	}
+	firstAuthSink := &analytic.FirstAuthSink{
+		Clock:         clockClock,
+		AnalyticRedis: analyticredisHandle,
+		Posthog:       posthogService,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, httpRequestURL, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink, userinfoSink, firstAuthSink)
+	limiter := &ratelimit.Limiter{
+		Database:     appdbHandle,
+		Storage:      storageRedis,
+		AppID:        appID,
+		Config:       rateLimitsFeatureConfig,
+		EventService: eventService,
+	}
+	messagingConfig := appConfig.Messaging
+	whatsappConfig := messagingConfig.Whatsapp
+	globalWhatsappAPIType := environmentConfig.WhatsappAPIType
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappOnPremisesCredentials, tokenStore, httpClient)
+	whatsappCloudAPICredentials := deps.ProvideWhatsappCloudAPICredentials(secretConfig)
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	cloudAPIClient := whatsapp.NewWhatsappCloudAPIClient(whatsappCloudAPICredentials, httpClient, appHostSuffixes)
+	messageStore := &whatsapp.MessageStore{
+		Redis:       globalredisHandle,
+		Credentials: whatsappCloudAPICredentials,
+	}
+	whatsappService := &whatsapp.Service{
+		Clock:                 clockClock,
+		WhatsappConfig:        whatsappConfig,
+		LocalizationConfig:    localizationConfig,
+		GlobalWhatsappAPIType: globalWhatsappAPIType,
+		OnPremisesClient:      onPremisesClient,
+		CloudAPIClient:        cloudAPIClient,
+		MessageStore:          messageStore,
+		Credentials:           whatsappCloudAPICredentials,
+	}
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
+	metricsStore := &fraudprotection.MetricsStore{
+		AuditWriteDatabase: writeHandle,
+		AuditReadDatabase:  readHandle,
+		SQLBuilder:         auditdbSQLBuilderApp,
+		WriteSQLExecutor:   writeSQLExecutor,
+		ReadSQLExecutor:    readSQLExecutor,
+		Redis:              handle,
+		AppID:              appID,
+		Clock:              clockClock,
+	}
+	leakyBucketStore := &fraudprotection.LeakyBucketStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	fraudProtectionConfig := appConfig.FraudProtection
+	httpReferer := deps.ProvideHTTPReferer(request)
+	fraudprotectionService := &fraudprotection.Service{
+		AppID:           appID,
+		Metrics:         metricsStore,
+		LeakyBucket:     leakyBucketStore,
+		Config:          fraudProtectionConfig,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		HTTPRequestURL:  httpRequestURL,
+		HTTPReferer:     httpReferer,
+		Clock:           clockClock,
+		Database:        appdbHandle,
+		EventService:    eventService,
+		VerifiedClaims:  storePQ,
+	}
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	otpService := &otp.Service{
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeConfig:        testModeConfig,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		RateLimiter:           limiter,
+		WhatsappService:       whatsappService,
+		FraudProtection:       fraudprotectionService,
+		FeatureConfig:         featureConfig,
+		EnvConfig:             rateLimitsEnvironmentConfig,
+	}
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis: handle,
+		AppID: appID,
+	}
+	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, authenticationflowStoreImpl)
+	loginlinkService := &loginlink.Service{
+		Config:   appConfig,
+		OTPCodes: otpService,
+		Events:   websocketEventStore,
+	}
+	apiController := &api2.APIController{
+		LoginLinks: loginlinkService,
+	}
+	loginLinkV1InspectHandler := &api.LoginLinkV1InspectHandler{
+		Controller: apiController,
+	}
+	return loginLinkV1InspectHandler
 }
 
 // Injectors from wire_middleware.go:
@@ -123839,6 +125261,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	samlConfig := appConfig.SAML
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -123846,6 +125269,7 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	corsMatcher := &middleware.CORSMatcher{
 		Config:             httpConfig,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 		SAMLConfig:         samlConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
@@ -123872,10 +125296,12 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider, allowFrameAncestorsFromEnv
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
 	allowedFrameAncestors := environmentConfig.AllowedFrameAncestors
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
 		Cookies:                         cookieManager,
 		OAuthConfig:                     oAuthConfig,
+		UIConfig:                        uiConfig,
 		AllowedFrameAncestorsFromEnv:    allowedFrameAncestors,
 		AllowFrameAncestorsFromEnv:      allowFrameAncestorsFromEnv,
 		AllowFrameAncestorsFromCustomUI: allowFrameAncestorsFromCustomUI,
@@ -124405,6 +125831,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -125322,6 +126749,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -126025,6 +127453,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Sender:         messagingSender,
 		CodeStore:      codeStoreRedis,
 		WhatsappConfig: whatsappConfig,
+		UIConfig:       uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig, httpFeatureConfig)
@@ -126412,6 +127841,7 @@ func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -127403,6 +128833,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -128369,6 +129800,7 @@ func newAuthenticationFlowRateLimitMiddleware(p *deps.RequestProvider) httproute
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -128865,6 +130297,7 @@ func newAccountManagementRateLimitMiddleware(p *deps.RequestProvider) httproute.
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,

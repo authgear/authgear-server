@@ -7,13 +7,11 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
+	authapi "github.com/authgear/authgear-server/pkg/auth/api"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -80,19 +78,14 @@ func NewVerifyLoginLinkOTPViewModel(r *http.Request) VerifyLoginLinkOTPViewModel
 	}
 }
 
-type AuthenticationFlowWebsocketEventStore interface {
-	Publish(ctx context.Context, websocketChannelName string, e authflow.Event) error
-}
-
 type AuthflowV2VerifyLoginLinkOTPHandler struct {
-	LoginLinkOTPCodeService     handlerwebapp.OTPCodeService
-	GlobalSessionServiceFactory *handlerwebapp.GlobalSessionServiceFactory
-	ControllerFactory           handlerwebapp.ControllerFactory
-	BaseViewModel               *viewmodels.BaseViewModeler
-	AuthenticationViewModel     *viewmodels.AuthenticationViewModeler
-	Renderer                    handlerwebapp.Renderer
-	AuthenticationFlowEvents    AuthenticationFlowWebsocketEventStore
-	Config                      *config.AppConfig
+	// APIController makes this page use the login link API, so a Custom UI
+	// can do the same.
+	APIController           *authapi.APIController
+	ControllerFactory       handlerwebapp.ControllerFactory
+	BaseViewModel           *viewmodels.BaseViewModeler
+	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
+	Renderer                handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2VerifyLoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]any, error) {
@@ -134,19 +127,13 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 
 		if GetLoginLinkStateFromQuery(r) == LoginLinkOTPPageQueryStateInitial {
 			code := r.URL.Query().Get("code")
-			kind := otp.KindOOBOTPLink(h.Config, model.AuthenticatorOOBChannelEmail)
-
-			target, err := h.LoginLinkOTPCodeService.LookupCode(ctx, kind.Purpose(), code)
-			if apierrors.IsKind(err, otp.InvalidOTPCode) {
+			// The API rejects an empty code as an invalid request; show it as an invalid link.
+			if code == "" {
 				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
-			} else if err != nil {
-				return err
 			}
 
-			err = h.LoginLinkOTPCodeService.VerifyOTP(
-				ctx, kind, target, code, &otp.VerifyOptions{SkipConsume: true},
-			)
+			err := h.APIController.InspectLoginLink(ctx, map[string]any{"code": code})
 			if apierrors.IsKind(err, otp.InvalidOTPCode) {
 				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
@@ -166,45 +153,17 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 		}
 
 		code := r.Form.Get("x_oob_otp_code")
-		kind := otp.KindOOBOTPLink(h.Config, model.AuthenticatorOOBChannelEmail)
+		if code == "" {
+			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
+			return nil
+		}
 
-		target, err := h.LoginLinkOTPCodeService.LookupCode(ctx, kind.Purpose(), code)
+		err = h.APIController.ApproveLoginLink(ctx, map[string]any{"code": code})
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
 		} else if err != nil {
 			return err
-		}
-
-		state, err := h.LoginLinkOTPCodeService.SetSubmittedCode(ctx, kind, target, code)
-		if apierrors.IsKind(err, otp.InvalidOTPCode) {
-			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
-			return nil
-		} else if err != nil {
-			return err
-		}
-
-		// Update the web session and trigger the refresh event
-		if state.WebSessionID != "" {
-			webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
-				h.Config.ID,
-			)
-			webSession, err := webSessionProvider.GetSession(ctx, state.WebSessionID)
-			if err != nil {
-				return err
-			}
-			err = webSessionProvider.UpdateSession(ctx, webSession)
-			if err != nil {
-				return err
-			}
-		}
-
-		// For authentication flow
-		if state.AuthenticationFlowWebsocketChannelName != "" {
-			err = h.AuthenticationFlowEvents.Publish(ctx, state.AuthenticationFlowWebsocketChannelName, authflow.NewEventRefresh())
-			if err != nil {
-				return err
-			}
 		}
 
 		finishWithState(LoginLinkOTPPageQueryStateMatched)

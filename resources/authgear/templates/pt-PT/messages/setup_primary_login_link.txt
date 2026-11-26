@@ -2,6 +2,6 @@ Verificar o seu email em {{ template "app.name" }}
 
 Por favor, visite o link abaixo para concluir o seu processo de registo em {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Se não iniciou esta configuração, ignore este email.

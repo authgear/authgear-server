@@ -1,4 +1,5 @@
 *.log
+/logs/*.jsonl
 /dist/*
 
 !.env

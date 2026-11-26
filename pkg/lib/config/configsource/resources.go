@@ -427,6 +427,12 @@ func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.A
 		}
 	}
 	if !*fc.OAuth.Client.CustomUIEnabled {
+		if !appConfig.UI.CustomUIEndpoints.IsEmpty() {
+			validationCtx.Child(
+				"ui",
+				"custom_ui_endpoints",
+			).EmitErrorMessage("custom ui is disallowed")
+		}
 		for i, oauthClient := range appConfig.OAuth.Clients {
 			if oauthClient.CustomUIURI != "" {
 				validationCtx.Child(

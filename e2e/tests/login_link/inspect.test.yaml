@@ -1,0 +1,199 @@
+name: Inspect a login link with the API
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: login_link
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "e2e_login_link@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 1,
+        "channel": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "type": "verify_oob_otp_data",
+              "otp_form": "link",
+              "can_check": false
+            }
+          }
+        }
+
+  - name: inspect
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/inspect
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "{{ linkOTPCode "email" "e2e_login_link@example.com" }}"
+      }
+    http_output:
+      http_status: 200
+      json_body: |
+        {
+          "result": {}
+        }
+
+  # Inspecting did not approve the link.
+  - action: input
+    input: |
+      {
+        "check": true
+      }
+    output:
+      error: |
+        {
+          "reason": "InvalidCredentials"
+        }
+
+  - name: approve
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/approve
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "{{ linkOTPCode "email" "e2e_login_link@example.com" }}"
+      }
+    http_output:
+      http_status: 200
+
+  # An approved link can still be approved.
+  - name: inspect_approved
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/inspect
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "{{ linkOTPCode "email" "e2e_login_link@example.com" }}"
+      }
+    http_output:
+      http_status: 200
+
+  - action: input
+    input: |
+      {
+        "check": true
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  - name: inspect_consumed
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/inspect
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "{{ linkOTPCode "email" "e2e_login_link@example.com" }}"
+      }
+    http_output:
+      http_status: 403
+      json_body: |
+        {
+          "error": {
+            "reason": "InvalidOTPCode"
+          }
+        }
+---
+name: Inspect an unknown login link
+steps:
+  - name: inspect_unknown
+    action: http_request
+    http_request_method: POST
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/inspect
+    http_request_headers:
+      Content-Type: application/json
+    http_request_body: |
+      {
+        "code": "UNKNOWN"
+      }
+    http_output:
+      http_status: 403
+      json_body: |
+        {
+          "error": {
+            "reason": "InvalidOTPCode"
+          }
+        }
+---
+name: CORS allows a Custom UI to inspect a login link
+authgear.yaml:
+  override: |
+    ui:
+      custom_ui_endpoints:
+        login_link: http://project-ui.example.com/login-link
+steps:
+  - name: preflight
+    action: http_request
+    http_request_method: OPTIONS
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/api/v1/login_link/inspect
+    http_request_headers:
+      Origin: http://project-ui.example.com
+      Access-Control-Request-Method: POST
+    http_output:
+      headers:
+        Access-Control-Allow-Origin: http://project-ui.example.com
+---
+name: Auth UI shows an unknown login link as invalid
+# The approval page inspects the link through the login link API on load.
+steps:
+  - name: open_unknown_link
+    action: http_request
+    http_request_method: GET
+    http_request_url: http://{{ .AppID }}.authgeare2e.localhost:4000/authflow/v2/verify_login_link?code=UNKNOWN
+    http_request_follow_redirects: false
+    http_output:
+      http_status: 302
+      location_contains:
+        - /authflow/v2/verify_login_link?
+        - state=invalid_code

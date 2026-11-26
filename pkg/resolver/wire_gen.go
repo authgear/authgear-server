@@ -355,6 +355,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,
@@ -1246,6 +1247,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		TrustProxy:         trustProxy,
 		TranslationService: translationService,
 		OAuthConfig:        oAuthConfig,
+		UIConfig:           uiConfig,
 	}
 	passkeyService := &passkey2.Service{
 		Store:         store2,

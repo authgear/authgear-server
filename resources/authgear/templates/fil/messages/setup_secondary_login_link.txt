@@ -2,6 +2,6 @@ I-verify ang iyong email at i-setup ang 2-step verification sa {{ template "app.
 
 Mangyaring i-click ang link sa ibaba para i-setup ang 2-step verification sa {{ template "app.name" }}.
 
-{{ .URL }}
+{{ .Link }}
 
 Kung hindi mo pinagana ang setup na ito, pakiignore na lang ang email na ito.

@@ -167,7 +167,7 @@ Use existing repo skills instead of one-off instructions when they fit:
 - `new-siteadmin-api`
 - `review-pr` — **mandatory before marking any code change complete** (see Verification below), also usable on demand for "review this PR/branch"
 - `update-portal-ui` — **use this before adding or editing any portal UI page** (link components, i18n inline links, FluentUI Text pitfalls, hardcoded/untranslated text, querying only the data a screen needs)
-- `update-email-templates` — **use this before editing any email template, translation string, or email subject line** (`*.gotemplate`, `messages/translation.json`, `translation.json` subjects)
+- `update-email-templates` — **use this before editing any email template, translation string, or email subject line** (`*.gotemplate`, `messages/translation.json`, `translation.json` subjects). It splits the work into reviewable commits: `en` sources only, then non-`en` translations, then the generated templates of every locale, with nothing hand-edited in the generated commit
 - `update-configs` — **use this before adding or changing any project config (`authgear.yaml`), feature config (`authgear.features.yaml`), or secret (`authgear.secrets.yaml`) field** (feature config merge must be field-level; every surface has a required testdata fixture — `config_tests.yaml`, `parse_feature_tests.yaml`/`merge_feature.yaml`, or `parse_secret_tests.yaml`/`secret_config_validate_tests.yaml`)
 - `write-e2e-test` — **includes patterns for testing feature variants and actual functionality. Use this before writing, editing, or running e2e tests** (see "Common Patterns" section)
 - Repo-local skills for Go tests, Portal GraphQL operations, Go version updates, important-module updates, and vetted-position updates

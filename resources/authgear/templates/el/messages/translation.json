@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "Συνδεθείτε στο {{ template \"app.name\" }}",
     "Body": "Παρακαλούμε ακολουθήστε τον παρακάτω σύνδεσμο για να συνδεθείτε στο {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Αν δεν ξεκινήσατε μια είσοδο, παρακαλούμε αγνοήστε αυτό το email."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "Συνδεθείτε στο {{ template \"app.name\" }}",
     "Body": "Παρακαλούμε ακολουθήστε τον παρακάτω σύνδεσμο για να συνδεθείτε στο {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Αν δεν ξεκινήσατε μια είσοδο, παρακαλούμε αγνοήστε αυτό το email."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "Επαληθεύστε το email σας στο {{ template \"app.name\" }}",
     "Body": "Παρακαλώ επισκεφθείτε τον παρακάτω σύνδεσμο για να ολοκληρώσετε τη διαδικασία εγγραφής σας στο {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Αν δεν ξεκινήσατε αυτήν τη ρύθμιση, παρακαλώ αγνοήστε αυτό το email."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "Επαληθεύστε το email σας και ρυθμίστε την επαλήθευση δύο βημάτων στο {{ template \"app.name\" }}",
     "Body": "Παρακαλώ κάντε κλικ στον παρακάτω σύνδεσμο για να ρυθμίσετε την επαλήθευση δύο βημάτων στο {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Αν δεν ξεκινήσατε αυτήν τη ρύθμιση, παρακαλώ αγνοήστε αυτό το email."
   },
   "SetupSecondaryOOBEmailTXT": {

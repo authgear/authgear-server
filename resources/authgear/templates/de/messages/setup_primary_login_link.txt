@@ -2,6 +2,6 @@ Verifizieren Sie Ihre E-Mail-Adresse bei {{ template "app.name" }}
 
 Bitte besuchen Sie den Link unten, um den Registrierungsprozess bei {{ template "app.name" }} abzuschließen.
 
-{{ .URL }}
+{{ .Link }}
 
 Wenn Sie diese Einrichtung nicht ausgelöst haben, ignorieren Sie bitte diese E-Mail.

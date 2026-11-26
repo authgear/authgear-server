@@ -62,7 +62,7 @@
   "PrimaryLoginLinkTXT": {
     "Title": "Connectez-vous à {{ template \"app.name\" }}",
     "Body": "Veuillez suivre le lien ci-dessous pour vous connecter à {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
   },
   "PrimaryOOBEmailTXT": {
@@ -77,7 +77,7 @@
   "SecondaryLoginLinkTXT": {
     "Title": "Connectez-vous à {{ template \"app.name\" }}",
     "Body": "Veuillez suivre le lien ci-dessous pour vous connecter à {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Si vous n'avez pas déclenché une connexion, veuillez ignorer cet e-mail."
   },
   "SecondaryOOBEmailTXT": {
@@ -112,7 +112,7 @@
   "SetupPrimaryLoginLinkTXT": {
     "Title": "Vérifiez votre e-mail sur {{ template \"app.name\" }}",
     "Body": "Veuillez visiter le lien ci-dessous pour terminer votre processus d'inscription sur {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
   },
   "SetupPrimaryOOBEmailTXT": {
@@ -127,7 +127,7 @@
   "SetupSecondaryLoginLinkTXT": {
     "Title": "Vérifiez votre e-mail et configurez la vérification en deux étapes sur {{ template \"app.name\" }}",
     "Body": "Veuillez cliquer sur le lien ci-dessous pour configurer la vérification en deux étapes sur {{ template \"app.name\" }}.",
-    "URL": "{{ .URL }}",
+    "URL": "{{ .Link }}",
     "Disclaimer": "Si vous n'avez pas déclenché cette configuration, veuillez ignorer cet e-mail."
   },
   "SetupSecondaryOOBEmailTXT": {

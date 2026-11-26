@@ -22,6 +22,7 @@ type ConfigService struct {
 	TrustProxy         config.TrustProxy
 	TranslationService TranslationService
 	OAuthConfig        *config.OAuthConfig
+	UIConfig           *config.UIConfig
 }
 
 // makeRPOrigins returns every origin from which a ceremony for this project may
@@ -33,8 +34,8 @@ type ConfigService struct {
 // A Custom UI is the exception. It is served from the customer's own origin and
 // drives the Authentication Flow API cross-origin, so the ceremony happens there
 // and the browser reports that origin rather than ours. Its origin is taken from
-// x_custom_ui_uri, the same field the CORS allowlist is derived from, so one
-// declaration covers both.
+// every URI that can resolve to the Custom UI authentication page. The login_link
+// and account_recovery pages do not perform ceremonies, so they are not included.
 //
 // Deliberately not included: http.allowed_origins, redirect_uris and
 // x_pre_authenticated_url_allowed_origins. Those say an origin may call the API
@@ -52,17 +53,14 @@ func (s *ConfigService) makeRPOrigins(publicOrigin url.URL) ([]string, map[strin
 	}
 
 	seen := map[string]struct{}{publicOriginString: {}}
-	for _, client := range s.OAuthConfig.Clients {
-		if client.CustomUIURI == "" {
-			continue
-		}
-		u, err := url.Parse(client.CustomUIURI)
+	for _, uri := range config.CustomUIAuthenticationURIs(s.UIConfig, s.OAuthConfig) {
+		u, err := url.Parse(uri)
 		if err != nil {
 			// Unparseable values are rejected by the config schema's "uri"
 			// format; skip rather than fail the ceremony.
 			continue
 		}
-		// x_custom_ui_uri is a full URI. Reduce it to scheme and host, keeping
+		// The URI is a full URI. Reduce it to scheme and host, keeping
 		// any port, since a port is part of an origin.
 		origin := urlutil.ExtractOrigin(u).String()
 		if _, ok := seen[origin]; ok {

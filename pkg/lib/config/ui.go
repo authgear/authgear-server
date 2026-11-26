@@ -29,7 +29,8 @@ var _ = Schema.Add("UIConfig", `
 			"enum": ["v1", "v2"]
 		},
 		"forgot_password": { "$ref": "#/$defs/UIForgotPasswordConfig" },
-		"authentication_flow": { "$ref": "#/$defs/UIAuthenticationFlowConfig" }
+		"authentication_flow": { "$ref": "#/$defs/UIAuthenticationFlowConfig" },
+		"custom_ui_endpoints": { "$ref": "#/$defs/CustomUIEndpointsConfig" }
 	}
 }
 `)
@@ -61,6 +62,8 @@ type UIConfig struct {
 	ForgotPassword *UIForgotPasswordConfig `json:"forgot_password,omitempty"`
 	// AuthenticationFlow configures ui behaviour of authentication flow under default auth ui
 	AuthenticationFlow *UIAuthenticationFlowConfig `json:"authentication_flow,omitempty"`
+	// CustomUIEndpoints is the project default of the Custom UI pages.
+	CustomUIEndpoints *CustomUIEndpointsConfig `json:"custom_ui_endpoints,omitempty" nullable:"true"`
 }
 
 var _ = Schema.Add("PhoneInputConfig", `

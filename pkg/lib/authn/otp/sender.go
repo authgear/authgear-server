@@ -64,45 +64,71 @@ type MessageSender struct {
 	CodeStore   SenderCodeStore
 
 	WhatsappConfig *config.WhatsappConfig
+
+	UIConfig *config.UIConfig
 }
 
 var SenderLogger = slogutil.NewLogger("otp-sender")
 
 var FromAdminAPIQueryKey = "x_from_admin_api"
 
-func (s *MessageSender) setupTemplateContext(msgType translation.MessageType, opts SendOptions) (*translation.PartialTemplateVariables, error) {
-	url := ""
-	if opts.Form == FormLink {
-		var linkURL *neturl.URL
-		switch msgType {
-		case translation.MessageTypeSetupPrimaryOOB,
-			translation.MessageTypeSetupSecondaryOOB,
-			translation.MessageTypeAuthenticatePrimaryOOB,
-			translation.MessageTypeAuthenticateSecondaryOOB:
+// customUIURL returns nil when Auth UI should be used.
+func (s *MessageSender) customUIURL(ctx context.Context, customURI string) *neturl.URL {
+	if customURI == "" {
+		return nil
+	}
+	u, err := neturl.Parse(customURI)
+	if err != nil {
+		// The config schema rejects such a URI, so fall back to Auth UI.
+		SenderLogger.GetLogger(ctx).WithError(err).Warn(ctx, "invalid custom ui uri")
+		return nil
+	}
+	return u
+}
 
+func (s *MessageSender) buildLinkURL(ctx context.Context, msgType translation.MessageType, opts SendOptions) *neturl.URL {
+	var linkURL *neturl.URL
+	fromAdminAPI := false
+	switch msgType {
+	case translation.MessageTypeSetupPrimaryOOB,
+		translation.MessageTypeSetupSecondaryOOB,
+		translation.MessageTypeAuthenticatePrimaryOOB,
+		translation.MessageTypeAuthenticateSecondaryOOB:
+
+		linkURL = s.customUIURL(ctx, s.UIConfig.ResolveCustomUILoginLinkURI())
+		if linkURL == nil {
 			linkURL = s.Endpoints.LoginLinkVerificationEndpointURL()
-			query := linkURL.Query()
-			query.Set("code", opts.OTP)
-			linkURL.RawQuery = query.Encode()
-
-		case translation.MessageTypeForgotPassword:
-
-			linkURL = s.Endpoints.ResetPasswordEndpointURL()
-			query := linkURL.Query()
-			query.Set("code", opts.OTP)
-			if opts.IsAdminAPIResetPassword {
-				query.Set(FromAdminAPIQueryKey, "true")
-			}
-			linkURL.RawQuery = query.Encode()
-
-		default:
-			panic("otp: unexpected message type for link: " + msgType)
 		}
 
-		url = linkURL.String()
+	case translation.MessageTypeForgotPassword:
+
+		linkURL = s.customUIURL(ctx, s.UIConfig.ResolveCustomUIAccountRecoveryURI())
+		if linkURL == nil {
+			linkURL = s.Endpoints.ResetPasswordEndpointURL()
+			fromAdminAPI = opts.IsAdminAPIResetPassword
+		}
+
+	default:
+		panic("otp: unexpected message type for link: " + msgType)
 	}
 
-	ctx := &translation.PartialTemplateVariables{
+	// Keep the query parameters of a Custom UI page.
+	q := linkURL.Query()
+	q.Set("code", opts.OTP)
+	if fromAdminAPI {
+		q.Set(FromAdminAPIQueryKey, "true")
+	}
+	linkURL.RawQuery = q.Encode()
+	return linkURL
+}
+
+func (s *MessageSender) setupTemplateContext(ctx context.Context, msgType translation.MessageType, opts SendOptions) (*translation.PartialTemplateVariables, error) {
+	url := ""
+	if opts.Form == FormLink {
+		url = s.buildLinkURL(ctx, msgType, opts).String()
+	}
+
+	variables := &translation.PartialTemplateVariables{
 		Code: opts.OTP,
 		URL:  url,
 		Link: url,
@@ -111,20 +137,20 @@ func (s *MessageSender) setupTemplateContext(msgType translation.MessageType, op
 
 	switch opts.Channel {
 	case model.AuthenticatorOOBChannelEmail:
-		ctx.Email = opts.Target
+		variables.Email = opts.Target
 	case model.AuthenticatorOOBChannelSMS:
-		ctx.Phone = opts.Target
+		variables.Phone = opts.Target
 	case model.AuthenticatorOOBChannelWhatsapp:
-		ctx.Phone = opts.Target
+		variables.Phone = opts.Target
 	default:
 		panic("otp: unknown channel: " + opts.Channel)
 	}
 
 	if opts.AdditionalContext != nil {
-		ctx.HasPassword = opts.AdditionalContext.HasPassword
+		variables.HasPassword = opts.AdditionalContext.HasPassword
 	}
 
-	return ctx, nil
+	return variables, nil
 }
 
 func (s *MessageSender) selectMessage(form Form, typ translation.MessageType) *translation.MessageSpec {
@@ -175,7 +201,7 @@ func (s *MessageSender) sendEmail(ctx context.Context, opts SendOptions) error {
 	spec := s.selectMessage(opts.Form, opts.Type)
 	msgType := spec.MessageType
 
-	variables, err := s.setupTemplateContext(msgType, opts)
+	variables, err := s.setupTemplateContext(ctx, msgType, opts)
 	if err != nil {
 		return err
 	}
@@ -208,7 +234,7 @@ func (s *MessageSender) sendSMS(ctx context.Context, opts SendOptions, preferAsy
 	spec := s.selectMessage(opts.Form, opts.Type)
 	msgType := spec.MessageType
 
-	variables, err := s.setupTemplateContext(msgType, opts)
+	variables, err := s.setupTemplateContext(ctx, msgType, opts)
 	if err != nil {
 		return err
 	}

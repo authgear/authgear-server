@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"net/url"
 	"testing"
 
@@ -12,6 +13,7 @@ import (
 )
 
 func TestProxyRedirectHandler(t *testing.T) {
+	ctx := context.Background()
 	h := handler.ProxyRedirectHandler{
 		OAuthConfig: &config.OAuthConfig{
 			Clients: []config.OAuthClientConfig{
@@ -28,13 +30,13 @@ func TestProxyRedirectHandler(t *testing.T) {
 	}
 
 	testError := func(input string, error string) {
-		_, err := h.Validate(input)
+		_, err := h.Validate(ctx, input)
 		So(err, ShouldNotBeNil)
 		So(err, ShouldBeError, error)
 	}
 
 	testOK := func(input string, expected *oauth.WriteResponseOptions) {
-		actual, err := h.Validate(input)
+		actual, err := h.Validate(ctx, input)
 		So(err, ShouldBeNil)
 		So(actual, ShouldEqual, expected)
 	}
@@ -107,6 +109,30 @@ func TestProxyRedirectHandler(t *testing.T) {
 
 		Convey("should reject uri that not on the list", func() {
 			testError("http://app2.example.com/auth/complete?state=state", "redirect URI is not allowed")
+		})
+
+		Convey("should use the project Custom UI authentication page", func() {
+			ph := handler.ProxyRedirectHandler{
+				OAuthConfig: &config.OAuthConfig{
+					Clients: []config.OAuthClientConfig{
+						{RedirectURIs: []string{"com.example.myapp://host/path"}},
+					},
+				},
+				UIConfig: &config.UIConfig{
+					CustomUIEndpoints: &config.CustomUIEndpointsConfig{
+						Authentication: "http://customui.example.com/auth",
+					},
+				},
+				HTTPOrigin: "http://auth.example.com",
+			}
+
+			actual, err := ph.Validate(ctx, "com.example.myapp://host/path?code=code")
+			So(err, ShouldBeNil)
+			So(actual.UseHTTP200, ShouldBeTrue)
+
+			// The project page does not allow redirect URIs on its origin.
+			_, err = ph.Validate(ctx, "http://customui.example.com/done")
+			So(err, ShouldBeError, "redirect URI is not allowed")
 		})
 	})
 

@@ -948,3 +948,17 @@ func newWebAppAuthflowV2SettingsIdentityDeprecatedRedirectHandler(p *deps.Reques
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityDeprecatedRedirectHandler)),
 	))
 }
+
+func newAPILoginLinkV1ApproveHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.LoginLinkV1ApproveHandler)),
+	))
+}
+
+func newAPILoginLinkV1InspectHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.LoginLinkV1InspectHandler)),
+	))
+}

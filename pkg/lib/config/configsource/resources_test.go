@@ -512,6 +512,9 @@ oauth:
       client_id: test-client2
       redirect_uris:
       - "https://example2.com"
+ui:
+  custom_ui_endpoints:
+    authentication: https://custom-auth-webapp.example.com/auth
 `),
 				)
 				So(err, ShouldBeError, `invalid authgear.yaml:
@@ -523,6 +526,7 @@ oauth:
 /authenticator/password/policy/minimum_guessable_level: minimum_guessable_level is disallowed
 /authenticator/password/policy/excluded_keywords: excluded_keywords is disallowed
 /authenticator/password/policy: password history is disallowed
+/ui/custom_ui_endpoints: custom ui is disallowed
 /oauth/clients/0: custom ui is disallowed`)
 			})
 

@@ -1,0 +1,8 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "e2e_login_link@example.com"
+    }
+  ]
+}
