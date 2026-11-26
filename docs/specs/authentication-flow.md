@@ -35,6 +35,7 @@
     + [Authentication Flow involving passkey](#authentication-flow-involving-passkey-1)
   * [Mobile apps using native UI](#mobile-apps-using-native-ui)
     + [The start and the end of a Authentication Flow](#the-start-and-the-end-of-a-authentication-flow)
+    + [Cooperation with third parties](#cooperation-with-third-parties)
     + [Facebook Login](#facebook-login)
     + [Sign in with Apple](#sign-in-with-apple)
     + [Any other OAuth providers supported by Authgear](#any-other-oauth-providers-supported-by-authgear)
@@ -741,27 +742,17 @@ Not documented at the moment.
 
 ## Mobile apps using native UI
 
-> This use case is not intended to be supported at the moment.
-> Instead, we want to put resources on making using Auth UI or using Custom UI solve majority of the use cases.
-
-When the mobile apps want to use native UI, they can consume the HTTP API directly.
+When the mobile apps want to use native UI, they consume the HTTP API through the [SDK Authflow API](./sdk-authflow.md).
 This implies a user agent is **NOT** involved in this use case.
-
-Some authentication experience that involves third parties, however, require the mobile apps to cooperate.
-This section outlines each cooperation in details.
 
 ### The start and the end of a Authentication Flow
 
-RFC 6749 defines [Resource Owner Password Credentials Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.3).
-It requires the client to collect the username and the password from the end-user, and then call the token endpoint with the collected credentials.
-If we compare this grant type with Authentication Flow, we can see that Authentication Flow is doing the same thing,
-except that Authentication Flow is flexible enough to handle all kinds of authentication experience, not limited to username with password.
+The flow is [created with an authorization request](./authentication-flow-api-reference.md#create-with-an-authorization-request), and finishes with a `code` that is exchanged at the token endpoint as specified in [Code from an Authentication Flow](./oidc.md#code-from-an-authentication-flow).
 
-It follows naturally that we need to support a new grant type in the token endpoint to facilitate the integration between Authentication Flow and OAuth2, without a user agent.
+### Cooperation with third parties
 
-When an Authentication Flow ends, it includes a `code` in the data.
-This `code` is one-time use, just like an ordinary `authorization_code`.
-The intended usage of this `code` is to call the token endpoint with grant type [`urn:authgear:params:oauth:grant-type:authorization_code`](./oidc.md#urnauthgearparamsoauthgrant-typeauthorization_code)
+Some authentication experience that involves third parties require the mobile apps to cooperate.
+Facebook Login and Sign in with Apple below are designs that are not implemented. Any other OAuth provider works with the existing [`identification: oauth`](./authentication-flow-api-reference.md#identification-oauth).
 
 ### Facebook Login
 

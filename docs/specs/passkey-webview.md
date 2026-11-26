@@ -22,7 +22,7 @@ The Relying Party ID is unchanged: it is the host of `http.public_origin`.
 | Sign up, sign in, and add a passkey in AuthUI shown in the app's WebView | Yes |
 | The same, in a Custom UI shown in the app's WebView | Yes |
 | The login page offers this device's passkey as soon as it loads, without a tap | Yes, see [Passkey on page load](#passkey-on-page-load) |
-| Passkey ceremonies performed by the app natively, without a WebView | No, see [Future works](#future-works) |
+| Passkey ceremonies performed by the app natively, without a WebView | Yes, in the [SDK Authflow API](./sdk-authflow.md#steps-the-app-handles), with the same configuration |
 | A project whose `http.public_origin` is on a default domain | No, see [Association files](#association-files) |
 
 ## Configuration
@@ -115,4 +115,4 @@ When AuthUI's login page loads in the SDK's WebView, it asks the app for a passk
 
 **Hide passkey options where the WebView cannot use them.** In an Android WebView, `PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()` resolves to `false` when the WebView cannot perform a ceremony, for example without the required Google Play services. AuthUI could hide its passkey options in that case instead of letting them fail.
 
-**Native passkey.** Ceremonies performed by the app through the platform passkey APIs, without a WebView. It uses the same `x_native_apps`, and adds a Relying Party ID other than the host of `http.public_origin`.
+**A Relying Party ID other than the host of `http.public_origin`.** For example, `example.com` instead of `auth.example.com`, so that an app and its website share passkeys.

@@ -228,6 +228,40 @@ It can be used in conjunction with `x_page` to decide whether to execute login o
 
 If the specified group is not found or not included in the [client's allow list](/docs/specs/authentication-flow-selection.md#configuration), the request will be rejected.
 
+## Pushed Authorization Request
+
+```
+POST /oauth2/par
+Content-Type: application/x-www-form-urlencoded
+
+client_id=my_app&response_type=code&scope=openid+offline_access&code_challenge=...&code_challenge_method=S256
+```
+
+The endpoint follows [RFC 9126](https://datatracker.ietf.org/doc/html/rfc9126), but its `request_uri` can only be used to [create an Authentication Flow](./authentication-flow-api-reference.md#create-with-an-authorization-request). It is not listed in [the metadata endpoint](#the-metadata-endpoint).
+
+The parameters are those of the [Authentication Request](#authentication-request), and the client authenticates as it does at the token endpoint. The request is rejected when:
+
+- `response_type` is not `code`.
+- `code_challenge` is absent.
+- `redirect_uri` or `response_mode` is present. Nothing is redirected.
+- `prompt` is `none`. There is no session to reuse.
+- The client is third-party or an M2M client.
+
+The response is `201`:
+
+```json
+{
+  "request_uri": "urn:ietf:params:oauth:request_uri:abc123",
+  "expires_in": 60
+}
+```
+
+The `request_uri` creates one Authentication Flow, within `expires_in` seconds.
+
+### Future works
+
+- `request_uri` in the authorization endpoint, and listing the endpoint in the metadata endpoint. The parameters rejected above because nothing is redirected are then rejected only when the `request_uri` creates an Authentication Flow.
+
 ## Token Request
 
 ### grant_type
@@ -240,7 +274,6 @@ The following `grant_type` are supported.
 - `urn:authgear:params:oauth:grant-type:anonymous-request` - authenticating and issuing tokens directly for anonymous user.
 - `urn:authgear:params:oauth:grant-type:biometric-request` - authenticating and issuing tokens directly for users with Biometric identity.
 - `urn:authgear:params:oauth:grant-type:id-token` - for getting an ID token.
-- `urn:authgear:params:oauth:grant-type:authorization_code` - an unimplemented Authentication Flow feature.
 - `urn:authgear:params:oauth:grant-type:settings-action` - for settings action
 
 ### id_token_hint
@@ -258,11 +291,14 @@ When the grant type is `urn:authgear:params:oauth:grant-type:anonymous-request`,
 
 When the grant type is `urn:authgear:params:oauth:grant-type:biometric-request`, the value is specified [here](./user-model.md#biometric-identity-jwt).
 
-### `urn:authgear:params:oauth:grant-type:authorization_code`
+### Code from an Authentication Flow
 
-This grant type is similar to `authorization_code`, except that it **DOES NOT** support the use of PKCE.
-`authorization_code` by definition is delivered by redirect, thus is subject to interception attack, as described in [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636).
-`urn:authgear:params:oauth:grant-type:authorization_code`, in contrast, is delivered in traditional HTTP request-response, thus the use of PKCE is redundant, and would add unnecessary friction.
+An Authentication Flow [created with an authorization request](./authentication-flow-api-reference.md#create-with-an-authorization-request) from the [Pushed Authorization Request endpoint](#pushed-authorization-request) finishes with a `code`. It is exchanged with the `authorization_code` grant, like a code from the authorization endpoint, except:
+
+- `redirect_uri` must be absent, because the code was not delivered by redirect.
+- `code_verifier` is required.
+
+The approach follows [OAuth 2.0 for First-Party Applications](https://datatracker.ietf.org/doc/draft-ietf-oauth-first-party-apps/), which also ends in an ordinary authorization code.
 
 ### resource
 

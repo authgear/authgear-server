@@ -6,6 +6,7 @@
     + [Finish response](#finish-response)
     + [Error response](#error-response)
   * [Create an authentication flow](#create-an-authentication-flow)
+    + [Create with an authorization request](#create-with-an-authorization-request)
   * [Pass an input to a state of an authentication flow](#pass-an-input-to-a-state-of-an-authentication-flow)
   * [Retrieve a state again](#retrieve-a-state-again)
   * [Listen for change with Websocket](#listen-for-change-with-websocket)
@@ -39,6 +40,7 @@
   * [type: login; action.type: identify](#type-login-actiontype-identify)
     + [identification: id_token](#identification-id_token)
     + [identification: select_account](#identification-select_account)
+    + [identification: passkey](#identification-passkey)
   * [type: login; action.type: authenticate](#type-login-actiontype-authenticate)
     + [Bot protection](#bot-protection-2)
     + [authentication: primary_password](#authentication-primary_password-1)
@@ -64,6 +66,7 @@
   * [identification_data](#identification_data)
   * [authentication_data](#authentication_data)
   * [oauth_data](#oauth_data)
+  * [account_linking_identification_data](#account_linking_identification_data)
   * [create_authenticator_data](#create_authenticator_data)
   * [view_recovery_code_data](#view_recovery_code_data)
   * [fill_form_data](#fill_form_data)
@@ -121,6 +124,8 @@ Authentication Flow API always returns a JSON response of the same shape.
   - `signup`: The flow to sign up as a new user.
   - `login`: The flow to sign in as a new user.
   - `signup_login`: This flow will either become `signup` or `login` depending on the input. If the end-user enters an existing login ID, then the flow will becomes `login`, otherwise, it is `signup`.
+  - `reauth`: The flow to authenticate the signed-in user again.
+  - `promote`: The flow to promote an anonymous user to a normal user.
   - `account_recovery`: The flow to recover an account. Currently it can request a reset password link / reset password code to reset primary password.
 - `name`: The name of the authentication flow. See [Create an authentication flow](#create-an-authentication-flow)
 - `action`: An object containing information about the current action.
@@ -149,6 +154,26 @@ Authentication Flow API always returns a JSON response of the same shape.
 
 - `action.type`: When the flow has finished, the value is `finished`.
 - `action.type.data.finish_redirect_uri`: When the flow has finished, you must redirect to this URI to return the control back to Authgear.
+
+A flow [created with an authorization request](#create-with-an-authorization-request) finishes with a `code` instead:
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "finished",
+      "data": {
+        "code": "..."
+      }
+    }
+  }
+}
+```
+
+- `action.data.code`: An authorization code. Exchange it at the token endpoint as specified in [Code from an Authentication Flow](./oidc.md#code-from-an-authentication-flow).
 
 ### Error response
 
@@ -180,6 +205,63 @@ Content-Type: application/json
 ```
 
 Create an authentication flow by specifying the `type` and the `name`. Use the name `default` to use Builtin flows. Auth UI runs Builtin flows by default.
+
+```
+POST /api/v1/authentication_flows
+Content-Type: application/json
+
+{
+  "type": "account_recovery",
+  "name": "default",
+  "url_query": "client_id=my_app&ui_locales=zh-HK"
+}
+```
+
+- `url_query`: Optional. The query of the URL that the UI was opened with, such as the URL a Custom UI receives from the authorization endpoint. These parameters are read from it:
+
+| Parameter | Meaning |
+|---|---|
+| `x_ref` | Binds the flow to the authorization request that redirected to the UI. The flow takes the request's parameters, including those below |
+| `client_id` | As in the [authentication request](./oidc.md#authentication-request). It decides the [allowed flows](./authentication-flow-selection.md#custom-ui--authflow-api) |
+| `ui_locales` | As in the authentication request. Without it, the language comes from the `Accept-Language` header |
+| `state`, `x_state`, `login_hint` | As in the authentication request |
+
+`client_id` names the client when no authorization request is bound: `x_ref` is absent, or its request has expired. The UI is then opened without one, such as for account recovery started on its own.
+
+When an authorization request is bound, its client receives the tokens, so it is the only client of the flow. The other parameters in `url_query` replace those of the bound request.
+
+The request is rejected when:
+
+- `client_id` names no client.
+- `client_id` differs from the client of the bound authorization request.
+
+### Create with an authorization request
+
+A first-party app that renders its own UI can run the flow for an OAuth authorization request, without a browser. The app first sends the authorization request to the [Pushed Authorization Request endpoint](./oidc.md#pushed-authorization-request), then creates the flow with the `request_uri` it receives. The flow [finishes with a `code`](#finish-response) that the app exchanges for tokens. The SDK does this in its [Authflow API](./sdk-authflow.md).
+
+```
+POST /api/v1/authentication_flows
+Content-Type: application/json
+
+{
+  "type": "login",
+  "name": "default",
+  "oauth": {
+    "request_uri": "urn:ietf:params:oauth:request_uri:abc123"
+  }
+}
+```
+
+- `oauth`: Binds the flow to an OAuth authorization request made to Authgear. It is unrelated to [`identification: oauth`](#identification-oauth), which signs in with an OAuth provider.
+- `oauth.request_uri`: The `request_uri` from the Pushed Authorization Request endpoint.
+
+The request is rejected when:
+
+- `request_uri` is unknown, expired, or already used to create a flow.
+- `type` is `account_recovery`. Account recovery issues no tokens.
+- `url_query` is also given.
+
+The flow creates no IdP session. The only session is the one the token endpoint issues for the `code`.
 
 ## Pass an input to a state of an authentication flow
 
@@ -1466,6 +1548,37 @@ If the session cookie no longer resolves to the same user recorded when the opti
 }
 ```
 
+### identification: passkey
+
+The presence of this means you can sign in with a passkey, without entering a login ID first. The passkey both identifies and authenticates the user.
+
+```json
+{
+  "identification": "passkey",
+  "request_options": {
+    "publicKey": {
+      "challenge": "2tVbbyG9dJ0KuM1yHlXeah1fZ6grtP4YyOIORYxIzUM",
+      "timeout": 300000,
+      "rpId": "localhost",
+      "userVerification": "preferred",
+      "allowCredentials": [],
+      "extensions": {
+        "uvm": true
+      }
+    }
+  }
+}
+```
+
+Pass `request_options` to the passkey API, as in [authentication: primary_passkey](#authentication-primary_passkey), and then pass this input
+
+```json
+{
+  "identification": "passkey",
+  "assertion_response": {{ the assertion response }}
+}
+```
+
 ## type: login; action.type: authenticate
 
 When you are in this step, you will see a response like the following if you are performing primary authentication.
@@ -2203,6 +2316,12 @@ The data contains information for initiating an oauth authentication.
 - `oauth_provider_type`: The type of the oauth provider, such as `google`.
 - `oauth_authorization_url`: The authorization url of the oauth provider.
 - `wechat_app_type`: The wechat app type. Only used when provider is `wechat`.
+
+## account_linking_identification_data
+
+The data contains the existing identities to sign in with, so that the identity just identified is linked to that account.
+
+- `options`: The list of identities. See [type: signup; action.type: identify; data.type: account_linking_identification_data](#type-signup-actiontype-identify-datatype-account_linking_identification_data).
 
 ## create_authenticator_data
 

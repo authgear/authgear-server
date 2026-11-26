@@ -204,6 +204,10 @@ const options: PromoteOptions = {
 };
 ```
 
+## Authflow API
+
+The app signs the user in with its own native UI, without a browser. Read [sdk-authflow.md](./sdk-authflow.md).
+
 ## Logout
 
 Logout is provided by the following API
