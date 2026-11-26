@@ -1,6 +1,9 @@
 package viewmodels
 
-import "github.com/authgear/authgear-server/pkg/api/apierrors"
+import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+)
 
 type OAuthErrorViewModel struct {
 	OAuthError error
@@ -13,6 +16,9 @@ func NewOAuthErrorViewModel(rawError *apierrors.APIError) OAuthErrorViewModel {
 			return nil
 		}
 		if rawError.Reason == "UserNotFound" && rawError.Info_ReadOnly["IdentityTypeExisting"] != nil {
+			return rawError
+		} else if rawError.Reason == declarative.NoPublicSignup.Reason {
+			// With public signup disabled, only an OAuth or LDAP login can reach the signup flow.
 			return rawError
 		} else if rawError.Reason == "InvariantViolated" {
 			cause, ok := rawError.Info_ReadOnly["cause"].(map[string]any)
