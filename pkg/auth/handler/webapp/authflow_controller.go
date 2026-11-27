@@ -866,11 +866,10 @@ func (c *AuthflowController) handleTakeBranchResultInput(
 
 func (c *AuthflowController) takeBranchRecursively(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (output *authflow.ServiceOutput, newScreen *webapp.AuthflowScreenWithFlowResponse, err error) {
 	for screen.HasBranchToTake() {
-		// Take the first branch, and first channel by default.
-		var zeroIndex int
+		// Take the default branch, and first channel by default.
 		var zeroChannel model.AuthenticatorOOBChannel
 		takeBranchResult := screen.TakeBranch(&webapp.TakeBranchInput{
-			Index:   zeroIndex,
+			Index:   screen.DefaultBranchIndex(),
 			Channel: zeroChannel,
 		}, &webapp.TakeBranchOptions{})
 
