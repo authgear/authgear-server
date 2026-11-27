@@ -930,7 +930,7 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
       // An empty locale is already the first option. A second hidden item with
       // the same value makes Radix align the menu to a display:none item, so
       // the list opens away from the trigger.
-      if (!found && locale != null && locale !== "") {
+      if (!found && locale !== "") {
         options.push({
           key: locale,
           text: locale,
