@@ -20,6 +20,17 @@ func getUserID(flows authflow.Flows) (userID string, err error) {
 	return authflow.GetUserID(flows)
 }
 
+// isCreatingNewUser reports whether the flow is going to create a new user,
+// that is, it is a signup flow which has not been switched to an existing user by account linking.
+func isCreatingNewUser(flows authflow.Flows) bool {
+	for _, m := range authflow.FindAllMilestones[MilestoneDoCreateUser](flows.Root) {
+		if _, createUser := m.MilestoneDoCreateUser(); createUser {
+			return true
+		}
+	}
+	return false
+}
+
 func collectIdentitySpecs(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (specs []*identity.Spec, err error) {
 	err = authflow.TraverseFlow(authflow.Traverser{
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {

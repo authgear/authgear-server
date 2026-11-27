@@ -114,6 +114,22 @@ func getFormInputConsumption(ctx context.Context) *formInputConsumption {
 	return ctx.Value(contextKeyFormInputConsumption).(*formInputConsumption)
 }
 
+type contextKeyTypeSwitchedFlow struct{}
+
+var contextKeySwitchedFlow = contextKeyTypeSwitchedFlow{}
+
+// withSwitchedFlow marks that the flow is being created because another flow returned ErrorSwitchFlow.
+func withSwitchedFlow(ctx context.Context) context.Context {
+	return context.WithValue(ctx, contextKeySwitchedFlow, true)
+}
+
+// IsSwitchedFlow reports whether the flow is being created because another flow returned ErrorSwitchFlow.
+// Only Service.switchFlow installs the marker, so a missing marker means false.
+func IsSwitchedFlow(ctx context.Context) bool {
+	switched, _ := ctx.Value(contextKeySwitchedFlow).(bool)
+	return switched
+}
+
 type contextKeyTypeSession struct{}
 
 var contextKeySession = contextKeyTypeSession{}

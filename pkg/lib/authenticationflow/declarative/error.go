@@ -13,10 +13,10 @@ var InvalidFlowConfig = apierrors.InternalError.WithReason("AuthenticationFlowIn
 var ErrDifferentUserID = authenticationflow.ErrDifferentUserID
 var ErrNoUserID = authenticationflow.ErrNoUserID
 
-var ErrNoPublicSignup = apierrors.Forbidden.
+var NoPublicSignup = apierrors.Forbidden.
 	WithReason("AuthenticationFlowNoPublicSignup").
-	SkipLoggingToExternalService().
-	New("public signup is disabled")
+	SkipLoggingToExternalService()
+var ErrNoPublicSignup = NoPublicSignup.New("public signup is disabled")
 
 var ErrSelectAccountSessionChanged = apierrors.Unauthorized.
 	WithReason("SelectAccountSessionChanged").

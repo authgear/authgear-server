@@ -466,7 +466,7 @@ func (s *Service) switchFlow(ctx context.Context, session *Session, errSwitchFlo
 		return
 	}
 
-	createOutput, err := s.createNewFlowWithSession(ctx, publicFlow, session)
+	createOutput, err := s.createNewFlowWithSession(withSwitchedFlow(ctx), publicFlow, session)
 	if err != nil {
 		return
 	}
