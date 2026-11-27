@@ -44,3 +44,9 @@ export function addDays(date: Date, days: number): Date {
   result.setDate(result.getDate() + days);
   return result;
 }
+
+// Date pickers and date labels read a Date in the local time zone, so a UTC
+// midnight shows as the previous day west of UTC.
+export function utcDateToLocalDate(date: Date): Date {
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+}

@@ -23,12 +23,16 @@ import AuditLogDateRangeDialog from "../../components/audit-log/AuditLogDateRang
 import { AuditLogDateRangeFilterDropdown } from "../../components/audit-log/AuditLogDateRangeFilterDropdown";
 import { AuditLogDateRangePresetKey } from "../../components/audit-log/dateRangePresets";
 import { useSystemConfig } from "../../context/SystemConfigContext";
-import { parseDate } from "../../util/date";
+import { parseDate, utcDateToLocalDate } from "../../util/date";
 
 function truncateTimeAndReplaceTimezoneToUTC(date: Date): Date {
   return new Date(
     Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
   );
+}
+
+function toDisplayDate(date: Date | null | undefined): Date | undefined {
+  return date == null ? undefined : utcDateToLocalDate(date);
 }
 
 const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
@@ -108,6 +112,24 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
   const maxDate = useMemo(() => {
     return yesterday;
   }, [yesterday]);
+
+  // The state holds UTC midnights; the picker and the label need local days.
+  const displayRange = useMemo(
+    () => ({
+      from: toDisplayDate(rangeFrom),
+      to: toDisplayDate(rangeTo),
+    }),
+    [rangeFrom, rangeTo]
+  );
+  const dialogRange = useMemo(
+    () => ({
+      from: toDisplayDate(uncommittedRangeFrom),
+      to: toDisplayDate(uncommittedRangeTo),
+      min: toDisplayDate(minDate),
+      max: toDisplayDate(maxDate),
+    }),
+    [uncommittedRangeFrom, uncommittedRangeTo, minDate, maxDate]
+  );
 
   const rangeToStr = useMemo(() => {
     return rangeTo ? rangeTo.toISOString().split("T")[0] : "";
@@ -279,8 +301,8 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
               presets={["last7Days", "last30Days", "custom"]}
               value={dateRangePreset}
               onChange={onChangeDateRangePreset}
-              rangeFrom={rangeFrom}
-              rangeTo={rangeTo}
+              rangeFrom={displayRange.from}
+              rangeTo={displayRange.to}
               onOpenCustomDateRangeDialog={onOpenCustomDateRangeDialog}
             />
             {loading ? (
@@ -314,12 +336,12 @@ const AnalyticsScreenContent: React.VFC = function AnalyticsScreenContent() {
           "AuditLogScreen.date-range.start-date"
         )}
         toDatePickerLabel={renderToString("AuditLogScreen.date-range.end-date")}
-        rangeFrom={uncommittedRangeFrom ?? undefined}
-        rangeTo={uncommittedRangeTo ?? undefined}
-        fromDatePickerMinDate={minDate}
-        fromDatePickerMaxDate={maxDate}
-        toDatePickerMinDate={minDate}
-        toDatePickerMaxDate={maxDate}
+        rangeFrom={dialogRange.from}
+        rangeTo={dialogRange.to}
+        fromDatePickerMinDate={dialogRange.min}
+        fromDatePickerMaxDate={dialogRange.max}
+        toDatePickerMinDate={dialogRange.min}
+        toDatePickerMaxDate={dialogRange.max}
         onSelectRangeFrom={onSelectRangeFrom}
         onSelectRangeTo={onSelectRangeTo}
         onCommitDateRange={commitDateRange}
