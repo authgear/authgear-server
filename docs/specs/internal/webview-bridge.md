@@ -7,8 +7,8 @@
     + [bridge.capabilities](#bridgecapabilities)
     + [credentials.get](#credentialsget)
   * [Using the bridge in a page](#using-the-bridge-in-a-page)
+  * [Custom UI](#custom-ui)
   * [Adding a message type](#adding-a-message-type)
-  * [Future works](#future-works)
 
 # WebView bridge
 
@@ -27,7 +27,9 @@ Each message type has its own requirements, which may be stricter. An SDK provid
 
 ## Allowed pages
 
-The bridge is available only to the top-level page, never to a frame, and only to a page whose origin is the origin of the SDK's `endpoint`. Origins are compared exactly; a differing port is a differing origin.
+The bridge is available only to the top-level page, never to a frame, and only to a page whose origin is the origin of the SDK's `endpoint` or one of the UI implementation's `bridgeAllowedOrigins`. Origins are compared exactly; a differing port is a differing origin.
+
+`bridgeAllowedOrigins` is a list of URLs set by the app, empty by default. Only the scheme, host and port of each URL are used, so a Custom UI's `x_custom_ui_uri` can be listed as it is. An entry is ignored unless its scheme is `https`, or it is `http` with the host `localhost`. A listed page can use every message type, such as showing the passkey sheet inside the app, where the user is likely to trust it, so only origins the project controls should be listed.
 
 On Android, a page that isn't allowed (a frame, or a page on another origin, such as a social login provider's page) has no `window.authgearBridge`. On iOS, `window.webkit.messageHandlers.authgearBridge` exists on every page, and a message from a page that isn't allowed is rejected. A page treats a rejected message as no bridge.
 
@@ -207,20 +209,11 @@ Keep the page's usual behaviour, such as its passkey button: the bridge is an ad
 
 Do not offer passkey AutoFill (`mediation: "conditional"`) on a page that has the bridge. On iOS, AutoFill keeps a passkey request pending for the app, and the operating system allows one passkey request per app at a time, so the bridge's `credentials.get` would fail.
 
-## Adding a message type
+## Custom UI
 
-A new message type defines:
+A Custom UI shown in the SDK's WebView is on its own origin, so it has the bridge only when the app lists that origin in `bridgeAllowedOrigins`. Nothing else changes: a page written for the bridge works once its origin is listed.
 
-- its name, `<area>.<action>`, such as `credentials.get`;
-- its capabilities: the type itself, and a `<type>:<feature>` for each optional part a later SDK may add, added to the table in [Capabilities](#capabilities);
-- its requirements on each platform;
-- its fields, and any statuses beyond `ok`, `unsupported` and `error`.
-
-A later addition to an existing type, such as a new member of `credentials.get`, adds a field and a capability, and changes nothing that exists. Every SDK with its own WebView implements each type it lists.
-
-## Future works
-
-**Custom UI.** A Custom UI shown in the SDK's WebView is on its own origin, so it has no bridge. The UI implementation would get `bridgeAllowedOrigins`, a list of URLs set by the app, whose origins are allowed besides the endpoint's. Only the scheme, host and port of each URL would be used, so a Custom UI's `x_custom_ui_uri` can be listed as it is, and an entry would be ignored unless its scheme is `https`, or it is `http` with the host `localhost`. A listed page can use every message type, such as showing the passkey sheet inside the app, where the user is likely to trust it, so only origins the project controls should be listed. Adding it changes no message: a page written for the bridge works once its origin is listed.
+As in a browser, `credentials.get` accepts only an `rpId` that is the page's host or a parent domain of it. The `rpId` is the endpoint's domain, so the Custom UI must be on that domain or a subdomain of it, such as `ui.auth.example.com` for the endpoint `auth.example.com`.
 
 A Custom UI that offers a passkey of this device on its login page, with the helpers of [Using the bridge in a page](#using-the-bridge-in-a-page):
 
@@ -239,8 +232,8 @@ if (
     publicKey: option.request_options.publicKey, // As it is, still base64url.
   }).catch(() => null);
 
-  if (reply?.status === "ok" && reply.credential.type === "public-key") {
-    await fetch("/api/v1/authentication_flows/states/input", {
+  if (reply?.status === "ok" && reply.credential?.type === "public-key") {
+    await fetch(`${endpoint}/api/v1/authentication_flows/states/input`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -252,3 +245,14 @@ if (
   }
 }
 ```
+
+## Adding a message type
+
+A new message type defines:
+
+- its name, `<area>.<action>`, such as `credentials.get`;
+- its capabilities: the type itself, and a `<type>:<feature>` for each optional part a later SDK may add, added to the table in [Capabilities](#capabilities);
+- its requirements on each platform;
+- its fields, and any statuses beyond `ok`, `unsupported` and `error`.
+
+A later addition to an existing type, such as a new member of `credentials.get`, adds a field and a capability, and changes nothing that exists. Every SDK with its own WebView implements each type it lists.
